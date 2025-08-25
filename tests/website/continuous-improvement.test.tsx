@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 /**
  * Continuous Improvement Tests.
- * 
+ *
  * Tests to ensure the website demonstrates ongoing quality improvement,
  * measurement systems, and commitment to excellence.
  */
@@ -14,8 +14,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
  *
  * @param root0
  * @param root0.children
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -26,9 +26,7 @@ function TestProviders({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter>{children}</MemoryRouter>
     </QueryClientProvider>
   );
 }
@@ -39,7 +37,7 @@ describe('Continuous Improvement Tests', () => {
       // Test that the website shows evidence of quality processes
       const qualityIndicators = [
         'automatic updates',
-        'continuous monitoring', 
+        'continuous monitoring',
         'quality assurance',
         'regular improvements',
         'ongoing support',
@@ -53,7 +51,7 @@ describe('Continuous Improvement Tests', () => {
         improvements and system updates.
       `;
 
-      qualityIndicators.forEach(indicator => {
+      qualityIndicators.forEach((indicator) => {
         expect(mockContent.toLowerCase()).toContain(indicator.toLowerCase());
       });
     });
@@ -62,7 +60,7 @@ describe('Continuous Improvement Tests', () => {
       // Performance indicators that should be present
       const performanceIndicators = [
         'enterprise-grade security',
-        'automatic backups', 
+        'automatic backups',
         'system monitoring',
         'performance optimization',
         'uptime',
@@ -74,7 +72,7 @@ describe('Continuous Improvement Tests', () => {
         performance optimization for maximum uptime and reliability.
       `;
 
-      performanceIndicators.forEach(indicator => {
+      performanceIndicators.forEach((indicator) => {
         expect(mockContent.toLowerCase()).toContain(indicator.toLowerCase());
       });
     });
@@ -90,7 +88,7 @@ describe('Continuous Improvement Tests', () => {
         'ongoing development',
       ];
 
-      maintenanceCommitments.forEach(commitment => {
+      maintenanceCommitments.forEach((commitment) => {
         expect(typeof commitment).toBe('string');
         expect(commitment.length).toBeGreaterThan(0);
       });
@@ -100,12 +98,12 @@ describe('Continuous Improvement Tests', () => {
       const securityCommitments = [
         'security updates',
         'regular security patches',
-        'security monitoring', 
+        'security monitoring',
         'vulnerability management',
         'security maintenance',
       ];
 
-      securityCommitments.forEach(commitment => {
+      securityCommitments.forEach((commitment) => {
         expect(typeof commitment).toBe('string');
         expect(commitment.length).toBeGreaterThan(0);
       });
@@ -122,7 +120,7 @@ describe('Continuous Improvement Tests', () => {
         'improvement requests',
       ];
 
-      feedbackChannels.forEach(channel => {
+      feedbackChannels.forEach((channel) => {
         expect(typeof channel).toBe('string');
         expect(channel.length).toBeGreaterThan(0);
       });
@@ -137,7 +135,7 @@ describe('Continuous Improvement Tests', () => {
         'tailored solutions',
       ];
 
-      responsivenessIndicators.forEach(indicator => {
+      responsivenessIndicators.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -163,7 +161,7 @@ describe('Continuous Improvement Tests', () => {
         'built for Quebec',
       ];
 
-      appropriateInnovation.forEach(indicator => {
+      appropriateInnovation.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.toLowerCase()).not.toMatch(/revolutionary|groundbreaking|disruptive/);
       });
@@ -172,13 +170,13 @@ describe('Continuous Improvement Tests', () => {
     it('should demonstrate technical competence', () => {
       const technicalCompetence = [
         'cloud-based platform',
-        'secure architecture', 
+        'secure architecture',
         'enterprise-grade',
         'professional development',
         'quality engineering',
       ];
 
-      technicalCompetence.forEach(indicator => {
+      technicalCompetence.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -195,7 +193,7 @@ describe('Continuous Improvement Tests', () => {
         'legal compliance',
       ];
 
-      complianceCommitments.forEach(commitment => {
+      complianceCommitments.forEach((commitment) => {
         expect(typeof commitment).toBe('string');
         expect(commitment.toLowerCase()).not.toMatch(/guaranteed|certified/); // Unless actually certified
       });
@@ -210,7 +208,7 @@ describe('Continuous Improvement Tests', () => {
         'legal updates',
       ];
 
-      complianceMonitoring.forEach(activity => {
+      complianceMonitoring.forEach((activity) => {
         expect(typeof activity).toBe('string');
         expect(activity.length).toBeGreaterThan(0);
       });
@@ -223,12 +221,12 @@ describe('Continuous Improvement Tests', () => {
       const qualityProcesses = [
         'validation and quality assurance',
         'testing framework',
-        'security compliance', 
+        'security compliance',
         'documentation standards',
         'best practices',
       ];
 
-      qualityProcesses.forEach(process => {
+      qualityProcesses.forEach((process) => {
         expect(typeof process).toBe('string');
         expect(process.length).toBeGreaterThan(0);
       });
@@ -243,7 +241,7 @@ describe('Continuous Improvement Tests', () => {
         'security testing',
       ];
 
-      testingIndicators.forEach(indicator => {
+      testingIndicators.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -260,7 +258,7 @@ describe('Continuous Improvement Tests', () => {
         'response time optimization',
       ];
 
-      performanceCommitments.forEach(commitment => {
+      performanceCommitments.forEach((commitment) => {
         expect(typeof commitment).toBe('string');
         expect(commitment.length).toBeGreaterThan(0);
       });
@@ -275,7 +273,7 @@ describe('Continuous Improvement Tests', () => {
         'performance scalability',
       ];
 
-      scalabilityIndicators.forEach(indicator => {
+      scalabilityIndicators.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -292,7 +290,7 @@ describe('Continuous Improvement Tests', () => {
         'expert knowledge',
       ];
 
-      knowledgeManagement.forEach(item => {
+      knowledgeManagement.forEach((item) => {
         expect(typeof item).toBe('string');
         expect(item.length).toBeGreaterThan(0);
       });
@@ -307,7 +305,7 @@ describe('Continuous Improvement Tests', () => {
         'documentation maintenance',
       ];
 
-      documentationImprovement.forEach(improvement => {
+      documentationImprovement.forEach((improvement) => {
         expect(typeof improvement).toBe('string');
         expect(improvement.length).toBeGreaterThan(0);
       });
@@ -324,7 +322,7 @@ describe('Continuous Improvement Tests', () => {
         'local market expertise',
       ];
 
-      quebecMarketUnderstanding.forEach(understanding => {
+      quebecMarketUnderstanding.forEach((understanding) => {
         expect(typeof understanding).toBe('string');
         expect(understanding.length).toBeGreaterThan(0);
       });
@@ -339,7 +337,7 @@ describe('Continuous Improvement Tests', () => {
         'local compliance',
       ];
 
-      communityCommitment.forEach(commitment => {
+      communityCommitment.forEach((commitment) => {
         expect(typeof commitment).toBe('string');
         expect(commitment.length).toBeGreaterThan(0);
       });
@@ -356,7 +354,7 @@ describe('Continuous Improvement Tests', () => {
         'straightforward pricing',
       ];
 
-      transparencyIndicators.forEach(indicator => {
+      transparencyIndicators.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -371,7 +369,7 @@ describe('Continuous Improvement Tests', () => {
         'truthful marketing',
       ];
 
-      clearExpectations.forEach(expectation => {
+      clearExpectations.forEach((expectation) => {
         expect(typeof expectation).toBe('string');
         expect(expectation.length).toBeGreaterThan(0);
       });
@@ -388,7 +386,7 @@ describe('Continuous Improvement Tests', () => {
         'browser compatibility',
       ];
 
-      adaptabilityIndicators.forEach(indicator => {
+      adaptabilityIndicators.forEach((indicator) => {
         expect(typeof indicator).toBe('string');
         expect(indicator.length).toBeGreaterThan(0);
       });
@@ -403,7 +401,7 @@ describe('Continuous Improvement Tests', () => {
         'flexible infrastructure',
       ];
 
-      futureReadiness.forEach(aspect => {
+      futureReadiness.forEach((aspect) => {
         expect(typeof aspect).toBe('string');
         expect(aspect.length).toBeGreaterThan(0);
       });
@@ -422,7 +420,7 @@ export const IMPROVEMENT_METRICS = {
     'performance monitoring',
     'error tracking',
   ],
-  
+
   performance: [
     'response time optimization',
     'database query optimization',
@@ -430,7 +428,7 @@ export const IMPROVEMENT_METRICS = {
     'load balancing',
     'resource utilization',
   ],
-  
+
   security: [
     'security scanning',
     'vulnerability assessment',
@@ -438,7 +436,7 @@ export const IMPROVEMENT_METRICS = {
     'security updates',
     'access control reviews',
   ],
-  
+
   usability: [
     'user experience testing',
     'accessibility compliance',
@@ -446,7 +444,7 @@ export const IMPROVEMENT_METRICS = {
     'workflow optimization',
     'user feedback integration',
   ],
-  
+
   reliability: [
     'uptime monitoring',
     'error rate tracking',
@@ -467,18 +465,19 @@ export function validateContinuousImprovementEvidence(content: string): {
 } {
   const allIndicators = Object.values(IMPROVEMENT_METRICS).flat();
   const foundIndicators: string[] = [];
-  
-  allIndicators.forEach(indicator => {
+
+  allIndicators.forEach((indicator) => {
     if (content.toLowerCase().includes(indicator.toLowerCase())) {
       foundIndicators.push(indicator);
     }
   });
-  
-  const missingAreas = Object.keys(IMPROVEMENT_METRICS).filter(area => {
-    return !IMPROVEMENT_METRICS[area as keyof typeof IMPROVEMENT_METRICS]
-      .some(indicator => foundIndicators.includes(indicator));
+
+  const missingAreas = Object.keys(IMPROVEMENT_METRICS).filter((area) => {
+    return !IMPROVEMENT_METRICS[area as keyof typeof IMPROVEMENT_METRICS].some((indicator) =>
+      foundIndicators.includes(indicator)
+    );
   });
-  
+
   return {
     hasEvidence: foundIndicators.length > 0,
     foundIndicators,

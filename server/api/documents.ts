@@ -1,16 +1,16 @@
 import type { Express } from 'express';
 import { requireAuth, requireRole } from '../auth';
 import { storage } from '../storage';
-import { 
-  insertDocumentSchema, 
-  type Document, 
+import {
+  insertDocumentSchema,
+  type Document,
   type InsertDocument,
   insertDocumentBuildingSchema,
   type DocumentBuilding,
   type InsertDocumentBuilding,
   insertDocumentResidentSchema,
   type DocumentResident,
-  type InsertDocumentResident
+  type InsertDocumentResident,
 } from '../../shared/schemas/documents';
 import { ObjectStorageService, ObjectNotFoundError } from '../objectStorage';
 import { z } from 'zod';
@@ -20,16 +20,16 @@ const objectStorageService = new ObjectStorageService();
 
 // Document categories for validation
 const DOCUMENT_CATEGORIES = [
-  'bylaw', 
-  'financial', 
-  'maintenance', 
-  'legal', 
+  'bylaw',
+  'financial',
+  'maintenance',
+  'legal',
   'meeting_minutes',
   'insurance',
   'contracts',
   'permits',
   'inspection',
-  'other'
+  'other',
 ] as const;
 
 // Enhanced schemas for different document types
@@ -62,7 +62,6 @@ const createResidentDocumentSchema = insertDocumentResidentSchema.extend({
  * @returns Function result.
  */
 export function registerDocumentRoutes(app: Express): void {
-  
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
     try {
@@ -71,14 +70,14 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
-      
+
       // Get user's organization and residences for filtering
       const organizations = await storage.getUserOrganizations(userId);
       const userResidences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
-      
+
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      
+
       // If specific residence ID provided, filter to only that residence
       let residenceIds: string[];
       if (specificResidenceId) {
@@ -105,31 +104,33 @@ export function registerDocumentRoutes(app: Express): void {
         residenceIds = [specificResidenceId];
       } else {
         // Extract residence IDs from both simple and complex structures
-        residenceIds = userResidences.map((ur: unknown) => {
-          // Handle simple structure
-          if (ur.residenceId) {
-            return ur.residenceId;
-          }
-          // Handle complex nested structure
-          if (ur.userResidence?.residenceId) {
-            return ur.userResidence.residenceId;
-          }
-          // Handle residence nested structure
-          if (ur.residence?.id) {
-            return ur.residence.id;
-          }
-          return null;
-        }).filter((id: unknown) => id !== null);
+        residenceIds = userResidences
+          .map((ur: unknown) => {
+            // Handle simple structure
+            if (ur.residenceId) {
+              return ur.residenceId;
+            }
+            // Handle complex nested structure
+            if (ur.userResidence?.residenceId) {
+              return ur.userResidence.residenceId;
+            }
+            // Handle residence nested structure
+            if (ur.residence?.id) {
+              return ur.residence.id;
+            }
+            return null;
+          })
+          .filter((id: unknown) => id !== null);
       }
-      
-      const buildingIds = buildings.map(b => b.id);
-      
+
+      const buildingIds = buildings.map((b) => b.id);
+
       const allDocuments: unknown[] = [];
-      
+
       // Fetch documents based on type parameter
       // Check if storage supports new document methods
       const hasNewDocumentMethods = 'getBuildingDocumentsForUser' in storage;
-      
+
       if (hasNewDocumentMethods) {
         if (!documentType || documentType === 'building') {
           const buildingDocs = await (storage as any).getBuildingDocumentsForUser(
@@ -139,15 +140,15 @@ export function registerDocumentRoutes(app: Express): void {
             buildingIds
           );
           // Add document type indicator for frontend
-          const enhancedBuildingDocs = buildingDocs.map((doc: unknown) => ({ 
-            ...doc, 
+          const enhancedBuildingDocs = buildingDocs.map((doc: unknown) => ({
+            ...doc,
             documentCategory: 'building',
             entityType: 'building',
-            entityId: doc.buildingId 
+            entityId: doc.buildingId,
           }));
           allDocuments.push(...enhancedBuildingDocs);
         }
-        
+
         if (!documentType || documentType === 'resident') {
           const residentDocs = await (storage as any).getResidentDocumentsForUser(
             userId,
@@ -156,16 +157,16 @@ export function registerDocumentRoutes(app: Express): void {
             residenceIds
           );
           // Add document type indicator for frontend
-          const enhancedResidentDocs = residentDocs.map((doc: unknown) => ({ 
-            ...doc, 
+          const enhancedResidentDocs = residentDocs.map((doc: unknown) => ({
+            ...doc,
             documentCategory: 'resident',
             entityType: 'residence',
-            entityId: doc.residenceId 
+            entityId: doc.residenceId,
           }));
           allDocuments.push(...enhancedResidentDocs);
         }
       }
-      
+
       // If no specific type requested, also include legacy documents during transition
       if (!documentType) {
         try {
@@ -175,11 +176,11 @@ export function registerDocumentRoutes(app: Express): void {
             organizationId,
             residenceIds
           );
-          const enhancedLegacyDocs = legacyDocs.map(doc => ({ 
-            ...doc, 
+          const enhancedLegacyDocs = legacyDocs.map((doc) => ({
+            ...doc,
             documentCategory: 'legacy',
             entityType: 'legacy',
-            entityId: null 
+            entityId: null,
           }));
           allDocuments.push(...enhancedLegacyDocs);
         } catch (_error) {
@@ -187,16 +188,18 @@ export function registerDocumentRoutes(app: Express): void {
           console.warn('Legacy documents table not accessible, skipping');
         }
       }
-      
+
       // Sort by upload date, most recent first
-      allDocuments.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
-      
+      allDocuments.sort(
+        (a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+      );
+
       res.json({
         documents: allDocuments,
         total: allDocuments.length,
-        buildingCount: allDocuments.filter(d => d.documentCategory === 'building').length,
-        residentCount: allDocuments.filter(d => d.documentCategory === 'resident').length,
-        legacyCount: allDocuments.filter(d => d.documentCategory === 'legacy').length
+        buildingCount: allDocuments.filter((d) => d.documentCategory === 'building').length,
+        residentCount: allDocuments.filter((d) => d.documentCategory === 'resident').length,
+        legacyCount: allDocuments.filter((d) => d.documentCategory === 'legacy').length,
       });
     } catch (_error) {
       console.error('Error fetching documents:', _error);
@@ -212,21 +215,21 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       const documentType = req.query.type as string; // Optional type hint
-      
+
       // Get user's organization and residences for filtering
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
-      
+
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map(ur => ur.residenceId);
-      const buildingIds = buildings.map(b => b.id);
-      
+      const residenceIds = residences.map((ur) => ur.residenceId);
+      const buildingIds = buildings.map((b) => b.id);
+
       let document: unknown = null;
-      
+
       // Try to find the document in the appropriate table(s)
       const hasNewDocumentMethods = 'getBuildingDocument' in storage;
-      
+
       if (hasNewDocumentMethods) {
         if (!documentType || documentType === 'building') {
           try {
@@ -246,7 +249,7 @@ export function registerDocumentRoutes(app: Express): void {
             console.warn('Building document not found, continuing search');
           }
         }
-        
+
         if (!document && (!documentType || documentType === 'resident')) {
           try {
             document = await (storage as any).getResidentDocument(
@@ -266,7 +269,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
       }
-      
+
       // Fallback to legacy documents if not found and no type specified
       if (!document && !documentType) {
         try {
@@ -286,11 +289,11 @@ export function registerDocumentRoutes(app: Express): void {
           console.warn('Legacy document not accessible');
         }
       }
-      
+
       if (!document) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
+
       res.json(document);
     } catch (_error) {
       console.error('Error fetching document:', _error);
@@ -305,12 +308,12 @@ export function registerDocumentRoutes(app: Express): void {
       const userRole = user.role;
       const userId = user.id;
       const { documentType, buildingId, residenceId, ...otherData } = req.body;
-      
+
       // Validate permissions - only admin, manager, and resident can create documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
-      
+
       // Determine document type based on buildingId/residenceId if not explicitly provided
       let finalDocumentType = documentType;
       if (!finalDocumentType) {
@@ -319,116 +322,128 @@ export function registerDocumentRoutes(app: Express): void {
         } else if (residenceId && !buildingId) {
           finalDocumentType = 'resident';
         } else if (buildingId && residenceId) {
-          return res.status(400).json({ 
-            message: 'Please specify documentType when providing both buildingId and residenceId' 
+          return res.status(400).json({
+            message: 'Please specify documentType when providing both buildingId and residenceId',
           });
         } else {
-          return res.status(400).json({ 
-            message: 'Must provide either buildingId (for building documents) or residenceId (for resident documents)' 
+          return res.status(400).json({
+            message:
+              'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
           });
         }
       }
-      
+
       if (finalDocumentType === 'building') {
         // Validate and create building document
         if (!buildingId) {
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
-        
+
         const validatedData = createBuildingDocumentSchema.parse({
           ...otherData,
           buildingId,
           uploadedBy: userId,
         });
-        
+
         // Permission checks for building documents
         if (userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const organizationId =
+            organizations.length > 0 ? organizations[0].organizationId : undefined;
           const building = await storage.getBuilding(buildingId);
           if (!building || building.organizationId !== organizationId) {
-            return res.status(403).json({ message: 'Cannot assign document to building outside your organization' });
+            return res
+              .status(403)
+              .json({ message: 'Cannot assign document to building outside your organization' });
           }
         }
-        
+
         if (userRole === 'resident') {
           const residences = await storage.getUserResidences(userId);
-          const hasResidenceInBuilding = await Promise.all(residences.map(async ur => {
-            const residence = await storage.getResidence(ur.residenceId);
-            return residence && residence.buildingId === buildingId;
-          }));
-          
+          const hasResidenceInBuilding = await Promise.all(
+            residences.map(async (ur) => {
+              const residence = await storage.getResidence(ur.residenceId);
+              return residence && residence.buildingId === buildingId;
+            })
+          );
+
           if (!hasResidenceInBuilding.some(Boolean)) {
-            return res.status(403).json({ message: 'Cannot assign document to building where you have no residence' });
+            return res
+              .status(403)
+              .json({ message: 'Cannot assign document to building where you have no residence' });
           }
         }
-        
+
         const document = await (storage as any).createBuildingDocument(validatedData);
-        res.status(201).json({ 
-          ...document, 
+        res.status(201).json({
+          ...document,
           documentCategory: 'building',
           entityType: 'building',
-          entityId: document.buildingId 
+          entityId: document.buildingId,
         });
-        
       } else if (finalDocumentType === 'resident') {
         // Validate and create resident document
         if (!residenceId) {
-          return res.status(400).json({ message: 'residenceId is required for resident documents' });
+          return res
+            .status(400)
+            .json({ message: 'residenceId is required for resident documents' });
         }
-        
+
         const validatedData = createResidentDocumentSchema.parse({
           ...otherData,
           residenceId,
           uploadedBy: userId,
         });
-        
+
         // Permission checks for resident documents
         if (userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const organizationId =
+            organizations.length > 0 ? organizations[0].organizationId : undefined;
           const residence = await storage.getResidence(residenceId);
           if (residence) {
             const building = await storage.getBuilding(residence.buildingId);
             if (!building || building.organizationId !== organizationId) {
-              return res.status(403).json({ message: 'Cannot assign document to residence outside your organization' });
+              return res
+                .status(403)
+                .json({ message: 'Cannot assign document to residence outside your organization' });
             }
           } else {
             return res.status(404).json({ message: 'Residence not found' });
           }
         }
-        
+
         if (userRole === 'resident') {
           const residences = await storage.getUserResidences(userId);
-          const residenceIds = residences.map(ur => ur.residenceId);
-          
+          const residenceIds = residences.map((ur) => ur.residenceId);
+
           if (!residenceIds.includes(residenceId)) {
-            return res.status(403).json({ message: 'Cannot assign document to residence you do not own' });
+            return res
+              .status(403)
+              .json({ message: 'Cannot assign document to residence you do not own' });
           }
         }
-        
+
         const document = await (storage as any).createResidentDocument(validatedData);
-        res.status(201).json({ 
-          ...document, 
+        res.status(201).json({
+          ...document,
           documentCategory: 'resident',
           entityType: 'residence',
-          entityId: document.residenceId 
+          entityId: document.residenceId,
         });
-        
       } else {
-        return res.status(400).json({ 
-          message: 'Invalid documentType. Must be either \"building\" or \"resident\"' 
+        return res.status(400).json({
+          message: 'Invalid documentType. Must be either \"building\" or \"resident\"',
         });
       }
-      
     } catch (_error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: 'Invalid document data', 
-          errors: error.issues 
+        return res.status(400).json({
+          message: 'Invalid document data',
+          errors: error.issues,
         });
       }
-      
+
       console.error('Error creating document:', _error);
       res.status(500).json({ message: 'Failed to create document' });
     }
@@ -442,21 +457,21 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       const documentType = req.query.type as string; // Optional type hint
-      
+
       // Get user's organization for permission checking
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
-      
+
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map(ur => ur.residenceId);
-      const buildingIds = buildings.map(b => b.id);
-      
+      const residenceIds = residences.map((ur) => ur.residenceId);
+      const buildingIds = buildings.map((b) => b.id);
+
       let updatedDocument: unknown = null;
-      
+
       // Try to update the document in the appropriate table(s)
       const hasNewDocumentMethods = 'updateBuildingDocument' in storage;
-      
+
       if (hasNewDocumentMethods) {
         if (!documentType || documentType === 'building') {
           try {
@@ -477,7 +492,7 @@ export function registerDocumentRoutes(app: Express): void {
             console.warn('Building document not found for update, trying resident documents');
           }
         }
-        
+
         if (!updatedDocument && (!documentType || documentType === 'resident')) {
           try {
             const validatedData = createResidentDocumentSchema.partial().parse(req.body);
@@ -498,7 +513,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
       }
-      
+
       // Fallback to legacy documents if not found and no type specified
       if (!updatedDocument && !documentType) {
         try {
@@ -519,20 +534,20 @@ export function registerDocumentRoutes(app: Express): void {
           console.warn('Legacy document not accessible for update');
         }
       }
-      
+
       if (!updatedDocument) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
+
       res.json(updatedDocument);
     } catch (_error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: 'Invalid document data', 
-          errors: error.issues 
+        return res.status(400).json({
+          message: 'Invalid document data',
+          errors: error.issues,
         });
       }
-      
+
       console.error('Error updating document:', _error);
       res.status(500).json({ message: 'Failed to update document' });
     }
@@ -546,16 +561,16 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       const documentType = req.query.type as string; // Optional type hint
-      
+
       // Get user's organization for permission checking
       const organizations = await storage.getUserOrganizations(userId);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      
+
       let deleted = false;
-      
+
       // Try to delete the document from the appropriate table(s)
       const hasNewDocumentMethods = 'deleteBuildingDocument' in storage;
-      
+
       if (hasNewDocumentMethods) {
         if (!documentType || documentType === 'building') {
           try {
@@ -569,7 +584,7 @@ export function registerDocumentRoutes(app: Express): void {
             console.warn('Building document not found for deletion, trying resident documents');
           }
         }
-        
+
         if (!deleted && (!documentType || documentType === 'resident')) {
           try {
             deleted = await (storage as any).deleteResidentDocument(
@@ -583,25 +598,20 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
       }
-      
+
       // Fallback to legacy documents if not found and no type specified
       if (!deleted && !documentType) {
         try {
-          deleted = await storage.deleteDocument(
-            documentId,
-            userId,
-            userRole,
-            organizationId
-          );
+          deleted = await storage.deleteDocument(documentId, userId, userRole, organizationId);
         } catch (_error) {
           console.warn('Legacy document not accessible for deletion');
         }
       }
-      
+
       if (!deleted) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
+
       res.status(204).send();
     } catch (_error) {
       console.error('Error deleting document:', _error);
@@ -614,7 +624,7 @@ export function registerDocumentRoutes(app: Express): void {
     try {
       const user = req.user;
       const userRole = user.role;
-      
+
       // Only admin, manager, and resident can upload documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
         return res.status(403).json({ message: 'Insufficient permissions to upload documents' });
@@ -633,18 +643,22 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (documentType === 'residence' && (!buildingId || !residenceId)) {
-        return res.status(400).json({ message: 'Building ID and Residence ID are required for residence documents' });
+        return res
+          .status(400)
+          .json({ message: 'Building ID and Residence ID are required for residence documents' });
       }
 
       if (!['building', 'residence'].includes(documentType)) {
-        return res.status(400).json({ message: 'Document type must be either "building" or "residence"' });
+        return res
+          .status(400)
+          .json({ message: 'Document type must be either "building" or "residence"' });
       }
-      
+
       const uploadURL = await objectStorageService.getObjectEntityUploadURL({
         organizationId,
         buildingId,
         residenceId,
-        documentType: documentType as 'building' | 'residence'
+        documentType: documentType as 'building' | 'residence',
       });
       res.json({ uploadURL });
     } catch (_error) {
@@ -661,26 +675,26 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       const { fileUrl, fileName, fileSize, mimeType } = req.body;
-      
+
       // Validate required fields
       if (!fileUrl) {
         return res.status(400).json({ message: 'fileUrl is required' });
       }
-      
+
       // Get user's organization for permission checking
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map(ur => ur.residenceId);
-      
+      const residenceIds = residences.map((ur) => ur.residenceId);
+
       // Normalize the object storage path
       const normalizedPath = objectStorageService.normalizeObjectEntityPath(fileUrl);
-      
+
       let updatedDocument: unknown = null;
-      
+
       // Try to update in building documents first
       const hasNewDocumentMethods = 'updateBuildingDocument' in storage;
-      
+
       if (hasNewDocumentMethods) {
         try {
           updatedDocument = await (storage as any).updateBuildingDocument(
@@ -698,7 +712,7 @@ export function registerDocumentRoutes(app: Express): void {
         } catch (_error) {
           console.warn('Document not found in building documents, trying resident documents');
         }
-        
+
         // If not found in building documents, try resident documents
         if (!updatedDocument) {
           try {
@@ -719,7 +733,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
       }
-      
+
       // Fallback to legacy documents if not found
       if (!updatedDocument) {
         try {
@@ -739,14 +753,14 @@ export function registerDocumentRoutes(app: Express): void {
           console.warn('Document not accessible for update');
         }
       }
-      
+
       if (!updatedDocument) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
-      res.json({ 
+
+      res.json({
         message: 'Document file updated successfully',
-        document: updatedDocument 
+        document: updatedDocument,
       });
     } catch (_error) {
       console.error('Error updating document file:', _error);
@@ -761,23 +775,23 @@ export function registerDocumentRoutes(app: Express): void {
       const userRole = user.role;
       const userId = user.id;
       const documentId = req.params.id;
-      
+
       // Check if user is from Open Demo organization (view-only restriction)
       const { isOpenDemoUser } = await import('../rbac');
       if (await isOpenDemoUser(userId)) {
-        return res.status(403).json({ 
-          message: 'Document downloads are not available in demo mode', 
-          code: 'DEMO_DOWNLOAD_RESTRICTED' 
+        return res.status(403).json({
+          message: 'Document downloads are not available in demo mode',
+          code: 'DEMO_DOWNLOAD_RESTRICTED',
         });
       }
-      
+
       // Get user's organization and residences for filtering
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
-      
+
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map(ur => ur.residenceId);
-      
+      const residenceIds = residences.map((ur) => ur.residenceId);
+
       // Check if user has access to this document
       const document = await storage.getDocument(
         documentId,
@@ -786,11 +800,11 @@ export function registerDocumentRoutes(app: Express): void {
         organizationId,
         residenceIds
       );
-      
+
       if (!document) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
+
       try {
         // Get the file from object storage
         const fileUrl = (document as any).fileUrl;
@@ -819,18 +833,18 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
       const { fileUrl, fileName, fileSize, mimeType } = req.body;
-      
+
       if (!fileUrl) {
         return res.status(400).json({ message: 'fileUrl is required' });
       }
-      
+
       // Get user's organization for permission checking
       const organizations = await storage.getUserOrganizations(userId);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      
+
       // Normalize the object storage path
       const normalizedPath = objectStorageService.normalizeObjectEntityPath(fileUrl);
-      
+
       const updatedDocument = await storage.updateDocument(
         documentId,
         {
@@ -843,14 +857,14 @@ export function registerDocumentRoutes(app: Express): void {
         userRole,
         organizationId
       );
-      
+
       if (!updatedDocument) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
-      
-      res.json({ 
+
+      res.json({
         message: 'Document file updated successfully',
-        document: updatedDocument 
+        document: updatedDocument,
       });
     } catch (_error) {
       console.error('Error updating document file:', _error);

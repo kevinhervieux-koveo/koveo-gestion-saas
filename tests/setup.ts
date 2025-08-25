@@ -7,7 +7,8 @@ import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers'
 
 declare global {
   namespace jest {
-    interface Matchers<R = void> extends TestingLibraryMatchers<typeof expect.stringContaining, R> {}
+    interface Matchers<R = void>
+      extends TestingLibraryMatchers<typeof expect.stringContaining, R> {}
   }
 }
 
@@ -32,7 +33,7 @@ try {
 } catch (_error) {
   try {
     // Fallback for ES module environment
-    import('./mocks/server.js').then(module => {
+    import('./mocks/server.js').then((module) => {
       server = module.server;
     });
   } catch (___fallbackError) {
@@ -91,9 +92,9 @@ Object.defineProperty(global, 'performance', {
     mark: () => {},
     measure: () => {},
     getEntriesByName: () => [],
-    getEntriesByType: () => []
+    getEntriesByType: () => [],
   },
-  writable: true
+  writable: true,
 });
 
 // Mock DOM APIs that may be missing in test environment
@@ -108,7 +109,7 @@ Object.defineProperty(global, 'File', {
       this.type = options?.type || '';
     }
   },
-  writable: true
+  writable: true,
 });
 
 Object.defineProperty(global, 'FormData', {
@@ -121,7 +122,7 @@ Object.defineProperty(global, 'FormData', {
       return this.data.get(name);
     }
   },
-  writable: true
+  writable: true,
 });
 
 // Mock Node and Element for DOM testing
@@ -129,9 +130,9 @@ Object.defineProperty(global, 'Node', {
   value: {
     ELEMENT_NODE: 1,
     TEXT_NODE: 3,
-    COMMENT_NODE: 8
+    COMMENT_NODE: 8,
   },
-  writable: true
+  writable: true,
 });
 
 Object.defineProperty(global, 'Element', {
@@ -139,7 +140,7 @@ Object.defineProperty(global, 'Element', {
     tagName: string = '';
     nodeType: number = 1;
   },
-  writable: true
+  writable: true,
 });
 
 // Global error handling for tests

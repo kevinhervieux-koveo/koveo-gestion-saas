@@ -303,7 +303,7 @@ describe('Dashboard Fullscreen Integration', () => {
       );
 
       const fullscreenButton = screen.getByTestId('button-fullscreen-toggle');
-      
+
       // Simulate touch interaction
       fireEvent.touchStart(fullscreenButton);
       fireEvent.click(fullscreenButton);
@@ -330,7 +330,7 @@ describe('Dashboard Fullscreen Integration', () => {
       );
 
       const fullscreenButton = screen.getByTestId('button-fullscreen-toggle');
-      
+
       // Test keyboard navigation
       fullscreenButton.focus();
       fireEvent.keyDown(fullscreenButton, { _key: 'Enter' });
@@ -379,7 +379,7 @@ describe('Dashboard Fullscreen Integration', () => {
     it('supports different fullscreen API prefixes', () => {
       // Mock webkit fullscreen API
       (document.documentElement as any).webkitRequestFullscreen = jest.fn();
-      
+
       render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>

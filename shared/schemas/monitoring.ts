@@ -270,7 +270,9 @@ export const insertQualityIssueSchema = z.object({
 /**
  *
  */
-export type InsertMetricEffectivenessTracking = z.infer<typeof insertMetricEffectivenessTrackingSchema>;
+export type InsertMetricEffectivenessTracking = z.infer<
+  typeof insertMetricEffectivenessTrackingSchema
+>;
 /**
  *
  */

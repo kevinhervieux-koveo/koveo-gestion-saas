@@ -7,24 +7,24 @@ const mockQueryBuilder: any = {
   innerJoin: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
   orderBy: jest.fn().mockReturnThis(),
-  values: jest.fn().mockReturnThis()
+  values: jest.fn().mockReturnThis(),
 };
 
 const mockDb: any = {
   select: jest.fn().mockReturnValue(mockQueryBuilder),
   insert: jest.fn().mockReturnValue(mockQueryBuilder),
   delete: jest.fn().mockReturnValue(mockQueryBuilder),
-  update: jest.fn().mockReturnValue(mockQueryBuilder)
+  update: jest.fn().mockReturnValue(mockQueryBuilder),
 };
 
-Object.keys(mockQueryBuilder).forEach(method => {
+Object.keys(mockQueryBuilder).forEach((method) => {
   if (!mockDb[method]) {
     (mockDb as any)[method] = jest.fn().mockReturnValue(mockQueryBuilder);
   }
 });
 
 jest.mock('../../server/db', () => ({
-  db: mockDb
+  db: mockDb,
 }));
 
 // Import the service AFTER mocking the database
@@ -38,7 +38,7 @@ describe('Money Flow Residence Integration Tests', () => {
     service = new MoneyFlowAutomationService();
     mockSystemUser = { id: 'system-user-123' };
     jest.clearAllMocks();
-    
+
     // Default mock for system user
     mockQueryBuilder.limit.mockResolvedValue([mockSystemUser] as any);
   });
@@ -56,13 +56,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '1500.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         {
           residence: {
@@ -70,14 +70,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '102',
             monthlyFees: '1200.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       // Mock database responses
@@ -96,11 +96,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       const result = await service.generateFutureMoneyFlowEntries();
@@ -117,13 +117,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '0.00', // Zero fees
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         {
           residence: {
@@ -131,14 +131,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '102',
             monthlyFees: '1500.00', // Valid fees
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -156,11 +156,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       await service.generateFutureMoneyFlowEntries();
@@ -178,13 +178,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '1500.00',
-            isActive: false // Inactive
+            isActive: false, // Inactive
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         {
           residence: {
@@ -192,14 +192,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '102',
             monthlyFees: '1200.00',
-            isActive: true // Active
+            isActive: true, // Active
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -217,11 +217,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       await service.generateFutureMoneyFlowEntries();
@@ -238,13 +238,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '1500.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Inactive Building',
-            isActive: false // Building is inactive
-          }
+            isActive: false, // Building is inactive
+          },
         },
         {
           residence: {
@@ -252,14 +252,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-2',
             unitNumber: '201',
             monthlyFees: '1200.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-2',
             name: 'Active Building',
-            isActive: true // Building is active
-          }
-        }
+            isActive: true, // Building is active
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -277,11 +277,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       await service.generateFutureMoneyFlowEntries();
@@ -295,7 +295,7 @@ describe('Money Flow Residence Integration Tests', () => {
     it('should generate entries starting from next month', () => {
       const today = new Date('2024-01-15'); // Mid-January
       const firstEntryDate = new Date(today);
-      
+
       // Set to first day of next month
       firstEntryDate.setDate(1);
       if (firstEntryDate <= today) {
@@ -308,10 +308,10 @@ describe('Money Flow Residence Integration Tests', () => {
     it('should generate correct reference numbers', () => {
       const residence = {
         unitNumber: '101',
-        id: 'residence-123'
+        id: 'residence-123',
       };
       const date = new Date('2024-02-01');
-      
+
       const expectedReference = `MONTHLY-${residence.unitNumber}-${date.toISOString().slice(0, 7)}`;
       expect(expectedReference).toBe('MONTHLY-101-2024-02');
     });
@@ -320,14 +320,14 @@ describe('Money Flow Residence Integration Tests', () => {
       const startDate = new Date();
       const endDate = new Date();
       endDate.setFullYear(startDate.getFullYear() + 25);
-      
+
       let monthCount = 0;
       const currentDate = new Date(startDate);
       currentDate.setDate(1); // First of month
       if (currentDate <= startDate) {
         currentDate.setMonth(currentDate.getMonth() + 1);
       }
-      
+
       while (currentDate <= endDate) {
         monthCount++;
         currentDate.setMonth(currentDate.getMonth() + 1);
@@ -342,7 +342,7 @@ describe('Money Flow Residence Integration Tests', () => {
       const dates = [
         { start: new Date('2024-01-31'), expected: '2024-03-02' }, // Jan 31 + 1 month = Mar 2 (Feb 29 in leap year)
         { start: new Date('2024-03-31'), expected: '2024-05-01' }, // Mar 31 + 1 month = May 1 (Apr 30)
-        { start: new Date('2024-05-31'), expected: '2024-07-01' } // May 31 + 1 month = July 1 (Jun 30)
+        { start: new Date('2024-05-31'), expected: '2024-07-01' }, // May 31 + 1 month = July 1 (Jun 30)
       ];
 
       dates.forEach(({ start, expected }) => {
@@ -360,7 +360,7 @@ describe('Money Flow Residence Integration Tests', () => {
         buildingId: 'building-456',
         unitNumber: '101',
         monthlyFees: '1500.00',
-        isActive: true
+        isActive: true,
       };
 
       const systemUser = { id: 'system-user-789' };
@@ -378,7 +378,7 @@ describe('Money Flow Residence Integration Tests', () => {
         transactionDate: entryDate,
         referenceNumber: `MONTHLY-${residence.unitNumber}-${entryDate.slice(0, 7)}`,
         notes: `Auto-generated monthly fee for unit ${residence.unitNumber}`,
-        createdBy: systemUser.id
+        createdBy: systemUser.id,
       };
 
       // Verify entry structure
@@ -393,7 +393,7 @@ describe('Money Flow Residence Integration Tests', () => {
       const testCases = [
         { unit: '101', date: '2024-01-01', expected: 'MONTHLY-101-2024-01' },
         { unit: '2A', date: '2024-12-01', expected: 'MONTHLY-2A-2024-12' },
-        { unit: 'PH1', date: '2024-06-01', expected: 'MONTHLY-PH1-2024-06' }
+        { unit: 'PH1', date: '2024-06-01', expected: 'MONTHLY-PH1-2024-06' },
       ];
 
       testCases.forEach(({ unit, date, expected }) => {
@@ -411,14 +411,14 @@ describe('Money Flow Residence Integration Tests', () => {
           id: `residence-${i + 1}`,
           buildingId: 'building-large',
           unitNumber: `${Math.floor(i / 10) + 1}${String.fromCharCode(65 + (i % 10))}`,
-          monthlyFees: `${1000 + (i * 50)}.00`,
-          isActive: true
+          monthlyFees: `${1000 + i * 50}.00`,
+          isActive: true,
         },
         building: {
           id: 'building-large',
           name: 'Large Apartment Complex',
-          isActive: true
-        }
+          isActive: true,
+        },
       }));
 
       mockDb.select.mockImplementation(() => {
@@ -436,11 +436,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       const startTime = Date.now();
@@ -454,18 +454,72 @@ describe('Money Flow Residence Integration Tests', () => {
     it('should handle residences with various fee amounts', async () => {
       const mockResidences = [
         // Studio apartments
-        { residence: { id: 'r1', buildingId: 'b1', unitNumber: '101', monthlyFees: '800.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } },
-        { residence: { id: 'r2', buildingId: 'b1', unitNumber: '102', monthlyFees: '850.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } },
-        
+        {
+          residence: {
+            id: 'r1',
+            buildingId: 'b1',
+            unitNumber: '101',
+            monthlyFees: '800.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
+        {
+          residence: {
+            id: 'r2',
+            buildingId: 'b1',
+            unitNumber: '102',
+            monthlyFees: '850.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
+
         // One bedroom
-        { residence: { id: 'r3', buildingId: 'b1', unitNumber: '201', monthlyFees: '1200.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } },
-        { residence: { id: 'r4', buildingId: 'b1', unitNumber: '202', monthlyFees: '1250.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } },
-        
+        {
+          residence: {
+            id: 'r3',
+            buildingId: 'b1',
+            unitNumber: '201',
+            monthlyFees: '1200.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
+        {
+          residence: {
+            id: 'r4',
+            buildingId: 'b1',
+            unitNumber: '202',
+            monthlyFees: '1250.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
+
         // Two bedroom
-        { residence: { id: 'r5', buildingId: 'b1', unitNumber: '301', monthlyFees: '1800.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } },
-        
+        {
+          residence: {
+            id: 'r5',
+            buildingId: 'b1',
+            unitNumber: '301',
+            monthlyFees: '1800.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
+
         // Penthouse
-        { residence: { id: 'r6', buildingId: 'b1', unitNumber: 'PH1', monthlyFees: '3500.00', isActive: true }, building: { id: 'b1', name: 'Building', isActive: true } }
+        {
+          residence: {
+            id: 'r6',
+            buildingId: 'b1',
+            unitNumber: 'PH1',
+            monthlyFees: '3500.00',
+            isActive: true,
+          },
+          building: { id: 'b1', name: 'Building', isActive: true },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -483,11 +537,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       const result = await service.generateFutureMoneyFlowEntries();
@@ -504,13 +558,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: null, // Invalid fees
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         {
           residence: {
@@ -518,13 +572,13 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '102',
             monthlyFees: 'invalid', // Invalid format
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         {
           residence: {
@@ -532,14 +586,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '103',
             monthlyFees: '1500.00', // Valid fees
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -557,11 +611,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       // Should not throw error, but should only process valid residences
@@ -576,14 +630,14 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '', // Empty unit number
             monthlyFees: '1500.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -601,11 +655,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       // Should handle gracefully, possibly using residence ID as fallback
@@ -619,7 +673,7 @@ describe('Money Flow Residence Integration Tests', () => {
       const cleanupDate = new Date();
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({ rowCount: 25 } as any) // 25 entries deleted
+        where: jest.fn().mockResolvedValue({ rowCount: 25 } as any), // 25 entries deleted
       });
 
       // Test the cleanup function indirectly through the service
@@ -631,7 +685,7 @@ describe('Money Flow Residence Integration Tests', () => {
 
     it('should handle cleanup when no existing entries exist', async () => {
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({ rowCount: 0 } as any) // No entries to delete
+        where: jest.fn().mockResolvedValue({ rowCount: 0 } as any), // No entries to delete
       });
 
       mockDb.select.mockImplementation(() => {
@@ -656,16 +710,16 @@ describe('Money Flow Residence Integration Tests', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '1500.00',
-            isActive: true
+            isActive: true,
           },
           building: {
             id: 'building-1',
             name: 'Luxury Apartments',
             address: '123 Main St',
             city: 'Downtown',
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -683,11 +737,11 @@ describe('Money Flow Residence Integration Tests', () => {
       });
 
       mockDb.insert.mockReturnValue({
-        values: jest.fn().mockResolvedValue({} as any)
+        values: jest.fn().mockResolvedValue({} as any),
       });
 
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({} as any)
+        where: jest.fn().mockResolvedValue({} as any),
       });
 
       await service.generateFutureMoneyFlowEntries();

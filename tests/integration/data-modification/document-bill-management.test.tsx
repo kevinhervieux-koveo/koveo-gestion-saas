@@ -15,7 +15,7 @@ const MockDocumentUploadForm = ({ onSuccess }: any) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    
+
     try {
       await mockApiRequest('POST', '/api/documents', formData);
       onSuccess?.();
@@ -25,52 +25,43 @@ const MockDocumentUploadForm = ({ onSuccess }: any) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="document-upload-form">
-      <input 
-        type="file" 
-        name="file" 
-        accept=".pdf,.doc,.docx,.jpg,.png"
-        data-testid="input-document-file"
+    <form onSubmit={handleSubmit} data-testid='document-upload-form'>
+      <input
+        type='file'
+        name='file'
+        accept='.pdf,.doc,.docx,.jpg,.png'
+        data-testid='input-document-file'
         required
       />
-      <input 
-        name="name" 
-        placeholder="Document Name" 
-        data-testid="input-document-name"
-        required
+      <input name='name' placeholder='Document Name' data-testid='input-document-name' required />
+      <textarea
+        name='description'
+        placeholder='Description'
+        data-testid='textarea-document-description'
       />
-      <textarea 
-        name="description" 
-        placeholder="Description" 
-        data-testid="textarea-document-description"
-      />
-      <select name="category" data-testid="select-document-category" required>
-        <option value="">Select Category</option>
-        <option value="financial">Financial</option>
-        <option value="legal">Legal</option>
-        <option value="maintenance">Maintenance</option>
-        <option value="insurance">Insurance</option>
-        <option value="other">Other</option>
+      <select name='category' data-testid='select-document-category' required>
+        <option value=''>Select Category</option>
+        <option value='financial'>Financial</option>
+        <option value='legal'>Legal</option>
+        <option value='maintenance'>Maintenance</option>
+        <option value='insurance'>Insurance</option>
+        <option value='other'>Other</option>
       </select>
-      <select name="buildingId" data-testid="select-building-id">
-        <option value="">Building Level</option>
-        <option value="building-1">Building 1</option>
-        <option value="building-2">Building 2</option>
+      <select name='buildingId' data-testid='select-building-id'>
+        <option value=''>Building Level</option>
+        <option value='building-1'>Building 1</option>
+        <option value='building-2'>Building 2</option>
       </select>
-      <select name="residenceId" data-testid="select-residence-id">
-        <option value="">Residence Level</option>
-        <option value="residence-1">Unit 101</option>
-        <option value="residence-2">Unit 102</option>
+      <select name='residenceId' data-testid='select-residence-id'>
+        <option value=''>Residence Level</option>
+        <option value='residence-1'>Unit 101</option>
+        <option value='residence-2'>Unit 102</option>
       </select>
       <label>
-        <input 
-          type="checkbox" 
-          name="visibleToTenants" 
-          data-testid="checkbox-visible-to-tenants"
-        />
+        <input type='checkbox' name='visibleToTenants' data-testid='checkbox-visible-to-tenants' />
         Visible to Tenants
       </label>
-      <button type="submit" data-testid="button-upload-document">
+      <button type='submit' data-testid='button-upload-document'>
         Upload Document
       </button>
     </form>
@@ -82,7 +73,7 @@ const MockDocumentEditForm = ({ document, onSuccess }: any) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
-    
+
     try {
       await mockApiRequest('PUT', `/api/documents/${document.id}`, data);
       onSuccess?.();
@@ -92,28 +83,33 @@ const MockDocumentEditForm = ({ document, onSuccess }: any) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="document-edit-form">
-      <input 
-        name="name" 
-        placeholder="Document Name" 
+    <form onSubmit={handleSubmit} data-testid='document-edit-form'>
+      <input
+        name='name'
+        placeholder='Document Name'
         defaultValue={document?.name || ''}
-        data-testid="input-document-name"
+        data-testid='input-document-name'
         required
       />
-      <textarea 
-        name="description" 
-        placeholder="Description" 
+      <textarea
+        name='description'
+        placeholder='Description'
         defaultValue={document?.description || ''}
-        data-testid="textarea-document-description"
+        data-testid='textarea-document-description'
       />
-      <select name="category" defaultValue={document?.category || ''} data-testid="select-document-category" required>
-        <option value="financial">Financial</option>
-        <option value="legal">Legal</option>
-        <option value="maintenance">Maintenance</option>
-        <option value="insurance">Insurance</option>
-        <option value="other">Other</option>
+      <select
+        name='category'
+        defaultValue={document?.category || ''}
+        data-testid='select-document-category'
+        required
+      >
+        <option value='financial'>Financial</option>
+        <option value='legal'>Legal</option>
+        <option value='maintenance'>Maintenance</option>
+        <option value='insurance'>Insurance</option>
+        <option value='other'>Other</option>
       </select>
-      <button type="submit" data-testid="button-update-document">
+      <button type='submit' data-testid='button-update-document'>
         Update Document
       </button>
     </form>
@@ -125,13 +121,13 @@ const MockBillForm = ({ bill, onSuccess }: any) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
-    
+
     const finalData = {
       ...data,
       amount: Number(data.amount),
-      dueDate: new Date(data.dueDate as string)
+      dueDate: new Date(data.dueDate as string),
     };
-    
+
     try {
       const url = bill ? `/api/bills/${bill.id}` : '/api/bills';
       const method = bill ? 'PUT' : 'POST';
@@ -143,58 +139,63 @@ const MockBillForm = ({ bill, onSuccess }: any) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="bill-form">
-      <input 
-        name="billNumber" 
-        placeholder="Bill Number" 
+    <form onSubmit={handleSubmit} data-testid='bill-form'>
+      <input
+        name='billNumber'
+        placeholder='Bill Number'
         defaultValue={bill?.billNumber || ''}
-        data-testid="input-bill-number"
+        data-testid='input-bill-number'
         required
       />
-      <input 
-        name="amount" 
-        type="number" 
-        step="0.01" 
-        min="0"
-        placeholder="Amount" 
+      <input
+        name='amount'
+        type='number'
+        step='0.01'
+        min='0'
+        placeholder='Amount'
         defaultValue={bill?.amount || ''}
-        data-testid="input-bill-amount"
+        data-testid='input-bill-amount'
         required
       />
-      <input 
-        name="dueDate" 
-        type="date" 
+      <input
+        name='dueDate'
+        type='date'
         defaultValue={bill?.dueDate?.split('T')[0] || ''}
-        data-testid="input-due-date"
+        data-testid='input-due-date'
         required
       />
-      <select name="type" defaultValue={bill?.type || ''} data-testid="select-bill-type" required>
-        <option value="">Select Type</option>
-        <option value="monthly_fee">Monthly Fee</option>
-        <option value="special_assessment">Special Assessment</option>
-        <option value="utilities">Utilities</option>
-        <option value="parking">Parking</option>
-        <option value="storage">Storage</option>
-        <option value="other">Other</option>
+      <select name='type' defaultValue={bill?.type || ''} data-testid='select-bill-type' required>
+        <option value=''>Select Type</option>
+        <option value='monthly_fee'>Monthly Fee</option>
+        <option value='special_assessment'>Special Assessment</option>
+        <option value='utilities'>Utilities</option>
+        <option value='parking'>Parking</option>
+        <option value='storage'>Storage</option>
+        <option value='other'>Other</option>
       </select>
-      <select name="status" defaultValue={bill?.status || 'sent'} data-testid="select-bill-status">
-        <option value="sent">Sent</option>
-        <option value="paid">Paid</option>
-        <option value="overdue">Overdue</option>
-        <option value="cancelled">Cancelled</option>
+      <select name='status' defaultValue={bill?.status || 'sent'} data-testid='select-bill-status'>
+        <option value='sent'>Sent</option>
+        <option value='paid'>Paid</option>
+        <option value='overdue'>Overdue</option>
+        <option value='cancelled'>Cancelled</option>
       </select>
-      <select name="residenceId" defaultValue={bill?.residenceId || ''} data-testid="select-residence-id" required>
-        <option value="">Select Residence</option>
-        <option value="residence-1">Unit 101</option>
-        <option value="residence-2">Unit 102</option>
+      <select
+        name='residenceId'
+        defaultValue={bill?.residenceId || ''}
+        data-testid='select-residence-id'
+        required
+      >
+        <option value=''>Select Residence</option>
+        <option value='residence-1'>Unit 101</option>
+        <option value='residence-2'>Unit 102</option>
       </select>
-      <textarea 
-        name="description" 
-        placeholder="Description (optional)" 
+      <textarea
+        name='description'
+        placeholder='Description (optional)'
         defaultValue={bill?.description || ''}
-        data-testid="textarea-bill-description"
+        data-testid='textarea-bill-description'
       />
-      <button type="submit" data-testid="button-submit-bill">
+      <button type='submit' data-testid='button-submit-bill'>
         {bill ? 'Update Bill' : 'Create Bill'}
       </button>
     </form>
@@ -207,18 +208,18 @@ const mockDocument = {
   description: 'Test document description',
   category: 'financial',
   visibleToTenants: false,
-  buildingId: 'building-1'
+  buildingId: 'building-1',
 };
 
 const mockBill = {
   id: 'test-bill-id',
   billNumber: 'BILL-001',
-  amount: 1500.00,
+  amount: 1500.0,
   dueDate: '2025-12-31T00:00:00.000Z',
   type: 'monthly_fee',
   status: 'sent',
   residenceId: 'residence-1',
-  description: 'Monthly condo fee'
+  description: 'Monthly condo fee',
 };
 
 describe('Document and Bill Management', () => {
@@ -229,7 +230,7 @@ describe('Document and Bill Management', () => {
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
-      status: 200
+      status: 200,
     });
   });
 
@@ -251,7 +252,10 @@ describe('Document and Bill Management', () => {
       await user.upload(fileInput, file);
 
       await user.type(screen.getByTestId('input-document-name'), 'Monthly Financial Report');
-      await user.type(screen.getByTestId('textarea-document-description'), 'Monthly financial report for December 2025');
+      await user.type(
+        screen.getByTestId('textarea-document-description'),
+        'Monthly financial report for December 2025'
+      );
       await user.selectOptions(screen.getByTestId('select-document-category'), 'financial');
       await user.selectOptions(screen.getByTestId('select-building-id'), 'building-1');
       await user.click(screen.getByTestId('checkbox-visible-to-tenants'));
@@ -296,11 +300,15 @@ describe('Document and Bill Management', () => {
       await user.click(screen.getByTestId('button-update-document'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/documents/${mockDocument.id}`, expect.objectContaining({
-          name: 'Updated Document Name.pdf',
-          description: 'Updated document description',
-          category: 'legal'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/documents/${mockDocument.id}`,
+          expect.objectContaining({
+            name: 'Updated Document Name.pdf',
+            description: 'Updated document description',
+            category: 'legal',
+          })
+        );
       });
     });
 
@@ -362,20 +370,27 @@ describe('Document and Bill Management', () => {
       await user.selectOptions(screen.getByTestId('select-bill-type'), 'special_assessment');
       await user.selectOptions(screen.getByTestId('select-bill-status'), 'sent');
       await user.selectOptions(screen.getByTestId('select-residence-id'), 'residence-2');
-      await user.type(screen.getByTestId('textarea-bill-description'), 'Special assessment for building repairs');
+      await user.type(
+        screen.getByTestId('textarea-bill-description'),
+        'Special assessment for building repairs'
+      );
 
       // Submit form
       await user.click(screen.getByTestId('button-submit-bill'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/bills', expect.objectContaining({
-          billNumber: 'BILL-002',
-          amount: 2000.00,
-          type: 'special_assessment',
-          status: 'sent',
-          residenceId: 'residence-2',
-          description: 'Special assessment for building repairs'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/bills',
+          expect.objectContaining({
+            billNumber: 'BILL-002',
+            amount: 2000.0,
+            type: 'special_assessment',
+            status: 'sent',
+            residenceId: 'residence-2',
+            description: 'Special assessment for building repairs',
+          })
+        );
       });
 
       await waitFor(() => {
@@ -408,10 +423,14 @@ describe('Document and Bill Management', () => {
       await user.click(screen.getByTestId('button-submit-bill'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/bills/${mockBill.id}`, expect.objectContaining({
-          amount: 1750.00,
-          status: 'paid'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/bills/${mockBill.id}`,
+          expect.objectContaining({
+            amount: 1750.0,
+            status: 'paid',
+          })
+        );
       });
     });
 
@@ -424,15 +443,22 @@ describe('Document and Bill Management', () => {
 
       // Try to enter negative amount
       await user.type(screen.getByTestId('input-bill-amount'), '-100');
-      
+
       // HTML5 validation should prevent negative values
       const amountInput = screen.getByTestId('input-bill-amount');
       expect(amountInput).toHaveAttribute('min', '0');
     });
 
     it('should handle all bill types correctly', async () => {
-      const billTypes = ['monthly_fee', 'special_assessment', 'utilities', 'parking', 'storage', 'other'];
-      
+      const billTypes = [
+        'monthly_fee',
+        'special_assessment',
+        'utilities',
+        'parking',
+        'storage',
+        'other',
+      ];
+
       for (const billType of billTypes) {
         const onSuccess = jest.fn();
 
@@ -451,9 +477,13 @@ describe('Document and Bill Management', () => {
         await user.click(screen.getByTestId('button-submit-bill'));
 
         await waitFor(() => {
-          expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/bills', expect.objectContaining({
-            type: billType
-          }));
+          expect(mockApiRequest).toHaveBeenCalledWith(
+            'POST',
+            '/api/bills',
+            expect.objectContaining({
+              type: billType,
+            })
+          );
         });
       }
     });
@@ -489,7 +519,7 @@ describe('Document and Bill Management', () => {
   describe('Document Categories and Permissions', () => {
     it('should handle all document categories', async () => {
       const categories = ['financial', 'legal', 'maintenance', 'insurance', 'other'];
-      
+
       for (const category of categories) {
         render(
           <TestProviders>
@@ -512,14 +542,14 @@ describe('Document and Bill Management', () => {
       );
 
       const visibilityCheckbox = screen.getByTestId('checkbox-visible-to-tenants');
-      
+
       // Initially unchecked
       expect(visibilityCheckbox).not.toBeChecked();
-      
+
       // Click to check
       await user.click(visibilityCheckbox);
       expect(visibilityCheckbox).toBeChecked();
-      
+
       // Click to uncheck
       await user.click(visibilityCheckbox);
       expect(visibilityCheckbox).not.toBeChecked();

@@ -8,7 +8,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Removed Routes Validation', () => {
-
   /**
    * List of routes that should NOT exist in the application
    * These routes were previously available but have been removed.
@@ -23,7 +22,7 @@ describe('Removed Routes Validation', () => {
    */
   const VALID_ADMIN_ROUTES = [
     '/admin/organizations',
-    '/admin/documentation', 
+    '/admin/documentation',
     '/admin/roadmap',
     '/admin/quality',
     '/admin/suggestions',
@@ -81,17 +80,17 @@ describe('Route Cleanup Integration Test', () => {
   test('should not have any remaining references to removed admin routes', () => {
     // This is a meta-test that validates our cleanup was thorough
     // Check that the routes are properly categorized as removed routes
-    
+
     const removedAdminRoutes = ['/admin/user-management', '/admin/dashboard'];
     const validAdminRoutes = ['/admin/organizations', '/admin/permissions'];
-    
+
     // Validate that removed routes are not in valid routes list
-    removedAdminRoutes.forEach(removedRoute => {
+    removedAdminRoutes.forEach((removedRoute) => {
       expect(validAdminRoutes).not.toContain(removedRoute);
     });
-    
+
     // Validate that valid routes don't match the removed pattern
-    validAdminRoutes.forEach(validRoute => {
+    validAdminRoutes.forEach((validRoute) => {
       expect(validRoute).not.toMatch(/admin\/(user-management|dashboard)/);
     });
   });
@@ -101,25 +100,20 @@ describe('Route Cleanup Integration Test', () => {
       admin: [
         '/admin/organizations',
         '/admin/documentation',
-        '/admin/roadmap', 
+        '/admin/roadmap',
         '/admin/quality',
         '/admin/suggestions',
-        '/admin/permissions'
+        '/admin/permissions',
       ],
       manager: [
         '/manager/buildings',
-        '/manager/residences', 
+        '/manager/residences',
         '/manager/budget',
         '/manager/bills',
         '/manager/demands',
-        '/manager/user-management' // Only managers should have user-management
+        '/manager/user-management', // Only managers should have user-management
       ],
-      resident: [
-        '/dashboard',
-        '/residents/residence',
-        '/residents/building',
-        '/residents/demands'
-      ]
+      resident: ['/dashboard', '/residents/residence', '/residents/building', '/residents/demands'],
     };
 
     // Validate that user-management is only in manager routes

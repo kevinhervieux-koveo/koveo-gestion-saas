@@ -14,7 +14,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
     const { startYear, endYear, startMonth, endMonth, groupBy = 'monthly' } = req.query;
-    
+
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
@@ -59,26 +59,21 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       return res.json({ budgets: yearlyBudgets, type: 'yearly' });
     } else {
       // Get monthly budget data with month filtering
-      const whereConditions = [
-        eq(monthlyBudgets.buildingId, buildingId)
-      ];
+      const whereConditions = [eq(monthlyBudgets.buildingId, buildingId)];
 
       // Add year and month filtering
       if (groupBy === 'monthly' && (startMonth || endMonth)) {
         // For monthly filtering, handle year-month combinations
         const startYearMonth = start * 100 + startMo; // e.g., 202508
         const endYearMonth = end * 100 + endMo; // e.g., 202512
-        
+
         whereConditions.push(
           gte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
           lte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
         );
       } else {
         // Standard year-only filtering
-        whereConditions.push(
-          gte(monthlyBudgets.year, start),
-          lte(monthlyBudgets.year, end)
-        );
+        whereConditions.push(gte(monthlyBudgets.year, start), lte(monthlyBudgets.year, end));
       }
 
       const monthlyBudgetData = await db
@@ -98,28 +93,34 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       // If no data exists, provide sample data to demonstrate the dashboard
       if (monthlyBudgetData.length === 0) {
         const sampleData = [];
-        
+
         // Generate sample data for the requested year range
-        for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
+        for (let year = start; year <= Math.min(end, start + 3); year++) {
+          // Limit to 4 years of sample data
           // For yearly view, show only January 1st of each year, for monthly show sample months
           const monthsInYear = groupBy === 'yearly' ? [1] : [1, 6, 12];
-          
-          monthsInYear.forEach(month => {
+
+          monthsInYear.forEach((month) => {
             sampleData.push({
               year: year,
               month: month,
               incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
               incomes: ['45000', '3500', '2000'],
-              spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
+              spendingTypes: [
+                'maintenance_expense',
+                'utilities',
+                'insurance',
+                'administrative_expense',
+              ],
               spendings: ['12000', '8500', '4200', '3800'],
               approved: true,
             });
           });
         }
-        
+
         return res.json({ budgets: sampleData, type: 'monthly' });
       }
-      
+
       return res.json({ budgets: monthlyBudgetData, type: 'monthly' });
     }
   } catch (_error) {
@@ -135,7 +136,7 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
     const { startYear, endYear, startMonth, endMonth } = req.query;
-    
+
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const start = startYear ? parseInt(startYear as string) : currentYear - 3;
@@ -144,26 +145,21 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     const endMo = endMonth ? parseInt(endMonth as string) : 12;
 
     // Get monthly budget data with proper structure and month filtering
-    const whereConditions = [
-      eq(monthlyBudgets.buildingId, buildingId)
-    ];
+    const whereConditions = [eq(monthlyBudgets.buildingId, buildingId)];
 
     // Add year and month filtering if month parameters are provided
     if (startMonth || endMonth) {
       // For monthly filtering, handle year-month combinations
       const startYearMonth = start * 100 + startMo; // e.g., 202508
       const endYearMonth = end * 100 + endMo; // e.g., 202512
-      
+
       whereConditions.push(
         gte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
         lte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
       );
     } else {
       // Standard year-only filtering
-      whereConditions.push(
-        gte(monthlyBudgets.year, start),
-        lte(monthlyBudgets.year, end)
-      );
+      whereConditions.push(gte(monthlyBudgets.year, start), lte(monthlyBudgets.year, end));
     }
 
     const summaryData = await db
@@ -183,28 +179,34 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     // If no data exists, provide sample data to demonstrate the dashboard
     if (summaryData.length === 0) {
       const sampleSummary = [];
-      
-      // Generate sample data for the requested year range  
-      for (let year = start; year <= Math.min(end, start + 3); year++) { // Limit to 4 years of sample data
+
+      // Generate sample data for the requested year range
+      for (let year = start; year <= Math.min(end, start + 3); year++) {
+        // Limit to 4 years of sample data
         // For yearly view, show only January 1st of each year, for monthly show sample months
         const monthsInYear = [1]; // Always January 1st for summary data
-        
-        monthsInYear.forEach(month => {
+
+        monthsInYear.forEach((month) => {
           sampleSummary.push({
             year: year,
             month: month,
             incomeTypes: ['monthly_fees', 'parking_fees', 'other_income'],
             incomes: ['45000', '3500', '2000'],
-            spendingTypes: ['maintenance_expense', 'utilities', 'insurance', 'administrative_expense'],
+            spendingTypes: [
+              'maintenance_expense',
+              'utilities',
+              'insurance',
+              'administrative_expense',
+            ],
             spendings: ['12000', '8500', '4200', '3800'],
             approved: true,
           });
         });
       }
-      
+
       return res.json({ summary: sampleSummary });
     }
-    
+
     return res.json({ summary: summaryData });
   } catch (_error) {
     console.error('Error fetching budget summary:', _error);
@@ -218,12 +220,12 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
 router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
-    const { 
-      bankAccountNumber, 
-      bankAccountNotes, 
-      bankAccountStartDate, 
-      bankAccountStartAmount, 
-      bankAccountMinimums 
+    const {
+      bankAccountNumber,
+      bankAccountNotes,
+      bankAccountStartDate,
+      bankAccountStartAmount,
+      bankAccountMinimums,
     } = req.body;
 
     // Validate building exists
@@ -245,18 +247,18 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
         bankAccountStartDate: bankAccountStartDate ? new Date(bankAccountStartDate) : null,
         bankAccountStartAmount,
         bankAccountMinimums,
-        bankAccountUpdatedAt: new Date()
+        bankAccountUpdatedAt: new Date(),
       })
       .where(eq(buildings.id, buildingId));
 
-    res.json({ 
+    res.json({
       message: 'Bank account updated successfully',
       bankAccountNumber,
       bankAccountNotes,
       bankAccountStartDate: bankAccountStartDate ? new Date(bankAccountStartDate) : null,
       bankAccountStartAmount,
       bankAccountMinimums,
-      bankAccountUpdatedAt: new Date()
+      bankAccountUpdatedAt: new Date(),
     });
   } catch (_error) {
     console.error('Error updating bank account:', _error);
@@ -287,14 +289,14 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
     // Validate building exists and get bank account info
     const building = await db.query.buildings.findFirst({
       where: eq(buildings.id, buildingId),
-      columns: { 
+      columns: {
         id: true,
         bankAccountNumber: true,
         bankAccountNotes: true,
         bankAccountStartDate: true,
         bankAccountStartAmount: true,
         bankAccountMinimums: true,
-        bankAccountUpdatedAt: true
+        bankAccountUpdatedAt: true,
       },
     });
 

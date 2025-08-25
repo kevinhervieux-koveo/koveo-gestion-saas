@@ -6,45 +6,44 @@ import { describe, test, expect } from '@jest/globals';
  */
 
 describe('Calendar Features Unit Tests', () => {
-  
   // Real demo users from the system
   const DEMO_USERS = {
     ADMIN: {
       id: '222f5a0d-6bc6-4f28-9f4d-32c133eed333',
       email: 'admin@koveo.ca',
       role: 'admin',
-      name: 'Marie Tremblay'
+      name: 'Marie Tremblay',
     },
     MANAGER: {
       id: 'cb8e5b4d-8f2a-4e8d-9c5a-1b2c3d4e5f6g',
       email: 'manager@koveo.ca',
       role: 'manager',
-      name: 'Jean Dupuis'
+      name: 'Jean Dupuis',
     },
     RESIDENT: {
       id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
       email: 'resident@demo.ca',
       role: 'resident',
-      name: 'Sophie Martin'
-    }
+      name: 'Sophie Martin',
+    },
   };
 
   const DEMO_ORGANIZATION = {
     id: 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6',
-    name: 'Demo Organization'
+    name: 'Demo Organization',
   };
 
   const DEMO_BUILDING = {
     id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    name: 'Complexe Rivière-des-Prairies'
+    name: 'Complexe Rivière-des-Prairies',
   };
-  
+
   // Calendar data with real demo users
   const mockCalendarData = {
     space: {
       id: '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real space ID from demo
       name: 'Salle communautaire',
-      isReservable: true
+      isReservable: true,
     },
     events: [
       {
@@ -55,7 +54,7 @@ describe('Calendar Features Unit Tests', () => {
         userName: DEMO_USERS.RESIDENT.name, // Sophie Martin
         userEmail: DEMO_USERS.RESIDENT.email,
         userId: DEMO_USERS.RESIDENT.id,
-        isOwnBooking: true
+        isOwnBooking: true,
       },
       {
         id: 'event-2',
@@ -65,15 +64,15 @@ describe('Calendar Features Unit Tests', () => {
         userName: DEMO_USERS.MANAGER.name, // Jean Dupuis
         userEmail: DEMO_USERS.MANAGER.email,
         userId: DEMO_USERS.MANAGER.id,
-        isOwnBooking: false
-      }
-    ]
+        isOwnBooking: false,
+      },
+    ],
   };
 
   describe('Calendar Data Structure', () => {
     test('should have valid space information', () => {
       const { space } = mockCalendarData;
-      
+
       expect(space.id).toBe('75c4f108-3ec1-437d-bdec-35d1f8e2a44d'); // Real demo space ID
       expect(space.name).toBe('Salle communautaire');
       expect(space.isReservable).toBe(true);
@@ -84,17 +83,17 @@ describe('Calendar Features Unit Tests', () => {
 
     test('should have valid event data structure', () => {
       const { events } = mockCalendarData;
-      
+
       expect(events).toHaveLength(2);
-      
-      events.forEach(event => {
+
+      events.forEach((event) => {
         expect(event).toHaveProperty('id');
         expect(event).toHaveProperty('startTime');
         expect(event).toHaveProperty('endTime');
         expect(event).toHaveProperty('status');
         expect(event).toHaveProperty('userName');
         expect(event).toHaveProperty('isOwnBooking');
-        
+
         expect(typeof event.id).toBe('string');
         expect(typeof event.startTime).toBe('string');
         expect(typeof event.endTime).toBe('string');
@@ -106,11 +105,11 @@ describe('Calendar Features Unit Tests', () => {
 
     test('should validate event time consistency', () => {
       const { events } = mockCalendarData;
-      
-      events.forEach(event => {
+
+      events.forEach((event) => {
         const startTime = new Date(event.startTime);
         const endTime = new Date(event.endTime);
-        
+
         expect(startTime).toBeInstanceOf(Date);
         expect(endTime).toBeInstanceOf(Date);
         expect(endTime.getTime()).toBeGreaterThan(startTime.getTime());
@@ -126,16 +125,16 @@ describe('Calendar Features Unit Tests', () => {
       const linkingOptions = [
         { id: 'common-space', name: 'Espaces communs', available: true },
         { id: 'maintenance', name: 'Réparations/Maintenance', available: false },
-        { id: 'building-events', name: 'Événements du bâtiment', available: false }
+        { id: 'building-events', name: 'Événements du bâtiment', available: false },
       ];
 
       expect(linkingOptions).toHaveLength(3);
-      
-      linkingOptions.forEach(option => {
+
+      linkingOptions.forEach((option) => {
         expect(option).toHaveProperty('id');
         expect(option).toHaveProperty('name');
         expect(option).toHaveProperty('available');
-        
+
         expect(typeof option.id).toBe('string');
         expect(typeof option.name).toBe('string');
         expect(typeof option.available).toBe('boolean');
@@ -150,22 +149,22 @@ describe('Calendar Features Unit Tests', () => {
     test('should handle calendar linking selection state', () => {
       let selectedOption: string | null = null;
       let isConfirmEnabled = false;
-      
+
       // Initially no selection
       expect(selectedOption).toBe(null);
       expect(isConfirmEnabled).toBe(false);
-      
+
       // Select common space option
       selectedOption = 'common-space';
       isConfirmEnabled = selectedOption !== null;
-      
+
       expect(selectedOption).toBe('common-space');
       expect(isConfirmEnabled).toBe(true);
-      
+
       // Reset selection
       selectedOption = null;
       isConfirmEnabled = selectedOption !== null;
-      
+
       expect(selectedOption).toBe(null);
       expect(isConfirmEnabled).toBe(false);
     });
@@ -174,14 +173,16 @@ describe('Calendar Features Unit Tests', () => {
       const configurationText = {
         fr: {
           title: 'Configuration des espaces communs',
-          description: 'Cette option synchronisera les réservations de "Salle communautaire" avec votre calendrier externe.'
+          description:
+            'Cette option synchronisera les réservations de "Salle communautaire" avec votre calendrier externe.',
         },
         en: {
           title: 'Common spaces configuration',
-          description: 'This option will sync bookings for "Salle communautaire" with your external calendar.'
-        }
+          description:
+            'This option will sync bookings for "Salle communautaire" with your external calendar.',
+        },
       };
-      
+
       expect(configurationText.fr.title).toBe('Configuration des espaces communs');
       expect(configurationText.en.title).toBe('Common spaces configuration');
       expect(configurationText.fr.description).toContain('Salle communautaire');
@@ -192,26 +193,26 @@ describe('Calendar Features Unit Tests', () => {
   describe('Calendar Event Management', () => {
     test('should distinguish between own and other bookings', () => {
       const { events } = mockCalendarData;
-      
-      const ownBookings = events.filter(event => event.isOwnBooking);
-      const otherBookings = events.filter(event => !event.isOwnBooking);
-      
+
+      const ownBookings = events.filter((event) => event.isOwnBooking);
+      const otherBookings = events.filter((event) => !event.isOwnBooking);
+
       expect(ownBookings).toHaveLength(1);
       expect(otherBookings).toHaveLength(1);
-      
+
       expect(ownBookings[0].userName).toBe('Sophie Martin'); // Real demo resident
       expect(otherBookings[0].userName).toBe('Jean Dupuis'); // Real demo manager
     });
 
     test('should calculate event durations correctly', () => {
       const { events } = mockCalendarData;
-      
-      events.forEach(event => {
+
+      events.forEach((event) => {
         const startTime = new Date(event.startTime);
         const endTime = new Date(event.endTime);
         const duration = endTime.getTime() - startTime.getTime();
         const durationHours = duration / (60 * 60 * 1000);
-        
+
         expect(durationHours).toBe(2); // All test events are 2 hours
         expect(duration).toBeGreaterThan(0);
       });
@@ -222,12 +223,17 @@ describe('Calendar Features Unit Tests', () => {
         const startTime = new Date(booking.startTime);
         const endTime = new Date(booking.endTime);
         const now = new Date();
-        
+
         return {
           isValidTimeRange: endTime > startTime,
           isInFuture: startTime > now,
-          hasRequiredFields: !!(booking.spaceId && booking.userId && booking.startTime && booking.endTime),
-          isReasonableDuration: (endTime.getTime() - startTime.getTime()) <= 8 * 60 * 60 * 1000, // Max 8 hours
+          hasRequiredFields: !!(
+            booking.spaceId &&
+            booking.userId &&
+            booking.startTime &&
+            booking.endTime
+          ),
+          isReasonableDuration: endTime.getTime() - startTime.getTime() <= 8 * 60 * 60 * 1000, // Max 8 hours
         };
       };
 
@@ -235,11 +241,11 @@ describe('Calendar Features Unit Tests', () => {
         spaceId: '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         userId: DEMO_USERS.RESIDENT.id, // Real demo user ID
         startTime: '2025-12-20T14:00:00Z',
-        endTime: '2025-12-20T16:00:00Z'
+        endTime: '2025-12-20T16:00:00Z',
       };
 
       const validation = validateBooking(validBooking);
-      
+
       expect(validation.isValidTimeRange).toBe(true);
       expect(validation.isInFuture).toBe(true);
       expect(validation.hasRequiredFields).toBe(true);
@@ -253,15 +259,15 @@ describe('Calendar Features Unit Tests', () => {
         ics: {
           mimeType: 'text/calendar',
           extension: '.ics',
-          description: 'Standard calendar format'
+          description: 'Standard calendar format',
         },
         csv: {
           mimeType: 'text/csv',
           extension: '.csv',
-          description: 'Spreadsheet format'
-        }
+          description: 'Spreadsheet format',
+        },
       };
-      
+
       expect(exportFormats.ics.mimeType).toBe('text/calendar');
       expect(exportFormats.csv.extension).toBe('.csv');
       expect(Object.keys(exportFormats)).toContain('ics');
@@ -270,15 +276,15 @@ describe('Calendar Features Unit Tests', () => {
 
     test('should generate proper export data structure', () => {
       const { space, events } = mockCalendarData;
-      
+
       const exportData = {
         format: 'ics',
         spaceName: space.name,
         events: events,
         filename: `${space.name.toLowerCase().replace(/\s+/g, '-')}-calendar.ics`,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
       };
-      
+
       expect(exportData.format).toBe('ics');
       expect(exportData.spaceName).toBe('Salle communautaire');
       expect(exportData.events).toHaveLength(2);
@@ -294,9 +300,9 @@ describe('Calendar Features Unit Tests', () => {
       const calendarTitles = {
         space: 'Salle communautaire',
         user: 'Mon Calendrier',
-        building: `${DEMO_BUILDING.name} - Calendrier`
+        building: `${DEMO_BUILDING.name} - Calendrier`,
       };
-      
+
       expect(viewModes).toContain('space');
       expect(viewModes).toContain('user');
       expect(viewModes).toContain('building');
@@ -310,9 +316,9 @@ describe('Calendar Features Unit Tests', () => {
         prevMonth: 'prev-month',
         nextMonth: 'next-month',
         currentMonth: 'current-month',
-        viewSelector: ['month', 'week']
+        viewSelector: ['month', 'week'],
       };
-      
+
       expect(navigationControls.viewSelector).toContain('month');
       expect(navigationControls.viewSelector).toContain('week');
       expect(navigationControls.prevMonth).toBe('prev-month');
@@ -325,13 +331,13 @@ describe('Calendar Features Unit Tests', () => {
       const testStates = {
         loading: { isLoading: true, data: null, error: null },
         loaded: { isLoading: false, data: mockCalendarData, error: null },
-        error: { isLoading: false, data: null, error: 'API Error' }
+        error: { isLoading: false, data: null, error: 'API Error' },
       };
-      
+
       expect(loadingStates).toContain('loading');
       expect(loadingStates).toContain('loaded');
       expect(loadingStates).toContain('error');
-      
+
       expect(testStates.loading.isLoading).toBe(true);
       expect(testStates.loaded.data).toBe(mockCalendarData);
       expect(testStates.error.error).toBe('API Error');
@@ -345,9 +351,9 @@ describe('Calendar Features Unit Tests', () => {
         exportButton: { fr: 'Exporter (.ics)', en: 'Export (.ics)' },
         bookButton: { fr: 'Réserver', en: 'Book' },
         cancelButton: { fr: 'Annuler', en: 'Cancel' },
-        confirmButton: { fr: 'Lier calendrier', en: 'Link calendar' }
+        confirmButton: { fr: 'Lier calendrier', en: 'Link calendar' },
       };
-      
+
       expect(translations.linkButton.fr).toBe('Lier calendrier');
       expect(translations.linkButton.en).toBe('Link calendar');
       expect(translations.exportButton.fr).toBe('Exporter (.ics)');
@@ -362,14 +368,14 @@ describe('Calendar Features Unit Tests', () => {
         dateFormat: 'DD/MM/YYYY',
         timeFormat: '24h',
         firstDayOfWeek: 'monday',
-        holidays: ['Fête nationale du Québec', 'Jour de l\'An', 'Fête du Canada']
+        holidays: ['Fête nationale du Québec', "Jour de l'An", 'Fête du Canada'],
       };
-      
+
       expect(quebecFeatures.language).toBe('fr');
       expect(quebecFeatures.timeFormat).toBe('24h');
       expect(quebecFeatures.firstDayOfWeek).toBe('monday');
       expect(quebecFeatures.holidays).toContain('Fête nationale du Québec');
-      expect(quebecFeatures.holidays).toContain('Jour de l\'An');
+      expect(quebecFeatures.holidays).toContain("Jour de l'An");
       expect(quebecFeatures.holidays).toContain('Fête du Canada');
     });
 
@@ -378,15 +384,15 @@ describe('Calendar Features Unit Tests', () => {
         fr: {
           loadingError: 'Erreur lors du chargement du calendrier',
           bookingError: 'Erreur lors de la réservation',
-          conflictError: 'Conflit de réservation détecté'
+          conflictError: 'Conflit de réservation détecté',
         },
         en: {
           loadingError: 'Error loading calendar',
           bookingError: 'Error creating booking',
-          conflictError: 'Booking conflict detected'
-        }
+          conflictError: 'Booking conflict detected',
+        },
       };
-      
+
       expect(errorMessages.fr.loadingError).toBe('Erreur lors du chargement du calendrier');
       expect(errorMessages.en.loadingError).toBe('Error loading calendar');
       expect(errorMessages.fr.conflictError).toBe('Conflit de réservation détecté');
@@ -403,18 +409,18 @@ describe('Calendar Features Unit Tests', () => {
         status: 'confirmed',
         userName: i % 2 === 0 ? DEMO_USERS.RESIDENT.name : DEMO_USERS.MANAGER.name,
         userId: i % 2 === 0 ? DEMO_USERS.RESIDENT.id : DEMO_USERS.MANAGER.id,
-        isOwnBooking: i % 2 === 0
+        isOwnBooking: i % 2 === 0,
       }));
-      
+
       expect(largeEventSet).toHaveLength(100);
       expect(largeEventSet[0].id).toBe('event-0');
       expect(largeEventSet[99].id).toBe('event-99');
-      
+
       // Test performance characteristics
-      const uniqueUsers = [...new Set(largeEventSet.map(e => e.userName))].length;
+      const uniqueUsers = [...new Set(largeEventSet.map((e) => e.userName))].length;
       const totalEvents = largeEventSet.length;
-      const ownBookings = largeEventSet.filter(e => e.isOwnBooking).length;
-      
+      const ownBookings = largeEventSet.filter((e) => e.isOwnBooking).length;
+
       expect(uniqueUsers).toBe(2); // Sophie Martin and Jean Dupuis
       expect(totalEvents).toBe(100);
       expect(ownBookings).toBe(50);
@@ -422,18 +428,18 @@ describe('Calendar Features Unit Tests', () => {
 
     test('should calculate calendar statistics efficiently', () => {
       const { events } = mockCalendarData;
-      
+
       const statistics = {
         totalBookings: events.length,
         totalHours: events.reduce((total, event) => {
           const duration = new Date(event.endTime).getTime() - new Date(event.startTime).getTime();
-          return total + (duration / (60 * 60 * 1000));
+          return total + duration / (60 * 60 * 1000);
         }, 0),
-        uniqueUsers: [...new Set(events.map(e => e.userName))].length,
-        ownBookings: events.filter(e => e.isOwnBooking).length,
-        otherBookings: events.filter(e => !e.isOwnBooking).length
+        uniqueUsers: [...new Set(events.map((e) => e.userName))].length,
+        ownBookings: events.filter((e) => e.isOwnBooking).length,
+        otherBookings: events.filter((e) => !e.isOwnBooking).length,
       };
-      
+
       expect(statistics.totalBookings).toBe(2);
       expect(statistics.totalHours).toBe(4);
       expect(statistics.uniqueUsers).toBe(2); // Sophie Martin + Jean Dupuis
@@ -445,45 +451,31 @@ describe('Calendar Features Unit Tests', () => {
   describe('Calendar Accessibility and Test IDs', () => {
     test('should define proper test IDs for calendar components', () => {
       const testIds = {
-        calendar: [
-          'calendar-view',
-          'calendar-loading',
-          'calendar-error'
-        ],
-        navigation: [
-          'prev-month',
-          'next-month',
-          'current-month'
-        ],
-        events: [
-          'calendar-event-event-1',
-          'calendar-event-event-2'
-        ],
-        days: [
-          'calendar-day-2024-12-15',
-          'calendar-day-2024-12-16'
-        ],
+        calendar: ['calendar-view', 'calendar-loading', 'calendar-error'],
+        navigation: ['prev-month', 'next-month', 'current-month'],
+        events: ['calendar-event-event-1', 'calendar-event-event-2'],
+        days: ['calendar-day-2024-12-15', 'calendar-day-2024-12-16'],
         buttons: [
           'button-link-calendar',
           'button-export-space-calendar',
           'button-new-booking-inline',
           'button-confirm-link',
-          'button-cancel-link'
+          'button-cancel-link',
         ],
         dialog: [
           'option-common-space-calendar',
           'option-maintenance-calendar',
-          'option-building-events-calendar'
-        ]
+          'option-building-events-calendar',
+        ],
       };
-      
+
       expect(testIds.calendar).toContain('calendar-view');
       expect(testIds.navigation).toContain('prev-month');
       expect(testIds.events).toContain('calendar-event-event-1');
       expect(testIds.days).toContain('calendar-day-2024-12-15');
       expect(testIds.buttons).toContain('button-link-calendar');
       expect(testIds.dialog).toContain('option-common-space-calendar');
-      
+
       // Ensure all arrays have expected lengths
       expect(testIds.calendar.length).toBeGreaterThan(0);
       expect(testIds.navigation.length).toBeGreaterThan(0);
@@ -493,24 +485,11 @@ describe('Calendar Features Unit Tests', () => {
 
     test('should provide accessibility features', () => {
       const accessibilityFeatures = {
-        ariaLabels: [
-          'Calendar view',
-          'Previous month',
-          'Next month',
-          'Current month view'
-        ],
-        legend: [
-          'Mes réservations',
-          'Déjà réservé'
-        ],
-        roles: [
-          'button',
-          'dialog',
-          'grid',
-          'gridcell'
-        ]
+        ariaLabels: ['Calendar view', 'Previous month', 'Next month', 'Current month view'],
+        legend: ['Mes réservations', 'Déjà réservé'],
+        roles: ['button', 'dialog', 'grid', 'gridcell'],
       };
-      
+
       expect(accessibilityFeatures.ariaLabels).toContain('Calendar view');
       expect(accessibilityFeatures.legend).toContain('Mes réservations');
       expect(accessibilityFeatures.roles).toContain('button');
@@ -528,40 +507,52 @@ describe('Calendar Features Unit Tests', () => {
           startTime,
           endTime,
           status: 'confirmed',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         }),
         validateBooking: (booking: any) => {
           return {
-            isValid: !!(booking.startTime < booking.endTime && 
-                       new Date(booking.startTime) > new Date() &&
-                       booking.spaceId && booking.userId),
-            errors: []
+            isValid: !!(
+              booking.startTime < booking.endTime &&
+              new Date(booking.startTime) > new Date() &&
+              booking.spaceId &&
+              booking.userId
+            ),
+            errors: [],
           };
         },
-        checkConflicts: (spaceId: string, startTime: string, endTime: string, existingBookings: any[]) => {
-          return existingBookings.some(booking => 
-            booking.spaceId === spaceId &&
-            ((new Date(startTime) >= new Date(booking.startTime) && new Date(startTime) < new Date(booking.endTime)) ||
-             (new Date(endTime) > new Date(booking.startTime) && new Date(endTime) <= new Date(booking.endTime)) ||
-             (new Date(startTime) <= new Date(booking.startTime) && new Date(endTime) >= new Date(booking.endTime)))
+        checkConflicts: (
+          spaceId: string,
+          startTime: string,
+          endTime: string,
+          existingBookings: any[]
+        ) => {
+          return existingBookings.some(
+            (booking) =>
+              booking.spaceId === spaceId &&
+              ((new Date(startTime) >= new Date(booking.startTime) &&
+                new Date(startTime) < new Date(booking.endTime)) ||
+                (new Date(endTime) > new Date(booking.startTime) &&
+                  new Date(endTime) <= new Date(booking.endTime)) ||
+                (new Date(startTime) <= new Date(booking.startTime) &&
+                  new Date(endTime) >= new Date(booking.endTime)))
           );
-        }
+        },
       };
-      
+
       const testBooking = bookingIntegration.createBooking(
         '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         DEMO_USERS.RESIDENT.id, // Real demo user ID
         '2025-12-25T14:00:00Z',
         '2025-12-25T16:00:00Z'
       );
-      
+
       expect(testBooking.status).toBe('confirmed');
       expect(testBooking.id).toBe('new-booking-id');
       expect(typeof testBooking.createdAt).toBe('string');
-      
+
       const validation = bookingIntegration.validateBooking(testBooking);
       expect(validation.isValid).toBe(true);
-      
+
       const hasConflict = bookingIntegration.checkConflicts(
         '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         '2025-12-25T15:00:00Z',
@@ -578,10 +569,10 @@ describe('Calendar Features Unit Tests', () => {
             const icsContent = [
               'BEGIN:VCALENDAR',
               'VERSION:2.0',
-              'PRODID:-//Koveo Gestion//Calendar Export//FR'
+              'PRODID:-//Koveo Gestion//Calendar Export//FR',
             ];
-            
-            events.forEach(event => {
+
+            events.forEach((event) => {
               icsContent.push(
                 'BEGIN:VEVENT',
                 `UID:${event.id}@koveo.ca`,
@@ -591,7 +582,7 @@ describe('Calendar Features Unit Tests', () => {
                 'END:VEVENT'
               );
             });
-            
+
             icsContent.push('END:VCALENDAR');
             return icsContent.join('\r\n');
           }
@@ -600,24 +591,31 @@ describe('Calendar Features Unit Tests', () => {
         linkCalendar: (spaceId: string, calendarType: string) => {
           return {
             success: calendarType === 'common-space',
-            message: calendarType === 'common-space' 
-              ? 'Calendar linked successfully' 
-              : 'Feature not yet available',
-            linkId: calendarType === 'common-space' ? `link-${spaceId}-${Date.now()}` : null
+            message:
+              calendarType === 'common-space'
+                ? 'Calendar linked successfully'
+                : 'Feature not yet available',
+            linkId: calendarType === 'common-space' ? `link-${spaceId}-${Date.now()}` : null,
           };
-        }
+        },
       };
-      
+
       const icsExport = syncFeatures.exportToExternal(mockCalendarData.events, 'ics');
       expect(icsExport).toContain('BEGIN:VCALENDAR');
       expect(icsExport).toContain('BEGIN:VEVENT');
       expect(icsExport).toContain(DEMO_USERS.RESIDENT.name); // Sophie Martin
-      
-      const linkResult = syncFeatures.linkCalendar('75c4f108-3ec1-437d-bdec-35d1f8e2a44d', 'common-space');
+
+      const linkResult = syncFeatures.linkCalendar(
+        '75c4f108-3ec1-437d-bdec-35d1f8e2a44d',
+        'common-space'
+      );
       expect(linkResult.success).toBe(true);
       expect(linkResult.linkId).toContain('link-75c4f108-3ec1-437d-bdec-35d1f8e2a44d');
-      
-      const futureFeatureResult = syncFeatures.linkCalendar('75c4f108-3ec1-437d-bdec-35d1f8e2a44d', 'maintenance');
+
+      const futureFeatureResult = syncFeatures.linkCalendar(
+        '75c4f108-3ec1-437d-bdec-35d1f8e2a44d',
+        'maintenance'
+      );
       expect(futureFeatureResult.success).toBe(false);
       expect(futureFeatureResult.message).toBe('Feature not yet available');
     });

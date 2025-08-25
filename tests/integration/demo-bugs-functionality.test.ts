@@ -14,16 +14,16 @@ describe('Demo Bug Functionality Tests', () => {
   const demoUsers = {
     manager: {
       email: 'manager@563pionniers.test',
-      password: 'TestManager2024!'
+      password: 'TestManager2024!',
     },
     tenant: {
-      email: 'tenant@563pionniers.test', 
-      password: 'TestTenant2024!'
+      email: 'tenant@563pionniers.test',
+      password: 'TestTenant2024!',
     },
     resident: {
       email: 'resident@563pionniers.test',
-      password: 'TestResident2024!'
-    }
+      password: 'TestResident2024!',
+    },
   };
 
   const createdBugIds: string[] = [];
@@ -37,10 +37,8 @@ describe('Demo Bug Functionality Tests', () => {
       // Login all demo users
       for (const [role, credentials] of Object.entries(demoUsers)) {
         console.log(`🔐 Logging in demo ${role}...`);
-        
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send(credentials);
+
+        const response = await request(app).post('/api/auth/login').send(credentials);
 
         if (response.status === 200 && response.headers['set-cookie']) {
           demoUserCookies[role] = response.headers['set-cookie'];
@@ -59,12 +57,10 @@ describe('Demo Bug Functionality Tests', () => {
     // Cleanup: Delete any bugs created during testing
     if (createdBugIds.length > 0 && demoUserCookies.manager) {
       console.log('🧹 Cleaning up test bugs...');
-      
+
       for (const bugId of createdBugIds) {
         try {
-          await request(app)
-            .delete(`/api/bugs/${bugId}`)
-            .set('Cookie', demoUserCookies.manager);
+          await request(app).delete(`/api/bugs/${bugId}`).set('Cookie', demoUserCookies.manager);
         } catch (error) {
           // Ignore cleanup errors
         }
@@ -81,12 +77,14 @@ describe('Demo Bug Functionality Tests', () => {
 
       const bugData = {
         title: 'Demo Manager Bug - Dashboard Performance',
-        description: 'The manager dashboard loads slowly when viewing all buildings. Takes more than 5 seconds to load the building list.',
+        description:
+          'The manager dashboard loads slowly when viewing all buildings. Takes more than 5 seconds to load the building list.',
         category: 'performance',
         page: '/manager/buildings',
         priority: 'medium',
-        reproductionSteps: 'Step 1: Login as manager\nStep 2: Navigate to Buildings page\nStep 3: Observe slow loading time',
-        environment: 'Chrome 120, macOS 14.2'
+        reproductionSteps:
+          'Step 1: Login as manager\nStep 2: Navigate to Buildings page\nStep 3: Observe slow loading time',
+        environment: 'Chrome 120, macOS 14.2',
       };
 
       const response = await request(app)
@@ -101,7 +99,7 @@ describe('Demo Bug Functionality Tests', () => {
         category: bugData.category,
         page: bugData.page,
         priority: bugData.priority,
-        status: 'new'
+        status: 'new',
       });
 
       createdBugIds.push(response.body.id);
@@ -116,12 +114,14 @@ describe('Demo Bug Functionality Tests', () => {
 
       const bugData = {
         title: 'Demo Tenant Bug - Bill Display Issue',
-        description: 'Cannot see my monthly bill details. The bill amount shows but clicking on it does not expand the details.',
-        category: 'functionality', 
+        description:
+          'Cannot see my monthly bill details. The bill amount shows but clicking on it does not expand the details.',
+        category: 'functionality',
         page: '/dashboard',
         priority: 'high',
-        reproductionSteps: 'Step 1: Login as tenant\nStep 2: Go to dashboard\nStep 3: Click on monthly bill\nStep 4: Details do not show',
-        environment: 'Firefox 121, Windows 11'
+        reproductionSteps:
+          'Step 1: Login as tenant\nStep 2: Go to dashboard\nStep 3: Click on monthly bill\nStep 4: Details do not show',
+        environment: 'Firefox 121, Windows 11',
       };
 
       const response = await request(app)
@@ -135,7 +135,7 @@ describe('Demo Bug Functionality Tests', () => {
         description: bugData.description,
         category: bugData.category,
         priority: bugData.priority,
-        status: 'new'
+        status: 'new',
       });
 
       createdBugIds.push(response.body.id);
@@ -150,12 +150,14 @@ describe('Demo Bug Functionality Tests', () => {
 
       const bugData = {
         title: 'Demo Resident Bug - Contact Form Error',
-        description: 'When trying to submit a maintenance request through the contact form, I get an error message saying "Failed to send request".',
+        description:
+          'When trying to submit a maintenance request through the contact form, I get an error message saying "Failed to send request".',
         category: 'functionality',
-        page: '/residents/residence', 
+        page: '/residents/residence',
         priority: 'medium',
-        reproductionSteps: 'Step 1: Go to residence page\nStep 2: Fill out maintenance request form\nStep 3: Click submit\nStep 4: Error appears',
-        environment: 'Safari 17, iPhone 15'
+        reproductionSteps:
+          'Step 1: Go to residence page\nStep 2: Fill out maintenance request form\nStep 3: Click submit\nStep 4: Error appears',
+        environment: 'Safari 17, iPhone 15',
       };
 
       const response = await request(app)
@@ -169,7 +171,7 @@ describe('Demo Bug Functionality Tests', () => {
         description: bugData.description,
         category: bugData.category,
         priority: bugData.priority,
-        status: 'new'
+        status: 'new',
       });
 
       createdBugIds.push(response.body.id);
@@ -193,9 +195,7 @@ describe('Demo Bug Functionality Tests', () => {
       console.log(`📋 Manager can see ${response.body.length} bugs`);
 
       // Manager should be able to see bugs created in this test
-      const createdBugs = response.body.filter((bug: any) => 
-        createdBugIds.includes(bug.id)
-      );
+      const createdBugs = response.body.filter((bug: any) => createdBugIds.includes(bug.id));
       expect(createdBugs.length).toBeGreaterThan(0);
     });
 
@@ -255,7 +255,7 @@ describe('Demo Bug Functionality Tests', () => {
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'acknowledged',
-          notes: 'Bug acknowledged by demo manager. Investigating the issue.'
+          notes: 'Bug acknowledged by demo manager. Investigating the issue.',
         })
         .expect(200);
 
@@ -268,7 +268,7 @@ describe('Demo Bug Functionality Tests', () => {
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'in_progress',
-          notes: 'Started working on performance optimization.'
+          notes: 'Started working on performance optimization.',
         })
         .expect(200);
 
@@ -281,7 +281,7 @@ describe('Demo Bug Functionality Tests', () => {
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'resolved',
-          notes: 'Performance improvements deployed. Database queries optimized.'
+          notes: 'Performance improvements deployed. Database queries optimized.',
         })
         .expect(200);
 
@@ -318,7 +318,7 @@ describe('Demo Bug Functionality Tests', () => {
         { category: 'ui_ux', title: 'Button Styling Issue' },
         { category: 'security', title: 'Potential XSS Vulnerability' },
         { category: 'data', title: 'Incorrect Bill Calculation' },
-        { category: 'integration', title: 'Email Service Not Working' }
+        { category: 'integration', title: 'Email Service Not Working' },
       ];
 
       for (const categoryTest of categories) {
@@ -330,7 +330,7 @@ describe('Demo Bug Functionality Tests', () => {
             description: `Test bug for ${categoryTest.category} category`,
             category: categoryTest.category,
             page: '/test',
-            priority: 'low'
+            priority: 'low',
           })
           .expect(201);
 
@@ -350,7 +350,7 @@ describe('Demo Bug Functionality Tests', () => {
         { priority: 'low', title: 'Minor UI Inconsistency' },
         { priority: 'medium', title: 'Form Validation Issue' },
         { priority: 'high', title: 'Payment Processing Delay' },
-        { priority: 'critical', title: 'System Complete Failure' }
+        { priority: 'critical', title: 'System Complete Failure' },
       ];
 
       for (const priorityTest of priorities) {
@@ -362,7 +362,7 @@ describe('Demo Bug Functionality Tests', () => {
             description: `Test bug for ${priorityTest.priority} priority`,
             category: 'other',
             page: '/test',
-            priority: priorityTest.priority
+            priority: priorityTest.priority,
           })
           .expect(201);
 
@@ -383,12 +383,14 @@ describe('Demo Bug Functionality Tests', () => {
       // Step 1: Tenant reports a bug
       const bugData = {
         title: 'Real Scenario - Cannot access building documents',
-        description: 'I am trying to access the building financial documents but the download link is broken. When I click on "Download Annual Report", nothing happens.',
+        description:
+          'I am trying to access the building financial documents but the download link is broken. When I click on "Download Annual Report", nothing happens.',
         category: 'functionality',
         page: '/residents/building',
         priority: 'medium',
-        reproductionSteps: 'Step 1: Login as tenant\nStep 2: Go to building page\nStep 3: Scroll to documents section\nStep 4: Click "Download Annual Report"\nStep 5: Nothing happens',
-        environment: 'Chrome 120, Windows 11'
+        reproductionSteps:
+          'Step 1: Login as tenant\nStep 2: Go to building page\nStep 3: Scroll to documents section\nStep 4: Click "Download Annual Report"\nStep 5: Nothing happens',
+        environment: 'Chrome 120, Windows 11',
       };
 
       let response = await request(app)
@@ -407,7 +409,8 @@ describe('Demo Bug Functionality Tests', () => {
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'acknowledged',
-          notes: 'Thank you for reporting this issue. We are investigating the document download functionality.'
+          notes:
+            'Thank you for reporting this issue. We are investigating the document download functionality.',
         })
         .expect(200);
 
@@ -419,19 +422,21 @@ describe('Demo Bug Functionality Tests', () => {
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'in_progress',
-          notes: 'Found the issue - missing MIME type configuration for PDF downloads. Working on fix.'
+          notes:
+            'Found the issue - missing MIME type configuration for PDF downloads. Working on fix.',
         })
         .expect(200);
 
       console.log(`🔧 Manager started working on bug: ${bugId}`);
 
-      // Step 4: Manager resolves the issue  
+      // Step 4: Manager resolves the issue
       response = await request(app)
         .patch(`/api/bugs/${bugId}`)
         .set('Cookie', demoUserCookies.manager)
         .send({
           status: 'resolved',
-          notes: 'Fixed PDF download issue by updating server MIME type configuration. All document downloads now working properly.'
+          notes:
+            'Fixed PDF download issue by updating server MIME type configuration. All document downloads now working properly.',
         })
         .expect(200);
 
@@ -445,7 +450,7 @@ describe('Demo Bug Functionality Tests', () => {
 
       expect(response.body.status).toBe('resolved');
       expect(response.body.notes).toContain('Fixed PDF download issue');
-      
+
       console.log(`🎉 Bug lifecycle completed successfully: ${bugId}`);
     });
   });
@@ -485,7 +490,7 @@ describe('Demo Bug Functionality Tests', () => {
           description: 'Test bug with invalid category',
           category: 'invalid_category',
           page: '/test',
-          priority: 'medium'
+          priority: 'medium',
         })
         .expect(400);
 
@@ -498,41 +503,45 @@ describe('Demo Bug Functionality Tests', () => {
       console.log('\n' + '='.repeat(60));
       console.log('🐛 BUG REPORTING SYSTEM - DEMO TEST SUMMARY');
       console.log('='.repeat(60));
-      
+
       console.log(`\n📊 Test Statistics:`);
       console.log(`   • Total bugs created: ${createdBugIds.length}`);
       console.log(`   • Demo users tested: ${Object.keys(demoUsers).length}`);
-      console.log(`   • Successfully logged in: ${Object.keys(demoUserCookies).length}/${Object.keys(demoUsers).length}`);
-      
+      console.log(
+        `   • Successfully logged in: ${Object.keys(demoUserCookies).length}/${Object.keys(demoUsers).length}`
+      );
+
       console.log(`\n✅ Functionality Verified:`);
       console.log(`   • ✓ Bug creation by all user roles (Manager, Tenant, Resident)`);
       console.log(`   • ✓ Role-based access control for viewing bugs`);
       console.log(`   • ✓ Bug status workflow (new → acknowledged → in_progress → resolved)`);
-      console.log(`   • ✓ All bug categories (UI/UX, Functionality, Performance, Data, Security, Integration, Other)`);
+      console.log(
+        `   • ✓ All bug categories (UI/UX, Functionality, Performance, Data, Security, Integration, Other)`
+      );
       console.log(`   • ✓ All priority levels (Low, Medium, High, Critical)`);
       console.log(`   • ✓ Form validation and error handling`);
       console.log(`   • ✓ Real-world bug lifecycle scenario`);
-      
+
       console.log(`\n🔐 Security Features Tested:`);
       console.log(`   • ✓ Authentication required for all operations`);
       console.log(`   • ✓ Users can only see their own bugs (except managers/admins)`);
       console.log(`   • ✓ Only managers/admins can update bug status`);
       console.log(`   • ✓ Input validation and sanitization`);
-      
+
       console.log(`\n💡 Key Findings:`);
       console.log(`   • The bug reporting system is fully functional`);
       console.log(`   • All user roles can successfully create bug reports`);
       console.log(`   • Proper access controls are enforced`);
       console.log(`   • Form validation works correctly`);
       console.log(`   • Complete bug lifecycle management available`);
-      
+
       if (Object.keys(demoUserCookies).length < Object.keys(demoUsers).length) {
         console.log(`\n⚠️  Notes:`);
         console.log(`   • Some demo users could not be logged in automatically`);
         console.log(`   • This may be because they haven't been created yet`);
         console.log(`   • Run: npm run tsx scripts/create-test-users.ts to create demo users`);
       }
-      
+
       console.log('\n' + '='.repeat(60));
       console.log('🎉 Demo test completed successfully!');
       console.log('='.repeat(60) + '\n');

@@ -31,7 +31,7 @@ class MoneyFlowJob {
       enabled: process.env.MONEY_FLOW_ENABLED !== 'false',
       logLevel: (process.env.MONEY_FLOW_LOG_LEVEL as any) || 'info',
       retryAttempts: parseInt(process.env.MONEY_FLOW_RETRY_ATTEMPTS || '3'),
-      retryDelay: parseInt(process.env.MONEY_FLOW_RETRY_DELAY || '5000')
+      retryDelay: parseInt(process.env.MONEY_FLOW_RETRY_DELAY || '5000'),
     };
 
     this.log('info', 'Money Flow Job initialized', { config: this.config });
@@ -53,17 +53,21 @@ class MoneyFlowJob {
       }
 
       // Schedule the job
-      this.jobTask = cron.schedule(this.config.schedule, async () => {
-        await this.executeMoneyFlowJob();
-      }, {
-        timezone: process.env.TZ || 'UTC'
-      });
+      this.jobTask = cron.schedule(
+        this.config.schedule,
+        async () => {
+          await this.executeMoneyFlowJob();
+        },
+        {
+          timezone: process.env.TZ || 'UTC',
+        }
+      );
 
       this.jobTask.start();
-      
+
       this.log('info', 'Money flow job started', {
         schedule: this.config.schedule,
-        timezone: process.env.TZ || 'UTC'
+        timezone: process.env.TZ || 'UTC',
       });
 
       // Run initial generation if needed
@@ -71,10 +75,9 @@ class MoneyFlowJob {
         this.log('info', 'Running initial money flow generation...');
         await this.executeMoneyFlowJob();
       }
-
     } catch (_error) {
-      this.log('error', 'Failed to start money flow job', { 
-        _error: error instanceof Error ? error.message : 'Unknown error' 
+      this.log('error', 'Failed to start money flow job', {
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -124,16 +127,15 @@ class MoneyFlowJob {
           duration: `${Math.round(duration / 1000)}s`,
           attempt,
           result,
-          stats
+          stats,
         });
 
         success = true;
-
       } catch (_error) {
         this.log('error', `Money flow job attempt ${attempt} failed`, {
           _error: error instanceof Error ? error.message : 'Unknown error',
           attempt,
-          maxAttempts: this.config.retryAttempts
+          maxAttempts: this.config.retryAttempts,
         });
 
         if (attempt < this.config.retryAttempts) {
@@ -147,9 +149,9 @@ class MoneyFlowJob {
       const totalDuration = new Date().getTime() - startTime.getTime();
       this.log('error', 'Money flow job failed after all retry attempts', {
         attempts: this.config.retryAttempts,
-        totalDuration: `${Math.round(totalDuration / 1000)}s`
+        totalDuration: `${Math.round(totalDuration / 1000)}s`,
       });
-      
+
       // Send alert about the failure
       await this.sendFailureAlert();
     }
@@ -164,18 +166,18 @@ class MoneyFlowJob {
    */
   async generateForBill(billId: string): Promise<number> {
     this.log('info', `Triggering money flow generation for bill ${billId}`);
-    
+
     try {
       const entriesCreated = await moneyFlowAutomationService.generateForBill(billId);
       this.log('info', `Money flow generation completed for bill ${billId}`, {
         billId,
-        entriesCreated
+        entriesCreated,
       });
       return entriesCreated;
     } catch (_error) {
       this.log('error', `Failed to generate money flow for bill ${billId}`, {
         billId,
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -188,18 +190,18 @@ class MoneyFlowJob {
    */
   async generateForResidence(residenceId: string): Promise<number> {
     this.log('info', `Triggering money flow generation for residence ${residenceId}`);
-    
+
     try {
       const entriesCreated = await moneyFlowAutomationService.generateForResidence(residenceId);
       this.log('info', `Money flow generation completed for residence ${residenceId}`, {
         residenceId,
-        entriesCreated
+        entriesCreated,
       });
       return entriesCreated;
     } catch (_error) {
       this.log('error', `Failed to generate money flow for residence ${residenceId}`, {
         residenceId,
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -213,7 +215,7 @@ class MoneyFlowJob {
       return await moneyFlowAutomationService.getMoneyFlowStatistics();
     } catch (_error) {
       this.log('error', 'Failed to get money flow statistics', {
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -227,7 +229,7 @@ class MoneyFlowJob {
     // Log the failure for now
     this.log('error', 'Money flow job failed - manual intervention may be required', {
       timestamp: new Date().toISOString(),
-      retryAttempts: this.config.retryAttempts
+      retryAttempts: this.config.retryAttempts,
     });
 
     // TODO: Integrate with notification service when available
@@ -239,7 +241,7 @@ class MoneyFlowJob {
    * @param ms
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -273,7 +275,7 @@ class MoneyFlowJob {
       enabled: this.config.enabled,
       running: this.isRunning,
       schedule: this.config.schedule,
-      config: this.config
+      config: this.config,
     };
   }
 
@@ -283,7 +285,7 @@ class MoneyFlowJob {
    */
   async triggerFullRegeneration(): Promise<any> {
     this.log('info', 'Manually triggering full money flow regeneration');
-    
+
     if (this.isRunning) {
       throw new Error('Job is already running, please wait for completion');
     }

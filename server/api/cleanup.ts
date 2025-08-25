@@ -12,20 +12,22 @@ const router = Router();
 router.post('/cleanup-storage', async (req, res) => {
   try {
     const objectStorageService = new ObjectStorageService();
-    
+
     // Get all file URLs from both document tables
-    const buildingDocs = await db.select({ fileUrl: documentsBuildings.fileUrl })
+    const buildingDocs = await db
+      .select({ fileUrl: documentsBuildings.fileUrl })
       .from(documentsBuildings)
       .where(isNotNull(documentsBuildings.fileUrl));
-      
-    const residentDocs = await db.select({ fileUrl: documentsResidents.fileUrl })
+
+    const residentDocs = await db
+      .select({ fileUrl: documentsResidents.fileUrl })
       .from(documentsResidents)
       .where(isNotNull(documentsResidents.fileUrl));
 
     // Combine all referenced file URLs and extract object paths from hierarchical structure
     const referencedObjectPaths = new Set();
-    
-    [...buildingDocs, ...residentDocs].forEach(doc => {
+
+    [...buildingDocs, ...residentDocs].forEach((doc) => {
       if (doc.fileUrl) {
         try {
           // Convert URL to object path - handles hierarchical paths
@@ -51,7 +53,7 @@ router.post('/cleanup-storage', async (req, res) => {
     // This will scan the entire hierarchy: organization-*/building-*/buildings_documents/* and residence-*/*
     const bucket = objectStorageClient.bucket(bucketName);
     const [files] = await bucket.getFiles({ prefix: prefixPath });
-    
+
     let deletedCount = 0;
     const totalFilesInStorage = files.length;
     const deletedFiles: string[] = [];
@@ -60,7 +62,7 @@ router.post('/cleanup-storage', async (req, res) => {
     for (const file of files) {
       // Get the object path relative to the private directory
       let objectPath = file.name;
-      
+
       // Remove the private directory prefix to get the hierarchical path
       if (objectPath.startsWith(prefixPath)) {
         objectPath = objectPath.substring(prefixPath.length);
@@ -69,18 +71,18 @@ router.post('/cleanup-storage', async (req, res) => {
           objectPath = objectPath.substring(1);
         }
       }
-      
+
       // Skip if this file is referenced in the database
       if (referencedObjectPaths.has(objectPath)) {
         continue;
       }
-      
+
       // Skip directory markers, empty paths, and folders
       if (file.name.endsWith('/') || !objectPath || objectPath.split('/').length < 4) {
         // Hierarchical files should have at least: organization-id/building-id/type/filename
         continue;
       }
-      
+
       try {
         // Delete orphaned file
         await file.delete();
@@ -99,15 +101,14 @@ router.post('/cleanup-storage', async (req, res) => {
         totalFilesInStorage,
         referencedInDatabase: referencedObjectPaths.size,
         deletedOrphaned: deletedCount,
-        deletedFiles
-      }
+        deletedFiles,
+      },
     });
-
   } catch (_error) {
     console.error('Error during storage cleanup:', _error);
-    res.status(500).json({ 
-      success: false, 
-      _error: 'Failed to cleanup storage: ' + error.message 
+    res.status(500).json({
+      success: false,
+      _error: 'Failed to cleanup storage: ' + error.message,
     });
   }
 });
@@ -118,11 +119,13 @@ router.post('/cleanup-storage', async (req, res) => {
 router.get('/storage-stats', async (req, res) => {
   try {
     // Get database file counts
-    const buildingDocs = await db.select({ id: documentsBuildings.id })
+    const buildingDocs = await db
+      .select({ id: documentsBuildings.id })
       .from(documentsBuildings)
       .where(isNotNull(documentsBuildings.fileUrl));
-      
-    const residentDocs = await db.select({ id: documentsResidents.id })
+
+    const residentDocs = await db
+      .select({ id: documentsResidents.id })
       .from(documentsResidents)
       .where(isNotNull(documentsResidents.fileUrl));
 
@@ -132,16 +135,15 @@ router.get('/storage-stats', async (req, res) => {
       database: {
         buildingDocuments: buildingDocs.length,
         residentDocuments: residentDocs.length,
-        total: totalDbFiles
+        total: totalDbFiles,
       },
-      message: `Database contains ${totalDbFiles} documents with attached files`
+      message: `Database contains ${totalDbFiles} documents with attached files`,
     });
-
   } catch (_error) {
     console.error('Error getting storage stats:', _error);
-    res.status(500).json({ 
-      success: false, 
-      _error: 'Failed to get storage statistics' 
+    res.status(500).json({
+      success: false,
+      _error: 'Failed to get storage statistics',
     });
   }
 });
@@ -154,24 +156,23 @@ router.post('/auto-cleanup', async (req, res) => {
     // Call the cleanup storage function
     const cleanupResponse = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
-    
+
     const result = await cleanupResponse.json();
-    
+
     console.warn('Auto-cleanup completed:', _result);
-    
+
     res.json({
       success: true,
       message: 'Auto-cleanup completed successfully',
-      result
+      result,
     });
-    
   } catch (_error) {
     console.error('Auto-cleanup failed:', _error);
-    res.status(500).json({ 
-      success: false, 
-      _error: 'Auto-cleanup failed: ' + error.message 
+    res.status(500).json({
+      success: false,
+      _error: 'Auto-cleanup failed: ' + error.message,
     });
   }
 });

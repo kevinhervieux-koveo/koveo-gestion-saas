@@ -1,6 +1,6 @@
 /**
  * Residence Page Error Handling Tests.
- * 
+ *
  * Specific tests for the residence page to ensure it handles various error scenarios
  * and data loading states gracefully, preventing runtime crashes.
  */
@@ -30,9 +30,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router hook={() => [location, navigate]}>
-        {children}
-      </Router>
+      <Router hook={() => [location, navigate]}>{children}</Router>
     </QueryClientProvider>
   );
 };
@@ -67,7 +65,7 @@ jest.mock('../../client/src/hooks/use-toast', () => ({
 describe('Residence Page Error Handling', () => {
   const { apiRequest: mockApiRequest } = require('../../client/src/lib/queryClient');
   const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -117,9 +115,7 @@ describe('Residence Page Error Handling', () => {
     });
 
     test('handles when API returns undefined', async () => {
-      mockApiRequest
-        .mockResolvedValueOnce({ id: 'test-user' })
-        .mockResolvedValueOnce(undefined);
+      mockApiRequest.mockResolvedValueOnce({ id: 'test-user' }).mockResolvedValueOnce(undefined);
 
       render(
         <TestWrapper>
@@ -153,13 +149,11 @@ describe('Residence Page Error Handling', () => {
     });
 
     test('handles malformed residence objects in array', async () => {
-      mockApiRequest
-        .mockResolvedValueOnce({ id: 'test-user' })
-        .mockResolvedValueOnce([
-          { id: 'residence-1' }, // Missing required fields
-          null, // Null item
-          { id: 'residence-2', unitNumber: '101', building: { name: 'Test Building' } }
-        ]);
+      mockApiRequest.mockResolvedValueOnce({ id: 'test-user' }).mockResolvedValueOnce([
+        { id: 'residence-1' }, // Missing required fields
+        null, // Null item
+        { id: 'residence-2', unitNumber: '101', building: { name: 'Test Building' } },
+      ]);
 
       render(
         <TestWrapper>
@@ -244,7 +238,7 @@ describe('Residence Page Error Handling', () => {
     test('shows loading state while fetching data', () => {
       mockApiRequest
         .mockResolvedValueOnce({ id: 'test-user' })
-        .mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+        .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
       render(
         <TestWrapper>
@@ -256,19 +250,21 @@ describe('Residence Page Error Handling', () => {
     });
 
     test('handles loading state transitions properly', async () => {
-      const delayedPromise = new Promise(resolve => 
-        setTimeout(() => resolve([
-          { 
-            id: 'residence-1', 
-            unitNumber: '101', 
-            building: { name: 'Test Building' } 
-          }
-        ]), 50)
+      const delayedPromise = new Promise((resolve) =>
+        setTimeout(
+          () =>
+            resolve([
+              {
+                id: 'residence-1',
+                unitNumber: '101',
+                building: { name: 'Test Building' },
+              },
+            ]),
+          50
+        )
       );
 
-      mockApiRequest
-        .mockResolvedValueOnce({ id: 'test-user' })
-        .mockReturnValueOnce(delayedPromise);
+      mockApiRequest.mockResolvedValueOnce({ id: 'test-user' }).mockReturnValueOnce(delayedPromise);
 
       render(
         <TestWrapper>
@@ -280,9 +276,12 @@ describe('Residence Page Error Handling', () => {
       expect(screen.getByText('loading')).toBeInTheDocument();
 
       // Wait for data to load
-      await waitFor(() => {
-        expect(screen.queryByText('loading')).not.toBeInTheDocument();
-      }, { timeout: 100 });
+      await waitFor(
+        () => {
+          expect(screen.queryByText('loading')).not.toBeInTheDocument();
+        },
+        { timeout: 100 }
+      );
     });
   });
 
@@ -303,9 +302,7 @@ describe('Residence Page Error Handling', () => {
     });
 
     test('handles users without residence access', async () => {
-      mockApiRequest
-        .mockResolvedValueOnce({ id: 'test-user' })
-        .mockResolvedValueOnce([]); // Empty array - no accessible residences
+      mockApiRequest.mockResolvedValueOnce({ id: 'test-user' }).mockResolvedValueOnce([]); // Empty array - no accessible residences
 
       render(
         <TestWrapper>
@@ -325,8 +322,8 @@ describe('Residence Page Error Handling', () => {
         {
           id: 'residence-1',
           unitNumber: '101',
-          building: { name: 'Building A' }
-        }
+          building: { name: 'Building A' },
+        },
       ];
 
       mockApiRequest
@@ -352,13 +349,13 @@ describe('Residence Page Error Handling', () => {
         {
           id: 'residence-1',
           // Missing unitNumber
-          building: { name: 'Building A' }
+          building: { name: 'Building A' },
         },
         {
           id: 'residence-2',
           unitNumber: '102',
           // Missing building
-        }
+        },
       ];
 
       mockApiRequest
@@ -384,8 +381,8 @@ describe('Residence Page Error Handling', () => {
         {
           id: 'residence-1',
           unitNumber: '101',
-          building: { name: 'Building A', id: 'building-1' }
-        }
+          building: { name: 'Building A', id: 'building-1' },
+        },
       ];
 
       mockApiRequest
@@ -411,8 +408,8 @@ describe('Residence Page Error Handling', () => {
         {
           id: 'residence-1',
           unitNumber: '101',
-          building: { name: 'Building A', id: 'building-1' }
-        }
+          building: { name: 'Building A', id: 'building-1' },
+        },
       ];
 
       mockApiRequest
@@ -458,7 +455,7 @@ describe('Residence Page Error Handling', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce({ id: 'test-user-2' })
         .mockResolvedValueOnce([
-          { id: 'residence-1', unitNumber: '101', building: { name: 'Building A' } }
+          { id: 'residence-1', unitNumber: '101', building: { name: 'Building A' } },
         ]);
 
       const { rerender } = render(

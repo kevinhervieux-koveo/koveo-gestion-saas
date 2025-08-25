@@ -47,9 +47,7 @@ describe('useAuth Hook Tests', () => {
 
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </QueryClientProvider>
     );
   };
@@ -69,7 +67,7 @@ describe('useAuth Hook Tests', () => {
       lastName: 'User',
       role: 'admin',
       organizationId: 'org-123',
-      isActive: true
+      isActive: true,
     };
 
     // Mock successful user fetch - useAuth uses fetch directly via useQuery
@@ -128,9 +126,12 @@ describe('useAuth Hook Tests', () => {
   });
 
   it('should start with loading state', () => {
-    mockApiRequest.mockImplementation(() => new Promise(() => {
-      // Intentionally empty promise for testing loading state
-    }));
+    mockApiRequest.mockImplementation(
+      () =>
+        new Promise(() => {
+          // Intentionally empty promise for testing loading state
+        })
+    );
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -148,7 +149,7 @@ describe('useAuth Hook Tests', () => {
       lastName: 'Test',
       role: 'user',
       organizationId: 'org-456',
-      isActive: true
+      isActive: true,
     };
 
     // Mock initial authenticated state
@@ -158,7 +159,7 @@ describe('useAuth Hook Tests', () => {
       status: 200,
       statusText: 'OK',
     } as Response);
-    
+
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
     });
@@ -174,9 +175,9 @@ describe('useAuth Hook Tests', () => {
     // Mock logout success via fetch (since logout uses fetch directly)
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ success: true })
+      json: async () => ({ success: true }),
     } as Response);
-    
+
     // Test logout functionality
     await result.current.logout();
 
@@ -191,7 +192,7 @@ describe('useAuth Hook Tests', () => {
   it('should handle logout errors', async () => {
     // First mock for the initial user fetch
     mockApiRequest.mockResolvedValueOnce(null);
-    
+
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
     });
@@ -203,7 +204,7 @@ describe('useAuth Hook Tests', () => {
     // Mock logout error via fetch
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ message: 'Logout failed' })
+      json: async () => ({ message: 'Logout failed' }),
     } as Response);
 
     try {

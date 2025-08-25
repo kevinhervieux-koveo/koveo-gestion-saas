@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import { GoogleGenAI } from "@google/genai";
+import * as fs from 'fs';
+import { GoogleGenAI } from '@google/genai';
 
 // DON'T DELETE THIS COMMENT
 // Follow these instructions when using this blueprint:
@@ -7,7 +7,7 @@ import { GoogleGenAI } from "@google/genai";
 //   - do not change this unless explicitly requested by the user
 
 // This API key is from Gemini Developer API Key, not vertex AI API Key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 /**
  *
@@ -28,7 +28,6 @@ export interface BillAnalysisResult {
  *
  */
 export class GeminiBillAnalyzer {
-  
   /**
    * Analyze a bill document using Gemini 2.5 Pro.
    * @param imagePath
@@ -36,7 +35,7 @@ export class GeminiBillAnalyzer {
   async analyzeBillDocument(imagePath: string): Promise<BillAnalysisResult> {
     try {
       const imageBytes = fs.readFileSync(imagePath);
-      
+
       const systemPrompt = `You are an expert bill analysis AI. Analyze this bill/invoice document and extract key information.
       
       Extract the following information and respond with JSON in this exact format:
@@ -63,35 +62,51 @@ export class GeminiBillAnalyzer {
       const contents = [
         {
           inlineData: {
-            _data: imageBytes.toString("base64"),
-            mimeType: "image/jpeg",
+            _data: imageBytes.toString('base64'),
+            mimeType: 'image/jpeg',
           },
         },
         `Analyze this bill/invoice document and extract the key information as specified.`,
       ];
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: 'gemini-2.5-pro',
         config: {
           systemInstruction: systemPrompt,
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: "object",
+            type: 'object',
             properties: {
-              title: { type: "string" },
-              vendor: { type: "string" },
-              totalAmount: { type: "string" },
-              category: { 
-                type: "string",
-                enum: ["insurance", "maintenance", "salary", "utilities", "cleaning", "security", "landscaping", "professional_services", "administration", "repairs", "supplies", "taxes", "technology", "reserves", "other"]
+              title: { type: 'string' },
+              vendor: { type: 'string' },
+              totalAmount: { type: 'string' },
+              category: {
+                type: 'string',
+                enum: [
+                  'insurance',
+                  'maintenance',
+                  'salary',
+                  'utilities',
+                  'cleaning',
+                  'security',
+                  'landscaping',
+                  'professional_services',
+                  'administration',
+                  'repairs',
+                  'supplies',
+                  'taxes',
+                  'technology',
+                  'reserves',
+                  'other',
+                ],
               },
-              description: { type: "string" },
-              dueDate: { type: "string" },
-              issueDate: { type: "string" },
-              billNumber: { type: "string" },
-              confidence: { type: "number" }
+              description: { type: 'string' },
+              dueDate: { type: 'string' },
+              issueDate: { type: 'string' },
+              billNumber: { type: 'string' },
+              confidence: { type: 'number' },
             },
-            required: ["title", "vendor", "totalAmount", "category", "confidence"],
+            required: ['title', 'vendor', 'totalAmount', 'category', 'confidence'],
           },
         },
         contents: contents,
@@ -102,14 +117,14 @@ export class GeminiBillAnalyzer {
 
       if (rawJson) {
         const analysis: BillAnalysisResult = JSON.parse(rawJson);
-        
+
         // Validate and sanitize the results
         analysis.confidence = Math.max(0, Math.min(1, analysis.confidence));
         analysis.totalAmount = this.sanitizeAmount(analysis.totalAmount);
-        
+
         return analysis;
       } else {
-        throw new Error("Empty response from Gemini");
+        throw new Error('Empty response from Gemini');
       }
     } catch (_error) {
       console.error('Error analyzing bill with Gemini:', _error);
@@ -125,11 +140,11 @@ export class GeminiBillAnalyzer {
     // Remove currency symbols and spaces
     const cleaned = amount.replace(/[^0-9.-]/g, '');
     const parsed = parseFloat(cleaned);
-    
+
     if (isNaN(parsed)) {
       return '0.00';
     }
-    
+
     return parsed.toFixed(2);
   }
 
@@ -138,7 +153,10 @@ export class GeminiBillAnalyzer {
    * @param category
    * @param amount
    */
-  async suggestPaymentSchedule(category: string, amount: number): Promise<{
+  async suggestPaymentSchedule(
+    category: string,
+    amount: number
+  ): Promise<{
     paymentType: 'unique' | 'recurrent';
     schedulePayment?: 'monthly' | 'quarterly' | 'yearly';
     reasoning: string;
@@ -162,17 +180,17 @@ export class GeminiBillAnalyzer {
       }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: 'gemini-2.5-flash',
         config: {
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: "object",
+            type: 'object',
             properties: {
-              paymentType: { type: "string", enum: ["unique", "recurrent"] },
-              schedulePayment: { type: "string", enum: ["monthly", "quarterly", "yearly"] },
-              reasoning: { type: "string" }
+              paymentType: { type: 'string', enum: ['unique', 'recurrent'] },
+              schedulePayment: { type: 'string', enum: ['monthly', 'quarterly', 'yearly'] },
+              reasoning: { type: 'string' },
             },
-            required: ["paymentType", "reasoning"]
+            required: ['paymentType', 'reasoning'],
           },
         },
         contents: prompt,
@@ -184,7 +202,7 @@ export class GeminiBillAnalyzer {
       console.error('Error getting payment schedule suggestion:', _error);
       return {
         paymentType: 'unique',
-        reasoning: 'Default to unique payment due to analysis error'
+        reasoning: 'Default to unique payment due to analysis error',
       };
     }
   }

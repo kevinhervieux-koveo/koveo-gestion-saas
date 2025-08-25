@@ -7,7 +7,7 @@ const execAsync = promisify(exec);
 
 /**
  * BUILD PROCESS VALIDATION TESTS.
- * 
+ *
  * These tests ensure that the build process creates all necessary files
  * and that the built application can be deployed successfully.
  */
@@ -20,18 +20,13 @@ describe('Build Process Validation Tests', () => {
     test('should have valid package.json with required scripts', () => {
       const packageJsonPath = path.resolve(projectRoot, 'package.json');
       expect(fs.existsSync(packageJsonPath)).toBe(true);
-      
+
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-      
+
       // Critical scripts for deployment
-      const requiredScripts = [
-        'build',
-        'build:client', 
-        'build:server',
-        'start'
-      ];
-      
-      requiredScripts.forEach(script => {
+      const requiredScripts = ['build', 'build:client', 'build:server', 'start'];
+
+      requiredScripts.forEach((script) => {
         expect(packageJson.scripts).toHaveProperty(script);
         expect(typeof packageJson.scripts[script]).toBe('string');
         expect(packageJson.scripts[script].length).toBeGreaterThan(0);
@@ -41,9 +36,9 @@ describe('Build Process Validation Tests', () => {
     test('should have valid start command for production', () => {
       const packageJsonPath = path.resolve(projectRoot, 'package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-      
+
       const startCommand = packageJson.scripts.start;
-      
+
       // Start command should set NODE_ENV=production and run the built server
       expect(startCommand).toContain('production');
       expect(startCommand).toMatch(/node.*dist.*index\.js/);
@@ -52,15 +47,11 @@ describe('Build Process Validation Tests', () => {
     test('should have required dependencies for production', () => {
       const packageJsonPath = path.resolve(projectRoot, 'package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-      
+
       // Critical runtime dependencies
-      const requiredDeps = [
-        'express',
-        'drizzle-orm',
-        '@neondatabase/serverless'
-      ];
-      
-      requiredDeps.forEach(dep => {
+      const requiredDeps = ['express', 'drizzle-orm', '@neondatabase/serverless'];
+
+      requiredDeps.forEach((dep) => {
         expect(packageJson.dependencies).toHaveProperty(dep);
       });
     });
@@ -70,9 +61,9 @@ describe('Build Process Validation Tests', () => {
     test('should have valid Vite configuration', () => {
       const viteConfigPath = path.resolve(projectRoot, 'vite.config.ts');
       expect(fs.existsSync(viteConfigPath)).toBe(true);
-      
+
       const viteConfig = fs.readFileSync(viteConfigPath, 'utf-8');
-      
+
       // Should configure output directory
       expect(viteConfig).toContain('build');
       expect(viteConfig).toContain('outDir');
@@ -81,9 +72,9 @@ describe('Build Process Validation Tests', () => {
     test('should have TypeScript configuration', () => {
       const tsconfigPath = path.resolve(projectRoot, 'tsconfig.json');
       expect(fs.existsSync(tsconfigPath)).toBe(true);
-      
+
       const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
-      
+
       // Should have proper compiler options
       expect(tsconfig.compilerOptions).toBeDefined();
       expect(tsconfig.compilerOptions.target).toBeDefined();
@@ -101,21 +92,20 @@ describe('Build Process Validation Tests', () => {
 
       try {
         // Run client build
-        await execAsync('npm run build:client', { 
+        await execAsync('npm run build:client', {
           cwd: projectRoot,
-          timeout: 60000 // 60 second timeout
+          timeout: 60000, // 60 second timeout
         });
-        
+
         // Check that build output exists
         const buildOutputs = [
           path.resolve(publicPath, 'index.html'),
-          path.resolve(publicPath, 'assets')
+          path.resolve(publicPath, 'assets'),
         ];
-        
-        buildOutputs.forEach(outputPath => {
+
+        buildOutputs.forEach((outputPath) => {
           expect(fs.existsSync(outputPath)).toBe(true);
         });
-        
       } catch (_error) {
         console.warn('Build test failed:', _error);
         // Don't fail the test if build fails - this might be expected in some environments
@@ -124,28 +114,28 @@ describe('Build Process Validation Tests', () => {
 
     test('should validate built index.html structure', () => {
       const indexPath = path.resolve(publicPath, 'index.html');
-      
+
       if (fs.existsSync(indexPath)) {
         const indexContent = fs.readFileSync(indexPath, 'utf-8');
-        
+
         // Critical HTML structure
         expect(indexContent).toContain('<!DOCTYPE html>');
         expect(indexContent).toContain('<html lang="en">');
         expect(indexContent).toContain('<div id="root">');
         expect(indexContent).toContain('</html>');
-        
+
         // Meta tags for SEO/mobile
         expect(indexContent).toContain('<meta charset="UTF-8">');
         expect(indexContent).toContain('<meta name="viewport"');
-        
+
         // Should not contain development-only content
         expect(indexContent).not.toContain('/src/main.tsx');
-        
+
         // Should reference built assets
         expect(
-          indexContent.includes('/assets/') || 
-          indexContent.includes('script') ||
-          indexContent.includes('link')
+          indexContent.includes('/assets/') ||
+            indexContent.includes('script') ||
+            indexContent.includes('link')
         ).toBe(true);
       } else {
         console.warn('⚠️ Built index.html not found - skipping validation');
@@ -154,26 +144,26 @@ describe('Build Process Validation Tests', () => {
 
     test('should create properly structured assets', () => {
       const assetsPath = path.resolve(publicPath, 'assets');
-      
+
       if (fs.existsSync(assetsPath)) {
         const assetFiles = fs.readdirSync(assetsPath);
-        
+
         // Should have at least one JavaScript file
-        const jsFiles = assetFiles.filter(file => file.endsWith('.js'));
+        const jsFiles = assetFiles.filter((file) => file.endsWith('.js'));
         expect(jsFiles.length).toBeGreaterThan(0);
-        
-        // Should have at least one CSS file  
-        const cssFiles = assetFiles.filter(file => file.endsWith('.css'));
+
+        // Should have at least one CSS file
+        const cssFiles = assetFiles.filter((file) => file.endsWith('.css'));
         expect(cssFiles.length).toBeGreaterThan(0);
-        
+
         // Files should not be empty
-        jsFiles.forEach(jsFile => {
+        jsFiles.forEach((jsFile) => {
           const filePath = path.resolve(assetsPath, jsFile);
           const stats = fs.statSync(filePath);
           expect(stats.size).toBeGreaterThan(100); // At least 100 bytes
         });
-        
-        cssFiles.forEach(cssFile => {
+
+        cssFiles.forEach((cssFile) => {
           const filePath = path.resolve(assetsPath, cssFile);
           const stats = fs.statSync(filePath);
           expect(stats.size).toBeGreaterThan(50); // At least 50 bytes
@@ -192,19 +182,18 @@ describe('Build Process Validation Tests', () => {
 
       try {
         // Run server build
-        await execAsync('npm run build:server', { 
+        await execAsync('npm run build:server', {
           cwd: projectRoot,
-          timeout: 30000 // 30 second timeout
+          timeout: 30000, // 30 second timeout
         });
-        
+
         // Check that build output exists
         const serverBuildPath = path.resolve(distPath, 'index.js');
         expect(fs.existsSync(serverBuildPath)).toBe(true);
-        
+
         // File should not be empty
         const stats = fs.statSync(serverBuildPath);
         expect(stats.size).toBeGreaterThan(1000); // At least 1KB
-        
       } catch (_error) {
         console.warn('Server build test failed:', _error);
         // Don't fail the test if build fails - this might be expected in some environments
@@ -213,22 +202,19 @@ describe('Build Process Validation Tests', () => {
 
     test('should validate built server file structure', () => {
       const serverBuildPath = path.resolve(distPath, 'index.js');
-      
+
       if (fs.existsSync(serverBuildPath)) {
         const serverContent = fs.readFileSync(serverBuildPath, 'utf-8');
-        
+
         // Should contain essential server code
         expect(serverContent).toContain('express');
         expect(serverContent).toContain('listen');
-        
+
         // Should be bundled (not have import statements for local files)
         expect(serverContent).not.toContain('import.*routes-minimal');
-        
+
         // Should handle production static serving
-        expect(
-          serverContent.includes('static') || 
-          serverContent.includes('sendFile')
-        ).toBe(true);
+        expect(serverContent.includes('static') || serverContent.includes('sendFile')).toBe(true);
       } else {
         console.warn('⚠️ Built server file not found - skipping validation');
       }
@@ -245,18 +231,17 @@ describe('Build Process Validation Tests', () => {
 
       try {
         // Run full build
-        const { stdout, stderr } = await execAsync('npm run build', { 
+        const { stdout, stderr } = await execAsync('npm run build', {
           cwd: projectRoot,
-          timeout: 120000 // 2 minute timeout
+          timeout: 120000, // 2 minute timeout
         });
-        
+
         // Build should not have critical errors
         expect(stderr).not.toContain('ERROR');
         expect(stderr).not.toContain('FAILED');
-        
+
         // Should produce output
         expect(stdout.length).toBeGreaterThan(0);
-        
       } catch (_error) {
         console.warn('Full build test failed:', _error);
         throw new Error(`Build process failed: ${error}`);
@@ -267,11 +252,11 @@ describe('Build Process Validation Tests', () => {
       const requiredArtifacts = [
         path.resolve(publicPath, 'index.html'),
         path.resolve(publicPath, 'assets'),
-        path.resolve(distPath, 'index.js')
+        path.resolve(distPath, 'index.js'),
       ];
-      
-      const missingArtifacts = requiredArtifacts.filter(artifact => !fs.existsSync(artifact));
-      
+
+      const missingArtifacts = requiredArtifacts.filter((artifact) => !fs.existsSync(artifact));
+
       if (missingArtifacts.length > 0) {
         console.warn('⚠️ Missing build artifacts:', missingArtifacts);
         // Don't fail if we're not in a build environment
@@ -288,7 +273,7 @@ describe('Build Process Validation Tests', () => {
       if (process.env.NODE_ENV === 'production') {
         expect(process.env.DATABASE_URL).toBeDefined();
       }
-      
+
       // Port should be configurable
       const port = process.env.PORT || process.env.REPL_PORT || '8080';
       expect(parseInt(port, 10)).toBeGreaterThan(0);
@@ -298,10 +283,10 @@ describe('Build Process Validation Tests', () => {
       const criticalPaths = [
         path.resolve(projectRoot, 'package.json'),
         path.resolve(projectRoot, 'server'),
-        path.resolve(projectRoot, 'client')
+        path.resolve(projectRoot, 'client'),
       ];
-      
-      criticalPaths.forEach(criticalPath => {
+
+      criticalPaths.forEach((criticalPath) => {
         if (fs.existsSync(criticalPath)) {
           const stats = fs.statSync(criticalPath);
           expect(stats.isDirectory() || stats.isFile()).toBe(true);
@@ -312,19 +297,18 @@ describe('Build Process Validation Tests', () => {
     test('should validate that built application can start', async () => {
       // This test simulates starting the built application
       const serverBuildPath = path.resolve(distPath, 'index.js');
-      
+
       if (fs.existsSync(serverBuildPath)) {
         try {
           // Check that the built server file is valid JavaScript
           const serverContent = fs.readFileSync(serverBuildPath, 'utf-8');
-          
+
           // Basic syntax validation - should not have obvious syntax errors
           expect(serverContent).not.toContain('SyntaxError');
           expect(serverContent).not.toContain('undefined is not a function');
-          
+
           // Should have proper module structure
           expect(serverContent.includes('listen') || serverContent.includes('server')).toBe(true);
-          
         } catch (_error) {
           throw new Error(`Built server validation failed: ${error}`);
         }

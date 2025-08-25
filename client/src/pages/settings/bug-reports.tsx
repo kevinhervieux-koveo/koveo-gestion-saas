@@ -6,12 +6,51 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Bug, Plus, Search, Filter, AlertTriangle, Calendar, User, Tag, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Bug,
+  Plus,
+  Search,
+  Filter,
+  AlertTriangle,
+  Calendar,
+  User,
+  Tag,
+  Edit2,
+  Trash2,
+  MoreHorizontal,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,8 +61,19 @@ import { useAuth } from '@/hooks/use-auth';
 // Bug form schema
 const bugFormSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must not exceed 2000 characters'),
-  category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters'),
+  category: z.enum([
+    'ui_ux',
+    'functionality',
+    'performance',
+    'data',
+    'security',
+    'integration',
+    'other',
+  ]),
   page: z.string().min(1, 'Page is required'),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
@@ -137,7 +187,7 @@ export default function BugReports() {
 
   // Update bug mutation
   const updateBugMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<BugFormData> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<BugFormData> }) =>
       apiRequest('PATCH', `/api/bugs/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
@@ -188,8 +238,10 @@ export default function BugReports() {
   };
 
   const handleEdit = (bug: Bug) => {
-    if (!canEditBug(bug)) {return;}
-    
+    if (!canEditBug(bug)) {
+      return;
+    }
+
     setEditingBug(bug);
     editForm.reset({
       title: bug.title,
@@ -219,11 +271,12 @@ export default function BugReports() {
 
   // Filter bugs
   const filteredBugs = bugs.filter((bug: Bug) => {
-    const matchesSearch = bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         bug.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bug.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || bug.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || bug.priority === priorityFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -301,7 +354,9 @@ export default function BugReports() {
                           data-testid='input-bug-title'
                         />
                         {form.formState.errors.title && (
-                          <p className='text-sm text-red-600 mt-1'>{form.formState.errors.title.message}</p>
+                          <p className='text-sm text-red-600 mt-1'>
+                            {form.formState.errors.title.message}
+                          </p>
                         )}
                       </div>
 
@@ -315,14 +370,16 @@ export default function BugReports() {
                           data-testid='textarea-bug-description'
                         />
                         {form.formState.errors.description && (
-                          <p className='text-sm text-red-600 mt-1'>{form.formState.errors.description.message}</p>
+                          <p className='text-sm text-red-600 mt-1'>
+                            {form.formState.errors.description.message}
+                          </p>
                         )}
                       </div>
 
                       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                         <div>
                           <Label htmlFor='category'>Category*</Label>
-                          <Select 
+                          <Select
                             onValueChange={(value) => {
                               form.setValue('category', value as any);
                               form.clearErrors('category');
@@ -334,18 +391,22 @@ export default function BugReports() {
                             </SelectTrigger>
                             <SelectContent>
                               {Object.entries(categoryLabels).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                <SelectItem key={value} value={value}>
+                                  {label}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {form.formState.errors.category && (
-                            <p className='text-sm text-red-600 mt-1'>{form.formState.errors.category.message}</p>
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.category.message}
+                            </p>
                           )}
                         </div>
 
                         <div>
                           <Label htmlFor='priority'>Priority</Label>
-                          <Select 
+                          <Select
                             onValueChange={(value) => {
                               form.setValue('priority', value as any);
                               form.clearErrors('priority');
@@ -373,7 +434,9 @@ export default function BugReports() {
                             data-testid='input-bug-page'
                           />
                           {form.formState.errors.page && (
-                            <p className='text-sm text-red-600 mt-1'>{form.formState.errors.page.message}</p>
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.page.message}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -400,10 +463,18 @@ export default function BugReports() {
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
-                        <Button type='button' variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          onClick={() => setIsCreateDialogOpen(false)}
+                        >
                           Cancel
                         </Button>
-                        <Button type='submit' disabled={createBugMutation.isPending} data-testid='button-submit-bug'>
+                        <Button
+                          type='submit'
+                          disabled={createBugMutation.isPending}
+                          data-testid='button-submit-bug'
+                        >
                           {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
                         </Button>
                       </div>
@@ -413,7 +484,10 @@ export default function BugReports() {
 
                 {/* Edit Bug Dialog */}
                 <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                  <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto' data-testid='edit-bug-dialog'>
+                  <DialogContent
+                    className='max-w-2xl max-h-[90vh] overflow-y-auto'
+                    data-testid='edit-bug-dialog'
+                  >
                     <DialogHeader>
                       <DialogTitle>Edit Bug Report</DialogTitle>
                     </DialogHeader>
@@ -429,7 +503,9 @@ export default function BugReports() {
                             data-testid='input-edit-title'
                           />
                           {editForm.formState.errors.title && (
-                            <p className='text-red-500 text-xs'>{editForm.formState.errors.title.message}</p>
+                            <p className='text-red-500 text-xs'>
+                              {editForm.formState.errors.title.message}
+                            </p>
                           )}
                         </div>
 
@@ -468,7 +544,9 @@ export default function BugReports() {
                           data-testid='textarea-edit-description'
                         />
                         {editForm.formState.errors.description && (
-                          <p className='text-red-500 text-xs'>{editForm.formState.errors.description.message}</p>
+                          <p className='text-red-500 text-xs'>
+                            {editForm.formState.errors.description.message}
+                          </p>
                         )}
                       </div>
 
@@ -525,7 +603,9 @@ export default function BugReports() {
                             data-testid='input-edit-page'
                           />
                           {editForm.formState.errors.page && (
-                            <p className='text-red-500 text-xs'>{editForm.formState.errors.page.message}</p>
+                            <p className='text-red-500 text-xs'>
+                              {editForm.formState.errors.page.message}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -556,10 +636,18 @@ export default function BugReports() {
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
-                        <Button type='button' variant='outline' onClick={() => setIsEditDialogOpen(false)}>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          onClick={() => setIsEditDialogOpen(false)}
+                        >
                           Cancel
                         </Button>
-                        <Button type='submit' disabled={updateBugMutation.isPending} data-testid='button-update-bug'>
+                        <Button
+                          type='submit'
+                          disabled={updateBugMutation.isPending}
+                          data-testid='button-update-bug'
+                        >
                           {updateBugMutation.isPending ? 'Updating...' : 'Update Bug Report'}
                         </Button>
                       </div>
@@ -594,28 +682,46 @@ export default function BugReports() {
               ) : (
                 <div className='space-y-4'>
                   {filteredBugs.map((bug: Bug) => (
-                    <div 
-                      key={bug.id} 
-                      className='border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer' 
+                    <div
+                      key={bug.id}
+                      className='border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer'
                       data-testid={`bug-card-${bug.id}`}
                       onClick={() => handleEdit(bug)}
                     >
                       <div className='flex items-start justify-between gap-4'>
                         <div className='flex-1 min-w-0'>
                           <div className='flex items-center gap-2 mb-2'>
-                            <h3 className='font-semibold text-lg truncate' data-testid={`bug-title-${bug.id}`}>{bug.title}</h3>
-                            <Badge className={priorityColors[bug.priority as keyof typeof priorityColors]}>
+                            <h3
+                              className='font-semibold text-lg truncate'
+                              data-testid={`bug-title-${bug.id}`}
+                            >
+                              {bug.title}
+                            </h3>
+                            <Badge
+                              className={
+                                priorityColors[bug.priority as keyof typeof priorityColors]
+                              }
+                            >
                               {bug.priority}
                             </Badge>
-                            <Badge className={statusColors[bug.status as keyof typeof statusColors]}>
+                            <Badge
+                              className={statusColors[bug.status as keyof typeof statusColors]}
+                            >
                               {bug.status.replace('_', ' ')}
                             </Badge>
                           </div>
-                          <p className='text-gray-600 mb-3 line-clamp-2' data-testid={`bug-description-${bug.id}`}>{bug.description}</p>
+                          <p
+                            className='text-gray-600 mb-3 line-clamp-2'
+                            data-testid={`bug-description-${bug.id}`}
+                          >
+                            {bug.description}
+                          </p>
                           <div className='flex flex-wrap items-center gap-4 text-sm text-gray-500'>
                             <div className='flex items-center gap-1'>
                               <Tag className='w-4 h-4' />
-                              <span>{categoryLabels[bug.category as keyof typeof categoryLabels]}</span>
+                              <span>
+                                {categoryLabels[bug.category as keyof typeof categoryLabels]}
+                              </span>
                             </div>
                             <div className='flex items-center gap-1'>
                               <Calendar className='w-4 h-4' />
@@ -630,9 +736,9 @@ export default function BugReports() {
                           <div className='flex-shrink-0'>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant='ghost' 
-                                  size='sm' 
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
                                   className='h-8 w-8 p-0 text-red-600 hover:text-red-700'
                                   data-testid={`button-delete-${bug.id}`}
                                   onClick={(e) => e.stopPropagation()}
@@ -644,12 +750,13 @@ export default function BugReports() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete this bug report? This action cannot be undone.
+                                    Are you sure you want to delete this bug report? This action
+                                    cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
+                                  <AlertDialogAction
                                     onClick={() => handleDelete(bug.id)}
                                     className='bg-red-600 hover:bg-red-700'
                                     data-testid={`confirm-delete-${bug.id}`}

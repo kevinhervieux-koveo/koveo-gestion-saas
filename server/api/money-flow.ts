@@ -5,11 +5,11 @@ import { moneyFlowAutomationService } from '../services/money-flow-automation';
 import { z } from 'zod';
 
 const generateForBillSchema = z.object({
-  billId: z.string().uuid('Invalid bill ID format')
+  billId: z.string().uuid('Invalid bill ID format'),
 });
 
 const generateForResidenceSchema = z.object({
-  residenceId: z.string().uuid('Invalid residence ID format')
+  residenceId: z.string().uuid('Invalid residence ID format'),
 });
 
 /**
@@ -23,37 +23,35 @@ const generateForResidenceSchema = z.object({
  * @returns Function result.
  */
 export function registerMoneyFlowRoutes(app: Express) {
-  
   // Get money flow automation status and statistics
   app.get('/api/money-flow/status', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins can access money flow status
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       // Get job status and statistics
       const [jobStatus, statistics] = await Promise.all([
         moneyFlowJob.getStatus(),
-        moneyFlowJob.getStatistics()
+        moneyFlowJob.getStatistics(),
       ]);
 
       res.json({
         job: jobStatus,
         statistics,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error getting money flow status:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to get money flow status',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -62,12 +60,12 @@ export function registerMoneyFlowRoutes(app: Express) {
   app.post('/api/money-flow/regenerate', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins can trigger regeneration
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -80,14 +78,13 @@ export function registerMoneyFlowRoutes(app: Express) {
         message: 'Money flow regeneration completed successfully',
         result,
         triggeredBy: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error triggering money flow regeneration:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to trigger money flow regeneration',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -97,12 +94,12 @@ export function registerMoneyFlowRoutes(app: Express) {
     try {
       const user = req.user;
       const { billId } = generateForBillSchema.parse(req.body);
-      
+
       // Only admins and managers can trigger bill-specific generation
       if (user.role !== 'admin' && user.role !== 'manager' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin or Manager privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -116,14 +113,13 @@ export function registerMoneyFlowRoutes(app: Express) {
         billId,
         entriesCreated,
         triggeredBy: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error generating money flow for bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to generate money flow for bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -133,16 +129,18 @@ export function registerMoneyFlowRoutes(app: Express) {
     try {
       const user = req.user;
       const { residenceId } = generateForResidenceSchema.parse(req.body);
-      
+
       // Only admins and managers can trigger residence-specific generation
       if (user.role !== 'admin' && user.role !== 'manager' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin or Manager privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
-      console.warn(`🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id}`);
+      console.warn(
+        `🏠 Money flow generation for residence ${residenceId} triggered by user ${user.id}`
+      );
 
       // Generate money flow for specific residence
       const entriesCreated = await moneyFlowJob.generateForResidence(residenceId);
@@ -152,14 +150,13 @@ export function registerMoneyFlowRoutes(app: Express) {
         residenceId,
         entriesCreated,
         triggeredBy: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error generating money flow for residence:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to generate money flow for residence',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -168,12 +165,12 @@ export function registerMoneyFlowRoutes(app: Express) {
   app.get('/api/money-flow/statistics', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins and managers can access detailed statistics
       if (user.role !== 'admin' && user.role !== 'manager' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin or Manager privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -187,15 +184,14 @@ export function registerMoneyFlowRoutes(app: Express) {
           billEntries: 'Entries generated from bills (expenses)',
           residenceEntries: 'Entries generated from residence monthly fees (income)',
           futureEntries: 'Entries with transaction dates in the future',
-          dateRange: 'Range from oldest to newest entry'
-        }
+          dateRange: 'Range from oldest to newest entry',
+        },
       });
-
     } catch (_error) {
       console.error('Error getting money flow statistics:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to get money flow statistics',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -204,12 +200,12 @@ export function registerMoneyFlowRoutes(app: Express) {
   app.get('/api/money-flow/health', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins can access health check
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -226,17 +222,16 @@ export function registerMoneyFlowRoutes(app: Express) {
           nodeVersion: process.version,
           platform: process.platform,
           uptime: process.uptime(),
-          memoryUsage: process.memoryUsage()
+          memoryUsage: process.memoryUsage(),
         },
-        message: 'Money flow automation system is operational'
+        message: 'Money flow automation system is operational',
       });
-
     } catch (_error) {
       console.error('Error in money flow health check:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         status: 'unhealthy',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
-        message: 'Money flow automation system encountered an error'
+        message: 'Money flow automation system encountered an error',
       });
     }
   });

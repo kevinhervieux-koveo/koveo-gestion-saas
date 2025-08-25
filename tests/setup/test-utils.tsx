@@ -13,11 +13,13 @@ const MockLanguageContext = createContext({
 // Mock LanguageProvider
 export const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <MockLanguageContext.Provider value={{
-      language: 'en' as const,
-      setLanguage: jest.fn(),
-      t: jest.fn((key: string) => key),
-    }}>
+    <MockLanguageContext.Provider
+      value={{
+        language: 'en' as const,
+        setLanguage: jest.fn(),
+        t: jest.fn((key: string) => key),
+      }}
+    >
       {children}
     </MockLanguageContext.Provider>
   );
@@ -31,44 +33,39 @@ export const MockMobileMenuProvider: React.FC<{ children: React.ReactNode }> = (
     closeMobileMenu: jest.fn(),
   };
 
-  return (
-    <div data-mobile-menu-context="true">
-      {children}
-    </div>
-  );
+  return <div data-mobile-menu-context='true'>{children}</div>;
 };
 
 // Create test query client
-export const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: Infinity,
-      queryFn: async ({ queryKey }) => {
-        const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
-        const response = await fetch(url as string);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
+export const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: Infinity,
+        queryFn: async ({ queryKey }) => {
+          const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+          const response = await fetch(url as string);
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        },
+      },
+      mutations: {
+        retry: false,
       },
     },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+  });
 
 // All providers wrapper
 export const AllProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = createTestQueryClient();
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <MockLanguageProvider>
-        <MockMobileMenuProvider>
-          {children}
-        </MockMobileMenuProvider>
+        <MockMobileMenuProvider>{children}</MockMobileMenuProvider>
       </MockLanguageProvider>
     </QueryClientProvider>
   );

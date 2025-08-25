@@ -10,7 +10,6 @@ const { bills, residences, buildings } = schema;
  * Handles cache invalidation when source data changes instead of pre-generating entries.
  */
 export class FinancialAutomationService {
-  
   /**
    * Handle bill creation/update by invalidating related caches.
    * @param billId
@@ -25,7 +24,7 @@ export class FinancialAutomationService {
         .select({
           buildingId: bills.buildingId,
           billNumber: bills.billNumber,
-          paymentType: bills.paymentType
+          paymentType: bills.paymentType,
         })
         .from(bills)
         .where(eq(bills.id, billId))
@@ -41,18 +40,19 @@ export class FinancialAutomationService {
       if (buildingId) {
         // Invalidate financial cache for the affected building
         await dynamicFinancialCalculator.invalidateCache(
-          buildingId, 
+          buildingId,
           `bill ${action}: ${billNumber}`
         );
-        
+
         console.warn(`✅ Cache invalidated for building ${buildingId} due to bill ${action}`);
       }
 
       // If this is a recurrent bill, it might affect long-term projections
       if (bill[0]?.paymentType === 'recurrent') {
-        console.warn(`📊 Recurrent bill ${billNumber} ${action}d - future projections will be recalculated`);
+        console.warn(
+          `📊 Recurrent bill ${billNumber} ${action}d - future projections will be recalculated`
+        );
       }
-
     } catch (_error) {
       console.error(`❌ Error handling bill ${action}:`, _error);
       throw error;
@@ -64,7 +64,10 @@ export class FinancialAutomationService {
    * @param residenceId
    * @param action
    */
-  async handleResidenceUpdate(residenceId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
+  async handleResidenceUpdate(
+    residenceId: string,
+    action: 'create' | 'update' | 'delete'
+  ): Promise<void> {
     console.warn(`🏠 Handling residence ${action} for ID: ${residenceId}`);
 
     try {
@@ -73,7 +76,7 @@ export class FinancialAutomationService {
         .select({
           buildingId: residences.buildingId,
           unitNumber: residences.unitNumber,
-          monthlyFees: residences.monthlyFees
+          monthlyFees: residences.monthlyFees,
         })
         .from(residences)
         .where(eq(residences.id, residenceId))
@@ -92,10 +95,9 @@ export class FinancialAutomationService {
           buildingId,
           `residence ${action}: Unit ${unitNumber}`
         );
-        
+
         console.warn(`✅ Cache invalidated for building ${buildingId} due to residence ${action}`);
       }
-
     } catch (_error) {
       console.error(`❌ Error handling residence ${action}:`, _error);
       throw error;
@@ -107,18 +109,17 @@ export class FinancialAutomationService {
    * @param buildingId
    * @param action
    */
-  async handleBuildingUpdate(buildingId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
+  async handleBuildingUpdate(
+    buildingId: string,
+    action: 'create' | 'update' | 'delete'
+  ): Promise<void> {
     console.warn(`🏢 Handling building ${action} for ID: ${buildingId}`);
 
     try {
       // Always invalidate cache for the building
-      await dynamicFinancialCalculator.invalidateCache(
-        buildingId,
-        `building ${action}`
-      );
-      
-      console.warn(`✅ Cache invalidated for building ${buildingId} due to building ${action}`);
+      await dynamicFinancialCalculator.invalidateCache(buildingId, `building ${action}`);
 
+      console.warn(`✅ Cache invalidated for building ${buildingId} due to building ${action}`);
     } catch (_error) {
       console.error(`❌ Error handling building ${action}:`, _error);
       throw error;
@@ -140,27 +141,17 @@ export class FinancialAutomationService {
       const [billsResult] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(bills)
-        .where(
-          and(
-            eq(bills.paymentType, 'recurrent'),
-            sql`${bills.status} IN ('sent', 'draft')`
-          )
-        );
+        .where(and(eq(bills.paymentType, 'recurrent'), sql`${bills.status} IN ('sent', 'draft')`));
 
       // Count active residences with fees
       const [residencesResult] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(residences)
-        .where(
-          and(
-            eq(residences.isActive, true),
-            sql`${residences.monthlyFees} > 0`
-          )
-        );
+        .where(and(eq(residences.isActive, true), sql`${residences.monthlyFees} > 0`));
 
       // Get cache statistics
       const cacheStats = await dynamicFinancialCalculator.getCacheStatistics();
-      
+
       // Determine system health
       let systemHealth: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
       if (cacheStats.expiredEntries > cacheStats.totalEntries * 0.5) {
@@ -175,9 +166,8 @@ export class FinancialAutomationService {
         activeResidences: residencesResult.count,
         totalCacheEntries: cacheStats.totalEntries,
         lastCalculation: cacheStats.newestEntry,
-        systemHealth
+        systemHealth,
       };
-
     } catch (_error) {
       console.error('❌ Error getting financial statistics:', _error);
       return {
@@ -185,7 +175,7 @@ export class FinancialAutomationService {
         activeResidences: 0,
         totalCacheEntries: 0,
         lastCalculation: null,
-        systemHealth: 'unhealthy'
+        systemHealth: 'unhealthy',
       };
     }
   }
@@ -202,10 +192,10 @@ export class FinancialAutomationService {
     try {
       // Get initial cache count
       const initialStats = await dynamicFinancialCalculator.getCacheStatistics();
-      
+
       // Clean up expired cache entries (this happens automatically in the calculator)
       await db.execute(sql`DELETE FROM financial_cache WHERE expires_at < NOW()`);
-      
+
       // Get final cache count
       const finalStats = await dynamicFinancialCalculator.getCacheStatistics();
       const removedEntries = initialStats.totalEntries - finalStats.totalEntries;
@@ -217,14 +207,13 @@ export class FinancialAutomationService {
 
       return {
         cacheEntriesRemoved: removedEntries,
-        systemHealth: systemStats.systemHealth
+        systemHealth: systemStats.systemHealth,
       };
-
     } catch (_error) {
       console.error('❌ Error during maintenance:', _error);
       return {
         cacheEntriesRemoved: 0,
-        systemHealth: 'unhealthy'
+        systemHealth: 'unhealthy',
       };
     }
   }
@@ -256,14 +245,13 @@ export class FinancialAutomationService {
         CREATE INDEX IF NOT EXISTS idx_financial_cache_lookup 
           ON financial_cache(building_id, cache_key, expires_at)
       `);
-      
+
       await db.execute(sql`
         CREATE INDEX IF NOT EXISTS idx_financial_cache_expires 
           ON financial_cache(expires_at) WHERE expires_at < NOW()
       `);
 
       console.warn('✅ Dynamic Financial System initialized successfully');
-
     } catch (_error) {
       console.error('❌ Error initializing financial system:', _error);
       throw error;

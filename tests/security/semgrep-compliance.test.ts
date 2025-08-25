@@ -26,9 +26,9 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         { cwd: process.cwd(), timeout: 90000 }
       );
       complianceResults = JSON.parse(stdout);
-      
+
       // Analyze rules coverage
-      complianceResults.results?.forEach(result => {
+      complianceResults.results?.forEach((result) => {
         const ruleId = result.check_id;
         rulesCoverage[ruleId] = (rulesCoverage[ruleId] || 0) + 1;
       });
@@ -40,13 +40,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 
   describe('Quebec Law 25 Advanced Compliance', () => {
     it('should validate data processing consent mechanisms', () => {
-      const consentIssues = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.law25.advanced-consent-tracking'
-      ) || [];
+      const consentIssues =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.advanced-consent-tracking'
+        ) || [];
 
       if (consentIssues.length > 0) {
         console.warn(`🍁 Found ${consentIssues.length} consent processing patterns:`);
-        consentIssues.slice(0, 5).forEach(violation => {
+        consentIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -55,14 +56,17 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should detect data subject rights implementation gaps', () => {
-      const rightsIssues = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.law25.data-subject-rights-impl'
-      ) || [];
+      const rightsIssues =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.data-subject-rights-impl'
+        ) || [];
 
       if (rightsIssues.length > 0) {
         console.warn(`⚖️ Found ${rightsIssues.length} data subject rights implementation gaps:`);
-        rightsIssues.slice(0, 5).forEach(violation => {
-          console.warn(`   - ${violation.path}:${violation.start.line}: ${violation.extra?.message || 'Rights implementation needed'}`);
+        rightsIssues.slice(0, 5).forEach((violation) => {
+          console.warn(
+            `   - ${violation.path}:${violation.start.line}: ${violation.extra?.message || 'Rights implementation needed'}`
+          );
         });
       }
 
@@ -70,13 +74,16 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate privacy impact assessment requirements', () => {
-      const piaIssues = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.law25.privacy-impact-assessment'
-      ) || [];
+      const piaIssues =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.privacy-impact-assessment'
+        ) || [];
 
       if (piaIssues.length > 0) {
-        console.warn(`📊 Found ${piaIssues.length} operations requiring privacy impact assessment:`);
-        piaIssues.slice(0, 5).forEach(violation => {
+        console.warn(
+          `📊 Found ${piaIssues.length} operations requiring privacy impact assessment:`
+        );
+        piaIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -85,13 +92,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check Quebec French language compliance in legal documents', () => {
-      const languageIssues = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.law25.quebec-language-compliance'
-      ) || [];
+      const languageIssues =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.quebec-language-compliance'
+        ) || [];
 
       if (languageIssues.length > 0) {
         console.warn(`🗣️ Found ${languageIssues.length} Quebec French compliance items:`);
-        languageIssues.slice(0, 5).forEach(violation => {
+        languageIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -100,13 +108,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate data breach notification compliance', () => {
-      const breachIssues = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.law25.breach-notification-compliance'
-      ) || [];
+      const breachIssues =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.breach-notification-compliance'
+        ) || [];
 
       if (breachIssues.length > 0) {
         console.warn(`🚨 Found ${breachIssues.length} breach notification compliance items:`);
-        breachIssues.forEach(violation => {
+        breachIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -117,13 +126,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 
   describe('Property Management Domain Security', () => {
     it('should validate tenant privacy protection measures', () => {
-      const tenantPrivacy = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.property.tenant-privacy-protection'
-      ) || [];
+      const tenantPrivacy =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.tenant-privacy-protection'
+        ) || [];
 
       if (tenantPrivacy.length > 0) {
         console.warn(`🏠 Found ${tenantPrivacy.length} tenant privacy protection requirements:`);
-        tenantPrivacy.slice(0, 5).forEach(violation => {
+        tenantPrivacy.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -132,13 +142,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check building security data handling', () => {
-      const buildingSecurity = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.property.building-security-compliance'
-      ) || [];
+      const buildingSecurity =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.building-security-compliance'
+        ) || [];
 
       if (buildingSecurity.length > 0) {
         console.warn(`🔐 Found ${buildingSecurity.length} building security compliance items:`);
-        buildingSecurity.forEach(violation => {
+        buildingSecurity.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -147,13 +158,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate maintenance data confidentiality', () => {
-      const maintenanceData = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.property.maintenance-data-confidentiality'
-      ) || [];
+      const maintenanceData =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.maintenance-data-confidentiality'
+        ) || [];
 
       if (maintenanceData.length > 0) {
         console.warn(`🔧 Found ${maintenanceData.length} maintenance data confidentiality items:`);
-        maintenanceData.slice(0, 5).forEach(violation => {
+        maintenanceData.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -162,13 +174,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check financial document security', () => {
-      const financialDocs = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.property.financial-document-security'
-      ) || [];
+      const financialDocs =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.financial-document-security'
+        ) || [];
 
       if (financialDocs.length > 0) {
         console.warn(`💰 Found ${financialDocs.length} financial document security requirements:`);
-        financialDocs.slice(0, 5).forEach(violation => {
+        financialDocs.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -179,13 +192,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 
   describe('Code Quality and Best Practices', () => {
     it('should enforce TypeScript strict mode compliance', () => {
-      const strictMode = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.quality.typescript-strict-mode'
-      ) || [];
+      const strictMode =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.quality.typescript-strict-mode'
+        ) || [];
 
       if (strictMode.length > 0) {
         console.warn(`📝 Found ${strictMode.length} TypeScript strict mode violations:`);
-        strictMode.slice(0, 5).forEach(violation => {
+        strictMode.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -194,13 +208,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate error handling patterns', () => {
-      const errorHandling = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.quality.error-handling-patterns'
-      ) || [];
+      const errorHandling =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.quality.error-handling-patterns'
+        ) || [];
 
       if (errorHandling.length > 0) {
         console.warn(`🛡️ Found ${errorHandling.length} error handling improvements needed:`);
-        errorHandling.slice(0, 8).forEach(violation => {
+        errorHandling.slice(0, 8).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -209,13 +224,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check API endpoint documentation compliance', () => {
-      const apiDocs = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.quality.api-documentation'
-      ) || [];
+      const apiDocs =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.quality.api-documentation'
+        ) || [];
 
       if (apiDocs.length > 0) {
         console.warn(`📚 Found ${apiDocs.length} API endpoints needing documentation:`);
-        apiDocs.slice(0, 5).forEach(violation => {
+        apiDocs.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -224,13 +240,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate logging and monitoring standards', () => {
-      const logging = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.quality.logging-standards'
-      ) || [];
+      const logging =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.quality.logging-standards'
+        ) || [];
 
       if (logging.length > 0) {
         console.warn(`📊 Found ${logging.length} logging standard improvements:`);
-        logging.slice(0, 5).forEach(violation => {
+        logging.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -241,13 +258,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 
   describe('Enterprise Security Standards', () => {
     it('should validate role-based access control implementation', () => {
-      const rbacImpl = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.security.rbac-implementation'
-      ) || [];
+      const rbacImpl =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.security.rbac-implementation'
+        ) || [];
 
       if (rbacImpl.length > 0) {
         console.warn(`👥 Found ${rbacImpl.length} RBAC implementation items:`);
-        rbacImpl.slice(0, 5).forEach(violation => {
+        rbacImpl.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -256,13 +274,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check session management security', () => {
-      const sessionSecurity = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.security.session-management'
-      ) || [];
+      const sessionSecurity =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.security.session-management'
+        ) || [];
 
       if (sessionSecurity.length > 0) {
         console.warn(`🔐 Found ${sessionSecurity.length} session management security items:`);
-        sessionSecurity.forEach(violation => {
+        sessionSecurity.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -271,13 +290,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate audit trail implementation', () => {
-      const auditTrail = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.security.audit-trail'
-      ) || [];
+      const auditTrail =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.security.audit-trail'
+        ) || [];
 
       if (auditTrail.length > 0) {
         console.warn(`📋 Found ${auditTrail.length} audit trail implementation items:`);
-        auditTrail.slice(0, 5).forEach(violation => {
+        auditTrail.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -288,13 +308,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
 
   describe('Internationalization and Localization', () => {
     it('should validate Quebec French translation completeness', () => {
-      const frenchCompleteness = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.quebec-french-completeness'
-      ) || [];
+      const frenchCompleteness =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.quebec-french-completeness'
+        ) || [];
 
       if (frenchCompleteness.length > 0) {
         console.warn(`🍁 Found ${frenchCompleteness.length} Quebec French translation gaps:`);
-        frenchCompleteness.slice(0, 8).forEach(violation => {
+        frenchCompleteness.slice(0, 8).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -303,13 +324,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should check cultural adaptation compliance', () => {
-      const culturalAdaptation = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.cultural-adaptation'
-      ) || [];
+      const culturalAdaptation =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.cultural-adaptation'
+        ) || [];
 
       if (culturalAdaptation.length > 0) {
         console.warn(`🌐 Found ${culturalAdaptation.length} cultural adaptation items:`);
-        culturalAdaptation.slice(0, 5).forEach(violation => {
+        culturalAdaptation.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -318,13 +340,14 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     });
 
     it('should validate address and postal code formats for Quebec', () => {
-      const quebecFormats = complianceResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.quebec-address-formats'
-      ) || [];
+      const quebecFormats =
+        complianceResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.quebec-address-formats'
+        ) || [];
 
       if (quebecFormats.length > 0) {
         console.warn(`📮 Found ${quebecFormats.length} Quebec address format items:`);
-        quebecFormats.slice(0, 5).forEach(violation => {
+        quebecFormats.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -336,7 +359,7 @@ describe('Advanced Semgrep Compliance Analysis', () => {
   describe('Rules Coverage Analysis', () => {
     it('should have comprehensive rule coverage across all domains', () => {
       const domains = {};
-      Object.keys(rulesCoverage).forEach(ruleId => {
+      Object.keys(rulesCoverage).forEach((ruleId) => {
         const parts = ruleId.split('.');
         if (parts.length >= 2) {
           const domain = parts[1];
@@ -371,8 +394,8 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     it('should validate rule effectiveness across codebase', () => {
       const totalFindings = complianceResults.results?.length || 0;
       const uniqueFiles = new Set();
-      
-      complianceResults.results?.forEach(result => {
+
+      complianceResults.results?.forEach((result) => {
         uniqueFiles.add(result.path);
       });
 
@@ -380,7 +403,7 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         totalRules: Object.keys(rulesCoverage).length,
         totalFindings,
         uniqueFiles: uniqueFiles.size,
-        averageFindingsPerRule: totalFindings / Math.max(Object.keys(rulesCoverage).length, 1)
+        averageFindingsPerRule: totalFindings / Math.max(Object.keys(rulesCoverage).length, 1),
       };
 
       console.warn('\n📈 Rule Effectiveness Analysis:');
@@ -403,13 +426,15 @@ describe('Advanced Semgrep Compliance Analysis', () => {
         rulesCoverage,
         domainAnalysis: {},
         severityBreakdown: {
-          _error: complianceResults.results?.filter(r => r.extra?.severity === 'ERROR').length || 0,
-          warning: complianceResults.results?.filter(r => r.extra?.severity === 'WARNING').length || 0,
-          info: complianceResults.results?.filter(r => r.extra?.severity === 'INFO').length || 0
-        }
+          _error:
+            complianceResults.results?.filter((r) => r.extra?.severity === 'ERROR').length || 0,
+          warning:
+            complianceResults.results?.filter((r) => r.extra?.severity === 'WARNING').length || 0,
+          info: complianceResults.results?.filter((r) => r.extra?.severity === 'INFO').length || 0,
+        },
       },
       findings: complianceResults.results || [],
-      recommendations: generateRecommendations(complianceResults.results || [])
+      recommendations: generateRecommendations(complianceResults.results || []),
     };
 
     try {
@@ -429,7 +454,7 @@ describe('Advanced Semgrep Compliance Analysis', () => {
     console.warn(`🔍 Total Findings: ${report.analysis.totalFindings}`);
     console.warn(`⚠️  Critical Issues: ${report.analysis.severityBreakdown.error}`);
     console.warn(`⚡ Recommendations Generated: ${report.recommendations.length}`);
-    
+
     if (report.analysis.severityBreakdown.error === 0) {
       console.warn('✅ No critical compliance issues detected');
     } else {
@@ -759,7 +784,7 @@ function generateRecommendations(findings) {
   const recommendations = [];
   const categories = {};
 
-  findings.forEach(finding => {
+  findings.forEach((finding) => {
     const category = finding.extra?.metadata?.category || 'general';
     categories[category] = (categories[category] || 0) + 1;
   });
@@ -770,7 +795,7 @@ function generateRecommendations(findings) {
       recommendations.push({
         category,
         priority: 'high',
-        recommendation: `Address ${count} ${category} issues to improve code quality and compliance`
+        recommendation: `Address ${count} ${category} issues to improve code quality and compliance`,
       });
     }
   });

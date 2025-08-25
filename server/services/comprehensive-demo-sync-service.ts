@@ -8,7 +8,7 @@ const db = drizzle({ client: pool, schema });
 
 /**
  * Comprehensive Demo Synchronization Service.
- * 
+ *
  * Synchronizes ALL data from the Demo organization to the Open Demo organization
  * to provide a complete read-only demo environment. This service copies all data types:
  * - Organizations and users
@@ -27,7 +27,7 @@ export class ComprehensiveDemoSyncService {
    */
   private static async getDemoOrg() {
     return await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, this.DEMO_ORG_NAME)
+      where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
     });
   }
 
@@ -36,7 +36,7 @@ export class ComprehensiveDemoSyncService {
    */
   private static async getOpenDemoOrg() {
     return await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME)
+      where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
     });
   }
 
@@ -45,7 +45,7 @@ export class ComprehensiveDemoSyncService {
    */
   public static async fullSync(): Promise<void> {
     console.log('🔄 Starting comprehensive Demo → Open Demo synchronization...');
-    
+
     const demoOrg = await this.getDemoOrg();
     const openDemoOrg = await this.getOpenDemoOrg();
 
@@ -60,24 +60,23 @@ export class ComprehensiveDemoSyncService {
     try {
       // Step 1: Clean existing Open Demo data
       await this.cleanOpenDemoData(openDemoOrg.id);
-      
+
       // Step 2: Sync core data (users, buildings, residences)
       const buildingMapping = await this.syncCoreData(demoOrg.id, openDemoOrg.id);
-      
+
       // Step 3: Sync financial data
       await this.syncFinancialData(demoOrg.id, openDemoOrg.id, buildingMapping);
-      
+
       // Step 4: Sync operations data
       await this.syncOperationsData(demoOrg.id, openDemoOrg.id, buildingMapping);
-      
+
       // Step 5: Sync settings data
       await this.syncSettingsData(demoOrg.id, openDemoOrg.id);
-      
+
       // Step 6: Sync documents
       await this.syncDocuments(demoOrg.id, openDemoOrg.id, buildingMapping);
 
       console.log('✅ Comprehensive Demo → Open Demo synchronization completed successfully');
-      
     } catch (error) {
       console.error('❌ Demo synchronization failed:', error);
       throw error;
@@ -90,130 +89,131 @@ export class ComprehensiveDemoSyncService {
    */
   private static async cleanOpenDemoData(openDemoOrgId: string): Promise<void> {
     console.log('  🧹 Cleaning existing Open Demo data...');
-    
+
     try {
       // Get Open Demo buildings to cascade delete properly
       const openDemoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, openDemoOrgId)
+        where: eq(schema.buildings.organizationId, openDemoOrgId),
       });
-      
-      const buildingIds = openDemoBuildings.map(b => b.id);
-      
+
+      const buildingIds = openDemoBuildings.map((b) => b.id);
+
       if (buildingIds.length > 0) {
         // Get residences in these buildings
         const residences = await db.query.residences.findMany({
-          where: inArray(schema.residences.buildingId, buildingIds)
+          where: inArray(schema.residences.buildingId, buildingIds),
         });
-        const residenceIds = residences.map(r => r.id);
-        
+        const residenceIds = residences.map((r) => r.id);
+
         // Delete in proper order to respect foreign key constraints
-        
+
         // Delete user-residence relationships
         if (residenceIds.length > 0) {
-          await db.delete(schema.userResidences)
+          await db
+            .delete(schema.userResidences)
             .where(inArray(schema.userResidences.residenceId, residenceIds));
         }
-        
+
         // Delete residence documents
         if (residenceIds.length > 0) {
-          await db.delete(schema.documentsResidents)
+          await db
+            .delete(schema.documentsResidents)
             .where(inArray(schema.documentsResidents.residenceId, residenceIds));
         }
-        
+
         // Delete building documents
-        await db.delete(schema.documentsBuildings)
+        await db
+          .delete(schema.documentsBuildings)
           .where(inArray(schema.documentsBuildings.buildingId, buildingIds));
-        
+
         // Delete demands
         if (residenceIds.length > 0) {
           const demands = await db.query.demands.findMany({
-            where: inArray(schema.demands.residenceId, residenceIds)
+            where: inArray(schema.demands.residenceId, residenceIds),
           });
-          const demandIds = demands.map(d => d.id);
-          
+          const demandIds = demands.map((d) => d.id);
+
           if (demandIds.length > 0) {
-            await db.delete(schema.demandComments)
+            await db
+              .delete(schema.demandComments)
               .where(inArray(schema.demandComments.demandId, demandIds));
-            await db.delete(schema.demands)
-              .where(inArray(schema.demands.id, demandIds));
+            await db.delete(schema.demands).where(inArray(schema.demands.id, demandIds));
           }
         }
-        
+
         // Delete maintenance requests
         if (residenceIds.length > 0) {
-          await db.delete(schema.maintenanceRequests)
+          await db
+            .delete(schema.maintenanceRequests)
             .where(inArray(schema.maintenanceRequests.residenceId, residenceIds));
         }
-        
+
         // Delete bills and money flow
-        await db.delete(schema.bills)
-          .where(inArray(schema.bills.buildingId, buildingIds));
-        await db.delete(schema.moneyFlow)
-          .where(inArray(schema.moneyFlow.buildingId, buildingIds));
-        
+        await db.delete(schema.bills).where(inArray(schema.bills.buildingId, buildingIds));
+        await db.delete(schema.moneyFlow).where(inArray(schema.moneyFlow.buildingId, buildingIds));
+
         // Delete budgets
-        await db.delete(schema.budgets)
-          .where(inArray(schema.budgets.buildingId, buildingIds));
-        await db.delete(schema.monthlyBudgets)
+        await db.delete(schema.budgets).where(inArray(schema.budgets.buildingId, buildingIds));
+        await db
+          .delete(schema.monthlyBudgets)
           .where(inArray(schema.monthlyBudgets.buildingId, buildingIds));
-        
+
         // Delete residences
         if (residenceIds.length > 0) {
-          await db.delete(schema.residences)
-            .where(inArray(schema.residences.id, residenceIds));
+          await db.delete(schema.residences).where(inArray(schema.residences.id, residenceIds));
         }
-        
+
         // Delete buildings
-        await db.delete(schema.buildings)
-          .where(inArray(schema.buildings.id, buildingIds));
+        await db.delete(schema.buildings).where(inArray(schema.buildings.id, buildingIds));
       }
-      
+
       // Delete user-organization relationships for Open Demo
-      await db.delete(schema.userOrganizations)
+      await db
+        .delete(schema.userOrganizations)
         .where(eq(schema.userOrganizations.organizationId, openDemoOrgId));
-      
+
       // Delete Open Demo users (only those that don't belong to other orgs)
       const openDemoUserOrgs = await db.query.userOrganizations.findMany({
-        where: eq(schema.userOrganizations.organizationId, openDemoOrgId)
+        where: eq(schema.userOrganizations.organizationId, openDemoOrgId),
       });
-      
+
       for (const userOrg of openDemoUserOrgs) {
         const otherOrgs = await db.query.userOrganizations.findMany({
           where: and(
             eq(schema.userOrganizations.userId, userOrg.userId),
             eq(schema.userOrganizations.organizationId, openDemoOrgId)
-          )
+          ),
         });
-        
+
         if (otherOrgs.length === 0) {
           // Delete user notifications first
-          await db.delete(schema.notifications)
+          await db
+            .delete(schema.notifications)
             .where(eq(schema.notifications.userId, userOrg.userId));
-          
+
           // Delete user's bugs and feature requests
-          await db.delete(schema.bugs)
-            .where(eq(schema.bugs.createdBy, userOrg.userId));
-          
+          await db.delete(schema.bugs).where(eq(schema.bugs.createdBy, userOrg.userId));
+
           const userFeatureRequests = await db.query.featureRequests.findMany({
-            where: eq(schema.featureRequests.createdBy, userOrg.userId)
+            where: eq(schema.featureRequests.createdBy, userOrg.userId),
           });
-          const featureRequestIds = userFeatureRequests.map(fr => fr.id);
-          
+          const featureRequestIds = userFeatureRequests.map((fr) => fr.id);
+
           if (featureRequestIds.length > 0) {
-            await db.delete(schema.featureRequestUpvotes)
+            await db
+              .delete(schema.featureRequestUpvotes)
               .where(inArray(schema.featureRequestUpvotes.featureRequestId, featureRequestIds));
-            await db.delete(schema.featureRequests)
+            await db
+              .delete(schema.featureRequests)
               .where(inArray(schema.featureRequests.id, featureRequestIds));
           }
-          
+
           // Delete the user
-          await db.delete(schema.users)
-            .where(eq(schema.users.id, userOrg.userId));
+          await db.delete(schema.users).where(eq(schema.users.id, userOrg.userId));
         }
       }
-      
+
       console.log('  ✅ Cleaned existing Open Demo data');
-      
     } catch (error) {
       console.error('  ❌ Error cleaning Open Demo data:', error);
       throw error;
@@ -225,34 +225,40 @@ export class ComprehensiveDemoSyncService {
    * @param demoOrgId
    * @param openDemoOrgId
    */
-  private static async syncCoreData(demoOrgId: string, openDemoOrgId: string): Promise<Map<string, string>> {
+  private static async syncCoreData(
+    demoOrgId: string,
+    openDemoOrgId: string
+  ): Promise<Map<string, string>> {
     console.log('  👥 Syncing users...');
-    
+
     // Get Demo users
     const demoUserOrgs = await db.query.userOrganizations.findMany({
       where: eq(schema.userOrganizations.organizationId, demoOrgId),
       with: {
-        user: true
-      }
+        user: true,
+      },
     });
-    
+
     const userMapping = new Map<string, string>();
-    
+
     // Create users in Open Demo
     for (const userOrg of demoUserOrgs) {
-      const [newUser] = await db.insert(schema.users).values({
-        username: userOrg.user.username,
-        email: userOrg.user.email.replace('@demo.com', '@opendemo.com'), // Different email domain
-        password: userOrg.user.password,
-        firstName: userOrg.user.firstName,
-        lastName: userOrg.user.lastName,
-        phone: userOrg.user.phone,
-        profileImage: userOrg.user.profileImage,
-        language: userOrg.user.language,
-        role: userOrg.user.role,
-        isActive: userOrg.user.isActive,
-      }).returning();
-      
+      const [newUser] = await db
+        .insert(schema.users)
+        .values({
+          username: userOrg.user.username,
+          email: userOrg.user.email.replace('@demo.com', '@opendemo.com'), // Different email domain
+          password: userOrg.user.password,
+          firstName: userOrg.user.firstName,
+          lastName: userOrg.user.lastName,
+          phone: userOrg.user.phone,
+          profileImage: userOrg.user.profileImage,
+          language: userOrg.user.language,
+          role: userOrg.user.role,
+          isActive: userOrg.user.isActive,
+        })
+        .returning();
+
       // Create user-organization relationship
       await db.insert(schema.userOrganizations).values({
         userId: newUser.id,
@@ -260,96 +266,104 @@ export class ComprehensiveDemoSyncService {
         organizationRole: userOrg.organizationRole,
         canAccessAllOrganizations: userOrg.canAccessAllOrganizations,
       });
-      
+
       userMapping.set(userOrg.user.id, newUser.id);
     }
-    
+
     console.log(`  ✅ Synced ${demoUserOrgs.length} users`);
-    
+
     console.log('  🏢 Syncing buildings...');
-    
+
     // Get Demo buildings
     const demoBuildings = await db.query.buildings.findMany({
-      where: eq(schema.buildings.organizationId, demoOrgId)
+      where: eq(schema.buildings.organizationId, demoOrgId),
     });
-    
+
     const buildingMapping = new Map<string, string>();
-    
+
     // Create buildings in Open Demo
     for (const building of demoBuildings) {
-      const [newBuilding] = await db.insert(schema.buildings).values({
-        organizationId: openDemoOrgId,
-        name: building.name,
-        address: building.address,
-        city: building.city,
-        province: building.province,
-        postalCode: building.postalCode,
-        buildingType: building.buildingType,
-        yearBuilt: building.yearBuilt,
-        totalUnits: building.totalUnits,
-        totalFloors: building.totalFloors,
-        parkingSpaces: building.parkingSpaces,
-        storageSpaces: building.storageSpaces,
-        amenities: building.amenities,
-        managementCompany: building.managementCompany,
-        bankAccountNumber: building.bankAccountNumber,
-        bankAccountNotes: building.bankAccountNotes,
-        bankAccountUpdatedAt: building.bankAccountUpdatedAt,
-        bankAccountStartDate: building.bankAccountStartDate,
-        bankAccountStartAmount: building.bankAccountStartAmount,
-        bankAccountMinimums: building.bankAccountMinimums,
-        inflationSettings: building.inflationSettings,
-        isActive: building.isActive,
-      }).returning();
-      
+      const [newBuilding] = await db
+        .insert(schema.buildings)
+        .values({
+          organizationId: openDemoOrgId,
+          name: building.name,
+          address: building.address,
+          city: building.city,
+          province: building.province,
+          postalCode: building.postalCode,
+          buildingType: building.buildingType,
+          yearBuilt: building.yearBuilt,
+          totalUnits: building.totalUnits,
+          totalFloors: building.totalFloors,
+          parkingSpaces: building.parkingSpaces,
+          storageSpaces: building.storageSpaces,
+          amenities: building.amenities,
+          managementCompany: building.managementCompany,
+          bankAccountNumber: building.bankAccountNumber,
+          bankAccountNotes: building.bankAccountNotes,
+          bankAccountUpdatedAt: building.bankAccountUpdatedAt,
+          bankAccountStartDate: building.bankAccountStartDate,
+          bankAccountStartAmount: building.bankAccountStartAmount,
+          bankAccountMinimums: building.bankAccountMinimums,
+          inflationSettings: building.inflationSettings,
+          isActive: building.isActive,
+        })
+        .returning();
+
       buildingMapping.set(building.id, newBuilding.id);
     }
-    
+
     console.log(`  ✅ Synced ${demoBuildings.length} buildings`);
-    
+
     console.log('  🏠 Syncing residences...');
-    
+
     // Get Demo residences
     const demoResidences = await db.query.residences.findMany({
-      where: inArray(schema.residences.buildingId, Array.from(buildingMapping.keys()))
+      where: inArray(schema.residences.buildingId, Array.from(buildingMapping.keys())),
     });
-    
+
     const residenceMapping = new Map<string, string>();
-    
+
     // Create residences in Open Demo
     for (const residence of demoResidences) {
       const newBuildingId = buildingMapping.get(residence.buildingId);
-      if (!newBuildingId) {continue;}
-      
-      const [newResidence] = await db.insert(schema.residences).values({
-        buildingId: newBuildingId,
-        unitNumber: residence.unitNumber,
-        floor: residence.floor,
-        squareFootage: residence.squareFootage,
-        bedrooms: residence.bedrooms,
-        bathrooms: residence.bathrooms,
-        balcony: residence.balcony,
-        parkingSpaceNumbers: residence.parkingSpaceNumbers,
-        storageSpaceNumbers: residence.storageSpaceNumbers,
-        ownershipPercentage: residence.ownershipPercentage,
-        monthlyFees: residence.monthlyFees,
-        isActive: residence.isActive,
-      }).returning();
-      
+      if (!newBuildingId) {
+        continue;
+      }
+
+      const [newResidence] = await db
+        .insert(schema.residences)
+        .values({
+          buildingId: newBuildingId,
+          unitNumber: residence.unitNumber,
+          floor: residence.floor,
+          squareFootage: residence.squareFootage,
+          bedrooms: residence.bedrooms,
+          bathrooms: residence.bathrooms,
+          balcony: residence.balcony,
+          parkingSpaceNumbers: residence.parkingSpaceNumbers,
+          storageSpaceNumbers: residence.storageSpaceNumbers,
+          ownershipPercentage: residence.ownershipPercentage,
+          monthlyFees: residence.monthlyFees,
+          isActive: residence.isActive,
+        })
+        .returning();
+
       residenceMapping.set(residence.id, newResidence.id);
     }
-    
+
     console.log(`  ✅ Synced ${demoResidences.length} residences`);
-    
+
     // Sync user-residence relationships
     const demoUserResidences = await db.query.userResidences.findMany({
-      where: inArray(schema.userResidences.residenceId, Array.from(residenceMapping.keys()))
+      where: inArray(schema.userResidences.residenceId, Array.from(residenceMapping.keys())),
     });
-    
+
     for (const userRes of demoUserResidences) {
       const newUserId = userMapping.get(userRes.userId);
       const newResidenceId = residenceMapping.get(userRes.residenceId);
-      
+
       if (newUserId && newResidenceId) {
         await db.insert(schema.userResidences).values({
           userId: newUserId,
@@ -361,9 +375,9 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
+
     console.log(`  ✅ Synced ${demoUserResidences.length} user-residence relationships`);
-    
+
     return buildingMapping;
   }
 
@@ -373,34 +387,40 @@ export class ComprehensiveDemoSyncService {
    * @param openDemoOrgId
    * @param buildingMapping
    */
-  private static async syncFinancialData(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
+  private static async syncFinancialData(
+    demoOrgId: string,
+    openDemoOrgId: string,
+    buildingMapping: Map<string, string>
+  ): Promise<void> {
     console.log('  💰 Syncing financial data...');
-    
+
     const demoBuildingIds = Array.from(buildingMapping.keys());
     const openDemoBuildingIds = Array.from(buildingMapping.values());
-    
+
     // Get admin user for Open Demo
     const openDemoAdmin = await db.query.userOrganizations.findFirst({
       where: and(
         eq(schema.userOrganizations.organizationId, openDemoOrgId),
         eq(schema.userOrganizations.organizationRole, 'admin')
       ),
-      with: { user: true }
+      with: { user: true },
     });
-    
+
     if (!openDemoAdmin) {
       throw new Error('Open Demo admin user not found');
     }
-    
+
     // Sync bills
     const demoBills = await db.query.bills.findMany({
-      where: inArray(schema.bills.buildingId, demoBuildingIds)
+      where: inArray(schema.bills.buildingId, demoBuildingIds),
     });
-    
+
     for (const bill of demoBills) {
       const newBuildingId = buildingMapping.get(bill.buildingId);
-      if (!newBuildingId) {continue;}
-      
+      if (!newBuildingId) {
+        continue;
+      }
+
       await db.insert(schema.bills).values({
         buildingId: newBuildingId,
         billNumber: bill.billNumber,
@@ -425,16 +445,18 @@ export class ComprehensiveDemoSyncService {
         createdBy: openDemoAdmin.userId,
       });
     }
-    
+
     // Sync budgets
     const demoBudgets = await db.query.budgets.findMany({
-      where: inArray(schema.budgets.buildingId, demoBuildingIds)
+      where: inArray(schema.budgets.buildingId, demoBuildingIds),
     });
-    
+
     for (const budget of demoBudgets) {
       const newBuildingId = buildingMapping.get(budget.buildingId);
-      if (!newBuildingId) {continue;}
-      
+      if (!newBuildingId) {
+        continue;
+      }
+
       await db.insert(schema.budgets).values({
         buildingId: newBuildingId,
         year: budget.year,
@@ -450,16 +472,18 @@ export class ComprehensiveDemoSyncService {
         createdBy: openDemoAdmin.userId,
       });
     }
-    
+
     // Sync monthly budgets
     const demoMonthlyBudgets = await db.query.monthlyBudgets.findMany({
-      where: inArray(schema.monthlyBudgets.buildingId, demoBuildingIds)
+      where: inArray(schema.monthlyBudgets.buildingId, demoBuildingIds),
     });
-    
+
     for (const budget of demoMonthlyBudgets) {
       const newBuildingId = buildingMapping.get(budget.buildingId);
-      if (!newBuildingId) {continue;}
-      
+      if (!newBuildingId) {
+        continue;
+      }
+
       await db.insert(schema.monthlyBudgets).values({
         buildingId: newBuildingId,
         year: budget.year,
@@ -473,16 +497,18 @@ export class ComprehensiveDemoSyncService {
         approvedDate: budget.approvedDate,
       });
     }
-    
+
     // Sync money flow
     const demoMoneyFlow = await db.query.moneyFlow.findMany({
-      where: inArray(schema.moneyFlow.buildingId, demoBuildingIds)
+      where: inArray(schema.moneyFlow.buildingId, demoBuildingIds),
     });
-    
+
     for (const flow of demoMoneyFlow) {
       const newBuildingId = buildingMapping.get(flow.buildingId);
-      if (!newBuildingId) {continue;}
-      
+      if (!newBuildingId) {
+        continue;
+      }
+
       await db.insert(schema.moneyFlow).values({
         buildingId: newBuildingId,
         residenceId: flow.residenceId, // Will need to map this too if needed
@@ -499,8 +525,10 @@ export class ComprehensiveDemoSyncService {
         createdBy: openDemoAdmin.userId,
       });
     }
-    
-    console.log(`  ✅ Synced financial data: ${demoBills.length} bills, ${demoBudgets.length} budgets, ${demoMonthlyBudgets.length} monthly budgets, ${demoMoneyFlow.length} money flow records`);
+
+    console.log(
+      `  ✅ Synced financial data: ${demoBills.length} bills, ${demoBudgets.length} budgets, ${demoMonthlyBudgets.length} monthly budgets, ${demoMoneyFlow.length} money flow records`
+    );
   }
 
   /**
@@ -509,43 +537,47 @@ export class ComprehensiveDemoSyncService {
    * @param openDemoOrgId
    * @param buildingMapping
    */
-  private static async syncOperationsData(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
+  private static async syncOperationsData(
+    demoOrgId: string,
+    openDemoOrgId: string,
+    buildingMapping: Map<string, string>
+  ): Promise<void> {
     console.log('  🔧 Syncing operations data...');
-    
+
     // Get user mappings
     const userMapping = new Map<string, string>();
     const demoUserOrgs = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, demoOrgId)
+      where: eq(schema.userOrganizations.organizationId, demoOrgId),
     });
     const openDemoUserOrgs = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, openDemoOrgId)
+      where: eq(schema.userOrganizations.organizationId, openDemoOrgId),
     });
-    
+
     // Create user mapping based on email (since we changed domain)
     for (const demoUserOrg of demoUserOrgs) {
       const demoUser = await db.query.users.findFirst({
-        where: eq(schema.users.id, demoUserOrg.userId)
+        where: eq(schema.users.id, demoUserOrg.userId),
       });
-      
+
       if (demoUser) {
         const openDemoUser = await db.query.users.findFirst({
-          where: eq(schema.users.email, demoUser.email.replace('@demo.com', '@opendemo.com'))
+          where: eq(schema.users.email, demoUser.email.replace('@demo.com', '@opendemo.com')),
         });
-        
+
         if (openDemoUser) {
           userMapping.set(demoUser.id, openDemoUser.id);
         }
       }
     }
-    
+
     // Get residence mappings
     const residenceMapping = new Map<string, string>();
     const demoBuildingIds = Array.from(buildingMapping.keys());
-    
+
     const demoResidences = await db.query.residences.findMany({
-      where: inArray(schema.residences.buildingId, demoBuildingIds)
+      where: inArray(schema.residences.buildingId, demoBuildingIds),
     });
-    
+
     for (const demoRes of demoResidences) {
       const newBuildingId = buildingMapping.get(demoRes.buildingId);
       if (newBuildingId) {
@@ -553,24 +585,24 @@ export class ComprehensiveDemoSyncService {
           where: and(
             eq(schema.residences.buildingId, newBuildingId),
             eq(schema.residences.unitNumber, demoRes.unitNumber)
-          )
+          ),
         });
         if (openDemoRes) {
           residenceMapping.set(demoRes.id, openDemoRes.id);
         }
       }
     }
-    
+
     // Sync maintenance requests
     const demoMaintenanceRequests = await db.query.maintenanceRequests.findMany({
-      where: inArray(schema.maintenanceRequests.residenceId, Array.from(residenceMapping.keys()))
+      where: inArray(schema.maintenanceRequests.residenceId, Array.from(residenceMapping.keys())),
     });
-    
+
     for (const request of demoMaintenanceRequests) {
       const newResidenceId = residenceMapping.get(request.residenceId);
       const newSubmitterId = userMapping.get(request.submittedBy);
       const newAssignedTo = request.assignedTo ? userMapping.get(request.assignedTo) : null;
-      
+
       if (newResidenceId && newSubmitterId) {
         await db.insert(schema.maintenanceRequests).values({
           residenceId: newResidenceId,
@@ -590,24 +622,28 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
+
     // Sync demands
     const demoDemands = await db.query.demands.findMany({
-      where: inArray(schema.demands.residenceId, Array.from(residenceMapping.keys()))
+      where: inArray(schema.demands.residenceId, Array.from(residenceMapping.keys())),
     });
-    
+
     for (const demand of demoDemands) {
       const newResidenceId = residenceMapping.get(demand.residenceId);
       const newBuildingId = buildingMapping.get(demand.buildingId);
       const newSubmitterId = userMapping.get(demand.submitterId);
       const newReviewedBy = demand.reviewedBy ? userMapping.get(demand.reviewedBy) : null;
-      
+
       if (newResidenceId && newBuildingId && newSubmitterId) {
         await db.insert(schema.demands).values({
           submitterId: newSubmitterId,
           type: demand.type,
-          assignationResidenceId: demand.assignationResidenceId ? residenceMapping.get(demand.assignationResidenceId) : null,
-          assignationBuildingId: demand.assignationBuildingId ? buildingMapping.get(demand.assignationBuildingId) : null,
+          assignationResidenceId: demand.assignationResidenceId
+            ? residenceMapping.get(demand.assignationResidenceId)
+            : null,
+          assignationBuildingId: demand.assignationBuildingId
+            ? buildingMapping.get(demand.assignationBuildingId)
+            : null,
           description: demand.description,
           residenceId: newResidenceId,
           buildingId: newBuildingId,
@@ -618,13 +654,13 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
+
     // Sync notifications
     for (const [demoUserId, openDemoUserId] of userMapping.entries()) {
       const demoNotifications = await db.query.notifications.findMany({
-        where: eq(schema.notifications.userId, demoUserId)
+        where: eq(schema.notifications.userId, demoUserId),
       });
-      
+
       for (const notification of demoNotifications) {
         await db.insert(schema.notifications).values({
           userId: openDemoUserId,
@@ -638,8 +674,10 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
-    console.log(`  ✅ Synced operations data: ${demoMaintenanceRequests.length} maintenance requests, ${demoDemands.length} demands, notifications`);
+
+    console.log(
+      `  ✅ Synced operations data: ${demoMaintenanceRequests.length} maintenance requests, ${demoDemands.length} demands, notifications`
+    );
   }
 
   /**
@@ -649,39 +687,39 @@ export class ComprehensiveDemoSyncService {
    */
   private static async syncSettingsData(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  ⚙️ Syncing settings data...');
-    
+
     // Get user mappings
     const userMapping = new Map<string, string>();
     const demoUserOrgs = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, demoOrgId)
+      where: eq(schema.userOrganizations.organizationId, demoOrgId),
     });
-    
+
     for (const demoUserOrg of demoUserOrgs) {
       const demoUser = await db.query.users.findFirst({
-        where: eq(schema.users.id, demoUserOrg.userId)
+        where: eq(schema.users.id, demoUserOrg.userId),
       });
-      
+
       if (demoUser) {
         const openDemoUser = await db.query.users.findFirst({
-          where: eq(schema.users.email, demoUser.email.replace('@demo.com', '@opendemo.com'))
+          where: eq(schema.users.email, demoUser.email.replace('@demo.com', '@opendemo.com')),
         });
-        
+
         if (openDemoUser) {
           userMapping.set(demoUser.id, openDemoUser.id);
         }
       }
     }
-    
+
     // Sync bugs
     const demoBugs = await db.query.bugs.findMany({
-      where: inArray(schema.bugs.createdBy, Array.from(userMapping.keys()))
+      where: inArray(schema.bugs.createdBy, Array.from(userMapping.keys())),
     });
-    
+
     for (const bug of demoBugs) {
       const newCreatedBy = userMapping.get(bug.createdBy);
       const newAssignedTo = bug.assignedTo ? userMapping.get(bug.assignedTo) : null;
       const newResolvedBy = bug.resolvedBy ? userMapping.get(bug.resolvedBy) : null;
-      
+
       if (newCreatedBy) {
         await db.insert(schema.bugs).values({
           createdBy: newCreatedBy,
@@ -700,38 +738,45 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
+
     // Sync feature requests
     const demoFeatureRequests = await db.query.featureRequests.findMany({
-      where: inArray(schema.featureRequests.createdBy, Array.from(userMapping.keys()))
+      where: inArray(schema.featureRequests.createdBy, Array.from(userMapping.keys())),
     });
-    
+
     for (const featureRequest of demoFeatureRequests) {
       const newCreatedBy = userMapping.get(featureRequest.createdBy);
-      const newAssignedTo = featureRequest.assignedTo ? userMapping.get(featureRequest.assignedTo) : null;
-      const newReviewedBy = featureRequest.reviewedBy ? userMapping.get(featureRequest.reviewedBy) : null;
-      
+      const newAssignedTo = featureRequest.assignedTo
+        ? userMapping.get(featureRequest.assignedTo)
+        : null;
+      const newReviewedBy = featureRequest.reviewedBy
+        ? userMapping.get(featureRequest.reviewedBy)
+        : null;
+
       if (newCreatedBy) {
-        const [newFeatureRequest] = await db.insert(schema.featureRequests).values({
-          createdBy: newCreatedBy,
-          title: featureRequest.title,
-          description: featureRequest.description,
-          need: featureRequest.need,
-          category: featureRequest.category,
-          page: featureRequest.page,
-          status: featureRequest.status,
-          upvoteCount: featureRequest.upvoteCount,
-          assignedTo: newAssignedTo,
-          reviewedBy: newReviewedBy,
-          reviewedAt: featureRequest.reviewedAt,
-          adminNotes: featureRequest.adminNotes,
-        }).returning();
-        
+        const [newFeatureRequest] = await db
+          .insert(schema.featureRequests)
+          .values({
+            createdBy: newCreatedBy,
+            title: featureRequest.title,
+            description: featureRequest.description,
+            need: featureRequest.need,
+            category: featureRequest.category,
+            page: featureRequest.page,
+            status: featureRequest.status,
+            upvoteCount: featureRequest.upvoteCount,
+            assignedTo: newAssignedTo,
+            reviewedBy: newReviewedBy,
+            reviewedAt: featureRequest.reviewedAt,
+            adminNotes: featureRequest.adminNotes,
+          })
+          .returning();
+
         // Sync upvotes for this feature request
         const upvotes = await db.query.featureRequestUpvotes.findMany({
-          where: eq(schema.featureRequestUpvotes.featureRequestId, featureRequest.id)
+          where: eq(schema.featureRequestUpvotes.featureRequestId, featureRequest.id),
         });
-        
+
         for (const upvote of upvotes) {
           const newUserId = userMapping.get(upvote.userId);
           if (newUserId) {
@@ -743,8 +788,10 @@ export class ComprehensiveDemoSyncService {
         }
       }
     }
-    
-    console.log(`  ✅ Synced settings data: ${demoBugs.length} bugs, ${demoFeatureRequests.length} feature requests`);
+
+    console.log(
+      `  ✅ Synced settings data: ${demoBugs.length} bugs, ${demoFeatureRequests.length} feature requests`
+    );
   }
 
   /**
@@ -753,26 +800,30 @@ export class ComprehensiveDemoSyncService {
    * @param openDemoOrgId
    * @param buildingMapping
    */
-  private static async syncDocuments(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
+  private static async syncDocuments(
+    demoOrgId: string,
+    openDemoOrgId: string,
+    buildingMapping: Map<string, string>
+  ): Promise<void> {
     console.log('  📄 Syncing documents...');
-    
+
     // Get user mapping for uploadedBy field
     const openDemoAdmin = await db.query.userOrganizations.findFirst({
       where: and(
         eq(schema.userOrganizations.organizationId, openDemoOrgId),
         eq(schema.userOrganizations.organizationRole, 'admin')
-      )
+      ),
     });
-    
+
     if (!openDemoAdmin) {
       throw new Error('Open Demo admin user not found');
     }
-    
+
     // Sync building documents
     const demoBuildingDocs = await db.query.documentsBuildings.findMany({
-      where: inArray(schema.documentsBuildings.buildingId, Array.from(buildingMapping.keys()))
+      where: inArray(schema.documentsBuildings.buildingId, Array.from(buildingMapping.keys())),
     });
-    
+
     for (const doc of demoBuildingDocs) {
       const newBuildingId = buildingMapping.get(doc.buildingId);
       if (newBuildingId) {
@@ -790,15 +841,15 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
+
     // Get residence mappings
     const residenceMapping = new Map<string, string>();
     const demoBuildingIds = Array.from(buildingMapping.keys());
-    
+
     const demoResidences = await db.query.residences.findMany({
-      where: inArray(schema.residences.buildingId, demoBuildingIds)
+      where: inArray(schema.residences.buildingId, demoBuildingIds),
     });
-    
+
     for (const demoRes of demoResidences) {
       const newBuildingId = buildingMapping.get(demoRes.buildingId);
       if (newBuildingId) {
@@ -806,19 +857,19 @@ export class ComprehensiveDemoSyncService {
           where: and(
             eq(schema.residences.buildingId, newBuildingId),
             eq(schema.residences.unitNumber, demoRes.unitNumber)
-          )
+          ),
         });
         if (openDemoRes) {
           residenceMapping.set(demoRes.id, openDemoRes.id);
         }
       }
     }
-    
+
     // Sync residence documents
     const demoResidenceDocs = await db.query.documentsResidents.findMany({
-      where: inArray(schema.documentsResidents.residenceId, Array.from(residenceMapping.keys()))
+      where: inArray(schema.documentsResidents.residenceId, Array.from(residenceMapping.keys())),
     });
-    
+
     for (const doc of demoResidenceDocs) {
       const newResidenceId = residenceMapping.get(doc.residenceId);
       if (newResidenceId) {
@@ -836,8 +887,10 @@ export class ComprehensiveDemoSyncService {
         });
       }
     }
-    
-    console.log(`  ✅ Synced documents: ${demoBuildingDocs.length} building documents, ${demoResidenceDocs.length} residence documents`);
+
+    console.log(
+      `  ✅ Synced documents: ${demoBuildingDocs.length} building documents, ${demoResidenceDocs.length} residence documents`
+    );
   }
 
   /**

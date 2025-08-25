@@ -148,7 +148,7 @@ describe('MemStorage', () => {
         });
         // Check that updatedAt was actually updated (within reasonable time)
         expect(updatedUser?.updatedAt?.getTime()).toBeGreaterThanOrEqual(
-          (createdUser.updatedAt?.getTime() || 0)
+          createdUser.updatedAt?.getTime() || 0
         );
         expect(updatedUser?.updatedAt?.getTime()).toBeGreaterThanOrEqual(
           createdUser.createdAt?.getTime() || 0

@@ -45,7 +45,6 @@ export const useMobileMenu = () => {
    * @param context === undefined - context === undefined parameter.
    */
 
-
   if (context === undefined) {
     throw new Error('useMobileMenu must be used within a MobileMenuProvider');
   }
@@ -81,14 +80,14 @@ interface MobileMenuProviderProps {
  * @param { children } - { children } parameter.
  */
 export function /**
-   * Mobile menu provider function.
-   * @param { children } - { children } parameter.
-   */ /**
-   * Mobile menu provider function.
-   * @param { children } - { children } parameter.
-   */
+ * Mobile menu provider function.
+ * @param { children } - { children } parameter.
+ */ /**
+ * Mobile menu provider function.
+ * @param { children } - { children } parameter.
+ */
 
- MobileMenuProvider({ children }: MobileMenuProviderProps) {
+MobileMenuProvider({ children }: MobileMenuProviderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -105,9 +104,5 @@ export function /**
     closeMobileMenu,
   };
 
-  return (
-    <MobileMenuContext.Provider value={value}>
-      {children}
-    </MobileMenuContext.Provider>
-  );
+  return <MobileMenuContext.Provider value={value}>{children}</MobileMenuContext.Provider>;
 }

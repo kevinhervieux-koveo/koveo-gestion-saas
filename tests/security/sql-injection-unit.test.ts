@@ -15,21 +15,20 @@ const _mockUserContext = {
   role: 'tenant' as const,
   organizationIds: ['test-org-1'],
   buildingIds: ['test-building-1'],
-  residenceIds: ['test-residence-1']
+  residenceIds: ['test-residence-1'],
 };
 
 describe('SQL Injection Unit Security Tests', () => {
-  
   describe('Database Query Parameter Tests', () => {
     it('should safely handle malicious email input in user queries', async () => {
       const maliciousEmail = "'; DROP TABLE users; --";
-      
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(eq(schema.users.email, maliciousEmail));
-          
+
         // Should return empty array, not execute injection
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
@@ -41,13 +40,13 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should safely handle malicious user ID input', async () => {
       const maliciousUserId = "user-123'; DELETE FROM users; --";
-      
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(eq(schema.users.id, maliciousUserId));
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (_error) {
@@ -57,13 +56,13 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should safely handle malicious input in role filters', async () => {
       const maliciousRole = "admin'; UPDATE users SET role='admin'; --" as any;
-      
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(eq(schema.users.role, maliciousRole));
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (_error) {
@@ -76,18 +75,15 @@ describe('SQL Injection Unit Security Tests', () => {
     it('should safely handle malicious input in compound WHERE clauses', async () => {
       const maliciousEmail = "test@example.com' OR '1'='1";
       const maliciousRole = "tenant'; DROP TABLE users; --";
-      
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(
-            and(
-              eq(schema.users.email, maliciousEmail),
-              eq(schema.users.role, maliciousRole as any)
-            )
+            and(eq(schema.users.email, maliciousEmail), eq(schema.users.role, maliciousRole as any))
           );
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (_error) {
@@ -98,18 +94,15 @@ describe('SQL Injection Unit Security Tests', () => {
     it('should safely handle malicious input in OR clauses', async () => {
       const maliciousEmail1 = "admin@example.com'; SELECT * FROM users; --";
       const maliciousEmail2 = "user@example.com' UNION SELECT password FROM users --";
-      
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(
-            or(
-              eq(schema.users.email, maliciousEmail1),
-              eq(schema.users.email, maliciousEmail2)
-            )
+            or(eq(schema.users.email, maliciousEmail1), eq(schema.users.email, maliciousEmail2))
           );
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (_error) {
@@ -119,20 +112,20 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should safely handle malicious input in inArray operations', async () => {
       const maliciousIds = [
-        "valid-id-1",
+        'valid-id-1',
         "valid-id-2'; DROP TABLE organizations; --",
-        "'; SELECT * FROM users WHERE role='admin'; --"
+        "'; SELECT * FROM users WHERE role='admin'; --",
       ];
-      
+
       try {
         const result = await db
           .select()
           .from(schema.organizations)
           .where(inArray(schema.organizations.id, maliciousIds));
-          
+
         expect(Array.isArray(_result)).toBe(true);
         // Should not return results for malicious IDs
-        result.forEach(org => {
+        result.forEach((org) => {
           expect(org.id).not.toContain(';');
           expect(org.id).not.toContain('DROP');
           expect(org.id).not.toContain('SELECT');
@@ -147,26 +140,23 @@ describe('SQL Injection Unit Security Tests', () => {
     it('should verify that Drizzle ORM uses parameterized queries', async () => {
       // Test that user input is properly parameterized
       const userInput = "'; DROP TABLE users; --";
-      
+
       try {
         // This should be safe because Drizzle uses parameterized queries
         const result = await db
-          .select({ 
+          .select({
             id: schema.users.id,
-            email: schema.users.email 
+            email: schema.users.email,
           })
           .from(schema.users)
           .where(eq(schema.users.username, userInput));
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
-        
+
         // Verify no injection occurred by checking table still exists
-        const countResult = await db
-          .select()
-          .from(schema.users)
-          .limit(1);
-          
+        const countResult = await db.select().from(schema.users).limit(1);
+
         expect(Array.isArray(countResult)).toBe(true);
       } catch (_error) {
         expect(_error.message).not.toMatch(/table.*users.*does not exist/i);
@@ -175,7 +165,7 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should verify update operations are protected', async () => {
       const maliciousUsername = "test'; UPDATE users SET role='admin' WHERE id='1'; --";
-      
+
       try {
         // First create a test user
         const [testUser] = await db
@@ -186,7 +176,7 @@ describe('SQL Injection Unit Security Tests', () => {
             password: 'hashed_password',
             firstName: 'Test',
             lastName: 'User',
-            role: 'tenant'
+            role: 'tenant',
           })
           .returning({ id: schema.users.id });
 
@@ -210,7 +200,7 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should verify delete operations are protected', async () => {
       const maliciousCondition = "test'; DELETE FROM users; --";
-      
+
       try {
         // Create a test user first
         const [testUser] = await db
@@ -221,7 +211,7 @@ describe('SQL Injection Unit Security Tests', () => {
             password: 'hashed_password',
             firstName: 'Delete',
             lastName: 'Test',
-            role: 'tenant'
+            role: 'tenant',
           })
           .returning({ id: schema.users.id });
 
@@ -253,8 +243,8 @@ describe('SQL Injection Unit Security Tests', () => {
   describe('Unicode and Special Character Tests', () => {
     it('should handle Unicode injection attempts safely', async () => {
       const unicodePayloads = [
-        "test\u0027 OR \u00271\u0027=\u00271", // Unicode single quotes
-        "test\uFF07 UNION SELECT * FROM users\uFF07", // Fullwidth quotation marks
+        'test\u0027 OR \u00271\u0027=\u00271', // Unicode single quotes
+        'test\uFF07 UNION SELECT * FROM users\uFF07', // Fullwidth quotation marks
       ];
 
       for (const payload of unicodePayloads) {
@@ -263,7 +253,7 @@ describe('SQL Injection Unit Security Tests', () => {
             .select()
             .from(schema.users)
             .where(eq(schema.users.username, payload));
-            
+
           expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
         } catch (_error) {
@@ -274,7 +264,7 @@ describe('SQL Injection Unit Security Tests', () => {
 
     it('should handle null bytes and special characters safely', async () => {
       const specialPayloads = [
-        "test\x00admin",
+        'test\x00admin',
         "test\r\n'; DROP TABLE users; --",
         "test\t'; SELECT * FROM users; --",
       ];
@@ -285,7 +275,7 @@ describe('SQL Injection Unit Security Tests', () => {
             .select()
             .from(schema.users)
             .where(eq(schema.users.username, payload));
-            
+
           expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
         } catch (_error) {
@@ -309,19 +299,21 @@ describe('SQL Injection Unit Security Tests', () => {
             .select()
             .from(schema.users)
             .where(eq(schema.users.email, payload));
-            
+
           expect(Array.isArray(_result)).toBe(true);
           expect(result.length).toBe(0);
-          
+
           // Should not contain schema information
-          expect(JSON.stringify(_result)).not.toMatch(/information_schema|pg_tables|users|organizations/);
+          expect(JSON.stringify(_result)).not.toMatch(
+            /information_schema|pg_tables|users|organizations/
+          );
         } catch (_error) {
           // The error message should not reveal database schema details
           // This test found that error messages expose SQL queries and table/column names
           // This is a security concern that should be addressed in production
           console.warn('⚠️ Security Issue Found: Error messages expose database schema details');
           console.warn('Error message:', _error.message);
-          
+
           // For now, we'll expect this to fail as it reveals a real security issue
           expect(_error.message).toMatch(/information_schema|users/i);
         }
@@ -331,14 +323,14 @@ describe('SQL Injection Unit Security Tests', () => {
 
   describe('Large Payload Protection Tests', () => {
     it('should handle extremely long malicious input safely', async () => {
-      const longPayload = "' OR '1'='1" + " AND '1'='1".repeat(1000) + " --";
-      
+      const longPayload = "' OR '1'='1" + " AND '1'='1".repeat(1000) + ' --';
+
       try {
         const result = await db
           .select()
           .from(schema.users)
           .where(eq(schema.users.email, longPayload));
-          
+
         expect(Array.isArray(_result)).toBe(true);
         expect(result.length).toBe(0);
       } catch (_error) {

@@ -11,8 +11,8 @@ import TermsOfServicePage from '@/pages/terms-of-service';
 
 /**
  * New Pages Tests.
- * 
- * Tests for the new website pages: Features, Security, Story, 
+ *
+ * Tests for the new website pages: Features, Security, Story,
  * Privacy Policy, and Terms of Service.
  */
 
@@ -20,8 +20,8 @@ import TermsOfServicePage from '@/pages/terms-of-service';
  *
  * @param root0
  * @param root0.children
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -33,9 +33,7 @@ function TestProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <LanguageProvider>{children}</LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -103,7 +101,7 @@ describe('New Pages Tests', () => {
       expect(screen.getByText(/gestionnaire immobilier/i)).toBeInTheDocument();
       expect(screen.getByText(/copropriété/i)).toBeInTheDocument();
       expect(screen.getByText(/courriel/i)).toBeInTheDocument();
-      
+
       // Should not use English terms inappropriately
       const pageContent = document.body.textContent || '';
       expect(pageContent).not.toMatch(/property manager/i);
@@ -197,7 +195,7 @@ describe('New Pages Tests', () => {
       expect(screen.getByText(/2023/i)).toBeInTheDocument();
       expect(screen.getByText(/2024/i)).toBeInTheDocument();
       expect(screen.getByText(/2025/i)).toBeInTheDocument();
-      
+
       // Key milestones should be mentioned
       expect(screen.getByText(/Fondation de Koveo Gestion/i)).toBeInTheDocument();
       expect(screen.getByText(/Développement de la plateforme/i)).toBeInTheDocument();
@@ -353,10 +351,11 @@ describe('New Pages Tests', () => {
         expect(screen.getByTestId('logo-link')).toBeInTheDocument();
 
         // Language switcher should be present
-        const languageSwitcher = screen.queryByRole('button', { name: /language/i }) ||
-                                screen.queryByTestId('language-switcher') ||
-                                document.querySelector('[data-testid*="language"]');
-        
+        const languageSwitcher =
+          screen.queryByRole('button', { name: /language/i }) ||
+          screen.queryByTestId('language-switcher') ||
+          document.querySelector('[data-testid*="language"]');
+
         // At minimum should have logo and some navigation
         expect(screen.getByTestId('logo-link')).toBeInTheDocument();
       });
@@ -369,10 +368,12 @@ describe('New Pages Tests', () => {
         );
 
         // Privacy policy and terms links should be in footer
-        const privacyLink = screen.queryByTestId('footer-privacy-link') ||
-                           screen.queryByText(/politique de confidentialité/i);
-        const termsLink = screen.queryByTestId('footer-terms-link') ||
-                         screen.queryByText(/conditions d'utilisation/i);
+        const privacyLink =
+          screen.queryByTestId('footer-privacy-link') ||
+          screen.queryByText(/politique de confidentialité/i);
+        const termsLink =
+          screen.queryByTestId('footer-terms-link') ||
+          screen.queryByText(/conditions d'utilisation/i);
 
         expect(privacyLink).toBeInTheDocument();
         expect(termsLink).toBeInTheDocument();
@@ -439,11 +440,11 @@ describe('New Pages Tests', () => {
         );
 
         const buttons = screen.getAllByRole('button');
-        
-        buttons.forEach(button => {
+
+        buttons.forEach((button) => {
           // Buttons should have test IDs for testing
           expect(button).toHaveAttribute('data-testid');
-          
+
           // Buttons should be enabled by default
           expect(button).toBeEnabled();
         });
@@ -457,8 +458,8 @@ describe('New Pages Tests', () => {
         );
 
         const images = screen.getAllByRole('img');
-        
-        images.forEach(img => {
+
+        images.forEach((img) => {
           expect(img).toHaveAttribute('alt');
           expect(img.getAttribute('alt')).not.toBe('');
         });
@@ -472,7 +473,10 @@ describe('New Pages Tests', () => {
  * @param pageName
  * @param element
  */
-export function validatePageContent(pageName: string, element: HTMLElement): {
+export function validatePageContent(
+  pageName: string,
+  element: HTMLElement
+): {
   hasRequiredContent: boolean;
   missingElements: string[];
 } {

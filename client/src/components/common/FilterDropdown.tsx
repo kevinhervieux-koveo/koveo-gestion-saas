@@ -1,4 +1,10 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 /**
  *
@@ -47,24 +53,13 @@ export function FilterDropdown({
   className = '',
 }: FilterDropdownProps) {
   return (
-    <Select 
-      value={value} 
-      onValueChange={onValueChange}
-      disabled={disabled}
-    >
-      <SelectTrigger 
-        className={`${width} ${className}`}
-        data-testid={testId}
-      >
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+      <SelectTrigger className={`${width} ${className}`} data-testid={testId}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem 
-            key={option.value} 
-            value={option.value}
-            disabled={option.disabled}
-          >
+          <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </SelectItem>
         ))}

@@ -21,30 +21,33 @@ import { useToast } from '@/hooks/use-toast';
  * @param initialState = false - initialState = false parameter.
  */
 export function /**
-   * Use loading state function.
-   * @param initialState = false - initialState = false parameter.
-   */ /**
-   * Use loading state function.
-   * @param initialState = false - initialState = false parameter.
-   */
+ * Use loading state function.
+ * @param initialState = false - initialState = false parameter.
+ */ /**
+ * Use loading state function.
+ * @param initialState = false - initialState = false parameter.
+ */
 
- useLoadingState(initialState = false) {
+useLoadingState(initialState = false) {
   const [isLoading, setIsLoading] = useState(initialState);
-  
+
   const setLoading = useCallback((loading: boolean) => {
     setIsLoading(loading);
   }, []);
-  
-  const withLoading = useCallback(async <T>(asyncFn: () => Promise<T>): Promise<T> => {
-    setLoading(true);
-    try {
-      const result = await asyncFn();
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading]);
-  
+
+  const withLoading = useCallback(
+    async <T>(asyncFn: () => Promise<T>): Promise<T> => {
+      setLoading(true);
+      try {
+        const result = await asyncFn();
+        return result;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setLoading]
+  );
+
   return { isLoading, setLoading, withLoading };
 }
 
@@ -97,7 +100,7 @@ export function useDeleteMutation({
         description: successMessage,
       });
       // Invalidate related queries
-      queryKeysToInvalidate.forEach(queryKey => {
+      queryKeysToInvalidate.forEach((queryKey) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       });
     },
@@ -165,7 +168,7 @@ export function useCreateUpdateMutation({
         description: successMessage,
       });
       // Invalidate related queries
-      queryKeysToInvalidate.forEach(queryKey => {
+      queryKeysToInvalidate.forEach((queryKey) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       });
       onSuccessCallback?.();
@@ -194,14 +197,14 @@ export function useCreateUpdateMutation({
  * @param initialOpen = false - initialOpen = false parameter.
  */
 export function /**
-   * Use form state function.
-   * @param initialOpen = false - initialOpen = false parameter.
-   */ /**
-   * Use form state function.
-   * @param initialOpen = false - initialOpen = false parameter.
-   */
+ * Use form state function.
+ * @param initialOpen = false - initialOpen = false parameter.
+ */ /**
+ * Use form state function.
+ * @param initialOpen = false - initialOpen = false parameter.
+ */
 
- useFormState(initialOpen = false) {
+useFormState(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [selectedItem, setSelectedItem] = useState<unknown>(null);
 
@@ -239,7 +242,7 @@ export function useSearchFilter<T = Record<string, unknown>>(
   const [filters, setFilters] = useState<T>(initialFilters);
 
   const updateFilter = useCallback((_key: keyof T, _value: T[keyof T]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const clearFilters = useCallback(() => {

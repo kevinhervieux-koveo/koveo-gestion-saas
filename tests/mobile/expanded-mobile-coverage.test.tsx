@@ -1,6 +1,6 @@
 /**
  * Expanded Mobile UI Test Coverage for Quebec Property Management.
- * 
+ *
  * Comprehensive mobile testing covering responsiveness, touch interactions,
  * accessibility, and Quebec-specific mobile requirements.
  */
@@ -28,13 +28,13 @@ const MOBILE_VIEWPORTS = {
   phone: { width: 375, height: 667 },
   tablet: { width: 768, height: 1024 },
   largeMobile: { width: 414, height: 896 },
-  smallMobile: { width: 320, height: 568 }
+  smallMobile: { width: 320, height: 568 },
 };
 
 // Mock global functions for mobile testing
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  _value: jest.fn().mockImplementation(query => ({
+  _value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -56,15 +56,15 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 // Mock touch events
 const mockTouchEvent = (type: string, touches: Array<{ clientX: number; clientY: number }>) => {
   return new TouchEvent(type, {
-    touches: touches.map(touch => ({
+    touches: touches.map((touch) => ({
       ...touch,
       identifier: 0,
       target: document.body,
       radiusX: 1,
       radiusY: 1,
       rotationAngle: 0,
-      force: 1
-    })) as any
+      force: 1,
+    })) as any,
   });
 };
 
@@ -76,8 +76,8 @@ describe('Expanded Mobile UI Coverage', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
     user = userEvent.setup();
   });
@@ -96,8 +96,16 @@ describe('Expanded Mobile UI Coverage', () => {
 
   const setMobileViewport = (viewport: keyof typeof MOBILE_VIEWPORTS) => {
     const { width, height } = MOBILE_VIEWPORTS[viewport];
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, _value: width });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, _value: height });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      _value: width,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      _value: height,
+    });
     window.dispatchEvent(new Event('resize'));
   };
 
@@ -125,7 +133,7 @@ describe('Expanded Mobile UI Coverage', () => {
 
       // Check Quebec branding visibility
       expect(screen.getByText(/Koveo Gestion/i)).toBeInTheDocument();
-      
+
       // Test mobile navigation
       const mobileNav = screen.getByRole('navigation');
       expect(mobileNav).toHaveClass('mobile-responsive');
@@ -140,7 +148,7 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(OwnerDashboard);
 
       const cards = screen.getAllByTestId('dashboard-card');
-      cards.forEach(card => {
+      cards.forEach((card) => {
         expect(card).toHaveClass('w-full'); // Full width on mobile
       });
 
@@ -155,7 +163,7 @@ describe('Expanded Mobile UI Coverage', () => {
 
       const titleInput = screen.getByLabelText(/titre/i);
       expect(titleInput).toHaveAttribute('type', 'text');
-      
+
       // Test mobile keyboard appearance
       await user.click(titleInput);
       expect(titleInput).toHaveFocus();
@@ -172,13 +180,13 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(Button, { children: 'Test Button' });
 
       const button = screen.getByRole('button');
-      
+
       // Test touch start/end
       fireEvent.touchStart(button, {
-        touches: [{ clientX: 100, clientY: 100 }]
+        touches: [{ clientX: 100, clientY: 100 }],
       });
       fireEvent.touchEnd(button, {
-        changedTouches: [{ clientX: 100, clientY: 100 }]
+        changedTouches: [{ clientX: 100, clientY: 100 }],
       });
 
       expect(button).toHaveClass('active'); // Touch feedback
@@ -189,16 +197,16 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ManagerBuildings);
 
       const buildingCard = screen.getByTestId('building-card');
-      
+
       // Simulate swipe right
       fireEvent.touchStart(buildingCard, {
-        touches: [{ clientX: 100, clientY: 100 }]
+        touches: [{ clientX: 100, clientY: 100 }],
       });
       fireEvent.touchMove(buildingCard, {
-        touches: [{ clientX: 200, clientY: 100 }]
+        touches: [{ clientX: 200, clientY: 100 }],
       });
       fireEvent.touchEnd(buildingCard, {
-        changedTouches: [{ clientX: 200, clientY: 100 }]
+        changedTouches: [{ clientX: 200, clientY: 100 }],
       });
 
       // Check if swipe action was triggered
@@ -212,19 +220,19 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ManagerBuildings);
 
       const floorPlan = screen.getByTestId('floor-plan');
-      
+
       // Simulate pinch gesture
       fireEvent.touchStart(floorPlan, {
         touches: [
           { clientX: 100, clientY: 100 },
-          { clientX: 200, clientY: 200 }
-        ]
+          { clientX: 200, clientY: 200 },
+        ],
       });
       fireEvent.touchMove(floorPlan, {
         touches: [
           { clientX: 80, clientY: 80 },
-          { clientX: 220, clientY: 220 }
-        ]
+          { clientX: 220, clientY: 220 },
+        ],
       });
 
       expect(floorPlan).toHaveStyle('transform: scale(1.2)');
@@ -235,17 +243,17 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ResidentsDemands);
 
       const demandItem = screen.getByTestId('demand-item');
-      
+
       // Simulate long press
       fireEvent.touchStart(demandItem, {
-        touches: [{ clientX: 100, clientY: 100 }]
+        touches: [{ clientX: 100, clientY: 100 }],
       });
-      
+
       // Wait for long press duration
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       fireEvent.touchEnd(demandItem, {
-        changedTouches: [{ clientX: 100, clientY: 100 }]
+        changedTouches: [{ clientX: 100, clientY: 100 }],
       });
 
       await waitFor(() => {
@@ -285,9 +293,9 @@ describe('Expanded Mobile UI Coverage', () => {
 
     test('High contrast mode works on mobile Quebec interface', async () => {
       setMobileViewport('phone');
-      
+
       // Mock high contrast media query
-      window.matchMedia = jest.fn().mockImplementation(query => ({
+      window.matchMedia = jest.fn().mockImplementation((query) => ({
         matches: query === '(prefers-contrast: high)',
         media: query,
         onchange: null,
@@ -303,10 +311,10 @@ describe('Expanded Mobile UI Coverage', () => {
 
     test('Large text scaling preserves Quebec layout', async () => {
       setMobileViewport('phone');
-      
+
       // Mock large text preference
       document.body.style.fontSize = '1.5rem';
-      
+
       renderWithProviders(Sidebar);
 
       const navigation = screen.getByRole('navigation');
@@ -322,14 +330,14 @@ describe('Expanded Mobile UI Coverage', () => {
   describe('Quebec Mobile Performance Testing', () => {
     test('Quebec French text rendering performance on mobile', async () => {
       setMobileViewport('phone');
-      
+
       const startTime = performance.now();
       renderWithProviders(ManagerBuildings);
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Immeubles/i)).toBeInTheDocument();
       });
-      
+
       const renderTime = performance.now() - startTime;
       expect(renderTime).toBeLessThan(1000); // Should render Quebec text within 1 second
     });
@@ -339,7 +347,7 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ManagerBuildings);
 
       const propertyImages = screen.getAllByRole('img');
-      propertyImages.forEach(img => {
+      propertyImages.forEach((img) => {
         expect(img).toHaveAttribute('loading', 'lazy');
         expect(img).toHaveAttribute('sizes'); // Responsive image sizes
       });
@@ -347,21 +355,23 @@ describe('Expanded Mobile UI Coverage', () => {
 
     test('Quebec compliance data loading performance on mobile', async () => {
       setMobileViewport('phone');
-      
+
       // Mock heavy compliance data
-      const mockData = Array(100).fill(null).map((_, i) => ({
-        id: i,
-        title: `Exigence Loi 25 ${i}`,
-        status: i % 2 === 0 ? 'complété' : 'en cours'
-      }));
+      const mockData = Array(100)
+        .fill(null)
+        .map((_, i) => ({
+          id: i,
+          title: `Exigence Loi 25 ${i}`,
+          status: i % 2 === 0 ? 'complété' : 'en cours',
+        }));
 
       const startTime = performance.now();
       renderWithProviders(OwnerDashboard);
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Conformité/i)).toBeInTheDocument();
       });
-      
+
       const loadTime = performance.now() - startTime;
       expect(loadTime).toBeLessThan(2000); // Should load within 2 seconds
     });
@@ -373,12 +383,15 @@ describe('Expanded Mobile UI Coverage', () => {
       renderWithProviders(ManagerBuildings);
 
       const postalCodeInput = screen.getByLabelText(/code postal/i);
-      expect(postalCodeInput).toHaveAttribute('pattern', '[A-Za-z][0-9][A-Za-z] [0-9][A-Za-z][0-9]');
-      
+      expect(postalCodeInput).toHaveAttribute(
+        'pattern',
+        '[A-Za-z][0-9][A-Za-z] [0-9][A-Za-z][0-9]'
+      );
+
       // Test Quebec postal code format
       await user.type(postalCodeInput, 'H3A 1B1');
       expect(postalCodeInput).toHaveValue('H3A 1B1');
-      
+
       // Test invalid format
       await user.clear(postalCodeInput);
       await user.type(postalCodeInput, '12345');
@@ -391,11 +404,11 @@ describe('Expanded Mobile UI Coverage', () => {
 
       const phoneInput = screen.getByLabelText(/téléphone/i);
       expect(phoneInput).toHaveAttribute('type', 'tel');
-      
+
       // Test Quebec phone format
       await user.type(phoneInput, '514-123-4567');
       expect(phoneInput).toHaveValue('(514) 123-4567');
-      
+
       // Test automatic formatting
       await user.clear(phoneInput);
       await user.type(phoneInput, '5141234567');
@@ -422,18 +435,18 @@ describe('Expanded Mobile UI Coverage', () => {
   describe('Mobile Offline Support', () => {
     test('Quebec compliance data available offline on mobile', async () => {
       setMobileViewport('phone');
-      
+
       // Mock offline mode
       Object.defineProperty(navigator, 'onLine', {
         writable: true,
-        _value: false
+        _value: false,
       });
 
       renderWithProviders(OwnerDashboard);
 
       // Check offline indicator
       expect(screen.getByText(/mode hors ligne/i)).toBeInTheDocument();
-      
+
       // Check cached Quebec compliance data
       expect(screen.getByText(/données de conformité mises en cache/i)).toBeInTheDocument();
     });
@@ -444,10 +457,10 @@ describe('Expanded Mobile UI Coverage', () => {
 
       // Fill form while offline
       Object.defineProperty(navigator, 'onLine', { _value: false });
-      
+
       const titleInput = screen.getByLabelText(/titre/i);
       await user.type(titleInput, 'Demande hors ligne');
-      
+
       const submitButton = screen.getByRole('button', { name: /soumettre/i });
       await user.click(submitButton);
 

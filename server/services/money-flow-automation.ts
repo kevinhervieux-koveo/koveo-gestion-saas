@@ -1,22 +1,11 @@
 import { db } from '../db';
 import { eq, and, gte, lte, or, sql } from 'drizzle-orm';
-import type { 
-  InsertMoneyFlow, 
-  Bill, 
-  Residence,
-  Building 
-} from '@shared/schema';
+import type { InsertMoneyFlow, Bill, Residence, Building } from '@shared/schema';
 import { billGenerationService } from './bill-generation-service';
 
 import * as schema from '@shared/schema';
 
-const { 
-  moneyFlow, 
-  bills, 
-  residences, 
-  buildings,
-  users 
-} = schema;
+const { moneyFlow, bills, residences, buildings, users } = schema;
 
 /**
  * Service for automating money_flow entries based on bills and residence fees.
@@ -36,7 +25,7 @@ export class MoneyFlowAutomationService {
     totalEntriesCreated: number;
   }> {
     console.warn('🔄 Starting money flow entries generation...');
-    
+
     let billEntriesCreated = 0;
     let residenceEntriesCreated = 0;
 
@@ -62,9 +51,8 @@ export class MoneyFlowAutomationService {
       return {
         billEntriesCreated,
         residenceEntriesCreated,
-        totalEntriesCreated
+        totalEntriesCreated,
       };
-
     } catch (_error) {
       console.error('❌ Error generating money flow entries:', _error);
       throw error;
@@ -76,10 +64,7 @@ export class MoneyFlowAutomationService {
    * @param startDate
    * @param endDate
    */
-  private async generateBillMoneyFlowEntries(
-    startDate: Date, 
-    endDate: Date
-  ): Promise<number> {
+  private async generateBillMoneyFlowEntries(startDate: Date, endDate: Date): Promise<number> {
     // Get all active recurrent bills
     const activeBills = await db
       .select()
@@ -87,10 +72,7 @@ export class MoneyFlowAutomationService {
       .where(
         and(
           eq(bills.paymentType, 'recurrent'),
-          or(
-            eq(bills.endDate, null),
-            gte(bills.endDate, startDate.toISOString().split('T')[0])
-          )
+          or(eq(bills.endDate, null), gte(bills.endDate, startDate.toISOString().split('T')[0]))
         )
       );
 
@@ -106,7 +88,6 @@ export class MoneyFlowAutomationService {
         // Generate new entries based on bill schedule
         const billEntries = await this.generateEntriesForBill(bill, startDate, endDate);
         entriesCreated += billEntries;
-
       } catch (_error) {
         console.error(`❌ Error processing bill ${bill.billNumber}:`, _error);
         // Continue with other bills
@@ -121,15 +102,12 @@ export class MoneyFlowAutomationService {
    * @param startDate
    * @param endDate
    */
-  private async generateResidenceMoneyFlowEntries(
-    startDate: Date, 
-    endDate: Date
-  ): Promise<number> {
+  private async generateResidenceMoneyFlowEntries(startDate: Date, endDate: Date): Promise<number> {
     // Get all active residences with monthly fees
     const activeResidences = await db
       .select({
         residence: residences,
-        building: buildings
+        building: buildings,
       })
       .from(residences)
       .innerJoin(buildings, eq(residences.buildingId, buildings.id))
@@ -152,13 +130,12 @@ export class MoneyFlowAutomationService {
 
         // Generate monthly income entries
         const residenceEntries = await this.generateEntriesForResidence(
-          residence, 
+          residence,
           building,
-          startDate, 
+          startDate,
           endDate
         );
         entriesCreated += residenceEntries;
-
       } catch (_error) {
         console.error(`❌ Error processing residence ${residence.unitNumber}:`, _error);
         // Continue with other residences
@@ -175,8 +152,8 @@ export class MoneyFlowAutomationService {
    * @param endDate
    */
   private async generateEntriesForBill(
-    bill: Bill, 
-    startDate: Date, 
+    bill: Bill,
+    startDate: Date,
     endDate: Date
   ): Promise<number> {
     const entries: InsertMoneyFlow[] = [];
@@ -185,7 +162,7 @@ export class MoneyFlowAutomationService {
 
     // Use the bill start date or current date, whichever is later
     const effectiveStartDate = billStartDate > startDate ? billStartDate : startDate;
-    
+
     if (!bill.schedulePayment) {
       console.warn(`⚠️ Bill ${bill.billNumber} has no schedule, skipping`);
       return 0;
@@ -200,7 +177,7 @@ export class MoneyFlowAutomationService {
     while (currentDate <= billEndDate && currentDate <= endDate) {
       // For bills with multiple costs, cycle through them
       const cost = bill.costs[costIndex % bill.costs.length];
-      
+
       entries.push({
         buildingId: bill.buildingId,
         billId: bill.id,
@@ -211,7 +188,7 @@ export class MoneyFlowAutomationService {
         transactionDate: currentDate.toISOString().split('T')[0],
         referenceNumber: `${bill.billNumber}-${currentDate.toISOString().split('T')[0]}`,
         notes: `Auto-generated from bill recurrence: ${bill.schedulePayment}`,
-        createdBy: systemUser.id
+        createdBy: systemUser.id,
       });
 
       // Move to next date based on schedule
@@ -244,7 +221,7 @@ export class MoneyFlowAutomationService {
   private async generateEntriesForResidence(
     residence: Residence,
     building: Building,
-    startDate: Date, 
+    startDate: Date,
     endDate: Date
   ): Promise<number> {
     if (!residence.monthlyFees || parseFloat(residence.monthlyFees) <= 0) {
@@ -273,7 +250,7 @@ export class MoneyFlowAutomationService {
         transactionDate: currentDate.toISOString().split('T')[0],
         referenceNumber: `MONTHLY-${residence.unitNumber}-${currentDate.toISOString().slice(0, 7)}`,
         notes: `Auto-generated monthly fee for unit ${residence.unitNumber}`,
-        createdBy: systemUser.id
+        createdBy: systemUser.id,
       });
 
       // Move to next month
@@ -289,7 +266,9 @@ export class MoneyFlowAutomationService {
     // Insert entries in batches
     if (entries.length > 0) {
       await this.insertEntriesInBatches(entries);
-      console.warn(`🏠 Created ${entries.length} monthly fee entries for residence ${residence.unitNumber}`);
+      console.warn(
+        `🏠 Created ${entries.length} monthly fee entries for residence ${residence.unitNumber}`
+      );
     }
 
     return entries.length;
@@ -301,11 +280,7 @@ export class MoneyFlowAutomationService {
    * @param schedule
    * @param customDates
    */
-  private calculateNextDate(
-    currentDate: Date, 
-    schedule: string, 
-    customDates?: string[]
-  ): Date {
+  private calculateNextDate(currentDate: Date, schedule: string, customDates?: string[]): Date {
     const nextDate = new Date(currentDate);
 
     switch (schedule) {
@@ -326,10 +301,10 @@ export class MoneyFlowAutomationService {
         if (customDates && customDates.length > 0) {
           const currentDateStr = currentDate.toISOString().split('T')[0];
           const sortedDates = [...customDates].sort();
-          
+
           // Find next date after current
-          const nextCustomDate = sortedDates.find(date => date > currentDateStr);
-          
+          const nextCustomDate = sortedDates.find((date) => date > currentDateStr);
+
           if (nextCustomDate) {
             return new Date(nextCustomDate);
           } else {
@@ -354,21 +329,35 @@ export class MoneyFlowAutomationService {
    * Map bill category to money flow category.
    * @param billCategory
    */
-  private mapBillCategoryToMoneyFlowCategory(billCategory: string): 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_expense' {
-    const mapping: Record<string, 'bill_payment' | 'maintenance_expense' | 'administrative_expense' | 'professional_services' | 'other_expense'> = {
-      'insurance': 'other_expense',
-      'maintenance': 'maintenance_expense', 
-      'salary': 'administrative_expense',
-      'utilities': 'other_expense',
-      'cleaning': 'maintenance_expense',
-      'security': 'other_expense',
-      'landscaping': 'maintenance_expense',
-      'professional_services': 'professional_services',
-      'administration': 'administrative_expense',
-      'repairs': 'maintenance_expense',
-      'supplies': 'maintenance_expense',
-      'taxes': 'other_expense',
-      'other': 'other_expense'
+  private mapBillCategoryToMoneyFlowCategory(
+    billCategory: string
+  ):
+    | 'bill_payment'
+    | 'maintenance_expense'
+    | 'administrative_expense'
+    | 'professional_services'
+    | 'other_expense' {
+    const mapping: Record<
+      string,
+      | 'bill_payment'
+      | 'maintenance_expense'
+      | 'administrative_expense'
+      | 'professional_services'
+      | 'other_expense'
+    > = {
+      insurance: 'other_expense',
+      maintenance: 'maintenance_expense',
+      salary: 'administrative_expense',
+      utilities: 'other_expense',
+      cleaning: 'maintenance_expense',
+      security: 'other_expense',
+      landscaping: 'maintenance_expense',
+      professional_services: 'professional_services',
+      administration: 'administrative_expense',
+      repairs: 'maintenance_expense',
+      supplies: 'maintenance_expense',
+      taxes: 'other_expense',
+      other: 'other_expense',
     };
 
     return mapping[billCategory] || 'other_expense';
@@ -380,11 +369,11 @@ export class MoneyFlowAutomationService {
    */
   private formatScheduleDescription(schedule: string): string {
     const descriptions: Record<string, string> = {
-      'weekly': 'Weekly payment',
-      'monthly': 'Monthly payment',
-      'quarterly': 'Quarterly payment', 
-      'yearly': 'Annual payment',
-      'custom': 'Scheduled payment'
+      weekly: 'Weekly payment',
+      monthly: 'Monthly payment',
+      quarterly: 'Quarterly payment',
+      yearly: 'Annual payment',
+      custom: 'Scheduled payment',
     };
 
     return descriptions[schedule] || 'Recurring payment';
@@ -411,7 +400,10 @@ export class MoneyFlowAutomationService {
    * @param residenceId
    * @param fromDate
    */
-  private async cleanupExistingResidenceEntries(residenceId: string, fromDate: Date): Promise<void> {
+  private async cleanupExistingResidenceEntries(
+    residenceId: string,
+    fromDate: Date
+  ): Promise<void> {
     await db
       .delete(moneyFlow)
       .where(
@@ -496,11 +488,7 @@ export class MoneyFlowAutomationService {
   async generateForBill(billId: string): Promise<number> {
     console.warn(`🔄 Generating money flow entries for bill ${billId}`);
 
-    const bill = await db
-      .select()
-      .from(bills)
-      .where(eq(bills.id, billId))
-      .limit(1);
+    const bill = await db.select().from(bills).where(eq(bills.id, billId)).limit(1);
 
     if (bill.length === 0) {
       throw new Error(`Bill ${billId} not found`);
@@ -523,7 +511,9 @@ export class MoneyFlowAutomationService {
     // Generate new entries
     const entriesCreated = await this.generateEntriesForBill(billData, now, futureLimit);
 
-    console.warn(`✅ Generated ${entriesCreated} money flow entries for bill ${billData.billNumber}`);
+    console.warn(
+      `✅ Generated ${entriesCreated} money flow entries for bill ${billData.billNumber}`
+    );
     return entriesCreated;
   }
 
@@ -538,7 +528,7 @@ export class MoneyFlowAutomationService {
     const residenceData = await db
       .select({
         residence: residences,
-        building: buildings
+        building: buildings,
       })
       .from(residences)
       .innerJoin(buildings, eq(residences.buildingId, buildings.id))
@@ -559,9 +549,16 @@ export class MoneyFlowAutomationService {
     await this.cleanupExistingResidenceEntries(residenceId, now);
 
     // Generate new entries
-    const entriesCreated = await this.generateEntriesForResidence(residence, building, now, futureLimit);
+    const entriesCreated = await this.generateEntriesForResidence(
+      residence,
+      building,
+      now,
+      futureLimit
+    );
 
-    console.warn(`✅ Generated ${entriesCreated} money flow entries for residence ${residence.unitNumber}`);
+    console.warn(
+      `✅ Generated ${entriesCreated} money flow entries for residence ${residence.unitNumber}`
+    );
     return entriesCreated;
   }
 
@@ -578,9 +575,7 @@ export class MoneyFlowAutomationService {
   }> {
     const now = new Date().toISOString().split('T')[0];
 
-    const [totalResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(moneyFlow);
+    const [totalResult] = await db.select({ count: sql<number>`count(*)::int` }).from(moneyFlow);
 
     const [billResult] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -590,10 +585,9 @@ export class MoneyFlowAutomationService {
     const [residenceResult] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(moneyFlow)
-      .where(and(
-        sql`${moneyFlow.residenceId} IS NOT NULL`,
-        eq(moneyFlow.category, 'monthly_fees')
-      ));
+      .where(
+        and(sql`${moneyFlow.residenceId} IS NOT NULL`, eq(moneyFlow.category, 'monthly_fees'))
+      );
 
     const [futureResult] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -618,7 +612,7 @@ export class MoneyFlowAutomationService {
       residenceEntries: residenceResult.count,
       futureEntries: futureResult.count,
       oldestEntry: oldestResult?.date || null,
-      newestEntry: newestResult?.date || null
+      newestEntry: newestResult?.date || null,
     };
   }
 }

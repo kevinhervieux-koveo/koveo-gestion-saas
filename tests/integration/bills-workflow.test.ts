@@ -20,18 +20,18 @@ const mockDb = {
 };
 
 jest.mock('../../server/db', () => ({
-  db: mockDb
+  db: mockDb,
 }));
 
 jest.mock('../../server/auth', () => ({
   requireAuth: (req: unknown, res: unknown, next: unknown) => {
-    req.user = { 
-      id: 'test-user-id', 
+    req.user = {
+      id: 'test-user-id',
       role: 'manager',
-      organizationId: 'test-org-id'
+      organizationId: 'test-org-id',
     };
     next();
-  }
+  },
 }));
 
 describe('Bills Workflow Integration Tests', () => {
@@ -57,9 +57,9 @@ describe('Bills Workflow Integration Tests', () => {
       mockDb.select.mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockBuilding])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockBuilding]),
+          }),
+        }),
       });
     });
 
@@ -71,17 +71,15 @@ describe('Bills Workflow Integration Tests', () => {
         category: 'maintenance',
         vendor: 'Test Vendor Co.',
         paymentType: 'unique',
-        costs: [500.00],
-        totalAmount: 500.00,
+        costs: [500.0],
+        totalAmount: 500.0,
         startDate: '2024-01-15',
         status: 'draft',
-        notes: 'Integration test notes'
+        notes: 'Integration test notes',
       };
 
       // Step 1: Create bill
-      const createResponse = await request(app)
-        .post('/api/bills')
-        .send(billData);
+      const createResponse = await request(app).post('/api/bills').send(billData);
 
       expect(createResponse.status).toBe(201);
       expect(createResponse.body).toHaveProperty('id');
@@ -91,8 +89,7 @@ describe('Bills Workflow Integration Tests', () => {
       const billId = createResponse.body.id;
 
       // Step 2: Read bill
-      const readResponse = await request(app)
-        .get(`/api/bills/${billId}`);
+      const readResponse = await request(app).get(`/api/bills/${billId}`);
 
       expect(readResponse.status).toBe(200);
       expect(readResponse.body.id).toBe(billId);
@@ -102,36 +99,30 @@ describe('Bills Workflow Integration Tests', () => {
       const updateData = {
         title: 'Updated Integration Test Bill',
         status: 'sent',
-        notes: 'Updated notes'
+        notes: 'Updated notes',
       };
 
-      const updateResponse = await request(app)
-        .put(`/api/bills/${billId}`)
-        .send(updateData);
+      const updateResponse = await request(app).put(`/api/bills/${billId}`).send(updateData);
 
       expect(updateResponse.status).toBe(200);
       expect(updateResponse.body.title).toBe(updateData.title);
       expect(updateResponse.body.status).toBe(updateData.status);
 
       // Step 4: Delete bill
-      const deleteResponse = await request(app)
-        .delete(`/api/bills/${billId}`);
+      const deleteResponse = await request(app).delete(`/api/bills/${billId}`);
 
       expect(deleteResponse.status).toBe(200);
       expect(deleteResponse.body.message).toBe('Bill deleted successfully');
 
       // Step 5: Verify deletion
-      const verifyResponse = await request(app)
-        .get(`/api/bills/${billId}`);
+      const verifyResponse = await request(app).get(`/api/bills/${billId}`);
 
       expect(verifyResponse.status).toBe(404);
     });
 
     it('should handle bill filtering workflow correctly', async () => {
       // Test filtering by building
-      const buildingFilterResponse = await request(app)
-        .get('/api/bills')
-        .query({ buildingId });
+      const buildingFilterResponse = await request(app).get('/api/bills').query({ buildingId });
 
       expect(buildingFilterResponse.status).toBe(200);
       expect(Array.isArray(buildingFilterResponse.body)).toBe(true);
@@ -167,14 +158,12 @@ describe('Bills Workflow Integration Tests', () => {
       });
 
       // Test combined filters
-      const combinedFilterResponse = await request(app)
-        .get('/api/bills')
-        .query({ 
-          buildingId, 
-          category: 'maintenance', 
-          status: 'sent',
-          year: '2024'
-        });
+      const combinedFilterResponse = await request(app).get('/api/bills').query({
+        buildingId,
+        category: 'maintenance',
+        status: 'sent',
+        year: '2024',
+      });
 
       expect(combinedFilterResponse.status).toBe(200);
       combinedFilterResponse.body.forEach((bill: unknown) => {
@@ -186,9 +175,19 @@ describe('Bills Workflow Integration Tests', () => {
 
     it('should validate bill categories correctly', async () => {
       const validCategories = [
-        'insurance', 'maintenance', 'salary', 'utilities', 
-        'cleaning', 'security', 'landscaping', 'professional_services',
-        'administration', 'repairs', 'supplies', 'taxes', 'other'
+        'insurance',
+        'maintenance',
+        'salary',
+        'utilities',
+        'cleaning',
+        'security',
+        'landscaping',
+        'professional_services',
+        'administration',
+        'repairs',
+        'supplies',
+        'taxes',
+        'other',
       ];
 
       // Test each valid category
@@ -200,12 +199,10 @@ describe('Bills Workflow Integration Tests', () => {
           paymentType: 'unique',
           costs: [100],
           totalAmount: 100,
-          startDate: '2024-01-01'
+          startDate: '2024-01-01',
         };
 
-        const response = await request(app)
-          .post('/api/bills')
-          .send(billData);
+        const response = await request(app).post('/api/bills').send(billData);
 
         expect(response.status).toBe(201);
         expect(response.body.category).toBe(category);
@@ -219,12 +216,10 @@ describe('Bills Workflow Integration Tests', () => {
         paymentType: 'unique',
         costs: [100],
         totalAmount: 100,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const invalidResponse = await request(app)
-        .post('/api/bills')
-        .send(invalidBillData);
+      const invalidResponse = await request(app).post('/api/bills').send(invalidBillData);
 
       expect(invalidResponse.status).toBe(400);
       expect(invalidResponse.body).toHaveProperty('errors');
@@ -239,12 +234,10 @@ describe('Bills Workflow Integration Tests', () => {
         paymentType: 'unique',
         costs: [500],
         totalAmount: 500,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const uniqueResponse = await request(app)
-        .post('/api/bills')
-        .send(uniqueBillData);
+      const uniqueResponse = await request(app).post('/api/bills').send(uniqueBillData);
 
       expect(uniqueResponse.status).toBe(201);
       expect(uniqueResponse.body.paymentType).toBe('unique');
@@ -259,12 +252,10 @@ describe('Bills Workflow Integration Tests', () => {
         costs: [200],
         totalAmount: 200,
         startDate: '2024-01-01',
-        endDate: '2024-12-31'
+        endDate: '2024-12-31',
       };
 
-      const recurrentResponse = await request(app)
-        .post('/api/bills')
-        .send(recurrentBillData);
+      const recurrentResponse = await request(app).post('/api/bills').send(recurrentBillData);
 
       expect(recurrentResponse.status).toBe(201);
       expect(recurrentResponse.body.paymentType).toBe('recurrent');
@@ -280,12 +271,10 @@ describe('Bills Workflow Integration Tests', () => {
         scheduleCustom: ['2024-03-15', '2024-06-15', '2024-09-15', '2024-12-15'],
         costs: [1000, 1000, 1000, 1000],
         totalAmount: 4000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const customResponse = await request(app)
-        .post('/api/bills')
-        .send(customBillData);
+      const customResponse = await request(app).post('/api/bills').send(customBillData);
 
       expect(customResponse.status).toBe(201);
       expect(customResponse.body.schedulePayment).toBe('custom');
@@ -296,13 +285,11 @@ describe('Bills Workflow Integration Tests', () => {
       // Test missing required fields
       const incompleteData = {
         buildingId,
-        title: 'Incomplete Bill'
+        title: 'Incomplete Bill',
         // Missing required fields
       };
 
-      const incompleteResponse = await request(app)
-        .post('/api/bills')
-        .send(incompleteData);
+      const incompleteResponse = await request(app).post('/api/bills').send(incompleteData);
 
       expect(incompleteResponse.status).toBe(400);
       expect(incompleteResponse.body).toHaveProperty('errors');
@@ -322,32 +309,39 @@ describe('Bills Workflow Integration Tests', () => {
         paymentType: 'unique',
         costs: [-100],
         totalAmount: -100,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const negativeResponse = await request(app)
-        .post('/api/bills')
-        .send(negativeAmountData);
+      const negativeResponse = await request(app).post('/api/bills').send(negativeAmountData);
 
       expect(negativeResponse.status).toBe(400);
       expect(negativeResponse.body).toHaveProperty('errors');
     });
 
     it('should return correct bill categories endpoint', async () => {
-      const categoriesResponse = await request(app)
-        .get('/api/bills/categories');
+      const categoriesResponse = await request(app).get('/api/bills/categories');
 
       expect(categoriesResponse.status).toBe(200);
       expect(Array.isArray(categoriesResponse.body)).toBe(true);
-      
+
       const expectedCategories = [
-        'insurance', 'maintenance', 'salary', 'utilities',
-        'cleaning', 'security', 'landscaping', 'professional_services',
-        'administration', 'repairs', 'supplies', 'taxes', 'other'
+        'insurance',
+        'maintenance',
+        'salary',
+        'utilities',
+        'cleaning',
+        'security',
+        'landscaping',
+        'professional_services',
+        'administration',
+        'repairs',
+        'supplies',
+        'taxes',
+        'other',
       ];
 
       const categoryValues = categoriesResponse.body.map((cat: unknown) => cat._value);
-      expectedCategories.forEach(category => {
+      expectedCategories.forEach((category) => {
         expect(categoryValues).toContain(category);
       });
 
@@ -368,23 +362,23 @@ describe('Bills Workflow Integration Tests', () => {
         paymentType: 'unique',
         costs: [300],
         totalAmount: 300,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const billData2 = {
         buildingId,
-        title: 'Concurrent Bill 2', 
+        title: 'Concurrent Bill 2',
         category: 'utilities',
         paymentType: 'unique',
         costs: [400],
         totalAmount: 400,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       // Create bills concurrently
       const [response1, response2] = await Promise.all([
         request(app).post('/api/bills').send(billData1),
-        request(app).post('/api/bills').send(billData2)
+        request(app).post('/api/bills').send(billData2),
       ]);
 
       expect(response1.status).toBe(201);

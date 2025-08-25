@@ -6,7 +6,7 @@ import { productionDemoSync, healthCheck, quickSync } from '../../scripts/produc
 
 /**
  * Demo Management Service.
- * 
+ *
  * Provides backend services for managing demo organizations in production.
  * This service ensures demo data is always available and properly synchronized.
  */
@@ -51,40 +51,39 @@ export class DemoManagementService {
   }> {
     try {
       console.log('🔄 Ensuring demo organizations are properly configured...');
-      
+
       // Run silent synchronization
       await quickSync();
-      
+
       // Verify the organizations exist
       const pool = new Pool({ connectionString: process.env.DATABASE_URL });
       const db = drizzle({ client: pool, schema });
-      
+
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
       });
-      
+
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
       });
-      
+
       await pool.end();
-      
+
       if (!demoOrg || !openDemoOrg) {
         throw new Error('Demo organizations were not created successfully');
       }
-      
+
       console.log('✅ Demo organizations are properly configured');
-      
+
       return {
         success: true,
         message: 'Demo organizations are properly configured and ready for use',
         demoOrgId: demoOrg.id,
         openDemoOrgId: openDemoOrg.id,
       };
-      
     } catch (error) {
       console.error('❌ Failed to ensure demo organizations:', error);
-      
+
       return {
         success: false,
         message: `Failed to ensure demo organizations: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -104,40 +103,39 @@ export class DemoManagementService {
   }> {
     try {
       console.log('🔄 Force recreating demo organizations...');
-      
+
       // Run full synchronization with force recreation
       await productionDemoSync({ forceRecreate: true, silent: true });
-      
+
       // Verify the organizations exist
       const pool = new Pool({ connectionString: process.env.DATABASE_URL });
       const db = drizzle({ client: pool, schema });
-      
+
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
       });
-      
+
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
       });
-      
+
       await pool.end();
-      
+
       if (!demoOrg || !openDemoOrg) {
         throw new Error('Demo organizations were not recreated successfully');
       }
-      
+
       console.log('✅ Demo organizations recreated successfully');
-      
+
       return {
         success: true,
         message: 'Demo organizations recreated successfully with fresh data',
         demoOrgId: demoOrg.id,
         openDemoOrgId: openDemoOrg.id,
       };
-      
     } catch (error) {
       console.error('❌ Failed to recreate demo organizations:', error);
-      
+
       return {
         success: false,
         message: `Failed to recreate demo organizations: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -160,44 +158,44 @@ export class DemoManagementService {
   }> {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const db = drizzle({ client: pool, schema });
-    
+
     try {
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
       });
-      
+
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME)
+        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
       });
-      
+
       // Get statistics
       let demoBuildings = 0;
       let demoUsers = 0;
       let openDemoBuildings = 0;
       let openDemoUsers = 0;
-      
+
       if (demoOrg) {
         const buildings = await db.query.buildings.findMany({
-          where: eq(schema.buildings.organizationId, demoOrg.id)
+          where: eq(schema.buildings.organizationId, demoOrg.id),
         });
         const users = await db.query.userOrganizations.findMany({
-          where: eq(schema.userOrganizations.organizationId, demoOrg.id)
+          where: eq(schema.userOrganizations.organizationId, demoOrg.id),
         });
         demoBuildings = buildings.length;
         demoUsers = users.length;
       }
-      
+
       if (openDemoOrg) {
         const buildings = await db.query.buildings.findMany({
-          where: eq(schema.buildings.organizationId, openDemoOrg.id)
+          where: eq(schema.buildings.organizationId, openDemoOrg.id),
         });
         const users = await db.query.userOrganizations.findMany({
-          where: eq(schema.userOrganizations.organizationId, openDemoOrg.id)
+          where: eq(schema.userOrganizations.organizationId, openDemoOrg.id),
         });
         openDemoBuildings = buildings.length;
         openDemoUsers = users.length;
       }
-      
+
       return {
         demo: demoOrg,
         openDemo: openDemoOrg,
@@ -208,7 +206,6 @@ export class DemoManagementService {
           openDemoUsers,
         },
       };
-      
     } finally {
       await pool.end();
     }
@@ -221,15 +218,17 @@ export class DemoManagementService {
   public static async initializeDemoOrganizations(): Promise<void> {
     try {
       console.log('🚀 Initializing demo organizations...');
-      
+
       const result = await this.ensureDemoOrganizations();
-      
+
       if (result.success) {
         console.log('✅ Demo organizations initialized successfully');
       } else {
-        console.warn('⚠️  Demo organizations initialization completed with warnings:', result.message);
+        console.warn(
+          '⚠️  Demo organizations initialization completed with warnings:',
+          result.message
+        );
       }
-      
     } catch (error) {
       console.error('❌ Demo organizations initialization failed:', error);
       // Don't throw error to prevent application startup failure
@@ -247,35 +246,34 @@ export class DemoManagementService {
     actions: string[];
   }> {
     const actions: string[] = [];
-    
+
     try {
       console.log('🔧 Running scheduled demo maintenance...');
-      
+
       // Check current health
       const health = await this.checkDemoHealth();
       actions.push(`Health check: ${health.healthy ? 'HEALTHY' : 'UNHEALTHY'}`);
-      
+
       if (!health.healthy) {
         // Run quick sync to fix issues
         await quickSync();
         actions.push('Performed quick synchronization to fix issues');
-        
+
         // Re-check health
         const newHealth = await this.checkDemoHealth();
         actions.push(`Post-sync health: ${newHealth.healthy ? 'HEALTHY' : 'STILL_UNHEALTHY'}`);
       }
-      
+
       console.log('✅ Scheduled demo maintenance completed');
-      
+
       return {
         success: true,
         message: 'Scheduled maintenance completed successfully',
         actions,
       };
-      
     } catch (error) {
       console.error('❌ Scheduled demo maintenance failed:', error);
-      
+
       return {
         success: false,
         message: `Scheduled maintenance failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

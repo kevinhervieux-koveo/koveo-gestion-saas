@@ -91,7 +91,7 @@ describe('Common Spaces API Integration Tests', () => {
       isActive: true,
     },
     {
-      id: 'building-2', 
+      id: 'building-2',
       name: 'Oak Gardens',
       organizationId: 'org-456',
       isActive: true,
@@ -137,9 +137,7 @@ describe('Common Spaces API Integration Tests', () => {
       buildingId: 'building-2',
       isReservable: true,
       capacity: 15,
-      openingHours: [
-        { day: 'monday', open: '09:00', close: '21:00' },
-      ],
+      openingHours: [{ day: 'monday', open: '09:00', close: '21:00' }],
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -195,10 +193,10 @@ describe('Common Spaces API Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     app = express();
     app.use(express.json());
-    
+
     // Setup default mock behaviors
     mockDb.select.mockReturnValue(mockDb);
     mockDb.from.mockReturnValue(mockDb);
@@ -213,7 +211,7 @@ describe('Common Spaces API Integration Tests', () => {
     mockDb.update.mockReturnValue(mockDb);
     mockDb.set.mockReturnValue(mockDb);
     mockDb.returning.mockReturnValue([]);
-    
+
     registerCommonSpacesRoutes(app);
   });
 
@@ -250,7 +248,8 @@ describe('Common Spaces API Integration Tests', () => {
               ...mockDb,
               where: () => ({
                 ...mockDb,
-                orderBy: () => mockCommonSpaces.filter(space => space.buildingId === 'building-1'),
+                orderBy: () =>
+                  mockCommonSpaces.filter((space) => space.buildingId === 'building-1'),
               }),
             }),
           }),
@@ -296,8 +295,7 @@ describe('Common Spaces API Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      const response = await request(app)
-        .get('/api/common-spaces');
+      const response = await request(app).get('/api/common-spaces');
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe('Authentication required');
@@ -360,13 +358,15 @@ describe('Common Spaces API Integration Tests', () => {
         ...mockDb,
         values: () => ({
           ...mockDb,
-          returning: () => [{
-            id: 'new-booking-id',
-            ...validBookingData,
-            userId: 'user-123',
-            commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
-            status: 'confirmed',
-          }],
+          returning: () => [
+            {
+              id: 'new-booking-id',
+              ...validBookingData,
+              userId: 'user-123',
+              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
+              status: 'confirmed',
+            },
+          ],
         }),
       }));
 
@@ -589,7 +589,7 @@ describe('Common Spaces API Integration Tests', () => {
         ...mockDb,
         from: () => ({
           ...mockDb,
-          where: () => mockCommonSpaces.filter(space => space.buildingId === 'building-1'),
+          where: () => mockCommonSpaces.filter((space) => space.buildingId === 'building-1'),
         }),
       }));
 
@@ -600,7 +600,9 @@ describe('Common Spaces API Integration Tests', () => {
       expect(response.status).toBe(200);
       // Should not include spaces from building-2
       const returnedSpaces = response.body;
-      const building2Spaces = returnedSpaces.filter((space: any) => space.buildingId === 'building-2');
+      const building2Spaces = returnedSpaces.filter(
+        (space: any) => space.buildingId === 'building-2'
+      );
       expect(building2Spaces).toHaveLength(0);
     });
 
@@ -701,12 +703,14 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{
-              id: 'booking-2',
-              userId: 'user-123', // Same as requesting user
-              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
-              status: 'confirmed',
-            }],
+            limit: () => [
+              {
+                id: 'booking-2',
+                userId: 'user-123', // Same as requesting user
+                commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
+                status: 'confirmed',
+              },
+            ],
           }),
         }),
       }));
@@ -745,12 +749,14 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{
-              id: '123e4567-e89b-12d3-a456-426614174003',
-              userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
-              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
-              status: 'confirmed',
-            }],
+            limit: () => [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174003',
+                userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
+                commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
+                status: 'confirmed',
+              },
+            ],
           }),
         }),
       }));
@@ -780,12 +786,14 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{
-              id: '123e4567-e89b-12d3-a456-426614174003',
-              userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
-              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
-              status: 'confirmed',
-            }],
+            limit: () => [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174003',
+                userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
+                commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
+                status: 'confirmed',
+              },
+            ],
           }),
         }),
       }));
@@ -859,7 +867,12 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{ id: '123e4567-e89b-12d3-a456-426614174001', buildingId: '123e4567-e89b-12d3-a456-426614174002' }],
+            limit: () => [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174001',
+                buildingId: '123e4567-e89b-12d3-a456-426614174002',
+              },
+            ],
           }),
         }),
       }));

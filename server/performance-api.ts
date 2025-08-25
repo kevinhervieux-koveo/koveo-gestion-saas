@@ -19,12 +19,12 @@ router.get('/api/performance/stats', async (req, res) => {
     const performanceStats = dbPerformanceMonitor.getPerformanceStats();
     const cacheStats = queryCache.getStats();
     const optimizationStatus = getOptimizationStatus();
-    
+
     res.json({
       database: performanceStats,
       cache: cacheStats,
       optimization: optimizationStatus,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (____error) {
     console.error('Failed to get performance stats:', _error);
@@ -39,14 +39,14 @@ router.get('/api/performance/recommendations', async (req, res) => {
   try {
     const dbRecommendations = dbPerformanceMonitor.getOptimizationRecommendations();
     const cacheRecommendations = CacheMonitor.analyzePerformance();
-    
+
     res.json({
       database: dbRecommendations,
       cache: cacheRecommendations,
       summary: {
         totalRecommendations: dbRecommendations.length + cacheRecommendations.length,
-        priority: dbRecommendations.length > 0 ? 'high' : 'low'
-      }
+        priority: dbRecommendations.length > 0 ? 'high' : 'low',
+      },
     });
   } catch (____error) {
     console.error('Failed to get recommendations:', _error);
@@ -60,10 +60,10 @@ router.get('/api/performance/recommendations', async (req, res) => {
 router.post('/api/performance/clear-cache', async (req, res) => {
   try {
     queryCache.clearAll();
-    
+
     res.json({
       message: 'All caches cleared successfully',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (____error) {
     console.error('Failed to clear caches:', _error);
@@ -77,10 +77,10 @@ router.post('/api/performance/clear-cache', async (req, res) => {
 router.post('/api/performance/maintenance', async (req, res) => {
   try {
     await DatabaseMaintenance.performMaintenance();
-    
+
     res.json({
       message: 'Database maintenance completed successfully',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (____error) {
     console.error('Database maintenance failed:', _error);
@@ -95,12 +95,12 @@ router.get('/api/performance/memory', async (req, res) => {
   try {
     const memoryUsage = CacheMonitor.getMemoryUsage();
     const cacheStats = queryCache.getStats();
-    
+
     res.json({
       totalCacheMemory: memoryUsage,
       cacheDetails: cacheStats,
       recommendations: CacheMonitor.analyzePerformance(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (____error) {
     console.error('Failed to get memory stats:', _error);
@@ -115,27 +115,27 @@ router.get('/api/performance/trends', async (req, res) => {
   try {
     const stats = dbPerformanceMonitor.getPerformanceStats();
     const avgTime = parseFloat(stats.averageQueryTime.replace('ms', ''));
-    
+
     // Calculate improvement from baseline of 132ms
     const baselineTime = 132;
-    const improvement = ((baselineTime - avgTime) / baselineTime * 100).toFixed(1);
-    
+    const improvement = (((baselineTime - avgTime) / baselineTime) * 100).toFixed(1);
+
     res.json({
       current: {
         averageQueryTime: stats.averageQueryTime,
         totalQueries: stats.totalQueries,
-        slowQueries: stats.slowQueries
+        slowQueries: stats.slowQueries,
       },
       baseline: {
         averageQueryTime: '132ms',
-        target: '50ms'
+        target: '50ms',
       },
       improvement: {
         percentage: `${improvement}%`,
         achieved: avgTime < baselineTime,
-        targetReached: avgTime <= 50
+        targetReached: avgTime <= 50,
       },
-      status: avgTime <= 50 ? 'optimal' : avgTime <= 100 ? 'good' : 'needs_optimization'
+      status: avgTime <= 50 ? 'optimal' : avgTime <= 100 ? 'good' : 'needs_optimization',
     });
   } catch (____error) {
     console.error('Failed to get performance trends:', _error);

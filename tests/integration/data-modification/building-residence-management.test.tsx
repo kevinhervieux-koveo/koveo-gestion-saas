@@ -13,12 +13,12 @@ import { mockApiRequest } from '../../test-utils/api-mocks';
 // Mock the building form component
 const MockBuildingForm = ({ building, onSuccess }: any) => {
   const [formData, setFormData] = React.useState({});
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
-    
+
     try {
       const url = building ? `/api/admin/buildings/${building.id}` : '/api/admin/buildings';
       const method = building ? 'PUT' : 'POST';
@@ -30,43 +30,48 @@ const MockBuildingForm = ({ building, onSuccess }: any) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="building-form">
-      <input 
-        name="name" 
-        placeholder="Building Name" 
+    <form onSubmit={handleSubmit} data-testid='building-form'>
+      <input
+        name='name'
+        placeholder='Building Name'
         defaultValue={building?.name || ''}
-        data-testid="input-building-name"
+        data-testid='input-building-name'
         required
       />
-      <input 
-        name="address" 
-        placeholder="Address" 
+      <input
+        name='address'
+        placeholder='Address'
         defaultValue={building?.address || ''}
-        data-testid="input-building-address"
+        data-testid='input-building-address'
         required
       />
-      <input 
-        name="city" 
-        placeholder="City" 
+      <input
+        name='city'
+        placeholder='City'
         defaultValue={building?.city || ''}
-        data-testid="input-building-city"
+        data-testid='input-building-city'
         required
       />
-      <input 
-        name="totalUnits" 
-        type="number" 
-        placeholder="Total Units" 
+      <input
+        name='totalUnits'
+        type='number'
+        placeholder='Total Units'
         defaultValue={building?.totalUnits || ''}
-        data-testid="input-total-units"
+        data-testid='input-total-units'
         required
       />
-      <select name="buildingType" defaultValue={building?.buildingType || ''} data-testid="select-building-type" required>
-        <option value="">Select Type</option>
-        <option value="apartment">Apartment</option>
-        <option value="condo">Condo</option>
-        <option value="townhouse">Townhouse</option>
+      <select
+        name='buildingType'
+        defaultValue={building?.buildingType || ''}
+        data-testid='select-building-type'
+        required
+      >
+        <option value=''>Select Type</option>
+        <option value='apartment'>Apartment</option>
+        <option value='condo'>Condo</option>
+        <option value='townhouse'>Townhouse</option>
       </select>
-      <button type="submit" data-testid="button-submit-building">
+      <button type='submit' data-testid='button-submit-building'>
         {building ? 'Update Building' : 'Create Building'}
       </button>
     </form>
@@ -78,19 +83,25 @@ const MockResidenceEditForm = ({ residence, onSuccess }: any) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Handle arrays for parking spots and storage spaces
-    const parkingSpots = (data.parkingSpots as string).split(',').map(s => s.trim()).filter(s => s);
-    const storageSpaces = (data.storageSpaces as string).split(',').map(s => s.trim()).filter(s => s);
-    
+    const parkingSpots = (data.parkingSpots as string)
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s);
+    const storageSpaces = (data.storageSpaces as string)
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s);
+
     const finalData = {
       ...data,
       parkingSpots,
       storageSpaces,
       squareFootage: Number(data.squareFootage),
-      floor: Number(data.floor)
+      floor: Number(data.floor),
     };
-    
+
     try {
       await mockApiRequest('PUT', `/api/residences/${residence.id}`, finalData);
       onSuccess?.();
@@ -100,42 +111,42 @@ const MockResidenceEditForm = ({ residence, onSuccess }: any) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="residence-form">
-      <input 
-        name="unitNumber" 
-        placeholder="Unit Number" 
+    <form onSubmit={handleSubmit} data-testid='residence-form'>
+      <input
+        name='unitNumber'
+        placeholder='Unit Number'
         defaultValue={residence?.unitNumber || ''}
-        data-testid="input-unit-number"
+        data-testid='input-unit-number'
         required
       />
-      <input 
-        name="floor" 
-        type="number" 
-        placeholder="Floor" 
+      <input
+        name='floor'
+        type='number'
+        placeholder='Floor'
         defaultValue={residence?.floor || ''}
-        data-testid="input-floor"
+        data-testid='input-floor'
         required
       />
-      <input 
-        name="squareFootage" 
-        type="number" 
-        placeholder="Square Footage" 
+      <input
+        name='squareFootage'
+        type='number'
+        placeholder='Square Footage'
         defaultValue={residence?.squareFootage || ''}
-        data-testid="input-square-footage"
+        data-testid='input-square-footage'
       />
-      <input 
-        name="parkingSpots" 
-        placeholder="Parking Spots (comma separated)" 
+      <input
+        name='parkingSpots'
+        placeholder='Parking Spots (comma separated)'
         defaultValue={residence?.parkingSpots?.join(', ') || ''}
-        data-testid="input-parking-spots"
+        data-testid='input-parking-spots'
       />
-      <input 
-        name="storageSpaces" 
-        placeholder="Storage Spaces (comma separated)" 
+      <input
+        name='storageSpaces'
+        placeholder='Storage Spaces (comma separated)'
         defaultValue={residence?.storageSpaces?.join(', ') || ''}
-        data-testid="input-storage-spaces"
+        data-testid='input-storage-spaces'
       />
-      <button type="submit" data-testid="button-update-residence">
+      <button type='submit' data-testid='button-update-residence'>
         Update Residence
       </button>
     </form>
@@ -151,7 +162,7 @@ const mockBuilding = {
   postalCode: 'H1H 1H1',
   buildingType: 'apartment',
   totalUnits: 50,
-  organizationId: 'test-org-id'
+  organizationId: 'test-org-id',
 };
 
 const mockResidence = {
@@ -161,7 +172,7 @@ const mockResidence = {
   squareFootage: 800,
   parkingSpots: ['P-001', 'P-002'],
   storageSpaces: ['S-001'],
-  buildingId: 'test-building-id'
+  buildingId: 'test-building-id',
 };
 
 describe('Building and Residence Management', () => {
@@ -172,7 +183,7 @@ describe('Building and Residence Management', () => {
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
-      status: 200
+      status: 200,
     });
   });
 
@@ -197,13 +208,17 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-submit-building'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/admin/buildings', expect.objectContaining({
-          name: 'New Building',
-          address: '456 New Street',
-          city: 'Quebec City',
-          totalUnits: '30',
-          buildingType: 'condo'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/admin/buildings',
+          expect.objectContaining({
+            name: 'New Building',
+            address: '456 New Street',
+            city: 'Quebec City',
+            totalUnits: '30',
+            buildingType: 'condo',
+          })
+        );
       });
 
       await waitFor(() => {
@@ -237,10 +252,14 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-submit-building'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/admin/buildings/${mockBuilding.id}`, expect.objectContaining({
-          name: 'Updated Building Name',
-          totalUnits: '75'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/admin/buildings/${mockBuilding.id}`,
+          expect.objectContaining({
+            name: 'Updated Building Name',
+            totalUnits: '75',
+          })
+        );
       });
     });
 
@@ -321,12 +340,16 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-update-residence'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/residences/${mockResidence.id}`, expect.objectContaining({
-          unitNumber: '101A',
-          squareFootage: 850,
-          parkingSpots: ['P-001', 'P-002', 'P-003'],
-          storageSpaces: ['S-001']
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/residences/${mockResidence.id}`,
+          expect.objectContaining({
+            unitNumber: '101A',
+            squareFootage: 850,
+            parkingSpots: ['P-001', 'P-002', 'P-003'],
+            storageSpaces: ['S-001'],
+          })
+        );
       });
 
       await waitFor(() => {
@@ -354,10 +377,14 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-update-residence'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/residences/${mockResidence.id}`, expect.objectContaining({
-          parkingSpots: [],
-          storageSpaces: []
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/residences/${mockResidence.id}`,
+          expect.objectContaining({
+            parkingSpots: [],
+            storageSpaces: [],
+          })
+        );
       });
     });
 
@@ -416,9 +443,13 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-update-residence'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/residences/${mockResidence.id}`, expect.objectContaining({
-          parkingSpots: ['P-001', 'P-002', 'P-003'] // Empty strings should be filtered out
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/residences/${mockResidence.id}`,
+          expect.objectContaining({
+            parkingSpots: ['P-001', 'P-002', 'P-003'], // Empty strings should be filtered out
+          })
+        );
       });
     });
 
@@ -439,9 +470,13 @@ describe('Building and Residence Management', () => {
       await user.click(screen.getByTestId('button-submit-building'));
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/admin/buildings/${mockBuilding.id}`, expect.objectContaining({
-          totalUnits: '300'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/admin/buildings/${mockBuilding.id}`,
+          expect.objectContaining({
+            totalUnits: '300',
+          })
+        );
       });
     });
 
@@ -472,7 +507,7 @@ describe('Building and Residence Management', () => {
 
   describe('Building Type Management', () => {
     const buildingTypes = ['apartment', 'condo', 'townhouse'];
-    
+
     buildingTypes.forEach((buildingType) => {
       it(`should handle ${buildingType} building type correctly`, async () => {
         const onSuccess = jest.fn();
@@ -492,9 +527,13 @@ describe('Building and Residence Management', () => {
         await user.click(screen.getByTestId('button-submit-building'));
 
         await waitFor(() => {
-          expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/admin/buildings', expect.objectContaining({
-            buildingType
-          }));
+          expect(mockApiRequest).toHaveBeenCalledWith(
+            'POST',
+            '/api/admin/buildings',
+            expect.objectContaining({
+              buildingType,
+            })
+          );
         });
       });
     });

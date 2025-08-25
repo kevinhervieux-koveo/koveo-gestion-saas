@@ -6,12 +6,52 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Lightbulb, Plus, Search, Filter, ThumbsUp, Calendar, User, Tag, Edit2, Trash2, MoreHorizontal, TrendingUp } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Lightbulb,
+  Plus,
+  Search,
+  Filter,
+  ThumbsUp,
+  Calendar,
+  User,
+  Tag,
+  Edit2,
+  Trash2,
+  MoreHorizontal,
+  TrendingUp,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,9 +62,29 @@ import { useAuth } from '@/hooks/use-auth';
 // Feature request form schema
 const featureRequestFormSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must not exceed 2000 characters'),
-  need: z.string().min(5, 'Need must be at least 5 characters').max(500, 'Need must not exceed 500 characters'),
-  category: z.enum(['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other']),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters'),
+  need: z
+    .string()
+    .min(5, 'Need must be at least 5 characters')
+    .max(500, 'Need must not exceed 500 characters'),
+  category: z.enum([
+    'dashboard',
+    'property_management',
+    'resident_management',
+    'financial_management',
+    'maintenance',
+    'document_management',
+    'communication',
+    'reports',
+    'mobile_app',
+    'integrations',
+    'security',
+    'performance',
+    'other',
+  ]),
   page: z.string().min(1, 'Page is required'),
 });
 
@@ -143,7 +203,7 @@ export default function IdeaBox() {
 
   // Update feature request mutation (admin only)
   const updateFeatureRequestMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<AdminEditFormData> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminEditFormData> }) =>
       apiRequest('PATCH', `/api/feature-requests/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
@@ -232,8 +292,10 @@ export default function IdeaBox() {
   };
 
   const handleEdit = (featureRequest: FeatureRequest) => {
-    if (!canEditFeatureRequest()) {return;}
-    
+    if (!canEditFeatureRequest()) {
+      return;
+    }
+
     setEditingFeatureRequest(featureRequest);
     editForm.reset({
       title: featureRequest.title,
@@ -278,12 +340,13 @@ export default function IdeaBox() {
   // Filter and sort feature requests
   const filteredAndSortedFeatureRequests = featureRequests
     .filter((request: FeatureRequest) => {
-      const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           request.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           request.need.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.need.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
       const matchesCategory = categoryFilter === 'all' || request.category === categoryFilter;
-      
+
       return matchesSearch && matchesStatus && matchesCategory;
     })
     .sort((a: FeatureRequest, b: FeatureRequest) => {
@@ -349,7 +412,9 @@ export default function IdeaBox() {
                     <SelectContent>
                       <SelectItem value='all'>All Categories</SelectItem>
                       {Object.entries(categoryLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -367,7 +432,10 @@ export default function IdeaBox() {
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className='flex items-center gap-2' data-testid='button-create-feature-request'>
+                    <Button
+                      className='flex items-center gap-2'
+                      data-testid='button-create-feature-request'
+                    >
                       <Plus className='w-4 h-4' />
                       Submit Idea
                     </Button>
@@ -386,7 +454,9 @@ export default function IdeaBox() {
                           data-testid='input-feature-title'
                         />
                         {form.formState.errors.title && (
-                          <p className='text-sm text-red-600 mt-1'>{form.formState.errors.title.message}</p>
+                          <p className='text-sm text-red-600 mt-1'>
+                            {form.formState.errors.title.message}
+                          </p>
                         )}
                       </div>
 
@@ -400,7 +470,9 @@ export default function IdeaBox() {
                           data-testid='textarea-feature-description'
                         />
                         {form.formState.errors.description && (
-                          <p className='text-sm text-red-600 mt-1'>{form.formState.errors.description.message}</p>
+                          <p className='text-sm text-red-600 mt-1'>
+                            {form.formState.errors.description.message}
+                          </p>
                         )}
                       </div>
 
@@ -414,14 +486,16 @@ export default function IdeaBox() {
                           data-testid='textarea-feature-need'
                         />
                         {form.formState.errors.need && (
-                          <p className='text-sm text-red-600 mt-1'>{form.formState.errors.need.message}</p>
+                          <p className='text-sm text-red-600 mt-1'>
+                            {form.formState.errors.need.message}
+                          </p>
                         )}
                       </div>
 
                       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                         <div>
                           <Label htmlFor='category'>Category*</Label>
-                          <Select 
+                          <Select
                             onValueChange={(value) => {
                               form.setValue('category', value as any);
                               form.clearErrors('category');
@@ -433,12 +507,16 @@ export default function IdeaBox() {
                             </SelectTrigger>
                             <SelectContent>
                               {Object.entries(categoryLabels).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                <SelectItem key={value} value={value}>
+                                  {label}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {form.formState.errors.category && (
-                            <p className='text-sm text-red-600 mt-1'>{form.formState.errors.category.message}</p>
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.category.message}
+                            </p>
                           )}
                         </div>
 
@@ -451,17 +529,29 @@ export default function IdeaBox() {
                             data-testid='input-feature-page'
                           />
                           {form.formState.errors.page && (
-                            <p className='text-sm text-red-600 mt-1'>{form.formState.errors.page.message}</p>
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.page.message}
+                            </p>
                           )}
                         </div>
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
-                        <Button type='button' variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          onClick={() => setIsCreateDialogOpen(false)}
+                        >
                           Cancel
                         </Button>
-                        <Button type='submit' disabled={createFeatureRequestMutation.isPending} data-testid='button-submit-feature-request'>
-                          {createFeatureRequestMutation.isPending ? 'Submitting...' : 'Submit Feature Request'}
+                        <Button
+                          type='submit'
+                          disabled={createFeatureRequestMutation.isPending}
+                          data-testid='button-submit-feature-request'
+                        >
+                          {createFeatureRequestMutation.isPending
+                            ? 'Submitting...'
+                            : 'Submit Feature Request'}
                         </Button>
                       </div>
                     </form>
@@ -484,9 +574,11 @@ export default function IdeaBox() {
               <Card>
                 <CardContent className='p-8 text-center'>
                   <Lightbulb className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>No feature requests found</h3>
+                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                    No feature requests found
+                  </h3>
                   <p className='text-gray-500 mb-4'>
-                    {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' 
+                    {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
                       ? 'Try adjusting your filters to see more results.'
                       : 'Be the first to submit a feature request!'}
                   </p>
@@ -494,8 +586,8 @@ export default function IdeaBox() {
               </Card>
             ) : (
               filteredAndSortedFeatureRequests.map((request: FeatureRequest) => (
-                <Card 
-                  key={request.id} 
+                <Card
+                  key={request.id}
                   className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                   onClick={() => handleFeatureRequestClick(request)}
                   data-testid={`card-feature-request-${request.id}`}
@@ -504,21 +596,33 @@ export default function IdeaBox() {
                     <div className='flex items-start justify-between'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-2'>
-                          <h3 className='text-lg font-semibold' data-testid={`text-feature-title-${request.id}`}>
+                          <h3
+                            className='text-lg font-semibold'
+                            data-testid={`text-feature-title-${request.id}`}
+                          >
                             {request.title}
                           </h3>
-                          <Badge className={statusColors[request.status as keyof typeof statusColors]} data-testid={`badge-status-${request.id}`}>
+                          <Badge
+                            className={statusColors[request.status as keyof typeof statusColors]}
+                            data-testid={`badge-status-${request.id}`}
+                          >
                             {request.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </div>
-                        
-                        <p className='text-gray-600 mb-3' data-testid={`text-feature-description-${request.id}`}>
+
+                        <p
+                          className='text-gray-600 mb-3'
+                          data-testid={`text-feature-description-${request.id}`}
+                        >
                           {request.description}
                         </p>
 
                         <div className='bg-blue-50 p-3 rounded-lg mb-3'>
                           <p className='text-sm font-medium text-blue-800 mb-1'>Need:</p>
-                          <p className='text-sm text-blue-700' data-testid={`text-feature-need-${request.id}`}>
+                          <p
+                            className='text-sm text-blue-700'
+                            data-testid={`text-feature-need-${request.id}`}
+                          >
                             {request.need}
                           </p>
                         </div>
@@ -562,9 +666,9 @@ export default function IdeaBox() {
                         {canEditFeatureRequest() && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant='outline' 
-                                size='sm' 
+                              <Button
+                                variant='outline'
+                                size='sm'
                                 onClick={(e) => e.stopPropagation()} // Prevent card click event
                                 data-testid={`button-menu-${request.id}`}
                               >
@@ -587,12 +691,13 @@ export default function IdeaBox() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Delete Feature Request</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to delete this feature request? This action cannot be undone.
+                                      Are you sure you want to delete this feature request? This
+                                      action cannot be undone.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
+                                    <AlertDialogAction
                                       onClick={() => handleDelete(request.id)}
                                       className='bg-red-600 hover:bg-red-700'
                                     >
@@ -615,7 +720,10 @@ export default function IdeaBox() {
           {/* Edit Feature Request Dialog */}
           {canEditFeatureRequest() && (
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto' data-testid='edit-feature-request-dialog'>
+              <DialogContent
+                className='max-w-3xl max-h-[90vh] overflow-y-auto'
+                data-testid='edit-feature-request-dialog'
+              >
                 <DialogHeader>
                   <DialogTitle>Edit Feature Request</DialogTitle>
                 </DialogHeader>
@@ -631,7 +739,9 @@ export default function IdeaBox() {
                         data-testid='input-edit-title'
                       />
                       {editForm.formState.errors.title && (
-                        <p className='text-red-500 text-xs'>{editForm.formState.errors.title.message}</p>
+                        <p className='text-red-500 text-xs'>
+                          {editForm.formState.errors.title.message}
+                        </p>
                       )}
                     </div>
 
@@ -648,7 +758,9 @@ export default function IdeaBox() {
                         </SelectTrigger>
                         <SelectContent>
                           {Object.entries(categoryLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -677,7 +789,9 @@ export default function IdeaBox() {
                         </SelectContent>
                       </Select>
                       {editForm.formState.errors.status && (
-                        <p className='text-red-500 text-xs'>{editForm.formState.errors.status.message}</p>
+                        <p className='text-red-500 text-xs'>
+                          {editForm.formState.errors.status.message}
+                        </p>
                       )}
                     </div>
 
@@ -705,7 +819,9 @@ export default function IdeaBox() {
                       data-testid='textarea-edit-description'
                     />
                     {editForm.formState.errors.description && (
-                      <p className='text-red-500 text-xs'>{editForm.formState.errors.description.message}</p>
+                      <p className='text-red-500 text-xs'>
+                        {editForm.formState.errors.description.message}
+                      </p>
                     )}
                   </div>
 
@@ -720,7 +836,9 @@ export default function IdeaBox() {
                       data-testid='textarea-edit-need'
                     />
                     {editForm.formState.errors.need && (
-                      <p className='text-red-500 text-xs'>{editForm.formState.errors.need.message}</p>
+                      <p className='text-red-500 text-xs'>
+                        {editForm.formState.errors.need.message}
+                      </p>
                     )}
                   </div>
 
@@ -735,7 +853,9 @@ export default function IdeaBox() {
                       data-testid='input-edit-page'
                     />
                     {editForm.formState.errors.page && (
-                      <p className='text-red-500 text-xs'>{editForm.formState.errors.page.message}</p>
+                      <p className='text-red-500 text-xs'>
+                        {editForm.formState.errors.page.message}
+                      </p>
                     )}
                   </div>
 
@@ -753,15 +873,21 @@ export default function IdeaBox() {
                   </div>
 
                   <div className='flex justify-end gap-2 pt-4'>
-                    <Button type='button' variant='outline' onClick={() => setIsEditDialogOpen(false)}>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={() => setIsEditDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
-                    <Button 
-                      type='submit' 
+                    <Button
+                      type='submit'
                       disabled={updateFeatureRequestMutation.isPending}
                       data-testid='button-update-feature-request'
                     >
-                      {updateFeatureRequestMutation.isPending ? 'Updating...' : 'Update Feature Request'}
+                      {updateFeatureRequestMutation.isPending
+                        ? 'Updating...'
+                        : 'Update Feature Request'}
                     </Button>
                   </div>
                 </form>

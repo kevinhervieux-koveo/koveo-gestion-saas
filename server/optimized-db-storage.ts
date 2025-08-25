@@ -62,16 +62,17 @@ const db = drizzle(sql, { schema });
  * Enhanced database storage with built-in caching and performance monitoring.
  */
 export class OptimizedDatabaseStorage implements IStorage {
-  
   /**
    *
    */
   constructor() {
     // Skip optimizations in test environment
-    if (process.env.TEST_ENV !== 'integration' && 
-        !process.env.DISABLE_DB_OPTIMIZATIONS && 
-        process.env.NODE_ENV !== 'test' && 
-        !process.env.JEST_WORKER_ID) {
+    if (
+      process.env.TEST_ENV !== 'integration' &&
+      !process.env.DISABLE_DB_OPTIMIZATIONS &&
+      process.env.NODE_ENV !== 'test' &&
+      !process.env.JEST_WORKER_ID
+    ) {
       this.initializeOptimizations();
     }
   }
@@ -81,11 +82,15 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   private async initializeOptimizations(): Promise<void> {
     // Skip database optimization during tests
-    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID || process.env.SKIP_DB_OPTIMIZATION) {
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.JEST_WORKER_ID ||
+      process.env.SKIP_DB_OPTIMIZATION
+    ) {
       // Database optimizations skipped in test environment
       return;
     }
-    
+
     try {
       await QueryOptimizer.applyCoreOptimizations();
       // Database optimizations applied
@@ -127,16 +132,15 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   // User operations with optimization
-  
+
   /**
    * Retrieves all active users with caching and performance tracking.
    */
   async getUsers(): Promise<User[]> {
-    return this.withOptimizations(
-      'getUsers',
-      'all_users',
-      'users',
-      () => db.select().from(schema.users)
+    return this.withOptimizations('getUsers', 'all_users', 'users', () =>
+      db
+        .select()
+        .from(schema.users)
         .where(eq(schema.users.isActive, true))
         .limit(100) // Always use LIMIT for large result sets
         .orderBy(desc(schema.users.createdAt))
@@ -168,7 +172,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           return [];
         }
 
-        const organizationIds = userOrgs.map(org => org.organizationId);
+        const organizationIds = userOrgs.map((org) => org.organizationId);
 
         // Then get all users from those organizations
         return db
@@ -202,39 +206,37 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param options
    * @param _options
    */
-  async getPaginatedUsers(_options: PaginationOptions): Promise<{ users: User[], total: number }> {
+  async getPaginatedUsers(_options: PaginationOptions): Promise<{ users: User[]; total: number }> {
     PaginationHelper.validatePagination(_options);
-    
+
     const cacheKey = `paginated_users:${_options.page}:${_options.pageSize}:${_options.sortBy}:${_options.sortDirection}`;
-    
+
     // Try cache first
-    const cached = queryCache.get<{ users: User[], total: number }>('users', cacheKey);
+    const cached = queryCache.get<{ users: User[]; total: number }>('users', cacheKey);
     if (cached) {
       return cached;
     }
-    
+
     // Get total count using covering index
     const [{ count: total }] = await db
       .select({ count: count() })
       .from(schema.users)
       .where(eq(schema.users.isActive, true));
-    
+
     // Get paginated results with LIMIT and optimized ORDER BY
     const users = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.isActive, true))
       .orderBy(
-        _options.sortDirection === 'DESC' 
-          ? desc(schema.users.createdAt)
-          : schema.users.createdAt
+        _options.sortDirection === 'DESC' ? desc(schema.users.createdAt) : schema.users.createdAt
       )
       .limit(_options.pageSize)
       .offset((_options.page - 1) * _options.pageSize);
-    
+
     const result = { users, total };
     queryCache.set('users', cacheKey, result);
-    
+
     return result;
   }
 
@@ -245,31 +247,33 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getBuildingsWithResidents(organizationId: string, limit: number = 50): Promise<Building[]> {
     const cacheKey = `buildings_with_residents:${organizationId}:${limit}`;
-    
+
     return this.withOptimizations(
       'getBuildingsWithResidents',
       cacheKey,
       'buildings',
-      () => db
-        .select()
-        .from(schema.buildings)
-        .where(
-          and(
-            eq(schema.buildings.organizationId, organizationId),
-            eq(schema.buildings.isActive, true),
-            exists(
-              db.select()
-                .from(schema.residences)
-                .where(
-                  and(
-                    eq(schema.residences.buildingId, schema.buildings.id),
-                    eq(schema.residences.isActive, true)
+      () =>
+        db
+          .select()
+          .from(schema.buildings)
+          .where(
+            and(
+              eq(schema.buildings.organizationId, organizationId),
+              eq(schema.buildings.isActive, true),
+              exists(
+                db
+                  .select()
+                  .from(schema.residences)
+                  .where(
+                    and(
+                      eq(schema.residences.buildingId, schema.buildings.id),
+                      eq(schema.residences.isActive, true)
+                    )
                   )
-                )
+              )
             )
           )
-        )
-        .limit(limit) // Always use LIMIT for large result sets
+          .limit(limit) // Always use LIMIT for large result sets
     );
   }
 
@@ -280,12 +284,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async searchUsers(query: string, limit: number = 20): Promise<User[]> {
     const cacheKey = `search_users:${query}:${limit}`;
-    
-    return this.withOptimizations(
-      'searchUsers',
-      cacheKey,
-      'users',
-      () => db
+
+    return this.withOptimizations('searchUsers', cacheKey, 'users', () =>
+      db
         .select()
         .from(schema.users)
         .where(
@@ -309,19 +310,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getFinancialSummary(buildingId: string): Promise<any[]> {
     const cacheKey = `financial_summary:${buildingId}`;
-    
-    return this.withOptimizations(
-      'getFinancialSummary',
-      cacheKey,
-      'financial',
-      async () => {
-        // Use materialized view for complex aggregations
-        const summary = await db.execute(
-          sqlOp`SELECT * FROM mv_financial_summary WHERE building_id = ${buildingId} ORDER BY month DESC LIMIT 12`
-        );
-        return summary.rows;
-      }
-    );
+
+    return this.withOptimizations('getFinancialSummary', cacheKey, 'financial', async () => {
+      // Use materialized view for complex aggregations
+      const summary = await db.execute(
+        sqlOp`SELECT * FROM mv_financial_summary WHERE building_id = ${buildingId} ORDER BY month DESC LIMIT 12`
+      );
+      return summary.rows;
+    });
   }
 
   /**
@@ -330,19 +326,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getBuildingStats(buildingId: string): Promise<any> {
     const cacheKey = `building_stats:${buildingId}`;
-    
-    return this.withOptimizations(
-      'getBuildingStats',
-      cacheKey,
-      'buildings',
-      async () => {
-        // Use materialized view for dashboard statistics
-        const stats = await db.execute(
-          sqlOp`SELECT * FROM mv_building_stats WHERE building_id = ${buildingId}`
-        );
-        return stats.rows[0];
-      }
-    );
+
+    return this.withOptimizations('getBuildingStats', cacheKey, 'buildings', async () => {
+      // Use materialized view for dashboard statistics
+      const stats = await db.execute(
+        sqlOp`SELECT * FROM mv_building_stats WHERE building_id = ${buildingId}`
+      );
+      return stats.rows[0];
+    });
   }
 
   /**
@@ -350,15 +341,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getUser(id: string): Promise<User | undefined> {
-    return this.withOptimizations(
-      'getUser',
-      `user:${id}`,
-      'users',
-      async () => {
-        const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getUser', `user:${id}`, 'users', async () => {
+      const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
+      return result[0];
+    });
   }
 
   /**
@@ -366,15 +352,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param email
    */
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return this.withOptimizations(
-      'getUserByEmail',
-      `user_email:${email}`,
-      'users',
-      async () => {
-        const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getUserByEmail', `user_email:${email}`, 'users', async () => {
+      const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
+      return result[0];
+    });
   }
 
   /**
@@ -386,10 +367,10 @@ export class OptimizedDatabaseStorage implements IStorage {
       const inserted = await db.insert(schema.users).values([insertUser]).returning();
       return inserted;
     });
-    
+
     // Invalidate related caches
     CacheInvalidator.invalidateUserCaches('*');
-    
+
     return result[0];
   }
 
@@ -406,10 +387,10 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.users.id, id))
         .returning();
     });
-    
+
     // Invalidate specific user caches
     CacheInvalidator.invalidateUserCaches(id);
-    
+
     return result[0];
   }
 
@@ -417,7 +398,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves organizations for a specific user.
    * @param userId
    */
-  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+  async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
     return this.withOptimizations(
       'getUserOrganizations',
       `user_orgs:${userId}`,
@@ -436,7 +417,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves residences for a specific user.
    * @param userId
    */
-  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
     return this.withOptimizations(
       'getUserResidences',
       `user_residences:${userId}`,
@@ -448,10 +429,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           })
           .from(schema.userResidences)
           .where(
-            and(
-              eq(schema.userResidences.userId, userId),
-              eq(schema.userResidences.isActive, true)
-            )
+            and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
           );
         return result;
       }
@@ -464,11 +442,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves all active organizations with caching.
    */
   async getOrganizations(): Promise<Organization[]> {
-    return this.withOptimizations(
-      'getOrganizations',
-      'all_organizations',
-      'organizations',
-      () => db.select().from(schema.organizations).where(eq(schema.organizations.isActive, true))
+    return this.withOptimizations('getOrganizations', 'all_organizations', 'organizations', () =>
+      db.select().from(schema.organizations).where(eq(schema.organizations.isActive, true))
     );
   }
 
@@ -499,10 +474,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createOrganization', async () => {
       return db.insert(schema.organizations).values(insertOrganization).returning();
     });
-    
+
     // Invalidate organization caches
     queryCache.invalidate('organizations');
-    
+
     return result[0];
   }
 
@@ -517,15 +492,16 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getBuildingsByOrganization',
       `org_buildings:${organizationId}`,
       'buildings',
-      () => db
-        .select()
-        .from(schema.buildings)
-        .where(
-          and(
-            eq(schema.buildings.organizationId, organizationId),
-            eq(schema.buildings.isActive, true)
+      () =>
+        db
+          .select()
+          .from(schema.buildings)
+          .where(
+            and(
+              eq(schema.buildings.organizationId, organizationId),
+              eq(schema.buildings.isActive, true)
+            )
           )
-        )
     );
   }
 
@@ -534,18 +510,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getBuilding(id: string): Promise<Building | undefined> {
-    return this.withOptimizations(
-      'getBuilding',
-      `building:${id}`,
-      'buildings',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.buildings)
-          .where(eq(schema.buildings.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getBuilding', `building:${id}`, 'buildings', async () => {
+      const result = await db.select().from(schema.buildings).where(eq(schema.buildings.id, id));
+      return result[0];
+    });
   }
 
   /**
@@ -556,10 +524,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createBuilding', async () => {
       return db.insert(schema.buildings).values([insertBuilding]).returning();
     });
-    
+
     // Invalidate building caches
     CacheInvalidator.invalidateBuildingCaches('*');
-    
+
     return result[0];
   }
 
@@ -574,16 +542,14 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getResidencesByBuilding',
       `building_residences:${buildingId}`,
       'residences',
-      () => db
-        .select()
-        .from(schema.residences)
-        .where(
-          and(
-            eq(schema.residences.buildingId, buildingId),
-            eq(schema.residences.isActive, true)
+      () =>
+        db
+          .select()
+          .from(schema.residences)
+          .where(
+            and(eq(schema.residences.buildingId, buildingId), eq(schema.residences.isActive, true))
           )
-        )
-        .orderBy(schema.residences.unitNumber)
+          .orderBy(schema.residences.unitNumber)
     );
   }
 
@@ -592,18 +558,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getResidence(id: string): Promise<Residence | undefined> {
-    return this.withOptimizations(
-      'getResidence',
-      `residence:${id}`,
-      'residences',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.residences)
-          .where(eq(schema.residences.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getResidence', `residence:${id}`, 'residences', async () => {
+      const result = await db.select().from(schema.residences).where(eq(schema.residences.id, id));
+      return result[0];
+    });
   }
 
   /**
@@ -614,10 +572,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createResidence', async () => {
       return db.insert(schema.residences).values(insertResidence).returning();
     });
-    
+
     // Invalidate residence caches
     CacheInvalidator.invalidateResidenceCaches('*');
-    
+
     return result[0];
   }
 
@@ -632,21 +590,19 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getUserResidencesWithDetails',
       `user_residences_details:${userId}`,
       'residences',
-      () => db
-        .select({
-          residence: schema.residences,
-          building: schema.buildings,
-          userResidence: schema.userResidences
-        })
-        .from(schema.userResidences)
-        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
-        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-        .where(
-          and(
-            eq(schema.userResidences.userId, userId),
-            eq(schema.userResidences.isActive, true)
+      () =>
+        db
+          .select({
+            residence: schema.residences,
+            building: schema.buildings,
+            userResidence: schema.userResidences,
+          })
+          .from(schema.userResidences)
+          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+          .where(
+            and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
           )
-        )
     );
   }
 
@@ -659,19 +615,17 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getActiveBillsByResidence',
       `residence_bills:${residenceId}`,
       'bills',
-      () => db
-        .select()
-        .from(schema.bills)
-        .where(
-          and(
-            eq(schema.bills.residenceId, residenceId),
-            or(
-              eq(schema.bills.status, 'sent'),
-              eq(schema.bills.status, 'overdue')
+      () =>
+        db
+          .select()
+          .from(schema.bills)
+          .where(
+            and(
+              eq(schema.bills.residenceId, residenceId),
+              or(eq(schema.bills.status, 'sent'), eq(schema.bills.status, 'overdue'))
             )
           )
-        )
-        .orderBy(desc(schema.bills.dueDate))
+          .orderBy(desc(schema.bills.dueDate))
     );
   }
 
@@ -684,19 +638,20 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getMaintenanceRequestsByResidence',
       `residence_maintenance:${residenceId}`,
       'maintenance',
-      () => db
-        .select()
-        .from(schema.maintenanceRequests)
-        .where(eq(schema.maintenanceRequests.residenceId, residenceId))
-        .orderBy(desc(schema.maintenanceRequests.createdAt))
+      () =>
+        db
+          .select()
+          .from(schema.maintenanceRequests)
+          .where(eq(schema.maintenanceRequests.residenceId, residenceId))
+          .orderBy(desc(schema.maintenanceRequests.createdAt))
     );
   }
 
   // Missing Organization operations
-  
+
   /**
    * Gets organization by name with caching.
-   * @param name 
+   * @param name
    */
   async getOrganizationByName(name: string): Promise<Organization | undefined> {
     return this.withOptimizations(
@@ -718,7 +673,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param updates
    */
-  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+  async updateOrganization(
+    id: string,
+    updates: Partial<Organization>
+  ): Promise<Organization | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateOrganization', async () => {
       return db
         .update(schema.organizations)
@@ -726,22 +684,19 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.organizations.id, id))
         .returning();
     });
-    
+
     CacheInvalidator.invalidateUserCaches('*');
     return result[0];
   }
 
   // Missing Building operations
-  
+
   /**
    * Gets all buildings with caching.
    */
   async getBuildings(): Promise<Building[]> {
-    return this.withOptimizations(
-      'getBuildings',
-      'all_buildings',
-      'buildings',
-      () => db.select().from(schema.buildings).where(eq(schema.buildings.isActive, true))
+    return this.withOptimizations('getBuildings', 'all_buildings', 'buildings', () =>
+      db.select().from(schema.buildings).where(eq(schema.buildings.isActive, true))
     );
   }
 
@@ -758,7 +713,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.buildings.id, id))
         .returning();
     });
-    
+
     CacheInvalidator.invalidateBuildingCaches(id);
     return result[0];
   }
@@ -775,22 +730,19 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.buildings.id, id))
         .returning();
     });
-    
+
     CacheInvalidator.invalidateBuildingCaches(id);
     return result.length > 0;
   }
 
   // Missing Residence operations
-  
+
   /**
    * Gets all residences with caching.
    */
   async getResidences(): Promise<Residence[]> {
-    return this.withOptimizations(
-      'getResidences',
-      'all_residences',
-      'residences',
-      () => db.select().from(schema.residences).where(eq(schema.residences.isActive, true))
+    return this.withOptimizations('getResidences', 'all_residences', 'residences', () =>
+      db.select().from(schema.residences).where(eq(schema.residences.isActive, true))
     );
   }
 
@@ -807,7 +759,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.residences.id, id))
         .returning();
     });
-    
+
     CacheInvalidator.invalidateResidenceCaches(id);
     return result[0];
   }
@@ -824,22 +776,19 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.residences.id, id))
         .returning();
     });
-    
+
     CacheInvalidator.invalidateResidenceCaches(id);
     return result.length > 0;
   }
 
   // Development Pillar operations
-  
+
   /**
    * Gets all development pillars.
    */
   async getPillars(): Promise<DevelopmentPillar[]> {
-    return this.withOptimizations(
-      'getPillars',
-      'all_pillars',
-      'pillars',
-      () => db.select().from(schema.developmentPillars)
+    return this.withOptimizations('getPillars', 'all_pillars', 'pillars', () =>
+      db.select().from(schema.developmentPillars)
     );
   }
 
@@ -848,18 +797,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getPillar(id: string): Promise<DevelopmentPillar | undefined> {
-    return this.withOptimizations(
-      'getPillar',
-      `pillar:${id}`,
-      'pillars',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.developmentPillars)
-          .where(eq(schema.developmentPillars.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getPillar', `pillar:${id}`, 'pillars', async () => {
+      const result = await db
+        .select()
+        .from(schema.developmentPillars)
+        .where(eq(schema.developmentPillars.id, id));
+      return result[0];
+    });
   }
 
   /**
@@ -870,7 +814,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createPillar', async () => {
       return db.insert(schema.developmentPillars).values(pillar).returning();
     });
-    
+
     queryCache.invalidate('pillars');
     return result[0];
   }
@@ -880,7 +824,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param pillar
    */
-  async updatePillar(id: string, pillar: Partial<DevelopmentPillar>): Promise<DevelopmentPillar | undefined> {
+  async updatePillar(
+    id: string,
+    pillar: Partial<DevelopmentPillar>
+  ): Promise<DevelopmentPillar | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updatePillar', async () => {
       return db
         .update(schema.developmentPillars)
@@ -888,13 +835,13 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.developmentPillars.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('pillars');
     return result[0];
   }
 
   // Workspace Status operations
-  
+
   /**
    * Gets all workspace statuses.
    */
@@ -934,7 +881,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createWorkspaceStatus', async () => {
       return db.insert(schema.workspaceStatus).values(status).returning();
     });
-    
+
     queryCache.invalidate('workspace_status');
     return result[0];
   }
@@ -944,7 +891,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param component
    * @param status
    */
-  async updateWorkspaceStatus(component: string, status: string): Promise<WorkspaceStatus | undefined> {
+  async updateWorkspaceStatus(
+    component: string,
+    status: string
+  ): Promise<WorkspaceStatus | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateWorkspaceStatus', async () => {
       return db
         .update(schema.workspaceStatus)
@@ -952,13 +902,13 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.workspaceStatus.component, component))
         .returning();
     });
-    
+
     queryCache.invalidate('workspace_status');
     return result[0];
   }
 
   // Quality Metrics operations
-  
+
   /**
    * Gets all quality metrics.
    */
@@ -979,13 +929,13 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createQualityMetric', async () => {
       return db.insert(schema.qualityMetrics).values(metric).returning();
     });
-    
+
     queryCache.invalidate('quality_metrics');
     return result[0];
   }
 
   // Framework Configuration operations
-  
+
   /**
    * Gets all framework configurations.
    */
@@ -1029,17 +979,17 @@ export class OptimizedDatabaseStorage implements IStorage {
         .values(config)
         .onConflictDoUpdate({
           target: schema.frameworkConfiguration._key,
-          set: { _value: config._value, updatedAt: new Date() }
+          set: { _value: config._value, updatedAt: new Date() },
         })
         .returning();
     });
-    
+
     queryCache.invalidate('framework_configs');
     return result[0];
   }
 
   // Improvement Suggestions operations
-  
+
   /**
    * Gets all improvement suggestions.
    */
@@ -1061,11 +1011,15 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getTopImprovementSuggestions',
       `top_suggestions:${limit}`,
       'improvement_suggestions',
-      () => db
-        .select()
-        .from(schema.improvementSuggestions)
-        .orderBy(desc(schema.improvementSuggestions.priority), desc(schema.improvementSuggestions.createdAt))
-        .limit(limit)
+      () =>
+        db
+          .select()
+          .from(schema.improvementSuggestions)
+          .orderBy(
+            desc(schema.improvementSuggestions.priority),
+            desc(schema.improvementSuggestions.createdAt)
+          )
+          .limit(limit)
     );
   }
 
@@ -1073,14 +1027,32 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Creates improvement suggestion.
    * @param suggestion
    */
-  async createImprovementSuggestion(suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
-    const result = await dbPerformanceMonitor.trackQuery('createImprovementSuggestion', async () => {
-      return db.insert(schema.improvementSuggestions).values([{
-        ...suggestion,
-        category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App'
-      }]).returning();
-    });
-    
+  async createImprovementSuggestion(
+    suggestion: InsertImprovementSuggestion
+  ): Promise<ImprovementSuggestion> {
+    const result = await dbPerformanceMonitor.trackQuery(
+      'createImprovementSuggestion',
+      async () => {
+        return db
+          .insert(schema.improvementSuggestions)
+          .values([
+            {
+              ...suggestion,
+              category: suggestion.category as
+                | 'Code Quality'
+                | 'Security'
+                | 'Testing'
+                | 'Documentation'
+                | 'Performance'
+                | 'Continuous Improvement'
+                | 'Replit AI Agent Monitoring'
+                | 'Replit App',
+            },
+          ])
+          .returning();
+      }
+    );
+
     queryCache.invalidate('improvement_suggestions');
     return result[0];
   }
@@ -1095,7 +1067,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .set({ status: 'Acknowledged' })
         .where(eq(schema.improvementSuggestions.status, 'New'));
     });
-    
+
     queryCache.invalidate('improvement_suggestions');
   }
 
@@ -1104,7 +1076,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param status
    */
-  async updateSuggestionStatus(id: string, status: 'New' | 'Acknowledged' | 'Done'): Promise<ImprovementSuggestion | undefined> {
+  async updateSuggestionStatus(
+    id: string,
+    status: 'New' | 'Acknowledged' | 'Done'
+  ): Promise<ImprovementSuggestion | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateSuggestionStatus', async () => {
       return db
         .update(schema.improvementSuggestions)
@@ -1112,22 +1087,19 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.improvementSuggestions.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('improvement_suggestions');
     return result[0];
   }
 
   // Features operations
-  
+
   /**
    * Gets all features.
    */
   async getFeatures(): Promise<Feature[]> {
-    return this.withOptimizations(
-      'getFeatures',
-      'all_features',
-      'features',
-      () => db.select().from(schema.features)
+    return this.withOptimizations('getFeatures', 'all_features', 'features', () =>
+      db.select().from(schema.features)
     );
   }
 
@@ -1135,15 +1107,18 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Gets features by status.
    * @param status
    */
-  async getFeaturesByStatus(status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'): Promise<Feature[]> {
+  async getFeaturesByStatus(
+    status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'
+  ): Promise<Feature[]> {
     return this.withOptimizations(
       'getFeaturesByStatus',
       `features_status:${status}`,
       'features',
-      () => db
-        .select()
-        .from(schema.features)
-        .where(eq(schema.features.status, status as any))
+      () =>
+        db
+          .select()
+          .from(schema.features)
+          .where(eq(schema.features.status, status as any))
     );
   }
 
@@ -1156,10 +1131,11 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getFeaturesByCategory',
       `features_category:${category}`,
       'features',
-      () => db
-        .select()
-        .from(schema.features)
-        .where(eq(schema.features.category, category as any))
+      () =>
+        db
+          .select()
+          .from(schema.features)
+          .where(eq(schema.features.category, category as any))
     );
   }
 
@@ -1171,10 +1147,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getPublicRoadmapFeatures',
       'public_roadmap_features',
       'features',
-      () => db
-        .select()
-        .from(schema.features)
-        .where(eq(schema.features.isPublicRoadmap, true))
+      () => db.select().from(schema.features).where(eq(schema.features.isPublicRoadmap, true))
     );
   }
 
@@ -1186,7 +1159,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createFeature', async () => {
       return db.insert(schema.features).values([feature]).returning();
     });
-    
+
     queryCache.invalidate('features');
     return result[0];
   }
@@ -1204,7 +1177,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.features.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('features');
     return result[0];
   }
@@ -1215,18 +1188,15 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async deleteFeature(id: string): Promise<boolean> {
     const result = await dbPerformanceMonitor.trackQuery('deleteFeature', async () => {
-      return db
-        .delete(schema.features)
-        .where(eq(schema.features.id, id))
-        .returning();
+      return db.delete(schema.features).where(eq(schema.features.id, id)).returning();
     });
-    
+
     queryCache.invalidate('features');
     return result.length > 0;
   }
 
   // Actionable Items operations
-  
+
   /**
    * Gets actionable items by feature.
    * @param featureId
@@ -1236,10 +1206,11 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getActionableItemsByFeature',
       `actionable_items:${featureId}`,
       'actionable_items',
-      () => db
-        .select()
-        .from(schema.actionableItems)
-        .where(eq(schema.actionableItems.featureId, featureId))
+      () =>
+        db
+          .select()
+          .from(schema.actionableItems)
+          .where(eq(schema.actionableItems.featureId, featureId))
     );
   }
 
@@ -1270,7 +1241,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createActionableItem', async () => {
       return db.insert(schema.actionableItems).values([item]).returning();
     });
-    
+
     queryCache.invalidate('actionable_items');
     return result[0];
   }
@@ -1283,7 +1254,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createActionableItems', async () => {
       return db.insert(schema.actionableItems).values(items).returning();
     });
-    
+
     queryCache.invalidate('actionable_items');
     return result;
   }
@@ -1293,7 +1264,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param updates
    */
-  async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
+  async updateActionableItem(
+    id: string,
+    updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateActionableItem', async () => {
       return db
         .update(schema.actionableItems)
@@ -1301,7 +1275,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.actionableItems.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('actionable_items');
     return result[0];
   }
@@ -1312,12 +1286,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async deleteActionableItem(id: string): Promise<boolean> {
     const result = await dbPerformanceMonitor.trackQuery('deleteActionableItem', async () => {
-      return db
-        .delete(schema.actionableItems)
-        .where(eq(schema.actionableItems.id, id))
-        .returning();
+      return db.delete(schema.actionableItems).where(eq(schema.actionableItems.id, id)).returning();
     });
-    
+
     queryCache.invalidate('actionable_items');
     return result.length > 0;
   }
@@ -1327,28 +1298,28 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param featureId
    */
   async deleteActionableItemsByFeature(featureId: string): Promise<boolean> {
-    const result = await dbPerformanceMonitor.trackQuery('deleteActionableItemsByFeature', async () => {
-      return db
-        .delete(schema.actionableItems)
-        .where(eq(schema.actionableItems.featureId, featureId))
-        .returning();
-    });
-    
+    const result = await dbPerformanceMonitor.trackQuery(
+      'deleteActionableItemsByFeature',
+      async () => {
+        return db
+          .delete(schema.actionableItems)
+          .where(eq(schema.actionableItems.featureId, featureId))
+          .returning();
+      }
+    );
+
     queryCache.invalidate('actionable_items');
     return result.length > 0;
   }
 
   // Invitation operations
-  
+
   /**
    * Gets all invitations.
    */
   async getInvitations(): Promise<Invitation[]> {
-    return this.withOptimizations(
-      'getInvitations',
-      'all_invitations',
-      'invitations',
-      () => db.select().from(schema.invitations)
+    return this.withOptimizations('getInvitations', 'all_invitations', 'invitations', () =>
+      db.select().from(schema.invitations)
     );
   }
 
@@ -1357,18 +1328,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getInvitation(id: string): Promise<Invitation | undefined> {
-    return this.withOptimizations(
-      'getInvitation',
-      `invitation:${id}`,
-      'invitations',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.invitations)
-          .where(eq(schema.invitations.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getInvitation', `invitation:${id}`, 'invitations', async () => {
+      const result = await db
+        .select()
+        .from(schema.invitations)
+        .where(eq(schema.invitations.id, id));
+      return result[0];
+    });
   }
 
   /**
@@ -1399,10 +1365,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getInvitationsByEmail',
       `invitations_email:${email}`,
       'invitations',
-      () => db
-        .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.email, email))
+      () => db.select().from(schema.invitations).where(eq(schema.invitations.email, email))
     );
   }
 
@@ -1415,10 +1378,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getInvitationsByInviter',
       `invitations_inviter:${userId}`,
       'invitations',
-      () => db
-        .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.invitedByUserId, userId))
+      () =>
+        db.select().from(schema.invitations).where(eq(schema.invitations.invitedByUserId, userId))
     );
   }
 
@@ -1426,15 +1387,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Gets invitations by status.
    * @param status
    */
-  async getInvitationsByStatus(status: 'pending' | 'accepted' | 'expired' | 'cancelled'): Promise<Invitation[]> {
+  async getInvitationsByStatus(
+    status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+  ): Promise<Invitation[]> {
     return this.withOptimizations(
       'getInvitationsByStatus',
       `invitations_status:${status}`,
       'invitations',
-      () => db
-        .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.status, status))
+      () => db.select().from(schema.invitations).where(eq(schema.invitations.status, status))
     );
   }
 
@@ -1446,7 +1406,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createInvitation', async () => {
       return db.insert(schema.invitations).values([invitation]).returning();
     });
-    
+
     queryCache.invalidate('invitations');
     return result[0];
   }
@@ -1456,7 +1416,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param updates
    */
-  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
+  async updateInvitation(
+    id: string,
+    updates: Partial<Invitation>
+  ): Promise<Invitation | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateInvitation', async () => {
       return db
         .update(schema.invitations)
@@ -1464,7 +1427,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.invitations.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('invitations');
     return result[0];
   }
@@ -1519,16 +1482,16 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('cancelInvitation', async () => {
       return db
         .update(schema.invitations)
-        .set({ 
-          status: 'cancelled', 
+        .set({
+          status: 'cancelled',
           cancelledBy,
           cancelledAt: new Date(),
-          updatedAt: new Date() 
+          updatedAt: new Date(),
         })
         .where(eq(schema.invitations.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('invitations');
     return result[0];
   }
@@ -1549,7 +1512,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         )
         .returning();
     });
-    
+
     queryCache.invalidate('invitations');
     return result.length;
   }
@@ -1560,18 +1523,15 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async deleteInvitation(id: string): Promise<boolean> {
     const result = await dbPerformanceMonitor.trackQuery('deleteInvitation', async () => {
-      return db
-        .delete(schema.invitations)
-        .where(eq(schema.invitations.id, id))
-        .returning();
+      return db.delete(schema.invitations).where(eq(schema.invitations.id, id)).returning();
     });
-    
+
     queryCache.invalidate('invitations');
     return result.length > 0;
   }
 
   // Invitation Audit Log operations
-  
+
   /**
    * Gets invitation audit logs.
    * @param invitationId
@@ -1581,11 +1541,12 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getInvitationAuditLogs',
       `invitation_logs:${invitationId}`,
       'invitation_logs',
-      () => db
-        .select()
-        .from(schema.invitationAuditLog)
-        .where(eq(schema.invitationAuditLog.invitationId, invitationId))
-        .orderBy(desc(schema.invitationAuditLog.createdAt))
+      () =>
+        db
+          .select()
+          .from(schema.invitationAuditLog)
+          .where(eq(schema.invitationAuditLog.invitationId, invitationId))
+          .orderBy(desc(schema.invitationAuditLog.createdAt))
     );
   }
 
@@ -1597,22 +1558,19 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createInvitationAuditLog', async () => {
       return db.insert(schema.invitationAuditLog).values(logEntry).returning();
     });
-    
+
     queryCache.invalidate('invitation_logs');
     return result[0];
   }
 
   // Permission operations
-  
+
   /**
    * Gets all permissions.
    */
   async getPermissions(): Promise<Permission[]> {
-    return this.withOptimizations(
-      'getPermissions',
-      'permissions:all',
-      'permissions',
-      () => db
+    return this.withOptimizations('getPermissions', 'permissions:all', 'permissions', () =>
+      db
         .select()
         .from(schema.permissions)
         .where(eq(schema.permissions.isActive, true))
@@ -1628,12 +1586,16 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getRolePermissions',
       'role_permissions:all',
       'role_permissions',
-      () => db
-        .select()
-        .from(schema.rolePermissions)
-        .innerJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
-        .where(eq(schema.permissions.isActive, true))
-        .orderBy(schema.rolePermissions.role, schema.permissions.resourceType)
+      () =>
+        db
+          .select()
+          .from(schema.rolePermissions)
+          .innerJoin(
+            schema.permissions,
+            eq(schema.rolePermissions.permissionId, schema.permissions.id)
+          )
+          .where(eq(schema.permissions.isActive, true))
+          .orderBy(schema.rolePermissions.role, schema.permissions.resourceType)
     );
   }
 
@@ -1645,10 +1607,13 @@ export class OptimizedDatabaseStorage implements IStorage {
       const results = await db
         .select()
         .from(schema.userPermissions)
-        .innerJoin(schema.permissions, eq(schema.userPermissions.permissionId, schema.permissions.id))
+        .innerJoin(
+          schema.permissions,
+          eq(schema.userPermissions.permissionId, schema.permissions.id)
+        )
         .where(eq(schema.permissions.isActive, true))
         .orderBy(schema.userPermissions.userId);
-      
+
       return results || [];
     } catch (error) {
       console.error('Error fetching user permissions:', error);
@@ -1666,9 +1631,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param buildingIds
    */
   async getBuildingDocumentsForUser(
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     buildingIds?: string[]
   ): Promise<DocumentBuilding[]> {
     return this.withOptimizations(
@@ -1677,7 +1642,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       'building_documents',
       async () => {
         const query = db.select().from(schema.documentsBuildings);
-        
+
         // Role-based filtering
         if (userRole === 'admin') {
           // Admin can see all building documents
@@ -1685,16 +1650,23 @@ export class OptimizedDatabaseStorage implements IStorage {
         } else if (userRole === 'manager' && organizationId) {
           // Manager can see documents for buildings in their organization
           return await query
-            .innerJoin(schema.buildings, eq(schema.documentsBuildings.buildingId, schema.buildings.id))
+            .innerJoin(
+              schema.buildings,
+              eq(schema.documentsBuildings.buildingId, schema.buildings.id)
+            )
             .where(eq(schema.buildings.organizationId, organizationId))
             .orderBy(desc(schema.documentsBuildings.uploadDate));
-        } else if ((userRole === 'resident' || userRole === 'tenant') && buildingIds && buildingIds.length > 0) {
+        } else if (
+          (userRole === 'resident' || userRole === 'tenant') &&
+          buildingIds &&
+          buildingIds.length > 0
+        ) {
           // Residents/tenants can see documents for their buildings
           return await query
             .where(inArray(schema.documentsBuildings.buildingId, buildingIds))
             .orderBy(desc(schema.documentsBuildings.uploadDate));
         }
-        
+
         return [];
       }
     );
@@ -1709,10 +1681,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param buildingIds
    */
   async getBuildingDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     buildingIds?: string[]
   ): Promise<DocumentBuilding | undefined> {
     return this.withOptimizations(
@@ -1720,11 +1692,16 @@ export class OptimizedDatabaseStorage implements IStorage {
       `building_doc:${id}:${userId}`,
       'building_documents',
       async () => {
-        const result = await db.select().from(schema.documentsBuildings).where(eq(schema.documentsBuildings.id, id));
+        const result = await db
+          .select()
+          .from(schema.documentsBuildings)
+          .where(eq(schema.documentsBuildings.id, id));
         const document = result[0];
-        
-        if (!document) {return undefined;}
-        
+
+        if (!document) {
+          return undefined;
+        }
+
         // Permission check based on role
         if (userRole === 'admin') {
           return document;
@@ -1734,10 +1711,14 @@ export class OptimizedDatabaseStorage implements IStorage {
           if (building && building.organizationId === organizationId) {
             return document;
           }
-        } else if ((userRole === 'resident' || userRole === 'tenant') && buildingIds && buildingIds.includes(document.buildingId)) {
+        } else if (
+          (userRole === 'resident' || userRole === 'tenant') &&
+          buildingIds &&
+          buildingIds.includes(document.buildingId)
+        ) {
           return document;
         }
-        
+
         return undefined;
       }
     );
@@ -1750,10 +1731,10 @@ export class OptimizedDatabaseStorage implements IStorage {
   async createBuildingDocument(document: InsertDocumentBuilding): Promise<DocumentBuilding> {
     return dbPerformanceMonitor.trackQuery('createBuildingDocument', async () => {
       const result = await db.insert(schema.documentsBuildings).values(document).returning();
-      
+
       // Invalidate building document caches
       queryCache.invalidate('building_documents');
-      
+
       return result[0];
     });
   }
@@ -1767,26 +1748,28 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async updateBuildingDocument(
-    id: string, 
-    updates: Partial<InsertDocumentBuilding>, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    updates: Partial<InsertDocumentBuilding>,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<DocumentBuilding | undefined> {
     return dbPerformanceMonitor.trackQuery('updateBuildingDocument', async () => {
       // First check if user has permission to update this document
       const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) {return undefined;}
-      
+      if (!document) {
+        return undefined;
+      }
+
       const result = await db
         .update(schema.documentsBuildings)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(schema.documentsBuildings.id, id))
         .returning();
-      
+
       // Invalidate building document caches
       queryCache.invalidate('building_documents');
-      
+
       return result[0];
     });
   }
@@ -1799,24 +1782,26 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async deleteBuildingDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<boolean> {
     return dbPerformanceMonitor.trackQuery('deleteBuildingDocument', async () => {
       // First check if user has permission to delete this document
       const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) {return false;}
-      
+      if (!document) {
+        return false;
+      }
+
       const result = await db
         .delete(schema.documentsBuildings)
         .where(eq(schema.documentsBuildings.id, id))
         .returning();
-      
+
       // Invalidate building document caches
       queryCache.invalidate('building_documents');
-      
+
       return result.length > 0;
     });
   }
@@ -1831,9 +1816,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param residenceIds
    */
   async getResidentDocumentsForUser(
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<DocumentResident[]> {
     return this.withOptimizations(
@@ -1842,7 +1827,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       'resident_documents',
       async () => {
         const query = db.select().from(schema.documentsResidents);
-        
+
         // Role-based filtering
         if (userRole === 'admin') {
           // Admin can see all resident documents
@@ -1850,17 +1835,24 @@ export class OptimizedDatabaseStorage implements IStorage {
         } else if (userRole === 'manager' && organizationId) {
           // Manager can see documents for residences in their organization
           return await query
-            .innerJoin(schema.residences, eq(schema.documentsResidents.residenceId, schema.residences.id))
+            .innerJoin(
+              schema.residences,
+              eq(schema.documentsResidents.residenceId, schema.residences.id)
+            )
             .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
             .where(eq(schema.buildings.organizationId, organizationId))
             .orderBy(desc(schema.documentsResidents.uploadDate));
-        } else if ((userRole === 'resident' || userRole === 'tenant') && residenceIds && residenceIds.length > 0) {
+        } else if (
+          (userRole === 'resident' || userRole === 'tenant') &&
+          residenceIds &&
+          residenceIds.length > 0
+        ) {
           // Residents/tenants can see documents for their residences
           return await query
             .where(inArray(schema.documentsResidents.residenceId, residenceIds))
             .orderBy(desc(schema.documentsResidents.uploadDate));
         }
-        
+
         return [];
       }
     );
@@ -1875,10 +1867,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param residenceIds
    */
   async getResidentDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<DocumentResident | undefined> {
     return this.withOptimizations(
@@ -1886,11 +1878,16 @@ export class OptimizedDatabaseStorage implements IStorage {
       `resident_doc:${id}:${userId}`,
       'resident_documents',
       async () => {
-        const result = await db.select().from(schema.documentsResidents).where(eq(schema.documentsResidents.id, id));
+        const result = await db
+          .select()
+          .from(schema.documentsResidents)
+          .where(eq(schema.documentsResidents.id, id));
         const document = result[0];
-        
-        if (!document) {return undefined;}
-        
+
+        if (!document) {
+          return undefined;
+        }
+
         // Permission check based on role
         if (userRole === 'admin') {
           return document;
@@ -1903,10 +1900,14 @@ export class OptimizedDatabaseStorage implements IStorage {
               return document;
             }
           }
-        } else if ((userRole === 'resident' || userRole === 'tenant') && residenceIds && residenceIds.includes(document.residenceId)) {
+        } else if (
+          (userRole === 'resident' || userRole === 'tenant') &&
+          residenceIds &&
+          residenceIds.includes(document.residenceId)
+        ) {
           return document;
         }
-        
+
         return undefined;
       }
     );
@@ -1919,10 +1920,10 @@ export class OptimizedDatabaseStorage implements IStorage {
   async createResidentDocument(document: InsertDocumentResident): Promise<DocumentResident> {
     return dbPerformanceMonitor.trackQuery('createResidentDocument', async () => {
       const result = await db.insert(schema.documentsResidents).values(document).returning();
-      
+
       // Invalidate resident document caches
       queryCache.invalidate('resident_documents');
-      
+
       return result[0];
     });
   }
@@ -1936,26 +1937,28 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async updateResidentDocument(
-    id: string, 
-    updates: Partial<InsertDocumentResident>, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    updates: Partial<InsertDocumentResident>,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<DocumentResident | undefined> {
     return dbPerformanceMonitor.trackQuery('updateResidentDocument', async () => {
       // First check if user has permission to update this document
       const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) {return undefined;}
-      
+      if (!document) {
+        return undefined;
+      }
+
       const result = await db
         .update(schema.documentsResidents)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(schema.documentsResidents.id, id))
         .returning();
-      
+
       // Invalidate resident document caches
       queryCache.invalidate('resident_documents');
-      
+
       return result[0];
     });
   }
@@ -1968,24 +1971,26 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async deleteResidentDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<boolean> {
     return dbPerformanceMonitor.trackQuery('deleteResidentDocument', async () => {
       // First check if user has permission to delete this document
       const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) {return false;}
-      
+      if (!document) {
+        return false;
+      }
+
       const result = await db
         .delete(schema.documentsResidents)
         .where(eq(schema.documentsResidents.id, id))
         .returning();
-      
+
       // Invalidate resident document caches
       queryCache.invalidate('resident_documents');
-      
+
       return result.length > 0;
     });
   }
@@ -2000,9 +2005,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param residenceIds
    */
   async getDocumentsForUser(
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<Document[]> {
     return this.withOptimizations(
@@ -2024,10 +2029,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param residenceIds
    */
   async getDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<Document | undefined> {
     return this.withOptimizations(
@@ -2048,9 +2053,9 @@ export class OptimizedDatabaseStorage implements IStorage {
   async createDocument(document: InsertDocument): Promise<Document> {
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
       const result = await db.insert(schema.documents).values(document).returning();
-      
+
       queryCache.invalidate('documents');
-      
+
       return result[0];
     });
   }
@@ -2064,10 +2069,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async updateDocument(
-    id: string, 
-    updates: Partial<InsertDocument>, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    updates: Partial<InsertDocument>,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<Document | undefined> {
     return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
@@ -2076,9 +2081,9 @@ export class OptimizedDatabaseStorage implements IStorage {
         .set(updates)
         .where(eq(schema.documents.id, id))
         .returning();
-      
+
       queryCache.invalidate('documents');
-      
+
       return result[0];
     });
   }
@@ -2091,9 +2096,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async deleteDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<boolean> {
     return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
@@ -2101,9 +2106,9 @@ export class OptimizedDatabaseStorage implements IStorage {
         .delete(schema.documents)
         .where(eq(schema.documents.id, id))
         .returning();
-      
+
       queryCache.invalidate('documents');
-      
+
       return result.length > 0;
     });
   }
@@ -2114,12 +2119,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param token
    */
   async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
-    const result = await db.insert(schema.passwordResetTokens)
-      .values(token)
-      .returning();
-    
+    const result = await db.insert(schema.passwordResetTokens).values(token).returning();
+
     // Token created successfully
-    
+
     return result[0];
   }
 
@@ -2133,7 +2136,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       `token_${tokenValue}`,
       'password_reset_tokens',
       async () => {
-        const result = await db.select()
+        const result = await db
+          .select()
           .from(schema.passwordResetTokens)
           .where(eq(schema.passwordResetTokens.token, tokenValue))
           .limit(1);
@@ -2147,7 +2151,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param tokenId
    */
   async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
-    const result = await db.update(schema.passwordResetTokens)
+    const result = await db
+      .update(schema.passwordResetTokens)
       .set({
         isUsed: true,
         usedAt: new Date(),
@@ -2156,7 +2161,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .returning();
 
     // Token marked as used
-    
+
     return result[0];
   }
 
@@ -2164,12 +2169,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    *
    */
   async cleanupExpiredPasswordResetTokens(): Promise<number> {
-    const result = await db.delete(schema.passwordResetTokens)
+    const result = await db
+      .delete(schema.passwordResetTokens)
       .where(lte(schema.passwordResetTokens.expiresAt, new Date()))
       .returning();
 
     // Expired tokens cleaned up
-    
+
     return result.length;
   }
 
@@ -2178,11 +2184,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Gets all contacts.
    */
   async getContacts(): Promise<Contact[]> {
-    return this.withOptimizations(
-      'getContacts',
-      'all_contacts',
-      'contacts',
-      () => db.select().from(schema.contacts).where(eq(schema.contacts.isActive, true))
+    return this.withOptimizations('getContacts', 'all_contacts', 'contacts', () =>
+      db.select().from(schema.contacts).where(eq(schema.contacts.isActive, true))
     );
   }
 
@@ -2191,19 +2194,25 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param entityId
    * @param entity
    */
-  async getContactsByEntity(entityId: string, entity: 'organization' | 'building' | 'residence'): Promise<Contact[]> {
+  async getContactsByEntity(
+    entityId: string,
+    entity: 'organization' | 'building' | 'residence'
+  ): Promise<Contact[]> {
     return this.withOptimizations(
       'getContactsByEntity',
       `contacts_entity:${entity}_${entityId}`,
       'contacts',
-      () => db
-        .select()
-        .from(schema.contacts)
-        .where(and(
-          eq(schema.contacts.entityId, entityId),
-          eq(schema.contacts.entity, entity),
-          eq(schema.contacts.isActive, true)
-        ))
+      () =>
+        db
+          .select()
+          .from(schema.contacts)
+          .where(
+            and(
+              eq(schema.contacts.entityId, entityId),
+              eq(schema.contacts.entity, entity),
+              eq(schema.contacts.isActive, true)
+            )
+          )
     );
   }
 
@@ -2216,15 +2225,18 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getContactsForResidence',
       `contacts_residence:${residenceId}`,
       'contacts',
-      () => db
-        .select()
-        .from(schema.contacts)
-        .innerJoin(schema.users, eq(schema.contacts.name, schema.users.email))
-        .where(and(
-          eq(schema.contacts.entityId, residenceId),
-          eq(schema.contacts.entity, 'residence'),
-          eq(schema.contacts.isActive, true)
-        ))
+      () =>
+        db
+          .select()
+          .from(schema.contacts)
+          .innerJoin(schema.users, eq(schema.contacts.name, schema.users.email))
+          .where(
+            and(
+              eq(schema.contacts.entityId, residenceId),
+              eq(schema.contacts.entity, 'residence'),
+              eq(schema.contacts.isActive, true)
+            )
+          )
     );
   }
 
@@ -2236,7 +2248,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     const result = await dbPerformanceMonitor.trackQuery('createContact', async () => {
       return db.insert(schema.contacts).values(contact).returning();
     });
-    
+
     queryCache.invalidate('contacts');
     return result[0];
   }
@@ -2254,7 +2266,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.contacts.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('contacts');
     return result[0];
   }
@@ -2271,7 +2283,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.contacts.id, id))
         .returning();
     });
-    
+
     queryCache.invalidate('contacts');
     return result.length > 0;
   }
@@ -2281,14 +2293,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param userId
    */
   async getDemandsForUser(userId: string): Promise<any[]> {
-    return this.withOptimizations(
-      'getDemandsForUser',
-      `demands_user:${userId}`,
-      'demands',
-      () => db
-        .select()
-        .from(schema.demands)
-        .where(eq(schema.demands.userId, userId))
+    return this.withOptimizations('getDemandsForUser', `demands_user:${userId}`, 'demands', () =>
+      db.select().from(schema.demands).where(eq(schema.demands.userId, userId))
     );
   }
 
@@ -2297,18 +2303,10 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    */
   async getDemand(id: string): Promise<any | undefined> {
-    return this.withOptimizations(
-      'getDemand',
-      `demand:${id}`,
-      'demands',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.demands)
-          .where(eq(schema.demands.id, id));
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getDemand', `demand:${id}`, 'demands', async () => {
+      const result = await db.select().from(schema.demands).where(eq(schema.demands.id, id));
+      return result[0];
+    });
   }
 
   // Bug operations implementation
@@ -2318,26 +2316,23 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param userRole
    * @param organizationId
    */
-  async getBugsForUser(
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<Bug[]> {
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
     try {
       if (userRole === 'admin') {
         // Admin can see all bugs
         const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
         return result || [];
       }
-      
+
       if (userRole === 'manager' && organizationId) {
         // For managers, return all bugs for now (can be refined later)
         const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
         return result || [];
       }
-      
+
       // For residents and tenants, return only their own bugs
-      const result = await db.select()
+      const result = await db
+        .select()
         .from(schema.bugs)
         .where(eq(schema.bugs.createdBy, userId))
         .orderBy(desc(schema.bugs.createdAt));
@@ -2362,29 +2357,26 @@ export class OptimizedDatabaseStorage implements IStorage {
     organizationId?: string
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
-    
-    return queryCache.get(
-      key,
-      async () => {
-        const result = await db.select()
-          .from(schema.bugs)
-          .where(eq(schema.bugs.id, id));
-        
-        const bug = result[0];
-        if (!bug) {return undefined;}
-        
-        if (userRole === 'admin') {
-          return bug;
-        }
-        
-        if (userRole === 'manager') {
-          return bug; // Managers can see all bugs for now
-        }
-        
-        // Residents and tenants can only see their own bugs
-        return bug.createdBy === userId ? bug : undefined;
+
+    return queryCache.get(key, async () => {
+      const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+
+      const bug = result[0];
+      if (!bug) {
+        return undefined;
       }
-    );
+
+      if (userRole === 'admin') {
+        return bug;
+      }
+
+      if (userRole === 'manager') {
+        return bug; // Managers can see all bugs for now
+      }
+
+      // Residents and tenants can only see their own bugs
+      return bug.createdBy === userId ? bug : undefined;
+    });
   }
 
   /**
@@ -2392,7 +2384,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param bugData
    */
   async createBug(bugData: InsertBug): Promise<Bug> {
-    const result = await db.insert(schema.bugs)
+    const result = await db
+      .insert(schema.bugs)
       .values({
         ...bugData,
         id: crypto.randomUUID(),
@@ -2405,10 +2398,10 @@ export class OptimizedDatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .returning();
-    
+
     // Invalidate cache for this user
     queryCache.invalidate('bugs');
-    
+
     return result[0];
   }
 
@@ -2426,36 +2419,34 @@ export class OptimizedDatabaseStorage implements IStorage {
     userRole: string
   ): Promise<Bug | undefined> {
     // First check if the bug exists and get its current data
-    const [existingBug] = await db.select()
-      .from(schema.bugs)
-      .where(eq(schema.bugs.id, id));
-    
+    const [existingBug] = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+
     if (!existingBug) {
       return undefined;
     }
-    
+
     // Access control: users can edit their own bugs, admins and managers can edit any bug
-    const canEdit = userRole === 'admin' || 
-                   userRole === 'manager' || 
-                   existingBug.createdBy === userId;
-    
+    const canEdit =
+      userRole === 'admin' || userRole === 'manager' || existingBug.createdBy === userId;
+
     if (!canEdit) {
       return undefined;
     }
-    
-    const result = await db.update(schema.bugs)
+
+    const result = await db
+      .update(schema.bugs)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
       .where(eq(schema.bugs.id, id))
       .returning();
-    
+
     if (result[0]) {
       // Invalidate related cache entries
       queryCache.invalidate('bugs');
     }
-    
+
     return result[0];
   }
 
@@ -2465,37 +2456,29 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param userId
    * @param userRole
    */
-  async deleteBug(
-    id: string,
-    userId: string,
-    userRole: string
-  ): Promise<boolean> {
+  async deleteBug(id: string, userId: string, userRole: string): Promise<boolean> {
     // First check if the bug exists and get its current data
-    const [existingBug] = await db.select()
-      .from(schema.bugs)
-      .where(eq(schema.bugs.id, id));
-    
+    const [existingBug] = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+
     if (!existingBug) {
       return false;
     }
-    
+
     // Access control: users can delete their own bugs, admins can delete any bug
     const canDelete = userRole === 'admin' || existingBug.createdBy === userId;
-    
+
     if (!canDelete) {
       return false;
     }
-    
-    const result = await db.delete(schema.bugs)
-      .where(eq(schema.bugs.id, id))
-      .returning();
-    
+
+    const result = await db.delete(schema.bugs).where(eq(schema.bugs.id, id)).returning();
+
     if (result.length > 0) {
       // Invalidate related cache entries
       queryCache.invalidate('bugs');
       return true;
     }
-    
+
     return false;
   }
 
@@ -2517,17 +2500,20 @@ export class OptimizedDatabaseStorage implements IStorage {
       `feature_requests:${userRole}:${userId}`,
       'feature_requests',
       async () => {
-        const results = await db.select().from(schema.featureRequests).orderBy(desc(schema.featureRequests.createdAt));
-        
+        const results = await db
+          .select()
+          .from(schema.featureRequests)
+          .orderBy(desc(schema.featureRequests.createdAt));
+
         // All users can see all feature requests, but non-admins don't see who submitted
         if (userRole === 'admin') {
           return results;
         }
-        
+
         // For non-admin users, hide the createdBy field
-        return results.map(request => ({
+        return results.map((request) => ({
           ...request,
-          createdBy: null as any
+          createdBy: null as any,
         }));
       }
     );
@@ -2555,19 +2541,21 @@ export class OptimizedDatabaseStorage implements IStorage {
           .select()
           .from(schema.featureRequests)
           .where(eq(schema.featureRequests.id, id));
-        
+
         const featureRequest = result[0];
-        if (!featureRequest) {return undefined;}
-        
+        if (!featureRequest) {
+          return undefined;
+        }
+
         // All users can see any feature request
         if (userRole === 'admin') {
           return featureRequest;
         }
-        
+
         // For non-admin users, hide the createdBy field
         return {
           ...featureRequest,
-          createdBy: null as any
+          createdBy: null as any,
         };
       }
     );
@@ -2579,7 +2567,8 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createFeatureRequest(featureRequestData: InsertFeatureRequest): Promise<FeatureRequest> {
     const result = await dbPerformanceMonitor.trackQuery('createFeatureRequest', async () => {
-      return db.insert(schema.featureRequests)
+      return db
+        .insert(schema.featureRequests)
         .values({
           ...featureRequestData,
           id: crypto.randomUUID(),
@@ -2595,10 +2584,10 @@ export class OptimizedDatabaseStorage implements IStorage {
         })
         .returning();
     });
-    
+
     // Invalidate cache
     queryCache.invalidate('feature_requests');
-    
+
     return result[0];
   }
 
@@ -2619,7 +2608,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     if (userRole !== 'admin') {
       return undefined;
     }
-    
+
     const result = await dbPerformanceMonitor.trackQuery('updateFeatureRequest', async () => {
       return db
         .update(schema.featureRequests)
@@ -2630,12 +2619,12 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.featureRequests.id, id))
         .returning();
     });
-    
+
     if (result[0]) {
       // Invalidate related cache entries
       queryCache.invalidate('feature_requests');
     }
-    
+
     return result[0];
   }
 
@@ -2645,31 +2634,29 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param userId
    * @param userRole
    */
-  async deleteFeatureRequest(
-    id: string,
-    userId: string,
-    userRole: string
-  ): Promise<boolean> {
+  async deleteFeatureRequest(id: string, userId: string, userRole: string): Promise<boolean> {
     // Only admins can delete feature requests
     if (userRole !== 'admin') {
       return false;
     }
-    
+
     // First delete all upvotes for this feature request
-    await db.delete(schema.featureRequestUpvotes)
+    await db
+      .delete(schema.featureRequestUpvotes)
       .where(eq(schema.featureRequestUpvotes.featureRequestId, id));
-    
-    const result = await db.delete(schema.featureRequests)
+
+    const result = await db
+      .delete(schema.featureRequests)
       .where(eq(schema.featureRequests.id, id))
       .returning();
-    
+
     if (result.length > 0) {
       // Invalidate related cache entries
       queryCache.invalidate('feature_requests');
       queryCache.invalidate('feature_request_upvotes');
       return true;
     }
-    
+
     return false;
   }
 
@@ -2677,23 +2664,25 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Upvotes a feature request.
    * @param upvoteData
    */
-  async upvoteFeatureRequest(upvoteData: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}> {
+  async upvoteFeatureRequest(
+    upvoteData: InsertFeatureRequestUpvote
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     const { featureRequestId, userId } = upvoteData;
-    
+
     try {
       // Check if feature request exists
       const featureRequestResult = await db
         .select()
         .from(schema.featureRequests)
         .where(eq(schema.featureRequests.id, featureRequestId));
-      
+
       if (featureRequestResult.length === 0) {
         return {
           success: false,
-          message: 'Feature request not found'
+          message: 'Feature request not found',
         };
       }
-      
+
       // Check if user has already upvoted this feature request
       const existingUpvote = await db
         .select()
@@ -2704,23 +2693,24 @@ export class OptimizedDatabaseStorage implements IStorage {
             eq(schema.featureRequestUpvotes.userId, userId)
           )
         );
-      
+
       if (existingUpvote.length > 0) {
         return {
           success: false,
-          message: 'You have already upvoted this feature request'
+          message: 'You have already upvoted this feature request',
         };
       }
-      
+
       // Create the upvote
-      const upvoteResult = await db.insert(schema.featureRequestUpvotes)
+      const upvoteResult = await db
+        .insert(schema.featureRequestUpvotes)
         .values({
           ...upvoteData,
           id: crypto.randomUUID(),
           createdAt: new Date(),
         })
         .returning();
-      
+
       // Update the upvote count on the feature request
       const updatedFeatureRequest = await db
         .update(schema.featureRequests)
@@ -2730,23 +2720,23 @@ export class OptimizedDatabaseStorage implements IStorage {
         })
         .where(eq(schema.featureRequests.id, featureRequestId))
         .returning();
-      
+
       // Invalidate cache
       queryCache.invalidate('feature_requests');
       queryCache.invalidate('feature_request_upvotes');
-      
+
       return {
         success: true,
         message: 'Feature request upvoted successfully',
         data: {
           upvote: upvoteResult[0],
-          featureRequest: updatedFeatureRequest[0]
-        }
+          featureRequest: updatedFeatureRequest[0],
+        },
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to upvote feature request'
+        message: 'Failed to upvote feature request',
       };
     }
   }
@@ -2756,21 +2746,24 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param featureRequestId
    * @param userId
    */
-  async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{success: boolean; message: string; data?: any}> {
+  async removeFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       // Check if feature request exists
       const featureRequestResult = await db
         .select()
         .from(schema.featureRequests)
         .where(eq(schema.featureRequests.id, featureRequestId));
-      
+
       if (featureRequestResult.length === 0) {
         return {
           success: false,
-          message: 'Feature request not found'
+          message: 'Feature request not found',
         };
       }
-      
+
       // Find and remove the upvote
       const removedUpvote = await db
         .delete(schema.featureRequestUpvotes)
@@ -2781,14 +2774,14 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
         )
         .returning();
-      
+
       if (removedUpvote.length === 0) {
         return {
           success: false,
-          message: 'You have not upvoted this feature request'
+          message: 'You have not upvoted this feature request',
         };
       }
-      
+
       // Update the upvote count on the feature request
       const updatedFeatureRequest = await db
         .update(schema.featureRequests)
@@ -2798,22 +2791,22 @@ export class OptimizedDatabaseStorage implements IStorage {
         })
         .where(eq(schema.featureRequests.id, featureRequestId))
         .returning();
-      
+
       // Invalidate cache
       queryCache.invalidate('feature_requests');
       queryCache.invalidate('feature_request_upvotes');
-      
+
       return {
         success: true,
         message: 'Upvote removed successfully',
         data: {
-          featureRequest: updatedFeatureRequest[0]
-        }
+          featureRequest: updatedFeatureRequest[0],
+        },
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to remove upvote'
+        message: 'Failed to remove upvote',
       };
     }
   }

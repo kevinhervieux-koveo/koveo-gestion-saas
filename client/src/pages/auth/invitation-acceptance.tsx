@@ -13,7 +13,7 @@ import { QuebecPrivacyConsentStep } from '@/components/auth/steps/quebec-privacy
 
 /**
  * Invitation Acceptance Page.
- * 
+ *
  * Multi-step registration flow for users accepting invitations.
  * Implements Quebec Law 25 compliance and secure password creation.
  */
@@ -28,8 +28,8 @@ export default function InvitationAcceptancePage() {
   const wizardSteps: WizardStep[] = [
     {
       id: 'token-validation',
-      title: 'Validation de l\'invitation',
-      description: 'Vérification de votre lien d\'invitation et des détails associés',
+      title: "Validation de l'invitation",
+      description: "Vérification de votre lien d'invitation et des détails associés",
       component: TokenValidationStep,
       isComplete: false,
       isValid: false,
@@ -64,29 +64,29 @@ export default function InvitationAcceptancePage() {
   const handleWizardComplete = useCallback(async (wizardData: unknown) => {
     try {
       setError(null);
-      
+
       // Extract data from wizard steps
       const tokenData = wizardData['token-validation'] || {};
       const passwordData = wizardData['password-creation'] || {};
       const profileData = wizardData['profile-completion'] || {};
       const privacyData = wizardData['quebec-privacy-consent'] || {};
-      
+
       if (!tokenData.token) {
         throw new Error('Token manquant');
       }
-      
+
       if (!passwordData.password) {
         throw new Error('Mot de passe requis');
       }
-      
+
       if (!profileData.firstName || !profileData.lastName) {
         throw new Error('Nom et prénom requis');
       }
-      
+
       if (!privacyData.dataCollectionConsent || !privacyData.acknowledgedRights) {
         throw new Error('Consentements obligatoires requis');
       }
-      
+
       // Accept the invitation with all collected data
       const response = await fetch(`/api/invitations/accept/${tokenData.token}`, {
         method: 'POST',
@@ -109,19 +109,20 @@ export default function InvitationAcceptancePage() {
           consentDate: privacyData.consentDate,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erreur lors de la création du compte');
       }
-      
+
       const result = await response.json();
       setCompletedUser(result.user);
       setIsCompleted(true);
-      
     } catch (_error: unknown) {
       console.error('Error completing registration:', _error);
-      setError((_error as Error).message || 'Une erreur est survenue lors de la création de votre compte');
+      setError(
+        (_error as Error).message || 'Une erreur est survenue lors de la création de votre compte'
+      );
     }
   }, []);
 
@@ -138,48 +139,50 @@ export default function InvitationAcceptancePage() {
   // Success screen after completion
   if (isCompleted && completedUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl shadow-xl border-0">
-          <CardContent className="p-8 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4'>
+        <Card className='w-full max-w-2xl shadow-xl border-0'>
+          <CardContent className='p-8 text-center'>
+            <CheckCircle className='h-16 w-16 text-green-500 mx-auto mb-6' />
+
+            <h1 className='text-3xl font-bold text-gray-900 mb-4'>
               🎉 Inscription terminée avec succès!
             </h1>
-            
-            <p className="text-lg text-gray-600 mb-6">
-              Bienvenue {completedUser.firstName} {completedUser.lastName}! 
-              Votre compte a été créé avec succès.
+
+            <p className='text-lg text-gray-600 mb-6'>
+              Bienvenue {completedUser.firstName} {completedUser.lastName}! Votre compte a été créé
+              avec succès.
             </p>
-            
-            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
-              <h3 className="text-sm font-medium text-green-900 mb-2">
+
+            <div className='bg-green-50 border border-green-200 p-4 rounded-lg mb-6'>
+              <h3 className='text-sm font-medium text-green-900 mb-2'>
                 ✅ Compte créé avec succès
               </h3>
-              <div className="text-sm text-green-800 space-y-1">
+              <div className='text-sm text-green-800 space-y-1'>
                 <p>• Email: {completedUser.email}</p>
                 <p>• Rôle: {completedUser.role}</p>
                 <p>• Langue: {completedUser.language === 'fr' ? 'Français' : 'English'}</p>
               </div>
             </div>
-            
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">
-                🛡️ Conformité Québécoise
-              </h4>
-              <p className="text-xs text-blue-800">
-                Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. 
-                Vous pouvez exercer vos droits à tout moment en contactant notre équipe.
+
+            <div className='bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6'>
+              <h4 className='text-sm font-medium text-blue-900 mb-2'>🛡️ Conformité Québécoise</h4>
+              <p className='text-xs text-blue-800'>
+                Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. Vous
+                pouvez exercer vos droits à tout moment en contactant notre équipe.
               </p>
             </div>
-            
-            <div className="space-y-3">
-              <Button onClick={handleGoToLogin} size="lg" className="w-full sm:w-auto min-w-[200px]">
-                <Home className="w-4 h-4 mr-2" />
+
+            <div className='space-y-3'>
+              <Button
+                onClick={handleGoToLogin}
+                size='lg'
+                className='w-full sm:w-auto min-w-[200px]'
+              >
+                <Home className='w-4 h-4 mr-2' />
                 Accéder à mon compte
               </Button>
-              
-              <p className="text-sm text-gray-500">
+
+              <p className='text-sm text-gray-500'>
                 Vous pouvez maintenant vous connecter avec votre email et mot de passe
               </p>
             </div>
@@ -191,31 +194,29 @@ export default function InvitationAcceptancePage() {
 
   // Main registration wizard
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4'>
+      <div className='w-full max-w-6xl'>
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className='text-center mb-8'>
           <Button
             onClick={handleCancel}
-            variant="ghost"
-            className="absolute top-4 left-4 text-gray-600"
+            variant='ghost'
+            className='absolute top-4 left-4 text-gray-600'
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className='w-4 h-4 mr-2' />
             Retour à l'accueil
           </Button>
-          
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Acceptation d'invitation
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+
+          <h1 className='text-4xl font-bold text-gray-900 mb-4'>Acceptation d'invitation</h1>
+          <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
             Complétez votre inscription pour rejoindre la plateforme Koveo Gestion
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 max-w-4xl mx-auto">
-            <Alert variant="destructive">
+          <div className='mb-6 max-w-4xl mx-auto'>
+            <Alert variant='destructive'>
               <AlertDescription>
                 <strong>Erreur:</strong> {error}
               </AlertDescription>
@@ -228,15 +229,15 @@ export default function InvitationAcceptancePage() {
           steps={wizardSteps}
           onComplete={handleWizardComplete}
           onCancel={handleCancel}
-          title="Création de votre compte"
-          className="bg-transparent"
+          title='Création de votre compte'
+          className='bg-transparent'
         />
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
+        <div className='text-center mt-8 text-sm text-gray-500'>
           <p>
-            En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité 
-            conforme à la Loi 25 du Québec.
+            En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de
+            confidentialité conforme à la Loi 25 du Québec.
           </p>
         </div>
       </div>

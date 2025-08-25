@@ -273,7 +273,9 @@ describe('Budget End-to-End User Workflows', () => {
       expect(screen.getByText('Financial Trends')).toBeInTheDocument();
 
       // Step 9: Check that no special contribution is required (positive cash flow)
-      expect(screen.getByText('No special contribution required - positive cash flow')).toBeInTheDocument();
+      expect(
+        screen.getByText('No special contribution required - positive cash flow')
+      ).toBeInTheDocument();
     });
 
     it('completes bank account management workflow', async () => {
@@ -304,8 +306,8 @@ describe('Budget End-to-End User Workflows', () => {
 
       // Step 3: Update reconciliation note
       const reconciliationNote = screen.getByLabelText('Reconciliation Note');
-      fireEvent.change(reconciliationNote, { 
-        target: { _value: 'Monthly reconciliation for Q1 2024' } 
+      fireEvent.change(reconciliationNote, {
+        target: { _value: 'Monthly reconciliation for Q1 2024' },
       });
 
       // Step 4: Close dialog without saving
@@ -332,11 +334,11 @@ describe('Budget End-to-End User Workflows', () => {
       await waitFor(() => {
         const amountInputs = screen.getAllByPlaceholderText('Amount');
         expect(amountInputs).toHaveLength(4);
-        
+
         // Fill in new requirement
         const newAmountInput = amountInputs[3];
         fireEvent.change(newAmountInput, { target: { _value: '10000' } });
-        
+
         const descriptionInputs = screen.getAllByPlaceholderText(/e\.g\./);
         const newDescriptionInput = descriptionInputs[descriptionInputs.length - 1];
         fireEvent.change(newDescriptionInput, { target: { _value: 'Legal fees reserve' } });
@@ -466,7 +468,9 @@ describe('Budget End-to-End User Workflows', () => {
       // Step 2: Review special contribution breakdown
       await waitFor(() => {
         expect(screen.getByText('Special Contribution Breakdown')).toBeInTheDocument();
-        expect(screen.getByText('Required amount per property based on ownership percentage')).toBeInTheDocument();
+        expect(
+          screen.getByText('Required amount per property based on ownership percentage')
+        ).toBeInTheDocument();
         expect(screen.getByText('Total required:')).toBeInTheDocument();
         expect(screen.getByText('$26,000')).toBeInTheDocument(); // Total contribution needed
       });
@@ -505,8 +509,8 @@ describe('Budget End-to-End User Workflows', () => {
       const manyResidences = Array.from({ length: 25 }, (_, _index) => ({
         id: `res-${index + 1}`,
         building_id: 'building-1',
-        unit_number: `${Math.floor(index / 10) + 1}${String(index % 10 + 1).padStart(2, '0')}`,
-        ownership_percentage: 3.5 + (index * 0.1),
+        unit_number: `${Math.floor(index / 10) + 1}${String((index % 10) + 1).padStart(2, '0')}`,
+        ownership_percentage: 3.5 + index * 0.1,
         floor: Math.floor(index / 10) + 1,
       }));
 
@@ -526,16 +530,19 @@ describe('Budget End-to-End User Workflows', () => {
         if (url.includes('/summary')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              summary: [{
-                year: 2024,
-                month: 1,
-                incomes: [50000],
-                spendings: [75000],
-                incomeTypes: ['monthly_fees'],
-                spendingTypes: ['maintenance_expense'],
-              }],
-            }),
+            json: () =>
+              Promise.resolve({
+                summary: [
+                  {
+                    year: 2024,
+                    month: 1,
+                    incomes: [50000],
+                    spendings: [75000],
+                    incomeTypes: ['monthly_fees'],
+                    spendingTypes: ['maintenance_expense'],
+                  },
+                ],
+              }),
           });
         }
         return Promise.resolve({
@@ -661,7 +668,9 @@ describe('Budget End-to-End User Workflows', () => {
       });
 
       // Step 5: Verify French positive cash flow message
-      expect(screen.getByText('Aucune contribution spéciale requise - flux de trésorerie positif')).toBeInTheDocument();
+      expect(
+        screen.getByText('Aucune contribution spéciale requise - flux de trésorerie positif')
+      ).toBeInTheDocument();
     });
 
     it('switches between English and French during workflow', async () => {
@@ -739,17 +748,17 @@ describe('Budget End-to-End User Workflows', () => {
   describe('Error Recovery Workflows', () => {
     it('handles API errors gracefully and allows user to retry', async () => {
       let apiCallCount = 0;
-      
+
       (global.fetch as jest.Mock).mockImplementation((url: string) => {
         apiCallCount++;
-        
+
         if (url.includes('/api/buildings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve(mockBuildings),
           });
         }
-        
+
         if (url.includes('/summary')) {
           if (apiCallCount <= 2) {
             // Fail first two attempts
@@ -766,7 +775,7 @@ describe('Budget End-to-End User Workflows', () => {
             });
           }
         }
-        
+
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({}),
@@ -795,9 +804,12 @@ describe('Budget End-to-End User Workflows', () => {
       fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
 
       // Step 4: Should eventually succeed on retry
-      await waitFor(() => {
-        expect(screen.getByText('Total Income')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Total Income')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('handles empty data gracefully', async () => {
@@ -835,8 +847,8 @@ describe('Budget End-to-End User Workflows', () => {
         summary: Array.from({ length: 36 }, (_, _index) => ({
           year: 2022 + Math.floor(index / 12),
           month: (index % 12) + 1,
-          incomes: [45000 + (index * 100), 5000 + (index * 10)],
-          spendings: [20000 + (index * 50), 8000 + (index * 20), 5000],
+          incomes: [45000 + index * 100, 5000 + index * 10],
+          spendings: [20000 + index * 50, 8000 + index * 20, 5000],
           incomeTypes: ['monthly_fees', 'parking_fees'],
           spendingTypes: ['maintenance_expense', 'utilities', 'insurance'],
         })),
@@ -846,8 +858,8 @@ describe('Budget End-to-End User Workflows', () => {
       const manyResidences = Array.from({ length: 100 }, (_, _index) => ({
         id: `res-${index + 1}`,
         building_id: 'building-1',
-        unit_number: `${Math.floor(index / 10) + 1}${String(index % 10 + 1).padStart(2, '0')}`,
-        ownership_percentage: 1.0 + (index * 0.01),
+        unit_number: `${Math.floor(index / 10) + 1}${String((index % 10) + 1).padStart(2, '0')}`,
+        ownership_percentage: 1.0 + index * 0.01,
         floor: Math.floor(index / 10) + 1,
       }));
 
@@ -934,10 +946,10 @@ describe('Budget End-to-End User Workflows', () => {
       for (let i = 0; i < 5; i++) {
         fireEvent.change(buildingSelect, { target: { _value: 'building-1' } });
         fireEvent.change(buildingSelect, { target: { _value: 'building-2' } });
-        
+
         const yearlyButton = screen.getByText('Yearly');
         const monthlyButton = screen.getByText('Monthly');
-        
+
         fireEvent.click(monthlyButton);
         fireEvent.click(yearlyButton);
       }

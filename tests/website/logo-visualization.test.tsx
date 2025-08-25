@@ -18,10 +18,10 @@ import LoginPage from '@/pages/auth/login';
 
 /**
  * Logo Visualization Tests for Koveo Gestion.
- * 
+ *
  * Tests logo presentation across the application including:
  * - Logo presence and visibility on all pages
- * - Responsive logo behavior for different screen sizes  
+ * - Responsive logo behavior for different screen sizes
  * - Logo accessibility attributes
  * - Small screen logo optimization.
  */
@@ -31,13 +31,13 @@ import LoginPage from '@/pages/auth/login';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
-  * @returns Function result.
-*/
-function TestProviders({ 
-  children, 
-  initialLocation = '/' 
-}: { 
-  children: React.ReactNode; 
+ * @returns Function result.
+ */
+function TestProviders({
+  children,
+  initialLocation = '/',
+}: {
+  children: React.ReactNode;
   initialLocation?: string;
 }) {
   const queryClient = new QueryClient({
@@ -51,9 +51,7 @@ function TestProviders({
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialLocation]}>
         <LanguageProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -64,7 +62,7 @@ function TestProviders({
 const mockMatchMedia = (matches: boolean) => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    _value: jest.fn().mockImplementation(query => ({
+    _value: jest.fn().mockImplementation((query) => ({
       matches,
       media: query,
       onchange: null,
@@ -85,11 +83,11 @@ const mockMatchMedia = (matches: boolean) => {
 function findKoveoLogo(container: HTMLElement): HTMLImageElement | null {
   // Look for images with Koveo in alt text or src containing logo
   const images = container.querySelectorAll('img') as NodeListOf<HTMLImageElement>;
-  
+
   for (const img of images) {
     const alt = img.getAttribute('alt') || '';
     const src = img.getAttribute('src') || '';
-    
+
     if (alt.match(/koveo|gestion/i) || src.includes('logo') || src.includes('koveo')) {
       return img;
     }
@@ -100,7 +98,7 @@ function findKoveoLogo(container: HTMLElement): HTMLImageElement | null {
 describe('Logo Visualization Tests', () => {
   beforeEach(() => {
     mockMatchMedia(false); // Default to desktop
-    
+
     // Mock image loading to prevent console warnings
     Object.defineProperty(Image.prototype, 'src', {
       set() {
@@ -133,21 +131,21 @@ describe('Logo Visualization Tests', () => {
         );
 
         const logoImg = findKoveoLogo(container);
-        
+
         expect(logoImg).toBeTruthy();
-        
+
         if (logoImg) {
           // Validate logo has required attributes
           expect(logoImg).toHaveAttribute('src');
           expect(logoImg).toHaveAttribute('alt');
-          
+
           const altText = logoImg.getAttribute('alt');
           expect(altText).toMatch(/koveo|gestion/i);
-          
+
           // Check if logo has proper sizing classes
           expect(logoImg.className).toMatch(/h-\d+/);
           expect(logoImg.className).toMatch(/w-\d+/);
-          
+
           // Should have proper object-fit for image scaling
           expect(logoImg.className).toMatch(/object-(cover|contain|fill)/);
         }
@@ -166,7 +164,7 @@ describe('Logo Visualization Tests', () => {
         if (logoImg) {
           // Check if logo is wrapped in a link
           const logoLink = logoImg.closest('a');
-          
+
           if (logoLink) {
             // Should be a proper navigation link
             expect(logoLink).toHaveAttribute('href');
@@ -180,33 +178,33 @@ describe('Logo Visualization Tests', () => {
 
   describe('Logo Responsive Behavior', () => {
     const responsiveTests = [
-      { 
+      {
         name: 'Small Mobile',
-        width: 320, 
-        height: 568, 
+        width: 320,
+        height: 568,
         expectSmallLogo: true,
-        description: 'should use compact logo sizing for small mobile devices'
+        description: 'should use compact logo sizing for small mobile devices',
       },
-      { 
-        name: 'Mobile', 
-        width: 375, 
-        height: 667, 
+      {
+        name: 'Mobile',
+        width: 375,
+        height: 667,
         expectSmallLogo: true,
-        description: 'should use compact logo sizing for mobile devices'
+        description: 'should use compact logo sizing for mobile devices',
       },
-      { 
-        name: 'Tablet', 
-        width: 768, 
-        height: 1024, 
+      {
+        name: 'Tablet',
+        width: 768,
+        height: 1024,
         expectSmallLogo: false,
-        description: 'should use standard logo sizing for tablets'
+        description: 'should use standard logo sizing for tablets',
       },
-      { 
-        name: 'Desktop', 
-        width: 1024, 
-        height: 768, 
+      {
+        name: 'Desktop',
+        width: 1024,
+        height: 768,
         expectSmallLogo: false,
-        description: 'should use standard logo sizing for desktop'
+        description: 'should use standard logo sizing for desktop',
       },
     ];
 
@@ -217,59 +215,61 @@ describe('Logo Visualization Tests', () => {
     ];
 
     testPages.forEach(({ component: PageComponent, name: pageName }) => {
-      responsiveTests.forEach(({ name: screenName, width, height, expectSmallLogo, description }) => {
-        it(`${description} on ${pageName} page (${screenName} - ${width}x${height})`, () => {
-          // Mock window dimensions
-          Object.defineProperty(window, 'innerWidth', {
-            writable: true,
-            configurable: true,
-            _value: width,
-          });
-          Object.defineProperty(window, 'innerHeight', {
-            writable: true,
-            configurable: true,
-            _value: height,
-          });
+      responsiveTests.forEach(
+        ({ name: screenName, width, height, expectSmallLogo, description }) => {
+          it(`${description} on ${pageName} page (${screenName} - ${width}x${height})`, () => {
+            // Mock window dimensions
+            Object.defineProperty(window, 'innerWidth', {
+              writable: true,
+              configurable: true,
+              _value: width,
+            });
+            Object.defineProperty(window, 'innerHeight', {
+              writable: true,
+              configurable: true,
+              _value: height,
+            });
 
-          // Mock media query for mobile detection
-          mockMatchMedia(expectSmallLogo);
+            // Mock media query for mobile detection
+            mockMatchMedia(expectSmallLogo);
 
-          const { container } = render(
-            <TestProviders>
-              <PageComponent />
-            </TestProviders>
-          );
+            const { container } = render(
+              <TestProviders>
+                <PageComponent />
+              </TestProviders>
+            );
 
-          const logoImg = findKoveoLogo(container);
-          expect(logoImg).toBeTruthy();
+            const logoImg = findKoveoLogo(container);
+            expect(logoImg).toBeTruthy();
 
-          if (logoImg) {
-            const classNames = logoImg.className;
-            
-            // Extract height class (e.g., h-8, h-10, h-12)
-            const heightMatch = classNames.match(/h-(\d+)/);
-            const heightValue = heightMatch ? parseInt(heightMatch[1]) : 0;
+            if (logoImg) {
+              const classNames = logoImg.className;
 
-            if (expectSmallLogo) {
-              // Small screens should use compact logo sizes (h-10 or smaller)
-              expect(heightValue).toBeLessThanOrEqual(10);
-              
-              // Should not use very large logo sizes on small screens
-              expect(classNames).not.toContain('h-16');
-              expect(classNames).not.toContain('h-20');
-              expect(classNames).not.toContain('h-24');
-            } else {
-              // Larger screens can use bigger logos, but should still be reasonable
-              expect(heightValue).toBeGreaterThan(0);
-              expect(heightValue).toBeLessThanOrEqual(20); // Maximum reasonable size
+              // Extract height class (e.g., h-8, h-10, h-12)
+              const heightMatch = classNames.match(/h-(\d+)/);
+              const heightValue = heightMatch ? parseInt(heightMatch[1]) : 0;
+
+              if (expectSmallLogo) {
+                // Small screens should use compact logo sizes (h-10 or smaller)
+                expect(heightValue).toBeLessThanOrEqual(10);
+
+                // Should not use very large logo sizes on small screens
+                expect(classNames).not.toContain('h-16');
+                expect(classNames).not.toContain('h-20');
+                expect(classNames).not.toContain('h-24');
+              } else {
+                // Larger screens can use bigger logos, but should still be reasonable
+                expect(heightValue).toBeGreaterThan(0);
+                expect(heightValue).toBeLessThanOrEqual(20); // Maximum reasonable size
+              }
+
+              // All logos should have both height and width classes
+              expect(classNames).toMatch(/h-\d+/);
+              expect(classNames).toMatch(/w-\d+/);
             }
-
-            // All logos should have both height and width classes
-            expect(classNames).toMatch(/h-\d+/);
-            expect(classNames).toMatch(/w-\d+/);
-          }
-        });
-      });
+          });
+        }
+      );
     });
   });
 
@@ -316,7 +316,7 @@ describe('Logo Visualization Tests', () => {
 
       if (logoImg) {
         const logoLink = logoImg.closest('a');
-        
+
         if (logoLink) {
           // Should be focusable
           logoLink.focus();
@@ -325,7 +325,7 @@ describe('Logo Visualization Tests', () => {
           // Should respond to keyboard events
           fireEvent.keyDown(logoLink, { _key: 'Enter' });
           fireEvent.keyDown(logoLink, { _key: ' ' });
-          
+
           // Should not throw errors
           expect(logoLink).toBeInTheDocument();
         }
@@ -336,7 +336,7 @@ describe('Logo Visualization Tests', () => {
       const pages = [HomePage, FeaturesPage, SecurityPage];
       const logoData: Array<{ alt: string; src: string; className: string }> = [];
 
-      pages.forEach(PageComponent => {
+      pages.forEach((PageComponent) => {
         const { container } = render(
           <TestProviders>
             <PageComponent />
@@ -344,12 +344,12 @@ describe('Logo Visualization Tests', () => {
         );
 
         const logoImg = findKoveoLogo(container);
-        
+
         if (logoImg) {
           logoData.push({
             alt: logoImg.getAttribute('alt') || '',
             src: logoImg.getAttribute('src') || '',
-            className: logoImg.className
+            className: logoImg.className,
           });
         }
 
@@ -358,7 +358,7 @@ describe('Logo Visualization Tests', () => {
       });
 
       // All logos should reference Koveo
-      logoData.forEach(logo => {
+      logoData.forEach((logo) => {
         expect(logo.alt).toMatch(/koveo|gestion/i);
         expect(logo.src).toBeTruthy();
         expect(logo.className).toMatch(/h-\d+.*w-\d+/);
@@ -397,7 +397,7 @@ describe('Logo Visualization Tests', () => {
 
       if (logoImg) {
         const classNames = logoImg.className;
-        
+
         // Extract height for mobile validation
         const heightMatch = classNames.match(/h-(\d+)/);
         const heightValue = heightMatch ? parseInt(heightMatch[1]) : 0;
@@ -426,11 +426,11 @@ describe('Logo Visualization Tests', () => {
 
       if (logoImg) {
         const logoLink = logoImg.closest('a');
-        
+
         if (logoLink) {
           // Should be large enough for touch interaction
           // Check if parent has padding or if logo itself is reasonably sized
-          const hasProperTouchSize = 
+          const hasProperTouchSize =
             logoLink.className.includes('p-') ||
             logoImg.className.includes('h-8') ||
             logoImg.className.includes('h-10') ||
@@ -441,7 +441,7 @@ describe('Logo Visualization Tests', () => {
           // Should respond to touch events
           fireEvent.touchStart(logoLink);
           fireEvent.touchEnd(logoLink);
-          
+
           expect(logoLink).toBeInTheDocument();
         }
       }
@@ -476,7 +476,7 @@ describe('Logo Visualization Tests', () => {
 
     it('should provide meaningful fallback if logo fails', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       const { container } = render(
         <TestProviders>
           <HomePage />
@@ -488,12 +488,12 @@ describe('Logo Visualization Tests', () => {
       if (logoImg) {
         // Simulate image error
         fireEvent.error(logoImg);
-        
+
         // Should still have alt text for fallback
         expect(logoImg).toHaveAttribute('alt');
         const altText = logoImg.getAttribute('alt');
         expect(altText).toMatch(/koveo|gestion/i);
-        
+
         // Should not crash the application
         expect(logoImg).toBeInTheDocument();
       }

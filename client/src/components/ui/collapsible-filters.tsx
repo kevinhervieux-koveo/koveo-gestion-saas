@@ -64,7 +64,7 @@ interface CollapsibleFiltersProps {
  * @param defaultExpanded = false - defaultExpanded = false parameter.
  * @param } - } parameter.
  */
-export function  /**
+export function /**
    * Collapsible filters function.
    * @param {
   title - {
@@ -76,7 +76,7 @@ export function  /**
    * @param className = '' - className = '' parameter.
    * @param defaultExpanded = false - defaultExpanded = false parameter.
    * @param } - } parameter.
-   */  /**
+   */ /**
    * Collapsible filters function.
    * @param {
   title - {
@@ -90,7 +90,7 @@ export function  /**
    * @param } - } parameter.
    */
 
- CollapsibleFilters({
+CollapsibleFilters({
   title,
   filters,
   activeFilters = [],
@@ -125,20 +125,24 @@ export function  /**
         {/* Collapsible Filter Toggle */}
         <div className='flex items-center justify-between mb-4'>
           <div className='flex items-center gap-4'>
-            <Button 
-              variant='outline' 
+            <Button
+              variant='outline'
               onClick={() => setFiltersExpanded(!filtersExpanded)}
               className='flex items-center gap-2'
             >
               <Filter className='w-4 h-4' />
               {translations.filters}
-              {filtersExpanded ? <ChevronUp className='w-4 h-4' /> : <ChevronDown className='w-4 h-4' />}
+              {filtersExpanded ? (
+                <ChevronUp className='w-4 h-4' />
+              ) : (
+                <ChevronDown className='w-4 h-4' />
+              )}
             </Button>
-            
+
             {/* Reset Button */}
             {onReset && (
-              <Button 
-                variant='outline' 
+              <Button
+                variant='outline'
                 size='sm'
                 onClick={onReset}
                 className='flex items-center gap-1'
@@ -148,14 +152,17 @@ export function  /**
               </Button>
             )}
           </div>
-          
+
           {/* Active Filters Count */}
           {activeFilters.length > 0 && (
             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
               <span>{translations.activeFilters}</span>
               <div className='flex gap-1'>
                 {activeFilters.map((filter) => (
-                  <span key={filter.id} className='px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs'>
+                  <span
+                    key={filter.id}
+                    className='px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs'
+                  >
                     {filter.displayValue}
                   </span>
                 ))}
@@ -163,19 +170,19 @@ export function  /**
             </div>
           )}
         </div>
-        
+
         {/* Expandable Filter Controls */}
         {filtersExpanded && (
           <div className='space-y-4 border-t pt-4'>
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-              {filters.map((filter) => {  /**
-   * If function.
-   * @param filter.type === 'custom' - filter.type === 'custom' parameter.
-   */  /**
-   * If function.
-   * @param filter.type === 'custom' - filter.type === 'custom' parameter.
-   */
-
+              {filters.map((filter) => {
+                /**
+                 * If function.
+                 * @param filter.type === 'custom' - filter.type === 'custom' parameter.
+                 */ /**
+                 * If function.
+                 * @param filter.type === 'custom' - filter.type === 'custom' parameter.
+                 */
 
                 if (filter.type === 'custom') {
                   return (
@@ -184,16 +191,14 @@ export function  /**
                       {filter.customComponent}
                     </div>
                   );
-                }  /**
-   * If function.
-   * @param filter.type === 'select' - filter.type === 'select' parameter.
-   */  /**
-   * If function.
-   * @param filter.type === 'select' - filter.type === 'select' parameter.
-   */
+                } /**
+                 * If function.
+                 * @param filter.type === 'select' - filter.type === 'select' parameter.
+                 */ /**
+                 * If function.
+                 * @param filter.type === 'select' - filter.type === 'select' parameter.
+                 */
 
-
-                
                 if (filter.type === 'select') {
                   return (
                     <div key={filter.id} className='space-y-2'>
@@ -211,16 +216,14 @@ export function  /**
                       </select>
                     </div>
                   );
-                }  /**
-   * If function.
-   * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
-   */  /**
-   * If function.
-   * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
-   */
+                } /**
+                 * If function.
+                 * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
+                 */ /**
+                 * If function.
+                 * @param filter.type === 'multiselect' - filter.type === 'multiselect' parameter.
+                 */
 
-
-                
                 if (filter.type === 'multiselect') {
                   return (
                     <div key={filter.id} className='space-y-2 col-span-full'>
@@ -231,9 +234,9 @@ export function  /**
                             <span className='text-xs text-muted-foreground'>
                               {filter.value.length} {translations.selected}
                             </span>
-                            <Button 
-                              variant='ghost' 
-                              size='sm' 
+                            <Button
+                              variant='ghost'
+                              size='sm'
                               onClick={() => filter.onChange([])}
                               className='h-6 px-2 text-xs'
                             >
@@ -243,28 +246,37 @@ export function  /**
                           </div>
                         )}
                       </div>
-                      
+
                       <div className='max-h-40 overflow-y-auto border rounded-md p-3'>
                         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2'>
                           {filter.options?.map((option) => (
-                            <label key={option.value} className='flex items-center space-x-2 text-sm hover:bg-muted/50 p-1 rounded cursor-pointer'>
+                            <label
+                              key={option.value}
+                              className='flex items-center space-x-2 text-sm hover:bg-muted/50 p-1 rounded cursor-pointer'
+                            >
                               <input
                                 type='checkbox'
-                                checked={Array.isArray(filter._value) && filter.value.includes(option._value)}
+                                checked={
+                                  Array.isArray(filter._value) &&
+                                  filter.value.includes(option._value)
+                                }
                                 onChange={(e) => {
-                                  const currentValue = Array.isArray(filter._value) ? filter._value : [];  /**
-   * If function.
-   * @param e.target.checked - e.target.checked parameter.
-   */  /**
-   * If function.
-   * @param e.target.checked - e.target.checked parameter.
-   */
-
+                                  const currentValue = Array.isArray(filter._value)
+                                    ? filter._value
+                                    : []; /**
+                                   * If function.
+                                   * @param e.target.checked - e.target.checked parameter.
+                                   */ /**
+                                   * If function.
+                                   * @param e.target.checked - e.target.checked parameter.
+                                   */
 
                                   if (e.target.checked) {
                                     filter.onChange([...currentValue, option.value]);
                                   } else {
-                                    filter.onChange(currentValue.filter((v: unknown) => v !== option._value));
+                                    filter.onChange(
+                                      currentValue.filter((v: unknown) => v !== option._value)
+                                    );
                                   }
                                 }}
                                 className='rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2'
@@ -273,7 +285,7 @@ export function  /**
                             </label>
                           )) || []}
                         </div>
-                        
+
                         {(!filter.options || filter.options.length === 0) && (
                           <div className='text-center py-4 text-sm text-muted-foreground'>
                             {translations.noOptions}

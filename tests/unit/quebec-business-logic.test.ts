@@ -81,8 +81,8 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should validate Quebec property management roles', () => {
       const roles = ['admin', 'manager', 'resident', 'tenant'];
-      
-      roles.forEach(role => {
+
+      roles.forEach((role) => {
         const user = {
           username: 'test.user',
           email: 'test@example.com',
@@ -165,7 +165,7 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should validate Quebec cooperative', () => {
       const cooperative = {
-        name: 'Coopérative d\'habitation du Plateau',
+        name: "Coopérative d'habitation du Plateau",
         type: 'cooperative',
         address: '123 Rue Saint-Denis',
         city: 'Montréal',
@@ -324,7 +324,7 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440100',
         unitNumber: '1205',
         floor: 12,
-        squareFootage: 985.50,
+        squareFootage: 985.5,
         bedrooms: 2,
         bathrooms: 1.5,
         balcony: true,
@@ -348,17 +348,17 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440101',
         unitNumber: '3A',
         floor: 3,
-        squareFootage: 750.00,
+        squareFootage: 750.0,
         bedrooms: 1,
         bathrooms: 1.0,
         balcony: false,
-        monthlyFees: 1250.00, // Rent in Quebec
+        monthlyFees: 1250.0, // Rent in Quebec
       };
 
       const result = insertResidenceSchema.safeParse(rentalUnit);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.monthlyFees).toBe(1250.00);
+        expect(result.data.monthlyFees).toBe(1250.0);
         expect(result.data.balcony).toBe(false);
       }
     });
@@ -368,10 +368,10 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440102',
         unitNumber: 'Unit-5',
         floor: 2,
-        squareFootage: 900.00,
+        squareFootage: 900.0,
         bedrooms: 3,
         bathrooms: 1.0,
-        monthlyFees: 650.00, // Coop fees lower than market rent
+        monthlyFees: 650.0, // Coop fees lower than market rent
       };
 
       const result = insertResidenceSchema.safeParse(coopUnit);
@@ -386,7 +386,7 @@ describe('Quebec Property Management Business Logic', () => {
       const basicUnit = {
         buildingId: '550e8400-e29b-41d4-a716-446655440100',
         unitNumber: 'B-1',
-        squareFootage: 650.00,
+        squareFootage: 650.0,
         bedrooms: 1,
         bathrooms: 1.0,
       };
@@ -413,19 +413,24 @@ describe('Quebec Property Management Business Logic', () => {
 
   describe('Quebec Postal Code Validation', () => {
     const validQuebecPostalCodes = [
-      'G1K 1K1', 'H2X 3L3', 'G1R 4P5', 'H1A 1A1', 'J7Y 2B8', 'G0A 1A0'
+      'G1K 1K1',
+      'H2X 3L3',
+      'G1R 4P5',
+      'H1A 1A1',
+      'J7Y 2B8',
+      'G0A 1A0',
     ];
 
     const invalidPostalCodes = [
       'M5V 1A1', // Toronto
-      'V6B 1A1', // Vancouver  
+      'V6B 1A1', // Vancouver
       'T2P 1A1', // Calgary
       'K1A 0A6', // Ottawa
     ];
 
     // Note: This would be implemented with a custom Zod validator in real schema
     it('should recognize valid Quebec postal codes', () => {
-      validQuebecPostalCodes.forEach(code => {
+      validQuebecPostalCodes.forEach((code) => {
         // Quebec postal codes start with G, H, or J
         const firstLetter = code.charAt(0);
         expect(['G', 'H', 'J']).toContain(firstLetter);
@@ -433,7 +438,7 @@ describe('Quebec Property Management Business Logic', () => {
     });
 
     it('should identify non-Quebec postal codes', () => {
-      invalidPostalCodes.forEach(code => {
+      invalidPostalCodes.forEach((code) => {
         const firstLetter = code.charAt(0);
         expect(['G', 'H', 'J']).not.toContain(firstLetter);
       });
@@ -443,9 +448,9 @@ describe('Quebec Property Management Business Logic', () => {
   describe('Quebec Language Requirements', () => {
     it('should support Quebec French language variations', () => {
       const frenchVariations = ['fr', 'fr-CA', 'fr-QC'];
-      
+
       // In a real implementation, these would be supported language codes
-      frenchVariations.forEach(lang => {
+      frenchVariations.forEach((lang) => {
         expect(lang.startsWith('fr')).toBe(true);
       });
     });
@@ -473,11 +478,11 @@ describe('Quebec Property Management Business Logic', () => {
     it('should validate condo ownership percentages sum constraints', () => {
       // In a real condo, ownership percentages should sum to 100%
       const ownershipPercentages = ['0.0083', '0.0125', '0.0092']; // Sample units
-      
+
       const totalPercentage = ownershipPercentages
-        .map(p => parseFloat(p))
+        .map((p) => parseFloat(p))
         .reduce((sum, current) => sum + current, 0);
-      
+
       expect(totalPercentage).toBeLessThanOrEqual(1.0); // Should not exceed 100%
       expect(totalPercentage).toBeGreaterThan(0); // Should have some ownership
     });
@@ -500,7 +505,7 @@ describe('Quebec Property Management Business Logic', () => {
 
         const result = insertResidenceSchema.safeParse(testUnit);
         expect(result.success).toBe(true);
-        
+
         const sqFt = parseFloat(testUnit.squareFootage);
         expect(sqFt).toBeGreaterThanOrEqual(minSqFt);
         expect(sqFt).toBeLessThanOrEqual(maxSqFt);
@@ -523,7 +528,7 @@ describe('Quebec Property Management Business Logic', () => {
 
       const result = insertBuildingSchema.safeParse(historicBuilding);
       expect(result.success).toBe(true);
-      
+
       if (result.success && result.data.yearBuilt) {
         expect(result.data.yearBuilt).toBeLessThan(currentYear);
         expect(result.data.yearBuilt).toBeGreaterThan(1600); // Reasonable historical limit

@@ -51,40 +51,39 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
     return componentCache.get(_key) as LazyExoticComponent<T>;
   }
 
-  const {
-    preloadDelay = 0,
-    retryAttempts = 3,
-    enableMemoryCleanup = true
-  } = _options;
+  const { preloadDelay = 0, retryAttempts = 3, enableMemoryCleanup = true } = _options;
 
   // Create lazy component with retry logic
   const LazyComponent = lazy(async () => {
     let attempts = 0;
-    
+
     while (attempts < retryAttempts) {
       try {
         const module = await importFn();
-        
+
         // Register cleanup if enabled
         if (enableMemoryCleanup) {
           memoryOptimizer.registerCleanup(() => {
             componentCache.delete(_key);
           });
         }
-        
+
         return module;
       } catch (_error) {
         attempts++;
         if (attempts >= retryAttempts) {
-          console.error(`Failed to load component ${_key} after ${retryAttempts} attempts:`, _error);
+          console.error(
+            `Failed to load component ${_key} after ${retryAttempts} attempts:`,
+            _error
+          );
           throw _error;
         }
-        
+
         // Wait before retry with exponential backoff
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts) * 1000));
       }
     }
-    
+
     throw new Error(`Failed to load component ${_key}`);
   });
 
@@ -148,7 +147,7 @@ export function preloadComponent(
  */
 export function clearComponentCache(keys?: string[]): void {
   if (keys) {
-    keys.forEach(key => componentCache.delete(key));
+    keys.forEach((key) => componentCache.delete(key));
   } else {
     componentCache.clear();
   }
@@ -175,18 +174,16 @@ export const optimizedPageLoaders = {
     'admin-organizations',
     { enableMemoryCleanup: true }
   ),
-  AdminRoadmap: createOptimizedLoader(
-    () => import('@/pages/admin/roadmap'),
-    'admin-roadmap',
-    { preloadDelay: 3000, enableMemoryCleanup: true }
-  ),
-  AdminQuality: createOptimizedLoader(
-    () => import('@/pages/admin/quality'),
-    'admin-quality',
-    { preloadDelay: 5000, enableMemoryCleanup: true }
-  ),
-  
-  // Manager pages  
+  AdminRoadmap: createOptimizedLoader(() => import('@/pages/admin/roadmap'), 'admin-roadmap', {
+    preloadDelay: 3000,
+    enableMemoryCleanup: true,
+  }),
+  AdminQuality: createOptimizedLoader(() => import('@/pages/admin/quality'), 'admin-quality', {
+    preloadDelay: 5000,
+    enableMemoryCleanup: true,
+  }),
+
+  // Manager pages
   ManagerBuildings: createOptimizedLoader(
     () => import('@/pages/manager/buildings'),
     'manager-buildings',
@@ -197,7 +194,7 @@ export const optimizedPageLoaders = {
     'manager-residences',
     { enableMemoryCleanup: true }
   ),
-  
+
   // Residents pages
   ResidentsDashboard: createOptimizedLoader(
     () => import('@/pages/residents/dashboard'),

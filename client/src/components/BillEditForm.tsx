@@ -28,7 +28,7 @@ const billFormSchema = z.object({
   description: z.string().optional(),
   category: z.enum([
     'insurance',
-    'maintenance', 
+    'maintenance',
     'salary',
     'utilities',
     'cleaning',
@@ -41,7 +41,7 @@ const billFormSchema = z.object({
     'taxes',
     'technology',
     'reserves',
-    'other'
+    'other',
   ]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
@@ -85,13 +85,13 @@ const billFormSchema = z.object({
  * @param props.onCancel - Callback function called when operation is cancelled.
  * @returns JSX element.
  */
-export function BillEditForm({ 
-  bill, 
-  onSuccess, 
-  onCancel 
-}: { 
-  bill: Bill; 
-  onSuccess: () => void; 
+export function BillEditForm({
+  bill,
+  onSuccess,
+  onCancel,
+}: {
+  bill: Bill;
+  onSuccess: () => void;
   onCancel: () => void;
 }) {
   const form = useForm<z.infer<typeof billFormSchema>>({
@@ -108,7 +108,7 @@ export function BillEditForm({
       endDate: bill.endDate || '',
       status: bill.status,
       notes: bill.notes || '',
-    }
+    },
   });
 
   const queryClient = useQueryClient();
@@ -123,28 +123,26 @@ export function BillEditForm({
         credentials: 'include',
         body: JSON.stringify({
           ...updates,
-          costs: [updates.totalAmount] // Single cost for now
-        })
+          costs: [updates.totalAmount], // Single cost for now
+        }),
       }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-
-      
       if (!response.ok) {
         throw new Error('Failed to update bill');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       onSuccess();
-    }
+    },
   });
 
   const onSubmit = (values: z.infer<typeof billFormSchema>) => {
@@ -380,10 +378,7 @@ export function BillEditForm({
           <Button type='button' variant='outline' onClick={onCancel}>
             Cancel
           </Button>
-          <Button 
-            type='submit' 
-            disabled={updateBillMutation.isPending}
-          >
+          <Button type='submit' disabled={updateBillMutation.isPending}>
             {updateBillMutation.isPending ? 'Updating...' : 'Update Bill'}
           </Button>
         </div>

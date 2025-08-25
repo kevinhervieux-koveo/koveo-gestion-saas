@@ -1,9 +1,9 @@
 /**
  * Koveo Gestion Database Schema.
- * 
+ *
  * This is the main schema file that re-exports all domain-specific schemas.
  * The schemas are organized by domain for better maintainability:
- * 
+ *
  * - core: Users, organizations, invitations, and authentication
  * - property: Buildings, residences, and user-residence relationships
  * - financial: Bills, budgets, and financial management
@@ -108,10 +108,7 @@ export type {
   InsertMetricPrediction,
 } from './schemas/monitoring';
 
-export type {
-  SslCertificate,
-  InsertSslCertificate,
-} from './schemas/infrastructure';
+export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
 export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';

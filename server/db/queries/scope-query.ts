@@ -1,16 +1,16 @@
 import { sql, eq, and, inArray, or } from 'drizzle-orm';
 import type { PgSelect, PgSelectQueryBuilderHKT } from 'drizzle-orm/pg-core';
-import { 
-  users, 
-  organizations, 
-  buildings, 
-  residences, 
+import {
+  users,
+  organizations,
+  buildings,
+  residences,
   userResidences,
   bills,
   maintenanceRequests,
   budgets,
   documents,
-  notifications
+  notifications,
 } from '@shared/schema';
 import { db } from '../../db';
 
@@ -38,16 +38,16 @@ export interface UserContext {
 export const SCOPE_CONFIG = {
   // No scoping needed for these entities - they're system-wide
   SYSTEM_ENTITIES: ['users', 'organizations'] as const,
-  
+
   // Building-level entities require building access
   BUILDING_ENTITIES: ['buildings', 'budgets'] as const,
-  
+
   // Residence-level entities require residence access
   RESIDENCE_ENTITIES: ['residences', 'bills', 'maintenanceRequests'] as const,
-  
+
   // User-specific entities
   USER_ENTITIES: ['notifications'] as const,
-  
+
   // Multi-level entities that can be scoped at different levels
   MULTI_LEVEL_ENTITIES: ['documents'] as const,
 } as const;
@@ -75,15 +75,12 @@ export async function getUserAccessibleResidenceIds(userContext: UserContext): P
   const userResidenceQuery = db
     .select({ residenceId: userResidences.residenceId })
     .from(userResidences)
-    .where(
-      and(
-        eq(userResidences.userId, userId),
-        eq(userResidences.isActive, true)
-      )
-    );
+    .where(and(eq(userResidences.userId, userId), eq(userResidences.isActive, true)));
 
   const userResidenceRecords = await userResidenceQuery;
-  let accessibleResidenceIds = userResidenceRecords.map((ur: { residenceId: string }) => ur.residenceId);
+  let accessibleResidenceIds = userResidenceRecords.map(
+    (ur: { residenceId: string }) => ur.residenceId
+  );
 
   // Managers might have additional access through building management
   if (role === 'manager' && userContext.buildingIds?.length) {
@@ -91,9 +88,11 @@ export async function getUserAccessibleResidenceIds(userContext: UserContext): P
       .select({ id: residences.id })
       .from(residences)
       .where(inArray(residences.buildingId, userContext.buildingIds));
-    
+
     const managedResidenceIds = managedBuildingResidences.map((r: { id: string }) => r.id);
-    accessibleResidenceIds = Array.from(new Set([...accessibleResidenceIds, ...managedResidenceIds]));
+    accessibleResidenceIds = Array.from(
+      new Set([...accessibleResidenceIds, ...managedResidenceIds])
+    );
   }
 
   return accessibleResidenceIds;
@@ -125,7 +124,7 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
 
   // Otherwise, get buildings through user's residences
   const accessibleResidenceIds = await getUserAccessibleResidenceIds(userContext);
-  
+
   if (accessibleResidenceIds.length === 0) {
     return [];
   }
@@ -141,12 +140,12 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
 /**
  * Main scope query function that applies role-based filtering to Drizzle queries.
  * This function adds appropriate WHERE clauses based on the user's role and associated entities.
- * 
+ *
  * @param query - The base Drizzle query to scope.
  * @param userContext - User context containing role and entity associations.
  * @param entityType - Type of entity being queried for appropriate scoping logic.
  * @returns The scoped query with added WHERE clauses.
- * 
+ *
  * @example
  * ```typescript
  * // Scope a bills query for a tenant
@@ -155,12 +154,12 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
  *   { userId: 'user-123', role: 'tenant' },
  *   'bills'
  * );
- * 
+ *
  * // Scope a buildings query for a manager
  * const scopedBuildingsQuery = await scopeQuery(
  *   db.select().from(buildings),
- *   { 
- *     userId: 'manager-456', 
+ *   {
+ *     userId: 'manager-456',
  *     role: 'manager',
  *     organizationIds: ['org-1', 'org-2']
  *   },
@@ -229,7 +228,7 @@ export async function scopeQuery<T extends PgSelect>(
       if (maintenanceResidenceIds.length === 0) {
         return query.where(sql`false`) as T; // No access
       }
-      
+
       // Tenants can only see their own maintenance requests
       if (role === 'tenant') {
         return query.where(
@@ -239,7 +238,7 @@ export async function scopeQuery<T extends PgSelect>(
           )
         ) as T;
       }
-      
+
       return query.where(inArray(maintenanceRequests.residenceId, maintenanceResidenceIds)) as T;
 
     case 'budgets':
@@ -267,7 +266,7 @@ export async function scopeQuery<T extends PgSelect>(
 /**
  * Helper function to build user context from session data.
  * This should be called at the beginning of API routes to establish the user's scope.
- * 
+ *
  * @param userId - User ID from authentication.
  * @param userRole - User role from session/database.
  * @returns Promise resolving to UserContext with populated associations.
@@ -280,7 +279,7 @@ export async function scopeQuery<T extends PgSelect>(
  */
 export async function buildUserContext(userId: string, userRole: string): Promise<UserContext> {
   const role = userRole as UserContext['role'];
-  
+
   const userContext: UserContext = {
     userId,
     role,
@@ -290,24 +289,25 @@ export async function buildUserContext(userId: string, userRole: string): Promis
   if (role !== 'admin') {
     // Get user's residences
     const userResidenceRecords = await db
-      .select({ 
+      .select({
         residenceId: userResidences.residenceId,
         buildingId: residences.buildingId,
-        organizationId: buildings.organizationId
+        organizationId: buildings.organizationId,
       })
       .from(userResidences)
       .innerJoin(residences, eq(userResidences.residenceId, residences.id))
       .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-      .where(
-        and(
-          eq(userResidences.userId, userId),
-          eq(userResidences.isActive, true)
-        )
-      );
+      .where(and(eq(userResidences.userId, userId), eq(userResidences.isActive, true)));
 
-    userContext.residenceIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.residenceId)));
-    userContext.buildingIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.buildingId)));
-    userContext.organizationIds = Array.from(new Set(userResidenceRecords.map((ur: unknown) => ur.organizationId)));
+    userContext.residenceIds = Array.from(
+      new Set(userResidenceRecords.map((ur: unknown) => ur.residenceId))
+    );
+    userContext.buildingIds = Array.from(
+      new Set(userResidenceRecords.map((ur: unknown) => ur.buildingId))
+    );
+    userContext.organizationIds = Array.from(
+      new Set(userResidenceRecords.map((ur: unknown) => ur.organizationId))
+    );
   }
 
   return userContext;

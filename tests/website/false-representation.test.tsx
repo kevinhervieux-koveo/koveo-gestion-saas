@@ -8,7 +8,7 @@ import HomePage from '@/pages/home';
 
 /**
  * False Representation Prevention Tests.
- * 
+ *
  * Tests to ensure the website does not make false claims or misrepresent
  * the platform's capabilities, ensuring accuracy and honesty in all content.
  */
@@ -17,8 +17,8 @@ import HomePage from '@/pages/home';
  *
  * @param root0
  * @param root0.children
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 function WebsiteTestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -31,9 +31,7 @@ function WebsiteTestProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         <LanguageProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -50,7 +48,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not promise unimplemented features
       expect(pageContent).not.toMatch(/AI.*powered|artificial.*intelligence/i);
       expect(pageContent).not.toMatch(/machine.*learning|predictive.*analytics/i);
@@ -67,13 +65,13 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should describe actual implemented features
       expect(pageContent).toMatch(/building.*management/i);
       expect(pageContent).toMatch(/resident.*portal/i);
       expect(pageContent).toMatch(/financial.*reporting/i);
       expect(pageContent).toMatch(/Quebec.*compliance/i);
-      
+
       // Should not use future tense for current features
       expect(pageContent).not.toMatch(/will.*provide|coming.*soon|future.*updates/i);
     });
@@ -86,7 +84,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should be accurate about security
       expect(pageContent).toMatch(/enterprise.*grade.*security/i);
       expect(pageContent).not.toMatch(/unhackable|100%.*secure|military.*grade/i);
@@ -103,7 +101,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not claim specific metrics without proof
       expect(pageContent).not.toMatch(/99\.9%.*uptime/i);
       expect(pageContent).not.toMatch(/fastest.*platform/i);
@@ -120,7 +118,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should mention reliability without false specifics
       expect(pageContent).toMatch(/automatic.*backups/i);
       expect(pageContent).not.toMatch(/24\/7.*guaranteed/i); // Unless actually guaranteed
@@ -137,7 +135,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not claim market position without proof
       expect(pageContent).not.toMatch(/#1.*provider|number.*one/i);
       expect(pageContent).not.toMatch(/industry.*leader|market.*leader/i);
@@ -154,7 +152,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should accurately represent coverage area
       expect(pageContent).toMatch(/Quebec/i);
       expect(pageContent).not.toMatch(/across.*Canada|nationwide/i); // Unless actually nationwide
@@ -169,7 +167,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should only mention actual partnerships/certifications
       expect(pageContent).not.toMatch(/Microsoft.*partner|Google.*certified/i); // Unless actually partnered
       expect(pageContent).not.toMatch(/ISO.*certified|SOC.*compliant/i); // Unless actually certified
@@ -186,7 +184,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should accurately claim Quebec Law 25 compliance
       expect(pageContent).toMatch(/Quebec Law 25.*compliant/i);
       expect(pageContent).not.toMatch(/GDPR.*compliant/i); // Different jurisdiction
@@ -201,7 +199,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not make absolute legal promises
       expect(pageContent).not.toMatch(/guarantee.*compliance/i);
       expect(pageContent).not.toMatch(/legally.*protected/i);
@@ -218,7 +216,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not claim false pricing
       expect(pageContent).not.toMatch(/free.*forever|always.*free/i);
       expect(pageContent).not.toMatch(/lowest.*price.*guaranteed/i);
@@ -234,7 +232,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not promise specific returns
       expect(pageContent).not.toMatch(/save.*\$|reduce.*costs.*by.*%/i);
       expect(pageContent).not.toMatch(/ROI.*guaranteed|return.*on.*investment/i);
@@ -251,7 +249,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should be realistic about user experience
       expect(pageContent).not.toMatch(/no.*training.*required/i);
       expect(pageContent).not.toMatch(/setup.*in.*minutes/i);
@@ -267,7 +265,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should mention support without false promises
       expect(pageContent).toMatch(/support.*team/i);
       expect(pageContent).not.toMatch(/24\/7.*support/i); // Unless actually 24/7
@@ -285,7 +283,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not claim advanced tech without having it
       expect(pageContent).not.toMatch(/powered.*by.*AI/i);
       expect(pageContent).not.toMatch(/machine.*learning.*algorithms/i);
@@ -301,7 +299,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not promise integrations that don't exist
       expect(pageContent).not.toMatch(/integrates.*with.*everything/i);
       expect(pageContent).not.toMatch(/seamless.*integration.*with.*all/i);
@@ -318,7 +316,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not promise instant results
       expect(pageContent).not.toMatch(/up.*and.*running.*in.*minutes/i);
       expect(pageContent).not.toMatch(/instant.*setup/i);
@@ -334,7 +332,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not claim features are available if they're not
       expect(pageContent).not.toMatch(/coming.*soon/i);
       expect(pageContent).not.toMatch(/beta.*version/i);
@@ -352,7 +350,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not use made-up statistics
       expect(pageContent).not.toMatch(/\d+%.*of.*property.*managers.*prefer/i);
       expect(pageContent).not.toMatch(/\d+.*out.*of.*\d+.*customers/i);
@@ -367,7 +365,7 @@ describe('False Representation Prevention Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not make false competitive claims
       expect(pageContent).not.toMatch(/only.*solution.*that/i);
       expect(pageContent).not.toMatch(/unlike.*our.*competitors/i);
@@ -384,16 +382,21 @@ export const ACCURACY_VALIDATORS = {
   technicalClaims: (content: string): string[] => {
     const issues: string[] = [];
     const problematicTerms = [
-      'AI-powered', 'machine learning', 'blockchain', 'quantum',
-      'revolutionary', 'groundbreaking', 'world\'s first'
+      'AI-powered',
+      'machine learning',
+      'blockchain',
+      'quantum',
+      'revolutionary',
+      'groundbreaking',
+      "world's first",
     ];
-    
-    problematicTerms.forEach(term => {
+
+    problematicTerms.forEach((term) => {
       if (content.toLowerCase().includes(term.toLowerCase())) {
         issues.push(`Potentially false technical claim: "${term}"`);
       }
     });
-    
+
     return issues;
   },
 
@@ -403,15 +406,15 @@ export const ACCURACY_VALIDATORS = {
       /\d+%\s*uptime/i,
       /fastest\s*platform/i,
       /zero\s*downtime/i,
-      /instant\s*response/i
+      /instant\s*response/i,
     ];
-    
-    suspiciousPatterns.forEach(pattern => {
+
+    suspiciousPatterns.forEach((pattern) => {
       if (pattern.test(content)) {
         issues.push(`Unsubstantiated performance claim found: ${pattern.source}`);
       }
     });
-    
+
     return issues;
   },
 
@@ -421,17 +424,17 @@ export const ACCURACY_VALIDATORS = {
       /#1\s*provider/i,
       /market\s*leader/i,
       /thousands\s*of\s*customers/i,
-      /award.*winning/i
+      /award.*winning/i,
     ];
-    
-    problematicClaims.forEach(pattern => {
+
+    problematicClaims.forEach((pattern) => {
       if (pattern.test(content)) {
         issues.push(`Unverifiable business claim: ${pattern.source}`);
       }
     });
-    
+
     return issues;
-  }
+  },
 };
 
 /**
@@ -445,11 +448,11 @@ export function validateContentAccuracy(content: string): {
   const allIssues: string[] = [
     ...ACCURACY_VALIDATORS.technicalClaims(content),
     ...ACCURACY_VALIDATORS.performanceClaims(content),
-    ...ACCURACY_VALIDATORS.businessClaims(content)
+    ...ACCURACY_VALIDATORS.businessClaims(content),
   ];
 
   return {
     isAccurate: allIssues.length === 0,
-    issues: allIssues
+    issues: allIssues,
   };
 }

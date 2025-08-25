@@ -24,7 +24,7 @@ export enum SecurityAlertLevel {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 /**
@@ -78,11 +78,11 @@ export class InvitationSecurityMonitor {
       description: alert.description,
       userId: alert.userId,
       ipAddress: alert.ipAddress,
-      metadata: alert.metadata
+      metadata: alert.metadata,
     });
 
     // Execute alert callbacks
-    this.alertCallbacks.forEach(callback => {
+    this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
       } catch (____error) {
@@ -102,10 +102,10 @@ export class InvitationSecurityMonitor {
           alertLevel: alert.level,
           alertType: alert.type,
           description: alert.description,
-          metadata: alert.metadata
+          metadata: alert.metadata,
         },
         previousStatus: null,
-        newStatus: null
+        newStatus: null,
       });
     } catch (____error) {
       console.error('Failed to log security alert:', _error);
@@ -129,16 +129,19 @@ export class InvitationSecurityMonitor {
   ) {
     const key = `${userId}:${action}`;
     const now = Date.now();
-    const windowStart = now - (5 * 60 * 1000); // 5 minutes
+    const windowStart = now - 5 * 60 * 1000; // 5 minutes
 
     // Count recent actions
-    const recentActions = await db.select({ count: sql<number>`count(*)` })
+    const recentActions = await db
+      .select({ count: sql<number>`count(*)` })
       .from(schema.invitationAuditLog)
-      .where(and(
-        eq(schema.invitationAuditLog.performedBy, userId),
-        eq(schema.invitationAuditLog.action, action),
-        gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
-      ));
+      .where(
+        and(
+          eq(schema.invitationAuditLog.performedBy, userId),
+          eq(schema.invitationAuditLog.action, action),
+          gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
+        )
+      );
 
     const actionCount = recentActions[0]?.count || 0;
 
@@ -150,7 +153,7 @@ export class InvitationSecurityMonitor {
         description: `User ${userId} performed ${actionCount} ${action} actions in 5 minutes`,
         userId,
         ipAddress,
-        metadata: { action, count: actionCount, userAgent, ...metadata }
+        metadata: { action, count: actionCount, userAgent, ...metadata },
       });
     }
 
@@ -162,29 +165,32 @@ export class InvitationSecurityMonitor {
         description: `User ${userId} had ${actionCount} failed token validations`,
         userId,
         ipAddress,
-        metadata: { action, count: actionCount, userAgent, ...metadata }
+        metadata: { action, count: actionCount, userAgent, ...metadata },
       });
     }
 
     // Monitor IP-based patterns
     if (ipAddress) {
-      const ipActions = await db.select({ count: sql<number>`count(*)` })
+      const ipActions = await db
+        .select({ count: sql<number>`count(*)` })
         .from(schema.invitationAuditLog)
-        .where(and(
-          eq(schema.invitationAuditLog.ipAddress, ipAddress),
-          eq(schema.invitationAuditLog.action, action),
-          gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
-        ));
+        .where(
+          and(
+            eq(schema.invitationAuditLog.ipAddress, ipAddress),
+            eq(schema.invitationAuditLog.action, action),
+            gte(schema.invitationAuditLog.createdAt, new Date(windowStart))
+          )
+        );
 
       const ipActionCount = ipActions[0]?.count || 0;
-      
+
       if (ipActionCount > 20) {
         await this.triggerAlert({
           level: SecurityAlertLevel.CRITICAL,
           type: 'ip_based_attack',
           description: `IP ${ipAddress} performed ${ipActionCount} ${action} actions in 5 minutes`,
           ipAddress,
-          metadata: { action, count: ipActionCount, userAgent, ...metadata }
+          metadata: { action, count: ipActionCount, userAgent, ...metadata },
         });
       }
     }
@@ -206,14 +212,14 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
   return (req: Request, res: Response, next: NextFunction) => {
     const key = `${req.user?.id || req.ip}:${req.method}:${req.path}`;
     const now = Date.now();
-    
+
     const current = rateLimitStore.get(_key);
-    
+
     if (!current || now > current.resetTime) {
       rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
       return next();
     }
-    
+
     if (current.count >= maxRequests) {
       // Log rate limit exceeded
       InvitationSecurityMonitor.monitorInvitationAccess(
@@ -227,10 +233,10 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
       return res.status(429).json({
         message: 'Rate limit exceeded',
         code: 'RATE_LIMIT_EXCEEDED',
-        retryAfter: Math.ceil((current.resetTime - now) / 1000)
+        retryAfter: Math.ceil((current.resetTime - now) / 1000),
       });
     }
-    
+
     current.count++;
     next();
   };
@@ -269,25 +275,32 @@ export class InvitationPermissionValidator {
     if (inviterRole === 'manager') {
       // Managers can invite resident, manager, tenant (but not admin)
       if (!['resident', 'manager', 'tenant'].includes(targetRole)) {
-        return { valid: false, reason: 'Managers can only invite resident, manager, and tenant roles' };
+        return {
+          valid: false,
+          reason: 'Managers can only invite resident, manager, and tenant roles',
+        };
       }
 
       // Organization validation - managers can only invite within their organization
       if (organizationId) {
         // Check if the inviter belongs to the specified organization
-        const inviterOrganization = await db.select()
+        const inviterOrganization = await db
+          .select()
           .from(schema.users)
           .leftJoin(schema.buildings, eq(schema.buildings.organizationId, organizationId))
           .leftJoin(schema.residences, eq(schema.residences.buildingId, schema.buildings.id))
-          .leftJoin(schema.userResidences, eq(schema.userResidences.residenceId, schema.residences.id))
-          .where(and(
-            eq(schema.users.id, inviterId),
-            eq(schema.userResidences.userId, inviterId)
-          ))
+          .leftJoin(
+            schema.userResidences,
+            eq(schema.userResidences.residenceId, schema.residences.id)
+          )
+          .where(and(eq(schema.users.id, inviterId), eq(schema.userResidences.userId, inviterId)))
           .limit(1);
 
         if (inviterOrganization.length === 0) {
-          return { valid: false, reason: 'Managers can only invite users to their own organization' };
+          return {
+            valid: false,
+            reason: 'Managers can only invite users to their own organization',
+          };
         }
       } else {
         return { valid: false, reason: 'Organization ID is required for manager invitations' };
@@ -314,7 +327,8 @@ export class InvitationPermissionValidator {
     }
 
     // Get invitation details
-    const [invitation] = await db.select()
+    const [invitation] = await db
+      .select()
       .from(schema.invitations)
       .where(eq(schema.invitations.id, invitationId))
       .limit(1);
@@ -363,7 +377,7 @@ export class InvitationPermissionValidator {
       return {
         valid: false,
         reason: `${invalidInvitations.length} invitations violate permission rules`,
-        invalidInvitations
+        invalidInvitations,
       };
     }
 
@@ -409,14 +423,14 @@ export function requireInvitationPermission(
     if (!req.user) {
       return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     }
 
     try {
       // Check basic permission based on role hierarchy
       const hasPermission = hasRoleOrHigher(req.user.role as any, 'manager' as any);
-      
+
       if (!hasPermission) {
         await InvitationSecurityMonitor.triggerAlert({
           level: SecurityAlertLevel.MEDIUM,
@@ -424,14 +438,14 @@ export function requireInvitationPermission(
           description: `User ${req.user.id} (${req.user.role}) attempted unauthorized action: ${action}`,
           userId: req.user.id,
           ipAddress: req.ip,
-          metadata: { action, path: req.path, method: req.method }
+          metadata: { action, path: req.path, method: req.method },
         });
 
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'PERMISSION_DENIED',
           required: action,
-          userRole: req.user.role
+          userRole: req.user.role,
         });
       }
 
@@ -454,12 +468,12 @@ export function requireInvitationPermission(
               description: `User ${req.user.id} violated context permission: ${validation.reason}`,
               userId: req.user.id,
               ipAddress: req.ip,
-              metadata: { action, reason: validation.reason, targetRole: role }
+              metadata: { action, reason: validation.reason, targetRole: role },
             });
 
             return res.status(403).json({
               message: validation.reason || 'Context permission denied',
-              code: 'CONTEXT_PERMISSION_DENIED'
+              code: 'CONTEXT_PERMISSION_DENIED',
             });
           }
         }
@@ -476,7 +490,7 @@ export function requireInvitationPermission(
             return res.status(403).json({
               message: validation.reason || 'Bulk invitation permission denied',
               code: 'BULK_PERMISSION_DENIED',
-              invalidInvitations: validation.invalidInvitations
+              invalidInvitations: validation.invalidInvitations,
             });
           }
         }
@@ -493,7 +507,7 @@ export function requireInvitationPermission(
         if (!validation.valid) {
           return res.status(403).json({
             message: validation.reason || 'Not authorized to manage this invitation',
-            code: 'OWNERSHIP_REQUIRED'
+            code: 'OWNERSHIP_REQUIRED',
           });
         }
       }
@@ -512,7 +526,7 @@ export function requireInvitationPermission(
       console.error('Invitation RBAC _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
-        code: 'RBAC_ERROR'
+        code: 'RBAC_ERROR',
       });
     }
   };
@@ -564,21 +578,23 @@ export async function createEnhancedInvitationAuditLog(
         referrer,
         forwardedFor,
         timestamp: new Date().toISOString(),
-        sessionId: req.sessionID
-      }
+        sessionId: req.sessionID,
+      },
     };
 
     // Create audit log entry
-    await db.insert(schema.invitationAuditLog).values([{
-      invitationId,
-      action,
-      performedBy,
-      ipAddress,
-      userAgent,
-      details: enhancedDetails,
-      previousStatus: previousStatus as any,
-      newStatus: newStatus as any
-    }]);
+    await db.insert(schema.invitationAuditLog).values([
+      {
+        invitationId,
+        action,
+        performedBy,
+        ipAddress,
+        userAgent,
+        details: enhancedDetails,
+        previousStatus: previousStatus as any,
+        newStatus: newStatus as any,
+      },
+    ]);
 
     // Log to console for immediate visibility
     console.warn(`📋 INVITATION AUDIT: ${action}`, {
@@ -587,9 +603,8 @@ export async function createEnhancedInvitationAuditLog(
       ipAddress,
       action,
       previousStatus,
-      newStatus
+      newStatus,
     });
-
   } catch (_error) {
     console.error('Failed to create enhanced audit log:', _error);
   }
@@ -610,14 +625,14 @@ export function withPermissionInheritance(baseAction: string) {
     if (!req.user) {
       return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     }
 
     try {
       // Check if user has direct permission based on role hierarchy
       const hasDirectPermission = hasRoleOrHigher(req.user.role as any, 'manager' as any);
-      
+
       if (hasDirectPermission) {
         return next();
       }
@@ -625,17 +640,23 @@ export function withPermissionInheritance(baseAction: string) {
       // Check for delegated permissions based on organizational context
       if (req.body?.organizationId || req.params.organizationId) {
         const orgId = req.body?.organizationId || req.params.organizationId;
-        
+
         // Check if user has elevated permissions in this organization
-        const userOrgRole = await db.select()
+        const userOrgRole = await db
+          .select()
           .from(schema.users)
           .leftJoin(schema.buildings, eq(schema.buildings.organizationId, orgId))
           .leftJoin(schema.residences, eq(schema.residences.buildingId, schema.buildings.id))
-          .leftJoin(schema.userResidences, eq(schema.userResidences.residenceId, schema.residences.id))
-          .where(and(
-            eq(schema.users.id, req.user.id),
-            eq(schema.userResidences.relationshipType, 'owner')
-          ))
+          .leftJoin(
+            schema.userResidences,
+            eq(schema.userResidences.residenceId, schema.residences.id)
+          )
+          .where(
+            and(
+              eq(schema.users.id, req.user.id),
+              eq(schema.userResidences.relationshipType, 'owner')
+            )
+          )
           .limit(1);
 
         // Owners in an organization get elevated permissions for tenant management
@@ -669,14 +690,13 @@ export function withPermissionInheritance(baseAction: string) {
         message: 'Insufficient permissions',
         code: 'PERMISSION_DENIED',
         required: baseAction,
-        userRole: req.user.role
+        userRole: req.user.role,
       });
-
     } catch (_error) {
       console.error('Permission inheritance _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
-        code: 'INHERITANCE_ERROR'
+        code: 'INHERITANCE_ERROR',
       });
     }
   };

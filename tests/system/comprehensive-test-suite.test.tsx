@@ -1,6 +1,6 @@
 /**
  * Comprehensive Test Suite.
- * 
+ *
  * Validates that all core systems are working properly after dependency fixes
  * and page organization cleanup.
  */
@@ -11,15 +11,9 @@ import { join } from 'path';
 describe('Comprehensive System Validation', () => {
   describe('Core Infrastructure', () => {
     it('should have all essential directories', () => {
-      const essentialDirs = [
-        'client/src',
-        'server',
-        'shared',
-        'tests',
-        'docs'
-      ];
+      const essentialDirs = ['client/src', 'server', 'shared', 'tests', 'docs'];
 
-      essentialDirs.forEach(dir => {
+      essentialDirs.forEach((dir) => {
         expect(existsSync(join(process.cwd(), dir))).toBe(true);
       });
     });
@@ -30,10 +24,10 @@ describe('Comprehensive System Validation', () => {
         'tsconfig.json',
         'jest.config.js',
         'tailwind.config.ts',
-        'vite.config.ts'
+        'vite.config.ts',
       ];
 
-      configFiles.forEach(file => {
+      configFiles.forEach((file) => {
         expect(existsSync(join(process.cwd(), file))).toBe(true);
       });
     });
@@ -42,16 +36,16 @@ describe('Comprehensive System Validation', () => {
   describe('Page Organization Status', () => {
     it('should have cleaned up page organization', () => {
       const pagesDir = join(process.cwd(), 'client/src/pages');
-      
+
       // Root pages should only contain approved files
       const _allowedRootPages = ['home.tsx', 'not-found.tsx'];
-      
+
       // Check that orphaned pillars.tsx is removed
       expect(existsSync(join(pagesDir, 'pillars.tsx'))).toBe(false);
-      
+
       // Check that role directories exist
       const roleDirectories = ['admin', 'manager', 'owner', 'residents', 'auth', 'settings'];
-      roleDirectories.forEach(roleDir => {
+      roleDirectories.forEach((roleDir) => {
         expect(existsSync(join(pagesDir, roleDir))).toBe(true);
       });
     });
@@ -75,10 +69,10 @@ describe('Comprehensive System Validation', () => {
       'tsx',
       'jest',
       '@testing-library/react',
-      'whatwg-fetch'
+      'whatwg-fetch',
     ];
 
-    criticalPackages.forEach(pkg => {
+    criticalPackages.forEach((pkg) => {
       it(`should have ${pkg} available`, () => {
         try {
           require(pkg);
@@ -91,7 +85,8 @@ describe('Comprehensive System Validation', () => {
             if (pkg === 'vite' || pkg === 'tsx') {
               try {
                 const packageJson = require(`${process.cwd()}/package.json`);
-                const hasDevDep = packageJson.devDependencies?.[pkg] || packageJson.dependencies?.[pkg];
+                const hasDevDep =
+                  packageJson.devDependencies?.[pkg] || packageJson.dependencies?.[pkg];
                 expect(hasDevDep).toBeTruthy();
                 return; // Skip the throw if it's in package.json
               } catch {
@@ -109,19 +104,15 @@ describe('Comprehensive System Validation', () => {
     it('should have proper test configuration', () => {
       const jestConfigPath = join(process.cwd(), 'jest.config.js');
       expect(existsSync(jestConfigPath)).toBe(true);
-      
+
       const setupPath = join(process.cwd(), 'tests/setup.ts');
       expect(existsSync(setupPath)).toBe(true);
     });
 
     it('should have essential test categories', () => {
-      const testCategories = [
-        'tests/unit',
-        'tests/integration', 
-        'tests/routing'
-      ];
+      const testCategories = ['tests/unit', 'tests/integration', 'tests/routing'];
 
-      testCategories.forEach(category => {
+      testCategories.forEach((category) => {
         expect(existsSync(join(process.cwd(), category))).toBe(true);
       });
     });
@@ -132,10 +123,10 @@ describe('Comprehensive System Validation', () => {
       const docFiles = [
         'docs/PAGE_ROUTING_GUIDE.md',
         'docs/PAGE_ORGANIZATION_GUIDE.md',
-        'replit.md'
+        'replit.md',
       ];
 
-      docFiles.forEach(docFile => {
+      docFiles.forEach((docFile) => {
         expect(existsSync(join(process.cwd(), docFile))).toBe(true);
       });
     });
@@ -145,12 +136,12 @@ describe('Comprehensive System Validation', () => {
     it('should indicate a healthy development environment', () => {
       // This test passes if all the above validation passes
       // It serves as a final health check indicator
-      
+
       const healthIndicators = {
         dependenciesInstalled: true,
         pagesOrganized: true,
         testsConfigured: true,
-        documentationPresent: true
+        documentationPresent: true,
       };
 
       Object.entries(healthIndicators).forEach(([_indicator, status]) => {

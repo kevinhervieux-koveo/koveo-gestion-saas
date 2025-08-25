@@ -38,22 +38,20 @@ const ChartContext = React.createContext<ChartContextProps | null>(null);
 
  */
 
-function  /**
-   * Use chart function.
-   */  /**
-   * Use chart function.
-   */
+function /**
+ * Use chart function.
+ */ /**
+ * Use chart function.
+ */
 
- useChart() {
-  const context = React.useContext(ChartContext);  /**
+useChart() {
+  const context = React.useContext(ChartContext); /**
    * If function.
    * @param !context - !context parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !context - !context parameter.
    */
-
-
 
   if (!_context) {
     throw new Error('useChart must be used within a <ChartContainer />');
@@ -92,15 +90,15 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = 'Chart';
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color);  /**
+  const colorConfig = Object.entries(config).filter(
+    ([, config]) => config.theme || config.color
+  ); /**
    * If function.
    * @param !colorConfig.length - !colorConfig.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !colorConfig.length - !colorConfig.length parameter.
    */
-
-
 
   if (!colorConfig.length) {
     return null;
@@ -161,14 +159,14 @@ const ChartTooltipContent = React.forwardRef<
   ) => {
     const { config } = useChart();
 
-    const tooltipLabel = React.useMemo(() => {  /**
-   * If function.
-   * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
-   */  /**
-   * If function.
-   * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
-   */
-
+    const tooltipLabel = React.useMemo(() => {
+      /**
+       * If function.
+       * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
+       */ /**
+       * If function.
+       * @param hideLabel || !payload?.length - hideLabel || !payload?.length parameter.
+       */
 
       if (hideLabel || !payload?.length) {
         return null;
@@ -180,44 +178,38 @@ const ChartTooltipContent = React.forwardRef<
       const value =
         !labelKey && typeof label === 'string'
           ? config[label as keyof typeof config]?.label || label
-          : itemConfig?.label;  /**
-   * If function.
-   * @param labelFormatter - labelFormatter parameter.
-   */  /**
-   * If function.
-   * @param labelFormatter - labelFormatter parameter.
-   */
-
-
+          : itemConfig?.label; /**
+       * If function.
+       * @param labelFormatter - labelFormatter parameter.
+       */ /**
+       * If function.
+       * @param labelFormatter - labelFormatter parameter.
+       */
 
       if (labelFormatter) {
         return (
           <div className={cn('font-medium', labelClassName)}>{labelFormatter(value, payload)}</div>
         );
-      }  /**
-   * If function.
-   * @param !value - !value parameter.
-   */  /**
-   * If function.
-   * @param !value - !value parameter.
-   */
-
-
+      } /**
+       * If function.
+       * @param !value - !value parameter.
+       */ /**
+       * If function.
+       * @param !value - !value parameter.
+       */
 
       if (!_value) {
         return null;
       }
 
       return <div className={cn('font-medium', labelClassName)}>{value}</div>;
-    }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);  /**
-   * If function.
-   * @param !active || !payload?.length - !active || !payload?.length parameter.
-   */  /**
-   * If function.
-   * @param !active || !payload?.length - !active || !payload?.length parameter.
-   */
-
-
+    }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]); /**
+     * If function.
+     * @param !active || !payload?.length - !active || !payload?.length parameter.
+     */ /**
+     * If function.
+     * @param !active || !payload?.length - !active || !payload?.length parameter.
+     */
 
     if (!active || !payload?.length) {
       return null;
@@ -316,15 +308,13 @@ const ChartLegendContent = React.forwardRef<
       nameKey?: string;
     }
 >(({ className, hideIcon = false, payload, verticalAlign = 'bottom', nameKey }, ref) => {
-  const { config } = useChart();  /**
+  const { config } = useChart(); /**
    * If function.
    * @param !payload?.length - !payload?.length parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !payload?.length - !payload?.length parameter.
    */
-
-
 
   if (!payload?.length) {
     return null;
@@ -374,26 +364,26 @@ ChartLegendContent.displayName = 'ChartLegend';
  * getPayloadConfigFromPayload function
  * @returns Function result
  */
-function  /**
-   * Get payload config from payload.
-   * @param config - Configuration object.
-   * @param payload - Data payload.
-   * @param key - Key identifier.
-   */  /**
-   * Get payload config from payload.
-   * @param config - Configuration object.
-   * @param payload - Data payload.
-   * @param key - Key identifier.
-   */
+function /**
+ * Get payload config from payload.
+ * @param config - Configuration object.
+ * @param payload - Data payload.
+ * @param key - Key identifier.
+ */ /**
+ * Get payload config from payload.
+ * @param config - Configuration object.
+ * @param payload - Data payload.
+ * @param key - Key identifier.
+ */
 
- getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string) {  /**
+getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string) {
+  /**
    * If function.
    * @param typeof payload !== 'object' || payload === null - typeof payload !== 'object' || payload === null parameter.
-   */  /**
+   */ /**
    * If function.
    * @param typeof payload !== 'object' || payload === null - typeof payload !== 'object' || payload === null parameter.
    */
-
 
   if (typeof payload !== 'object' || payload === null) {
     return undefined;
@@ -404,39 +394,37 @@ function  /**
       ? payload.payload
       : undefined;
 
-  let configLabelKey: string = key;  /**
+  let configLabelKey: string = key; /**
    * If function.
    * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
-   */  /**
+   */ /**
    * If function.
    * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
    */
-
-
 
   if (key in payload && typeof payload[key as keyof typeof payload] === 'string') {
     configLabelKey = payload[key as keyof typeof payload] as string;
-  } else  /**
-   * If function.
-   * @param payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
-   */  /**
-   * If function.
-   * @param payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
-   */
-
- if (
+  } else if (
     payloadPayload &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
   ) {
+    /**
+   * If function.
+   * @param payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
+   */ /**
+   * If function.
+   * @param payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' - payloadPayload &&
+    key in payloadPayload &&
+    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
+   */
+
     configLabelKey = payloadPayload[key as keyof typeof payloadPayload] as string;
   }
 

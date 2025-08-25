@@ -11,7 +11,15 @@ export interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'approved'
+    | 'rejected'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled';
   submitterId: string;
   buildingId: string;
   residenceId?: string;
@@ -124,15 +132,15 @@ interface DemandCardProps {
  * @param root0.actions
  * @param root0.userRole
  */
-export function DemandCard({ 
-  demand, 
-  buildings = [], 
-  residences = [], 
+export function DemandCard({
+  demand,
+  buildings = [],
+  residences = [],
   actions = {},
-  userRole = 'resident'
+  userRole = 'resident',
 }: DemandCardProps) {
-  const building = buildings.find(b => b.id === demand.buildingId);
-  const residence = residences.find(r => r.id === demand.residenceId);
+  const building = buildings.find((b) => b.id === demand.buildingId);
+  const residence = residences.find((r) => r.id === demand.residenceId);
 
   const handleCardClick = () => {
     if (actions.onClick) {
@@ -146,114 +154,118 @@ export function DemandCard({
   };
 
   return (
-    <Card 
+    <Card
       className={`transition-shadow ${actions.onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
       onClick={actions.onClick ? handleCardClick : undefined}
       data-testid={`demand-card-${demand.id}`}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" data-testid={`demand-type-${demand.id}`}>
+      <CardHeader className='pb-3'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <Badge variant='outline' data-testid={`demand-type-${demand.id}`}>
               {TYPE_LABELS[demand.type]}
             </Badge>
-            <Badge className={STATUS_COLORS[demand.status]} data-testid={`demand-status-${demand.id}`}>
+            <Badge
+              className={STATUS_COLORS[demand.status]}
+              data-testid={`demand-status-${demand.id}`}
+            >
               {STATUS_LABELS[demand.status]}
             </Badge>
           </div>
-          
+
           {/* Action buttons - only show for manager role or when explicitly provided */}
           {(userRole === 'manager' || actions.onView || actions.onEdit) && (
-            <div className="flex items-center gap-1">
+            <div className='flex items-center gap-1'>
               {actions.onView && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant='ghost'
+                  size='sm'
                   onClick={(e) => handleButtonClick(e, () => actions.onView!(demand))}
                   data-testid={`button-view-${demand.id}`}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className='h-4 w-4' />
                 </Button>
               )}
-              
+
               {/* Quick actions for submitted demands */}
               {actions.showQuickActions && demand.status === 'submitted' && (
                 <>
                   {actions.onApprove && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={(e) => handleButtonClick(e, () => actions.onApprove!(demand))}
-                      className="text-green-600 hover:text-green-700"
+                      className='text-green-600 hover:text-green-700'
                       data-testid={`button-approve-${demand.id}`}
                     >
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className='h-4 w-4' />
                     </Button>
                   )}
                   {actions.onReject && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={(e) => handleButtonClick(e, () => actions.onReject!(demand))}
-                      className="text-red-600 hover:text-red-700"
+                      className='text-red-600 hover:text-red-700'
                       data-testid={`button-reject-${demand.id}`}
                     >
-                      <XCircle className="h-4 w-4" />
+                      <XCircle className='h-4 w-4' />
                     </Button>
                   )}
                 </>
               )}
-              
+
               {actions.onEdit && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant='ghost'
+                  size='sm'
                   onClick={(e) => handleButtonClick(e, () => actions.onEdit!(demand))}
                   data-testid={`button-edit-${demand.id}`}
                 >
-                  <Edit2 className="h-4 w-4" />
+                  <Edit2 className='h-4 w-4' />
                 </Button>
               )}
             </div>
           )}
         </div>
-        
-        <CardTitle className="text-base line-clamp-2" data-testid={`demand-description-${demand.id}`}>
+
+        <CardTitle
+          className='text-base line-clamp-2'
+          data-testid={`demand-description-${demand.id}`}
+        >
           {demand.description.substring(0, 100)}
           {demand.description.length > 100 && '...'}
         </CardTitle>
       </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className="text-sm text-muted-foreground space-y-1">
+
+      <CardContent className='pt-0'>
+        <div className='text-sm text-muted-foreground space-y-1'>
           {/* Show submitter info for managers */}
           {userRole === 'manager' && demand.submitter && (
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
+            <div className='flex items-center gap-1'>
+              <User className='h-3 w-3' />
               <span data-testid={`demand-submitter-${demand.id}`}>
                 {`${demand.submitter.firstName} ${demand.submitter.lastName}`}
               </span>
             </div>
           )}
-          
-          <div className="flex items-center gap-1">
-            <Building2 className="h-3 w-3" />
+
+          <div className='flex items-center gap-1'>
+            <Building2 className='h-3 w-3' />
             <span data-testid={`demand-building-${demand.id}`}>
               {building?.name || 'Unknown Building'}
             </span>
           </div>
-          
+
           {residence && (
-            <div className="flex items-center gap-1">
-              <Home className="h-3 w-3" />
-              <span data-testid={`demand-residence-${demand.id}`}>
-                {residence.name}
-              </span>
+            <div className='flex items-center gap-1'>
+              <Home className='h-3 w-3' />
+              <span data-testid={`demand-residence-${demand.id}`}>{residence.name}</span>
             </div>
           )}
-          
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
+
+          <div className='flex items-center gap-1'>
+            <Clock className='h-3 w-3' />
             <span data-testid={`demand-date-${demand.id}`}>
               {new Date(demand.createdAt).toLocaleDateString()}
             </span>

@@ -36,7 +36,7 @@ class PerformanceMonitor {
   end(): PerformanceMetrics {
     const endTime = performance.now();
     const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
-    
+
     return {
       renderTime: endTime - this.startTime,
       memoryUsage: finalMemory - this.initialMemory,
@@ -47,7 +47,7 @@ class PerformanceMonitor {
 
 // Mock components for testing
 const LargeDataComponent: React.FC<{ items: any[] }> = ({ items }) => (
-  <div data-testid="large-data-component">
+  <div data-testid='large-data-component'>
     {items.map((item, _index) => (
       <div key={index} data-testid={`item-${index}`}>
         {item.name} - {item.description}
@@ -58,7 +58,7 @@ const LargeDataComponent: React.FC<{ items: any[] }> = ({ items }) => (
 
 const HeavyCalculationComponent: React.FC = () => {
   const [result, setResult] = React.useState(0);
-  
+
   React.useEffect(() => {
     // Simulate heavy calculation
     let sum = 0;
@@ -67,12 +67,12 @@ const HeavyCalculationComponent: React.FC = () => {
     }
     setResult(sum);
   }, []);
-  
-  return <div data-testid="heavy-calc-result">{result.toFixed(2)}</div>;
+
+  return <div data-testid='heavy-calc-result'>{result.toFixed(2)}</div>;
 };
 
 const MemoizedComponent: React.FC<{ _data: any }> = React.memo(({ data }) => (
-  <div data-testid="memoized-component">{data.name}</div>
+  <div data-testid='memoized-component'>{data.name}</div>
 ));
 
 // Mock hooks
@@ -154,7 +154,7 @@ describe('Component Performance Tests', () => {
 
     it('handles component re-renders efficiently', async () => {
       const TestComponent: React.FC<{ count: number }> = ({ count }) => (
-        <div data-testid="rerender-test">
+        <div data-testid='rerender-test'>
           {Array.from({ length: count }, (_, i) => (
             <div key={i} data-testid={`rerender-item-${i}`}>
               Item {i}
@@ -201,7 +201,7 @@ describe('Component Performance Tests', () => {
 
       const MemoizedTestComponent: React.FC<{ _data: any }> = React.memo(({ data }) => {
         renderCount++;
-        return <div data-testid="memoized-test">{data.name}</div>;
+        return <div data-testid='memoized-test'>{data.name}</div>;
       });
 
       const { rerender } = render(
@@ -247,11 +247,13 @@ describe('Component Performance Tests', () => {
       const { unmount } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <LargeDataComponent items={Array.from({ length: 500 }, (_, i) => ({ 
-              id: i, 
-              name: `Item ${i}`, 
-              description: `Description ${i}` 
-            }))} />
+            <LargeDataComponent
+              items={Array.from({ length: 500 }, (_, i) => ({
+                id: i,
+                name: `Item ${i}`,
+                description: `Description ${i}`,
+              }))}
+            />
           </TestProviders>
         </QueryClientProvider>
       );
@@ -285,13 +287,13 @@ describe('Component Performance Tests', () => {
         React.useEffect(() => {
           const handleClick = () => console.warn('clicked');
           document.addEventListener('click', handleClick);
-          
+
           return () => {
             document.removeEventListener('click', handleClick);
           };
         }, []);
 
-        return <div data-testid="event-component">Component with Event</div>;
+        return <div data-testid='event-component'>Component with Event</div>;
       };
 
       const { unmount } = render(
@@ -324,7 +326,7 @@ describe('Component Performance Tests', () => {
           <QueryClientProvider client={queryClient}>
             <TestProviders>
               <HeavyCalculationComponent />
-              <div data-testid="ui-element">UI should remain responsive</div>
+              <div data-testid='ui-element'>UI should remain responsive</div>
             </TestProviders>
           </QueryClientProvider>
         );
@@ -341,11 +343,15 @@ describe('Component Performance Tests', () => {
     it('optimizes repeated calculations', async () => {
       const fibonacci = React.useMemo(() => {
         const cache: { [_key: number]: number } = {};
-        
+
         return function fib(n: number): number {
-          if (n in cache) {return cache[n];}
-          if (n <= 1) {return n;}
-          
+          if (n in cache) {
+            return cache[n];
+          }
+          if (n <= 1) {
+            return n;
+          }
+
           cache[n] = fib(n - 1) + fib(n - 2);
           return cache[n];
         };
@@ -353,7 +359,7 @@ describe('Component Performance Tests', () => {
 
       const OptimizedCalculationComponent: React.FC<{ input: number }> = ({ input }) => {
         const result = React.useMemo(() => fibonacci(input), [input]);
-        return <div data-testid="optimized-result">{result}</div>;
+        return <div data-testid='optimized-result'>{result}</div>;
       };
 
       performanceMonitor.start();
@@ -389,9 +395,9 @@ describe('Component Performance Tests', () => {
 
   describe('Bundle Size and Load Performance', () => {
     it('lazy loads components efficiently', async () => {
-      const LazyComponent = React.lazy(() => 
+      const LazyComponent = React.lazy(() =>
         Promise.resolve({
-          default: () => <div data-testid="lazy-component">Lazy Loaded</div>
+          default: () => <div data-testid='lazy-component'>Lazy Loaded</div>,
         })
       );
 
@@ -401,7 +407,7 @@ describe('Component Performance Tests', () => {
         render(
           <QueryClientProvider client={queryClient}>
             <TestProviders>
-              <React.Suspense fallback={<div data-testid="loading">Loading...</div>}>
+              <React.Suspense fallback={<div data-testid='loading'>Loading...</div>}>
                 <LazyComponent />
               </React.Suspense>
             </TestProviders>
@@ -417,7 +423,7 @@ describe('Component Performance Tests', () => {
 
     it('minimizes DOM nodes for complex layouts', () => {
       const ComplexLayoutComponent: React.FC = () => (
-        <div data-testid="complex-layout">
+        <div data-testid='complex-layout'>
           {Array.from({ length: 10 }, (_, sectionIndex) => (
             <section key={sectionIndex} data-testid={`section-${sectionIndex}`}>
               {Array.from({ length: 5 }, (_, itemIndex) => (
@@ -455,7 +461,7 @@ describe('Component Performance Tests', () => {
       let fetchCount = 0;
 
       const QueryComponent: React.FC = () => {
-        const { data, isLoading } = queryClient.getQueryData(['test-query']) 
+        const { data, isLoading } = queryClient.getQueryData(['test-query'])
           ? { _data: mockData, isLoading: false }
           : { _data: undefined, isLoading: true };
 
@@ -466,8 +472,10 @@ describe('Component Performance Tests', () => {
           }
         }, []);
 
-        if (isLoading) {return <div data-testid="loading">Loading...</div>;}
-        return <div data-testid="query-result">{data?.name}</div>;
+        if (isLoading) {
+          return <div data-testid='loading'>Loading...</div>;
+        }
+        return <div data-testid='query-result'>{data?.name}</div>;
       };
 
       const { rerender } = render(
@@ -495,15 +503,9 @@ describe('Component Performance Tests', () => {
 
     it('handles concurrent queries without performance degradation', async () => {
       const ConcurrentQueriesComponent: React.FC = () => {
-        const [queries] = React.useState([
-          'query-1',
-          'query-2', 
-          'query-3',
-          'query-4',
-          'query-5'
-        ]);
+        const [queries] = React.useState(['query-1', 'query-2', 'query-3', 'query-4', 'query-5']);
 
-        queries.forEach(queryKey => {
+        queries.forEach((queryKey) => {
           React.useEffect(() => {
             if (!queryClient.getQueryData([queryKey])) {
               queryClient.setQueryData([queryKey], { id: queryKey, _data: `Data for ${queryKey}` });
@@ -512,8 +514,8 @@ describe('Component Performance Tests', () => {
         });
 
         return (
-          <div data-testid="concurrent-queries">
-            {queries.map(queryKey => {
+          <div data-testid='concurrent-queries'>
+            {queries.map((queryKey) => {
               const data = queryClient.getQueryData([queryKey]);
               return (
                 <div key={queryKey} data-testid={`result-${queryKey}`}>

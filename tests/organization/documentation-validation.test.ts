@@ -34,7 +34,7 @@ describe('Documentation Validation', () => {
     const normalized = content.toLowerCase().replace(/\s+/g, ' ').trim();
     for (let i = 0; i < normalized.length; i++) {
       const char = normalized.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return hash.toString(16);
@@ -60,12 +60,13 @@ describe('Documentation Validation', () => {
       if (line.startsWith('#') || index === lines.length - 1) {
         if (currentSection.length > 0) {
           const sectionContent = currentSection.join('\n').trim();
-          if (sectionContent.length > 50) { // Only consider substantial sections
+          if (sectionContent.length > 50) {
+            // Only consider substantial sections
             sections.push({
               file: path.relative(rootDir, filePath),
               line: sectionStart + 1,
               content: sectionContent,
-              hash: hashContent(sectionContent)
+              hash: hashContent(sectionContent),
             });
           }
         }
@@ -83,7 +84,7 @@ describe('Documentation Validation', () => {
     test('should not have duplicate sections across documentation files', async () => {
       const mdFiles = await glob('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const allSections: DocumentationSection[] = [];
@@ -93,7 +94,7 @@ describe('Documentation Validation', () => {
       }> = [];
 
       // Extract all sections
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const sections = extractSections(filePath);
         allSections.push(...sections);
@@ -101,7 +102,7 @@ describe('Documentation Validation', () => {
 
       // Find duplicates by hash
       const sectionsByHash = new Map<string, DocumentationSection[]>();
-      allSections.forEach(section => {
+      allSections.forEach((section) => {
         if (!sectionsByHash.has(section.hash)) {
           sectionsByHash.set(section.hash, []);
         }
@@ -110,7 +111,7 @@ describe('Documentation Validation', () => {
 
       // Identify actual duplicates (same content in different files)
       sectionsByHash.forEach((sections, hash) => {
-        const uniqueFiles = new Set(sections.map(s => s.file));
+        const uniqueFiles = new Set(sections.map((s) => s.file));
         if (uniqueFiles.size > 1) {
           duplicates.push({ hash, sections });
         }
@@ -119,9 +120,9 @@ describe('Documentation Validation', () => {
       // Report duplicates
       if (duplicates.length > 0) {
         console.warn('\nFound duplicate content in documentation:');
-        duplicates.forEach(dup => {
+        duplicates.forEach((dup) => {
           console.warn(`\nDuplicate content (hash: ${dup.hash}):`);
-          dup.sections.forEach(section => {
+          dup.sections.forEach((section) => {
             console.warn(`  - ${section.file}:${section.line}`);
             console.warn(`    Preview: ${section.content.substring(0, 100)}...`);
           });
@@ -132,37 +133,34 @@ describe('Documentation Validation', () => {
     });
 
     test('should not have redundant information between main docs and specific guides', () => {
-      const mainDocs = [
-        'replit.md',
-        'koveo-gestion-exhaustive-docs.md'
-      ];
+      const mainDocs = ['replit.md', 'koveo-gestion-exhaustive-docs.md'];
 
       const specificGuides = [
         'docs/RBAC_SYSTEM.md',
         'docs/PAGE_ROUTING_GUIDE.md',
-        'docs/PAGE_ORGANIZATION_GUIDE.md'
+        'docs/PAGE_ORGANIZATION_GUIDE.md',
       ];
 
       const mainContent = new Set<string>();
       const redundantSections: string[] = [];
 
       // Collect main documentation content
-      mainDocs.forEach(doc => {
+      mainDocs.forEach((doc) => {
         const docPath = path.join(rootDir, doc);
         if (fs.existsSync(docPath)) {
           const sections = extractSections(docPath);
-          sections.forEach(section => {
+          sections.forEach((section) => {
             mainContent.add(section.hash);
           });
         }
       });
 
       // Check specific guides for redundancy
-      specificGuides.forEach(guide => {
+      specificGuides.forEach((guide) => {
         const guidePath = path.join(rootDir, guide);
         if (fs.existsSync(guidePath)) {
           const sections = extractSections(guidePath);
-          sections.forEach(section => {
+          sections.forEach((section) => {
             if (mainContent.has(section.hash)) {
               redundantSections.push(`${guide}:${section.line} duplicates content from main docs`);
             }
@@ -186,42 +184,36 @@ describe('Documentation Validation', () => {
         'deployment',
         'architecture',
         'development',
-        'configuration'
+        'configuration',
       ];
 
       const allDocs = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const documentedTopics = new Set<string>();
 
-      allDocs.forEach(doc => {
+      allDocs.forEach((doc) => {
         const content = fs.readFileSync(path.join(rootDir, doc), 'utf-8').toLowerCase();
-        requiredTopics.forEach(topic => {
+        requiredTopics.forEach((topic) => {
           if (content.includes(topic)) {
             documentedTopics.add(topic);
           }
         });
       });
 
-      const undocumentedTopics = requiredTopics.filter(
-        topic => !documentedTopics.has(topic)
-      );
+      const undocumentedTopics = requiredTopics.filter((topic) => !documentedTopics.has(topic));
 
       expect(undocumentedTopics).toEqual([]);
     });
 
     test('should have README files in key directories', () => {
-      const keyDirectories = [
-        'config',
-        'tests',
-        'docs'
-      ];
+      const keyDirectories = ['config', 'tests', 'docs'];
 
       const missingReadmes: string[] = [];
 
-      keyDirectories.forEach(dir => {
+      keyDirectories.forEach((dir) => {
         const readmePath = path.join(rootDir, dir, 'README.md');
         if (!fs.existsSync(readmePath)) {
           missingReadmes.push(`${dir}/README.md`);
@@ -237,19 +229,19 @@ describe('Documentation Validation', () => {
       const inconsistentTerms = [
         { wrong: 'user management', correct: 'User Management' },
         { wrong: 'role based access', correct: 'Role-Based Access Control' },
-        { wrong: 'data base', correct: 'database' }
+        { wrong: 'data base', correct: 'database' },
       ];
 
       const mdFiles = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const issues: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const content = fs.readFileSync(path.join(rootDir, file), 'utf-8');
-        inconsistentTerms.forEach(term => {
+        inconsistentTerms.forEach((term) => {
           if (content.includes(term.wrong)) {
             issues.push(`${file}: Found "${term.wrong}" should be "${term.correct}"`);
           }
@@ -262,12 +254,12 @@ describe('Documentation Validation', () => {
     test('should have consistent markdown formatting', () => {
       const mdFiles = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const formattingIssues: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const content = fs.readFileSync(path.join(rootDir, file), 'utf-8');
         const lines = content.split('\n');
 
@@ -298,22 +290,22 @@ describe('Documentation Validation', () => {
     test('should have valid internal links', () => {
       const mdFiles = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const brokenLinks: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Extract relative markdown links
         const linkRegex = /\[([^\]]+)\]\(([^)]+\.md[^)]*)\)/g;
         let match;
 
         while ((match = linkRegex.exec(content)) !== null) {
           const linkPath = match[2].split('#')[0]; // Remove anchor
-          
+
           if (!linkPath.startsWith('http')) {
             const resolvedPath = path.resolve(path.dirname(filePath), linkPath);
             if (!fs.existsSync(resolvedPath)) {
@@ -329,21 +321,22 @@ describe('Documentation Validation', () => {
     test('should have table of contents in long documents', () => {
       const mdFiles = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const missingTOC: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const content = fs.readFileSync(path.join(rootDir, file), 'utf-8');
         const lines = content.split('\n');
-        
+
         // Check if document is long enough to need TOC
         if (lines.length > 200) {
-          const hasTOC = content.toLowerCase().includes('table of contents') ||
-                        content.toLowerCase().includes('## contents') ||
-                        content.toLowerCase().includes('## toc');
-          
+          const hasTOC =
+            content.toLowerCase().includes('table of contents') ||
+            content.toLowerCase().includes('## contents') ||
+            content.toLowerCase().includes('## toc');
+
           if (!hasTOC) {
             missingTOC.push(`${file} (${lines.length} lines)`);
           }
@@ -359,15 +352,15 @@ describe('Documentation Validation', () => {
     test('should have valid code blocks', () => {
       const mdFiles = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const invalidCodeBlocks: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const content = fs.readFileSync(path.join(rootDir, file), 'utf-8');
         const lines = content.split('\n');
-        
+
         let inCodeBlock = false;
         let codeBlockStart = 0;
         let language = '';
@@ -378,7 +371,7 @@ describe('Documentation Validation', () => {
               inCodeBlock = true;
               codeBlockStart = index;
               language = line.substring(3).trim();
-              
+
               // Check if language is specified for code blocks
               if (!language && !line.includes('```\n')) {
                 invalidCodeBlocks.push(
@@ -393,9 +386,7 @@ describe('Documentation Validation', () => {
 
         // Check for unclosed code blocks
         if (inCodeBlock) {
-          invalidCodeBlocks.push(
-            `${file}:${codeBlockStart + 1}: Unclosed code block`
-          );
+          invalidCodeBlocks.push(`${file}:${codeBlockStart + 1}: Unclosed code block`);
         }
       });
 
@@ -410,16 +401,16 @@ describe('Documentation Validation', () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      mainDocs.forEach(doc => {
+      mainDocs.forEach((doc) => {
         const docPath = path.join(rootDir, doc);
         if (fs.existsSync(docPath)) {
           const content = fs.readFileSync(docPath, 'utf-8');
-          
+
           // Look for date patterns
           const datePattern = /\d{4}-\d{2}-\d{2}|\w+ \d{1,2}, \d{4}/g;
           const dates = content.match(datePattern) || [];
-          
-          const recentDates = dates.filter(dateStr => {
+
+          const recentDates = dates.filter((dateStr) => {
             try {
               const date = new Date(dateStr);
               return date > thirtyDaysAgo;

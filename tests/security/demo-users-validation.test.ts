@@ -28,7 +28,7 @@ describe('Demo Users Validation', () => {
     test('should never have admin users in Demo organizations', async () => {
       // Find Demo and Open Demo organizations
       const demoOrganizations = await db.query.organizations.findMany({
-        where: inArray(schema.organizations.name, ['Demo', 'Open Demo'])
+        where: inArray(schema.organizations.name, ['Demo', 'Open Demo']),
       });
 
       expect(demoOrganizations.length).toBeGreaterThan(0);
@@ -38,20 +38,23 @@ describe('Demo Users Validation', () => {
         const userOrgRelations = await db.query.userOrganizations.findMany({
           where: eq(schema.userOrganizations.organizationId, org.id),
           with: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         // Check that NO users have admin role
         const adminUsers = userOrgRelations.filter(
-          rel => (rel.user && rel.user.role === 'admin') || rel.organizationRole === 'admin'
+          (rel) => (rel.user && rel.user.role === 'admin') || rel.organizationRole === 'admin'
         );
 
         expect(adminUsers).toHaveLength(0);
-        
+
         if (adminUsers.length > 0) {
-          console.error(`❌ Found admin users in ${org.name} organization:`, 
-            adminUsers.map(u => u.user ? `${u.user.firstName} ${u.user.lastName} (${u.user.email})` : 'Unknown user')
+          console.error(
+            `❌ Found admin users in ${org.name} organization:`,
+            adminUsers.map((u) =>
+              u.user ? `${u.user.firstName} ${u.user.lastName} (${u.user.email})` : 'Unknown user'
+            )
           );
         }
       }
@@ -60,15 +63,25 @@ describe('Demo Users Validation', () => {
     test('should have realistic names for all demo users', async () => {
       // Find Demo and Open Demo organizations
       const demoOrganizations = await db.query.organizations.findMany({
-        where: inArray(schema.organizations.name, ['Demo', 'Open Demo'])
+        where: inArray(schema.organizations.name, ['Demo', 'Open Demo']),
       });
 
       expect(demoOrganizations.length).toBeGreaterThan(0);
 
       // List of unrealistic/placeholder names that should not exist
       const bannedNames = [
-        'Demo', 'Test', 'Admin', 'Manager', 'User', 'Tenant', 'Resident',
-        'Example', 'Sample', 'Mock', 'Dummy', 'Placeholder'
+        'Demo',
+        'Test',
+        'Admin',
+        'Manager',
+        'User',
+        'Tenant',
+        'Resident',
+        'Example',
+        'Sample',
+        'Mock',
+        'Dummy',
+        'Placeholder',
       ];
 
       for (const org of demoOrganizations) {
@@ -76,15 +89,17 @@ describe('Demo Users Validation', () => {
         const userOrgRelations = await db.query.userOrganizations.findMany({
           where: eq(schema.userOrganizations.organizationId, org.id),
           with: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         for (const rel of userOrgRelations) {
           const user = rel.user;
-          
-          if (!user) {continue;}
-          
+
+          if (!user) {
+            continue;
+          }
+
           // Check first name is realistic
           for (const bannedName of bannedNames) {
             expect(user.firstName.toLowerCase()).not.toContain(bannedName.toLowerCase());
@@ -94,7 +109,7 @@ describe('Demo Users Validation', () => {
           // Ensure names are properly capitalized and realistic
           expect(user.firstName).toMatch(/^[A-Z][a-z]+$/);
           expect(user.lastName).toMatch(/^[A-Z][a-z\-\']+$/);
-          
+
           // Ensure names are not just generic placeholders
           expect(user.firstName.length).toBeGreaterThan(2);
           expect(user.lastName.length).toBeGreaterThan(2);
@@ -105,7 +120,7 @@ describe('Demo Users Validation', () => {
     test('should have realistic email addresses for demo users', async () => {
       // Find Demo and Open Demo organizations
       const demoOrganizations = await db.query.organizations.findMany({
-        where: inArray(schema.organizations.name, ['Demo', 'Open Demo'])
+        where: inArray(schema.organizations.name, ['Demo', 'Open Demo']),
       });
 
       expect(demoOrganizations.length).toBeGreaterThan(0);
@@ -117,36 +132,51 @@ describe('Demo Users Validation', () => {
         const userOrgRelations = await db.query.userOrganizations.findMany({
           where: eq(schema.userOrganizations.organizationId, org.id),
           with: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         for (const rel of userOrgRelations) {
           const user = rel.user;
-          
-          if (!user) {continue;}
-          
+
+          if (!user) {
+            continue;
+          }
+
           const emailPrefix = user.email.split('@')[0];
-          
+
           // Check that email doesn't contain banned prefixes
           for (const bannedPrefix of bannedEmailPrefixes) {
             expect(emailPrefix.toLowerCase()).not.toBe(bannedPrefix.toLowerCase());
           }
 
           // Ensure email follows firstname.lastname pattern
-          const expectedEmailPrefix = `${user.firstName.toLowerCase()}.${user.lastName.toLowerCase()}`.replace(/[àâäéèêëïîôöùûüÿç]/g, (char) => {
-            const map: { [key: string]: string } = {
-              'à': 'a', 'â': 'a', 'ä': 'a',
-              'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-              'ï': 'i', 'î': 'i',
-              'ô': 'o', 'ö': 'o',
-              'ù': 'u', 'û': 'u', 'ü': 'u',
-              'ÿ': 'y',
-              'ç': 'c'
-            };
-            return map[char] || char;
-          });
-          
+          const expectedEmailPrefix =
+            `${user.firstName.toLowerCase()}.${user.lastName.toLowerCase()}`.replace(
+              /[àâäéèêëïîôöùûüÿç]/g,
+              (char) => {
+                const map: { [key: string]: string } = {
+                  à: 'a',
+                  â: 'a',
+                  ä: 'a',
+                  é: 'e',
+                  è: 'e',
+                  ê: 'e',
+                  ë: 'e',
+                  ï: 'i',
+                  î: 'i',
+                  ô: 'o',
+                  ö: 'o',
+                  ù: 'u',
+                  û: 'u',
+                  ü: 'u',
+                  ÿ: 'y',
+                  ç: 'c',
+                };
+                return map[char] || char;
+              }
+            );
+
           expect(emailPrefix.toLowerCase()).toBe(expectedEmailPrefix);
         }
       }
@@ -155,7 +185,7 @@ describe('Demo Users Validation', () => {
     test('should only have manager, tenant, and resident roles in demo organizations', async () => {
       // Find Demo and Open Demo organizations
       const demoOrganizations = await db.query.organizations.findMany({
-        where: inArray(schema.organizations.name, ['Demo', 'Open Demo'])
+        where: inArray(schema.organizations.name, ['Demo', 'Open Demo']),
       });
 
       expect(demoOrganizations.length).toBeGreaterThan(0);
@@ -167,21 +197,23 @@ describe('Demo Users Validation', () => {
         const userOrgRelations = await db.query.userOrganizations.findMany({
           where: eq(schema.userOrganizations.organizationId, org.id),
           with: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         for (const rel of userOrgRelations) {
           const user = rel.user;
-          
-          if (!user) {continue;}
-          
+
+          if (!user) {
+            continue;
+          }
+
           // Check user role
           expect(allowedRoles).toContain(user.role);
-          
+
           // Check organization role
           expect(allowedRoles).toContain(rel.organizationRole);
-          
+
           // Double check - no admin roles
           expect(user.role).not.toBe('admin');
           expect(rel.organizationRole).not.toBe('admin');
@@ -192,27 +224,98 @@ describe('Demo Users Validation', () => {
     test('should ensure demo users have Quebec-appropriate names', async () => {
       // Find Demo and Open Demo organizations
       const demoOrganizations = await db.query.organizations.findMany({
-        where: inArray(schema.organizations.name, ['Demo', 'Open Demo'])
+        where: inArray(schema.organizations.name, ['Demo', 'Open Demo']),
       });
 
       expect(demoOrganizations.length).toBeGreaterThan(0);
 
       // Common Quebec French names and surnames
       const quebecNames = [
-        'Sophie', 'Marc', 'Marie', 'Pierre', 'Julie', 'Michel', 'Nathalie', 'Daniel',
-        'Isabelle', 'Claude', 'Chantal', 'Robert', 'Sylvie', 'Jean', 'Nicole', 'André',
-        'Louise', 'François', 'Diane', 'Gilles', 'Lise', 'Alain', 'Martine', 'Jacques',
-        'Hélène', 'Yves', 'Francine', 'Serge', 'Monique', 'Paul', 'Ginette', 'Marcel',
-        'Gabrielle', 'Henri', 'Louis', 'Claire', 'Emma', 'Alice', 'David', 'Frank',
-        'Bob', 'Katie', 'Liam', 'Maya', 'Grace', 'Henry', 'Jack', 'Isabel', 'Katia'
+        'Sophie',
+        'Marc',
+        'Marie',
+        'Pierre',
+        'Julie',
+        'Michel',
+        'Nathalie',
+        'Daniel',
+        'Isabelle',
+        'Claude',
+        'Chantal',
+        'Robert',
+        'Sylvie',
+        'Jean',
+        'Nicole',
+        'André',
+        'Louise',
+        'François',
+        'Diane',
+        'Gilles',
+        'Lise',
+        'Alain',
+        'Martine',
+        'Jacques',
+        'Hélène',
+        'Yves',
+        'Francine',
+        'Serge',
+        'Monique',
+        'Paul',
+        'Ginette',
+        'Marcel',
+        'Gabrielle',
+        'Henri',
+        'Louis',
+        'Claire',
+        'Emma',
+        'Alice',
+        'David',
+        'Frank',
+        'Bob',
+        'Katie',
+        'Liam',
+        'Maya',
+        'Grace',
+        'Henry',
+        'Jack',
+        'Isabel',
+        'Katia',
       ];
 
       const quebecSurnames = [
-        'Tremblay', 'Gauthier', 'Bouchard', 'Côté', 'Leclerc', 'Dubois', 'Morin', 
-        'Roy', 'Fournier', 'Lavoie', 'Gagnon', 'Martin', 'Lefebvre', 'Girard',
-        'Bergeron', 'Pelletier', 'Poirier', 'Caron', 'Beaulieu', 'Cloutier',
-        'Johnson', 'Smith', 'Brown', 'Wilson', 'Davis', 'Miller', 'Garcia',
-        'Martinez', 'Rodriguez', 'Anderson', 'Taylor', 'Thomas', 'Jackson'
+        'Tremblay',
+        'Gauthier',
+        'Bouchard',
+        'Côté',
+        'Leclerc',
+        'Dubois',
+        'Morin',
+        'Roy',
+        'Fournier',
+        'Lavoie',
+        'Gagnon',
+        'Martin',
+        'Lefebvre',
+        'Girard',
+        'Bergeron',
+        'Pelletier',
+        'Poirier',
+        'Caron',
+        'Beaulieu',
+        'Cloutier',
+        'Johnson',
+        'Smith',
+        'Brown',
+        'Wilson',
+        'Davis',
+        'Miller',
+        'Garcia',
+        'Martinez',
+        'Rodriguez',
+        'Anderson',
+        'Taylor',
+        'Thomas',
+        'Jackson',
       ];
 
       for (const org of demoOrganizations) {
@@ -220,16 +323,18 @@ describe('Demo Users Validation', () => {
         const userOrgRelations = await db.query.userOrganizations.findMany({
           where: eq(schema.userOrganizations.organizationId, org.id),
           with: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         expect(userOrgRelations.length).toBeGreaterThan(0);
 
         // Check that at least 80% of users have Quebec-appropriate names
-        const quebecNameCount = userOrgRelations.filter(rel => {
+        const quebecNameCount = userOrgRelations.filter((rel) => {
           const user = rel.user;
-          return user && (quebecNames.includes(user.firstName) || quebecSurnames.includes(user.lastName));
+          return (
+            user && (quebecNames.includes(user.firstName) || quebecSurnames.includes(user.lastName))
+          );
         }).length;
 
         const quebecNamePercentage = quebecNameCount / userOrgRelations.length;
@@ -241,11 +346,11 @@ describe('Demo Users Validation', () => {
   describe('Data Integrity Checks', () => {
     test('should have consistent user data across Demo and Open Demo', async () => {
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
-      
+
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       if (!demoOrg || !openDemoOrg) {
@@ -255,11 +360,11 @@ describe('Demo Users Validation', () => {
 
       // Get user counts
       const demoUsers = await db.query.userOrganizations.findMany({
-        where: eq(schema.userOrganizations.organizationId, demoOrg.id)
+        where: eq(schema.userOrganizations.organizationId, demoOrg.id),
       });
 
       const openDemoUsers = await db.query.userOrganizations.findMany({
-        where: eq(schema.userOrganizations.organizationId, openDemoOrg.id)
+        where: eq(schema.userOrganizations.organizationId, openDemoOrg.id),
       });
 
       // Should have same number of users (minus any admin users)

@@ -3,15 +3,14 @@ import type { Feature } from '@shared/schema';
 
 /**
  * LLM Form Mapping Validation Tests.
- * 
- * This test suite validates that the AI/LLM help form returns responses 
+ *
+ * This test suite validates that the AI/LLM help form returns responses
  * that map exactly to the form fields available in the application.
- * 
+ *
  * Ensures consistency between AI-generated content and form structure.
  */
 
 describe('LLM Form Mapping Validation', () => {
-  
   // Mock feature data representing what would come from the feature form
   const mockFeatureData: Feature = {
     id: 'test-feature-1',
@@ -25,7 +24,8 @@ describe('LLM Form Mapping Validation', () => {
     successMetrics: 'Reduce security incidents by 50%, achieve 100% compliance score',
     technicalComplexity: 'High - requires database changes and new authentication flows',
     dependencies: 'Authentication system, audit logging, notification system',
-    userFlow: 'User logs in -> Views security dashboard -> Configures settings -> Saves preferences',
+    userFlow:
+      'User logs in -> Views security dashboard -> Configures settings -> Saves preferences',
     isStrategicPath: true,
     isPublicRoadmap: true,
     metadata: null,
@@ -40,7 +40,7 @@ describe('LLM Form Mapping Validation', () => {
     tags: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-    syncedAt: new Date()
+    syncedAt: new Date(),
   };
 
   /**
@@ -48,7 +48,7 @@ describe('LLM Form Mapping Validation', () => {
    */
   it('should accept all feature form fields as input', async () => {
     const _documentationContext = await getDocumentationContext();
-    
+
     // This should not throw an error and should accept all the fields from our form
     expect(async () => {
       // Mock the actual API call to avoid using real API key in tests
@@ -62,13 +62,13 @@ describe('LLM Form Mapping Validation', () => {
             implementationPrompt: 'Create the test feature with proper validation',
             testingRequirements: 'Unit tests and integration tests required',
             estimatedEffort: '3 days',
-            dependencies: []
-          }
+            dependencies: [],
+          },
         ],
         recommendations: ['Follow security best practices'],
-        estimatedTotalEffort: '3 days'
+        estimatedTotalEffort: '3 days',
       };
-      
+
       return mockAnalysisResult;
     }).not.toThrow();
   });
@@ -79,7 +79,7 @@ describe('LLM Form Mapping Validation', () => {
   it('should include all feature form fields in the AI analysis prompt', () => {
     const requiredFormFields = [
       'name',
-      'description', 
+      'description',
       'category',
       'priority',
       'businessObjective',
@@ -87,12 +87,12 @@ describe('LLM Form Mapping Validation', () => {
       'successMetrics',
       'technicalComplexity',
       'dependencies',
-      'userFlow'
+      'userFlow',
     ];
-    
+
     // Verify that the Gemini analysis service includes all these fields
     // by checking the prompt construction in the analyzeFeatureWithGemini function
-    requiredFormFields.forEach(field => {
+    requiredFormFields.forEach((field) => {
       expect(mockFeatureData).toHaveProperty(field);
     });
   });
@@ -104,16 +104,14 @@ describe('LLM Form Mapping Validation', () => {
     const expectedActionableItemFields = [
       'title',
       'description',
-      'technicalDetails', 
+      'technicalDetails',
       'implementationPrompt',
       'testingRequirements',
-      'estimatedEffort'
+      'estimatedEffort',
     ];
-    
-    const _optionalActionableItemFields = [
-      'dependencies'
-    ];
-    
+
+    const _optionalActionableItemFields = ['dependencies'];
+
     // Mock analysis result
     const mockAnalysisResult = {
       summary: 'Feature analysis summary',
@@ -121,38 +119,41 @@ describe('LLM Form Mapping Validation', () => {
         {
           title: '1. Database Schema Updates',
           description: 'Update database schema to support new feature requirements',
-          technicalDetails: 'Add new tables for feature data, update existing tables with foreign keys',
-          implementationPrompt: 'Use Drizzle ORM to create migration files for the new schema changes',
-          testingRequirements: 'Create unit tests for new database operations and integration tests',
+          technicalDetails:
+            'Add new tables for feature data, update existing tables with foreign keys',
+          implementationPrompt:
+            'Use Drizzle ORM to create migration files for the new schema changes',
+          testingRequirements:
+            'Create unit tests for new database operations and integration tests',
           estimatedEffort: '2 days',
-          dependencies: ['Database Migration', 'Schema Validation']
+          dependencies: ['Database Migration', 'Schema Validation'],
         },
         {
-          title: '2. API Endpoint Implementation', 
+          title: '2. API Endpoint Implementation',
           description: 'Create REST API endpoints for feature functionality',
           technicalDetails: 'Implement CRUD operations with proper validation and error handling',
           implementationPrompt: 'Add Express routes with Zod validation and TypeScript types',
           testingRequirements: 'API endpoint tests with various input scenarios',
-          estimatedEffort: '1 day'
-        }
+          estimatedEffort: '1 day',
+        },
       ],
       recommendations: [
         'Follow established coding standards',
         'Implement proper error handling',
-        'Add comprehensive logging'
+        'Add comprehensive logging',
       ],
-      estimatedTotalEffort: '3 days'
+      estimatedTotalEffort: '3 days',
     };
-    
+
     // Validate structure
     expect(mockAnalysisResult).toHaveProperty('summary');
     expect(mockAnalysisResult).toHaveProperty('actionableItems');
     expect(mockAnalysisResult).toHaveProperty('recommendations');
     expect(mockAnalysisResult).toHaveProperty('estimatedTotalEffort');
-    
+
     // Validate actionable items structure
-    mockAnalysisResult.actionableItems.forEach(item => {
-      expectedActionableItemFields.forEach(field => {
+    mockAnalysisResult.actionableItems.forEach((item) => {
+      expectedActionableItemFields.forEach((field) => {
         expect(item).toHaveProperty(field);
         expect(typeof item[field as keyof typeof item]).toBe('string');
         expect((item[field as keyof typeof item] as string).length).toBeGreaterThan(0);
@@ -167,7 +168,7 @@ describe('LLM Form Mapping Validation', () => {
     const formFieldConstraints = {
       category: [
         'Dashboard & Home',
-        'Property Management', 
+        'Property Management',
         'Resident Management',
         'Financial Management',
         'Maintenance & Requests',
@@ -178,12 +179,12 @@ describe('LLM Form Mapping Validation', () => {
         'Analytics & Reporting',
         'Integration & API',
         'Infrastructure & Performance',
-        'Website'
+        'Website',
       ],
       priority: ['low', 'medium', 'high'],
-      status: ['submitted', 'in_progress', 'completed', 'cancelled']
+      status: ['submitted', 'in_progress', 'completed', 'cancelled'],
     };
-    
+
     // Verify the mock feature uses valid constraint values
     expect(formFieldConstraints.category).toContain(mockFeatureData.category);
     expect(formFieldConstraints.priority).toContain(mockFeatureData.priority);
@@ -197,9 +198,9 @@ describe('LLM Form Mapping Validation', () => {
     const mockActionableItems = [
       { title: '1. First Action Item' },
       { title: '2. Second Action Item' },
-      { title: '3. Third Action Item' }
+      { title: '3. Third Action Item' },
     ];
-    
+
     mockActionableItems.forEach((item, _index) => {
       const expectedNumber = _index + 1;
       expect(item.title).toMatch(new RegExp(`^${expectedNumber}\\.\\s+`));
@@ -213,19 +214,19 @@ describe('LLM Form Mapping Validation', () => {
     const mockImplementationPrompts = [
       'Add SSL certificate management table to the database schema using Drizzle ORM. Create a new migration file in the drizzle folder with columns for certificate_id, domain, expiry_date, and status.',
       'Implement the certificate validation API endpoint in server/routes.ts with proper Zod validation schemas and error handling.',
-      'Create React components for certificate management in client/src/components/security/ with form validation and user feedback.'
+      'Create React components for certificate management in client/src/components/security/ with form validation and user feedback.',
     ];
-    
-    mockImplementationPrompts.forEach(prompt => {
+
+    mockImplementationPrompts.forEach((prompt) => {
       // Should be detailed (at least 50 characters)
       expect(prompt.length).toBeGreaterThan(50);
-      
+
       // Should include technical specifics
       expect(prompt).toMatch(/\b(components?|endpoints?|schemas?|tables?|functions?|classes?)\b/i);
-      
+
       // Should reference the tech stack
       const techStackTerms = ['React', 'Express', 'Drizzle', 'TypeScript', 'Zod', 'PostgreSQL'];
-      const includesTechStack = techStackTerms.some(term => prompt.includes(term));
+      const includesTechStack = techStackTerms.some((term) => prompt.includes(term));
       expect(includesTechStack).toBe(true);
     });
   });
@@ -236,15 +237,15 @@ describe('LLM Form Mapping Validation', () => {
   it('should include Quebec-specific requirements when relevant', async () => {
     const _quebecSpecificTerms = [
       'Quebec',
-      'Québec', 
+      'Québec',
       'Law 25',
       'Loi 25',
       'French',
       'français',
       'compliance',
-      'conformité'
+      'conformité',
     ];
-    
+
     // For compliance & security features, should mention Quebec requirements
     if (mockFeatureData.category === 'Compliance & Security') {
       const documentationContext = await getDocumentationContext();
@@ -260,19 +261,13 @@ describe('LLM Form Mapping Validation', () => {
       /^\d+\s+(hour|hours)$/,
       /^\d+\s+(day|days)$/,
       /^\d+\s+(week|weeks)$/,
-      /^\d+-\d+\s+(hours|days|weeks)$/
+      /^\d+-\d+\s+(hours|days|weeks)$/,
     ];
-    
-    const mockEffortEstimates = [
-      '2 hours',
-      '1 day', 
-      '3 days',
-      '1-2 weeks',
-      '4 hours'
-    ];
-    
-    mockEffortEstimates.forEach(estimate => {
-      const isValidFormat = validEffortFormats.some(format => format.test(estimate));
+
+    const mockEffortEstimates = ['2 hours', '1 day', '3 days', '1-2 weeks', '4 hours'];
+
+    mockEffortEstimates.forEach((estimate) => {
+      const isValidFormat = validEffortFormats.some((format) => format.test(estimate));
       expect(isValidFormat).toBe(true);
     });
   });
@@ -284,19 +279,17 @@ describe('LLM Form Mapping Validation', () => {
     const mockTestingRequirements = [
       'Unit tests for new utility functions, integration tests for API endpoints, component tests for React forms',
       'Database migration tests, API endpoint validation tests, UI component interaction tests',
-      'End-to-end tests for the complete user flow, unit tests for business logic, integration tests for database queries'
+      'End-to-end tests for the complete user flow, unit tests for business logic, integration tests for database queries',
     ];
-    
+
     const requiredTestTypes = ['unit', 'integration', 'component'];
-    
-    mockTestingRequirements.forEach(requirement => {
+
+    mockTestingRequirements.forEach((requirement) => {
       // Should include multiple test types
       const lowerRequirement = requirement.toLowerCase();
-      const includedTestTypes = requiredTestTypes.filter(type => 
-        lowerRequirement.includes(type)
-      );
+      const includedTestTypes = requiredTestTypes.filter((type) => lowerRequirement.includes(type));
       expect(includedTestTypes.length).toBeGreaterThan(0);
-      
+
       // Verify the requirement is substantive (not empty)
       expect(requirement.length).toBeGreaterThan(20);
     });
@@ -309,7 +302,7 @@ describe('LLM Form Mapping Validation', () => {
     // All fields available in the feature form
     const allFormFields = [
       'featureName', // maps to: name
-      'featureCategory', // maps to: category  
+      'featureCategory', // maps to: category
       'featureDescription', // maps to: description
       'isStrategicPath', // maps to: strategic consideration
       'businessObjective', // maps to: businessObjective
@@ -327,20 +320,27 @@ describe('LLM Form Mapping Validation', () => {
       'accessibilityNeeds', // included in technical analysis
       'performanceRequirements', // included in technical analysis
       'testingStrategy', // influences testing requirements output
-      'additionalNotes' // included in analysis context
+      'additionalNotes', // included in analysis context
     ];
-    
+
     // Verify that we have a mapping for each form field
     const coreFieldsMappedToFeature = [
-      'name', 'category', 'description', 'businessObjective', 
-      'targetUsers', 'successMetrics', 'priority', 'technicalComplexity',
-      'dependencies', 'userFlow'
+      'name',
+      'category',
+      'description',
+      'businessObjective',
+      'targetUsers',
+      'successMetrics',
+      'priority',
+      'technicalComplexity',
+      'dependencies',
+      'userFlow',
     ];
-    
-    coreFieldsMappedToFeature.forEach(field => {
+
+    coreFieldsMappedToFeature.forEach((field) => {
       expect(mockFeatureData).toHaveProperty(field);
     });
-    
+
     // All form fields should have some representation in analysis
     expect(allFormFields.length).toBeGreaterThan(15); // Ensure we're checking a comprehensive list
   });
@@ -356,13 +356,13 @@ describe('LLM Form Mapping Validation', () => {
       implementationPrompt: 'Use shadcn/ui components and follow existing patterns',
       testingRequirements: 'Component tests and accessibility tests',
       estimatedEffort: '2 days',
-      dependencies: ['Database Schema Updates', 'API Endpoint Implementation']
+      dependencies: ['Database Schema Updates', 'API Endpoint Implementation'],
     };
-    
+
     if (mockActionableItemWithDependencies.dependencies) {
       expect(Array.isArray(mockActionableItemWithDependencies.dependencies)).toBe(true);
       expect(mockActionableItemWithDependencies.dependencies.length).toBeGreaterThan(0);
-      mockActionableItemWithDependencies.dependencies.forEach(dep => {
+      mockActionableItemWithDependencies.dependencies.forEach((dep) => {
         expect(typeof dep).toBe('string');
         expect(dep.length).toBeGreaterThan(0);
       });
@@ -374,20 +374,21 @@ describe('LLM Form Mapping Validation', () => {
  * Integration test for the complete LLM form mapping workflow.
  */
 describe('LLM Form Mapping Integration', () => {
-  
   it('should handle the complete workflow from form data to AI analysis', () => {
     // Simulate the complete workflow:
     // 1. User fills out feature form
     // 2. Form data is used to create feature
     // 3. Feature is analyzed by AI
     // 4. AI returns structured actionable items
-    
+
     const formData = {
       featureName: 'Advanced Security Dashboard',
       featureCategory: 'Compliance & Security',
-      featureDescription: 'Comprehensive security monitoring and compliance dashboard for Quebec property management',
+      featureDescription:
+        'Comprehensive security monitoring and compliance dashboard for Quebec property management',
       isStrategicPath: true,
-      businessObjective: 'Ensure 100% compliance with Quebec Law 25 and improve security monitoring',
+      businessObjective:
+        'Ensure 100% compliance with Quebec Law 25 and improve security monitoring',
       targetUsers: 'Property managers, compliance officers, system administrators',
       successMetrics: 'Zero compliance violations, 99.9% uptime, sub-2-second response times',
       priority: 'high',
@@ -397,14 +398,15 @@ describe('LLM Form Mapping Integration', () => {
       dataRequirements: 'User activity logs, security events, compliance metrics',
       integrationNeeds: 'Quebec government APIs, security monitoring tools',
       securityConsiderations: 'End-to-end encryption, audit trails, access controls',
-      userFlow: 'Login -> Dashboard -> View alerts -> Investigate -> Take action -> Generate reports',
+      userFlow:
+        'Login -> Dashboard -> View alerts -> Investigate -> Take action -> Generate reports',
       uiRequirements: 'Responsive design, dark mode, accessibility compliance',
       accessibilityNeeds: 'WCAG 2.1 AA compliance, screen reader support',
       performanceRequirements: 'Sub-2-second load times, real-time updates',
       testingStrategy: 'Unit tests, integration tests, security penetration testing',
-      additionalNotes: 'Must be deployable before Q3 compliance audit'
+      additionalNotes: 'Must be deployable before Q3 compliance audit',
     };
-    
+
     // Convert form data to Feature object format
     const featureFromForm: Partial<Feature> = {
       name: formData.featureName,
@@ -417,23 +419,29 @@ describe('LLM Form Mapping Integration', () => {
       technicalComplexity: formData.complexity,
       dependencies: formData.dependencies,
       userFlow: formData.userFlow,
-      isStrategicPath: formData.isStrategicPath
+      isStrategicPath: formData.isStrategicPath,
     };
-    
+
     // Validate that all critical form fields are preserved
     expect(featureFromForm.name).toBe(formData.featureName);
     expect(featureFromForm.description).toBe(formData.featureDescription);
     expect(featureFromForm.businessObjective).toBe(formData.businessObjective);
     expect(featureFromForm.targetUsers).toBe(formData.targetUsers);
     expect(featureFromForm.successMetrics).toBe(formData.successMetrics);
-    
+
     // Verify that the feature object contains all necessary data for AI analysis
     const requiredFieldsForAnalysis = [
-      'name', 'description', 'category', 'businessObjective', 
-      'targetUsers', 'successMetrics', 'dependencies', 'userFlow'
+      'name',
+      'description',
+      'category',
+      'businessObjective',
+      'targetUsers',
+      'successMetrics',
+      'dependencies',
+      'userFlow',
     ];
-    
-    requiredFieldsForAnalysis.forEach(field => {
+
+    requiredFieldsForAnalysis.forEach((field) => {
       expect(featureFromForm).toHaveProperty(field);
       expect(featureFromForm[field as keyof typeof featureFromForm]).toBeTruthy();
     });

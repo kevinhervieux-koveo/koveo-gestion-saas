@@ -19,11 +19,7 @@ import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
 
 // Property enums
-export const buildingTypeEnum = pgEnum('building_type', [
-  'apartment',
-  'condo',
-  'rental',
-]);
+export const buildingTypeEnum = pgEnum('building_type', ['apartment', 'condo', 'rental']);
 
 export const contactEntityEnum = pgEnum('contact_entity', [
   'organization',
@@ -33,17 +29,14 @@ export const contactEntityEnum = pgEnum('contact_entity', [
 
 export const contactCategoryEnum = pgEnum('contact_category', [
   'resident',
-  'manager', 
+  'manager',
   'tenant',
   'maintenance',
   'emergency',
   'other',
 ]);
 
-export const bookingStatusEnum = pgEnum('booking_status', [
-  'confirmed',
-  'cancelled',
-]);
+export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancelled']);
 
 // Property tables
 /**
@@ -164,8 +157,7 @@ export const commonSpaces = pgTable('common_spaces', {
     .references(() => buildings.id, { onDelete: 'cascade' }),
   isReservable: boolean('is_reservable').notNull().default(false),
   capacity: integer('capacity'),
-  contactPersonId: uuid('contact_person_id')
-    .references(() => users.id, { onDelete: 'set null' }),
+  contactPersonId: uuid('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
   openingHours: jsonb('opening_hours'),
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -224,8 +216,7 @@ export const userTimeLimits = pgTable('user_time_limits', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  commonSpaceId: uuid('common_space_id')
-    .references(() => commonSpaces.id, { onDelete: 'cascade' }), // null means applies to all spaces
+  commonSpaceId: uuid('common_space_id').references(() => commonSpaces.id, { onDelete: 'cascade' }), // null means applies to all spaces
   limitType: varchar('limit_type', { length: 20 }).notNull(), // 'monthly' or 'yearly'
   limitHours: integer('limit_hours').notNull(), // Maximum hours allowed
   createdAt: timestamp('created_at').defaultNow(),
@@ -293,11 +284,15 @@ export const insertCommonSpaceSchema = z.object({
   isReservable: z.boolean().default(false),
   capacity: z.number().int().optional(),
   contactPersonId: z.string().uuid().optional(),
-  openingHours: z.array(z.object({
-    day: z.string(),
-    open: z.string(),
-    close: z.string(),
-  })).optional(),
+  openingHours: z
+    .array(
+      z.object({
+        day: z.string(),
+        open: z.string(),
+        close: z.string(),
+      })
+    )
+    .optional(),
   bookingRules: z.string().optional(),
 });
 
@@ -429,4 +424,3 @@ export const userResidencesRelations = relations(userResidences, ({ one }) => ({
   }),
 }));
 */
-

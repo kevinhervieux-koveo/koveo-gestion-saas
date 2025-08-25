@@ -1,6 +1,6 @@
 /**
  * End-to-End Tests for Critical Quebec Property Management User Flows.
- * 
+ *
  * Tests complete user journeys through the Koveo Gestion platform,
  * ensuring Quebec compliance and property management requirements.
  */
@@ -25,8 +25,8 @@ describe('Critical Quebec Property Management User Flows', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
     user = userEvent.setup();
     mockFetch.mockClear();
@@ -50,14 +50,15 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            id: '1',
-            firstName: 'Marie',
-            lastName: 'Dubois',
-            email: 'marie@koveo.ca',
-            role: 'manager',
-            language: 'fr'
-          })
+          json: () =>
+            Promise.resolve({
+              id: '1',
+              firstName: 'Marie',
+              lastName: 'Dubois',
+              email: 'marie@koveo.ca',
+              role: 'manager',
+              language: 'fr',
+            }),
         })
       );
 
@@ -65,15 +66,16 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              id: '1',
-              name: 'Résidence Les Érables',
-              address: '123 Rue Sherbrooke, Montréal, QC',
-              units: 24,
-              status: 'operational'
-            }
-          ])
+          json: () =>
+            Promise.resolve([
+              {
+                id: '1',
+                name: 'Résidence Les Érables',
+                address: '123 Rue Sherbrooke, Montréal, QC',
+                units: 24,
+                status: 'operational',
+              },
+            ]),
         })
       );
 
@@ -103,16 +105,17 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              id: '1',
-              title: 'Réparation de plomberie',
-              description: 'Fuite dans la salle de bain de l\'unité 3A',
-              priority: 'high',
-              status: 'submitted',
-              quebecCompliance: true
-            }
-          ])
+          json: () =>
+            Promise.resolve([
+              {
+                id: '1',
+                title: 'Réparation de plomberie',
+                description: "Fuite dans la salle de bain de l'unité 3A",
+                priority: 'high',
+                status: 'submitted',
+                quebecCompliance: true,
+              },
+            ]),
         })
       );
 
@@ -135,7 +138,7 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ success: true })
+          json: () => Promise.resolve({ success: true }),
         })
       );
 
@@ -147,7 +150,7 @@ describe('Critical Quebec Property Management User Flows', () => {
           expect.stringContaining('/api/maintenance-requests/1'),
           expect.objectContaining({
             method: 'PUT',
-            body: expect.stringContaining('in_progress')
+            body: expect.stringContaining('in_progress'),
           })
         );
       });
@@ -160,14 +163,15 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            id: '2',
-            firstName: 'Pierre',
-            lastName: 'Leblanc',
-            email: 'pierre@example.ca',
-            role: 'tenant',
-            language: 'fr'
-          })
+          json: () =>
+            Promise.resolve({
+              id: '2',
+              firstName: 'Pierre',
+              lastName: 'Leblanc',
+              email: 'pierre@example.ca',
+              role: 'tenant',
+              language: 'fr',
+            }),
         })
       );
 
@@ -199,11 +203,12 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            id: '2',
-            title: 'Problème de chauffage',
-            status: 'submitted'
-          })
+          json: () =>
+            Promise.resolve({
+              id: '2',
+              title: 'Problème de chauffage',
+              status: 'submitted',
+            }),
         })
       );
 
@@ -220,16 +225,17 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            id: '1',
-            name: 'Résidence Les Érables',
-            address: '123 Rue Sherbrooke, Montréal, QC',
-            quebecRegulations: {
-              smokingPolicy: 'Interdiction de fumer dans tous les espaces communs',
-              noisePolicy: 'Heures de silence: 22h00 à 7h00',
-              law25Compliance: true
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              id: '1',
+              name: 'Résidence Les Érables',
+              address: '123 Rue Sherbrooke, Montréal, QC',
+              quebecRegulations: {
+                smokingPolicy: 'Interdiction de fumer dans tous les espaces communs',
+                noisePolicy: 'Heures de silence: 22h00 à 7h00',
+                law25Compliance: true,
+              },
+            }),
         })
       );
 
@@ -253,19 +259,20 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              id: '1',
-              amount: 1250.00,
-              type: 'condo_fees',
-              dueDate: '2024-01-15',
-              quebecTaxes: {
-                gst: 62.50,
-                qst: 124.38
+          json: () =>
+            Promise.resolve([
+              {
+                id: '1',
+                amount: 1250.0,
+                type: 'condo_fees',
+                dueDate: '2024-01-15',
+                quebecTaxes: {
+                  gst: 62.5,
+                  qst: 124.38,
+                },
+                status: 'sent',
               },
-              status: 'sent'
-            }
-          ])
+            ]),
         })
       );
 
@@ -302,7 +309,7 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ id: '2', status: 'created' })
+          json: () => Promise.resolve({ id: '2', status: 'created' }),
         })
       );
 
@@ -335,13 +342,14 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            dataInventory: true,
-            privacyPolicy: true,
-            consentMechanisms: false,
-            securityMeasures: true,
-            incidentResponse: false
-          })
+          json: () =>
+            Promise.resolve({
+              dataInventory: true,
+              privacyPolicy: true,
+              consentMechanisms: false,
+              securityMeasures: true,
+              incidentResponse: false,
+            }),
         })
       );
 
@@ -358,7 +366,7 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ updated: true })
+          json: () => Promise.resolve({ updated: true }),
         })
       );
 
@@ -366,7 +374,7 @@ describe('Critical Quebec Property Management User Flows', () => {
         expect(mockFetch).toHaveBeenCalledWith(
           expect.stringContaining('/api/compliance'),
           expect.objectContaining({
-            method: 'PUT'
+            method: 'PUT',
           })
         );
       });
@@ -390,14 +398,15 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              metricType: 'quebec_compliance_score',
-              _value: '87.5',
-              timestamp: new Date().toISOString(),
-              quebecSpecific: true
-            }
-          ])
+          json: () =>
+            Promise.resolve([
+              {
+                metricType: 'quebec_compliance_score',
+                _value: '87.5',
+                timestamp: new Date().toISOString(),
+                quebecSpecific: true,
+              },
+            ]),
         })
       );
 
@@ -417,11 +426,12 @@ describe('Critical Quebec Property Management User Flows', () => {
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            isValid: true,
-            accuracy: 92.5,
-            quebecComplianceNotes: ['Score conforme aux exigences québécoises']
-          })
+          json: () =>
+            Promise.resolve({
+              isValid: true,
+              accuracy: 92.5,
+              quebecComplianceNotes: ['Score conforme aux exigences québécoises'],
+            }),
         })
       );
 
@@ -474,12 +484,12 @@ describe('Critical Quebec Property Management User Flows', () => {
 
       // Test retry functionality
       const retryButton = screen.getByRole('button', { name: /réessayer/i });
-      
+
       // Mock successful retry
       mockFetch.mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([])
+          json: () => Promise.resolve([]),
         })
       );
 

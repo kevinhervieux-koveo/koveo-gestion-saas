@@ -7,7 +7,6 @@
 import { describe, it, expect } from '@jest/globals';
 
 describe('SQL Injection Security Summary', () => {
-  
   describe('🛡️ Security Status Overview', () => {
     it('should confirm Drizzle ORM provides parameterized query protection', () => {
       // ✅ PROTECTED: Drizzle ORM automatically uses parameterized queries
@@ -45,15 +44,15 @@ describe('SQL Injection Security Summary', () => {
       // ⚠️ ISSUE FOUND: Error messages expose database schema information
       // Error messages contain SQL queries, table names, and column names
       // This violates security best practices and aids attackers in reconnaissance
-      
+
       const securityIssue = {
         severity: 'MEDIUM',
         issue: 'Database error messages expose schema information',
         impact: 'Assists attackers in understanding database structure',
         recommendation: 'Implement generic error messages in production',
-        example: 'Error should be "Invalid input" not "Failed query: select id from users..."'
+        example: 'Error should be "Invalid input" not "Failed query: select id from users..."',
       };
-      
+
       expect(securityIssue.severity).toBe('MEDIUM');
       expect(securityIssue.issue).toContain('schema information');
     });
@@ -62,7 +61,7 @@ describe('SQL Injection Security Summary', () => {
   describe('🎯 Attack Vector Protection Status', () => {
     const protectionStatus = {
       'Basic SQL Injection': '✅ PROTECTED',
-      'Authentication Bypass': '✅ PROTECTED', 
+      'Authentication Bypass': '✅ PROTECTED',
       'Union-based Injection': '✅ PROTECTED',
       'Boolean-based Blind': '✅ PROTECTED',
       'Time-based Blind': '✅ PROTECTED',
@@ -72,18 +71,19 @@ describe('SQL Injection Security Summary', () => {
       'Privilege Escalation': '✅ PROTECTED',
       'Database Functions': '✅ PROTECTED',
       'Transaction Manipulation': '✅ PROTECTED',
-      'Large Payload Attacks': '✅ PROTECTED'
+      'Large Payload Attacks': '✅ PROTECTED',
     };
 
     it('should report protection status for all attack vectors', () => {
       Object.entries(protectionStatus).forEach(([attack, status]) => {
         console.warn(`${attack}: ${status}`);
       });
-      
-      const protectedCount = Object.values(protectionStatus).filter(status => 
-        status.includes('✅ PROTECTED')).length;
+
+      const protectedCount = Object.values(protectionStatus).filter((status) =>
+        status.includes('✅ PROTECTED')
+      ).length;
       const totalAttacks = Object.keys(protectionStatus).length;
-      
+
       expect(protectedCount).toBeGreaterThan(10); // Most attacks are protected
       expect(protectedCount / totalAttacks).toBeGreaterThan(0.9); // >90% protection rate
     });
@@ -93,12 +93,12 @@ describe('SQL Injection Security Summary', () => {
     it('should provide Quebec Law 25 compliance assessment', () => {
       const complianceStatus = {
         dataAccessControls: '✅ COMPLIANT',
-        unauthorizedAccess: '✅ PROTECTED', 
+        unauthorizedAccess: '✅ PROTECTED',
         dataExtraction: '✅ PROTECTED',
         auditTrailIntegrity: '✅ PROTECTED',
-        errorLogging: '⚠️ NEEDS IMPROVEMENT (error message sanitization)'
+        errorLogging: '⚠️ NEEDS IMPROVEMENT (error message sanitization)',
       };
-      
+
       expect(complianceStatus.dataAccessControls).toBe('✅ COMPLIANT');
       expect(complianceStatus.unauthorizedAccess).toBe('✅ PROTECTED');
     });
@@ -109,22 +109,22 @@ describe('SQL Injection Security Summary', () => {
           priority: 'HIGH',
           action: 'Implement generic error messages in production',
           reason: 'Current error messages expose database schema details',
-          implementation: 'Add error sanitization middleware to hide SQL query details'
+          implementation: 'Add error sanitization middleware to hide SQL query details',
         },
         {
-          priority: 'MEDIUM', 
+          priority: 'MEDIUM',
           action: 'Add SQL injection monitoring',
           reason: 'Detect and alert on injection attempts',
-          implementation: 'Log parameterized queries that contain suspicious patterns'
+          implementation: 'Log parameterized queries that contain suspicious patterns',
         },
         {
           priority: 'LOW',
           action: 'Regular penetration testing',
           reason: 'Verify protection remains effective over time',
-          implementation: 'Schedule quarterly security assessments'
-        }
+          implementation: 'Schedule quarterly security assessments',
+        },
       ];
-      
+
       expect(recommendations.length).toBeGreaterThan(0);
       expect(recommendations[0].priority).toBe('HIGH');
       expect(recommendations[0].action).toContain('generic error messages');
@@ -140,15 +140,15 @@ describe('SQL Injection Security Summary', () => {
           'Drizzle ORM parameterized queries',
           'Comprehensive input validation',
           'Role-based access controls',
-          'Query scoping system'
+          'Query scoping system',
         ],
         criticalIssues: 0,
         mediumIssues: 1, // Error message disclosure
         lowIssues: 0,
         readyForProduction: true,
-        conditionalReadiness: 'After implementing error message sanitization'
+        conditionalReadiness: 'After implementing error message sanitization',
       };
-      
+
       expect(securityAssessment.overallRating).toBe('GOOD');
       expect(securityAssessment.criticalIssues).toBe(0);
       expect(securityAssessment.mediumIssues).toBe(1);
@@ -160,21 +160,21 @@ describe('SQL Injection Security Summary', () => {
 /**
  * Security Test Results Summary
  * ============================.
- * 
+ *
  * ✅ EXCELLENT PROTECTION AGAINST:
  * - Basic SQL injection attacks
- * - Authentication bypass attempts  
+ * - Authentication bypass attempts
  * - Union-based data extraction
  * - Boolean and time-based blind injection
  * - Unicode and special character attacks
  * - Privilege escalation attempts
  * - Large payload and buffer overflow attacks.
- * 
+ *
  * ⚠️ AREAS FOR IMPROVEMENT:
  * - Error message sanitization needed
  * - Consider adding injection attempt monitoring.
- * 
- * 🏆 OVERALL ASSESSMENT: 
+ *
+ * 🏆 OVERALL ASSESSMENT:
  * The application demonstrates strong SQL injection protection through
  * Drizzle ORM's parameterized queries and comprehensive access controls.
  * With error message improvements, this system will have enterprise-grade

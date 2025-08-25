@@ -14,10 +14,7 @@ import type { FeatureFormData } from './use-feature-form-data';
  * @param onClose
  * @returns Function result.
  */
-export function useFeatureFormMutations(
-  feature: Feature | null,
-  onClose: () => void
-) {
+export function useFeatureFormMutations(feature: Feature | null, onClose: () => void) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,22 +40,22 @@ export function useFeatureFormMutations(
         },
         body: JSON.stringify(featureData),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create feature');
       }
-      
+
       return response.json();
     },
     onSuccess: (newFeature) => {
       // Invalidate queries to refresh roadmap data
       queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-      
+
       toast({
         title: 'Feature Integrated',
         description: `"${newFeature.name}" has been successfully added to the roadmap.`,
       });
-      
+
       // Close the dialog
       onClose();
     },
@@ -73,7 +70,15 @@ export function useFeatureFormMutations(
 
   // Mutation to save generated prompt as actionable item
   const savePromptMutation = useMutation({
-    mutationFn: async ({ featureId, prompt, title }: { featureId: string, prompt: string, title: string }) => {
+    mutationFn: async ({
+      featureId,
+      prompt,
+      title,
+    }: {
+      featureId: string;
+      prompt: string;
+      title: string;
+    }) => {
       const response = await fetch(`/api/features/${featureId}/actionable-items/from-prompt`, {
         method: 'POST',
         headers: {
@@ -82,22 +87,24 @@ export function useFeatureFormMutations(
         body: JSON.stringify({
           prompt,
           title,
-          description: 'AI-generated development prompt'
+          description: 'AI-generated development prompt',
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to save prompt as actionable item');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       // Invalidate queries to refresh data
       if (feature?.id) {
-        queryClient.invalidateQueries({ queryKey: [`/api/features/${feature.id}/actionable-items`] });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/features/${feature.id}/actionable-items`],
+        });
       }
-      
+
       toast({
         title: 'Prompt Saved',
         description: 'Implementation prompt has been saved as an actionable item.',
@@ -133,7 +140,7 @@ export function useFeatureFormMutations(
         userFlow: formData.userFlow || undefined,
         isStrategicPath: formData.isStrategicPath,
       };
-      
+
       createFeatureMutation.mutate(featureData);
     } else {
       // For existing features, just close the dialog
@@ -163,7 +170,7 @@ export function useFeatureFormMutations(
     savePromptMutation.mutate({
       featureId: feature.id,
       prompt,
-      title: title || 'Implementation Prompt'
+      title: title || 'Implementation Prompt',
     });
   };
 

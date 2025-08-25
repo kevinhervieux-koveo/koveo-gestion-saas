@@ -1,11 +1,11 @@
 import { db } from '../../db';
-import { 
-  buildings, 
-  residences, 
+import {
+  buildings,
+  residences,
   userResidences,
   users,
   userOrganizations,
-  documents
+  documents,
 } from '@shared/schema';
 import { eq, and, inArray, isNull } from 'drizzle-orm';
 import crypto from 'crypto';
@@ -49,7 +49,7 @@ export interface BuildingUpdateData extends Partial<BuildingCreateData> {
  */
 export async function createBuilding(buildingData: BuildingCreateData) {
   const buildingId = crypto.randomUUID();
-  
+
   const newBuilding = await db
     .insert(buildings)
     .values({
@@ -67,7 +67,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
       amenities: buildingData.amenities,
       managementCompany: buildingData.managementCompany,
       organizationId: buildingData.organizationId,
-      isActive: true
+      isActive: true,
     })
     .returning();
 
@@ -88,16 +88,12 @@ export async function createBuilding(buildingData: BuildingCreateData) {
           buildingId: buildingId,
           unitNumber,
           floor,
-          isActive: true
+          isActive: true,
         });
       }
 
       // Insert all residences at once
-      const createdResidences = await db
-        .insert(residences)
-        .values(residencesToCreate)
-        .returning();
-
+      const createdResidences = await db.insert(residences).values(residencesToCreate).returning();
     } catch (___residenceError) {
       console.error('⚠️ Error auto-generating residences:', ___residenceError);
       // Don't fail the building creation if residence generation fails
@@ -136,7 +132,7 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
       amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
       managementCompany: buildingData.managementCompany,
       organizationId: buildingData.organizationId,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .where(eq(buildings.id, buildingId))
     .returning();
@@ -156,9 +152,9 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
 export async function deleteBuilding(buildingId: string) {
   const deletedBuilding = await db
     .update(buildings)
-    .set({ 
-      isActive: false, 
-      updatedAt: new Date() 
+    .set({
+      isActive: false,
+      updatedAt: new Date(),
     })
     .where(eq(buildings.id, buildingId))
     .returning();
@@ -195,16 +191,16 @@ export async function cascadeDeleteBuilding(buildingId: string) {
       .from(residences)
       .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
 
-    const residenceIds = buildingResidences.map(r => r.id);
+    const residenceIds = buildingResidences.map((r) => r.id);
 
     if (residenceIds.length > 0) {
       // 2. Delete documents associated with building or its residences
       // Note: Document table uses boolean flags, not foreign keys
-      await tx.delete(documents)
-        .where(eq(documents.residence, true));
+      await tx.delete(documents).where(eq(documents.residence, true));
 
       // 3. Soft delete user-residence relationships
-      await tx.update(userResidences)
+      await tx
+        .update(userResidences)
         .set({ isActive: false, updatedAt: new Date() })
         .where(inArray(userResidences.residenceId, residenceIds));
 
@@ -212,35 +208,40 @@ export async function cascadeDeleteBuilding(buildingId: string) {
       const orphanedUsers = await tx
         .select({ id: users.id })
         .from(users)
-        .leftJoin(userOrganizations, and(
-          eq(users.id, userOrganizations.userId),
-          eq(userOrganizations.isActive, true)
-        ))
-        .leftJoin(userResidences, and(
-          eq(users.id, userResidences.userId),
-          eq(userResidences.isActive, true)
-        ))
-        .where(and(
-          eq(users.isActive, true),
-          isNull(userOrganizations.userId),
-          isNull(userResidences.userId)
-        ));
+        .leftJoin(
+          userOrganizations,
+          and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
+        )
+        .leftJoin(
+          userResidences,
+          and(eq(users.id, userResidences.userId), eq(userResidences.isActive, true))
+        )
+        .where(
+          and(
+            eq(users.isActive, true),
+            isNull(userOrganizations.userId),
+            isNull(userResidences.userId)
+          )
+        );
 
       if (orphanedUsers.length > 0) {
-        const orphanedUserIds = orphanedUsers.map(u => u.id);
-        await tx.update(users)
+        const orphanedUserIds = orphanedUsers.map((u) => u.id);
+        await tx
+          .update(users)
           .set({ isActive: false, updatedAt: new Date() })
           .where(inArray(users.id, orphanedUserIds));
       }
 
       // 5. Soft delete residences
-      await tx.update(residences)
+      await tx
+        .update(residences)
         .set({ isActive: false, updatedAt: new Date() })
         .where(inArray(residences.id, residenceIds));
     }
 
     // 6. Finally, soft delete the building
-    await tx.update(buildings)
+    await tx
+      .update(buildings)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(buildings.id, buildingId));
   });

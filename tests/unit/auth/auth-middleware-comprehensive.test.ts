@@ -16,7 +16,7 @@ const createMockRequest = (sessionData?: Record<string, unknown>): Partial<Reque
   ip: '127.0.0.1',
   headers: {
     'user-agent': 'Test Agent',
-  }
+  },
 });
 
 const createMockResponse = (): Partial<Response> => {
@@ -24,7 +24,7 @@ const createMockResponse = (): Partial<Response> => {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
-    locals: {}
+    locals: {},
   };
   return res;
 };
@@ -77,7 +77,7 @@ const testUsers = {
     lastName: 'User',
     role: 'tenant',
     isActive: false,
-  }
+  },
 };
 
 describe('Authentication Middleware - Comprehensive Tests', () => {
@@ -105,7 +105,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     });
 
@@ -120,7 +120,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     });
 
@@ -135,7 +135,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     });
 
@@ -150,7 +150,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     });
 
@@ -161,7 +161,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         { user: false },
         { user: [] },
         { user: {} },
-        { notUser: testUsers.admin }
+        { notUser: testUsers.admin },
       ];
 
       malformedSessions.forEach((sessionData, _index) => {
@@ -175,7 +175,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
 
         jest.clearAllMocks();
@@ -188,7 +188,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         testUsers.manager,
         testUsers.tenant,
         testUsers.resident,
-        testUsers.inactiveUser // Authentication doesn't check active status
+        testUsers.inactiveUser, // Authentication doesn't check active status
       ];
 
       validUsers.forEach((user) => {
@@ -265,7 +265,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
     describe('Multiple Role Requirements', () => {
       it('should allow admin or manager access to management routes', () => {
         const middleware = requireRole(['admin', 'manager']);
-        
+
         // Test admin access
         let req = createMockRequest({ user: testUsers.admin });
         let res = createMockResponse();
@@ -291,7 +291,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
       it('should allow tenant or resident access to occupant routes', () => {
         const middleware = requireRole(['tenant', 'resident']);
-        
+
         // Test tenant access
         let req = createMockRequest({ user: testUsers.tenant });
         let res = createMockResponse();
@@ -317,9 +317,9 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
       it('should allow any role access to public routes', () => {
         const middleware = requireRole(['admin', 'manager', 'tenant', 'resident']);
-        
+
         const allUsers = [testUsers.admin, testUsers.manager, testUsers.tenant, testUsers.resident];
-        
+
         allUsers.forEach((user) => {
           const req = createMockRequest({ user });
           const res = createMockResponse();
@@ -348,7 +348,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       });
 
@@ -364,7 +364,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       });
 
@@ -380,7 +380,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       });
     });
@@ -398,7 +398,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       });
 
@@ -414,7 +414,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       });
 
@@ -430,7 +430,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       });
     });
@@ -459,7 +459,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.json).toHaveBeenCalledWith({
             message: 'Insufficient permissions',
-            code: 'INSUFFICIENT_PERMISSIONS'
+            code: 'INSUFFICIENT_PERMISSIONS',
           });
 
           jest.clearAllMocks();
@@ -478,7 +478,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       });
 
@@ -486,9 +486,9 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         const maliciousRoles = [
           "admin'; DROP TABLE users; --",
           "<script>alert('xss')</script>",
-          "admin OR 1=1",
+          'admin OR 1=1',
           "admin' UNION SELECT * FROM users",
-          "../../../admin"
+          '../../../admin',
         ];
 
         maliciousRoles.forEach((maliciousRole) => {
@@ -504,7 +504,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           expect(res.status).toHaveBeenCalledWith(403);
           expect(res.json).toHaveBeenCalledWith({
             message: 'Insufficient permissions',
-            code: 'INSUFFICIENT_PERMISSIONS'
+            code: 'INSUFFICIENT_PERMISSIONS',
           });
 
           jest.clearAllMocks();
@@ -519,7 +519,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           'aDmIn',
           'manager',
           'Manager',
-          'MANAGER'
+          'MANAGER',
         ];
 
         caseSensitiveRoles.forEach((role) => {
@@ -544,12 +544,12 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
       it('should handle concurrent role checks correctly', () => {
         const middleware = requireRole(['admin', 'manager']);
-        
+
         const concurrentRequests = [
           { user: testUsers.admin },
           { user: testUsers.manager },
           { user: testUsers.tenant },
-          { user: testUsers.resident }
+          { user: testUsers.resident },
         ];
 
         const results = concurrentRequests.map((sessionData) => {
@@ -561,7 +561,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
           return {
             nextCalled: next.mock.calls.length > 0,
-            statusCode: res.status.mock.calls[0]?.[0]
+            statusCode: res.status.mock.calls[0]?.[0],
           };
         });
 
@@ -635,7 +635,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         const temporaryAdminUser = {
           ...testUsers.manager,
           temporaryRole: 'admin', // This should NOT grant admin access
-          role: 'manager' // Only the actual role should matter
+          role: 'manager', // Only the actual role should matter
         };
 
         const middleware = requireRole(['admin']);
@@ -649,7 +649,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       });
     });
@@ -702,7 +702,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
   describe('Performance and Memory Tests', () => {
     it('should handle rapid sequential authentications efficiently', () => {
       const startTime = Date.now();
-      
+
       // Perform 100 rapid authentications
       for (let i = 0; i < 100; i++) {
         const req = createMockRequest({ user: testUsers.admin });
@@ -714,7 +714,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
         jest.clearAllMocks();
       }
-      
+
       const endTime = Date.now();
       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
     });
@@ -722,7 +722,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
     it('should handle rapid sequential role checks efficiently', () => {
       const middleware = requireRole(['admin', 'manager']);
       const startTime = Date.now();
-      
+
       // Perform 100 rapid role checks
       for (let i = 0; i < 100; i++) {
         const req = createMockRequest({ user: testUsers.admin });
@@ -734,7 +734,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
 
         jest.clearAllMocks();
       }
-      
+
       const endTime = Date.now();
       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
     });
@@ -742,13 +742,13 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
     it('should not leak memory with repeated middleware creation', () => {
       // Create many middleware instances to test for memory leaks
       const middlewares = [];
-      
+
       for (let i = 0; i < 1000; i++) {
         middlewares.push(requireRole(['admin']));
       }
-      
+
       expect(middlewares.length).toBe(1000);
-      
+
       // Test that all middleware instances work correctly
       middlewares.forEach((middleware) => {
         const req = createMockRequest({ user: testUsers.admin });

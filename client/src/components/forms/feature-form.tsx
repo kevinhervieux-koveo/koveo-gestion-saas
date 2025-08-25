@@ -77,22 +77,22 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         },
         body: JSON.stringify(featureData),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create feature');
       }
-      
+
       return response.json();
     },
     onSuccess: (newFeature) => {
       // Invalidate queries to refresh roadmap data
       queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-      
+
       toast({
         title: 'Feature Integrated',
         description: `"${newFeature.name}" has been successfully added to the roadmap.`,
       });
-      
+
       // Close the dialog
       handleClose(false);
     },
@@ -107,7 +107,15 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
   // Mutation to save generated prompt as actionable item
   const savePromptMutation = useMutation({
-    mutationFn: async ({ featureId, prompt, title }: { featureId: string, prompt: string, title: string }) => {
+    mutationFn: async ({
+      featureId,
+      prompt,
+      title,
+    }: {
+      featureId: string;
+      prompt: string;
+      title: string;
+    }) => {
       const response = await fetch(`/api/features/${featureId}/actionable-items/from-prompt`, {
         method: 'POST',
         headers: {
@@ -116,22 +124,24 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         body: JSON.stringify({
           prompt,
           title,
-          description: 'AI-generated development prompt'
+          description: 'AI-generated development prompt',
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to save prompt as actionable item');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       // Invalidate queries to refresh data
       if (feature?.id) {
-        queryClient.invalidateQueries({ queryKey: [`/api/features/${feature.id}/actionable-items`] });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/features/${feature.id}/actionable-items`],
+        });
       }
-      
+
       toast({
         title: 'Prompt Saved',
         description: 'The development prompt has been saved as an actionable item.',
@@ -151,38 +161,38 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
     featureCategory: 'Compliance & Security', // Default to a valid category
     featureDescription: '',
     isStrategicPath: false,
-    
+
     // General questions
     businessObjective: '',
     targetUsers: '',
     successMetrics: '',
     priority: '',
     timeline: '',
-    
+
     // Technical questions
     complexity: '',
     dependencies: '',
     dataRequirements: '',
     integrationNeeds: '',
     securityConsiderations: '',
-    
+
     // User experience questions
     userFlow: '',
     uiRequirements: '',
     accessibilityNeeds: '',
-    
+
     // Additional requirements
     performanceRequirements: '',
     testingStrategy: '',
     additionalNotes: '',
-    
+
     // RBAC requirements
     rbacRequired: false,
     rbacRoles: {
       admin: { read: true, write: true, organizationalLimitation: '' },
       manager: { read: true, write: true, organizationalLimitation: '' },
       owner: { read: true, write: false, organizationalLimitation: '' },
-      tenant: { read: false, write: false, organizationalLimitation: '' }
+      tenant: { read: false, write: false, organizationalLimitation: '' },
     },
   });
 
@@ -208,12 +218,12 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       const draftData = {
         formData,
         timestamp: new Date().toISOString(),
-        featureId: feature?.id || null
+        featureId: feature?.id || null,
       };
       window.localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
       setLastSaved(new Date());
       setIsDirty(false);
-      
+
       toast({
         title: 'Draft Saved',
         description: 'Your progress has been automatically saved.',
@@ -233,12 +243,12 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         const formData = draftData.formData;
-        
+
         // Fix invalid category if it exists
         if (formData.featureCategory === 'Strategic Path') {
           formData.featureCategory = 'Compliance & Security';
         }
-        
+
         setFormData(formData);
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
@@ -256,7 +266,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
-      
+
       toast({
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
@@ -273,7 +283,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * @param _value
    */
   const updateFormData = (field: string, _value: string | boolean | unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
 
@@ -285,7 +295,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
     const featureCategory = feature?.category || formData.featureCategory || 'Not specified';
     const featureStatus = feature?.status || 'submitted';
     const featurePriority = formData.priority || feature?.priority || 'Medium';
-    const featureDescription = feature?.description || formData.featureDescription || 'Feature description not provided';
+    const featureDescription =
+      feature?.description || formData.featureDescription || 'Feature description not provided';
 
     const prompt = `# Feature Development Request: ${featureName}
 
@@ -326,7 +337,9 @@ ${formData.integrationNeeds || 'Standard system integration'}
 ### Security Considerations
 ${formData.securityConsiderations || 'Follow standard security practices'}
 
-${formData.rbacRequired ? `
+${
+  formData.rbacRequired
+    ? `
 ### Role-Based Access Control (RBAC)
 **RBAC Required:** Yes
 
@@ -335,18 +348,27 @@ ${Object.entries(formData.rbacRoles)
   .filter(([_, permissions]) => permissions.read || permissions.write)
   .map(([role, permissions]) => {
     const accessTypes = [];
-    if (permissions.read) {accessTypes.push('Read');}
-    if (permissions.write) {accessTypes.push('Write');}
-    const orgLimit = permissions.organizationalLimitation ? ` (${permissions.organizationalLimitation})` : '';
+    if (permissions.read) {
+      accessTypes.push('Read');
+    }
+    if (permissions.write) {
+      accessTypes.push('Write');
+    }
+    const orgLimit = permissions.organizationalLimitation
+      ? ` (${permissions.organizationalLimitation})`
+      : '';
     return `- **${role.replace('_', ' ').toUpperCase()}**: ${accessTypes.join(', ')} access${orgLimit}`;
-  }).join('\n')}
+  })
+  .join('\n')}
 
 **Implementation Notes:**
 - Use the existing RBAC system in server/auth.ts with requireAuth and authorize middleware
 - Apply role-based query scoping using the functions in server/db/queries/scope-query.ts
 - Ensure all API endpoints check permissions using the authorize('permission:action') middleware
 - Follow the established patterns in config/permissions.json for permission naming
-` : ''}
+`
+    : ''
+}
 
 ## 👤 User Experience Requirements
 
@@ -436,7 +458,7 @@ ${formData.additionalNotes || 'No additional notes'}
 
     setGeneratedPrompt(prompt);
     setStep('prompt');
-    
+
     // Save prompt as actionable item if we have a feature ID
     if (feature?.id) {
       savePromptMutation.mutate({
@@ -486,7 +508,7 @@ ${formData.additionalNotes || 'No additional notes'}
         userFlow: formData.userFlow || undefined,
         isStrategicPath: formData.isStrategicPath,
       };
-      
+
       createFeatureMutation.mutate(featureData);
     } else {
       // For existing features, just close the dialog
@@ -530,7 +552,7 @@ ${formData.additionalNotes || 'No additional notes'}
         admin: { read: true, write: true, organizationalLimitation: '' },
         manager: { read: true, write: true, organizationalLimitation: '' },
         owner: { read: true, write: false, organizationalLimitation: '' },
-        tenant: { read: false, write: false, organizationalLimitation: '' }
+        tenant: { read: false, write: false, organizationalLimitation: '' },
       },
     });
     setGeneratedPrompt('');
@@ -549,7 +571,9 @@ ${formData.additionalNotes || 'No additional notes'}
 
   // Auto-save effect - saves after 3 seconds of inactivity
   useEffect(() => {
-    if (!isDirty) {return;}
+    if (!isDirty) {
+      return;
+    }
 
     const timer = setTimeout(() => {
       saveDraft();
@@ -564,9 +588,9 @@ ${formData.additionalNotes || 'No additional notes'}
       // Clear any drafts with invalid "Strategic Path" category
       try {
         const allKeys = Object.keys(window.localStorage);
-        const draftKeys = allKeys.filter(key => key.startsWith('koveo-feature-draft'));
-        
-        draftKeys.forEach(key => {
+        const draftKeys = allKeys.filter((key) => key.startsWith('koveo-feature-draft'));
+
+        draftKeys.forEach((key) => {
           try {
             const draftData = JSON.parse(window.localStorage.getItem(_key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
@@ -581,7 +605,7 @@ ${formData.additionalNotes || 'No additional notes'}
       } catch (_error) {
         console.error('Error clearing invalid drafts:', _error);
       }
-      
+
       loadDraft();
     }
   }, [open, loadDraft]);
@@ -590,57 +614,58 @@ ${formData.additionalNotes || 'No additional notes'}
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {step === 'form' ? 
-                (isNewFeature ? 'Create New Feature' : 'Plan Feature Development') : 
-                'Generated Development Prompt'
-              }
+          <div className='flex items-center justify-between'>
+            <DialogTitle className='flex items-center gap-2'>
+              <FileText className='h-5 w-5' />
+              {step === 'form'
+                ? isNewFeature
+                  ? 'Create New Feature'
+                  : 'Plan Feature Development'
+                : 'Generated Development Prompt'}
             </DialogTitle>
-            
+
             {step === 'form' && (
-              <div className="flex items-center gap-2">
+              <div className='flex items-center gap-2'>
                 {lastSaved && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="h-3 w-3" />
+                  <div className='flex items-center gap-1 text-xs text-gray-500'>
+                    <Clock className='h-3 w-3' />
                     Saved {lastSaved.toLocaleTimeString()}
                   </div>
                 )}
-                
+
                 {lastSaved && (
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant='ghost'
+                    size='sm'
                     onClick={clearDraft}
-                    className="text-xs text-red-600 hover:text-red-700"
+                    className='text-xs text-red-600 hover:text-red-700'
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className='h-3 w-3' />
                   </Button>
                 )}
               </div>
             )}
           </div>
-          
+
           {isDirty && step === 'form' && (
-            <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-              <Clock className="h-3 w-3" />
+            <div className='flex items-center gap-1 text-xs text-amber-600 mt-1'>
+              <Clock className='h-3 w-3' />
               Auto-saving in progress...
             </div>
           )}
         </DialogHeader>
 
         {step === 'form' ? (
-          <div className="space-y-6">
+          <div className='space-y-6'>
             {/* Feature Info */}
             {!isNewFeature && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">{feature.name}</h3>
-                <p className="text-sm text-gray-600 mb-2">{feature.description}</p>
-                <div className="flex gap-2">
-                  <Badge variant="outline">{feature.category}</Badge>
+              <div className='bg-gray-50 p-4 rounded-lg'>
+                <h3 className='font-semibold text-lg mb-2'>{feature.name}</h3>
+                <p className='text-sm text-gray-600 mb-2'>{feature.description}</p>
+                <div className='flex gap-2'>
+                  <Badge variant='outline'>{feature.category}</Badge>
                   <Badge variant={feature.status === 'completed' ? 'default' : 'secondary'}>
                     {feature.status}
                   </Badge>
@@ -655,121 +680,137 @@ ${formData.additionalNotes || 'No additional notes'}
 
             {/* New Feature Fields */}
             {isNewFeature && (
-              <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold">New Feature Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className='space-y-4 bg-blue-50 p-4 rounded-lg'>
+                <h3 className='text-lg font-semibold'>New Feature Details</h3>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   <div>
-                    <Label htmlFor="featureName">Feature Name *</Label>
+                    <Label htmlFor='featureName'>Feature Name *</Label>
                     <Input
-                      id="featureName"
-                      placeholder="Enter feature name"
+                      id='featureName'
+                      placeholder='Enter feature name'
                       value={formData.featureName || ''}
                       onChange={(e) => updateFormData('featureName', e.target._value)}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="featureCategory">Category</Label>
-                    <Select value={formData.featureCategory || ''} onValueChange={(_value: string) => updateFormData('featureCategory', _value)}>
+                    <Label htmlFor='featureCategory'>Category</Label>
+                    <Select
+                      value={formData.featureCategory || ''}
+                      onValueChange={(_value: string) => updateFormData('featureCategory', _value)}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder='Select category' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Dashboard & Home">Dashboard & Home</SelectItem>
-                        <SelectItem value="Property Management">Property Management</SelectItem>
-                        <SelectItem value="Resident Management">Resident Management</SelectItem>
-                        <SelectItem value="Financial Management">Financial Management</SelectItem>
-                        <SelectItem value="Maintenance & Requests">Maintenance & Requests</SelectItem>
-                        <SelectItem value="Document Management">Document Management</SelectItem>
-                        <SelectItem value="Communication">Communication</SelectItem>
-                        <SelectItem value="AI & Automation">AI & Automation</SelectItem>
-                        <SelectItem value="Compliance & Security">Compliance & Security</SelectItem>
-                        <SelectItem value="Analytics & Reporting">Analytics & Reporting</SelectItem>
-                        <SelectItem value="Integration & API">Integration & API</SelectItem>
-                        <SelectItem value="Infrastructure & Performance">Infrastructure & Performance</SelectItem>
-                        <SelectItem value="Website">Website</SelectItem>
+                        <SelectItem value='Dashboard & Home'>Dashboard & Home</SelectItem>
+                        <SelectItem value='Property Management'>Property Management</SelectItem>
+                        <SelectItem value='Resident Management'>Resident Management</SelectItem>
+                        <SelectItem value='Financial Management'>Financial Management</SelectItem>
+                        <SelectItem value='Maintenance & Requests'>
+                          Maintenance & Requests
+                        </SelectItem>
+                        <SelectItem value='Document Management'>Document Management</SelectItem>
+                        <SelectItem value='Communication'>Communication</SelectItem>
+                        <SelectItem value='AI & Automation'>AI & Automation</SelectItem>
+                        <SelectItem value='Compliance & Security'>Compliance & Security</SelectItem>
+                        <SelectItem value='Analytics & Reporting'>Analytics & Reporting</SelectItem>
+                        <SelectItem value='Integration & API'>Integration & API</SelectItem>
+                        <SelectItem value='Infrastructure & Performance'>
+                          Infrastructure & Performance
+                        </SelectItem>
+                        <SelectItem value='Website'>Website</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="featureDescription">Feature Description</Label>
+                  <Label htmlFor='featureDescription'>Feature Description</Label>
                   <Textarea
-                    id="featureDescription"
-                    placeholder="Describe what this feature will do"
+                    id='featureDescription'
+                    placeholder='Describe what this feature will do'
                     value={formData.featureDescription || ''}
                     onChange={(e) => updateFormData('featureDescription', e.target._value)}
                   />
                 </div>
-                
+
                 {/* Strategic Path Toggle */}
                 <div className='flex items-center gap-3 pt-2'>
-                  <Label htmlFor='strategic-path' className='text-sm font-medium'>Strategic Path:</Label>
+                  <Label htmlFor='strategic-path' className='text-sm font-medium'>
+                    Strategic Path:
+                  </Label>
                   <Switch
                     id='strategic-path'
                     checked={formData.isStrategicPath}
-                    onCheckedChange={(checked: boolean) => updateFormData('isStrategicPath', checked)}
+                    onCheckedChange={(checked: boolean) =>
+                      updateFormData('isStrategicPath', checked)
+                    }
                     className='scale-90'
                   />
-                  <span className='text-xs text-gray-500'>Mark this feature as part of the strategic roadmap</span>
+                  <span className='text-xs text-gray-500'>
+                    Mark this feature as part of the strategic roadmap
+                  </span>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               {/* Business Requirements */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Business Requirements</h3>
-                
+              <div className='space-y-4'>
+                <h3 className='text-lg font-semibold'>Business Requirements</h3>
+
                 <div>
-                  <Label htmlFor="businessObjective">Business Objective *</Label>
+                  <Label htmlFor='businessObjective'>Business Objective *</Label>
                   <Textarea
-                    id="businessObjective"
-                    placeholder="What problem does this feature solve? What business value does it provide?"
+                    id='businessObjective'
+                    placeholder='What problem does this feature solve? What business value does it provide?'
                     value={formData.businessObjective}
                     onChange={(e) => updateFormData('businessObjective', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="targetUsers">Target Users *</Label>
+                  <Label htmlFor='targetUsers'>Target Users *</Label>
                   <Input
-                    id="targetUsers"
-                    placeholder="e.g., Property managers, Tenants, Owners"
+                    id='targetUsers'
+                    placeholder='e.g., Property managers, Tenants, Owners'
                     value={formData.targetUsers}
                     onChange={(e) => updateFormData('targetUsers', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="successMetrics">Success Metrics</Label>
+                  <Label htmlFor='successMetrics'>Success Metrics</Label>
                   <Textarea
-                    id="successMetrics"
-                    placeholder="How will we measure success? What are the KPIs?"
+                    id='successMetrics'
+                    placeholder='How will we measure success? What are the KPIs?'
                     value={formData.successMetrics}
                     onChange={(e) => updateFormData('successMetrics', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="priority">Development Priority</Label>
-                  <Select value={formData.priority} onValueChange={(_value: string) => updateFormData('priority', _value)}>
+                  <Label htmlFor='priority'>Development Priority</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(_value: string) => updateFormData('priority', _value)}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select priority level" />
+                      <SelectValue placeholder='Select priority level' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="critical">Critical</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value='critical'>Critical</SelectItem>
+                      <SelectItem value='high'>High</SelectItem>
+                      <SelectItem value='medium'>Medium</SelectItem>
+                      <SelectItem value='low'>Low</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="timeline">Expected Timeline</Label>
+                  <Label htmlFor='timeline'>Expected Timeline</Label>
                   <Input
-                    id="timeline"
-                    placeholder="e.g., 2 weeks, 1 month, Next sprint"
+                    id='timeline'
+                    placeholder='e.g., 2 weeks, 1 month, Next sprint'
                     value={formData.timeline}
                     onChange={(e) => updateFormData('timeline', e.target._value)}
                   />
@@ -777,59 +818,62 @@ ${formData.additionalNotes || 'No additional notes'}
               </div>
 
               {/* Technical Requirements */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Technical Requirements</h3>
-                
+              <div className='space-y-4'>
+                <h3 className='text-lg font-semibold'>Technical Requirements</h3>
+
                 <div>
-                  <Label htmlFor="complexity">Complexity Assessment</Label>
-                  <Select value={formData.complexity} onValueChange={(_value: string) => updateFormData('complexity', _value)}>
+                  <Label htmlFor='complexity'>Complexity Assessment</Label>
+                  <Select
+                    value={formData.complexity}
+                    onValueChange={(_value: string) => updateFormData('complexity', _value)}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Assess technical complexity" />
+                      <SelectValue placeholder='Assess technical complexity' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="simple">Simple (1-3 days)</SelectItem>
-                      <SelectItem value="medium">Medium (1-2 weeks)</SelectItem>
-                      <SelectItem value="complex">Complex (2-4 weeks)</SelectItem>
-                      <SelectItem value="very-complex">Very Complex (1+ months)</SelectItem>
+                      <SelectItem value='simple'>Simple (1-3 days)</SelectItem>
+                      <SelectItem value='medium'>Medium (1-2 weeks)</SelectItem>
+                      <SelectItem value='complex'>Complex (2-4 weeks)</SelectItem>
+                      <SelectItem value='very-complex'>Very Complex (1+ months)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="dependencies">Dependencies</Label>
+                  <Label htmlFor='dependencies'>Dependencies</Label>
                   <Textarea
-                    id="dependencies"
-                    placeholder="What other features, APIs, or systems does this depend on?"
+                    id='dependencies'
+                    placeholder='What other features, APIs, or systems does this depend on?'
                     value={formData.dependencies}
                     onChange={(e) => updateFormData('dependencies', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="dataRequirements">Data Requirements</Label>
+                  <Label htmlFor='dataRequirements'>Data Requirements</Label>
                   <Textarea
-                    id="dataRequirements"
-                    placeholder="What data needs to be stored, modified, or accessed?"
+                    id='dataRequirements'
+                    placeholder='What data needs to be stored, modified, or accessed?'
                     value={formData.dataRequirements}
                     onChange={(e) => updateFormData('dataRequirements', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="integrationNeeds">Integration Needs</Label>
+                  <Label htmlFor='integrationNeeds'>Integration Needs</Label>
                   <Textarea
-                    id="integrationNeeds"
-                    placeholder="External APIs, services, or third-party integrations needed"
+                    id='integrationNeeds'
+                    placeholder='External APIs, services, or third-party integrations needed'
                     value={formData.integrationNeeds}
                     onChange={(e) => updateFormData('integrationNeeds', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="securityConsiderations">Security Considerations</Label>
+                  <Label htmlFor='securityConsiderations'>Security Considerations</Label>
                   <Textarea
-                    id="securityConsiderations"
-                    placeholder="Authentication, authorization, data privacy concerns"
+                    id='securityConsiderations'
+                    placeholder='Authentication, authorization, data privacy concerns'
                     value={formData.securityConsiderations}
                     onChange={(e) => updateFormData('securityConsiderations', e.target._value)}
                   />
@@ -838,24 +882,24 @@ ${formData.additionalNotes || 'No additional notes'}
             </div>
 
             {/* User Experience Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">User Experience</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold'>User Experience</h3>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <Label htmlFor="userFlow">User Flow *</Label>
+                  <Label htmlFor='userFlow'>User Flow *</Label>
                   <Textarea
-                    id="userFlow"
-                    placeholder="Describe the step-by-step user interaction with this feature"
+                    id='userFlow'
+                    placeholder='Describe the step-by-step user interaction with this feature'
                     value={formData.userFlow}
                     onChange={(e) => updateFormData('userFlow', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="uiRequirements">UI Requirements</Label>
+                  <Label htmlFor='uiRequirements'>UI Requirements</Label>
                   <Textarea
-                    id="uiRequirements"
-                    placeholder="Specific UI components, layouts, or visual requirements"
+                    id='uiRequirements'
+                    placeholder='Specific UI components, layouts, or visual requirements'
                     value={formData.uiRequirements}
                     onChange={(e) => updateFormData('uiRequirements', e.target._value)}
                   />
@@ -863,10 +907,10 @@ ${formData.additionalNotes || 'No additional notes'}
               </div>
 
               <div>
-                <Label htmlFor="accessibilityNeeds">Accessibility Needs</Label>
+                <Label htmlFor='accessibilityNeeds'>Accessibility Needs</Label>
                 <Input
-                  id="accessibilityNeeds"
-                  placeholder="Screen reader support, keyboard navigation, color contrast"
+                  id='accessibilityNeeds'
+                  placeholder='Screen reader support, keyboard navigation, color contrast'
                   value={formData.accessibilityNeeds}
                   onChange={(e) => updateFormData('accessibilityNeeds', e.target._value)}
                 />
@@ -874,24 +918,24 @@ ${formData.additionalNotes || 'No additional notes'}
             </div>
 
             {/* Quality & Performance Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Quality & Performance</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold'>Quality & Performance</h3>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <Label htmlFor="performanceRequirements">Performance Requirements</Label>
+                  <Label htmlFor='performanceRequirements'>Performance Requirements</Label>
                   <Textarea
-                    id="performanceRequirements"
-                    placeholder="Load times, data processing speed, scalability needs"
+                    id='performanceRequirements'
+                    placeholder='Load times, data processing speed, scalability needs'
                     value={formData.performanceRequirements}
                     onChange={(e) => updateFormData('performanceRequirements', e.target._value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="testingStrategy">Testing Strategy</Label>
+                  <Label htmlFor='testingStrategy'>Testing Strategy</Label>
                   <Textarea
-                    id="testingStrategy"
-                    placeholder="Unit tests, integration tests, user acceptance criteria"
+                    id='testingStrategy'
+                    placeholder='Unit tests, integration tests, user acceptance criteria'
                     value={formData.testingStrategy}
                     onChange={(e) => updateFormData('testingStrategy', e.target._value)}
                   />
@@ -900,71 +944,87 @@ ${formData.additionalNotes || 'No additional notes'}
             </div>
 
             {/* RBAC Requirements Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Role-Based Access Control (RBAC)</h3>
-              
-              <div className="flex items-center gap-3">
-                <Label htmlFor="rbacRequired" className="text-sm font-medium">Does this feature require RBAC?</Label>
+            <div className='space-y-4'>
+              <h3 className='text-lg font-semibold'>Role-Based Access Control (RBAC)</h3>
+
+              <div className='flex items-center gap-3'>
+                <Label htmlFor='rbacRequired' className='text-sm font-medium'>
+                  Does this feature require RBAC?
+                </Label>
                 <Switch
-                  id="rbacRequired"
+                  id='rbacRequired'
                   checked={formData.rbacRequired}
                   onCheckedChange={(checked: boolean) => updateFormData('rbacRequired', checked)}
                 />
-                <span className="text-xs text-gray-500">Enable role-based access control for this feature</span>
+                <span className='text-xs text-gray-500'>
+                  Enable role-based access control for this feature
+                </span>
               </div>
 
               {formData.rbacRequired && (
-                <div className="bg-yellow-50 p-4 rounded-lg space-y-4">
-                  <h4 className="font-medium text-yellow-800">Configure Role Permissions</h4>
-                  <p className="text-sm text-yellow-700">For each role, specify read/write permissions and organizational limitations.</p>
-                  
+                <div className='bg-yellow-50 p-4 rounded-lg space-y-4'>
+                  <h4 className='font-medium text-yellow-800'>Configure Role Permissions</h4>
+                  <p className='text-sm text-yellow-700'>
+                    For each role, specify read/write permissions and organizational limitations.
+                  </p>
+
                   {Object.entries(formData.rbacRoles).map(([role, permissions]) => (
-                    <div key={role} className="bg-white p-3 rounded border">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-medium capitalize text-gray-900">{role.replace('_', ' ')}</h5>
+                    <div key={role} className='bg-white p-3 rounded border'>
+                      <div className='flex items-center justify-between mb-2'>
+                        <h5 className='font-medium capitalize text-gray-900'>
+                          {role.replace('_', ' ')}
+                        </h5>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="flex items-center gap-2">
+
+                      <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
+                        <div className='flex items-center gap-2'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             id={`${role}-read`}
                             checked={permissions.read}
                             onChange={(e) => {
                               const newRoles = { ...formData.rbacRoles };
-                              newRoles[role as keyof typeof formData.rbacRoles].read = e.target.checked;
+                              newRoles[role as keyof typeof formData.rbacRoles].read =
+                                e.target.checked;
                               updateFormData('rbacRoles', newRoles);
                             }}
-                            className="rounded"
+                            className='rounded'
                           />
-                          <Label htmlFor={`${role}-read`} className="text-sm">Read Access</Label>
+                          <Label htmlFor={`${role}-read`} className='text-sm'>
+                            Read Access
+                          </Label>
                         </div>
-                        
-                        <div className="flex items-center gap-2">
+
+                        <div className='flex items-center gap-2'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             id={`${role}-write`}
                             checked={permissions.write}
                             onChange={(e) => {
                               const newRoles = { ...formData.rbacRoles };
-                              newRoles[role as keyof typeof formData.rbacRoles].write = e.target.checked;
+                              newRoles[role as keyof typeof formData.rbacRoles].write =
+                                e.target.checked;
                               updateFormData('rbacRoles', newRoles);
                             }}
-                            className="rounded"
+                            className='rounded'
                           />
-                          <Label htmlFor={`${role}-write`} className="text-sm">Write Access</Label>
+                          <Label htmlFor={`${role}-write`} className='text-sm'>
+                            Write Access
+                          </Label>
                         </div>
-                        
+
                         <div>
                           <Input
-                            placeholder="Organizational limitations"
+                            placeholder='Organizational limitations'
                             value={permissions.organizationalLimitation}
                             onChange={(e) => {
                               const newRoles = { ...formData.rbacRoles };
-                              newRoles[role as keyof typeof formData.rbacRoles].organizationalLimitation = e.target.value;
+                              newRoles[
+                                role as keyof typeof formData.rbacRoles
+                              ].organizationalLimitation = e.target.value;
                               updateFormData('rbacRoles', newRoles);
                             }}
-                            className="text-xs"
+                            className='text-xs'
                           />
                         </div>
                       </div>
@@ -976,110 +1036,112 @@ ${formData.additionalNotes || 'No additional notes'}
 
             {/* Additional Notes */}
             <div>
-              <Label htmlFor="additionalNotes">Additional Notes</Label>
+              <Label htmlFor='additionalNotes'>Additional Notes</Label>
               <Textarea
-                id="additionalNotes"
-                placeholder="Any other requirements, constraints, or considerations"
+                id='additionalNotes'
+                placeholder='Any other requirements, constraints, or considerations'
                 value={formData.additionalNotes}
                 onChange={(e) => updateFormData('additionalNotes', e.target._value)}
               />
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-600">
-                  Generated development prompt for <strong>{feature?.name || formData.featureName || 'New Feature'}</strong>
+          <div className='space-y-4'>
+            <div className='bg-gray-50 p-4 rounded-lg'>
+              <div className='flex items-center justify-between mb-2'>
+                <p className='text-sm text-gray-600'>
+                  Generated development prompt for{' '}
+                  <strong>{feature?.name || formData.featureName || 'New Feature'}</strong>
                 </p>
-                <div className="flex gap-2">
-                  <Button onClick={copyPrompt} size="sm" variant="outline">
-                    <Copy className="h-4 w-4 mr-1" />
+                <div className='flex gap-2'>
+                  <Button onClick={copyPrompt} size='sm' variant='outline'>
+                    <Copy className='h-4 w-4 mr-1' />
                     Copy Prompt
                   </Button>
-                  
+
                   {feature?.id && (
-                    <Button 
-                      onClick={() => savePromptMutation.mutate({
-                        featureId: feature.id,
-                        prompt: generatedPrompt,
-                        title: `Development Prompt: ${feature.name}`,
-                      })}
-                      size="sm" 
-                      variant="outline"
+                    <Button
+                      onClick={() =>
+                        savePromptMutation.mutate({
+                          featureId: feature.id,
+                          prompt: generatedPrompt,
+                          title: `Development Prompt: ${feature.name}`,
+                        })
+                      }
+                      size='sm'
+                      variant='outline'
                       disabled={savePromptMutation.isPending}
-                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                      className='bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
                     >
-                      <Save className="h-4 w-4 mr-1" />
+                      <Save className='h-4 w-4 mr-1' />
                       {savePromptMutation.isPending ? 'Saving...' : 'Save as Task'}
                     </Button>
                   )}
                 </div>
               </div>
             </div>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap">{generatedPrompt}</pre>
+            <div className='bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto'>
+              <pre className='whitespace-pre-wrap'>{generatedPrompt}</pre>
             </div>
           </div>
         )}
 
-        <DialogFooter className="flex justify-between">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
+        <DialogFooter className='flex justify-between'>
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='outline'
               onClick={integrateToRoadmap}
               disabled={
-                createFeatureMutation.isPending ||
-                (isNewFeature && !formData.featureName.trim())
+                createFeatureMutation.isPending || (isNewFeature && !formData.featureName.trim())
               }
-              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              className='bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className='h-4 w-4 mr-2' />
               {createFeatureMutation.isPending ? 'Integrating...' : 'Integrate to Roadmap'}
             </Button>
-            
+
             {lastSaved && step === 'form' && (
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={clearDraft}
-                className="text-red-600 hover:text-red-700"
+                className='text-red-600 hover:text-red-700'
               >
-                <Trash2 className="h-4 w-4 mr-1" />
+                <Trash2 className='h-4 w-4 mr-1' />
                 Clear Draft
               </Button>
             )}
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className='flex gap-2'>
             {step === 'form' && (
               <Button
                 onClick={saveDraft}
-                variant="outline"
-                className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                variant='outline'
+                className='bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
               >
-                <Save className="h-4 w-4 mr-2" />
+                <Save className='h-4 w-4 mr-2' />
                 Save Progress
               </Button>
             )}
-            
+
             {step === 'prompt' && (
-              <Button variant="outline" onClick={() => setStep('form')}>
+              <Button variant='outline' onClick={() => setStep('form')}>
                 Back to Form
               </Button>
             )}
-            
-            <Button 
-              onClick={generatePrompt} 
+
+            <Button
+              onClick={generatePrompt}
               disabled={
-                !formData.businessObjective || 
-                !formData.targetUsers || 
+                !formData.businessObjective ||
+                !formData.targetUsers ||
                 !formData.userFlow ||
                 (isNewFeature && !formData.featureName.trim())
               }
-              className="flex items-center gap-2"
+              className='flex items-center gap-2'
             >
-              <Zap className="h-4 w-4" />
+              <Zap className='h-4 w-4' />
               {step === 'form' ? 'Generate Prompt' : 'Regenerate'}
             </Button>
           </div>

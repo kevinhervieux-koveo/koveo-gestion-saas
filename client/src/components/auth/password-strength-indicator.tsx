@@ -1,11 +1,11 @@
 import React from 'react';
 import { Check, X, Eye, EyeOff } from 'lucide-react';
-import { 
-  validatePasswordStrength, 
+import {
+  validatePasswordStrength,
   getPasswordCriteria,
   getPasswordStrengthLabel,
   getPasswordStrengthColor,
-  getPasswordStrengthBarColor
+  getPasswordStrengthBarColor,
 } from '@/utils/password-validation';
 
 /**
@@ -21,7 +21,7 @@ interface PasswordStrengthIndicatorProps {
 
 /**
  * Password Strength Indicator Component.
- * 
+ *
  * Provides real-time password strength feedback with Quebec French labels
  * and visual indicators for security compliance.
  * @param root0 - Component props object.
@@ -31,11 +31,11 @@ interface PasswordStrengthIndicatorProps {
  * @param root0.className - Optional CSS class name.
  * @returns JSX element for password strength indicator.
  */
-export function PasswordStrengthIndicator({ 
-  password, 
-  showPassword, 
+export function PasswordStrengthIndicator({
+  password,
+  showPassword,
   onToggleVisibility,
-  className = ''
+  className = '',
 }: PasswordStrengthIndicatorProps) {
   const strength = validatePasswordStrength(password);
   const criteria = getPasswordCriteria(password);
@@ -43,24 +43,22 @@ export function PasswordStrengthIndicator({
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Password visibility toggle */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">
-          Force du mot de passe
-        </span>
+      <div className='flex items-center justify-between'>
+        <span className='text-sm font-medium text-gray-700'>Force du mot de passe</span>
         <button
-          type="button"
+          type='button'
           onClick={onToggleVisibility}
-          className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+          className='flex items-center text-sm text-gray-500 hover:text-gray-700'
           aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
         >
           {showPassword ? (
             <>
-              <EyeOff className="h-4 w-4 mr-1" />
+              <EyeOff className='h-4 w-4 mr-1' />
               Masquer
             </>
           ) : (
             <>
-              <Eye className="h-4 w-4 mr-1" />
+              <Eye className='h-4 w-4 mr-1' />
               Afficher
             </>
           )}
@@ -69,18 +67,16 @@ export function PasswordStrengthIndicator({
 
       {/* Strength progress bar */}
       {password && password.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between'>
             <span className={`text-sm font-medium ${getPasswordStrengthColor(strength.score)}`}>
               {getPasswordStrengthLabel(strength.score)}
             </span>
-            <span className="text-xs text-gray-500">
-              {strength.score}/4
-            </span>
+            <span className='text-xs text-gray-500'>{strength.score}/4</span>
           </div>
-          
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+
+          <div className='w-full bg-gray-200 rounded-full h-2'>
+            <div
               className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthBarColor(strength.score)}`}
               style={{ width: `${(strength.score / 4) * 100}%` }}
             />
@@ -89,49 +85,33 @@ export function PasswordStrengthIndicator({
       )}
 
       {/* Criteria checklist */}
-      <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">
-          Exigences du mot de passe:
-        </h4>
-        <div className="grid grid-cols-1 gap-1 text-xs">
-          <CriteriaItem 
-            met={criteria.minLength}
-            text="Au moins 8 caractères"
-          />
-          <CriteriaItem 
-            met={criteria.hasUpperCase}
-            text="Une lettre majuscule"
-          />
-          <CriteriaItem 
-            met={criteria.hasLowerCase}
-            text="Une lettre minuscule"
-          />
-          <CriteriaItem 
-            met={criteria.hasNumbers}
-            text="Un chiffre"
-          />
-          <CriteriaItem 
-            met={criteria.hasSymbols}
-            text="Un symbole (!@#$%^&*)"
-          />
-          <CriteriaItem 
-            met={criteria.noCommonPatterns}
-            text="Éviter les mots de passe communs"
-          />
+      <div className='space-y-2'>
+        <h4 className='text-sm font-medium text-gray-700 mb-2'>Exigences du mot de passe:</h4>
+        <div className='grid grid-cols-1 gap-1 text-xs'>
+          <CriteriaItem met={criteria.minLength} text='Au moins 8 caractères' />
+          <CriteriaItem met={criteria.hasUpperCase} text='Une lettre majuscule' />
+          <CriteriaItem met={criteria.hasLowerCase} text='Une lettre minuscule' />
+          <CriteriaItem met={criteria.hasNumbers} text='Un chiffre' />
+          <CriteriaItem met={criteria.hasSymbols} text='Un symbole (!@#$%^&*)' />
+          <CriteriaItem met={criteria.noCommonPatterns} text='Éviter les mots de passe communs' />
         </div>
       </div>
 
       {/* Feedback messages */}
-      {password && password.length > 0 && strength && strength.feedback && strength.feedback.length > 0 && (
-        <div className="space-y-1">
-          {strength.feedback.map((message, _index) => (
-            <div key={_index} className="text-xs text-gray-600 flex items-start">
-              <span className="mr-1">•</span>
-              <span>{message}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {password &&
+        password.length > 0 &&
+        strength &&
+        strength.feedback &&
+        strength.feedback.length > 0 && (
+          <div className='space-y-1'>
+            {strength.feedback.map((message, _index) => (
+              <div key={_index} className='text-xs text-gray-600 flex items-start'>
+                <span className='mr-1'>•</span>
+                <span>{message}</span>
+              </div>
+            ))}
+          </div>
+        )}
     </div>
   );
 }
@@ -162,15 +142,13 @@ interface CriteriaItemProps {
  */
 function CriteriaItem({ met, text }: CriteriaItemProps) {
   return (
-    <div className="flex items-center space-x-2">
+    <div className='flex items-center space-x-2'>
       {met ? (
-        <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+        <Check className='h-3 w-3 text-green-500 flex-shrink-0' />
       ) : (
-        <X className="h-3 w-3 text-red-500 flex-shrink-0" />
+        <X className='h-3 w-3 text-red-500 flex-shrink-0' />
       )}
-      <span className={met ? 'text-green-700' : 'text-red-600'}>
-        {text}
-      </span>
+      <span className={met ? 'text-green-700' : 'text-red-600'}>{text}</span>
     </div>
   );
 }

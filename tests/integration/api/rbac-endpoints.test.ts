@@ -23,10 +23,10 @@ describe('RBAC API Endpoints Integration Tests', () => {
     app = express();
     app.use(express.json());
     app.use(sessionConfig);
-    
+
     setupAuthRoutes(app as any);
     registerUserRoutes(app as any);
-    
+
     agent = request.agent(app);
     jest.clearAllMocks();
   });
@@ -40,18 +40,16 @@ describe('RBAC API Endpoints Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Admin',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       (storage.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
       (storage.updateUser as jest.Mock).mockResolvedValue(mockUser);
 
-      const response = await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'password123'
-        });
+      const response = await agent.post('/api/auth/login').send({
+        email: 'admin@example.com',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.user.role).toBe('admin');
@@ -59,9 +57,9 @@ describe('RBAC API Endpoints Integration Tests', () => {
 
       // Verify session contains role and permissions by accessing a protected route
       (storage.getUser as jest.Mock).mockResolvedValue(mockUser);
-      
+
       const protectedResponse = await agent.get('/api/user/permissions');
-      
+
       expect(protectedResponse.status).toBe(200);
       expect(protectedResponse.body.role).toBe('admin');
       expect(protectedResponse.body.permissions).toBeDefined();
@@ -77,7 +75,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
         role: 'manager',
         isActive: true,
         firstName: 'Manager',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       (storage.getUserByEmail as jest.Mock).mockResolvedValue(mockManager);
@@ -85,12 +83,10 @@ describe('RBAC API Endpoints Integration Tests', () => {
       (storage.getUser as jest.Mock).mockResolvedValue(mockManager);
 
       // Login
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'manager@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'manager@example.com',
+        password: 'password123',
+      });
 
       // First permissions request
       const response1 = await agent.get('/api/user/permissions');
@@ -116,7 +112,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
           role: 'admin',
           isActive: true,
           firstName: 'Admin',
-          lastName: 'User'
+          lastName: 'User',
         },
         manager: {
           id: 'manager-123',
@@ -125,7 +121,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
           role: 'manager',
           isActive: true,
           firstName: 'Manager',
-          lastName: 'User'
+          lastName: 'User',
         },
         tenant: {
           id: 'tenant-123',
@@ -134,42 +130,58 @@ describe('RBAC API Endpoints Integration Tests', () => {
           role: 'tenant',
           isActive: true,
           firstName: 'Tenant',
-          lastName: 'User'
-        }
+          lastName: 'User',
+        },
       };
 
       (storage.getUserByEmail as jest.Mock).mockImplementation(async (email) => {
-        if (email === 'admin@example.com') {return mockUsers.admin;}
-        if (email === 'manager@example.com') {return mockUsers.manager;}
-        if (email === 'tenant@example.com') {return mockUsers.tenant;}
+        if (email === 'admin@example.com') {
+          return mockUsers.admin;
+        }
+        if (email === 'manager@example.com') {
+          return mockUsers.manager;
+        }
+        if (email === 'tenant@example.com') {
+          return mockUsers.tenant;
+        }
         return null;
       });
 
       (storage.getUser as jest.Mock).mockImplementation(async (id) => {
-        if (id === 'admin-123') {return mockUsers.admin;}
-        if (id === 'manager-123') {return mockUsers.manager;}
-        if (id === 'tenant-123') {return mockUsers.tenant;}
+        if (id === 'admin-123') {
+          return mockUsers.admin;
+        }
+        if (id === 'manager-123') {
+          return mockUsers.manager;
+        }
+        if (id === 'tenant-123') {
+          return mockUsers.tenant;
+        }
         return null;
       });
 
       (storage.updateUser as jest.Mock).mockImplementation(async (id) => {
-        if (id === 'admin-123') {return mockUsers.admin;}
-        if (id === 'manager-123') {return mockUsers.manager;}
-        if (id === 'tenant-123') {return mockUsers.tenant;}
+        if (id === 'admin-123') {
+          return mockUsers.admin;
+        }
+        if (id === 'manager-123') {
+          return mockUsers.manager;
+        }
+        if (id === 'tenant-123') {
+          return mockUsers.tenant;
+        }
         return null;
       });
     });
 
     test('should allow admin to access user permissions endpoint', async () => {
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'admin@example.com',
+        password: 'password123',
+      });
 
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(200);
       expect(response.body.role).toBe('admin');
       expect(response.body.permissions).toContain('delete:user');
@@ -177,15 +189,13 @@ describe('RBAC API Endpoints Integration Tests', () => {
     });
 
     test('should allow manager to access user permissions endpoint with limited permissions', async () => {
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'manager@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'manager@example.com',
+        password: 'password123',
+      });
 
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(200);
       expect(response.body.role).toBe('manager');
       expect(response.body.permissions).toContain('read:bill');
@@ -195,15 +205,13 @@ describe('RBAC API Endpoints Integration Tests', () => {
     });
 
     test('should allow tenant to access user permissions endpoint with minimal permissions', async () => {
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'tenant@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'tenant@example.com',
+        password: 'password123',
+      });
 
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(200);
       expect(response.body.role).toBe('tenant');
       expect(response.body.permissions).toContain('read:profile');
@@ -214,7 +222,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
 
     test('should deny access to permissions endpoint without authentication', async () => {
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(401);
       expect(response.body.message).toBe('Authentication required');
       expect(response.body.code).toBe('AUTH_REQUIRED');
@@ -226,41 +234,39 @@ describe('RBAC API Endpoints Integration Tests', () => {
       const testCases = [
         { email: 'admin@example.com', role: 'admin', expectedMinPermissions: 100 },
         { email: 'manager@example.com', role: 'manager', expectedMinPermissions: 50 },
-        { email: 'tenant@example.com', role: 'tenant', expectedMinPermissions: 10 }
+        { email: 'tenant@example.com', role: 'tenant', expectedMinPermissions: 10 },
       ];
 
       for (const testCase of testCases) {
         const agent = request.agent(app);
-        
-        await agent
-          .post('/api/auth/login')
-          .send({
-            email: testCase.email,
-            password: 'password123'
-          });
+
+        await agent.post('/api/auth/login').send({
+          email: testCase.email,
+          password: 'password123',
+        });
 
         const response = await agent.get('/api/user/permissions');
-        
+
         expect(response.status).toBe(200);
         expect(response.body.role).toBe(testCase.role);
-        expect(response.body.permissionCount).toBeGreaterThanOrEqual(testCase.expectedMinPermissions);
+        expect(response.body.permissionCount).toBeGreaterThanOrEqual(
+          testCase.expectedMinPermissions
+        );
         expect(response.body.permissions.length).toBe(response.body.permissionCount);
       }
     });
 
     test('should validate permissions are properly formatted', async () => {
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'admin@example.com',
+        password: 'password123',
+      });
 
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(200);
       expect(response.body.permissions).toBeDefined();
-      
+
       // Validate permission format (action:resource)
       response.body.permissions.forEach((permission: string) => {
         expect(permission).toMatch(/^[a-z_]+:[a-z_]+$/);
@@ -274,12 +280,10 @@ describe('RBAC API Endpoints Integration Tests', () => {
 
   describe('Session Security', () => {
     test('should clear permissions on logout', async () => {
-      await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'password123'
-        });
+      await agent.post('/api/auth/login').send({
+        email: 'admin@example.com',
+        password: 'password123',
+      });
 
       // Verify permissions are accessible
       let response = await agent.get('/api/user/permissions');
@@ -296,7 +300,7 @@ describe('RBAC API Endpoints Integration Tests', () => {
     test('should handle invalid session gracefully', async () => {
       // Try to access protected endpoint without login
       const response = await agent.get('/api/user/permissions');
-      
+
       expect(response.status).toBe(401);
       expect(response.body.message).toBe('Authentication required');
       expect(response.body.code).toBe('AUTH_REQUIRED');
@@ -310,17 +314,17 @@ describe('RBAC API Endpoints Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Admin',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       (storage.getUser as jest.Mock).mockResolvedValue(mockAdmin);
 
       // Simulate a session with missing permissions (backwards compatibility)
       const response = await agent.get('/api/user/permissions');
-      
+
       // Should either authenticate properly or return 401
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body.permissions).toBeDefined();
         expect(Array.isArray(response.body.permissions)).toBe(true);

@@ -25,7 +25,7 @@ describe('Schema Validation Tests', () => {
 
       const result = userSchema.safeParse(validUser);
       expect(result.success).toBe(true);
-      
+
       if (result.success) {
         expect(result.data.email).toBe(validUser.email);
         expect(result.data.firstName).toBe(validUser.firstName);
@@ -42,7 +42,7 @@ describe('Schema Validation Tests', () => {
 
       const result = userSchema.safeParse(invalidUser);
       expect(result.success).toBe(false);
-      
+
       if (!result.success) {
         expect(result.error.issues[0].path).toContain('email');
       }
@@ -82,7 +82,7 @@ describe('Schema Validation Tests', () => {
 
       const result = featureSchema.safeParse(validFeature);
       expect(result.success).toBe(true);
-      
+
       if (result.success) {
         expect(result.data.name).toBe(validFeature.name);
       }
@@ -96,9 +96,9 @@ describe('Schema Validation Tests', () => {
 
       const result = featureSchema.safeParse(incompleteFeature);
       expect(result.success).toBe(false);
-      
+
       if (!result.success) {
-        const errorPaths = result.error.issues.map(e => e.path[0]);
+        const errorPaths = result.error.issues.map((e) => e.path[0]);
         expect(errorPaths).toContain('description');
         expect(errorPaths).toContain('category');
       }
@@ -115,7 +115,7 @@ describe('Schema Validation Tests', () => {
 
       const result = featureSchema.safeParse(featureWithInvalidStatus);
       expect(result.success).toBe(false);
-      
+
       if (!result.success) {
         expect(result.error.issues[0].path).toContain('status');
       }
@@ -130,7 +130,7 @@ describe('Schema Validation Tests', () => {
 
       const result = featureSchema.safeParse(minimalFeature);
       expect(result.success).toBe(true);
-      
+
       if (result.success) {
         expect(result.data.status).toBe('submitted');
         expect(result.data.priority).toBe('medium');
@@ -161,7 +161,7 @@ describe('Schema Validation Tests', () => {
 
       const result = actionableItemSchema.safeParse(validItem);
       expect(result.success).toBe(true);
-      
+
       if (result.success) {
         expect(result.data.title).toBe(validItem.title);
         expect(result.data.order).toBe(0);
@@ -177,7 +177,7 @@ describe('Schema Validation Tests', () => {
 
       const result = actionableItemSchema.safeParse(itemWithDefaults);
       expect(result.success).toBe(true);
-      
+
       if (result.success) {
         expect(result.data.status).toBe('pending');
         expect(result.data.priority).toBe('medium');
@@ -193,9 +193,9 @@ describe('Schema Validation Tests', () => {
 
       const result = actionableItemSchema.safeParse(incompleteItem);
       expect(result.success).toBe(false);
-      
+
       if (!result.success) {
-        const errorPaths = result.error.issues.map(e => e.path[0]);
+        const errorPaths = result.error.issues.map((e) => e.path[0]);
         expect(errorPaths).toContain('description');
         expect(errorPaths).toContain('featureId');
       }
@@ -207,7 +207,7 @@ describe('Schema Validation Tests', () => {
       const quebecPostalCodes = ['H1A 1A1', 'G1A 1A1', 'J1A 1A1'];
       const postalCodeSchema = z.string().regex(/^[GHBJ]\d[A-Z] \d[A-Z]\d$/);
 
-      quebecPostalCodes.forEach(code => {
+      quebecPostalCodes.forEach((code) => {
         const result = postalCodeSchema.safeParse(code);
         expect(result.success).toBe(true);
       });
@@ -217,7 +217,7 @@ describe('Schema Validation Tests', () => {
       const invalidCodes = ['12345', 'A1A 1A1', 'H1A1A1'];
       const postalCodeSchema = z.string().regex(/^[GHBJ]\d[A-Z] \d[A-Z]\d$/);
 
-      invalidCodes.forEach(code => {
+      invalidCodes.forEach((code) => {
         const result = postalCodeSchema.safeParse(code);
         expect(result.success).toBe(false);
       });

@@ -6,7 +6,12 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { hasRoleOrHigher } from '@/config/navigation';
-import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from '@/components/buildings/types';
+import {
+  BuildingData,
+  Organization,
+  BuildingFormData,
+  buildingFormSchema,
+} from '@/components/buildings/types';
 
 /**
  * Custom hook for managing buildings data and operations.
@@ -23,12 +28,12 @@ import { BuildingData, Organization, BuildingFormData, buildingFormSchema } from
  * Use buildings function.
  */
 export function /**
-   * Use buildings function.
-   */ /**
-   * Use buildings function.
-   */
+ * Use buildings function.
+ */ /**
+ * Use buildings function.
+ */
 
- useBuildings() {
+useBuildings() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -77,19 +82,17 @@ export function /**
   });
 
   // Fetch buildings data
-  const { 
-    _data: buildingsResponse, 
-    isLoading, 
-    error 
-  } = useQuery<{buildings: BuildingData[]}>({
+  const {
+    _data: buildingsResponse,
+    isLoading,
+    error,
+  } = useQuery<{ buildings: BuildingData[] }>({
     queryKey: ['/api/manager/buildings'],
     enabled: isAuthenticated && hasRoleOrHigher(user?.role, 'manager'),
   });
 
   // Fetch organizations for admin users
-  const { 
-    _data: organizationsResponse 
-  } = useQuery<{organizations: Organization[]}>({
+  const { _data: organizationsResponse } = useQuery<{ organizations: Organization[] }>({
     queryKey: ['/api/admin/organizations'],
     enabled: isAuthenticated && user?.role === 'admin',
   });
@@ -105,36 +108,35 @@ export function /**
         credentials: 'include',
         body: JSON.stringify(data),
       }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create building');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -166,12 +168,12 @@ export function /**
         credentials: 'include',
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update building');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -200,12 +202,12 @@ export function /**
         method: 'DELETE',
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete building');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -249,14 +251,14 @@ export function /**
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBuilding = (_data: BuildingFormData) => { /**
-   * If function.
-   * @param editingBuilding - EditingBuilding parameter.
-   */ /**
-   * If function.
-   * @param editingBuilding - EditingBuilding parameter.
-   */
-
+  const handleUpdateBuilding = (_data: BuildingFormData) => {
+    /**
+     * If function.
+     * @param editingBuilding - EditingBuilding parameter.
+     */ /**
+     * If function.
+     * @param editingBuilding - EditingBuilding parameter.
+     */
 
     if (editingBuilding) {
       updateBuildingMutation.mutate({ id: editingBuilding.id, ...data });
@@ -267,14 +269,14 @@ export function /**
     setDeletingBuilding(building);
   };
 
-  const confirmDeleteBuilding = () => { /**
-   * If function.
-   * @param deletingBuilding - DeletingBuilding parameter.
-   */ /**
-   * If function.
-   * @param deletingBuilding - DeletingBuilding parameter.
-   */
-
+  const confirmDeleteBuilding = () => {
+    /**
+     * If function.
+     * @param deletingBuilding - DeletingBuilding parameter.
+     */ /**
+     * If function.
+     * @param deletingBuilding - DeletingBuilding parameter.
+     */
 
     if (deletingBuilding) {
       deleteBuildingMutation.mutate(deletingBuilding.id);
@@ -288,11 +290,11 @@ export function /**
     organizations: organizationsResponse?.organizations || [],
     isLoading,
     error,
-    
+
     // Forms
     form,
     editForm,
-    
+
     // State
     isAddDialogOpen,
     setIsAddDialogOpen,
@@ -301,12 +303,12 @@ export function /**
     editingBuilding,
     deletingBuilding,
     setDeletingBuilding,
-    
+
     // Mutations
     createBuildingMutation,
     updateBuildingMutation,
     deleteBuildingMutation,
-    
+
     // Handlers
     handleCreateBuilding,
     handleEditBuilding,

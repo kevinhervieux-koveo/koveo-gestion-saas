@@ -8,17 +8,17 @@ import { cn } from '@/lib/utils';
 
  */
 
-function  /**
-   * Skeleton function.
-   * @param { className - { className parameter.
-   * @param ...props } - ...props } parameter.
-   */  /**
-   * Skeleton function.
-   * @param { className - { className parameter.
-   * @param ...props } - ...props } parameter.
-   */
+function /**
+ * Skeleton function.
+ * @param { className - { className parameter.
+ * @param ...props } - ...props } parameter.
+ */ /**
+ * Skeleton function.
+ * @param { className - { className parameter.
+ * @param ...props } - ...props } parameter.
+ */
 
- Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('animate-pulse rounded-md bg-muted', className)} {...props} />;
 }
 

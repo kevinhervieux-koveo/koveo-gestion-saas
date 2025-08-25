@@ -18,7 +18,7 @@ describe('Complete E2E User Creation Flow', () => {
       id: 'manager-123',
       email: 'manager@example.com',
       role: 'manager',
-      organizationId: 'org-123'
+      organizationId: 'org-123',
     };
 
     mockToken = 'e38ddf5e720e8708dd2034539199e33a35e7cff5cb7867eb525c77c01cb7b771';
@@ -37,7 +37,7 @@ describe('Complete E2E User Creation Flow', () => {
         invitedByUserId: mockManagerUser.id,
         organizationId: 'org-123',
         buildingId: 'building-123',
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       // Mock storage methods
@@ -49,7 +49,7 @@ describe('Complete E2E User Creation Flow', () => {
         role: 'tenant' as const,
         organizationId: 'org-123',
         buildingId: 'building-123',
-        personalizedMessage: 'Welcome to our property management system!'
+        personalizedMessage: 'Welcome to our property management system!',
       };
 
       const result = await storage.createInvitation({
@@ -57,7 +57,7 @@ describe('Complete E2E User Creation Flow', () => {
         invitedByUserId: mockManagerUser.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         status: 'pending' as const,
-        token: mockToken
+        token: mockToken,
       });
 
       expect(result).toEqual(mockInvitation);
@@ -65,7 +65,7 @@ describe('Complete E2E User Creation Flow', () => {
         expect.objectContaining({
           email: 'newuser@example.com',
           role: 'tenant',
-          invitedByUserId: mockManagerUser.id
+          invitedByUserId: mockManagerUser.id,
         })
       );
     });
@@ -79,7 +79,7 @@ describe('Complete E2E User Creation Flow', () => {
         role: 'tenant' as const,
         token: mockToken,
         status: 'pending' as const,
-        organizationId: 'org-123'
+        organizationId: 'org-123',
       };
 
       (storage.getInvitationByToken as jest.Mock).mockResolvedValue(mockInvitation);
@@ -103,7 +103,7 @@ describe('Complete E2E User Creation Flow', () => {
         language: 'fr',
         role: 'manager' as const,
         organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
-        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba'
+        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
       };
 
       const mockCreatedUser = {
@@ -112,7 +112,7 @@ describe('Complete E2E User Creation Flow', () => {
         ...userData,
         isActive: true,
         createdAt: new Date(),
-        lastLogin: null
+        lastLogin: null,
       };
 
       (storage.createUser as jest.Mock).mockResolvedValue(mockCreatedUser);
@@ -134,7 +134,7 @@ describe('Complete E2E User Creation Flow', () => {
         analyticsConsent: true,
         thirdPartyConsent: false,
         acknowledgedRights: true,
-        consentDate: new Date().toISOString()
+        consentDate: new Date().toISOString(),
       };
 
       // Quebec Law 25 requires both data collection consent and acknowledged rights
@@ -152,7 +152,7 @@ describe('Complete E2E User Creation Flow', () => {
         token: mockToken,
         status: 'pending' as const,
         organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
-        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba'
+        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
       };
 
       const mockCreatedUser = {
@@ -163,22 +163,22 @@ describe('Complete E2E User Creation Flow', () => {
         lastName: 'Hervieux',
         role: 'manager' as const,
         organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
-        isActive: true
+        isActive: true,
       };
 
       // Mock the complete flow
       (storage.getInvitationByToken as jest.Mock).mockResolvedValue(mockInvitation);
       (storage.createUser as jest.Mock).mockResolvedValue(mockCreatedUser);
-      (storage.updateInvitation as jest.Mock).mockResolvedValue({ 
-        ...mockInvitation, 
-        status: 'accepted' as const 
+      (storage.updateInvitation as jest.Mock).mockResolvedValue({
+        ...mockInvitation,
+        status: 'accepted' as const,
       });
 
       // Step 1: Validate token
       const invitation = await storage.getInvitationByToken(mockToken);
       expect(invitation.email).toBe('kevhervieux@gmail.com');
 
-      // Step 2: Create user 
+      // Step 2: Create user
       const createdUser = await storage.createUser({
         firstName: 'Kevin',
         lastName: 'Hervieux',
@@ -188,16 +188,15 @@ describe('Complete E2E User Creation Flow', () => {
         language: 'fr',
         role: invitation.role,
         organizationId: invitation.organizationId,
-        buildingId: invitation.buildingId
+        buildingId: invitation.buildingId,
       });
 
       expect(createdUser.id).toBe('6a71e61e-a841-4106-bde7-dd2945653d49');
 
       // Step 3: Update invitation status
-      const updatedInvitation = await storage.updateInvitation(
-        invitation.id, 
-        { status: 'accepted' }
-      );
+      const updatedInvitation = await storage.updateInvitation(invitation.id, {
+        status: 'accepted',
+      });
 
       expect(updatedInvitation.status).toBe('accepted');
     });

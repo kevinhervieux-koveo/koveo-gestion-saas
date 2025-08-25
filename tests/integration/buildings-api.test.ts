@@ -140,9 +140,7 @@ describe('Buildings API Integration Tests', () => {
       mockDb.and.mockReturnValue(true);
       mockDb.leftJoin.mockResolvedValueOnce(mockBuildings);
 
-      const response = await request(app)
-        .get('/api/manager/buildings')
-        .expect(200);
+      const response = await request(app).get('/api/manager/buildings').expect(200);
 
       expect(response.body).toHaveProperty('buildings');
       expect(Array.isArray(response.body.buildings)).toBe(true);
@@ -150,16 +148,14 @@ describe('Buildings API Integration Tests', () => {
 
     it('should filter buildings by search term', async () => {
       const filteredBuildings = [mockBuildings[0]];
-      
+
       mockDb.select.mockReturnValueOnce(mockDb);
       mockDb.from.mockReturnValueOnce(mockDb);
       mockDb.leftJoin.mockReturnValueOnce(mockDb);
       mockDb.where.mockReturnValueOnce(mockDb);
       mockDb.leftJoin.mockResolvedValueOnce(filteredBuildings);
 
-      const response = await request(app)
-        .get('/api/manager/buildings?search=Maple')
-        .expect(200);
+      const response = await request(app).get('/api/manager/buildings?search=Maple').expect(200);
 
       expect(response.body.buildings).toHaveLength(1);
       expect(response.body.buildings[0].name).toBe('Maple Heights');
@@ -183,9 +179,7 @@ describe('Buildings API Integration Tests', () => {
       mockDb.where.mockReturnValueOnce(mockDb);
       mockDb.leftJoin.mockResolvedValueOnce(mockBuildings); // Should return all buildings
 
-      const response = await request(app)
-        .get('/api/manager/buildings')
-        .expect(200);
+      const response = await request(app).get('/api/manager/buildings').expect(200);
 
       expect(response.body.buildings).toHaveLength(2);
     });
@@ -196,9 +190,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(401).json({ message: 'Authentication required' });
       });
 
-      await request(app)
-        .get('/api/manager/buildings')
-        .expect(401);
+      await request(app).get('/api/manager/buildings').expect(401);
     });
 
     it('should return 403 for residents and tenants', async () => {
@@ -211,9 +203,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(403).json({ message: 'Manager or Admin access required' });
       });
 
-      await request(app)
-        .get('/api/manager/buildings')
-        .expect(403);
+      await request(app).get('/api/manager/buildings').expect(403);
     });
   });
 
@@ -327,10 +317,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(403).json({ message: 'Admin access required' });
       });
 
-      await request(app)
-        .post('/api/admin/buildings')
-        .send(validBuildingData)
-        .expect(403);
+      await request(app).post('/api/admin/buildings').send(validBuildingData).expect(403);
     });
 
     it('should handle database errors gracefully', async () => {
@@ -457,10 +444,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(403).json({ message: 'Admin or Manager access required' });
       });
 
-      await request(app)
-        .put(`/api/admin/buildings/${buildingId}`)
-        .send(updateData)
-        .expect(403);
+      await request(app).put(`/api/admin/buildings/${buildingId}`).send(updateData).expect(403);
     });
   });
 
@@ -481,9 +465,7 @@ describe('Buildings API Integration Tests', () => {
       mockDb.set.mockReturnValueOnce(mockDb);
       mockDb.where.mockResolvedValueOnce(undefined);
 
-      const response = await request(app)
-        .delete(`/api/admin/buildings/${buildingId}`)
-        .expect(200);
+      const response = await request(app).delete(`/api/admin/buildings/${buildingId}`).expect(200);
 
       expect(response.body).toHaveProperty('message', 'Building deleted successfully');
     });
@@ -498,9 +480,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(403).json({ message: 'Admin access required' });
       });
 
-      await request(app)
-        .delete(`/api/admin/buildings/${buildingId}`)
-        .expect(403);
+      await request(app).delete(`/api/admin/buildings/${buildingId}`).expect(403);
     });
 
     it('should return 404 for non-existent building', async () => {
@@ -509,9 +489,7 @@ describe('Buildings API Integration Tests', () => {
       mockDb.where.mockReturnValueOnce(mockDb);
       mockDb.limit.mockResolvedValueOnce([]); // No building found
 
-      const response = await request(app)
-        .delete(`/api/admin/buildings/${buildingId}`)
-        .expect(404);
+      const response = await request(app).delete(`/api/admin/buildings/${buildingId}`).expect(404);
 
       expect(response.body).toHaveProperty('message', 'Building not found');
     });
@@ -526,9 +504,7 @@ describe('Buildings API Integration Tests', () => {
         res.status(403).json({ message: 'Admin access required' });
       });
 
-      await request(app)
-        .delete(`/api/admin/buildings/${buildingId}`)
-        .expect(403);
+      await request(app).delete(`/api/admin/buildings/${buildingId}`).expect(403);
     });
   });
 

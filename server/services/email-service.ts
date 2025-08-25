@@ -12,9 +12,9 @@ class EmailService {
   /**
    * Initializes the EmailService with SendGrid configuration.
    * Validates that the SENDGRID_API_KEY environment variable is set.
-   * 
+   *
    * @throws {Error} When SENDGRID_API_KEY environment variable is not set.
-   * 
+   *
    * @example
    * ```typescript
    * const emailService = new EmailService();
@@ -23,7 +23,7 @@ class EmailService {
    */
   constructor() {
     if (!process.env.SENDGRID_API_KEY) {
-      throw new Error("SENDGRID_API_KEY environment variable must be set");
+      throw new Error('SENDGRID_API_KEY environment variable must be set');
     }
 
     this.mailService = new MailService();
@@ -34,15 +34,15 @@ class EmailService {
    * Sends password reset email in French or English with Quebec Law 25 compliance.
    * Uses professional templates with security warnings and privacy disclaimers.
    * Link tracking is disabled for direct URL access as required by security protocols.
-   * 
+   *
    * @param {string} to - Recipient email address.
    * @param {string} userName - User's display name for personalization.
    * @param {string} resetUrl - Complete password reset URL with token.
    * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec).
    * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
-   * 
+   *
    * @throws {Error} When SendGrid API fails or invalid parameters provided.
-   * 
+   *
    * @example
    * ```typescript
    * const emailService = new EmailService();
@@ -122,7 +122,7 @@ Si vous n'avez pas demandé cette réinitialisation, ignorez ce courriel.
 
 Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées selon les normes de sécurité les plus strictes.
 
-© 2025 Koveo Gestion. Tous droits réservés.`
+© 2025 Koveo Gestion. Tous droits réservés.`,
         },
         en: {
           subject: 'Password Reset - Koveo Gestion',
@@ -184,12 +184,12 @@ If you did not request this reset, please ignore this email.
 
 Quebec Law 25 compliant. Your personal data is protected according to the strictest security standards.
 
-© 2025 Koveo Gestion. All rights reserved.`
-        }
+© 2025 Koveo Gestion. All rights reserved.`,
+        },
       };
 
       const template = templates[language];
-      
+
       console.warn('Sending password reset email with URL:', resetUrl);
       console.warn('Email tracking settings applied: click tracking disabled');
 
@@ -197,37 +197,37 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
         to,
         from: {
           email: this.fromEmail,
-          name: this.fromName
+          name: this.fromName,
         },
         subject: template.subject,
         text: template.text,
         html: template.html,
         mailSettings: {
           bypassListManagement: {
-            enable: false
+            enable: false,
           },
           footer: {
-            enable: false
+            enable: false,
           },
           sandboxMode: {
-            enable: false
-          }
+            enable: false,
+          },
         },
         trackingSettings: {
           clickTracking: {
             enable: false,
-            enableText: false
+            enableText: false,
           },
           openTracking: {
-            enable: false
+            enable: false,
           },
           subscriptionTracking: {
-            enable: false
+            enable: false,
           },
           ganalytics: {
-            enable: false
-          }
-        }
+            enable: false,
+          },
+        },
       });
 
       return true;
@@ -239,7 +239,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
 
   /**
    * Sends an invitation email to a new user with their invitation link.
-   * 
+   *
    * @param {string} to - Recipient's email address.
    * @param {string} recipientName - Name of the person being invited.
    * @param {string} token - Invitation token for the registration URL.
@@ -251,9 +251,9 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
    * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
    */
   async sendInvitationEmail(
-    to: string, 
+    to: string,
     recipientName: string,
-    token: string, 
+    token: string,
     organizationName: string,
     inviterName: string,
     expiresAt: Date,
@@ -264,10 +264,10 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       // Smart environment detection for invitation URLs
       const isDevelopment = process.env.NODE_ENV !== 'production';
       let baseUrl;
-      
+
       if (isDevelopment) {
         // For development: use the exact replit domain from REPLIT_DOMAINS
-        const replitUrl = process.env.REPLIT_DOMAINS 
+        const replitUrl = process.env.REPLIT_DOMAINS
           ? `https://${process.env.REPLIT_DOMAINS}`
           : null;
         baseUrl = replitUrl || 'http://localhost:5000';
@@ -279,8 +279,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       const expiryDate = expiresAt.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA');
 
       const isFrench = language === 'fr';
-      
-      const subject = isFrench 
+
+      const subject = isFrench
         ? `Invitation à rejoindre ${organizationName} - Koveo Gestion`
         : `Invitation to join ${organizationName} - Koveo Gestion`;
 
@@ -290,19 +290,25 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
           
           <p>${isFrench ? 'Bonjour' : 'Hello'} ${recipientName},</p>
           
-          <p>${isFrench 
-            ? `${inviterName} vous invite à rejoindre <strong>${organizationName}</strong> sur Koveo Gestion.`
-            : `${inviterName} has invited you to join <strong>${organizationName}</strong> on Koveo Gestion.`
+          <p>${
+            isFrench
+              ? `${inviterName} vous invite à rejoindre <strong>${organizationName}</strong> sur Koveo Gestion.`
+              : `${inviterName} has invited you to join <strong>${organizationName}</strong> on Koveo Gestion.`
           }</p>
 
-          ${personalMessage ? `<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          ${
+            personalMessage
+              ? `<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 0;"><strong>${isFrench ? 'Message personnel' : 'Personal message'}:</strong></p>
             <p style="margin: 10px 0 0 0; font-style: italic;">"${personalMessage}"</p>
-          </div>` : ''}
+          </div>`
+              : ''
+          }
           
-          <p>${isFrench 
-            ? 'Pour créer votre compte et accepter cette invitation, cliquez sur le bouton ci-dessous :'
-            : 'To create your account and accept this invitation, click the button below:'
+          <p>${
+            isFrench
+              ? 'Pour créer votre compte et accepter cette invitation, cliquez sur le bouton ci-dessous :'
+              : 'To create your account and accept this invitation, click the button below:'
           }</p>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -313,9 +319,10 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
           </div>
           
           <p style="color: #6b7280; font-size: 14px;">
-            ${isFrench 
-              ? `Cette invitation expire le ${expiryDate}. Si vous ne pouvez pas cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :`
-              : `This invitation expires on ${expiryDate}. If you can't click the button, copy and paste this link into your browser:`
+            ${
+              isFrench
+                ? `Cette invitation expire le ${expiryDate}. Si vous ne pouvez pas cliquer sur le bouton, copiez et collez ce lien dans votre navigateur :`
+                : `This invitation expires on ${expiryDate}. If you can't click the button, copy and paste this link into your browser:`
             }
           </p>
           
@@ -326,9 +333,10 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
           
           <p style="color: #9ca3af; font-size: 12px;">
-            ${isFrench 
-              ? 'Cet email a été envoyé par Koveo Gestion. Si vous n\'avez pas demandé cette invitation, vous pouvez ignorer cet email.'
-              : 'This email was sent by Koveo Gestion. If you did not request this invitation, you can safely ignore this email.'
+            ${
+              isFrench
+                ? "Cet email a été envoyé par Koveo Gestion. Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email."
+                : 'This email was sent by Koveo Gestion. If you did not request this invitation, you can safely ignore this email.'
             }
           </p>
         </div>
@@ -337,27 +345,31 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       const textContent = `
         ${isFrench ? 'Bonjour' : 'Hello'} ${recipientName},
 
-        ${isFrench 
-          ? `${inviterName} vous invite à rejoindre ${organizationName} sur Koveo Gestion.`
-          : `${inviterName} has invited you to join ${organizationName} on Koveo Gestion.`
+        ${
+          isFrench
+            ? `${inviterName} vous invite à rejoindre ${organizationName} sur Koveo Gestion.`
+            : `${inviterName} has invited you to join ${organizationName} on Koveo Gestion.`
         }
 
         ${personalMessage ? `${isFrench ? 'Message personnel' : 'Personal message'}: "${personalMessage}"` : ''}
 
-        ${isFrench 
-          ? 'Pour créer votre compte et accepter cette invitation, visitez :'
-          : 'To create your account and accept this invitation, visit:'
+        ${
+          isFrench
+            ? 'Pour créer votre compte et accepter cette invitation, visitez :'
+            : 'To create your account and accept this invitation, visit:'
         }
         ${invitationUrl}
 
-        ${isFrench 
-          ? `Cette invitation expire le ${expiryDate}.`
-          : `This invitation expires on ${expiryDate}.`
+        ${
+          isFrench
+            ? `Cette invitation expire le ${expiryDate}.`
+            : `This invitation expires on ${expiryDate}.`
         }
 
-        ${isFrench 
-          ? 'Si vous n\'avez pas demandé cette invitation, vous pouvez ignorer cet email.'
-          : 'If you did not request this invitation, you can safely ignore this email.'
+        ${
+          isFrench
+            ? "Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email."
+            : 'If you did not request this invitation, you can safely ignore this email.'
         }
       `;
 
@@ -365,25 +377,25 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
         to,
         from: {
           email: this.fromEmail,
-          name: this.fromName
+          name: this.fromName,
         },
         subject,
         text: textContent.trim(),
         html: htmlContent,
         trackingSettings: {
           clickTracking: {
-            enable: false
+            enable: false,
           },
           openTracking: {
-            enable: false
+            enable: false,
           },
           subscriptionTracking: {
-            enable: false
+            enable: false,
           },
           ganalytics: {
-            enable: false
-          }
-        }
+            enable: false,
+          },
+        },
       });
 
       return true;
@@ -397,10 +409,10 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
   /**
    * Sends a test email to verify SendGrid configuration and connectivity.
    * Used for troubleshooting email delivery issues and validating API setup.
-   * 
+   *
    * @param {string} to - Recipient email address for the test email.
    * @returns {Promise<boolean>} Promise resolving to true if test email sent successfully.
-   * 
+   *
    * @example
    * ```typescript
    * const emailService = new EmailService();
@@ -416,7 +428,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
         to,
         from: {
           email: this.fromEmail,
-          name: this.fromName
+          name: this.fromName,
         },
         subject: 'Test Email - Koveo Gestion',
         text: 'This is a test email to verify SendGrid configuration.',

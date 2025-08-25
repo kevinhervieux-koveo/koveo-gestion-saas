@@ -4,11 +4,11 @@ const React = require('react');
 // Mock Router component
 const Router = ({ children }) => React.createElement('div', null, children);
 
-// Mock BrowserRouter component  
+// Mock BrowserRouter component
 const BrowserRouter = ({ children }) => React.createElement('div', null, children);
 
 // Mock Link component
-const Link = ({ href, children, ...props }) => 
+const Link = ({ href, children, ...props }) =>
   React.createElement('a', { href, ...props }, children);
 
 // Mock useLocation hook
@@ -61,6 +61,6 @@ module.exports = {
     useParams,
     Redirect,
     Switch,
-    Route
-  }
+    Route,
+  },
 };

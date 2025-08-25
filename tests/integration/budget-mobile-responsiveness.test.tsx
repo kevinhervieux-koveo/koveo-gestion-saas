@@ -35,9 +35,9 @@ const mockBudgetData = [
       'Special Assessments': 10000,
     },
     expensesByCategory: {
-      'Maintenance': 15000,
-      'Utilities': 10000,
-      'Insurance': 5000,
+      Maintenance: 15000,
+      Utilities: 10000,
+      Insurance: 5000,
     },
     buildingId: 'building-1',
   },
@@ -164,12 +164,13 @@ describe('Budget Page Mobile Responsiveness', () => {
         if (url.includes('/api/budget')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve([
-              {
-                ...mockBudgetData[0],
-                netCashFlow: -10000, // Negative to trigger special contribution
-              },
-            ]),
+            json: () =>
+              Promise.resolve([
+                {
+                  ...mockBudgetData[0],
+                  netCashFlow: -10000, // Negative to trigger special contribution
+                },
+              ]),
           });
         }
         return Promise.resolve({
@@ -299,7 +300,7 @@ describe('Budget Page Mobile Responsiveness', () => {
       });
 
       const chartContainer = screen.getByText('Financial Trends').closest('.bg-white');
-      
+
       if (chartContainer) {
         chartContainer.addEventListener('touchstart', touchStartSpy);
         chartContainer.addEventListener('touchend', touchEndSpy);
@@ -323,7 +324,7 @@ describe('Budget Page Mobile Responsiveness', () => {
 
       await waitFor(() => {
         const fullscreenButton = screen.getByTestId('button-fullscreen-toggle');
-        
+
         // Check button has appropriate mobile-friendly size
         expect(fullscreenButton).toHaveClass('flex', 'items-center', 'gap-2');
       });
@@ -402,7 +403,7 @@ describe('Budget Page Mobile Responsiveness', () => {
       await waitFor(() => {
         // Check for proper text wrapping and truncation classes
         const titleElements = screen.getAllByText(/Financial Trends|Total Income|Total Expenses/);
-        titleElements.forEach(element => {
+        titleElements.forEach((element) => {
           expect(element.closest('.text-sm') || element.closest('.text-2xl')).toBeInTheDocument();
         });
       });

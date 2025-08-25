@@ -40,7 +40,7 @@ export interface NavigationSection {
 /**
  * Consolidated navigation configuration for the entire application.
  * This is the single source of truth for all navigation structures.
- * 
+ *
  * Role hierarchy: tenant (1) = resident (1) < manager (2) < admin (3).
  */
 export const NAVIGATION_CONFIG: NavigationSection[] = [
@@ -63,7 +63,12 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { name: 'My Residence', href: '/residents/residence', icon: Home },
       { name: 'My Building', href: '/residents/building', icon: Building },
       { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
-      { name: 'Common Spaces', href: '/resident/common-spaces', icon: Building2, requiredRole: 'resident' },
+      {
+        name: 'Common Spaces',
+        href: '/resident/common-spaces',
+        icon: Building2,
+        requiredRole: 'resident',
+      },
     ],
   },
   {
@@ -135,11 +140,13 @@ export const ROLE_HIERARCHY = {
  * @returns Function result.
  */
 export function hasRoleOrHigher(userRole: string | undefined, requiredRole: string): boolean {
-  if (!userRole) {return false;}
-  
+  if (!userRole) {
+    return false;
+  }
+
   const userLevel = ROLE_HIERARCHY[userRole as keyof typeof ROLE_HIERARCHY] || 0;
   const requiredLevel = ROLE_HIERARCHY[requiredRole as keyof typeof ROLE_HIERARCHY] || 0;
-  
+
   return userLevel >= requiredLevel;
 }
 
@@ -154,12 +161,12 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
  * @returns Function result.
  */
 export function getFilteredNavigation(userRole: string | undefined): NavigationSection[] {
-  return NAVIGATION_CONFIG
-    .filter(section => hasRoleOrHigher(userRole, section.requiredRole))
-    .map(section => ({
+  return NAVIGATION_CONFIG.filter((section) => hasRoleOrHigher(userRole, section.requiredRole)).map(
+    (section) => ({
       ...section,
-      items: section.items.filter(item => 
-        !item.requiredRole || hasRoleOrHigher(userRole, item.requiredRole)
-      )
-    }));
+      items: section.items.filter(
+        (item) => !item.requiredRole || hasRoleOrHigher(userRole, item.requiredRole)
+      ),
+    })
+  );
 }

@@ -23,13 +23,13 @@ function getUserLanguage(req: AuthenticatedRequest): 'en' | 'fr' {
   if (req.user?.preferredLanguage) {
     return req.user.preferredLanguage;
   }
-  
+
   // Check Accept-Language header
   const acceptLanguage = req.headers['accept-language'];
   if (acceptLanguage && acceptLanguage.includes('fr')) {
     return 'fr';
   }
-  
+
   // Default to French for Quebec
   return 'fr';
 }
@@ -60,8 +60,8 @@ function logError(error: Error, req: AuthenticatedRequest): void {
     error: {
       name: error.name,
       message: error.message,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   };
 
   if (error instanceof ApiError) {
@@ -92,29 +92,29 @@ function handleZodError(error: ZodError, req: AuthenticatedRequest): ValidationE
  */
 function handleDatabaseError(error: Error): ApiError {
   const message = error.message.toLowerCase();
-  
+
   if (message.includes('connection') || message.includes('connect')) {
     return ApiError.internal(ErrorCodes.DATABASE_CONNECTION_FAILED, {
-      originalError: error.message
+      originalError: error.message,
     });
   }
-  
+
   if (message.includes('unique') || message.includes('duplicate')) {
     return ApiError.badRequest(ErrorCodes.DATABASE_CONSTRAINT_VIOLATION, {
       constraint: 'unique',
-      originalError: error.message
+      originalError: error.message,
     });
   }
-  
+
   if (message.includes('foreign key') || message.includes('constraint')) {
     return ApiError.badRequest(ErrorCodes.DATABASE_CONSTRAINT_VIOLATION, {
       constraint: 'foreign_key',
-      originalError: error.message
+      originalError: error.message,
     });
   }
-  
+
   return ApiError.internal(ErrorCodes.DATABASE_QUERY_FAILED, {
-    originalError: error.message
+    originalError: error.message,
   });
 }
 
@@ -124,21 +124,21 @@ function handleDatabaseError(error: Error): ApiError {
  */
 function handleSystemError(error: Error): ApiError {
   const message = error.message.toLowerCase();
-  
+
   if (message.includes('enotfound') || message.includes('network')) {
     return ApiError.internal(ErrorCodes.EXTERNAL_SERVICE_UNAVAILABLE, {
-      originalError: error.message
+      originalError: error.message,
     });
   }
-  
+
   if (message.includes('timeout')) {
     return ApiError.internal(ErrorCodes.SERVICE_TEMPORARILY_UNAVAILABLE, {
-      originalError: error.message
+      originalError: error.message,
     });
   }
-  
+
   return ApiError.internal(ErrorCodes.INTERNAL_SERVER_ERROR, {
-    originalError: error.message
+    originalError: error.message,
   });
 }
 
@@ -169,7 +169,7 @@ export function errorHandler(
   } else if (error.name === 'ValidationError') {
     // Generic validation error
     apiError = ApiError.badRequest(ErrorCodes.VALIDATION_FAILED, {
-      originalError: error.message
+      originalError: error.message,
     });
   } else if (error.message.includes('database') || error.message.includes('sql')) {
     // Database-related error
@@ -184,7 +184,7 @@ export function errorHandler(
 
   // Get user's preferred language
   const language = getUserLanguage(req);
-  
+
   // Create localized response
   const response = apiError.toJSON();
   response.message = getLocalizedMessage(apiError.code, language);
@@ -222,9 +222,9 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
   if (req.path.startsWith('/api')) {
     const error = ApiError.notFound(ErrorCodes.INTERNAL_SERVER_ERROR, {
       path: req.path,
-      method: req.method
+      method: req.method,
     });
-    
+
     error.message = `API route ${req.method} ${req.path} not found`;
     next(error);
   } else {

@@ -15,12 +15,12 @@ jest.mock('../../../server/storage', () => ({
     createInvitationAuditLog: jest.fn(),
     getUserByEmail: jest.fn(),
     updateUser: jest.fn(),
-    getUser: jest.fn()
-  }
+    getUser: jest.fn(),
+  },
 }));
 
 jest.mock('../../../server/services/email-service', () => ({
-  sendEmail: jest.fn()
+  sendEmail: jest.fn(),
 }));
 
 describe('Complete User Creation E2E Flow', () => {
@@ -44,7 +44,7 @@ describe('Complete User Creation E2E Flow', () => {
       status: 'pending',
       token: mockInvitationToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     // Registration data from all 4 wizard steps
@@ -64,8 +64,8 @@ describe('Complete User Creation E2E Flow', () => {
         analyticsConsent: true,
         thirdPartyConsent: false,
         acknowledgedRights: true,
-        consentDate: new Date().toISOString()
-      }
+        consentDate: new Date().toISOString(),
+      },
     };
 
     // Created user from successful flow
@@ -83,7 +83,7 @@ describe('Complete User Creation E2E Flow', () => {
       isActive: true,
       privacyConsents: mockUserData.privacyConsents,
       createdAt: new Date(),
-      lastLogin: null
+      lastLogin: null,
     };
 
     jest.clearAllMocks();
@@ -115,7 +115,7 @@ describe('Complete User Creation E2E Flow', () => {
         ...mockInvitationData,
         status: 'accepted',
         acceptedAt: new Date(),
-        acceptedByUserId: mockCreatedUser.id
+        acceptedByUserId: mockCreatedUser.id,
       };
 
       storage.updateInvitation.mockResolvedValue(acceptedInvitation);
@@ -123,7 +123,7 @@ describe('Complete User Creation E2E Flow', () => {
       const updatedInvitation = await storage.updateInvitation(mockInvitationData.id, {
         status: 'accepted',
         acceptedAt: new Date(),
-        acceptedByUserId: mockCreatedUser.id
+        acceptedByUserId: mockCreatedUser.id,
       });
 
       expect(updatedInvitation.status).toBe('accepted');
@@ -137,11 +137,11 @@ describe('Complete User Creation E2E Flow', () => {
         details: {
           email: mockInvitationData.email,
           userId: mockCreatedUser.id,
-          organizationId: mockInvitationData.organizationId
+          organizationId: mockInvitationData.organizationId,
         },
         previousStatus: 'pending',
         newStatus: 'accepted',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       storage.createInvitationAuditLog.mockResolvedValue(auditLogData);
@@ -154,7 +154,7 @@ describe('Complete User Creation E2E Flow', () => {
       expect(storage.getInvitationByToken).toHaveBeenCalledWith(mockInvitationToken);
       expect(storage.createUser).toHaveBeenCalledWith(mockUserData);
       expect(storage.updateInvitation).toHaveBeenCalledWith(
-        mockInvitationData.id, 
+        mockInvitationData.id,
         expect.objectContaining({ status: 'accepted' })
       );
       expect(storage.createInvitationAuditLog).toHaveBeenCalledWith(auditLogData);
@@ -174,13 +174,13 @@ describe('Complete User Creation E2E Flow', () => {
           city: 'Laval',
           province: 'QC',
           postalCode: 'H7N 0A1',
-          country: 'Canada'
-        }
+          country: 'Canada',
+        },
       };
 
       storage.createUser.mockResolvedValue({
         ...mockCreatedUser,
-        ...quebecUserData
+        ...quebecUserData,
       });
 
       const quebecUser = await storage.createUser(quebecUserData);
@@ -200,20 +200,20 @@ describe('Complete User Creation E2E Flow', () => {
 
       // Create user
       await storage.createUser(mockUserData);
-      
+
       // Mock organization access (from logs pattern)
       const userAccess = {
         organizations: [
           {
             id: '72263718-6559-4216-bd93-524f7acdcbbc',
             name: '563 montée des pionniers',
-            role: 'manager'
+            role: 'manager',
           },
           {
             id: 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6',
             name: 'Demo',
-            role: 'manager' // Demo access for all users
-          }
+            role: 'manager', // Demo access for all users
+          },
         ],
         buildings: [
           {
@@ -221,10 +221,10 @@ describe('Complete User Creation E2E Flow', () => {
             name: 'Main Building',
             organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
             canEdit: true,
-            canDelete: false // Only admin can delete
-          }
+            canDelete: false, // Only admin can delete
+          },
         ],
-        residences: [] // Auto-generated from buildings
+        residences: [], // Auto-generated from buildings
       };
 
       expect(userAccess.organizations).toHaveLength(2);
@@ -240,7 +240,7 @@ describe('Complete User Creation E2E Flow', () => {
       storage.getUserByEmail.mockResolvedValue(mockCreatedUser);
       storage.updateUser.mockResolvedValue({
         ...mockCreatedUser,
-        lastLogin: new Date()
+        lastLogin: new Date(),
       });
 
       // Simulate login attempt after registration
@@ -250,7 +250,7 @@ describe('Complete User Creation E2E Flow', () => {
       // Update last login
       const loginTime = new Date();
       const updatedUser = await storage.updateUser(mockCreatedUser.id, {
-        lastLogin: loginTime
+        lastLogin: loginTime,
       });
 
       expect(updatedUser.lastLogin).toEqual(loginTime);
@@ -263,9 +263,7 @@ describe('Complete User Creation E2E Flow', () => {
       const { storage } = require('../../../server/storage');
 
       // Mock slow query (based on logs showing 177ms+ queries)
-      const slowQuery = new Promise(resolve => 
-        setTimeout(() => resolve(mockCreatedUser), 200)
-      );
+      const slowQuery = new Promise((resolve) => setTimeout(() => resolve(mockCreatedUser), 200));
 
       storage.createUser.mockReturnValue(slowQuery);
 
@@ -303,15 +301,13 @@ describe('Complete User Creation E2E Flow', () => {
         averageQueryTime: 181.66, // ms
         totalQueries: 2,
         slowQueries: 2,
-        slowQueryThreshold: 100 // ms
+        slowQueryThreshold: 100, // ms
       };
 
       storage.createUser.mockImplementation(() => {
         // Simulate query timing
         const queryTime = performanceMetrics.averageQueryTime;
-        return new Promise(resolve => 
-          setTimeout(() => resolve(mockCreatedUser), queryTime)
-        );
+        return new Promise((resolve) => setTimeout(() => resolve(mockCreatedUser), queryTime));
       });
 
       const startTime = performance.now();
@@ -320,7 +316,7 @@ describe('Complete User Creation E2E Flow', () => {
 
       const actualQueryTime = endTime - startTime;
       expect(actualQueryTime).toBeGreaterThan(performanceMetrics.slowQueryThreshold);
-      
+
       // Performance recommendation should be triggered
       expect(performanceMetrics.averageQueryTime).toBeGreaterThan(100);
     });
@@ -332,7 +328,7 @@ describe('Complete User Creation E2E Flow', () => {
       const cacheScenarios = [
         { key: 'users:user_email:kevhervieux@gmail.com', status: 'miss' },
         { key: 'users:user:6a71e61e-a841-4106-bde7-dd2945653d49', status: 'cached' },
-        { key: 'users:all_users', status: 'miss' }
+        { key: 'users:all_users', status: 'miss' },
       ];
 
       // First call - cache miss
@@ -356,7 +352,7 @@ describe('Complete User Creation E2E Flow', () => {
 
       // First attempt fails
       storage.getInvitationByToken.mockRejectedValueOnce(new Error('Network timeout'));
-      
+
       // Second attempt succeeds
       storage.getInvitationByToken.mockResolvedValueOnce(mockInvitationData);
 
@@ -377,7 +373,7 @@ describe('Complete User Creation E2E Flow', () => {
 
       // User creation succeeds
       storage.createUser.mockResolvedValue(mockCreatedUser);
-      
+
       // Invitation update fails
       storage.updateInvitation.mockRejectedValue(new Error('Update failed'));
 
@@ -388,7 +384,7 @@ describe('Complete User Creation E2E Flow', () => {
         createdUser = await storage.createUser(mockUserData);
         await storage.updateInvitation(mockInvitationData.id, {
           status: 'accepted',
-          acceptedByUserId: createdUser.id
+          acceptedByUserId: createdUser.id,
         });
       } catch (error) {
         updateError = error;
@@ -409,7 +405,7 @@ describe('Complete User Creation E2E Flow', () => {
       storage.updateInvitation.mockResolvedValue({
         ...mockInvitationData,
         status: 'accepted',
-        acceptedByUserId: mockCreatedUser.id
+        acceptedByUserId: mockCreatedUser.id,
       });
 
       // Execute complete flow
@@ -419,12 +415,12 @@ describe('Complete User Creation E2E Flow', () => {
         email: invitation.email,
         role: invitation.role,
         organizationId: invitation.organizationId,
-        buildingId: invitation.buildingId
+        buildingId: invitation.buildingId,
       });
-      
+
       const updatedInvitation = await storage.updateInvitation(invitation.id, {
         status: 'accepted',
-        acceptedByUserId: user.id
+        acceptedByUserId: user.id,
       });
 
       // Validate data consistency
@@ -450,13 +446,13 @@ describe('Complete User Creation E2E Flow', () => {
           acknowledgedRights: true, // Required for Law 25
           consentDate: new Date().toISOString(),
           law25Compliance: true,
-          consentVersion: '2024.1'
-        }
+          consentVersion: '2024.1',
+        },
       };
 
       storage.createUser.mockResolvedValue({
         ...mockCreatedUser,
-        privacyConsents: quebecUserData.privacyConsents
+        privacyConsents: quebecUserData.privacyConsents,
       });
 
       const user = await storage.createUser(quebecUserData);
@@ -475,8 +471,8 @@ describe('Complete User Creation E2E Flow', () => {
         details: {
           requiredConsents: ['dataCollectionConsent', 'acknowledgedRights'],
           consentStatus: 'compliant',
-          consentTimestamp: user.privacyConsents.consentDate
-        }
+          consentTimestamp: user.privacyConsents.consentDate,
+        },
       };
 
       storage.createInvitationAuditLog.mockResolvedValue(complianceAuditData);
@@ -501,7 +497,7 @@ describe('Complete User Creation E2E Flow', () => {
       // Mock organization access query
       const organizationAccess = [
         demoOrgId, // Demo org (all users get access)
-        userOrgId // User's specific organization
+        userOrgId, // User's specific organization
       ];
 
       expect(organizationAccess).toContain(demoOrgId);
@@ -522,24 +518,24 @@ describe('Complete User Creation E2E Flow', () => {
           notifications: {
             email: true,
             sms: false,
-            push: true
+            push: true,
           },
           dashboard: {
             defaultView: 'buildings',
-            language: 'fr'
-          }
+            language: 'fr',
+          },
         },
         metadata: {
           registrationSource: 'invitation',
           invitationId: mockInvitationData.id,
           registrationIP: '127.0.0.1',
-          userAgent: 'Mozilla/5.0...'
-        }
+          userAgent: 'Mozilla/5.0...',
+        },
       };
 
       storage.createUser.mockResolvedValue({
         ...mockCreatedUser,
-        ...productionUserData
+        ...productionUserData,
       });
 
       const productionUser = await storage.createUser(productionUserData);

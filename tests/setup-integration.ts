@@ -30,7 +30,9 @@ jest.mock('../server/optimized-db-storage.ts', () => {
 // Mock performance monitoring
 jest.mock('../server/performance-monitoring.ts', () => ({
   dbPerformanceMonitor: {
-    trackQuery: jest.fn().mockImplementation(async (_name: string, fn: () => Promise<any>) => await fn()),
+    trackQuery: jest
+      .fn()
+      .mockImplementation(async (_name: string, fn: () => Promise<any>) => await fn()),
     getSlowQueries: jest.fn().mockReturnValue([]),
   },
   queryCache: {

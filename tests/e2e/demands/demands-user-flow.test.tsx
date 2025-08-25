@@ -23,7 +23,7 @@ const mockApiCalls = {
   getComments: jest.fn(),
   createComment: jest.fn(),
   getBuildings: jest.fn(),
-  getResidences: jest.fn()
+  getResidences: jest.fn(),
 };
 
 // Mock fetch globally
@@ -36,14 +36,14 @@ const mockAuthContext = {
     role: 'resident',
     firstName: 'John',
     lastName: 'Resident',
-    email: 'john@example.com'
+    email: 'john@example.com',
   },
   isAuthenticated: true,
-  isLoading: false
+  isLoading: false,
 };
 
 jest.mock('@/hooks/use-auth', () => ({
-  useAuth: () => mockAuthContext
+  useAuth: () => mockAuthContext,
 }));
 
 // Test data
@@ -62,18 +62,18 @@ const mockDemands = [
       id: 'user-123',
       firstName: 'John',
       lastName: 'Resident',
-      email: 'john@example.com'
+      email: 'john@example.com',
     },
     residence: {
       id: 'residence-1',
       unitNumber: '101',
-      buildingId: 'building-1'
+      buildingId: 'building-1',
     },
     building: {
       id: 'building-1',
       name: 'Test Building',
-      address: '123 Test St'
-    }
+      address: '123 Test St',
+    },
   },
   {
     id: 'demand-2',
@@ -89,19 +89,19 @@ const mockDemands = [
       id: 'user-456',
       firstName: 'Jane',
       lastName: 'Neighbor',
-      email: 'jane@example.com'
+      email: 'jane@example.com',
     },
     residence: {
       id: 'residence-2',
       unitNumber: '102',
-      buildingId: 'building-1'
+      buildingId: 'building-1',
     },
     building: {
       id: 'building-1',
       name: 'Test Building',
-      address: '123 Test St'
-    }
-  }
+      address: '123 Test St',
+    },
+  },
 ];
 
 const mockBuildings = [
@@ -109,8 +109,8 @@ const mockBuildings = [
     id: 'building-1',
     name: 'Test Building',
     address: '123 Test St',
-    organizationId: 'org-1'
-  }
+    organizationId: 'org-1',
+  },
 ];
 
 const mockResidences = [
@@ -118,14 +118,14 @@ const mockResidences = [
     id: 'residence-1',
     unitNumber: '101',
     buildingId: 'building-1',
-    floor: 1
+    floor: 1,
   },
   {
     id: 'residence-2',
     unitNumber: '102',
     buildingId: 'building-1',
-    floor: 1
-  }
+    floor: 1,
+  },
 ];
 
 describe('Demands E2E User Flow Tests', () => {
@@ -136,55 +136,56 @@ describe('Demands E2E User Flow Tests', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
 
     hookReturn = memoryLocation({ path: '/residents/demands' });
 
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Setup default fetch responses
     (global.fetch as jest.Mock).mockImplementation((url: string, options?: unknown) => {
       if (url.includes('/api/demands') && !options?.method) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockDemands)
+          json: () => Promise.resolve(mockDemands),
         });
       }
-      
+
       if (url.includes('/api/buildings')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockBuildings)
+          json: () => Promise.resolve(mockBuildings),
         });
       }
-      
+
       if (url.includes('/api/residences')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve(mockResidences)
+          json: () => Promise.resolve(mockResidences),
         });
       }
-      
+
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({})
+        json: () => Promise.resolve({}),
       });
     });
   });
 
-  const renderWithProviders = (component: React.ReactElement, initialPath = '/residents/demands') => {
+  const renderWithProviders = (
+    component: React.ReactElement,
+    initialPath = '/residents/demands'
+  ) => {
     hookReturn.history = [initialPath];
     hookReturn.reset();
-    
+
     return render(
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <Router hook={hookReturn}>
-            {component}
-          </Router>
+          <Router hook={hookReturn}>{component}</Router>
           <Toaster />
         </LanguageProvider>
       </QueryClientProvider>
@@ -208,17 +209,18 @@ describe('Demands E2E User Flow Tests', () => {
 
     it('should allow resident to create a new demand', async () => {
       const user = userEvent.setup();
-      
+
       // Mock successful creation
       (global.fetch as jest.Mock).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            id: 'new-demand-id',
-            type: 'maintenance',
-            description: 'New maintenance request',
-            status: 'submitted'
-          })
+          json: () =>
+            Promise.resolve({
+              id: 'new-demand-id',
+              type: 'maintenance',
+              description: 'New maintenance request',
+              status: 'submitted',
+            }),
         })
       );
 
@@ -241,11 +243,11 @@ describe('Demands E2E User Flow Tests', () => {
       // Select demand type
       const typeSelect = screen.getByLabelText(/type/i);
       await user.click(typeSelect);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Maintenance')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByText('Maintenance'));
 
       // Fill description
@@ -255,20 +257,20 @@ describe('Demands E2E User Flow Tests', () => {
       // Select building and residence
       const buildingSelect = screen.getByLabelText(/building/i);
       await user.click(buildingSelect);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Test Building')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByText('Test Building'));
 
       const residenceSelect = screen.getByLabelText(/residence/i);
       await user.click(residenceSelect);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Unit 101')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByText('Unit 101'));
 
       // Submit the form
@@ -282,7 +284,7 @@ describe('Demands E2E User Flow Tests', () => {
           expect.objectContaining({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: expect.stringContaining('Bathroom light fixture')
+            body: expect.stringContaining('Bathroom light fixture'),
           })
         );
       });
@@ -330,11 +332,11 @@ describe('Demands E2E User Flow Tests', () => {
       // Apply type filter
       const typeFilter = screen.getByLabelText(/filter by type/i);
       await user.click(typeFilter);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Maintenance')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByText('Maintenance'));
 
       // Verify filtered results
@@ -367,12 +369,12 @@ describe('Demands E2E User Flow Tests', () => {
 
     it('should allow resident to delete their own demand', async () => {
       const user = userEvent.setup();
-      
+
       // Mock successful deletion
       (global.fetch as jest.Mock).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ message: 'Demand deleted successfully' })
+          json: () => Promise.resolve({ message: 'Demand deleted successfully' }),
         })
       );
 
@@ -384,7 +386,9 @@ describe('Demands E2E User Flow Tests', () => {
       });
 
       // Find and click delete button for user's own demand
-      const demandCard = screen.getByText('Kitchen faucet is leaking').closest('[data-testid="demand-card"]');
+      const demandCard = screen
+        .getByText('Kitchen faucet is leaking')
+        .closest('[data-testid="demand-card"]');
       expect(demandCard).toBeInTheDocument();
 
       const deleteButton = within(demandCard!).getByRole('button', { name: /delete/i });
@@ -403,7 +407,7 @@ describe('Demands E2E User Flow Tests', () => {
         expect(global.fetch).toHaveBeenCalledWith(
           '/api/demands/demand-1',
           expect.objectContaining({
-            method: 'DELETE'
+            method: 'DELETE',
           })
         );
       });
@@ -411,24 +415,25 @@ describe('Demands E2E User Flow Tests', () => {
 
     it('should show demand comments when expanded', async () => {
       const user = userEvent.setup();
-      
+
       // Mock comments API
       (global.fetch as jest.Mock).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve([
-            {
-              id: 'comment-1',
-              content: 'We will schedule a plumber for tomorrow.',
-              authorId: 'manager-1',
-              isInternal: false,
-              createdAt: '2025-01-15T11:00:00Z',
-              author: {
-                firstName: 'Manager',
-                lastName: 'User'
-              }
-            }
-          ])
+          json: () =>
+            Promise.resolve([
+              {
+                id: 'comment-1',
+                content: 'We will schedule a plumber for tomorrow.',
+                authorId: 'manager-1',
+                isInternal: false,
+                createdAt: '2025-01-15T11:00:00Z',
+                author: {
+                  firstName: 'Manager',
+                  lastName: 'User',
+                },
+              },
+            ]),
         })
       );
 
@@ -472,16 +477,17 @@ describe('Demands E2E User Flow Tests', () => {
 
     it('should allow manager to update demand status', async () => {
       const user = userEvent.setup();
-      
+
       // Mock successful status update
       (global.fetch as jest.Mock).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            ...mockDemands[0],
-            status: 'approved',
-            reviewNotes: 'Approved for repair'
-          })
+          json: () =>
+            Promise.resolve({
+              ...mockDemands[0],
+              status: 'approved',
+              reviewNotes: 'Approved for repair',
+            }),
         })
       );
 
@@ -493,7 +499,9 @@ describe('Demands E2E User Flow Tests', () => {
       });
 
       // Find status update button
-      const demandCard = screen.getByText('Kitchen faucet is leaking').closest('[data-testid="demand-card"]');
+      const demandCard = screen
+        .getByText('Kitchen faucet is leaking')
+        .closest('[data-testid="demand-card"]');
       const statusButton = within(demandCard!).getByRole('button', { name: /update status/i });
       await user.click(statusButton);
 
@@ -504,11 +512,11 @@ describe('Demands E2E User Flow Tests', () => {
 
       const statusSelect = screen.getByLabelText(/status/i);
       await user.click(statusSelect);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Approved')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByText('Approved'));
 
       // Add review notes
@@ -525,7 +533,7 @@ describe('Demands E2E User Flow Tests', () => {
           '/api/demands/demand-1/status',
           expect.objectContaining({
             method: 'PATCH',
-            body: expect.stringContaining('approved')
+            body: expect.stringContaining('approved'),
           })
         );
       });
@@ -533,22 +541,27 @@ describe('Demands E2E User Flow Tests', () => {
 
     it('should allow manager to add comments to demands', async () => {
       const user = userEvent.setup();
-      
+
       // Mock comments load and create
       (global.fetch as jest.Mock)
-        .mockImplementationOnce(() => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([])
-        }))
-        .mockImplementationOnce(() => Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            id: 'new-comment-id',
-            content: 'We have contacted the plumber',
-            authorId: mockAuthContext.user.id,
-            isInternal: false
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([]),
           })
-        }));
+        )
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 'new-comment-id',
+                content: 'We have contacted the plumber',
+                authorId: mockAuthContext.user.id,
+                isInternal: false,
+              }),
+          })
+        );
 
       renderWithProviders(<ManagerDemandsPage />);
 
@@ -568,7 +581,10 @@ describe('Demands E2E User Flow Tests', () => {
 
       // Add comment
       const commentField = screen.getByPlaceholderText(/add a comment/i);
-      await user.type(commentField, 'We have contacted the plumber and they will arrive tomorrow morning');
+      await user.type(
+        commentField,
+        'We have contacted the plumber and they will arrive tomorrow morning'
+      );
 
       const submitCommentButton = screen.getByRole('button', { name: /post comment/i });
       await user.click(submitCommentButton);
@@ -579,7 +595,7 @@ describe('Demands E2E User Flow Tests', () => {
           '/api/demands/demand-1/comments',
           expect.objectContaining({
             method: 'POST',
-            body: expect.stringContaining('contacted the plumber')
+            body: expect.stringContaining('contacted the plumber'),
           })
         );
       });
@@ -607,7 +623,7 @@ describe('Demands E2E User Flow Tests', () => {
         Promise.resolve({
           ok: false,
           status: 500,
-          json: () => Promise.resolve({ message: 'Internal server error' })
+          json: () => Promise.resolve({ message: 'Internal server error' }),
         })
       );
 
@@ -636,12 +652,17 @@ describe('Demands E2E User Flow Tests', () => {
     it('should show loading states during API calls', async () => {
       // Mock slow API response
       (global.fetch as jest.Mock).mockImplementationOnce(
-        () => new Promise(resolve => 
-          setTimeout(() => resolve({
-            ok: true,
-            json: () => Promise.resolve(mockDemands)
-          }), 1000)
-        )
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: () => Promise.resolve(mockDemands),
+                }),
+              1000
+            )
+          )
       );
 
       renderWithProviders(<ResidentDemandsPage />);

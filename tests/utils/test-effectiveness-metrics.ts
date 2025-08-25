@@ -1,6 +1,6 @@
 /**
  * Test Effectiveness Metrics for Koveo Gestion Quebec Property Management.
- * 
+ *
  * Tracks and analyzes test effectiveness, including prediction accuracy,
  * false positive/negative rates, and Quebec compliance validation effectiveness.
  */
@@ -15,7 +15,12 @@ import { execSync } from 'child_process';
 interface TestEffectivenessMetric {
   id: string;
   testSuite: string;
-  metricType: 'bug_detection' | 'regression_prevention' | 'quebec_compliance' | 'accessibility' | 'performance';
+  metricType:
+    | 'bug_detection'
+    | 'regression_prevention'
+    | 'quebec_compliance'
+    | 'accessibility'
+    | 'performance';
   timestamp: string;
   predicted: boolean;
   actual: boolean;
@@ -89,8 +94,8 @@ export class TestEffectivenessTracker {
     confidence: number,
     quebecSpecific: boolean = false,
     details: unknown = {
-    // No action needed
-  }
+      // No action needed
+    }
   ): string {
     const metric: TestEffectivenessMetric = {
       id: this.generateId(),
@@ -101,12 +106,12 @@ export class TestEffectivenessTracker {
       actual,
       confidence,
       quebecSpecific,
-      details
+      details,
     };
 
     this.metrics.push(metric);
     this.saveMetrics();
-    
+
     return metric.id;
   }
 
@@ -116,29 +121,29 @@ export class TestEffectivenessTracker {
    */
   analyzeEffectiveness(timeRangeHours: number = 168): EffectivenessAnalysis {
     const cutoffTime = new Date(Date.now() - timeRangeHours * 60 * 60 * 1000);
-    const recentMetrics = this.metrics.filter(m => 
-      new Date(m.timestamp) > cutoffTime
-    );
+    const recentMetrics = this.metrics.filter((m) => new Date(m.timestamp) > cutoffTime);
 
     if (recentMetrics.length === 0) {
       return this.getDefaultAnalysis();
     }
 
     // Calculate confusion matrix
-    const tp = recentMetrics.filter(m => m.predicted && m.actual).length;
-    const fp = recentMetrics.filter(m => m.predicted && !m.actual).length;
-    const tn = recentMetrics.filter(m => !m.predicted && !m.actual).length;
-    const fn = recentMetrics.filter(m => !m.predicted && m.actual).length;
+    const tp = recentMetrics.filter((m) => m.predicted && m.actual).length;
+    const fp = recentMetrics.filter((m) => m.predicted && !m.actual).length;
+    const tn = recentMetrics.filter((m) => !m.predicted && !m.actual).length;
+    const fn = recentMetrics.filter((m) => !m.predicted && m.actual).length;
 
     const accuracy = (tp + tn) / (tp + fp + tn + fn);
     const precision = tp > 0 ? tp / (tp + fp) : 0;
     const recall = tp > 0 ? tp / (tp + fn) : 0;
-    const f1Score = precision + recall > 0 ? 2 * (precision * recall) / (precision + recall) : 0;
+    const f1Score = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
     // Quebec-specific analysis
-    const quebecMetrics = recentMetrics.filter(m => m.quebecSpecific);
-    const quebecComplianceAccuracy = quebecMetrics.length > 0 ?
-      quebecMetrics.filter(m => m.predicted === m.actual).length / quebecMetrics.length : 1;
+    const quebecMetrics = recentMetrics.filter((m) => m.quebecSpecific);
+    const quebecComplianceAccuracy =
+      quebecMetrics.length > 0
+        ? quebecMetrics.filter((m) => m.predicted === m.actual).length / quebecMetrics.length
+        : 1;
 
     const analysis: EffectivenessAnalysis = {
       accuracy: accuracy * 100,
@@ -150,7 +155,12 @@ export class TestEffectivenessTracker {
       trueNegatives: tn,
       falseNegatives: fn,
       quebecComplianceAccuracy: quebecComplianceAccuracy * 100,
-      recommendations: this.generateRecommendations(accuracy, precision, recall, quebecComplianceAccuracy)
+      recommendations: this.generateRecommendations(
+        accuracy,
+        precision,
+        recall,
+        quebecComplianceAccuracy
+      ),
     };
 
     return analysis;
@@ -165,14 +175,16 @@ export class TestEffectivenessTracker {
 
     for (const [_suiteName, metrics] of Object.entries(suiteGroups)) {
       const totalTests = metrics.length;
-      const passedTests = metrics.filter(m => m.predicted === m.actual).length;
-      const bugsDetected = metrics.filter(m => m.actual && m.predicted).length;
-      const falsePositives = metrics.filter(m => m.predicted && !m.actual).length;
-      const quebecTests = metrics.filter(m => m.quebecSpecific).length;
+      const passedTests = metrics.filter((m) => m.predicted === m.actual).length;
+      const bugsDetected = metrics.filter((m) => m.actual && m.predicted).length;
+      const falsePositives = metrics.filter((m) => m.predicted && !m.actual).length;
+      const quebecTests = metrics.filter((m) => m.quebecSpecific).length;
 
       const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
-      const bugDetectionRate = metrics.filter(m => m.actual).length > 0 ?
-        (bugsDetected / metrics.filter(m => m.actual).length) * 100 : 0;
+      const bugDetectionRate =
+        metrics.filter((m) => m.actual).length > 0
+          ? (bugsDetected / metrics.filter((m) => m.actual).length) * 100
+          : 0;
       const falsePositiveRate = totalTests > 0 ? (falsePositives / totalTests) * 100 : 0;
       const quebecComplianceRate = totalTests > 0 ? (quebecTests / totalTests) * 100 : 0;
 
@@ -187,7 +199,7 @@ export class TestEffectivenessTracker {
         falsePositiveRate,
         quebecComplianceRate,
         effectiveness,
-        trends
+        trends,
       });
     }
 
@@ -203,57 +215,62 @@ export class TestEffectivenessTracker {
     categories: Record<string, unknown>;
     recommendations: string[];
   } {
-    const quebecMetrics = this.metrics.filter(m => m.quebecSpecific);
-    
+    const quebecMetrics = this.metrics.filter((m) => m.quebecSpecific);
+
     if (quebecMetrics.length === 0) {
       return {
         totalQuebecTests: 0,
         accuracy: 0,
         categories: {},
-        recommendations: ['Ajouter des tests de conformité québécoise']
+        recommendations: ['Ajouter des tests de conformité québécoise'],
       };
     }
 
     // Group by Quebec compliance categories
     const categories = {
-      'Loi 25': quebecMetrics.filter(m => 
-        (m.details as any)?.category === 'privacy' || 
-        JSON.stringify(m.details).toLowerCase().includes('loi 25')
+      'Loi 25': quebecMetrics.filter(
+        (m) =>
+          (m.details as any)?.category === 'privacy' ||
+          JSON.stringify(m.details).toLowerCase().includes('loi 25')
       ),
-      'Taxes QC': quebecMetrics.filter(m => 
-        (m.details as any)?.category === 'taxation' || 
-        JSON.stringify(m.details).toLowerCase().includes('tps') ||
-        JSON.stringify(m.details).toLowerCase().includes('tvq')
+      'Taxes QC': quebecMetrics.filter(
+        (m) =>
+          (m.details as any)?.category === 'taxation' ||
+          JSON.stringify(m.details).toLowerCase().includes('tps') ||
+          JSON.stringify(m.details).toLowerCase().includes('tvq')
       ),
-      'Français': quebecMetrics.filter(m => 
-        (m.details as any)?.category === 'language' || 
-        JSON.stringify(m.details).toLowerCase().includes('français')
+      Français: quebecMetrics.filter(
+        (m) =>
+          (m.details as any)?.category === 'language' ||
+          JSON.stringify(m.details).toLowerCase().includes('français')
       ),
-      'Règlements': quebecMetrics.filter(m => 
-        (m.details as any)?.category === 'regulations' ||
-        JSON.stringify(m.details).toLowerCase().includes('règlement')
-      )
+      Règlements: quebecMetrics.filter(
+        (m) =>
+          (m.details as any)?.category === 'regulations' ||
+          JSON.stringify(m.details).toLowerCase().includes('règlement')
+      ),
     };
 
     const categoryAnalysis: Record<string, any> = {};
     for (const [_category, metrics] of Object.entries(categories)) {
       if (metrics.length > 0) {
-        const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
+        const accuracy = metrics.filter((m) => m.predicted === m.actual).length / metrics.length;
         (categoryAnalysis as any)[_category] = {
           count: metrics.length,
           accuracy: accuracy * 100,
-          effectiveTests: metrics.filter(m => m.predicted === m.actual).length
+          effectiveTests: metrics.filter((m) => m.predicted === m.actual).length,
         };
       }
     }
 
-    const overallAccuracy = quebecMetrics.filter(m => m.predicted === m.actual).length / quebecMetrics.length;
-    
+    const overallAccuracy =
+      quebecMetrics.filter((m) => m.predicted === m.actual).length / quebecMetrics.length;
+
     return {
       totalQuebecTests: quebecMetrics.length,
       accuracy: overallAccuracy * 100,
       categories: categoryAnalysis,
-      recommendations: this.generateQuebecRecommendations(categoryAnalysis, overallAccuracy)
+      recommendations: this.generateQuebecRecommendations(categoryAnalysis, overallAccuracy),
     };
   }
 
@@ -273,13 +290,13 @@ export class TestEffectivenessTracker {
         overallAccuracy: overallAnalysis.accuracy,
         quebecComplianceAccuracy: quebecAnalysis.accuracy,
         topPerformingSuite: suiteAnalysis[0]?.suiteName || 'N/A',
-        needsImprovement: suiteAnalysis.filter(s => s.effectiveness.f1Score < 80).length
+        needsImprovement: suiteAnalysis.filter((s) => s.effectiveness.f1Score < 80).length,
       },
       overall: overallAnalysis,
       testSuites: suiteAnalysis,
       quebecCompliance: quebecAnalysis,
       trends,
-      recommendations: this.generateComprehensiveRecommendations(overallAnalysis, quebecAnalysis)
+      recommendations: this.generateComprehensiveRecommendations(overallAnalysis, quebecAnalysis),
     };
 
     // Save report
@@ -305,8 +322,8 @@ export class TestEffectivenessTracker {
     detectedByTest: boolean,
     quebecRelated: boolean = false,
     details: unknown = {
-    // No action needed
-  }
+      // No action needed
+    }
   ): void {
     this.recordMetric(
       testSuite,
@@ -416,7 +433,7 @@ export class TestEffectivenessTracker {
       trueNegatives: 0,
       falseNegatives: 0,
       quebecComplianceAccuracy: 0,
-      recommendations: ['Commencer à enregistrer des métriques d\'efficacité des tests']
+      recommendations: ["Commencer à enregistrer des métriques d'efficacité des tests"],
     };
   }
 
@@ -425,14 +442,14 @@ export class TestEffectivenessTracker {
    */
   private groupMetricsByTestSuite(): Record<string, TestEffectivenessMetric[]> {
     const groups: Record<string, TestEffectivenessMetric[]> = {};
-    
+
     for (const metric of this.metrics) {
       if (!groups[metric.testSuite]) {
         groups[metric.testSuite] = [];
       }
       groups[metric.testSuite].push(metric);
     }
-    
+
     return groups;
   }
 
@@ -445,19 +462,21 @@ export class TestEffectivenessTracker {
       return this.getDefaultAnalysis();
     }
 
-    const tp = metrics.filter(m => m.predicted && m.actual).length;
-    const fp = metrics.filter(m => m.predicted && !m.actual).length;
-    const tn = metrics.filter(m => !m.predicted && !m.actual).length;
-    const fn = metrics.filter(m => !m.predicted && m.actual).length;
+    const tp = metrics.filter((m) => m.predicted && m.actual).length;
+    const fp = metrics.filter((m) => m.predicted && !m.actual).length;
+    const tn = metrics.filter((m) => !m.predicted && !m.actual).length;
+    const fn = metrics.filter((m) => !m.predicted && m.actual).length;
 
     const accuracy = (tp + tn) / (tp + fp + tn + fn);
     const precision = tp > 0 ? tp / (tp + fp) : 0;
     const recall = tp > 0 ? tp / (tp + fn) : 0;
-    const f1Score = precision + recall > 0 ? 2 * (precision * recall) / (precision + recall) : 0;
+    const f1Score = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
-    const quebecMetrics = metrics.filter(m => m.quebecSpecific);
-    const quebecComplianceAccuracy = quebecMetrics.length > 0 ?
-      quebecMetrics.filter(m => m.predicted === m.actual).length / quebecMetrics.length : 1;
+    const quebecMetrics = metrics.filter((m) => m.quebecSpecific);
+    const quebecComplianceAccuracy =
+      quebecMetrics.length > 0
+        ? quebecMetrics.filter((m) => m.predicted === m.actual).length / quebecMetrics.length
+        : 1;
 
     return {
       accuracy: accuracy * 100,
@@ -469,7 +488,12 @@ export class TestEffectivenessTracker {
       trueNegatives: tn,
       falseNegatives: fn,
       quebecComplianceAccuracy: quebecComplianceAccuracy * 100,
-      recommendations: this.generateRecommendations(accuracy, precision, recall, quebecComplianceAccuracy)
+      recommendations: this.generateRecommendations(
+        accuracy,
+        precision,
+        recall,
+        quebecComplianceAccuracy
+      ),
     };
   }
 
@@ -478,12 +502,12 @@ export class TestEffectivenessTracker {
    * @param suiteName
    */
   private calculateSuiteTrends(suiteName: string): unknown[] {
-    const suiteMetrics = this.metrics.filter(m => m.testSuite === suiteName);
+    const suiteMetrics = this.metrics.filter((m) => m.testSuite === suiteName);
     const trends = [];
-    
+
     // Group by week for trend analysis
     const weeklyGroups: Record<string, TestEffectivenessMetric[]> = {};
-    
+
     for (const metric of suiteMetrics) {
       const week = this.getWeekKey(new Date(metric.timestamp));
       if (!weeklyGroups[week]) {
@@ -491,17 +515,17 @@ export class TestEffectivenessTracker {
       }
       weeklyGroups[week].push(metric);
     }
-    
+
     for (const [_week, metrics] of Object.entries(weeklyGroups)) {
-      const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
+      const accuracy = metrics.filter((m) => m.predicted === m.actual).length / metrics.length;
       trends.push({
         week: _week,
         accuracy: accuracy * 100,
         totalTests: metrics.length,
-        quebecTests: metrics.filter(m => m.quebecSpecific).length
+        quebecTests: metrics.filter((m) => m.quebecSpecific).length,
       });
     }
-    
+
     return trends.sort((a, b) => a.week.localeCompare(b.week));
   }
 
@@ -511,7 +535,7 @@ export class TestEffectivenessTracker {
   private calculateEffectivenessTrends(): unknown[] {
     const trends = [];
     const monthlyGroups: Record<string, TestEffectivenessMetric[]> = {};
-    
+
     for (const metric of this.metrics) {
       const month = this.getMonthKey(new Date(metric.timestamp));
       if (!monthlyGroups[month]) {
@@ -519,21 +543,22 @@ export class TestEffectivenessTracker {
       }
       monthlyGroups[month].push(metric);
     }
-    
+
     for (const [_month, metrics] of Object.entries(monthlyGroups)) {
-      const accuracy = metrics.filter(m => m.predicted === m.actual).length / metrics.length;
-      const quebecAccuracy = metrics.filter(m => m.quebecSpecific && m.predicted === m.actual).length / 
-                            metrics.filter(m => m.quebecSpecific).length || 0;
-      
+      const accuracy = metrics.filter((m) => m.predicted === m.actual).length / metrics.length;
+      const quebecAccuracy =
+        metrics.filter((m) => m.quebecSpecific && m.predicted === m.actual).length /
+          metrics.filter((m) => m.quebecSpecific).length || 0;
+
       trends.push({
         month: _month,
         overallAccuracy: accuracy * 100,
         quebecAccuracy: quebecAccuracy * 100,
         totalMetrics: metrics.length,
-        quebecMetrics: metrics.filter(m => m.quebecSpecific).length
+        quebecMetrics: metrics.filter((m) => m.quebecSpecific).length,
       });
     }
-    
+
     return trends.sort((a, b) => a.month.localeCompare(b.month));
   }
 
@@ -551,23 +576,23 @@ export class TestEffectivenessTracker {
     quebecAccuracy: number
   ): string[] {
     const recommendations = [];
-    
+
     if (accuracy < 0.8) {
       recommendations.push('Améliorer la précision générale des tests');
     }
-    
+
     if (precision < 0.75) {
       recommendations.push('Réduire les faux positifs dans les tests');
     }
-    
+
     if (recall < 0.75) {
       recommendations.push('Améliorer la détection des vrais problèmes');
     }
-    
+
     if (quebecAccuracy < 0.9) {
       recommendations.push('Renforcer les tests de conformité québécoise');
     }
-    
+
     return recommendations;
   }
 
@@ -578,25 +603,25 @@ export class TestEffectivenessTracker {
    */
   private generateQuebecRecommendations(categoryAnalysis: any, overallAccuracy: number): string[] {
     const recommendations = [];
-    
+
     if (overallAccuracy < 0.9) {
       recommendations.push('Améliorer la couverture globale des tests québécois');
     }
-    
+
     for (const [_category, analysis] of Object.entries(categoryAnalysis)) {
       if ((analysis as any).accuracy < 85) {
         recommendations.push(`Améliorer les tests pour: ${_category}`);
       }
     }
-    
+
     if (!categoryAnalysis['Loi 25'] || categoryAnalysis['Loi 25'].count < 5) {
       recommendations.push('Ajouter plus de tests de conformité Loi 25');
     }
-    
+
     if (!categoryAnalysis['Taxes QC'] || categoryAnalysis['Taxes QC'].count < 3) {
       recommendations.push('Ajouter des tests pour les calculs de taxes québécoises');
     }
-    
+
     return recommendations;
   }
 
@@ -605,22 +630,25 @@ export class TestEffectivenessTracker {
    * @param overall
    * @param quebec
    */
-  private generateComprehensiveRecommendations(overall: EffectivenessAnalysis, quebec: any): string[] {
+  private generateComprehensiveRecommendations(
+    overall: EffectivenessAnalysis,
+    quebec: any
+  ): string[] {
     const recommendations = [...overall.recommendations];
-    
+
     if (quebec?.recommendations) {
       recommendations.push(...quebec.recommendations);
     }
-    
+
     // Add specific action items
     if (overall.falsePositives > overall.truePositives) {
       recommendations.push('Priorité: réduire les faux positifs pour améliorer la confiance');
     }
-    
+
     if (overall.falseNegatives > overall.truePositives * 0.2) {
       recommendations.push('Priorité: améliorer la détection pour réduire les faux négatifs');
     }
-    
+
     return [...new Set(recommendations)]; // Remove duplicates
   }
 
@@ -630,7 +658,9 @@ export class TestEffectivenessTracker {
    */
   private getWeekKey(date: Date): string {
     const year = date.getFullYear();
-    const week = Math.ceil((date.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const week = Math.ceil(
+      (date.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
     return `${year}-W${week.toString().padStart(2, '0')}`;
   }
 

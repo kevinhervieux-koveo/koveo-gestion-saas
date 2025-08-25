@@ -7,7 +7,7 @@ import { LanguageProvider } from '../../client/src/hooks/use-language';
 
 // Mock WorkspaceStatus since it might not exist
 const MockWorkspaceStatus = () => (
-  <div data-testid="workspace-status">
+  <div data-testid='workspace-status'>
     <h3>État de l'espace de travail</h3>
     <div>Workspace is active</div>
   </div>
@@ -15,8 +15,10 @@ const MockWorkspaceStatus = () => (
 
 // Mock Recharts
 jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart-container">{children}</div>,
-  LineChart: () => <div data-testid="line-chart">Line Chart</div>,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid='chart-container'>{children}</div>
+  ),
+  LineChart: () => <div data-testid='line-chart'>Line Chart</div>,
   Line: () => null,
   XAxis: () => null,
   YAxis: () => null,
@@ -26,11 +28,11 @@ jest.mock('recharts', () => ({
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
-  TrendingUp: () => <div data-testid="trending-up-icon">TrendingUp</div>,
-  Activity: () => <div data-testid="activity-icon">Activity</div>,
-  CheckCircle: () => <div data-testid="check-circle-icon">CheckCircle</div>,
-  AlertCircle: () => <div data-testid="alert-circle-icon">AlertCircle</div>,
-  Clock: () => <div data-testid="clock-icon">Clock</div>,
+  TrendingUp: () => <div data-testid='trending-up-icon'>TrendingUp</div>,
+  Activity: () => <div data-testid='activity-icon'>Activity</div>,
+  CheckCircle: () => <div data-testid='check-circle-icon'>CheckCircle</div>,
+  AlertCircle: () => <div data-testid='alert-circle-icon'>AlertCircle</div>,
+  Clock: () => <div data-testid='clock-icon'>Clock</div>,
 }));
 
 describe('Dashboard Components Tests', () => {
@@ -56,9 +58,7 @@ describe('Dashboard Components Tests', () => {
   const renderWithProviders = (component: React.ReactElement) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          {component}
-        </LanguageProvider>
+        <LanguageProvider>{component}</LanguageProvider>
       </QueryClientProvider>
     );
   };
@@ -85,7 +85,7 @@ describe('Dashboard Components Tests', () => {
 
     it('should render quality metrics component', () => {
       renderWithProviders(<QualityMetrics />);
-      
+
       // Check for either French or English text since language switching in tests can be inconsistent
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
       expect(qualityText).toBeInTheDocument();
@@ -94,25 +94,27 @@ describe('Dashboard Components Tests', () => {
 
     it('should show loading state initially', () => {
       renderWithProviders(<QualityMetrics />);
-      
+
       // Should show skeleton loaders or loading state
       expect(screen.getByTestId('trending-up-icon')).toBeInTheDocument();
     });
 
     it('should render metrics grid layout', () => {
       renderWithProviders(<QualityMetrics />);
-      
+
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
-      const gridContainer = qualityText.closest('[class*="card"]')?.querySelector('[class*="grid"]');
+      const gridContainer = qualityText
+        .closest('[class*="card"]')
+        ?.querySelector('[class*="grid"]');
       expect(gridContainer).toBeInTheDocument();
     });
 
     it('should handle API error gracefully', () => {
       // Mock API error
       (global.fetch as jest.Mock).mockRejectedValue(new Error('API Error'));
-      
+
       renderWithProviders(<QualityMetrics />);
-      
+
       // Should still render the component structure
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
       expect(qualityText).toBeInTheDocument();
@@ -131,54 +133,54 @@ describe('Dashboard Components Tests', () => {
           lastUpdated: '2024-01-15T10:00:00Z',
           uptime: '99.9%',
           activeUsers: 45,
-          systemHealth: 'healthy'
+          systemHealth: 'healthy',
         }),
       });
     });
 
     it('should render workspace status component', () => {
       renderWithProviders(<MockWorkspaceStatus />);
-      
-      expect(screen.getByText('État de l\'espace de travail')).toBeInTheDocument();
+
+      expect(screen.getByText("État de l'espace de travail")).toBeInTheDocument();
     });
 
     it('should display workspace information', async () => {
       renderWithProviders(<MockWorkspaceStatus />);
-      
+
       // Wait for data to load and check for status indicators
-      expect(screen.getByText('État de l\'espace de travail')).toBeInTheDocument();
+      expect(screen.getByText("État de l'espace de travail")).toBeInTheDocument();
     });
 
     it('should show active status indicator', () => {
       renderWithProviders(<MockWorkspaceStatus />);
-      
+
       // Check for workspace status content
       expect(screen.getByText('Workspace is active')).toBeInTheDocument();
     });
 
     it('should handle loading state', () => {
       renderWithProviders(<MockWorkspaceStatus />);
-      
+
       // Should render without crashing during loading
-      expect(screen.getByText('État de l\'espace de travail')).toBeInTheDocument();
+      expect(screen.getByText("État de l'espace de travail")).toBeInTheDocument();
     });
 
     it('should handle error state', () => {
       // Mock API error
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-      
+
       renderWithProviders(<MockWorkspaceStatus />);
-      
+
       // Should still render component structure
-      expect(screen.getByText('État de l\'espace de travail')).toBeInTheDocument();
+      expect(screen.getByText("État de l'espace de travail")).toBeInTheDocument();
     });
   });
 
   describe('Dashboard Components Integration', () => {
     it('should render multiple dashboard components together', () => {
       const DashboardLayout = () => (
-        <div className="dashboard-layout">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className='dashboard-layout'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <QualityMetrics />
             <MockWorkspaceStatus />
           </div>
@@ -186,11 +188,11 @@ describe('Dashboard Components Tests', () => {
       );
 
       renderWithProviders(<DashboardLayout />);
-      
+
       // Both components should render
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
       expect(qualityText).toBeInTheDocument();
-      expect(screen.getByText('État de l\'espace de travail')).toBeInTheDocument();
+      expect(screen.getByText("État de l'espace de travail")).toBeInTheDocument();
     });
 
     it('should handle multiple API calls concurrently', () => {
@@ -202,7 +204,7 @@ describe('Dashboard Components Tests', () => {
       );
 
       renderWithProviders(<DashboardLayout />);
-      
+
       // Should render components
       expect(screen.getByTestId('trending-up-icon')).toBeInTheDocument();
     });
@@ -211,28 +213,28 @@ describe('Dashboard Components Tests', () => {
   describe('Dashboard Performance', () => {
     it('should render components without performance issues', () => {
       const startTime = window.performance.now();
-      
+
       renderWithProviders(
         <div>
           <QualityMetrics />
           <MockWorkspaceStatus />
         </div>
       );
-      
+
       const endTime = window.performance.now();
       const renderTime = endTime - startTime;
-      
+
       // Render should be reasonably fast (under 100ms)
       expect(renderTime).toBeLessThan(100);
     });
 
     it('should not cause memory leaks with repeated renders', () => {
       const { unmount } = renderWithProviders(<QualityMetrics />);
-      
+
       // Unmount and remount multiple times
       unmount();
       renderWithProviders(<QualityMetrics />);
-      
+
       // Should not throw errors
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
       expect(qualityText).toBeInTheDocument();
@@ -242,11 +244,13 @@ describe('Dashboard Components Tests', () => {
   describe('Responsive Design', () => {
     it('should handle different screen sizes', () => {
       renderWithProviders(<QualityMetrics />);
-      
+
       // Component should render with responsive grid classes
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
-      const gridContainer = qualityText.closest('[class*="card"]')?.querySelector('[class*="grid-cols"]');
-      
+      const gridContainer = qualityText
+        .closest('[class*="card"]')
+        ?.querySelector('[class*="grid-cols"]');
+
       expect(gridContainer).toBeInTheDocument();
     });
 
@@ -257,14 +261,14 @@ describe('Dashboard Components Tests', () => {
         configurable: true,
         _value: 360,
       });
-      
+
       renderWithProviders(
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <QualityMetrics />
           <MockWorkspaceStatus />
         </div>
       );
-      
+
       // Should render without layout issues
       const qualityText = screen.getByText(/métriques de qualité|quality metrics/i);
       expect(qualityText).toBeInTheDocument();

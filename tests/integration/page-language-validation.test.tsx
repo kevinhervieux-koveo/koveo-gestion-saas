@@ -6,7 +6,7 @@ import { LanguageValidator } from '../unit/language-validation.test';
 
 /**
  * Integration test suite for Quebec French language validation across all client pages.
- * 
+ *
  * This test suite validates that all pages in the Koveo Gestion application
  * comply with Quebec French language standards and avoid problematic terms.
  */
@@ -22,19 +22,19 @@ jest.mock('@/hooks/use-auth', () => ({
       lastName: 'Tremblay',
       email: 'jean@koveo.ca',
       role: 'manager',
-      language: 'fr'
-    }
+      language: 'fr',
+    },
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
     language: 'fr',
     setLanguage: jest.fn(),
-    t: (key: string) => key
+    t: (key: string) => key,
   }),
-  LanguageProvider: ({ children }: { children: React.ReactNode }) => children
+  LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock API calls
@@ -43,15 +43,15 @@ jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn().mockReturnValue({
     data: [],
     isLoading: false,
-    error: null
+    error: null,
   }),
   useMutation: jest.fn().mockReturnValue({
     mutate: jest.fn(),
-    isLoading: false
+    isLoading: false,
   }),
   useQueryClient: jest.fn().mockReturnValue({
-    invalidateQueries: jest.fn()
-  })
+    invalidateQueries: jest.fn(),
+  }),
 }));
 
 /**
@@ -64,17 +64,15 @@ function TestWrapper({ children, route = '/' }: { children: React.ReactNode; rou
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[route]}>
-        <div data-testid="language-provider">
-          <div data-testid="auth-provider">
-            {children}
-          </div>
+        <div data-testid='language-provider'>
+          <div data-testid='auth-provider'>{children}</div>
         </div>
       </MemoryRouter>
     </QueryClientProvider>
@@ -83,7 +81,7 @@ function TestWrapper({ children, route = '/' }: { children: React.ReactNode; rou
 
 // Stub page components with typical Quebec French property management content
 const AdminCompliancePage = () => (
-  <div data-testid="admin-compliance">
+  <div data-testid='admin-compliance'>
     <h1>Conformité</h1>
     <p>Gestion de la conformité réglementaire pour les propriétés au Québec</p>
     <p>Respect de la Loi 25 sur la protection des renseignements personnels</p>
@@ -93,16 +91,16 @@ const AdminCompliancePage = () => (
 );
 
 const AdminDocumentationPage = () => (
-  <div data-testid="admin-documentation">
+  <div data-testid='admin-documentation'>
     <h1>Documentation</h1>
     <p>Guide d'utilisation du système de gestion immobilière</p>
     <p>Formation pour les gestionnaires de copropriété</p>
-    <a href="/help">Centre d'aide</a>
+    <a href='/help'>Centre d'aide</a>
   </div>
 );
 
 const ManagerBuildingsPage = () => (
-  <div data-testid="manager-buildings">
+  <div data-testid='manager-buildings'>
     <h1>Immeubles</h1>
     <p>Gestion des immeubles et copropriétés</p>
     <p>Ajouter un nouvel immeuble</p>
@@ -120,7 +118,7 @@ const ManagerBuildingsPage = () => (
 );
 
 const ManagerResidencesPage = () => (
-  <div data-testid="manager-residences">
+  <div data-testid='manager-residences'>
     <h1>Résidences</h1>
     <p>Gestion des unités résidentielles</p>
     <p>Superviser les appartements et condos</p>
@@ -130,44 +128,44 @@ const ManagerResidencesPage = () => (
 );
 
 const ResidentsDashboardPage = () => (
-  <div data-testid="residents-dashboard">
+  <div data-testid='residents-dashboard'>
     <h1>Tableau de bord des résidents</h1>
     <p>Bienvenue dans votre espace personnel</p>
     <p>Consultez vos demandes d'entretien</p>
     <p>Payez vos charges de copropriété</p>
     <nav>
-      <a href="/residence">Ma résidence</a>
-      <a href="/demands">Mes demandes</a>
-      <a href="/bills">Mes factures</a>
+      <a href='/residence'>Ma résidence</a>
+      <a href='/demands'>Mes demandes</a>
+      <a href='/bills'>Mes factures</a>
     </nav>
   </div>
 );
 
 const SettingsPage = () => (
-  <div data-testid="settings-page">
+  <div data-testid='settings-page'>
     <h1>Paramètres</h1>
     <p>Configuration du compte utilisateur</p>
     <label>Langue préférée:</label>
     <select>
-      <option value="fr">Français</option>
-      <option value="en">English</option>
+      <option value='fr'>Français</option>
+      <option value='en'>English</option>
     </select>
     <button>Mettre à jour le profil</button>
   </div>
 );
 
 const LoginPage = () => (
-  <div data-testid="login-page">
+  <div data-testid='login-page'>
     <h1>Connexion</h1>
     <p>Accédez à votre compte Koveo Gestion</p>
     <form>
       <label>Courriel:</label>
-      <input type="email" placeholder="votre@courriel.ca" />
+      <input type='email' placeholder='votre@courriel.ca' />
       <label>Mot de passe:</label>
-      <input type="password" />
-      <button type="submit">Se connecter</button>
+      <input type='password' />
+      <button type='submit'>Se connecter</button>
     </form>
-    <a href="/forgot-password">Mot de passe oublié?</a>
+    <a href='/forgot-password'>Mot de passe oublié?</a>
   </div>
 );
 
@@ -193,7 +191,7 @@ async function validatePageComponent(
   isValid: boolean;
 }> {
   const validator = new LanguageValidator();
-  
+
   const { container } = render(
     <TestWrapper route={route}>
       <PageComponent />
@@ -201,7 +199,7 @@ async function validatePageComponent(
   );
 
   // Wait for any async content to load
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   // Extract all text content from the rendered page
   const htmlContent = container.innerHTML;
@@ -212,62 +210,82 @@ async function validatePageComponent(
   return {
     violations: validator.getViolations(),
     report: validator.generateReport(),
-    isValid: validator.isValid()
+    isValid: validator.isValid(),
   };
 }
 
 describe('Page Language Validation - Admin Pages', () => {
   it('should validate Admin Compliance page language', async () => {
-    const result = await validatePageComponent(AdminCompliancePage, 'Admin Compliance', '/admin/compliance');
-    
+    const result = await validatePageComponent(
+      AdminCompliancePage,
+      'Admin Compliance',
+      '/admin/compliance'
+    );
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 
   it('should validate Admin Documentation page language', async () => {
-    const result = await validatePageComponent(AdminDocumentationPage, 'Admin Documentation', '/admin/documentation');
-    
+    const result = await validatePageComponent(
+      AdminDocumentationPage,
+      'Admin Documentation',
+      '/admin/documentation'
+    );
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 });
 
 describe('Page Language Validation - Manager Pages', () => {
   it('should validate Manager Buildings page language', async () => {
-    const result = await validatePageComponent(ManagerBuildingsPage, 'Manager Buildings', '/manager/buildings');
-    
+    const result = await validatePageComponent(
+      ManagerBuildingsPage,
+      'Manager Buildings',
+      '/manager/buildings'
+    );
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 
   it('should validate Manager Residences page language', async () => {
-    const result = await validatePageComponent(ManagerResidencesPage, 'Manager Residences', '/manager/residences');
-    
+    const result = await validatePageComponent(
+      ManagerResidencesPage,
+      'Manager Residences',
+      '/manager/residences'
+    );
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 });
 
 describe('Page Language Validation - Residents Pages', () => {
   it('should validate Residents Dashboard page language', async () => {
-    const result = await validatePageComponent(ResidentsDashboardPage, 'Residents Dashboard', '/dashboard');
-    
+    const result = await validatePageComponent(
+      ResidentsDashboardPage,
+      'Residents Dashboard',
+      '/dashboard'
+    );
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 });
@@ -275,21 +293,21 @@ describe('Page Language Validation - Residents Pages', () => {
 describe('Page Language Validation - Settings & Auth Pages', () => {
   it('should validate Settings page language', async () => {
     const result = await validatePageComponent(SettingsPage, 'Settings', '/settings');
-    
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 
   it('should validate Login page language', async () => {
     const result = await validatePageComponent(LoginPage, 'Login', '/login');
-    
+
     if (!result.isValid) {
       console.warn(`\n${result.report}`);
     }
-    
+
     expect(result.violations.length).toBeGreaterThanOrEqual(0);
   });
 });
@@ -298,15 +316,23 @@ describe('Page Language Validation - Settings & Auth Pages', () => {
 describe('Full Application Language Audit', () => {
   it('should generate comprehensive language validation report for key pages', async () => {
     const validator = new LanguageValidator();
-    
+
     const pagesToTest = [
       { Component: AdminCompliancePage, name: 'Admin Compliance', route: '/admin/compliance' },
-      { Component: AdminDocumentationPage, name: 'Admin Documentation', route: '/admin/documentation' },
+      {
+        Component: AdminDocumentationPage,
+        name: 'Admin Documentation',
+        route: '/admin/documentation',
+      },
       { Component: ManagerBuildingsPage, name: 'Manager Buildings', route: '/manager/buildings' },
-      { Component: ManagerResidencesPage, name: 'Manager Residences', route: '/manager/residences' },
+      {
+        Component: ManagerResidencesPage,
+        name: 'Manager Residences',
+        route: '/manager/residences',
+      },
       { Component: ResidentsDashboardPage, name: 'Residents Dashboard', route: '/dashboard' },
       { Component: SettingsPage, name: 'Settings', route: '/settings' },
-      { Component: LoginPage, name: 'Login', route: '/login' }
+      { Component: LoginPage, name: 'Login', route: '/login' },
     ];
 
     let totalViolations = 0;
@@ -317,17 +343,17 @@ describe('Full Application Language Audit', () => {
     for (const page of pagesToTest) {
       try {
         const result = await validatePageComponent(page.Component, page.name, page.route);
-        
-        const errors = result.violations.filter(v => v.severity === 'error').length;
-        const warnings = result.violations.filter(v => v.severity === 'warning').length;
-        
+
+        const errors = result.violations.filter((v) => v.severity === 'error').length;
+        const warnings = result.violations.filter((v) => v.severity === 'warning').length;
+
         totalViolations += result.violations.length;
         totalErrors += errors;
         totalWarnings += warnings;
-        
+
         detailedReport += `📄 ${page.name} (${page.route})\n`;
         detailedReport += `   Erreurs: ${errors}, Avertissements: ${warnings}\n`;
-        
+
         if (result.violations.length > 0) {
           detailedReport += `   Top violations:\n`;
           result.violations.slice(0, 3).forEach((violation, _index) => {
@@ -339,7 +365,6 @@ describe('Full Application Language Audit', () => {
           });
         }
         detailedReport += '\n';
-        
       } catch (error) {
         detailedReport += `❌ ${page.name}: Erreur lors du test - ${error}\n\n`;
       }
@@ -350,7 +375,7 @@ describe('Full Application Language Audit', () => {
     detailedReport += `Total des violations: ${totalViolations}\n`;
     detailedReport += `Total des erreurs: ${totalErrors}\n`;
     detailedReport += `Total des avertissements: ${totalWarnings}\n\n`;
-    
+
     if (totalErrors === 0 && totalWarnings === 0) {
       detailedReport += `✅ EXCELLENT! Toutes les pages respectent les standards du français québécois.\n`;
     } else if (totalErrors === 0) {
@@ -360,7 +385,7 @@ describe('Full Application Language Audit', () => {
     } else {
       detailedReport += `❌ RÉVISION MAJEURE REQUISE: Nombreuses violations détectées.\n`;
     }
-    
+
     detailedReport += `\n=== RECOMMANDATIONS ===\n`;
     detailedReport += `1. Remplacer tous les anglicismes par leurs équivalents français\n`;
     detailedReport += `2. Utiliser la terminologie spécifique au Québec pour la gestion immobilière\n`;
@@ -369,10 +394,10 @@ describe('Full Application Language Audit', () => {
     detailedReport += `5. Réviser les traductions avec un expert en français québécois\n`;
 
     console.warn(detailedReport);
-    
+
     // For CI/CD: fail if there are critical errors
     expect(totalErrors).toBeLessThan(50); // Adjust threshold as needed
-    
+
     // Always log the summary for visibility
     expect(totalViolations).toBeGreaterThanOrEqual(0);
   });

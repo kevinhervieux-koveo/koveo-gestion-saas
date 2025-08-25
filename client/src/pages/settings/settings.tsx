@@ -7,28 +7,48 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Bell, 
-  Shield, 
-  Globe, 
-  Palette, 
-  Download, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Shield,
+  Globe,
+  Palette,
+  Download,
   Trash2,
   Eye,
   EyeOff,
   Save,
-  Key
+  Key,
 } from 'lucide-react';
 import { z } from 'zod';
 
@@ -42,14 +62,16 @@ const profileSchema = z.object({
   language: z.enum(['fr', 'en']),
 });
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string().min(8, 'Confirm password is required'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string().min(8, 'Confirm password is required'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 const deleteAccountSchema = z.object({
   confirmEmail: z.string().email('Invalid email address'),
@@ -311,7 +333,7 @@ export default function Settings() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={profileForm.control}
                     name='email'
@@ -325,7 +347,7 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={profileForm.control}
                     name='username'
@@ -339,7 +361,7 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={profileForm.control}
                     name='phone'
@@ -353,14 +375,18 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={profileForm.control}
                     name='language'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Language</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} data-testid='select-language'>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          data-testid='select-language'
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder='Select language' />
@@ -375,9 +401,9 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
-                  <Button 
-                    type='submit' 
+
+                  <Button
+                    type='submit'
                     data-testid='button-save-profile'
                     disabled={profileMutation.isPending}
                     className='flex items-center gap-2'
@@ -422,7 +448,11 @@ export default function Settings() {
                               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                               data-testid='toggle-current-password'
                             >
-                              {showCurrentPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                              {showCurrentPassword ? (
+                                <EyeOff className='h-4 w-4' />
+                              ) : (
+                                <Eye className='h-4 w-4' />
+                              )}
                             </Button>
                           </div>
                         </FormControl>
@@ -430,7 +460,7 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={passwordForm.control}
                     name='newPassword'
@@ -452,7 +482,11 @@ export default function Settings() {
                               onClick={() => setShowNewPassword(!showNewPassword)}
                               data-testid='toggle-new-password'
                             >
-                              {showNewPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                              {showNewPassword ? (
+                                <EyeOff className='h-4 w-4' />
+                              ) : (
+                                <Eye className='h-4 w-4' />
+                              )}
                             </Button>
                           </div>
                         </FormControl>
@@ -460,7 +494,7 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={passwordForm.control}
                     name='confirmPassword'
@@ -482,7 +516,11 @@ export default function Settings() {
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                               data-testid='toggle-confirm-password'
                             >
-                              {showConfirmPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                              {showConfirmPassword ? (
+                                <EyeOff className='h-4 w-4' />
+                              ) : (
+                                <Eye className='h-4 w-4' />
+                              )}
                             </Button>
                           </div>
                         </FormControl>
@@ -490,9 +528,9 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
-                  
-                  <Button 
-                    type='submit' 
+
+                  <Button
+                    type='submit'
                     data-testid='button-change-password'
                     disabled={passwordMutation.isPending}
                     className='flex items-center gap-2'
@@ -511,25 +549,48 @@ export default function Settings() {
               <CardTitle className='flex items-center gap-2'>
                 <SettingsIcon className='w-5 h-5' />
                 Additional Settings
-                <Badge variant='secondary' className='text-xs ml-2'>Future</Badge>
+                <Badge variant='secondary' className='text-xs ml-2'>
+                  Future
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled data-testid='button-notifications'>
+                <Button
+                  variant='outline'
+                  className='h-auto p-4 flex flex-col space-y-2'
+                  disabled
+                  data-testid='button-notifications'
+                >
                   <Bell className='w-6 h-6' />
                   <span>Notifications</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
+                  <Badge variant='secondary' className='text-xs'>
+                    Future
+                  </Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled data-testid='button-theme'>
+                <Button
+                  variant='outline'
+                  className='h-auto p-4 flex flex-col space-y-2'
+                  disabled
+                  data-testid='button-theme'
+                >
                   <Palette className='w-6 h-6' />
                   <span>Theme</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
+                  <Badge variant='secondary' className='text-xs'>
+                    Future
+                  </Badge>
                 </Button>
-                <Button variant='outline' className='h-auto p-4 flex flex-col space-y-2' disabled data-testid='button-advanced'>
+                <Button
+                  variant='outline'
+                  className='h-auto p-4 flex flex-col space-y-2'
+                  disabled
+                  data-testid='button-advanced'
+                >
                   <Globe className='w-6 h-6' />
                   <span>Advanced</span>
-                  <Badge variant='secondary' className='text-xs'>Future</Badge>
+                  <Badge variant='secondary' className='text-xs'>
+                    Future
+                  </Badge>
                 </Button>
               </div>
             </CardContent>
@@ -545,18 +606,22 @@ export default function Settings() {
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800'>
-                <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-2'>Your Data Rights</h4>
+                <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-2'>
+                  Your Data Rights
+                </h4>
                 <p className='text-blue-700 dark:text-blue-300 text-sm mb-3'>
-                  Under Quebec's Law 25, you have the right to access, export, and delete your personal data.
+                  Under Quebec's Law 25, you have the right to access, export, and delete your
+                  personal data.
                 </p>
               </div>
-              
+
               <div className='space-y-3'>
                 <div className='flex items-center justify-between p-4 border rounded-lg'>
                   <div className='space-y-1'>
                     <h5 className='font-medium'>Download Your Data</h5>
                     <p className='text-sm text-muted-foreground'>
-                      Export all your personal data including profile information, bills, documents, and activity history.
+                      Export all your personal data including profile information, bills, documents,
+                      and activity history.
                     </p>
                   </div>
                   <Button
@@ -569,14 +634,17 @@ export default function Settings() {
                     {exportMutation.isPending ? 'Exporting...' : 'Download'}
                   </Button>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className='flex items-center justify-between p-4 border rounded-lg border-red-200 dark:border-red-800'>
                   <div className='space-y-1'>
-                    <h5 className='font-medium text-red-900 dark:text-red-100'>Delete Your Account</h5>
+                    <h5 className='font-medium text-red-900 dark:text-red-100'>
+                      Delete Your Account
+                    </h5>
                     <p className='text-sm text-red-700 dark:text-red-300'>
-                      Permanently delete your account and all associated data. This action cannot be undone.
+                      Permanently delete your account and all associated data. This action cannot be
+                      undone.
                     </p>
                   </div>
                   <Button
@@ -615,7 +683,7 @@ export default function Settings() {
               <strong className='text-red-600 block mt-3'>This action cannot be undone.</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <Form {...deleteForm}>
             <form onSubmit={deleteForm.handleSubmit(onDeleteSubmit)} className='space-y-4'>
               <FormField
@@ -636,7 +704,7 @@ export default function Settings() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={deleteForm.control}
                 name='reason'
@@ -654,11 +722,11 @@ export default function Settings() {
                   </FormItem>
                 )}
               />
-              
+
               <AlertDialogFooter>
-                <Button 
-                  type='button' 
-                  variant='outline' 
+                <Button
+                  type='button'
+                  variant='outline'
                   onClick={() => setShowDeleteDialog(false)}
                   data-testid='button-cancel-delete'
                 >

@@ -3,14 +3,14 @@ import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,15 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  Users, 
-  UserCheck, 
-  UserX, 
-  Shield, 
-  Trash2, 
-  Mail,
-  Download
-} from 'lucide-react';
+import { Users, UserCheck, UserX, Shield, Trash2, Mail, Download } from 'lucide-react';
 
 /**
  * Props for the BulkActionsBar component.
@@ -42,7 +34,7 @@ interface BulkActionsBarProps {
 /**
  * Available bulk action types for user management.
  */
-type BulkActionType = 
+type BulkActionType =
   | 'activate'
   | 'deactivate'
   | 'change_role'
@@ -66,7 +58,7 @@ interface BulkAction {
 
 /**
  * Bulk Actions Bar Component.
- * 
+ *
  * Provides bulk operations for selected users with confirmation dialogs
  * and appropriate permissions checking.
  * @param props - Component props.
@@ -75,10 +67,10 @@ interface BulkAction {
  * @param props.isLoading - Loading state indicator.
  * @returns JSX element for the bulk actions bar.
  */
-export function BulkActionsBar({ 
-  selectedCount, 
-  onBulkAction, 
-  isLoading = false 
+export function BulkActionsBar({
+  selectedCount,
+  onBulkAction,
+  isLoading = false,
 }: BulkActionsBarProps) {
   const { t } = useLanguage();
   const [selectedAction, setSelectedAction] = useState<string>('');
@@ -92,7 +84,7 @@ export function BulkActionsBar({
     open: false,
     action: null,
     title: '',
-    description: ''
+    description: '',
   });
 
   const bulkActions: BulkAction[] = [
@@ -101,14 +93,14 @@ export function BulkActionsBar({
       label: t('activateUsers'),
       description: t('activateSelectedUsers'),
       icon: UserCheck,
-      requiresConfirmation: true
+      requiresConfirmation: true,
     },
     {
       type: 'deactivate',
       label: t('deactivateUsers'),
       description: t('deactivateSelectedUsers'),
       icon: UserX,
-      requiresConfirmation: true
+      requiresConfirmation: true,
     },
     {
       type: 'change_role',
@@ -116,26 +108,26 @@ export function BulkActionsBar({
       description: t('changeRoleSelectedUsers'),
       icon: Shield,
       requiresConfirmation: true,
-      requiresData: true
+      requiresData: true,
     },
     {
       type: 'send_password_reset',
       label: t('sendPasswordReset'),
       description: t('sendPasswordResetSelectedUsers'),
       icon: Mail,
-      requiresConfirmation: true
+      requiresConfirmation: true,
     },
     {
       type: 'send_welcome_email',
       label: t('sendWelcomeEmail'),
       description: t('sendWelcomeEmailSelectedUsers'),
-      icon: Mail
+      icon: Mail,
     },
     {
       type: 'export',
       label: t('exportUsers'),
       description: t('exportSelectedUsersData'),
-      icon: Download
+      icon: Download,
     },
     {
       type: 'delete',
@@ -143,22 +135,24 @@ export function BulkActionsBar({
       description: t('deleteSelectedUsers'),
       icon: Trash2,
       variant: 'destructive',
-      requiresConfirmation: true
-    }
+      requiresConfirmation: true,
+    },
   ];
 
   const handleActionSelect = (actionType: string) => {
     setSelectedAction(actionType);
-    const action = bulkActions.find(a => a.type === actionType);
-    
-    if (!action) {return;}
+    const action = bulkActions.find((a) => a.type === actionType);
+
+    if (!action) {
+      return;
+    }
 
     if (action.requiresConfirmation) {
       setConfirmationDialog({
         open: true,
         action: action.type,
         title: action.label,
-        description: `${action.description} (${selectedCount} ${t('users').toLowerCase()})`
+        description: `${action.description} (${selectedCount} ${t('users').toLowerCase()})`,
       });
     } else {
       executeBulkAction(action.type);
@@ -173,34 +167,36 @@ export function BulkActionsBar({
         actionData = { status: true };
         await onBulkAction('toggle_status', actionData);
         break;
-      
+
       case 'deactivate':
         actionData = { status: false };
         await onBulkAction('toggle_status', actionData);
         break;
-      
+
       case 'change_role':
-        if (!roleForBulkChange) {return;}
+        if (!roleForBulkChange) {
+          return;
+        }
         actionData = { role: roleForBulkChange };
         await onBulkAction('change_role', actionData);
         break;
-      
+
       case 'send_password_reset':
         await onBulkAction('send_password_reset');
         break;
-      
+
       case 'send_welcome_email':
         await onBulkAction('send_welcome_email');
         break;
-      
+
       case 'export':
         await onBulkAction('export_users');
         break;
-      
+
       case 'delete':
         await onBulkAction('delete_users');
         break;
-      
+
       default:
         break;
     }
@@ -212,7 +208,7 @@ export function BulkActionsBar({
       open: false,
       action: null,
       title: '',
-      description: ''
+      description: '',
     });
   };
 
@@ -228,12 +224,12 @@ export function BulkActionsBar({
       <Button
         key={action.type}
         variant={action.variant || 'outline'}
-        size="sm"
+        size='sm'
         onClick={() => handleActionSelect(action.type)}
         disabled={isLoading}
-        className="flex items-center gap-2"
+        className='flex items-center gap-2'
       >
-        <Icon className="h-4 w-4" />
+        <Icon className='h-4 w-4' />
         {action.label}
       </Button>
     );
@@ -245,36 +241,34 @@ export function BulkActionsBar({
 
   return (
     <>
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <Card className='border-primary/20 bg-primary/5'>
+        <CardContent className='p-4'>
+          <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4'>
             {/* Selected count and info */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <Badge variant="secondary" className="bg-primary text-primary-foreground">
+            <div className='flex items-center gap-3'>
+              <div className='flex items-center gap-2'>
+                <Users className='h-5 w-5 text-primary' />
+                <Badge variant='secondary' className='bg-primary text-primary-foreground'>
                   {selectedCount}
                 </Badge>
-                <span className="text-sm font-medium">
-                  {t('usersSelected')}
-                </span>
+                <span className='text-sm font-medium'>{t('usersSelected')}</span>
               </div>
             </div>
 
             {/* Bulk actions */}
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 mr-4">
-                <span className="text-sm font-medium">{t('bulkActions')}:</span>
+            <div className='flex flex-wrap gap-2'>
+              <div className='flex items-center gap-2 mr-4'>
+                <span className='text-sm font-medium'>{t('bulkActions')}:</span>
               </div>
 
               {/* Quick actions */}
-              <div className="hidden lg:flex gap-2">
+              <div className='hidden lg:flex gap-2'>
                 {bulkActions.slice(0, 4).map(getBulkActionButton)}
               </div>
 
               {/* More actions dropdown */}
               <Select value={selectedAction} onValueChange={handleActionSelect}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className='w-48'>
                   <SelectValue placeholder={t('moreActions')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -282,8 +276,8 @@ export function BulkActionsBar({
                     const Icon = action.icon;
                     return (
                       <SelectItem key={action.type} value={action.type}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
+                        <div className='flex items-center gap-2'>
+                          <Icon className='h-4 w-4' />
                           {action.label}
                         </div>
                       </SelectItem>
@@ -293,7 +287,7 @@ export function BulkActionsBar({
               </Select>
 
               {/* Mobile quick actions */}
-              <div className="flex lg:hidden gap-2">
+              <div className='flex lg:hidden gap-2'>
                 {getBulkActionButton(bulkActions[0])} {/* Activate */}
                 {getBulkActionButton(bulkActions[1])} {/* Deactivate */}
               </div>
@@ -302,21 +296,21 @@ export function BulkActionsBar({
 
           {/* Role selection for bulk role change */}
           {selectedAction === 'change_role' && (
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium">{t('newRole')}:</span>
+            <div className='mt-4 pt-4 border-t border-slate-200'>
+              <div className='flex items-center gap-4'>
+                <span className='text-sm font-medium'>{t('newRole')}:</span>
                 <Select value={roleForBulkChange} onValueChange={setRoleForBulkChange}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className='w-48'>
                     <SelectValue placeholder={t('selectRole')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">{t('admin')}</SelectItem>
-                    <SelectItem value="manager">{t('manager')}</SelectItem>
-                    <SelectItem value="tenant">{t('tenant')}</SelectItem>
+                    <SelectItem value='admin'>{t('admin')}</SelectItem>
+                    <SelectItem value='manager'>{t('manager')}</SelectItem>
+                    <SelectItem value='tenant'>{t('tenant')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
-                  size="sm"
+                  size='sm'
                   onClick={() => handleActionSelect('change_role')}
                   disabled={!roleForBulkChange || isLoading}
                 >
@@ -329,9 +323,9 @@ export function BulkActionsBar({
       </Card>
 
       {/* Confirmation Dialog */}
-      <AlertDialog 
-        open={confirmationDialog.open} 
-        onOpenChange={(open) => setConfirmationDialog(prev => ({ ...prev, open }))}
+      <AlertDialog
+        open={confirmationDialog.open}
+        onOpenChange={(open) => setConfirmationDialog((prev) => ({ ...prev, open }))}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -347,7 +341,11 @@ export function BulkActionsBar({
             <AlertDialogAction
               onClick={handleConfirmAction}
               disabled={isLoading}
-              className={confirmationDialog.action === 'delete' ? 'bg-destructive hover:bg-destructive/90' : ''}
+              className={
+                confirmationDialog.action === 'delete'
+                  ? 'bg-destructive hover:bg-destructive/90'
+                  : ''
+              }
             >
               {isLoading ? t('processing') : t('confirm')}
             </AlertDialogAction>

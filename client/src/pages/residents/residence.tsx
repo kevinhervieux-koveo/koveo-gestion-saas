@@ -6,20 +6,41 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { 
-  Home, 
-  Building, 
-  MapPin, 
-  Bed, 
-  Bath, 
-  Car, 
-  Package, 
-  Phone, 
-  Mail, 
-  User, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Home,
+  Building,
+  MapPin,
+  Bed,
+  Bath,
+  Car,
+  Package,
+  Phone,
+  Mail,
+  User,
   Edit,
   Plus,
   Trash2,
@@ -27,7 +48,7 @@ import {
   Download,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -94,8 +115,8 @@ export default function Residence() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
-  const [selectedResidenceId, setSelectedResidenceId] = useState<string>("");
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
+  const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -115,13 +136,17 @@ export default function Residence() {
 
   // Fetch current user
   const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-    queryFn: () => apiRequest("GET", "/api/auth/user") as Promise<any>,
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
   // Fetch buildings for admin/manager users
-  const { data: buildingsData, error: buildingsError, refetch: refetchBuildings } = useQuery({
-    queryKey: ["/api/manager/buildings"],
+  const {
+    data: buildingsData,
+    error: buildingsError,
+    refetch: refetchBuildings,
+  } = useQuery({
+    queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await fetch('/api/manager/buildings', {
         credentials: 'include',
@@ -142,12 +167,22 @@ export default function Residence() {
   const buildings = buildingsData?.buildings || [];
 
   // Use different endpoints based on user role
-  const { data: accessibleResidences = [], isLoading, error: residencesError, refetch: refetchResidences } = useQuery({
-    queryKey: user?.role && ['admin', 'manager'].includes(user.role) ? ["/api/residences"] : ["/api/users/residences", user?.id],
+  const {
+    data: accessibleResidences = [],
+    isLoading,
+    error: residencesError,
+    refetch: refetchResidences,
+  } = useQuery({
+    queryKey:
+      user?.role && ['admin', 'manager'].includes(user.role)
+        ? ['/api/residences']
+        : ['/api/users/residences', user?.id],
     queryFn: async () => {
-      if (!user?.id) {return [];}
-      
-      let url = "";
+      if (!user?.id) {
+        return [];
+      }
+
+      let url = '';
       // Admin and manager users can see all residences in their organizations
       if (user.role && ['admin', 'manager'].includes(user.role)) {
         url = '/api/residences';
@@ -155,7 +190,7 @@ export default function Residence() {
         // Residents see only their own residences
         url = `/api/users/${user.id}/residences`;
       }
-      
+
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
@@ -179,12 +214,14 @@ export default function Residence() {
   const filteredResidences = useMemo(() => {
     if (user?.role && ['admin', 'manager'].includes(user.role)) {
       // For admin/manager, show all residences if no building filter is selected
-      if (!selectedBuildingId) {return safeAccessibleResidences;}
-      
+      if (!selectedBuildingId) {
+        return safeAccessibleResidences;
+      }
+
       // Filter by selected building
-      return safeAccessibleResidences.filter(r => r.buildingId === selectedBuildingId);
+      return safeAccessibleResidences.filter((r) => r.buildingId === selectedBuildingId);
     }
-    
+
     // For residents, return all their accessible residences
     return safeAccessibleResidences;
   }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
@@ -196,11 +233,11 @@ export default function Residence() {
   const currentResidences = filteredResidences.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
-    setCurrentPage(prev => Math.max(1, prev - 1));
+    setCurrentPage((prev) => Math.max(1, prev - 1));
   };
 
   const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
   const handlePageClick = (page: number) => {
@@ -212,22 +249,26 @@ export default function Residence() {
     setCurrentPage(1);
   };
 
-
   // Select first residence by default
   const selectedResidence = useMemo(() => {
     if (!selectedResidenceId && filteredResidences.length > 0) {
       setSelectedResidenceId(filteredResidences[0].id);
       return filteredResidences[0];
     }
-    return filteredResidences.find(r => r.id === selectedResidenceId) || null;
+    return filteredResidences.find((r) => r.id === selectedResidenceId) || null;
   }, [selectedResidenceId, filteredResidences]);
 
   // Fetch contacts for selected residence
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: ["/api/contacts", selectedResidenceId],
+    queryKey: ['/api/contacts', selectedResidenceId],
     queryFn: async () => {
-      if (!selectedResidenceId) {return [];}
-      const response = await apiRequest("GET", `/api/contacts?entity=residence&entityId=${selectedResidenceId}`);
+      if (!selectedResidenceId) {
+        return [];
+      }
+      const response = await apiRequest(
+        'GET',
+        `/api/contacts?entity=residence&entityId=${selectedResidenceId}`
+      );
       return Array.isArray(response) ? response : [];
     },
     enabled: !!selectedResidenceId,
@@ -235,10 +276,15 @@ export default function Residence() {
 
   // Fetch building contacts (read-only for residents)
   const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
-    queryKey: ["/api/contacts", "building", selectedResidence?.buildingId],
+    queryKey: ['/api/contacts', 'building', selectedResidence?.buildingId],
     queryFn: async () => {
-      if (!selectedResidence?.buildingId) {return [];}
-      const response = await apiRequest("GET", `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`);
+      if (!selectedResidence?.buildingId) {
+        return [];
+      }
+      const response = await apiRequest(
+        'GET',
+        `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`
+      );
       return Array.isArray(response) ? response : [];
     },
     enabled: !!selectedResidence?.buildingId,
@@ -246,67 +292,66 @@ export default function Residence() {
 
   // Mutations for contact management
   const addContactMutation = useMutation({
-    mutationFn: (data: ContactFormData) => 
-      apiRequest("POST", "/api/contacts", {
+    mutationFn: (data: ContactFormData) =>
+      apiRequest('POST', '/api/contacts', {
         ...data,
         residenceId: selectedResidenceId,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
       toast({
-        title: "Contact added successfully",
-        description: "The new contact has been added to this residence.",
+        title: 'Contact added successfully',
+        description: 'The new contact has been added to this residence.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to add contact",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
+        title: 'Failed to add contact',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
       });
     },
   });
 
   const updateContactMutation = useMutation({
     mutationFn: (data: ContactFormData) =>
-      apiRequest("PATCH", `/api/contacts/${editingContact?.id}`, data),
+      apiRequest('PATCH', `/api/contacts/${editingContact?.id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
       setIsContactDialogOpen(false);
       setEditingContact(null);
       contactForm.reset();
       toast({
-        title: "Contact updated successfully",
-        description: "The contact information has been updated.",
+        title: 'Contact updated successfully',
+        description: 'The contact information has been updated.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to update contact",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
+        title: 'Failed to update contact',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
       });
     },
   });
 
   const deleteContactMutation = useMutation({
-    mutationFn: (contactId: string) =>
-      apiRequest("DELETE", `/api/contacts/${contactId}`),
+    mutationFn: (contactId: string) => apiRequest('DELETE', `/api/contacts/${contactId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["/api/contacts", selectedResidenceId]});
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
       toast({
-        title: "Contact deleted successfully",
-        description: "The contact has been removed.",
+        title: 'Contact deleted successfully',
+        description: 'The contact has been removed.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to delete contact",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
+        title: 'Failed to delete contact',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
       });
     },
   });
@@ -340,9 +385,15 @@ export default function Residence() {
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header 
-          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
-          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
+        <Header
+          title={
+            user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
+          }
+          subtitle={
+            user?.role && ['admin', 'manager'].includes(user.role)
+              ? 'View and manage organization residences'
+              : 'View your residence information and contacts'
+          }
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -358,9 +409,15 @@ export default function Residence() {
   if (filteredResidences.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header 
-          title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
-          subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
+        <Header
+          title={
+            user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
+          }
+          subtitle={
+            user?.role && ['admin', 'manager'].includes(user.role)
+              ? 'View and manage organization residences'
+              : 'View your residence information and contacts'
+          }
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -368,10 +425,9 @@ export default function Residence() {
             <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
             <h3 className='text-lg font-medium mb-2'>No Residences Found</h3>
             <p className='text-gray-600'>
-              {user?.role && ['admin', 'manager'].includes(user.role) 
+              {user?.role && ['admin', 'manager'].includes(user.role)
                 ? 'No residences found in your organization.'
-                : 'You are not assigned to any residences.'
-              }
+                : 'You are not assigned to any residences.'}
             </p>
           </div>
         </div>
@@ -381,54 +437,67 @@ export default function Residence() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header 
-        title={user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'}
-        subtitle={user?.role && ['admin', 'manager'].includes(user.role) ? 'View and manage organization residences' : 'View your residence information and contacts'}
+      <Header
+        title={
+          user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
+        }
+        subtitle={
+          user?.role && ['admin', 'manager'].includes(user.role)
+            ? 'View and manage organization residences'
+            : 'View your residence information and contacts'
+        }
       />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Building and Residence Filters */}
-          {(user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0) || filteredResidences.length > 1 ? (
+          {(user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0) ||
+          filteredResidences.length > 1 ? (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Home className='w-5 h-5' />
-                  {user?.role && ['admin', 'manager'].includes(user.role) ? 'Select Building & Residence' : 'Select Residence'}
+                  {user?.role && ['admin', 'manager'].includes(user.role)
+                    ? 'Select Building & Residence'
+                    : 'Select Residence'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className='flex flex-col md:flex-row gap-4'>
                   {/* Building Filter (Admin/Manager only) */}
-                  {user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0 && (
-                    <div className='flex-1'>
-                      <Label className='text-sm font-medium mb-2 block'>Building</Label>
-                      <Select 
-                        value={selectedBuildingId} 
-                        onValueChange={(value) => {
-                          setSelectedBuildingId(value);
-                          setSelectedResidenceId(""); // Reset residence selection when building changes
-                        }}
-                      >
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select a building' />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {buildings.map((building: any) => (
-                            <SelectItem key={building.id} value={building.id}>
-                              {building.name} - {building.address}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  {user?.role &&
+                    ['admin', 'manager'].includes(user.role) &&
+                    buildings.length > 0 && (
+                      <div className='flex-1'>
+                        <Label className='text-sm font-medium mb-2 block'>Building</Label>
+                        <Select
+                          value={selectedBuildingId}
+                          onValueChange={(value) => {
+                            setSelectedBuildingId(value);
+                            setSelectedResidenceId(''); // Reset residence selection when building changes
+                          }}
+                        >
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select a building' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {buildings.map((building: any) => (
+                              <SelectItem key={building.id} value={building.id}>
+                                {building.name} - {building.address}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
                   {/* Residence Filter */}
                   {filteredResidences.length > 0 && (
                     <div className='flex-1'>
                       <Label className='text-sm font-medium mb-2 block'>
-                        {user?.role && ['admin', 'manager'].includes(user.role) ? 'Residence' : 'Select Residence'}
+                        {user?.role && ['admin', 'manager'].includes(user.role)
+                          ? 'Residence'
+                          : 'Select Residence'}
                       </Label>
                       <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
                         <SelectTrigger className='w-full'>
@@ -438,7 +507,9 @@ export default function Residence() {
                           {filteredResidences.map((residence) => (
                             <SelectItem key={residence.id} value={residence.id}>
                               Unit {residence.unitNumber}
-                              {user?.role && !['admin', 'manager'].includes(user.role) && ` - ${residence.building.name}`}
+                              {user?.role &&
+                                !['admin', 'manager'].includes(user.role) &&
+                                ` - ${residence.building.name}`}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -460,22 +531,19 @@ export default function Residence() {
                       <Home className='w-5 h-5' />
                       Unit {residence.unitNumber}
                     </CardTitle>
-                    <div className='text-sm text-gray-600'>
-                      {residence.building.name}
-                    </div>
+                    <div className='text-sm text-gray-600'>{residence.building.name}</div>
                   </CardHeader>
                   <CardContent className='space-y-4'>
                     <div className='grid grid-cols-1 gap-3'>
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                        <p className='text-sm text-gray-700'>{residence.building.address}</p>
                         <p className='text-sm text-gray-700'>
-                          {residence.building.address}
-                        </p>
-                        <p className='text-sm text-gray-700'>
-                          {residence.building.city}, {residence.building.province} {residence.building.postalCode}
+                          {residence.building.city}, {residence.building.province}{' '}
+                          {residence.building.postalCode}
                         </p>
                       </div>
-                      
+
                       <div className='grid grid-cols-2 gap-3'>
                         {residence.floor && (
                           <div>
@@ -508,37 +576,43 @@ export default function Residence() {
                           </div>
                         )}
                       </div>
-                      
-                      {residence.parkingSpaceNumbers && residence.parkingSpaceNumbers.length > 0 && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>Parking</Label>
-                          <div className='flex items-center gap-1'>
-                            <Car className='w-3 h-3' />
-                            <span className='text-sm text-gray-700'>{residence.parkingSpaceNumbers.join(', ')}</span>
+
+                      {residence.parkingSpaceNumbers &&
+                        residence.parkingSpaceNumbers.length > 0 && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <div className='flex items-center gap-1'>
+                              <Car className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>
+                                {residence.parkingSpaceNumbers.join(', ')}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      
-                      {residence.storageSpaceNumbers && residence.storageSpaceNumbers.length > 0 && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>Storage</Label>
-                          <div className='flex items-center gap-1'>
-                            <Package className='w-3 h-3' />
-                            <span className='text-sm text-gray-700'>{residence.storageSpaceNumbers.join(', ')}</span>
+                        )}
+
+                      {residence.storageSpaceNumbers &&
+                        residence.storageSpaceNumbers.length > 0 && (
+                          <div>
+                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <div className='flex items-center gap-1'>
+                              <Package className='w-3 h-3' />
+                              <span className='text-sm text-gray-700'>
+                                {residence.storageSpaceNumbers.join(', ')}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
-                    
+
                     <div className='flex flex-col gap-2 pt-4 border-t'>
                       <Link href={`/residents/residences/${residence.id}/documents`}>
-                        <Button variant="outline" size="sm" className='w-full justify-start'>
+                        <Button variant='outline' size='sm' className='w-full justify-start'>
                           <FileText className='w-4 h-4 mr-2' />
                           View Documents
                         </Button>
                       </Link>
                       <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
-                        <Button variant="outline" size="sm" className='w-full justify-start'>
+                        <Button variant='outline' size='sm' className='w-full justify-start'>
                           <Building className='w-4 h-4 mr-2' />
                           Building Documents
                         </Button>
@@ -562,7 +636,7 @@ export default function Residence() {
                 <ChevronLeft className='h-4 w-4' />
                 Previous
               </Button>
-              
+
               <div className='flex gap-1'>
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
@@ -575,7 +649,7 @@ export default function Residence() {
                   } else {
                     pageNum = currentPage - 2 + i;
                   }
-                  
+
                   return (
                     <Button
                       key={pageNum}
@@ -588,7 +662,7 @@ export default function Residence() {
                   );
                 })}
               </div>
-              
+
               <Button
                 variant='outline'
                 size='sm'
@@ -604,7 +678,8 @@ export default function Residence() {
           {/* Page info */}
           {filteredResidences.length > 0 && (
             <div className='text-center text-sm text-muted-foreground mt-4'>
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of {filteredResidences.length} residences
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
+              {filteredResidences.length} residences
             </div>
           )}
         </div>

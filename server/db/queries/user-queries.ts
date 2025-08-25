@@ -5,9 +5,9 @@ import { scopeQuery, type UserContext } from './scope-query';
 
 /**
  * Get users accessible to the current user based on their role and associations.
- * Admins see all users, managers see users in their organizations, 
+ * Admins see all users, managers see users in their organizations,
  * owners see users in their buildings, tenants typically see only themselves.
- * 
+ *
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of users the current user can access.
  */
@@ -39,7 +39,7 @@ export async function getUsersForUser(userContext: UserContext) {
 
 /**
  * Get a single user by ID with role-based access control.
- * 
+ *
  * @param userId - The user ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the user if accessible, undefined otherwise.
@@ -75,7 +75,7 @@ export async function getUserById(userId: string, userContext: UserContext) {
 
 /**
  * Get users by role with role-based filtering.
- * 
+ *
  * @param role - User role to filter by.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users with the specified role.
@@ -104,12 +104,7 @@ export async function getUsersByRole(
       createdAt: users.createdAt,
     })
     .from(users)
-    .where(
-      and(
-        eq(users.role, role),
-        eq(users.isActive, true)
-      )
-    )
+    .where(and(eq(users.role, role), eq(users.isActive, true)))
     .orderBy(users.lastName, users.firstName);
 
   return await scopeQuery(baseQuery, userContext, 'users');
@@ -117,7 +112,7 @@ export async function getUsersByRole(
 
 /**
  * Search users by name or email with role-based filtering.
- * 
+ *
  * @param searchTerm - Search term to look for in name or email.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of matching users.
@@ -130,7 +125,7 @@ export async function getUsersByRole(
  */
 export async function searchUsers(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
-  
+
   const baseQuery = db
     .select({
       id: users.id,
@@ -161,7 +156,7 @@ export async function searchUsers(searchTerm: string, userContext: UserContext) 
 /**
  * Get users associated with a specific residence.
  * Shows all users (owners, tenants, occupants) for a residence.
- * 
+ *
  * @param residenceId - Residence ID to get users for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users associated with the residence.
@@ -206,7 +201,7 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
     userContext,
     'residences'
   );
-  
+
   const residenceAccess = await residenceAccessQuery;
   if (residenceAccess.length === 0) {
     return []; // No access to this residence
@@ -218,7 +213,7 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
 /**
  * Get users associated with a specific building.
  * Shows all users who have residences in the building.
- * 
+ *
  * @param buildingId - Building ID to get users for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of users associated with the building.
@@ -236,7 +231,7 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
     userContext,
     'buildings'
   );
-  
+
   const buildingAccess = await buildingAccessQuery;
   if (buildingAccess.length === 0) {
     return []; // No access to this building
@@ -276,7 +271,7 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
 /**
  * Get the current user's profile with their residence associations.
  * Shows complete profile information and all associated residences.
- * 
+ *
  * @param userContext - User context containing current user info.
  * @returns Promise resolving to user profile with residence associations.
  */
@@ -288,7 +283,7 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
 export async function getCurrentUserProfile(userContext: UserContext) {
   // Get user basic info
   const userProfile = await getUserById(userContext.userId, userContext);
-  
+
   if (!userProfile) {
     return null;
   }
@@ -343,7 +338,7 @@ export async function getCurrentUserProfile(userContext: UserContext) {
 /**
  * Get user summary statistics for accessible users.
  * Provides role distribution and activity metrics.
- * 
+ *
  * @param userContext - User context for access control.
  * @returns Promise resolving to user summary statistics.
  */
@@ -355,18 +350,20 @@ export async function getCurrentUserProfile(userContext: UserContext) {
 export async function getUserSummary(userContext: UserContext) {
   // Get all accessible users
   const accessibleUsersQuery = await scopeQuery(
-    db.select({ 
-      id: users.id,
-      role: users.role,
-      isActive: users.isActive,
-      lastLoginAt: users.lastLoginAt,
-    }).from(users),
+    db
+      .select({
+        id: users.id,
+        role: users.role,
+        isActive: users.isActive,
+        lastLoginAt: users.lastLoginAt,
+      })
+      .from(users),
     userContext,
     'users'
   );
-  
+
   const accessibleUsers = await accessibleUsersQuery;
-  
+
   if (accessibleUsers.length === 0) {
     return {
       totalUsers: 0,
@@ -386,7 +383,7 @@ export async function getUserSummary(userContext: UserContext) {
   let activeUsers = 0;
   let inactiveUsers = 0;
   let recentlyActiveUsers = 0;
-  
+
   const roleDistribution = {
     admin: 0,
     manager: 0,
@@ -400,18 +397,18 @@ export async function getUserSummary(userContext: UserContext) {
 
   accessibleUsers.forEach((user: unknown) => {
     totalUsers++;
-    
+
     if (user.isActive) {
       activeUsers++;
     } else {
       inactiveUsers++;
     }
-    
+
     // Count by role
     if (Object.prototype.hasOwnProperty.call(roleDistribution, user.role)) {
       roleDistribution[user.role as keyof typeof roleDistribution]++;
     }
-    
+
     // Check recent activity
     if (user.lastLoginAt && new Date(user.lastLoginAt) > thirtyDaysAgo) {
       recentlyActiveUsers++;

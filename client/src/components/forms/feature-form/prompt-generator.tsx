@@ -21,7 +21,8 @@ export function generateDevelopmentPrompt(
   const featureCategory = feature?.category || formData.featureCategory || 'Not specified';
   const featureStatus = feature?.status || 'submitted';
   const featurePriority = formData.priority || feature?.priority || 'Medium';
-  const featureDescription = feature?.description || formData.featureDescription || 'Feature description not provided';
+  const featureDescription =
+    feature?.description || formData.featureDescription || 'Feature description not provided';
 
   let prompt = `# Feature Development Request: ${featureName}
 
@@ -76,7 +77,7 @@ ${formData.securityConsiderations || 'Follow standard security practices'}`;
 - **${role.charAt(0).toUpperCase() + role.slice(1)}:**
   - Read Access: ${permissions.read ? 'Yes' : 'No'}
   - Write Access: ${permissions.write ? 'Yes' : 'No'}`;
-      
+
       if (permissions.organizationalLimitation) {
         prompt += `
   - Organizational Limitation: ${permissions.organizationalLimitation}`;

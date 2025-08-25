@@ -3,14 +3,35 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { FileText, Plus, Upload, Filter, Calendar, Building as BuildingIcon, Tag, ChevronDown } from 'lucide-react';
+import {
+  FileText,
+  Plus,
+  Upload,
+  Filter,
+  Calendar,
+  Building as BuildingIcon,
+  Tag,
+  ChevronDown,
+} from 'lucide-react';
 import { BillEditForm } from '@/components/BillEditForm';
 import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import { BillCreateForm } from '@/components/BillCreateForm';
@@ -21,7 +42,7 @@ import type { Building, Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
   'insurance',
-  'maintenance', 
+  'maintenance',
   'salary',
   'utilities',
   'cleaning',
@@ -32,7 +53,7 @@ const BILL_CATEGORIES = [
   'repairs',
   'supplies',
   'taxes',
-  'other'
+  'other',
 ] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -44,11 +65,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   security: 'Security',
   landscaping: 'Landscaping',
   professional_services: 'Professional Services',
-  administration: 'Administration', 
+  administration: 'Administration',
   repairs: 'Repairs',
   supplies: 'Supplies',
   taxes: 'Taxes',
-  other: 'Other'
+  other: 'Other',
 };
 
 const MONTHS = [
@@ -63,7 +84,7 @@ const MONTHS = [
   { value: '9', label: 'September' },
   { value: '10', label: 'October' },
   { value: '11', label: 'November' },
-  { value: '12', label: 'December' }
+  { value: '12', label: 'December' },
 ];
 
 /**
@@ -80,17 +101,17 @@ interface BillFilters {
  *
  */
 export default function /**
-   * Bills function.
-   */ /**
-   * Bills function.
-   */
+ * Bills function.
+ */ /**
+ * Bills function.
+ */
 
- Bills() {
+Bills() {
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
     year: new Date().getFullYear().toString(),
-    months: []
+    months: [],
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAllYears, setShowAllYears] = useState(false);
@@ -106,171 +127,177 @@ export default function /**
     queryKey: ['/api/bills', filters],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
-   * If function.
-   * @param filters.buildingId - Filters.buildingId parameter.
-   */ /**
-   * If function.
-   * @param filters.buildingId - Filters.buildingId parameter.
-   */
+       * If function.
+       * @param filters.buildingId - Filters.buildingId parameter.
+       */ /**
+       * If function.
+       * @param filters.buildingId - Filters.buildingId parameter.
+       */
 
+      if (filters.buildingId) {
+        params.set('buildingId', filters.buildingId);
+      } /**
+       * If function.
+       * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
+       */ /**
+       * If function.
+       * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
+       */
 
-      if (filters.buildingId) {params.set('buildingId', filters.buildingId);} /**
-   * If function.
-   * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
-   */ /**
-   * If function.
-   * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
-   */
+      if (filters.category && filters.category !== 'all') {
+        params.set('category', filters.category);
+      } /**
+       * If function.
+       * @param filters.year - Filters.year parameter.
+       */ /**
+       * If function.
+       * @param filters.year - Filters.year parameter.
+       */
 
+      if (filters.year) {
+        params.set('year', filters.year);
+      } /**
+       * If function.
+       * @param filters.months.length > 0 - filters.months.length > 0 parameter.
+       */ /**
+       * If function.
+       * @param filters.months.length > 0 - filters.months.length > 0 parameter.
+       */
 
-      if (filters.category && filters.category !== 'all') {params.set('category', filters.category);} /**
-   * If function.
-   * @param filters.year - Filters.year parameter.
-   */ /**
-   * If function.
-   * @param filters.year - Filters.year parameter.
-   */
+      if (filters.months.length > 0) {
+        params.set('months', filters.months.join(','));
+      }
 
-
-      if (filters.year) {params.set('year', filters.year);} /**
-   * If function.
-   * @param filters.months.length > 0 - filters.months.length > 0 parameter.
-   */ /**
-   * If function.
-   * @param filters.months.length > 0 - filters.months.length > 0 parameter.
-   */
-
-
-      if (filters.months.length > 0) {params.set('months', filters.months.join(','));}
-      
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url, { credentials: 'include' }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-      
       if (!response.ok) {
         throw new Error(`Failed to fetch bills: ${response.statusText}`);
       }
-      
+
       return response.json();
-    }
+    },
   });
 
   // Group bills by category
   const billsByCategory = bills.reduce((acc: Record<string, Bill[]>, bill: Bill) => {
     const category = bill.category || 'other'; /**
-   * If function.
-   * @param !acc[category] - !acc[category] parameter.
-   */ /**
-   * If function.
-   * @param !acc[category] - !acc[category] parameter.
-   */
+     * If function.
+     * @param !acc[category] - !acc[category] parameter.
+     */ /**
+     * If function.
+     * @param !acc[category] - !acc[category] parameter.
+     */
 
-
-    if (!acc[category]) {acc[category] = [];}
+    if (!acc[category]) {
+      acc[category] = [];
+    }
     acc[category].push(bill);
     return acc;
   }, {});
 
   const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleMonthToggle = (monthValue: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       months: prev.months.includes(monthValue)
-        ? prev.months.filter(m => m !== monthValue)
-        : [...prev.months, monthValue]
+        ? prev.months.filter((m) => m !== monthValue)
+        : [...prev.months, monthValue],
     }));
   };
 
   const handleAllMonthsToggle = () => {
-    const allMonthValues = MONTHS.map(m => m.value);
-    setFilters(prev => ({
+    const allMonthValues = MONTHS.map((m) => m.value);
+    setFilters((prev) => ({
       ...prev,
-      months: prev.months.length === allMonthValues.length ? [] : allMonthValues
+      months: prev.months.length === allMonthValues.length ? [] : allMonthValues,
     }));
   };
 
-  const getMonthsDisplayText = () => { /**
-   * If function.
-   * @param filters.months.length === 0 - filters.months.length === 0 parameter.
-   */ /**
-   * If function.
-   * @param filters.months.length === 0 - filters.months.length === 0 parameter.
-   */
+  const getMonthsDisplayText = () => {
+    /**
+     * If function.
+     * @param filters.months.length === 0 - filters.months.length === 0 parameter.
+     */ /**
+     * If function.
+     * @param filters.months.length === 0 - filters.months.length === 0 parameter.
+     */
 
+    if (filters.months.length === 0) {
+      return 'All months';
+    } /**
+     * If function.
+     * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
+     */ /**
+     * If function.
+     * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
+     */
 
-    if (filters.months.length === 0) {return 'All months';} /**
-   * If function.
-   * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
-   */ /**
-   * If function.
-   * @param filters.months.length === MONTHS.length - filters.months.length === MONTHS.length parameter.
-   */
-
-
-    if (filters.months.length === MONTHS.length) {return 'All months';} /**
-   * If function.
-   * @param filters.months.length === 1 - filters.months.length === 1 parameter.
-   */ /**
-   * If function.
-   * @param filters.months.length === 1 - filters.months.length === 1 parameter.
-   */
-
+    if (filters.months.length === MONTHS.length) {
+      return 'All months';
+    } /**
+     * If function.
+     * @param filters.months.length === 1 - filters.months.length === 1 parameter.
+     */ /**
+     * If function.
+     * @param filters.months.length === 1 - filters.months.length === 1 parameter.
+     */
 
     if (filters.months.length === 1) {
-      const month = MONTHS.find(m => m.value === filters.months[0]);
+      const month = MONTHS.find((m) => m.value === filters.months[0]);
       return month?.label || 'All months';
     }
     return `${filters.months.length} months`;
   };
 
   // Get building construction year for minimum year calculation
-  const selectedBuilding = buildings.find(b => b.id === filters.buildingId);
+  const selectedBuilding = buildings.find((b) => b.id === filters.buildingId);
   const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
-  const getYearOptions = () => { /**
-   * If function.
-   * @param showAllYears - ShowAllYears parameter.
-   */ /**
-   * If function.
-   * @param showAllYears - ShowAllYears parameter.
-   */
-
+  const getYearOptions = () => {
+    /**
+     * If function.
+     * @param showAllYears - ShowAllYears parameter.
+     */ /**
+     * If function.
+     * @param showAllYears - ShowAllYears parameter.
+     */
 
     if (showAllYears) {
       // Show all years from building construction year to 25 years forward
@@ -308,7 +335,10 @@ export default function /**
                     <BuildingIcon className='w-4 h-4' />
                     Building
                   </Label>
-                  <Select value={filters.buildingId} onValueChange={(value) => handleFilterChange('buildingId', value)}>
+                  <Select
+                    value={filters.buildingId}
+                    onValueChange={(value) => handleFilterChange('buildingId', value)}
+                  >
                     <SelectTrigger id='building-filter'>
                       <SelectValue placeholder='Select building' />
                     </SelectTrigger>
@@ -327,7 +357,10 @@ export default function /**
                     <Tag className='w-4 h-4' />
                     Category
                   </Label>
-                  <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
+                  <Select
+                    value={filters.category}
+                    onValueChange={(value) => handleFilterChange('category', value)}
+                  >
                     <SelectTrigger id='category-filter'>
                       <SelectValue placeholder='All categories' />
                     </SelectTrigger>
@@ -348,7 +381,10 @@ export default function /**
                     Year
                   </Label>
                   <div className='space-y-2'>
-                    <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                    <Select
+                      value={filters.year}
+                      onValueChange={(value) => handleFilterChange('year', value)}
+                    >
                       <SelectTrigger id='year-filter'>
                         <SelectValue />
                       </SelectTrigger>
@@ -458,7 +494,7 @@ export default function /**
                       <DialogHeader>
                         <DialogTitle>Create New Bill</DialogTitle>
                       </DialogHeader>
-                      <BillCreateForm 
+                      <BillCreateForm
                         buildingId={filters.buildingId}
                         onSuccess={() => {
                           setShowCreateDialog(false);
@@ -474,8 +510,8 @@ export default function /**
 
           {/* Bills Display */}
           {!filters.buildingId ? (
-            <BuildingSelectionGrid 
-              buildings={buildings} 
+            <BuildingSelectionGrid
+              buildings={buildings}
               onBuildingSelect={(buildingId) => handleFilterChange('buildingId', buildingId)}
             />
           ) : isLoading ? (
@@ -490,7 +526,9 @@ export default function /**
               <CardContent className='p-8 text-center'>
                 <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bills Found</h3>
-                <p className='text-gray-500 mb-4'>No bills found for the selected filters. Create your first bill to get started.</p>
+                <p className='text-gray-500 mb-4'>
+                  No bills found for the selected filters. Create your first bill to get started.
+                </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
                   <Plus className='w-4 h-4 mr-2' />
                   Create First Bill
@@ -499,9 +537,10 @@ export default function /**
             </Card>
           ) : (
             <div className='space-y-6'>
-              {BILL_CATEGORIES.filter(category => 
-                (!filters.category || filters.category === category) &&
-                billsByCategory[category]?.length > 0
+              {BILL_CATEGORIES.filter(
+                (category) =>
+                  (!filters.category || filters.category === category) &&
+                  billsByCategory[category]?.length > 0
               ).map((category) => (
                 <BillCategorySection
                   key={category}
@@ -534,13 +573,13 @@ export default function /**
  * @param root0.onBillUpdate
  * @returns Function result.
  */
-function BillCategorySection({ 
-  category, 
-  bills, 
-  onBillUpdate 
-}: { 
-  category: string; 
-  bills: Bill[]; 
+function BillCategorySection({
+  category,
+  bills,
+  onBillUpdate,
+}: {
+  category: string;
+  bills: Bill[];
   onBillUpdate: () => void;
 }) {
   return (
@@ -581,18 +620,18 @@ function BillCategorySection({
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
-  
+
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
     sent: 'bg-blue-100 text-blue-800',
     overdue: 'bg-red-100 text-red-800',
     paid: 'bg-green-100 text-green-800',
-    cancelled: 'bg-gray-100 text-gray-800'
+    cancelled: 'bg-gray-100 text-gray-800',
   };
 
   return (
     <>
-      <Card 
+      <Card
         className='hover:shadow-md transition-shadow cursor-pointer'
         onClick={() => setShowDetailDialog(true)}
       >
@@ -607,20 +646,18 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
                 {bill.status}
               </Badge>
             </div>
-            
+
             {bill.description && (
               <p className='text-sm text-gray-600 line-clamp-2'>{bill.description}</p>
             )}
-            
+
             <div className='flex items-center justify-between text-sm'>
               <span className='font-medium'>${Number(bill.totalAmount).toLocaleString()}</span>
               <span className='text-gray-500'>{bill.paymentType}</span>
             </div>
-            
-            {bill.vendor && (
-              <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>
-            )}
-            
+
+            {bill.vendor && <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>}
+
             <div className='flex items-center gap-2 pt-2'>
               {bill.documentPath && (
                 <Badge variant='outline' className='text-xs'>
@@ -649,7 +686,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
           </DialogHeader>
-          <BillDetail 
+          <BillDetail
             bill={bill}
             onSuccess={() => {
               setShowDetailDialog(false);
@@ -662,7 +699,6 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
     </>
   );
 }
-
 
 // Bill detail and edit form
 /**
@@ -680,13 +716,13 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
  * @param root0.onCancel
  * @returns Function result.
  */
-function BillDetail({ 
-  bill, 
-  onSuccess, 
-  onCancel 
-}: { 
-  bill: Bill; 
-  onSuccess: () => void; 
+function BillDetail({
+  bill,
+  onSuccess,
+  onCancel,
+}: {
+  bill: Bill;
+  onSuccess: () => void;
   onCancel: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -703,29 +739,29 @@ function BillDetail({
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update bill');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       onSuccess();
-    }
+    },
   });
 
-  const handleSetEndDate = () => { /**
-   * If function.
-   * @param endDate - EndDate parameter.
-   */ /**
-   * If function.
-   * @param endDate - EndDate parameter.
-   */
-
+  const handleSetEndDate = () => {
+    /**
+     * If function.
+     * @param endDate - EndDate parameter.
+     */ /**
+     * If function.
+     * @param endDate - EndDate parameter.
+     */
 
     if (endDate) {
       updateBillMutation.mutate({ endDate });
@@ -736,24 +772,24 @@ function BillDetail({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('document', file);
-      
+
       const response = await fetch(`/api/bills/${bill.id}/upload-document`, {
         method: 'POST',
         credentials: 'include',
-        body: formData
+        body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to upload document');
       }
-      
+
       return response.json();
     },
     onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       setUploadedFile(null);
       onSuccess();
-    }
+    },
   });
 
   const applyAiAnalysisMutation = useMutation({
@@ -763,30 +799,29 @@ function BillDetail({
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to apply AI analysis');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       onSuccess();
-    }
+    },
   });
 
   const handleFileUpload = (_event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; /**
-   * If function.
-   * @param file - File parameter.
-   */ /**
-   * If function.
-   * @param file - File parameter.
-   */
-
+     * If function.
+     * @param file - File parameter.
+     */ /**
+     * If function.
+     * @param file - File parameter.
+     */
 
     if (file) {
       setUploadedFile(file);
@@ -867,11 +902,7 @@ function BillDetail({
               onChange={(e) => setEndDate(e.target._value)}
               className='w-48'
             />
-            <Button 
-              onClick={handleSetEndDate}
-              disabled={updateBillMutation.isPending}
-              size='sm'
-            >
+            <Button onClick={handleSetEndDate} disabled={updateBillMutation.isPending} size='sm'>
               {updateBillMutation.isPending ? 'Setting...' : 'Set End Date'}
             </Button>
           </div>
@@ -936,7 +967,7 @@ function BillDetail({
                   Confidence: {((bill.aiAnalysisData as any).confidence * 100).toFixed(1)}%
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleApplyAiAnalysis}
                 disabled={applyAiAnalysisMutation.isPending}
                 variant='outline'
@@ -954,11 +985,7 @@ function BillDetail({
       <div className='border-t pt-4'>
         <div className='flex items-center justify-between'>
           <Label className='text-sm font-medium'>Edit Bill Information</Label>
-          <Button 
-            onClick={() => setIsEditing(!isEditing)}
-            variant='outline'
-            size='sm'
-          >
+          <Button onClick={() => setIsEditing(!isEditing)} variant='outline' size='sm'>
             {isEditing ? 'Cancel Edit' : 'Edit Bill'}
           </Button>
         </div>
@@ -966,7 +993,7 @@ function BillDetail({
 
       {/* Full Edit Form */}
       {isEditing && (
-        <BillEditForm 
+        <BillEditForm
           bill={bill}
           onSuccess={() => {
             setIsEditing(false);

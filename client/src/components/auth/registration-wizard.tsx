@@ -48,7 +48,7 @@ interface RegistrationWizardProps {
 
 /**
  * Multi-Step Registration Wizard Component.
- * 
+ *
  * Provides a guided registration flow with step validation,
  * progress tracking, and Quebec compliance features.
  * @param root0 - Component props object.
@@ -66,7 +66,7 @@ export function RegistrationWizard({
   onComplete,
   onCancel,
   title = 'Inscription',
-  className = ''
+  className = '',
 }: RegistrationWizardProps) {
   const { t: _t } = useLanguage();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -77,24 +77,20 @@ export function RegistrationWizard({
   const currentStep = steps[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
-  const completedSteps = steps.filter(step => step.isComplete).length;
+  const completedSteps = steps.filter((step) => step.isComplete).length;
   const progress = (completedSteps / steps.length) * 100;
 
   // Update step validation status
   const updateStepValidation = (stepId: string, isValid: boolean) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => 
-        step.id === stepId ? { ...step, isValid } : step
-      )
+    setSteps((prevSteps) =>
+      prevSteps.map((step) => (step.id === stepId ? { ...step, isValid } : step))
     );
   };
 
   // Update step completion status
   const updateStepCompletion = (stepId: string, isComplete: boolean) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => 
-        step.id === stepId ? { ...step, isComplete } : step
-      )
+    setSteps((prevSteps) =>
+      prevSteps.map((step) => (step.id === stepId ? { ...step, isComplete } : step))
     );
   };
 
@@ -102,7 +98,7 @@ export function RegistrationWizard({
   const handleDataChange = (stepData: Record<string, unknown>) => {
     setWizardData((prevData: Record<string, unknown>) => ({
       ...prevData,
-      [currentStep.id]: stepData
+      [currentStep.id]: stepData,
     }));
   };
 
@@ -119,7 +115,7 @@ export function RegistrationWizard({
   const handleNext = () => {
     if (currentStep.isValid && !isLastStep) {
       updateStepCompletion(currentStep.id, true);
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex((prev) => prev + 1);
     } else if (isLastStep && currentStep.isValid) {
       handleComplete();
     }
@@ -128,7 +124,7 @@ export function RegistrationWizard({
   // Navigate to previous step
   const handlePrevious = () => {
     if (!isFirstStep) {
-      setCurrentStepIndex(prev => prev - 1);
+      setCurrentStepIndex((prev) => prev - 1);
     }
   };
 
@@ -138,11 +134,11 @@ export function RegistrationWizard({
     try {
       // Mark final step as complete
       updateStepCompletion(currentStep.id, true);
-      
+
       // Combine all wizard data
       const completeData = {
         ...wizardData,
-        [currentStep.id]: wizardData[currentStep.id] || {}
+        [currentStep.id]: wizardData[currentStep.id] || {},
       };
 
       await onComplete(completeData);
@@ -155,9 +151,9 @@ export function RegistrationWizard({
   // Jump to specific step (only if previous steps are complete)
   const jumpToStep = (stepIndex: number) => {
     // Can only go to completed steps or the next uncompleted step
-    const canJump = stepIndex <= currentStepIndex || 
-                   steps.slice(0, stepIndex).every(step => step.isComplete);
-    
+    const canJump =
+      stepIndex <= currentStepIndex || steps.slice(0, stepIndex).every((step) => step.isComplete);
+
     if (canJump) {
       setCurrentStepIndex(stepIndex);
     }
@@ -165,53 +161,57 @@ export function RegistrationWizard({
 
   return (
     <div className={`max-w-4xl mx-auto p-6 ${className}`}>
-      <Card className="shadow-xl border-0">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            {title}
-          </CardTitle>
-          <div className="mt-4">
-            <Progress value={progress} className="h-2" />
-            <p className="text-sm text-gray-600 mt-2">
+      <Card className='shadow-xl border-0'>
+        <CardHeader className='text-center pb-6'>
+          <CardTitle className='text-2xl font-bold text-gray-900'>{title}</CardTitle>
+          <div className='mt-4'>
+            <Progress value={progress} className='h-2' />
+            <p className='text-sm text-gray-600 mt-2'>
               Étape {currentStepIndex + 1} sur {steps.length} • {Math.round(progress)}% terminé
             </p>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className='space-y-6'>
           {/* Step Navigation */}
-          <div className="flex justify-center">
-            <div className="flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-2">
+          <div className='flex justify-center'>
+            <div className='flex items-center space-x-2 md:space-x-4 overflow-x-auto pb-2'>
               {steps.map((step, _index) => (
-                <div key={step.id} className="flex items-center">
+                <div key={step.id} className='flex items-center'>
                   <button
                     onClick={() => jumpToStep(_index)}
-                    disabled={_index > currentStepIndex && !steps.slice(0, _index).every(s => s.isComplete)}
+                    disabled={
+                      _index > currentStepIndex &&
+                      !steps.slice(0, _index).every((s) => s.isComplete)
+                    }
                     className={`
                       flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all
-                      ${_index === currentStepIndex 
-                        ? 'border-primary bg-primary text-white' 
-                        : step.isComplete 
-                          ? 'border-green-500 bg-green-500 text-white cursor-pointer hover:bg-green-600'
-                          : 'border-gray-300 bg-white text-gray-400'
+                      ${
+                        _index === currentStepIndex
+                          ? 'border-primary bg-primary text-white'
+                          : step.isComplete
+                            ? 'border-green-500 bg-green-500 text-white cursor-pointer hover:bg-green-600'
+                            : 'border-gray-300 bg-white text-gray-400'
                       }
                       ${_index <= currentStepIndex || step.isComplete ? 'cursor-pointer' : 'cursor-not-allowed'}
                     `}
                     aria-label={`${step.title} - ${step.isComplete ? 'Terminé' : _index === currentStepIndex ? 'En cours' : 'En attente'}`}
                   >
                     {step.isComplete ? (
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className='w-5 h-5' />
                     ) : (
-                      <span className="text-sm font-medium">{_index + 1}</span>
+                      <span className='text-sm font-medium'>{_index + 1}</span>
                     )}
                   </button>
-                  
+
                   {_index < steps.length - 1 && (
-                    <div className={`w-8 md:w-16 h-0.5 ${
-                      steps[_index + 1].isComplete || _index < currentStepIndex 
-                        ? 'bg-green-500' 
-                        : 'bg-gray-300'
-                    }`} />
+                    <div
+                      className={`w-8 md:w-16 h-0.5 ${
+                        steps[_index + 1].isComplete || _index < currentStepIndex
+                          ? 'bg-green-500'
+                          : 'bg-gray-300'
+                      }`}
+                    />
                   )}
                 </div>
               ))}
@@ -219,17 +219,13 @@ export function RegistrationWizard({
           </div>
 
           {/* Current Step Content */}
-          <div className="min-h-[400px]">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {currentStep.title}
-              </h3>
-              <p className="text-gray-600">
-                {currentStep.description}
-              </p>
+          <div className='min-h-[400px]'>
+            <div className='text-center mb-6'>
+              <h3 className='text-xl font-semibold text-gray-900 mb-2'>{currentStep.title}</h3>
+              <p className='text-gray-600'>{currentStep.description}</p>
               {currentStep.isValid && (
-                <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800">
-                  <CheckCircle className="w-4 h-4 mr-1" />
+                <Badge variant='secondary' className='mt-2 bg-green-100 text-green-800'>
+                  <CheckCircle className='w-4 h-4 mr-1' />
                   Validé
                 </Badge>
               )}
@@ -237,7 +233,7 @@ export function RegistrationWizard({
 
             {/* Render current step component */}
             <currentStep.component
-              _data={wizardData[currentStep.id] as Record<string, unknown> || {}}
+              _data={(wizardData[currentStep.id] as Record<string, unknown>) || {}}
               onDataChange={handleDataChange}
               onValidationChange={handleValidationChange}
               onNext={handleNext}
@@ -247,24 +243,16 @@ export function RegistrationWizard({
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-            <div className="flex space-x-3">
+          <div className='flex items-center justify-between pt-6 border-t border-gray-200'>
+            <div className='flex space-x-3'>
               {!isFirstStep && (
-                <Button
-                  onClick={handlePrevious}
-                  variant="outline"
-                  className="flex items-center"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                <Button onClick={handlePrevious} variant='outline' className='flex items-center'>
+                  <ArrowLeft className='w-4 h-4 mr-2' />
                   Précédent
                 </Button>
               )}
-              
-              <Button
-                onClick={onCancel}
-                variant="ghost"
-                className="text-gray-600"
-              >
+
+              <Button onClick={onCancel} variant='ghost' className='text-gray-600'>
                 Annuler
               </Button>
             </div>
@@ -272,11 +260,11 @@ export function RegistrationWizard({
             <Button
               onClick={handleNext}
               disabled={!currentStep.isValid || isSubmitting}
-              className="flex items-center min-w-[120px]"
+              className='flex items-center min-w-[120px]'
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
                   Traitement...
                 </>
               ) : isLastStep ? (
@@ -284,7 +272,7 @@ export function RegistrationWizard({
               ) : (
                 <>
                   Suivant
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className='w-4 h-4 ml-2' />
                 </>
               )}
             </Button>

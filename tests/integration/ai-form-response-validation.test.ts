@@ -1,17 +1,19 @@
-import { analyzeFeatureWithGemini, getDocumentationContext } from '../../server/services/gemini-analysis';
+import {
+  analyzeFeatureWithGemini,
+  getDocumentationContext,
+} from '../../server/services/gemini-analysis';
 import type { Feature } from '@shared/schema';
 
 /**
  * AI Form Response Validation Integration Tests.
- * 
+ *
  * These integration tests validate that the actual AI service responses
  * from Gemini properly map to the form structure in the application.
- * 
+ *
  * These tests require GEMINI_API_KEY to be set and make real API calls.
  */
 
 describe('AI Form Response Validation (Integration)', () => {
-  
   // Skip these tests if no API key is available
   const skipIfNoApiKey = () => {
     if (!process.env.GEMINI_API_KEY) {
@@ -31,21 +33,24 @@ describe('AI Form Response Validation (Integration)', () => {
     businessObjective: 'Reduce security breaches by 90% and improve user experience',
     targetUsers: 'All system users, particularly administrators and property managers',
     successMetrics: 'Zero unauthorized access attempts, 99% user satisfaction with login process',
-    technicalComplexity: 'Medium - requires integration with external SSO providers and new UI components',
+    technicalComplexity:
+      'Medium - requires integration with external SSO providers and new UI components',
     dependencies: 'User management system, notification service, audit logging',
     userFlow: 'User visits login page -> enters credentials -> completes MFA -> accesses dashboard',
     isStrategicPath: true,
     roadmapVisibility: 'public',
     createdAt: new Date(),
     updatedAt: new Date(),
-    syncedAt: new Date()
+    syncedAt: new Date(),
   };
 
   /**
    * Test that the real AI service returns properly structured responses.
    */
   it('should return properly structured analysis from real AI service', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     try {
       const documentationContext = await getDocumentationContext();
@@ -104,7 +109,7 @@ describe('AI Form Response Validation (Integration)', () => {
       // Validate recommendations
       expect(Array.isArray(analysisResult.recommendations)).toBe(true);
       if (analysisResult.recommendations.length > 0) {
-        analysisResult.recommendations.forEach(recommendation => {
+        analysisResult.recommendations.forEach((recommendation) => {
           expect(typeof recommendation).toBe('string');
           expect(recommendation.length).toBeGreaterThan(10);
         });
@@ -113,7 +118,6 @@ describe('AI Form Response Validation (Integration)', () => {
       // Validate estimated total effort
       expect(typeof analysisResult.estimatedTotalEffort).toBe('string');
       expect(analysisResult.estimatedTotalEffort).toMatch(/\d+.*?(hour|day|week)/i);
-
     } catch (_error) {
       console.error('AI Integration Test Error:', _error);
       throw error;
@@ -124,35 +128,42 @@ describe('AI Form Response Validation (Integration)', () => {
    * Test that AI responses include Quebec-specific considerations for compliance features.
    */
   it('should include Quebec-specific considerations for compliance features', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     const complianceFeature: Feature = {
       ...sampleFeature,
       id: 'quebec-compliance-test',
       name: 'Quebec Law 25 Compliance Dashboard',
-      description: 'Implement comprehensive privacy compliance dashboard for Quebec Law 25 requirements',
+      description:
+        'Implement comprehensive privacy compliance dashboard for Quebec Law 25 requirements',
       category: 'Compliance & Security',
-      businessObjective: 'Ensure 100% compliance with Quebec Law 25 privacy regulations'
+      businessObjective: 'Ensure 100% compliance with Quebec Law 25 privacy regulations',
     };
 
     try {
       const documentationContext = await getDocumentationContext();
-      const analysisResult = await analyzeFeatureWithGemini(complianceFeature, documentationContext);
+      const analysisResult = await analyzeFeatureWithGemini(
+        complianceFeature,
+        documentationContext
+      );
 
       // Check that Quebec/privacy considerations are mentioned
       const allText = [
         analysisResult.summary,
-        ...analysisResult.actionableItems.map(item => 
-          `${item.description} ${item.technicalDetails} ${item.implementationPrompt}`
+        ...analysisResult.actionableItems.map(
+          (item) => `${item.description} ${item.technicalDetails} ${item.implementationPrompt}`
         ),
-        ...analysisResult.recommendations
-      ].join(' ').toLowerCase();
+        ...analysisResult.recommendations,
+      ]
+        .join(' ')
+        .toLowerCase();
 
       const quebecTerms = ['quebec', 'québec', 'law 25', 'loi 25', 'privacy', 'confidentialité'];
-      const hasQuebecReference = quebecTerms.some(term => allText.includes(term.toLowerCase()));
-      
-      expect(hasQuebecReference).toBe(true);
+      const hasQuebecReference = quebecTerms.some((term) => allText.includes(term.toLowerCase()));
 
+      expect(hasQuebecReference).toBe(true);
     } catch (_error) {
       console.error('Quebec Compliance Test Error:', _error);
       throw error;
@@ -163,24 +174,26 @@ describe('AI Form Response Validation (Integration)', () => {
    * Test that AI responses reference the existing tech stack.
    */
   it('should reference the correct tech stack in implementation details', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     try {
       const documentationContext = await getDocumentationContext();
       const analysisResult = await analyzeFeatureWithGemini(sampleFeature, documentationContext);
 
       const allTechnicalText = analysisResult.actionableItems
-        .map(item => `${item.technicalDetails} ${item.implementationPrompt}`)
-        .join(' ').toLowerCase();
+        .map((item) => `${item.technicalDetails} ${item.implementationPrompt}`)
+        .join(' ')
+        .toLowerCase();
 
       // Should reference the tech stack from the documentation
       const techStackTerms = ['react', 'express', 'postgresql', 'drizzle', 'typescript'];
-      const referencedTerms = techStackTerms.filter(term => 
+      const referencedTerms = techStackTerms.filter((term) =>
         allTechnicalText.includes(term.toLowerCase())
       );
 
       expect(referencedTerms.length).toBeGreaterThan(1); // At least 2 tech stack terms mentioned
-
     } catch (_error) {
       console.error('Tech Stack Reference Test Error:', _error);
       throw error;
@@ -191,7 +204,9 @@ describe('AI Form Response Validation (Integration)', () => {
    * Test that all feature form fields are considered in the analysis.
    */
   it('should utilize all provided feature form fields in the analysis', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     const comprehensiveFeature: Feature = {
       ...sampleFeature,
@@ -203,23 +218,28 @@ describe('AI Form Response Validation (Integration)', () => {
       successMetrics: 'All metrics tracked properly with 95% accuracy',
       technicalComplexity: 'High complexity requiring database migrations and new APIs',
       dependencies: 'Authentication service, notification system, reporting engine',
-      userFlow: 'Complex multi-step user flow with decision points and error handling'
+      userFlow: 'Complex multi-step user flow with decision points and error handling',
     };
 
     try {
       const documentationContext = await getDocumentationContext();
-      const analysisResult = await analyzeFeatureWithGemini(comprehensiveFeature, documentationContext);
+      const analysisResult = await analyzeFeatureWithGemini(
+        comprehensiveFeature,
+        documentationContext
+      );
 
       // Verify that the analysis appears to have considered the provided details
       const analysisText = [
         analysisResult.summary,
-        ...analysisResult.actionableItems.map(item => item.description),
-        ...analysisResult.recommendations
-      ].join(' ').toLowerCase();
+        ...analysisResult.actionableItems.map((item) => item.description),
+        ...analysisResult.recommendations,
+      ]
+        .join(' ')
+        .toLowerCase();
 
       // Should reference key aspects from the form data
       const formFieldTerms = ['authentication', 'notification', 'database', 'api'];
-      const referencedFormTerms = formFieldTerms.filter(term => 
+      const referencedFormTerms = formFieldTerms.filter((term) =>
         analysisText.includes(term.toLowerCase())
       );
 
@@ -228,7 +248,6 @@ describe('AI Form Response Validation (Integration)', () => {
       // Analysis should be substantial given comprehensive input
       expect(analysisResult.actionableItems.length).toBeGreaterThan(2);
       expect(analysisResult.summary.length).toBeGreaterThan(50);
-
     } catch (_error) {
       console.error('Comprehensive Field Test Error:', _error);
       throw error;
@@ -239,7 +258,9 @@ describe('AI Form Response Validation (Integration)', () => {
    * Test error handling for malformed feature data.
    */
   it('should handle edge cases gracefully', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     const minimalFeature: Feature = {
       id: 'minimal-test',
@@ -258,7 +279,7 @@ describe('AI Form Response Validation (Integration)', () => {
       roadmapVisibility: 'public',
       createdAt: new Date(),
       updatedAt: new Date(),
-      syncedAt: new Date()
+      syncedAt: new Date(),
     };
 
     try {
@@ -273,7 +294,6 @@ describe('AI Form Response Validation (Integration)', () => {
       // Should handle null/undefined fields gracefully
       expect(typeof analysisResult.summary).toBe('string');
       expect(analysisResult.summary.length).toBeGreaterThan(10);
-
     } catch (_error) {
       console.error('Edge Case Test Error:', _error);
       throw error;
@@ -284,18 +304,20 @@ describe('AI Form Response Validation (Integration)', () => {
    * Test that the analysis is deterministic for the same input.
    */
   it('should provide consistent analysis for the same feature', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     const testFeature = { ...sampleFeature, id: 'consistency-test' };
 
     try {
       const documentationContext = await getDocumentationContext();
-      
+
       const analysis1 = await analyzeFeatureWithGemini(testFeature, documentationContext);
-      
+
       // Wait a moment to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const analysis2 = await analyzeFeatureWithGemini(testFeature, documentationContext);
 
       // Structure should be consistent
@@ -311,9 +333,8 @@ describe('AI Form Response Validation (Integration)', () => {
       const summary2Lower = analysis2.summary.toLowerCase();
       const authMentioned1 = summary1Lower.includes('auth') || summary1Lower.includes('login');
       const authMentioned2 = summary2Lower.includes('auth') || summary2Lower.includes('login');
-      
-      expect(authMentioned1 || authMentioned2).toBe(true);
 
+      expect(authMentioned1 || authMentioned2).toBe(true);
     } catch (_error) {
       console.error('Consistency Test Error:', _error);
       throw error;
@@ -325,7 +346,6 @@ describe('AI Form Response Validation (Integration)', () => {
  * Performance and reliability tests for AI integration.
  */
 describe('AI Service Performance and Reliability', () => {
-  
   const skipIfNoApiKey = () => {
     if (!process.env.GEMINI_API_KEY) {
       console.warn('⚠️  Skipping AI performance tests - GEMINI_API_KEY not set');
@@ -335,10 +355,12 @@ describe('AI Service Performance and Reliability', () => {
   };
 
   it('should complete analysis within reasonable time', async () => {
-    if (skipIfNoApiKey()) {return;}
+    if (skipIfNoApiKey()) {
+      return;
+    }
 
     const startTime = Date.now();
-    
+
     const testFeature: Feature = {
       id: 'performance-test',
       name: 'Performance Test Feature',
@@ -356,20 +378,19 @@ describe('AI Service Performance and Reliability', () => {
       roadmapVisibility: 'public',
       createdAt: new Date(),
       updatedAt: new Date(),
-      syncedAt: new Date()
+      syncedAt: new Date(),
     };
 
     try {
       const documentationContext = await getDocumentationContext();
       const analysisResult = await analyzeFeatureWithGemini(testFeature, documentationContext);
-      
+
       const endTime = Date.now();
       const duration = endTime - startTime;
 
       expect(duration).toBeLessThan(30000); // Should complete within 30 seconds
       expect(analysisResult).toHaveProperty('actionableItems');
       expect(analysisResult.actionableItems.length).toBeGreaterThan(0);
-
     } catch (_error) {
       console.error('Performance Test Error:', _error);
       throw error;

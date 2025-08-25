@@ -23,11 +23,16 @@ jest.mock('date-fns', () => {
   return {
     ...originalModule,
     format: (date: Date, formatStr: string) => {
-      if (formatStr === 'yyyy-MM-dd') {return '2024-01-20';}
-      if (formatStr === 'HH:mm') {return '09:00';}
+      if (formatStr === 'yyyy-MM-dd') {
+        return '2024-01-20';
+      }
+      if (formatStr === 'HH:mm') {
+        return '09:00';
+      }
       return originalModule.format(date, formatStr);
     },
-    addDays: (date: Date, amount: number) => new Date(date.getTime() + amount * 24 * 60 * 60 * 1000),
+    addDays: (date: Date, amount: number) =>
+      new Date(date.getTime() + amount * 24 * 60 * 60 * 1000),
     isSameDay: () => false,
     parseISO: (dateString: string) => new Date(dateString),
     isWithinInterval: () => true,
@@ -84,23 +89,21 @@ jest.mock('../../../client/src/hooks/use-mobile-menu', () => ({
     toggleMobileMenu: jest.fn(),
     closeMobileMenu: jest.fn(),
   }),
-  MobileMenuProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  MobileMenuProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // Mock Header component to prevent import issues
 jest.mock('../../../client/src/components/layout/header', () => ({
   __esModule: true,
-  default: () => <div data-testid="header">Header</div>,
+  default: () => <div data-testid='header'>Header</div>,
 }));
 
 // Mock react-day-picker calendar
 jest.mock('../../../client/src/components/ui/calendar', () => ({
   Calendar: ({ selected, onSelect, ...props }: any) => (
-    <div data-testid="calendar" {...props}>
+    <div data-testid='calendar' {...props}>
       <button
-        data-testid="calendar-date-selector"
+        data-testid='calendar-date-selector'
         onClick={() => onSelect?.(new Date('2024-01-20'))}
       >
         Select Date: {selected?.toISOString().split('T')[0] || 'No date'}
@@ -111,16 +114,16 @@ jest.mock('../../../client/src/components/ui/calendar', () => ({
 
 // Mock Lucide React icons
 jest.mock('lucide-react', () => ({
-  Building2: () => <div data-testid="building-icon">Building</div>,
-  Clock: () => <div data-testid="clock-icon">Clock</div>,
-  Users: () => <div data-testid="users-icon">Users</div>,
-  MapPin: () => <div data-testid="map-icon">MapPin</div>,
-  Download: () => <div data-testid="download-icon">Download</div>,
-  Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
-  Plus: () => <div data-testid="plus-icon">Plus</div>,
-  X: () => <div data-testid="x-icon">X</div>,
-  FileText: () => <div data-testid="file-icon">File</div>,
-  User: () => <div data-testid="user-icon">User</div>,
+  Building2: () => <div data-testid='building-icon'>Building</div>,
+  Clock: () => <div data-testid='clock-icon'>Clock</div>,
+  Users: () => <div data-testid='users-icon'>Users</div>,
+  MapPin: () => <div data-testid='map-icon'>MapPin</div>,
+  Download: () => <div data-testid='download-icon'>Download</div>,
+  Calendar: () => <div data-testid='calendar-icon'>Calendar</div>,
+  Plus: () => <div data-testid='plus-icon'>Plus</div>,
+  X: () => <div data-testid='x-icon'>X</div>,
+  FileText: () => <div data-testid='file-icon'>File</div>,
+  User: () => <div data-testid='user-icon'>User</div>,
 }));
 
 describe('Common Spaces Resident Page', () => {
@@ -137,7 +140,9 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Initial Rendering and Data Loading', () => {
     it('should render the common spaces list correctly', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Check mock component is rendered
@@ -155,7 +160,9 @@ describe('Common Spaces Resident Page', () => {
         })
       );
 
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Should not show any spaces during loading
@@ -170,7 +177,9 @@ describe('Common Spaces Resident Page', () => {
         })
       );
 
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {
@@ -181,7 +190,9 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Space Selection and Calendar Updates', () => {
     it('should update calendar when a space is selected', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Wait for spaces to load
@@ -194,13 +205,18 @@ describe('Common Spaces Resident Page', () => {
       await user.click(gymTitle);
 
       // Should show selected space and calendar
-      await waitFor(() => {
-        expect(screen.getByTestId('calendar')).toBeInTheDocument();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('calendar')).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
     });
 
     it('should load and display bookings for selected space', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Wait for spaces to load and select gym
@@ -218,7 +234,9 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should not allow selection of non-reservable spaces', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Wait for spaces to load
@@ -233,7 +251,9 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Booking Modal and Form Validation', () => {
     beforeEach(async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Select gym space
@@ -276,7 +296,7 @@ describe('Common Spaces Resident Page', () => {
 
       await user.clear(startTimeInput);
       await user.type(startTimeInput, '14:00');
-      
+
       await user.clear(endTimeInput);
       await user.type(endTimeInput, '13:00'); // Before start time
 
@@ -286,7 +306,9 @@ describe('Common Spaces Resident Page', () => {
 
       // Should show validation error
       await waitFor(() => {
-        expect(screen.getByText('L\'heure de fin doit être après l\'heure de début')).toBeInTheDocument();
+        expect(
+          screen.getByText("L'heure de fin doit être après l'heure de début")
+        ).toBeInTheDocument();
       });
     });
 
@@ -305,7 +327,7 @@ describe('Common Spaces Resident Page', () => {
 
       await user.clear(startTimeInput);
       await user.type(startTimeInput, '09:00');
-      
+
       await user.clear(endTimeInput);
       await user.type(endTimeInput, '10:00');
 
@@ -364,7 +386,9 @@ describe('Common Spaces Resident Page', () => {
 
   describe('User Access Control', () => {
     it('should not show manager-specific controls for resident users', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Wait for page to load
@@ -384,7 +408,9 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should show user bookings export functionality', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {
@@ -407,7 +433,7 @@ describe('Common Spaces Resident Page', () => {
       // Mock URL.createObjectURL and click handlers
       const mockCreateObjectURL = jest.fn(() => 'blob:mock-url');
       const mockRevokeObjectURL = jest.fn();
-      
+
       Object.defineProperty(window.URL, 'createObjectURL', {
         value: mockCreateObjectURL,
       });
@@ -423,11 +449,15 @@ describe('Common Spaces Resident Page', () => {
       };
       const originalCreateElement = document.createElement;
       document.createElement = jest.fn((tagName) => {
-        if (tagName === 'a') {return mockLink as any;}
+        if (tagName === 'a') {
+          return mockLink as any;
+        }
         return originalCreateElement.call(document, tagName);
       });
 
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {
@@ -450,7 +480,9 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Space Information Display', () => {
     it('should display opening hours correctly', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {
@@ -463,7 +495,7 @@ describe('Common Spaces Resident Page', () => {
 
       // Should show opening hours
       await waitFor(() => {
-        expect(screen.getByText('Heures d\'ouverture')).toBeInTheDocument();
+        expect(screen.getByText("Heures d'ouverture")).toBeInTheDocument();
       });
 
       // Should show specific hours
@@ -472,7 +504,9 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should display booking rules when available', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-page">Common Spaces Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {

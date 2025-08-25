@@ -33,7 +33,7 @@ export function PaginationControls({
   itemsPerPage,
   onPageChange,
   className = '',
-  showInfo = true
+  showInfo = true,
 }: PaginationControlsProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -69,7 +69,7 @@ export function PaginationControls({
         startPage = 1;
         endPage = maxVisiblePages;
       }
-      
+
       // Adjust if we're near the end
       if (currentPage >= totalPages - 2) {
         startPage = totalPages - maxVisiblePages + 1;
@@ -98,12 +98,12 @@ export function PaginationControls({
           size='sm'
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
-          data-testid="button-previous-page"
+          data-testid='button-previous-page'
         >
           <ChevronLeft className='h-4 w-4 mr-1' />
           Previous
         </Button>
-        
+
         <div className='flex gap-1'>
           {getVisiblePages().map((pageNum) => (
             <Button
@@ -111,20 +111,20 @@ export function PaginationControls({
               variant={currentPage === pageNum ? 'default' : 'outline'}
               size='sm'
               onClick={() => onPageChange(pageNum)}
-              className="w-10 h-9 p-0"
+              className='w-10 h-9 p-0'
               data-testid={`button-page-${pageNum}`}
             >
               {pageNum}
             </Button>
           ))}
         </div>
-        
+
         <Button
           variant='outline'
           size='sm'
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
-          data-testid="button-next-page"
+          data-testid='button-next-page'
         >
           Next
           <ChevronRight className='h-4 w-4 ml-1' />
@@ -133,7 +133,7 @@ export function PaginationControls({
 
       {/* Page Info */}
       {showInfo && totalItems > 0 && (
-        <div className='text-center text-sm text-muted-foreground' data-testid="pagination-info">
+        <div className='text-center text-sm text-muted-foreground' data-testid='pagination-info'>
           Showing {startItem} to {endItem} of {totalItems} items
         </div>
       )}

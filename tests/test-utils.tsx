@@ -43,9 +43,7 @@ function AllProviders({ children }: AllProvidersProps) {
       <LanguageProvider>
         <MobileMenuProvider>
           <Router>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <AuthProvider>{children}</AuthProvider>
           </Router>
         </MobileMenuProvider>
       </LanguageProvider>
@@ -60,10 +58,8 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   wrapper?: React.ComponentType<{ children: React.ReactNode }>;
 }
 
-const customRender = (
-  ui: ReactElement,
-  options?: CustomRenderOptions
-) => render(ui, { wrapper: AllProviders, ...options });
+const customRender = (ui: ReactElement, options?: CustomRenderOptions) =>
+  render(ui, { wrapper: AllProviders, ...options });
 
 export * from '@testing-library/react';
 export { customRender as render };

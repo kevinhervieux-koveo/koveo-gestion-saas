@@ -24,7 +24,7 @@ const testUsers = {
     firstName: 'Admin',
     lastName: 'Bugs',
     role: 'admin' as const,
-    organizationId: ''
+    organizationId: '',
   },
   manager: {
     id: '',
@@ -34,7 +34,7 @@ const testUsers = {
     firstName: 'Manager',
     lastName: 'Bugs',
     role: 'manager' as const,
-    organizationId: ''
+    organizationId: '',
   },
   tenant: {
     id: '',
@@ -44,7 +44,7 @@ const testUsers = {
     firstName: 'Tenant',
     lastName: 'Bugs',
     role: 'tenant' as const,
-    organizationId: ''
+    organizationId: '',
   },
   resident: {
     id: '',
@@ -54,8 +54,8 @@ const testUsers = {
     firstName: 'Resident',
     lastName: 'Bugs',
     role: 'resident' as const,
-    organizationId: ''
-  }
+    organizationId: '',
+  },
 };
 
 let testOrganizationId: string;
@@ -68,16 +68,19 @@ async function setupTestData() {
   console.log('🏗️ Setting up bug test data...');
 
   // Create test organization
-  const [organization] = await db.insert(schema.organizations).values({
-    id: randomUUID(),
-    name: 'Bug Test Organization',
-    type: 'condo',
-    address: '123 Bug Test Street',
-    city: 'Montréal',
-    province: 'QC',
-    postalCode: 'H1A 1A1',
-    country: 'Canada'
-  }).returning();
+  const [organization] = await db
+    .insert(schema.organizations)
+    .values({
+      id: randomUUID(),
+      name: 'Bug Test Organization',
+      type: 'condo',
+      address: '123 Bug Test Street',
+      city: 'Montréal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+      country: 'Canada',
+    })
+    .returning();
 
   testOrganizationId = organization.id;
 
@@ -86,16 +89,19 @@ async function setupTestData() {
     const { salt, hash } = hashPassword(userData.password);
     const combinedPassword = `${salt}:${hash}`;
 
-    const [user] = await db.insert(schema.users).values({
-      id: randomUUID(),
-      username: userData.username,
-      email: userData.email,
-      password: combinedPassword,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      language: 'fr'
-    }).returning();
+    const [user] = await db
+      .insert(schema.users)
+      .values({
+        id: randomUUID(),
+        username: userData.username,
+        email: userData.email,
+        password: combinedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        language: 'fr',
+      })
+      .returning();
 
     userData.id = user.id;
     userData.organizationId = testOrganizationId;
@@ -106,7 +112,7 @@ async function setupTestData() {
       organizationId: testOrganizationId,
       organizationRole: userData.role,
       isActive: true,
-      canAccessAllOrganizations: false
+      canAccessAllOrganizations: false,
     });
 
     console.log(`✅ Created ${role}: ${user.id}`);
@@ -128,7 +134,9 @@ async function cleanupTestData() {
     }
 
     // Delete test user-organization relationships
-    const userIds = Object.values(testUsers).map(u => u.id).filter(Boolean);
+    const userIds = Object.values(testUsers)
+      .map((u) => u.id)
+      .filter(Boolean);
     if (userIds.length > 0) {
       await db.delete(schema.userOrganizations).where(sql`user_id = ANY(${userIds})`);
     }
@@ -156,10 +164,7 @@ async function cleanupTestData() {
  * @param password
  */
 async function loginUser(app: any, email: string, password: string) {
-  const response = await request(app)
-    .post('/api/auth/login')
-    .send({ email, password })
-    .expect(200);
+  const response = await request(app).post('/api/auth/login').send({ email, password }).expect(200);
 
   return response.headers['set-cookie'];
 }
@@ -189,7 +194,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         page: '/admin/dashboard',
         priority: 'high',
         reproductionSteps: 'Step 1: Login as admin\nStep 2: Navigate to dashboard',
-        environment: 'Production - Chrome 120'
+        environment: 'Production - Chrome 120',
       };
 
       const response = await request(app)
@@ -205,7 +210,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         page: bugData.page,
         priority: bugData.priority,
         status: 'new',
-        createdBy: testUsers.admin.id
+        createdBy: testUsers.admin.id,
       });
 
       createdBugIds.push(response.body.id);
@@ -221,7 +226,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         page: '/manager/buildings',
         priority: 'medium',
         reproductionSteps: 'Step 1: Login as manager\nStep 2: View buildings',
-        environment: 'Chrome 120'
+        environment: 'Chrome 120',
       };
 
       const response = await request(app)
@@ -243,7 +248,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         description: 'Bug description from tenant user',
         category: 'data',
         page: '/dashboard',
-        priority: 'low'
+        priority: 'low',
       };
 
       const response = await request(app)
@@ -265,7 +270,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         description: 'Bug description from resident user',
         category: 'performance',
         page: '/residents/residence',
-        priority: 'critical'
+        priority: 'critical',
       };
 
       const response = await request(app)
@@ -287,11 +292,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         // Missing required fields: description, category, page
       };
 
-      await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send(bugData)
-        .expect(400);
+      await request(app).post('/api/bugs').set('Cookie', cookies).send(bugData).expect(400);
     });
 
     test('Bug creation validation - invalid category', async () => {
@@ -302,14 +303,10 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
         description: 'Test description',
         category: 'invalid_category',
         page: '/test',
-        priority: 'medium'
+        priority: 'medium',
       };
 
-      await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send(bugData)
-        .expect(400);
+      await request(app).post('/api/bugs').set('Cookie', cookies).send(bugData).expect(400);
     });
   });
 
@@ -317,14 +314,11 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Admin can see all bugs', async () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
-      const response = await request(app)
-        .get('/api/bugs')
-        .set('Cookie', cookies)
-        .expect(200);
+      const response = await request(app).get('/api/bugs').set('Cookie', cookies).expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThanOrEqual(4); // Should see all created bugs
-      
+
       // Should see bugs from all users
       const creatorIds = response.body.map((bug: any) => bug.createdBy);
       expect(creatorIds).toContain(testUsers.admin.id);
@@ -336,10 +330,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Manager can see all bugs from their organization', async () => {
       const cookies = await loginUser(app, testUsers.manager.email, testUsers.manager.password);
 
-      const response = await request(app)
-        .get('/api/bugs')
-        .set('Cookie', cookies)
-        .expect(200);
+      const response = await request(app).get('/api/bugs').set('Cookie', cookies).expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
       // Managers can see all bugs for now (can be refined later)
@@ -349,13 +340,10 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Tenant can only see their own bugs', async () => {
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
 
-      const response = await request(app)
-        .get('/api/bugs')
-        .set('Cookie', cookies)
-        .expect(200);
+      const response = await request(app).get('/api/bugs').set('Cookie', cookies).expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Should only see their own bugs
       response.body.forEach((bug: any) => {
         expect(bug.createdBy).toBe(testUsers.tenant.id);
@@ -365,13 +353,10 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Resident can only see their own bugs', async () => {
       const cookies = await loginUser(app, testUsers.resident.email, testUsers.resident.password);
 
-      const response = await request(app)
-        .get('/api/bugs')
-        .set('Cookie', cookies)
-        .expect(200);
+      const response = await request(app).get('/api/bugs').set('Cookie', cookies).expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Should only see their own bugs
       response.body.forEach((bug: any) => {
         expect(bug.createdBy).toBe(testUsers.resident.id);
@@ -379,9 +364,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     });
 
     test('Unauthenticated users cannot access bugs', async () => {
-      await request(app)
-        .get('/api/bugs')
-        .expect(401);
+      await request(app).get('/api/bugs').expect(401);
     });
   });
 
@@ -391,17 +374,14 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     beforeAll(async () => {
       // Create a bug by tenant for access control testing
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
-      
-      const response = await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send({
-          title: 'Tenant Access Test Bug',
-          description: 'Test bug for access control',
-          category: 'other',
-          page: '/test',
-          priority: 'low'
-        });
+
+      const response = await request(app).post('/api/bugs').set('Cookie', cookies).send({
+        title: 'Tenant Access Test Bug',
+        description: 'Test bug for access control',
+        category: 'other',
+        page: '/test',
+        priority: 'low',
+      });
 
       tenantBugId = response.body.id;
       createdBugIds.push(tenantBugId);
@@ -410,19 +390,13 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Admin can access any bug', async () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
-      await request(app)
-        .get(`/api/bugs/${tenantBugId}`)
-        .set('Cookie', cookies)
-        .expect(200);
+      await request(app).get(`/api/bugs/${tenantBugId}`).set('Cookie', cookies).expect(200);
     });
 
     test('Manager can access any bug', async () => {
       const cookies = await loginUser(app, testUsers.manager.email, testUsers.manager.password);
 
-      await request(app)
-        .get(`/api/bugs/${tenantBugId}`)
-        .set('Cookie', cookies)
-        .expect(200);
+      await request(app).get(`/api/bugs/${tenantBugId}`).set('Cookie', cookies).expect(200);
     });
 
     test('Tenant can access their own bug', async () => {
@@ -436,13 +410,10 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       expect(response.body.id).toBe(tenantBugId);
     });
 
-    test('Resident cannot access other users\' bugs', async () => {
+    test("Resident cannot access other users' bugs", async () => {
       const cookies = await loginUser(app, testUsers.resident.email, testUsers.resident.password);
 
-      await request(app)
-        .get(`/api/bugs/${tenantBugId}`)
-        .set('Cookie', cookies)
-        .expect(404); // Should return 404 for access denied
+      await request(app).get(`/api/bugs/${tenantBugId}`).set('Cookie', cookies).expect(404); // Should return 404 for access denied
     });
   });
 
@@ -452,17 +423,14 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     beforeAll(async () => {
       // Create a bug for update testing
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
-      
-      const response = await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send({
-          title: 'Update Test Bug',
-          description: 'Test bug for updates',
-          category: 'functionality',
-          page: '/test-update',
-          priority: 'medium'
-        });
+
+      const response = await request(app).post('/api/bugs').set('Cookie', cookies).send({
+        title: 'Update Test Bug',
+        description: 'Test bug for updates',
+        category: 'functionality',
+        page: '/test-update',
+        priority: 'medium',
+      });
 
       updateTestBugId = response.body.id;
       createdBugIds.push(updateTestBugId);
@@ -474,7 +442,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const updateData = {
         status: 'acknowledged',
         priority: 'high',
-        notes: 'Bug acknowledged by admin'
+        notes: 'Bug acknowledged by admin',
       };
 
       const response = await request(app)
@@ -494,7 +462,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const updateData = {
         status: 'in_progress',
         assignedTo: testUsers.manager.id,
-        notes: 'Working on this bug'
+        notes: 'Working on this bug',
       };
 
       const response = await request(app)
@@ -511,7 +479,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
 
       const updateData = {
-        status: 'resolved'
+        status: 'resolved',
       };
 
       await request(app)
@@ -525,7 +493,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const cookies = await loginUser(app, testUsers.resident.email, testUsers.resident.password);
 
       const updateData = {
-        status: 'resolved'
+        status: 'resolved',
       };
 
       await request(app)
@@ -539,7 +507,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
       const updateData = {
-        status: 'invalid_status'
+        status: 'invalid_status',
       };
 
       await request(app)
@@ -556,17 +524,14 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     beforeAll(async () => {
       // Create a bug for deletion testing
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
-      
-      const response = await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send({
-          title: 'Delete Test Bug',
-          description: 'Test bug for deletion',
-          category: 'other',
-          page: '/test-delete',
-          priority: 'low'
-        });
+
+      const response = await request(app).post('/api/bugs').set('Cookie', cookies).send({
+        title: 'Delete Test Bug',
+        description: 'Test bug for deletion',
+        category: 'other',
+        page: '/test-delete',
+        priority: 'low',
+      });
 
       deleteTestBugId = response.body.id;
     });
@@ -574,52 +539,34 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     test('Only admin can delete bugs', async () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
-      await request(app)
-        .delete(`/api/bugs/${deleteTestBugId}`)
-        .set('Cookie', cookies)
-        .expect(204);
+      await request(app).delete(`/api/bugs/${deleteTestBugId}`).set('Cookie', cookies).expect(204);
 
       // Verify bug is deleted
-      await request(app)
-        .get(`/api/bugs/${deleteTestBugId}`)
-        .set('Cookie', cookies)
-        .expect(404);
+      await request(app).get(`/api/bugs/${deleteTestBugId}`).set('Cookie', cookies).expect(404);
     });
 
     test('Manager cannot delete bugs', async () => {
       const cookies = await loginUser(app, testUsers.manager.email, testUsers.manager.password);
 
-      await request(app)
-        .delete(`/api/bugs/${deleteTestBugId}`)
-        .set('Cookie', cookies)
-        .expect(404); // Access denied returns 404
+      await request(app).delete(`/api/bugs/${deleteTestBugId}`).set('Cookie', cookies).expect(404); // Access denied returns 404
     });
 
     test('Tenant cannot delete bugs', async () => {
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
 
-      await request(app)
-        .delete(`/api/bugs/${deleteTestBugId}`)
-        .set('Cookie', cookies)
-        .expect(404); // Access denied returns 404
+      await request(app).delete(`/api/bugs/${deleteTestBugId}`).set('Cookie', cookies).expect(404); // Access denied returns 404
     });
 
     test('Resident cannot delete bugs', async () => {
       const cookies = await loginUser(app, testUsers.resident.email, testUsers.resident.password);
 
-      await request(app)
-        .delete(`/api/bugs/${deleteTestBugId}`)
-        .set('Cookie', cookies)
-        .expect(404); // Access denied returns 404
+      await request(app).delete(`/api/bugs/${deleteTestBugId}`).set('Cookie', cookies).expect(404); // Access denied returns 404
     });
 
     test('Cannot delete non-existent bug', async () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
-      await request(app)
-        .delete('/api/bugs/non-existent-id')
-        .set('Cookie', cookies)
-        .expect(404);
+      await request(app).delete('/api/bugs/non-existent-id').set('Cookie', cookies).expect(404);
     });
   });
 
@@ -629,17 +576,14 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
     beforeAll(async () => {
       // Create a bug for workflow testing
       const cookies = await loginUser(app, testUsers.tenant.email, testUsers.tenant.password);
-      
-      const response = await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send({
-          title: 'Workflow Test Bug',
-          description: 'Test bug for status workflow',
-          category: 'functionality',
-          page: '/workflow-test',
-          priority: 'medium'
-        });
+
+      const response = await request(app).post('/api/bugs').set('Cookie', cookies).send({
+        title: 'Workflow Test Bug',
+        description: 'Test bug for status workflow',
+        category: 'functionality',
+        page: '/workflow-test',
+        priority: 'medium',
+      });
 
       workflowBugId = response.body.id;
       createdBugIds.push(workflowBugId);
@@ -661,10 +605,10 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       response = await request(app)
         .patch(`/api/bugs/${workflowBugId}`)
         .set('Cookie', adminCookies)
-        .send({ 
+        .send({
           status: 'in_progress',
           assignedTo: testUsers.admin.id,
-          notes: 'Started working on this issue'
+          notes: 'Started working on this issue',
         })
         .expect(200);
 
@@ -675,11 +619,11 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       response = await request(app)
         .patch(`/api/bugs/${workflowBugId}`)
         .set('Cookie', adminCookies)
-        .send({ 
+        .send({
           status: 'resolved',
           resolvedBy: testUsers.admin.id,
           resolvedAt: new Date().toISOString(),
-          notes: 'Bug has been fixed and deployed'
+          notes: 'Bug has been fixed and deployed',
         })
         .expect(200);
 
@@ -690,9 +634,9 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       response = await request(app)
         .patch(`/api/bugs/${workflowBugId}`)
         .set('Cookie', adminCookies)
-        .send({ 
+        .send({
           status: 'closed',
-          notes: 'Verified fix in production'
+          notes: 'Verified fix in production',
         })
         .expect(200);
 
@@ -703,7 +647,15 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
   describe('Bug Category and Priority Tests', () => {
     test('All valid categories work', async () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
-      const validCategories = ['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other'];
+      const validCategories = [
+        'ui_ux',
+        'functionality',
+        'performance',
+        'data',
+        'security',
+        'integration',
+        'other',
+      ];
 
       for (const category of validCategories) {
         const response = await request(app)
@@ -714,7 +666,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
             description: `Test bug for ${category} category`,
             category: category,
             page: '/test',
-            priority: 'medium'
+            priority: 'medium',
           })
           .expect(201);
 
@@ -736,7 +688,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
             description: `Test bug for ${priority} priority`,
             category: 'other',
             page: '/test',
-            priority: priority
+            priority: priority,
           })
           .expect(201);
 
@@ -758,7 +710,7 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
           description: 'Test bug for timestamp validation',
           category: 'other',
           page: '/timestamp-test',
-          priority: 'low'
+          priority: 'low',
         })
         .expect(201);
 
@@ -774,22 +726,19 @@ describe('Bug Reporting System API - Comprehensive Tests', () => {
       const cookies = await loginUser(app, testUsers.admin.email, testUsers.admin.password);
 
       // Create bug
-      const createResponse = await request(app)
-        .post('/api/bugs')
-        .set('Cookie', cookies)
-        .send({
-          title: 'Update Timestamp Test',
-          description: 'Test bug for update timestamp',
-          category: 'other',
-          page: '/update-test',
-          priority: 'low'
-        });
+      const createResponse = await request(app).post('/api/bugs').set('Cookie', cookies).send({
+        title: 'Update Timestamp Test',
+        description: 'Test bug for update timestamp',
+        category: 'other',
+        page: '/update-test',
+        priority: 'low',
+      });
 
       const originalUpdatedAt = createResponse.body.updatedAt;
       createdBugIds.push(createResponse.body.id);
 
       // Wait a moment to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update bug
       const updateResponse = await request(app)

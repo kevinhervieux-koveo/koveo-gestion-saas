@@ -54,46 +54,46 @@ export enum ErrorCodes {
   ORGANIZATION_NOT_FOUND = 'ORG_001',
   ORGANIZATION_ACCESS_DENIED = 'ORG_002',
   ORGANIZATION_LIMIT_EXCEEDED = 'ORG_003',
-  
+
   BUILDING_NOT_FOUND = 'BLD_001',
   BUILDING_ACCESS_DENIED = 'BLD_002',
   BUILDING_HAS_ACTIVE_RESIDENCES = 'BLD_003',
-  
+
   RESIDENCE_NOT_FOUND = 'RES_001',
   RESIDENCE_ACCESS_DENIED = 'RES_002',
   RESIDENCE_ALREADY_OCCUPIED = 'RES_003',
   RESIDENCE_HAS_ACTIVE_BILLS = 'RES_004',
-  
+
   USER_NOT_FOUND = 'USR_001',
   USER_ALREADY_EXISTS = 'USR_002',
   USER_DEACTIVATED = 'USR_003',
   USER_INVITATION_INVALID = 'USR_004',
-  
+
   DOCUMENT_NOT_FOUND = 'DOC_001',
   DOCUMENT_ACCESS_DENIED = 'DOC_002',
   DOCUMENT_UPLOAD_FAILED = 'DOC_003',
   DOCUMENT_SIZE_EXCEEDED = 'DOC_004',
-  
+
   BILL_NOT_FOUND = 'BIL_001',
   BILL_ALREADY_PAID = 'BIL_002',
   BILL_PAYMENT_FAILED = 'BIL_003',
-  
+
   MAINTENANCE_REQUEST_NOT_FOUND = 'MNT_001',
   MAINTENANCE_REQUEST_ACCESS_DENIED = 'MNT_002',
-  
+
   // Database & System Errors
   DATABASE_CONNECTION_FAILED = 'DB_001',
   DATABASE_QUERY_FAILED = 'DB_002',
   DATABASE_CONSTRAINT_VIOLATION = 'DB_003',
-  
+
   EXTERNAL_SERVICE_UNAVAILABLE = 'EXT_001',
   EMAIL_SERVICE_FAILED = 'EXT_002',
   FILE_STORAGE_FAILED = 'EXT_003',
-  
+
   // Rate Limiting
   RATE_LIMIT_EXCEEDED = 'RATE_001',
   TOO_MANY_REQUESTS = 'RATE_002',
-  
+
   // Generic Errors
   INTERNAL_SERVER_ERROR = 'SYS_001',
   SERVICE_TEMPORARILY_UNAVAILABLE = 'SYS_002',
@@ -106,64 +106,64 @@ export enum ErrorCodes {
 export const ErrorMessages = {
   [ErrorCodes.AUTHENTICATION_REQUIRED]: {
     en: 'Authentication is required to access this resource',
-    fr: 'Une authentification est requise pour accéder à cette ressource'
+    fr: 'Une authentification est requise pour accéder à cette ressource',
   },
   [ErrorCodes.INVALID_CREDENTIALS]: {
     en: 'Invalid email or password',
-    fr: 'Courriel ou mot de passe invalide'
+    fr: 'Courriel ou mot de passe invalide',
   },
   [ErrorCodes.ACCESS_FORBIDDEN]: {
     en: 'You do not have permission to access this resource',
-    fr: 'Vous n\'avez pas la permission d\'accéder à cette ressource'
+    fr: "Vous n'avez pas la permission d'accéder à cette ressource",
   },
   [ErrorCodes.ORGANIZATION_NOT_FOUND]: {
     en: 'Organization not found',
-    fr: 'Organisation introuvable'
+    fr: 'Organisation introuvable',
   },
   [ErrorCodes.BUILDING_NOT_FOUND]: {
     en: 'Building not found',
-    fr: 'Bâtiment introuvable'
+    fr: 'Bâtiment introuvable',
   },
   [ErrorCodes.RESIDENCE_NOT_FOUND]: {
     en: 'Residence not found',
-    fr: 'Résidence introuvable'
+    fr: 'Résidence introuvable',
   },
   [ErrorCodes.USER_NOT_FOUND]: {
     en: 'User not found',
-    fr: 'Utilisateur introuvable'
+    fr: 'Utilisateur introuvable',
   },
   [ErrorCodes.VALIDATION_FAILED]: {
     en: 'Input validation failed',
-    fr: 'La validation des données a échoué'
+    fr: 'La validation des données a échoué',
   },
   [ErrorCodes.REQUIRED_FIELD_MISSING]: {
     en: 'Required field is missing',
-    fr: 'Un champ obligatoire est manquant'
+    fr: 'Un champ obligatoire est manquant',
   },
   [ErrorCodes.INVALID_EMAIL_FORMAT]: {
     en: 'Invalid email format',
-    fr: 'Format de courriel invalide'
+    fr: 'Format de courriel invalide',
   },
   [ErrorCodes.INVALID_PHONE_FORMAT]: {
     en: 'Invalid phone number format',
-    fr: 'Format de numéro de téléphone invalide'
+    fr: 'Format de numéro de téléphone invalide',
   },
   [ErrorCodes.RATE_LIMIT_EXCEEDED]: {
     en: 'Too many requests. Please try again later',
-    fr: 'Trop de requêtes. Veuillez réessayer plus tard'
+    fr: 'Trop de requêtes. Veuillez réessayer plus tard',
   },
   [ErrorCodes.DATABASE_CONNECTION_FAILED]: {
     en: 'Database connection failed. Please try again',
-    fr: 'Connexion à la base de données échouée. Veuillez réessayer'
+    fr: 'Connexion à la base de données échouée. Veuillez réessayer',
   },
   [ErrorCodes.INTERNAL_SERVER_ERROR]: {
     en: 'An internal server error occurred. Please contact support if the problem persists',
-    fr: 'Une erreur interne du serveur s\'est produite. Veuillez contacter le support si le problème persiste'
+    fr: "Une erreur interne du serveur s'est produite. Veuillez contacter le support si le problème persiste",
   },
   [ErrorCodes.SERVICE_TEMPORARILY_UNAVAILABLE]: {
     en: 'Service is temporarily unavailable. Please try again later',
-    fr: 'Le service est temporairement indisponible. Veuillez réessayer plus tard'
-  }
+    fr: 'Le service est temporairement indisponible. Veuillez réessayer plus tard',
+  },
 } as const;
 
 /**
@@ -198,7 +198,7 @@ export class ApiError extends Error {
     this.details = details;
     this.timestamp = new Date().toISOString();
     this.isOperational = isOperational;
-    
+
     // Ensure proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, ApiError.prototype);
   }
@@ -208,13 +208,11 @@ export class ApiError extends Error {
    * @param code
    * @param details
    */
-  static unauthorized(code: ErrorCodes = ErrorCodes.AUTHENTICATION_REQUIRED, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      401,
-      code,
-      details
-    );
+  static unauthorized(
+    code: ErrorCodes = ErrorCodes.AUTHENTICATION_REQUIRED,
+    details?: Record<string, any>
+  ): ApiError {
+    return new ApiError(ErrorMessages[code].en, 401, code, details);
   }
 
   /**
@@ -222,13 +220,11 @@ export class ApiError extends Error {
    * @param code
    * @param details
    */
-  static forbidden(code: ErrorCodes = ErrorCodes.ACCESS_FORBIDDEN, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      403,
-      code,
-      details
-    );
+  static forbidden(
+    code: ErrorCodes = ErrorCodes.ACCESS_FORBIDDEN,
+    details?: Record<string, any>
+  ): ApiError {
+    return new ApiError(ErrorMessages[code].en, 403, code, details);
   }
 
   /**
@@ -237,12 +233,7 @@ export class ApiError extends Error {
    * @param details
    */
   static notFound(code: ErrorCodes, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      404,
-      code,
-      details
-    );
+    return new ApiError(ErrorMessages[code].en, 404, code, details);
   }
 
   /**
@@ -251,12 +242,7 @@ export class ApiError extends Error {
    * @param details
    */
   static badRequest(code: ErrorCodes, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      400,
-      code,
-      details
-    );
+    return new ApiError(ErrorMessages[code].en, 400, code, details);
   }
 
   /**
@@ -264,13 +250,11 @@ export class ApiError extends Error {
    * @param code
    * @param details
    */
-  static internal(code: ErrorCodes = ErrorCodes.INTERNAL_SERVER_ERROR, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      500,
-      code,
-      details
-    );
+  static internal(
+    code: ErrorCodes = ErrorCodes.INTERNAL_SERVER_ERROR,
+    details?: Record<string, any>
+  ): ApiError {
+    return new ApiError(ErrorMessages[code].en, 500, code, details);
   }
 
   /**
@@ -278,13 +262,11 @@ export class ApiError extends Error {
    * @param code
    * @param details
    */
-  static tooManyRequests(code: ErrorCodes = ErrorCodes.RATE_LIMIT_EXCEEDED, details?: Record<string, any>): ApiError {
-    return new ApiError(
-      ErrorMessages[code].en,
-      429,
-      code,
-      details
-    );
+  static tooManyRequests(
+    code: ErrorCodes = ErrorCodes.RATE_LIMIT_EXCEEDED,
+    details?: Record<string, any>
+  ): ApiError {
+    return new ApiError(ErrorMessages[code].en, 429, code, details);
   }
 
   /**
@@ -296,7 +278,7 @@ export class ApiError extends Error {
       message: this.message,
       code: this.code,
       details: this.details,
-      timestamp: this.timestamp
+      timestamp: this.timestamp,
     };
   }
 }
@@ -321,7 +303,7 @@ export class ValidationError extends ApiError {
     super(message, 400, ErrorCodes.VALIDATION_FAILED, details);
     this.name = 'ValidationError';
     this.validationErrors = validationErrors;
-    
+
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
 
@@ -333,14 +315,12 @@ export class ValidationError extends ApiError {
     const validationErrors: ValidationErrorDetail[] = zodError.errors.map((err: any) => ({
       field: err.path.join('.'),
       message: err.message,
-      value: err.received
+      value: err.received,
     }));
 
-    return new ValidationError(
-      'Input validation failed',
-      validationErrors,
-      { zodError: zodError.errors }
-    );
+    return new ValidationError('Input validation failed', validationErrors, {
+      zodError: zodError.errors,
+    });
   }
 
   /**
@@ -349,7 +329,7 @@ export class ValidationError extends ApiError {
   toJSON(): ValidationErrorResponse {
     return {
       ...super.toJSON(),
-      validationErrors: this.validationErrors
+      validationErrors: this.validationErrors,
     };
   }
 }

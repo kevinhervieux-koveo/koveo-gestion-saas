@@ -3,15 +3,31 @@ import { z } from 'zod';
 // Common enum definitions
 export const USER_ROLES = ['admin', 'manager', 'tenant', 'resident'] as const;
 export const DEMAND_TYPES = ['maintenance', 'complaint', 'information', 'other'] as const;
-export const DEMAND_STATUSES = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'in_progress', 'completed', 'cancelled'] as const;
+export const DEMAND_STATUSES = [
+  'draft',
+  'submitted',
+  'under_review',
+  'approved',
+  'rejected',
+  'in_progress',
+  'completed',
+  'cancelled',
+] as const;
 export const BILL_STATUSES = ['draft', 'sent', 'overdue', 'paid', 'cancelled'] as const;
 export const PAYMENT_TYPES = ['unique', 'recurrent'] as const;
 export const SCHEDULE_TYPES = ['weekly', 'monthly', 'quarterly', 'yearly'] as const;
-export const BUILDING_TYPES = ['condo', 'apartment', 'townhouse', 'commercial', 'mixed_use', 'other'] as const;
+export const BUILDING_TYPES = [
+  'condo',
+  'apartment',
+  'townhouse',
+  'commercial',
+  'mixed_use',
+  'other',
+] as const;
 
 export const BILL_CATEGORIES = [
   'insurance',
-  'maintenance', 
+  'maintenance',
   'salary',
   'utilities',
   'cleaning',
@@ -24,7 +40,7 @@ export const BILL_CATEGORIES = [
   'taxes',
   'technology',
   'reserves',
-  'other'
+  'other',
 ] as const;
 
 export const BUILDING_DOCUMENT_TYPES = [
@@ -37,7 +53,7 @@ export const BUILDING_DOCUMENT_TYPES = [
   'contracts',
   'permits',
   'inspection',
-  'other'
+  'other',
 ] as const;
 
 export const RESIDENCE_DOCUMENT_TYPES = [
@@ -49,22 +65,20 @@ export const RESIDENCE_DOCUMENT_TYPES = [
   'financial',
   'communication',
   'photos',
-  'other'
+  'other',
 ] as const;
 
 // Common validation schemas
 export const commonFields = {
   // Required string fields
-  requiredString: (fieldName: string, maxLength?: number) => 
-    maxLength 
+  requiredString: (fieldName: string, maxLength?: number) =>
+    maxLength
       ? z.string().min(1, `${fieldName} is required`).max(maxLength, `${fieldName} is too long`)
       : z.string().min(1, `${fieldName} is required`),
 
   // Optional string fields
   optionalString: (maxLength?: number) =>
-    maxLength
-      ? z.string().max(maxLength, 'Text is too long').optional()
-      : z.string().optional(),
+    maxLength ? z.string().max(maxLength, 'Text is too long').optional() : z.string().optional(),
 
   // Required ID fields
   requiredId: (fieldName: string) => z.string().min(1, `${fieldName} is required`),
@@ -73,20 +87,26 @@ export const commonFields = {
   email: z.string().email('Invalid email address'),
 
   // Description with minimum length
-  description: (minLength = 10) => 
+  description: (minLength = 10) =>
     z.string().min(minLength, `Description must be at least ${minLength} characters`),
 
   // Amount/Price validation
   amount: z.string().min(1, 'Amount is required'),
 
   // Date validation
-  date: (fieldName: string) => 
-    z.string().min(1, `${fieldName} is required`).refine((dateStr) => {
-      const date = new Date(dateStr);
-      return !isNaN(date.getTime());
-    }, {
-      message: `Valid ${fieldName.toLowerCase()} is required`,
-    }),
+  date: (fieldName: string) =>
+    z
+      .string()
+      .min(1, `${fieldName} is required`)
+      .refine(
+        (dateStr) => {
+          const date = new Date(dateStr);
+          return !isNaN(date.getTime());
+        },
+        {
+          message: `Valid ${fieldName.toLowerCase()} is required`,
+        }
+      ),
 
   // Optional date validation
   optionalDate: z.string().optional(),
@@ -223,19 +243,16 @@ export const validationHelpers = {
 
   // Extend existing schema with additional fields
   extendSchema: <T extends z.ZodRawShape, U extends z.ZodRawShape>(
-    baseSchema: z.ZodObject<T>, 
+    baseSchema: z.ZodObject<T>,
     extensions: U
   ) => baseSchema.extend(extensions),
 
   // Create optional version of schema
-  makeOptional: <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
-    schema.partial(),
+  makeOptional: <T extends z.ZodRawShape>(schema: z.ZodObject<T>) => schema.partial(),
 
   // Create pick schema with selected fields
-  pickFields: <T extends z.ZodRawShape, K extends keyof T>(
-    schema: z.ZodObject<T>,
-    keys: K[]
-  ) => schema.pick(Object.fromEntries(keys.map(k => [k, true])) as Record<K, true>),
+  pickFields: <T extends z.ZodRawShape, K extends keyof T>(schema: z.ZodObject<T>, keys: K[]) =>
+    schema.pick(Object.fromEntries(keys.map((k) => [k, true])) as Record<K, true>),
 
   // Validate enum value
   isValidEnum: <T extends readonly string[]>(enumArray: T, value: string): value is T[number] =>

@@ -38,14 +38,14 @@ interface Law25ComplianceData {
  * @returns Function result.
  */
 function /**
-   * Run law25 compliance scan function.
-   * @returns Law25ComplianceData result.
-   */ /**
-   * Run law25 compliance scan function.
-   * @returns Law25ComplianceData result.
-   */
+ * Run law25 compliance scan function.
+ * @returns Law25ComplianceData result.
+ */ /**
+ * Run law25 compliance scan function.
+ * @returns Law25ComplianceData result.
+ */
 
- runLaw25ComplianceScan(): Law25ComplianceData {
+runLaw25ComplianceScan(): Law25ComplianceData {
   try {
     // Run Semgrep with Law 25 rules
     const semgrepOutput = execSync(
@@ -61,7 +61,7 @@ function /**
     }
 
     const violations = semgrepResults.results || [];
-    
+
     // Process violations by category
     const categories = {
       dataCollection: 0,
@@ -69,16 +69,15 @@ function /**
       dataRetention: 0,
       security: 0,
       crossBorderTransfer: 0,
-      dataSubjectRights: 0
+      dataSubjectRights: 0,
     };
-    
+
     const processedViolations = violations.map((violation: any) => {
       const metadata = violation.extra?.metadata || {};
       const law25Aspect = metadata.law25 || 'general';
       const severity = violation.extra?.severity || 'info';
-      
-      // Categorize violations
 
+      // Categorize violations
 
       switch (law25Aspect) {
         case 'data-collection':
@@ -102,7 +101,7 @@ function /**
           categories.dataSubjectRights++;
           break;
       }
-      
+
       return {
         severity: severity as 'error' | 'warning' | 'info',
         rule: violation.check_id || 'unknown',
@@ -110,40 +109,39 @@ function /**
         file: violation.path || 'unknown',
         line: violation.start?.line || 0,
         category: metadata.category || 'privacy',
-        law25Aspect
+        law25Aspect,
       };
     });
-    
+
     const totalViolations = processedViolations.length;
-    const criticalViolations = processedViolations.filter(v => v.severity === 'error').length;
-    
+    const criticalViolations = processedViolations.filter((v) => v.severity === 'error').length;
+
     // Calculate compliance score (0-100)
     let complianceScore = 100;
     complianceScore -= criticalViolations * 10; // -10 points per critical violation
-    complianceScore -= processedViolations.filter(v => v.severity === 'warning').length * 5; // -5 points per warning
-    complianceScore -= processedViolations.filter(v => v.severity === 'info').length * 1; // -1 point per info
+    complianceScore -= processedViolations.filter((v) => v.severity === 'warning').length * 5; // -5 points per warning
+    complianceScore -= processedViolations.filter((v) => v.severity === 'info').length * 1; // -1 point per info
     complianceScore = Math.max(0, complianceScore); // Ensure it doesn't go below 0
-    
+
     return {
       complianceScore,
       totalViolations,
       criticalViolations,
       lastScanDate: new Date().toISOString(),
       categories,
-      violations: processedViolations
+      violations: processedViolations,
     };
-    
-  } /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
- catch (_error) {
+  } catch (_error) {
+    /**
+     * Catch function.
+     * @param _error - _error parameter.
+     */
+    /**
+     * Catch function.
+     * @param _error - _error parameter.
+     */
     console.warn('Law 25 compliance scan failed:', _error);
-    
+
     // Return default/fallback data
     return {
       complianceScore: 85, // Default to good score
@@ -156,9 +154,9 @@ function /**
         dataRetention: 0,
         security: 0,
         crossBorderTransfer: 0,
-        dataSubjectRights: 0
+        dataSubjectRights: 0,
       },
-      violations: []
+      violations: [],
     };
   }
 }
@@ -185,7 +183,7 @@ router.get('/', (req, res) => {
     res.json(complianceData);
   } catch (_error) {
     console.error('Error generating Law 25 compliance _data:', _error);
-    res.status(500).json({ 
+    res.status(500).json({
       _error: 'Failed to generate compliance data',
       complianceScore: 0,
       totalViolations: 0,
@@ -197,9 +195,9 @@ router.get('/', (req, res) => {
         dataRetention: 0,
         security: 0,
         crossBorderTransfer: 0,
-        dataSubjectRights: 0
+        dataSubjectRights: 0,
       },
-      violations: []
+      violations: [],
     });
   }
 });

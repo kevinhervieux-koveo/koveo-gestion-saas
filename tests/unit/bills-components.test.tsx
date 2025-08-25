@@ -5,7 +5,7 @@ import Bills from '@/pages/manager/bills';
 // Mock the API calls
 const mockBuildings = [
   { id: '1', name: 'Building A' },
-  { id: '2', name: 'Building B' }
+  { id: '2', name: 'Building B' },
 ];
 
 const mockBills = [
@@ -24,7 +24,7 @@ const mockBills = [
     startDate: '2024-01-01',
     status: 'sent',
     createdAt: new Date(),
-    buildingName: 'Building A'
+    buildingName: 'Building A',
   },
   {
     id: '2',
@@ -41,8 +41,8 @@ const mockBills = [
     startDate: '2024-01-01',
     status: 'paid',
     createdAt: new Date(),
-    buildingName: 'Building A'
-  }
+    buildingName: 'Building A',
+  },
 ];
 
 // Mock the fetch function
@@ -76,11 +76,10 @@ describe('Bills Component', () => {
   });
 
   it('should render filters section', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBuildings,
-      } as Response);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockBuildings,
+    } as Response);
 
     renderComponent();
 
@@ -93,17 +92,18 @@ describe('Bills Component', () => {
   });
 
   it('should show building selection prompt when no building is selected', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBuildings,
-      } as Response);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockBuildings,
+    } as Response);
 
     renderComponent();
 
     await waitFor(() => {
       expect(screen.getByText('Select a Building')).toBeInTheDocument();
-      expect(screen.getByText('Choose a building from the filter above to view and manage its bills')).toBeInTheDocument();
+      expect(
+        screen.getByText('Choose a building from the filter above to view and manage its bills')
+      ).toBeInTheDocument();
     });
   });
 
@@ -195,11 +195,10 @@ describe('Bills Component', () => {
   });
 
   it('should disable create bill button when no building is selected', async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBuildings,
-      } as Response);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockBuildings,
+    } as Response);
 
     renderComponent();
 
@@ -221,7 +220,7 @@ describe('Bills Component', () => {
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockBills.filter(bill => bill.category === 'insurance'),
+        json: async () => mockBills.filter((bill) => bill.category === 'insurance'),
       } as Response);
 
     renderComponent();
@@ -234,7 +233,7 @@ describe('Bills Component', () => {
     // Apply category filter
     const categorySelect = screen.getAllByRole('combobox')[1]; // Second combobox is category
     fireEvent.click(categorySelect);
-    
+
     await waitFor(() => {
       fireEvent.click(screen.getByText('Insurance'));
     });
@@ -261,7 +260,11 @@ describe('Bills Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No Bills Found')).toBeInTheDocument();
-      expect(screen.getByText('No bills found for the selected filters. Create your first bill to get started.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'No bills found for the selected filters. Create your first bill to get started.'
+        )
+      ).toBeInTheDocument();
     });
   });
 
@@ -291,8 +294,12 @@ describe('Bills Component', () => {
   });
 
   it('should handle loading state correctly', () => {
-    mockFetch
-      .mockImplementationOnce(() => new Promise(() => {/* Never resolves to simulate loading */}));
+    mockFetch.mockImplementationOnce(
+      () =>
+        new Promise(() => {
+          /* Never resolves to simulate loading */
+        })
+    );
 
     renderComponent();
 

@@ -5,23 +5,35 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 
-const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-    .max(100, 'Le mot de passe ne peut pas dépasser 100 caractères')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
-      'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
-  confirmPassword: z.string(),
-}).refine((_data) => _data.password === _data.confirmPassword, {
-  message: 'Les mots de passe ne correspondent pas',
-  path: ['confirmPassword'],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+      .max(100, 'Le mot de passe ne peut pas dépasser 100 caractères')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((_data) => _data.password === _data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
 
 /**
  *
@@ -32,12 +44,12 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
  *
  */
 export default function /**
-   * Reset password page function.
-   */ /**
-   * Reset password page function.
-   */
+ * Reset password page function.
+ */ /**
+ * Reset password page function.
+ */
 
- ResetPasswordPage() {
+ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -58,15 +70,13 @@ export default function /**
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token'); /**
-   * If function.
-   * @param !tokenParam - !tokenParam parameter.
-   */ /**
-   * If function.
-   * @param !tokenParam - !tokenParam parameter.
-   */
+     * If function.
+     * @param !tokenParam - !tokenParam parameter.
+     */ /**
+     * If function.
+     * @param !tokenParam - !tokenParam parameter.
+     */
 
-
-    
     if (!tokenParam) {
       toast({
         title: 'Token manquant',
@@ -76,18 +86,18 @@ export default function /**
       navigate('/login');
       return;
     }
-    
+
     setToken(tokenParam);
   }, [navigate, toast]);
 
-  const onSubmit = async (_data: ResetPasswordForm) => { /**
-   * If function.
-   * @param !token - !token parameter.
-   */ /**
-   * If function.
-   * @param !token - !token parameter.
-   */
-
+  const onSubmit = async (_data: ResetPasswordForm) => {
+    /**
+     * If function.
+     * @param !token - !token parameter.
+     */ /**
+     * If function.
+     * @param !token - !token parameter.
+     */
 
     if (!token) {
       toast({
@@ -110,60 +120,60 @@ export default function /**
         title: 'Mot de passe réinitialisé',
         description: 'Votre mot de passe a été mis à jour avec succès.',
       });
-    } /**
-   * Catch function.
-   * @param error - Error object.
-   */ /**
-   * Catch function.
-   * @param error - Error object.
-   */
+    } catch (_error: unknown) {
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */ /**
+       * Catch function.
+       * @param error - Error object.
+       */
 
- catch (_error: unknown) {
       console.error('Reset password _error:', _error);
       let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.'; /**
-   * If function.
-   * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
-   */ /**
-   * If function.
-   * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
-   */
+       * If function.
+       * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
+       */ /**
+       * If function.
+       * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.
+       */
 
-
-      
       if ((_error as any).code === 'INVALID_TOKEN' || (_error as any).code === 'TOKEN_EXPIRED') {
-        errorMessage = 'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.';
-      } else /**
-   * If function.
-   * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
-   */ /**
-   * If function.
-   * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
-   */
+        errorMessage =
+          'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.';
+      } else if ((_error as any).code === 'TOKEN_ALREADY_USED') {
+        /**
+         * If function.
+         * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
+         */ /**
+         * If function.
+         * @param error.code === 'TOKEN_ALREADY_USED' - error.code === 'TOKEN_ALREADY_USED' parameter.
+         */
 
- if ((_error as any).code === 'TOKEN_ALREADY_USED') {
         errorMessage = 'Ce lien de réinitialisation a déjà été utilisé.';
-      } else /**
-   * If function.
-   * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
-   */ /**
-   * If function.
-   * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
-   */
+      } else if ((_error as any).code === 'PASSWORD_TOO_SHORT') {
+        /**
+         * If function.
+         * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
+         */ /**
+         * If function.
+         * @param error.code === 'PASSWORD_TOO_SHORT' - error.code === 'PASSWORD_TOO_SHORT' parameter.
+         */
 
- if ((_error as any).code === 'PASSWORD_TOO_SHORT') {
         errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
-      } else /**
-   * If function.
-   * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
-   */ /**
-   * If function.
-   * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
-   */
+      } else if ((_error as any).code === 'PASSWORD_TOO_WEAK') {
+        /**
+         * If function.
+         * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
+         */ /**
+         * If function.
+         * @param error.code === 'PASSWORD_TOO_WEAK' - error.code === 'PASSWORD_TOO_WEAK' parameter.
+         */
 
- if ((_error as any).code === 'PASSWORD_TOO_WEAK') {
-        errorMessage = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
+        errorMessage =
+          'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.';
       }
-      
+
       toast({
         title: 'Erreur',
         description: errorMessage,
@@ -180,26 +190,23 @@ export default function /**
    * @param resetComplete - ResetComplete parameter.
    */
 
-
-
   if (resetComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800'>
+        <Card className='w-full max-w-md'>
+          <CardHeader className='text-center'>
+            <div className='mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4'>
+              <CheckCircle className='w-6 h-6 text-green-600 dark:text-green-400' />
             </div>
-            <CardTitle className="text-2xl font-bold">Mot de passe réinitialisé</CardTitle>
+            <CardTitle className='text-2xl font-bold'>Mot de passe réinitialisé</CardTitle>
             <CardDescription>
-              Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+              Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter
+              avec votre nouveau mot de passe.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/login">
-                Se connecter
-              </Link>
+            <Button asChild className='w-full'>
+              <Link href='/login'>Se connecter</Link>
             </Button>
           </CardContent>
         </Card>
@@ -213,28 +220,22 @@ export default function /**
    * @param !token - !token parameter.
    */
 
-
-
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Lien invalide</CardTitle>
-            <CardDescription>
-              Le lien de réinitialisation est invalide ou manquant.
-            </CardDescription>
+      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800'>
+        <Card className='w-full max-w-md'>
+          <CardHeader className='text-center'>
+            <CardTitle className='text-2xl font-bold'>Lien invalide</CardTitle>
+            <CardDescription>Le lien de réinitialisation est invalide ou manquant.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <Button asChild className="w-full">
-                <Link href="/forgot-password">
-                  Demander un nouveau lien
-                </Link>
+            <div className='space-y-4'>
+              <Button asChild className='w-full'>
+                <Link href='/forgot-password'>Demander un nouveau lien</Link>
               </Button>
-              <Button variant="ghost" asChild className="w-full">
-                <Link href="/login">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+              <Button variant='ghost' asChild className='w-full'>
+                <Link href='/login'>
+                  <ArrowLeft className='w-4 h-4 mr-2' />
                   Retour à la connexion
                 </Link>
               </Button>
@@ -246,46 +247,44 @@ export default function /**
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Réinitialiser le mot de passe</CardTitle>
-          <CardDescription>
-            Entrez votre nouveau mot de passe
-          </CardDescription>
+    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800'>
+      <Card className='w-full max-w-md'>
+        <CardHeader className='text-center'>
+          <CardTitle className='text-2xl font-bold'>Réinitialiser le mot de passe</CardTitle>
+          <CardDescription>Entrez votre nouveau mot de passe</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
               <FormField
                 control={form.control}
-                name="password"
+                name='password'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nouveau mot de passe</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input 
+                      <div className='relative'>
+                        <Input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Entrez votre nouveau mot de passe"
-                          className="pr-10"
-                          data-testid="input-password"
-                          {...field} 
+                          placeholder='Entrez votre nouveau mot de passe'
+                          className='pr-10'
+                          data-testid='input-password'
+                          {...field}
                         />
                         <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
                           onClick={() => setShowPassword(!showPassword)}
-                          data-testid="button-toggle-password"
+                          data-testid='button-toggle-password'
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
+                            <EyeOff className='h-4 w-4 text-gray-400' />
                           ) : (
-                            <Eye className="h-4 w-4 text-gray-400" />
+                            <Eye className='h-4 w-4 text-gray-400' />
                           )}
-                          <span className="sr-only">
+                          <span className='sr-only'>
                             {showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                           </span>
                         </Button>
@@ -298,34 +297,36 @@ export default function /**
 
               <FormField
                 control={form.control}
-                name="confirmPassword"
+                name='confirmPassword'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Confirmer le mot de passe</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input 
+                      <div className='relative'>
+                        <Input
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirmez votre nouveau mot de passe"
-                          className="pr-10"
-                          data-testid="input-confirm-password"
-                          {...field} 
+                          placeholder='Confirmez votre nouveau mot de passe'
+                          className='pr-10'
+                          data-testid='input-confirm-password'
+                          {...field}
                         />
                         <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          data-testid="button-toggle-confirm-password"
+                          data-testid='button-toggle-confirm-password'
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
+                            <EyeOff className='h-4 w-4 text-gray-400' />
                           ) : (
-                            <Eye className="h-4 w-4 text-gray-400" />
+                            <Eye className='h-4 w-4 text-gray-400' />
                           )}
-                          <span className="sr-only">
-                            {showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          <span className='sr-only'>
+                            {showConfirmPassword
+                              ? 'Masquer le mot de passe'
+                              : 'Afficher le mot de passe'}
                           </span>
                         </Button>
                       </div>
@@ -335,18 +336,14 @@ export default function /**
                 )}
               />
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isSubmitting}
-              >
+              <Button type='submit' className='w-full' disabled={isSubmitting}>
                 {isSubmitting ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
               </Button>
 
-              <div className="text-center">
-                <Button variant="ghost" asChild>
-                  <Link href="/login">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+              <div className='text-center'>
+                <Button variant='ghost' asChild>
+                  <Link href='/login'>
+                    <ArrowLeft className='w-4 h-4 mr-2' />
                     Retour à la connexion
                   </Link>
                 </Button>

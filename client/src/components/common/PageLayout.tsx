@@ -12,7 +12,7 @@ interface PageLayoutProps {
 const maxWidthClasses = {
   default: 'container mx-auto',
   wide: 'max-w-7xl mx-auto',
-  full: 'w-full'
+  full: 'w-full',
 };
 
 /**
@@ -24,8 +24,6 @@ const maxWidthClasses = {
  */
 export function PageLayout({ children, maxWidth = 'default', className = '' }: PageLayoutProps) {
   return (
-    <div className={`${maxWidthClasses[maxWidth]} py-6 space-y-6 ${className}`}>
-      {children}
-    </div>
+    <div className={`${maxWidthClasses[maxWidth]} py-6 space-y-6 ${className}`}>{children}</div>
   );
 }

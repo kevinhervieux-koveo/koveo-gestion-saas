@@ -29,14 +29,17 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('Translation and Internationalization Rules', () => {
     it('should detect hardcoded French strings requiring i18n', () => {
-      const i18nViolations = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.hardcoded-french-text'
-      ) || [];
+      const i18nViolations =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.hardcoded-french-text'
+        ) || [];
 
       // Report findings but don't fail - these are improvement opportunities
       if (i18nViolations.length > 0) {
-        console.warn(`📝 Found ${i18nViolations.length} hardcoded French strings that could benefit from i18n:`);
-        i18nViolations.slice(0, 5).forEach(violation => {
+        console.warn(
+          `📝 Found ${i18nViolations.length} hardcoded French strings that could benefit from i18n:`
+        );
+        i18nViolations.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -45,13 +48,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect hardcoded English strings requiring i18n', () => {
-      const i18nViolations = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.hardcoded-english-text'
-      ) || [];
+      const i18nViolations =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.hardcoded-english-text'
+        ) || [];
 
       if (i18nViolations.length > 0) {
-        console.warn(`📝 Found ${i18nViolations.length} hardcoded English strings that could benefit from i18n:`);
-        i18nViolations.slice(0, 5).forEach(violation => {
+        console.warn(
+          `📝 Found ${i18nViolations.length} hardcoded English strings that could benefit from i18n:`
+        );
+        i18nViolations.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -60,13 +66,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing translation keys usage', () => {
-      const missingTranslations = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.missing-translation-usage'
-      ) || [];
+      const missingTranslations =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.missing-translation-usage'
+        ) || [];
 
       if (missingTranslations.length > 0) {
-        console.warn(`🔍 Found ${missingTranslations.length} components without translation usage:`);
-        missingTranslations.slice(0, 5).forEach(violation => {
+        console.warn(
+          `🔍 Found ${missingTranslations.length} components without translation usage:`
+        );
+        missingTranslations.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -75,14 +84,19 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect Quebec French terminology compliance', () => {
-      const quebecTerms = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.i18n.quebec-french-terms'
-      ) || [];
+      const quebecTerms =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.i18n.quebec-french-terms'
+        ) || [];
 
       if (quebecTerms.length > 0) {
-        console.warn(`🍁 Found ${quebecTerms.length} non-Quebec French terms that should be localized:`);
-        quebecTerms.slice(0, 5).forEach(violation => {
-          console.warn(`   - ${violation.path}:${violation.start.line}: ${violation.extra.message}`);
+        console.warn(
+          `🍁 Found ${quebecTerms.length} non-Quebec French terms that should be localized:`
+        );
+        quebecTerms.slice(0, 5).forEach((violation) => {
+          console.warn(
+            `   - ${violation.path}:${violation.start.line}: ${violation.extra.message}`
+          );
         });
       }
 
@@ -92,13 +106,16 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('Performance and Code Quality Rules', () => {
     it('should detect expensive operations in render methods', () => {
-      const performanceIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.performance.expensive-render-operations'
-      ) || [];
+      const performanceIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.expensive-render-operations'
+        ) || [];
 
       if (performanceIssues.length > 0) {
-        console.warn(`⚡ Found ${performanceIssues.length} potentially expensive operations in render:`);
-        performanceIssues.forEach(violation => {
+        console.warn(
+          `⚡ Found ${performanceIssues.length} potentially expensive operations in render:`
+        );
+        performanceIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -108,13 +125,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing React.memo optimization opportunities', () => {
-      const memoOpportunities = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-react-memo'
-      ) || [];
+      const memoOpportunities =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-react-memo'
+        ) || [];
 
       if (memoOpportunities.length > 0) {
-        console.warn(`🔄 Found ${memoOpportunities.length} components that could benefit from React.memo:`);
-        memoOpportunities.slice(0, 5).forEach(violation => {
+        console.warn(
+          `🔄 Found ${memoOpportunities.length} components that could benefit from React.memo:`
+        );
+        memoOpportunities.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -123,13 +143,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect large bundle size contributors', () => {
-      const bundleIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.performance.large-bundle-imports'
-      ) || [];
+      const bundleIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.large-bundle-imports'
+        ) || [];
 
       if (bundleIssues.length > 0) {
         console.warn(`📦 Found ${bundleIssues.length} imports that may increase bundle size:`);
-        bundleIssues.slice(0, 5).forEach(violation => {
+        bundleIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -138,13 +159,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing error boundaries', () => {
-      const errorBoundaryIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.react.missing-error-boundary'
-      ) || [];
+      const errorBoundaryIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.react.missing-error-boundary'
+        ) || [];
 
       if (errorBoundaryIssues.length > 0) {
-        console.warn(`🛡️ Found ${errorBoundaryIssues.length} components that need error boundaries:`);
-        errorBoundaryIssues.slice(0, 5).forEach(violation => {
+        console.warn(
+          `🛡️ Found ${errorBoundaryIssues.length} components that need error boundaries:`
+        );
+        errorBoundaryIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -155,13 +179,14 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('React and TypeScript Best Practices', () => {
     it('should detect missing prop types or TypeScript interfaces', () => {
-      const typeIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.react.missing-prop-types'
-      ) || [];
+      const typeIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.react.missing-prop-types'
+        ) || [];
 
       if (typeIssues.length > 0) {
         console.warn(`📝 Found ${typeIssues.length} components missing proper type definitions:`);
-        typeIssues.slice(0, 5).forEach(violation => {
+        typeIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -170,13 +195,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect improper hook usage patterns', () => {
-      const hookIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.react.improper-hook-usage'
-      ) || [];
+      const hookIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.react.improper-hook-usage'
+        ) || [];
 
       if (hookIssues.length > 0) {
         console.warn(`🪝 Found ${hookIssues.length} improper hook usage patterns:`);
-        hookIssues.forEach(violation => {
+        hookIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -185,13 +211,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing accessibility attributes', () => {
-      const a11yIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.accessibility.missing-attributes'
-      ) || [];
+      const a11yIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.accessibility.missing-attributes'
+        ) || [];
 
       if (a11yIssues.length > 0) {
         console.warn(`♿ Found ${a11yIssues.length} accessibility issues:`);
-        a11yIssues.slice(0, 5).forEach(violation => {
+        a11yIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -200,13 +227,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect unused imports and variables', () => {
-      const unusedCode = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.code-quality.unused-imports'
-      ) || [];
+      const unusedCode =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.code-quality.unused-imports'
+        ) || [];
 
       if (unusedCode.length > 0) {
         console.warn(`🧹 Found ${unusedCode.length} unused imports or variables:`);
-        unusedCode.slice(0, 5).forEach(violation => {
+        unusedCode.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -217,13 +245,16 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('Property Management Domain-Specific Rules', () => {
     it('should detect missing tenant data validation', () => {
-      const tenantDataIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.property.missing-tenant-validation'
-      ) || [];
+      const tenantDataIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.missing-tenant-validation'
+        ) || [];
 
       if (tenantDataIssues.length > 0) {
-        console.warn(`🏠 Found ${tenantDataIssues.length} tenant data operations missing validation:`);
-        tenantDataIssues.forEach(violation => {
+        console.warn(
+          `🏠 Found ${tenantDataIssues.length} tenant data operations missing validation:`
+        );
+        tenantDataIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -232,13 +263,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect insecure building access code handling', () => {
-      const accessCodeIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.property.insecure-access-codes'
-      ) || [];
+      const accessCodeIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.insecure-access-codes'
+        ) || [];
 
       if (accessCodeIssues.length > 0) {
         console.warn(`🔐 Found ${accessCodeIssues.length} insecure access code patterns:`);
-        accessCodeIssues.forEach(violation => {
+        accessCodeIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -247,13 +279,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing maintenance request validation', () => {
-      const maintenanceIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.property.maintenance-validation'
-      ) || [];
+      const maintenanceIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.maintenance-validation'
+        ) || [];
 
       if (maintenanceIssues.length > 0) {
-        console.warn(`🔧 Found ${maintenanceIssues.length} maintenance operations missing validation:`);
-        maintenanceIssues.slice(0, 5).forEach(violation => {
+        console.warn(
+          `🔧 Found ${maintenanceIssues.length} maintenance operations missing validation:`
+        );
+        maintenanceIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -262,13 +297,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect financial data exposure risks', () => {
-      const financialRisks = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.property.financial-data-exposure'
-      ) || [];
+      const financialRisks =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.property.financial-data-exposure'
+        ) || [];
 
       if (financialRisks.length > 0) {
         console.warn(`💰 Found ${financialRisks.length} potential financial data exposure risks:`);
-        financialRisks.forEach(violation => {
+        financialRisks.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -279,13 +315,14 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('Custom Business Logic Rules', () => {
     it('should detect improper role-based access control patterns', () => {
-      const rbacIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.rbac.improper-access-control'
-      ) || [];
+      const rbacIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.rbac.improper-access-control'
+        ) || [];
 
       if (rbacIssues.length > 0) {
         console.warn(`🛡️ Found ${rbacIssues.length} improper RBAC patterns:`);
-        rbacIssues.forEach(violation => {
+        rbacIssues.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -294,13 +331,14 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect missing audit logging for critical operations', () => {
-      const auditIssues = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.audit.missing-logging'
-      ) || [];
+      const auditIssues =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.audit.missing-logging'
+        ) || [];
 
       if (auditIssues.length > 0) {
         console.warn(`📊 Found ${auditIssues.length} critical operations missing audit logging:`);
-        auditIssues.slice(0, 5).forEach(violation => {
+        auditIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -309,13 +347,16 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect database query optimization opportunities', () => {
-      const dbOptimization = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.database.optimization-opportunity'
-      ) || [];
+      const dbOptimization =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.database.optimization-opportunity'
+        ) || [];
 
       if (dbOptimization.length > 0) {
-        console.warn(`🗄️ Found ${dbOptimization.length} database query optimization opportunities:`);
-        dbOptimization.slice(0, 5).forEach(violation => {
+        console.warn(
+          `🗄️ Found ${dbOptimization.length} database query optimization opportunities:`
+        );
+        dbOptimization.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -326,12 +367,11 @@ describe('Extended Semgrep Analysis', () => {
 
   describe('Law 25 Extended Compliance', () => {
     it('should validate extended Law 25 compliance patterns', () => {
-      const law25Extended = semgrepResults.results?.filter(
-        result => result.extra?.metadata?.law25
-      ) || [];
+      const law25Extended =
+        semgrepResults.results?.filter((result) => result.extra?.metadata?.law25) || [];
 
       const categories = {};
-      law25Extended.forEach(violation => {
+      law25Extended.forEach((violation) => {
         const category = violation.extra.metadata.law25;
         categories[category] = (categories[category] || 0) + 1;
       });
@@ -346,9 +386,10 @@ describe('Extended Semgrep Analysis', () => {
     });
 
     it('should detect privacy policy references', () => {
-      const privacyRefs = semgrepResults.results?.filter(
-        result => result.check_id === 'koveo.law25.privacy-policy-reference'
-      ) || [];
+      const privacyRefs =
+        semgrepResults.results?.filter(
+          (result) => result.check_id === 'koveo.law25.privacy-policy-reference'
+        ) || [];
 
       if (privacyRefs.length === 0) {
         console.warn('⚠️ No privacy policy references detected - consider adding privacy links');
@@ -363,15 +404,17 @@ describe('Extended Semgrep Analysis', () => {
   afterAll(() => {
     // Generate summary report
     const totalFindings = semgrepResults.results?.length || 0;
-    const criticalFindings = semgrepResults.results?.filter(r => r.extra?.severity === 'ERROR').length || 0;
-    const warningFindings = semgrepResults.results?.filter(r => r.extra?.severity === 'WARNING').length || 0;
+    const criticalFindings =
+      semgrepResults.results?.filter((r) => r.extra?.severity === 'ERROR').length || 0;
+    const warningFindings =
+      semgrepResults.results?.filter((r) => r.extra?.severity === 'WARNING').length || 0;
 
     console.warn('\n📊 Semgrep Analysis Summary:');
     console.warn(`   Total findings: ${totalFindings}`);
     console.warn(`   Critical: ${criticalFindings}`);
     console.warn(`   Warnings: ${warningFindings}`);
     console.warn(`   Info: ${totalFindings - criticalFindings - warningFindings}`);
-    
+
     if (totalFindings === 0) {
       console.warn('✅ No issues detected by semgrep analysis');
     }

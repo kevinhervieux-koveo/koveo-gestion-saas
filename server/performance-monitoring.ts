@@ -20,16 +20,18 @@ class DatabasePerformanceMonitor {
    */
   trackQuery<T>(queryName: string, operation: () => Promise<T>): Promise<T> {
     const startTime = performance.now();
-    
-    return operation().then(result => {
-      const duration = performance.now() - startTime;
-      this.recordQueryTime(queryName, duration);
-      return result;
-    }).catch(error => {
-      const duration = performance.now() - startTime;
-      this.recordQueryTime(queryName, duration);
-      throw error;
-    });
+
+    return operation()
+      .then((result) => {
+        const duration = performance.now() - startTime;
+        this.recordQueryTime(queryName, duration);
+        return result;
+      })
+      .catch((error) => {
+        const duration = performance.now() - startTime;
+        this.recordQueryTime(queryName, duration);
+        throw error;
+      });
   }
 
   /**
@@ -39,7 +41,7 @@ class DatabasePerformanceMonitor {
    */
   private recordQueryTime(queryName: string, duration: number): void {
     this.queryTimes.push(duration);
-    
+
     // Keep only last 1000 query times for memory efficiency
     if (this.queryTimes.length > 1000) {
       this.queryTimes.shift();
@@ -50,14 +52,14 @@ class DatabasePerformanceMonitor {
       this.slowQueries.push({
         query: queryName,
         duration,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
-      
+
       // Keep only last 100 slow queries
       if (this.slowQueries.length > 100) {
         this.slowQueries.shift();
       }
-      
+
       console.warn(`Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`);
     }
   }
@@ -66,7 +68,9 @@ class DatabasePerformanceMonitor {
    * Gets average query time.
    */
   getAverageQueryTime(): number {
-    if (this.queryTimes.length === 0) {return 0;}
+    if (this.queryTimes.length === 0) {
+      return 0;
+    }
     return this.queryTimes.reduce((a, b) => a + b, 0) / this.queryTimes.length;
   }
 
@@ -77,14 +81,14 @@ class DatabasePerformanceMonitor {
     const avg = this.getAverageQueryTime();
     const max = Math.max(...this.queryTimes);
     const min = Math.min(...this.queryTimes);
-    
+
     return {
       averageQueryTime: `${avg.toFixed(2)}ms`,
       maxQueryTime: `${max.toFixed(2)}ms`,
       minQueryTime: `${min.toFixed(2)}ms`,
       totalQueries: this.queryTimes.length,
       slowQueries: this.slowQueries.length,
-      recentSlowQueries: this.slowQueries.slice(-10)
+      recentSlowQueries: this.slowQueries.slice(-10),
     };
   }
 
@@ -116,7 +120,7 @@ class DatabasePerformanceMonitor {
    */
   private getCommonSlowQueries(): string[] {
     const queryFrequency: Record<string, number> = {};
-    
+
     this.slowQueries.forEach(({ query }) => {
       queryFrequency[query] = (queryFrequency[query] || 0) + 1;
     });

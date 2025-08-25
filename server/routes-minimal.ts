@@ -96,7 +96,7 @@ function rateLimitInvitations(limit: number) {
     if (userLimit.count >= limit) {
       return res.status(429).json({
         message: 'Too many invitation requests. Please try again later.',
-        code: 'RATE_LIMIT_EXCEEDED'
+        code: 'RATE_LIMIT_EXCEEDED',
       });
     }
 
@@ -108,7 +108,7 @@ function rateLimitInvitations(limit: number) {
 // Audit logging function - simplified version
 /**
  * Creates an audit log entry for invitation actions.
- * 
+ *
  * @param {string} invitationId - The invitation ID to log.
  * @param {string} action - The action performed.
  * @param {string} [performedBy] - User who performed the action.
@@ -148,7 +148,7 @@ async function createInvitationAuditLog(
       details,
       previousStatus,
       newStatus,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (_error) {
     console.error('Failed to create audit log:', _error);
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Session setup failed: ${_error}`, 'error');
   }
-  
+
   // Setup authentication routes
   try {
     setupAuthRoutes(app);
@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Auth routes failed: ${_error}`, 'error');
   }
-  
+
   // Register permissions API routes
   try {
     registerPermissionsRoutes(app);
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Permissions routes failed: ${_error}`, 'error');
   }
-  
+
   // Register organization API routes
   try {
     registerOrganizationRoutes(app);
@@ -196,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Organization routes failed: ${_error}`, 'error');
   }
-  
+
   // Register user API routes
   try {
     registerUserRoutes(app);
@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Demo management routes failed: ${_error}`, 'error');
   }
 
-  // Register feature management API routes  
+  // Register feature management API routes
   try {
     registerFeatureManagementRoutes(app);
     log('✅ Feature management routes registered');
@@ -244,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ AI monitoring routes failed: ${_error}`, 'error');
   }
-  
+
   // Register building API routes
   try {
     registerBuildingRoutes(app);
@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Building routes failed: ${_error}`, 'error');
   }
-  
+
   // Register common spaces API routes
   try {
     registerCommonSpacesRoutes(app);
@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register document API routes
   try {
     registerDocumentRoutes(app);
-  registerCompanyHistoryRoutes(app);
+    registerCompanyHistoryRoutes(app);
     registerTrialRequestRoutes(app);
     log('✅ Document routes registered');
   } catch (_error) {
@@ -356,10 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // GET /api/features - Get all features
     app.get('/api/features', requireAuth, async (req: any, res: any) => {
       try {
-        const features = await db
-          .select()
-          .from(schema.features)
-          .orderBy(schema.features.createdAt);
+        const features = await db.select().from(schema.features).orderBy(schema.features.createdAt);
 
         res.json(features);
       } catch (_error) {
@@ -415,30 +412,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     // POST /api/features/:id/toggle-strategic - Toggle strategic path for feature
-    app.post('/api/features/:id/toggle-strategic', requireAuth, authorize('update:feature'), async (req: any, res: any) => {
-      try {
-        const { isStrategicPath } = req.body;
-        
-        if (typeof isStrategicPath !== 'boolean') {
-          return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
-        }
+    app.post(
+      '/api/features/:id/toggle-strategic',
+      requireAuth,
+      authorize('update:feature'),
+      async (req: any, res: any) => {
+        try {
+          const { isStrategicPath } = req.body;
 
-        const [feature] = await db
-          .update(schema.features)
-          .set({ isStrategicPath, updatedAt: new Date() })
-          .where(eq(schema.features.id, req.params.id))
-          .returning();
+          if (typeof isStrategicPath !== 'boolean') {
+            return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
+          }
 
-        if (!feature) {
-          return res.status(404).json({ message: 'Feature not found' });
+          const [feature] = await db
+            .update(schema.features)
+            .set({ isStrategicPath, updatedAt: new Date() })
+            .where(eq(schema.features.id, req.params.id))
+            .returning();
+
+          if (!feature) {
+            return res.status(404).json({ message: 'Feature not found' });
+          }
+
+          res.json(feature);
+        } catch (_error) {
+          console.error('Error updating strategic path:', _error);
+          res.status(500).json({ message: 'Failed to update strategic path' });
         }
-        
-        res.json(feature);
-      } catch (_error) {
-        console.error('Error updating strategic path:', _error);
-        res.status(500).json({ message: 'Failed to update strategic path' });
       }
-    });
+    );
 
     log('✅ Features and actionable items routes registered');
   } catch (_error) {
@@ -451,35 +453,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Generate mock quality metrics data that matches the expected format
         const metrics = {
-          coverage: "85%",
-          codeQuality: "A",
-          securityIssues: "2",
-          buildTime: "1.2s",
-          translationCoverage: "92%",
-          responseTime: "120ms",
-          memoryUsage: "45MB",
-          bundleSize: "2.1MB", 
-          dbQueryTime: "15ms",
-          pageLoadTime: "1.8s"
+          coverage: '85%',
+          codeQuality: 'A',
+          securityIssues: '2',
+          buildTime: '1.2s',
+          translationCoverage: '92%',
+          responseTime: '120ms',
+          memoryUsage: '45MB',
+          bundleSize: '2.1MB',
+          dbQueryTime: '15ms',
+          pageLoadTime: '1.8s',
         };
-        
+
         res.json(metrics);
       } catch (_error) {
         console.error('Error fetching quality metrics:', _error);
         res.status(500).json({ message: 'Failed to fetch quality metrics' });
       }
     });
-    
+
     log('✅ Quality metrics routes registered');
   } catch (_error) {
     log(`❌ Quality metrics routes failed: ${_error}`, 'error');
   }
-  
+
   // Register invitation routes
   try {
     // POST /api/invitations - Create single invitation
-    app.post('/api/invitations', 
-      requireAuth, 
+    app.post(
+      '/api/invitations',
+      requireAuth,
       authorize('create:user'),
       rateLimitInvitations(10),
       async (req: any, res: any) => {
@@ -488,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currentUser = req.user;
           console.warn('🔍 Current user:', currentUser?.id);
           const invitationData = req.body;
-          
+
           // Validate request data
           const validation = insertInvitationSchema.safeParse(invitationData);
           if (!validation.success) {
@@ -496,18 +499,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('📝 Raw input _data:', invitationData);
             return res.status(400).json({
               message: 'Invalid invitation data',
-              errors: validation.error.issues
+              errors: validation.error.issues,
             });
           }
-          
+
           const { email, role, organizationId } = validation.data;
           const { buildingId, residenceId, personalMessage } = invitationData; // Extract from raw data since not in schema
-          
+
           // Role-based access control for roles
           if (currentUser.role === 'manager' && ['admin', 'manager'].includes(role as string)) {
             return res.status(403).json({
               message: 'Managers can only invite tenants and residents',
-              code: 'INSUFFICIENT_ROLE_PERMISSIONS'
+              code: 'INSUFFICIENT_ROLE_PERMISSIONS',
             });
           }
 
@@ -516,50 +519,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Only require residence if a specific building is selected
             if (buildingId && buildingId !== 'none' && !residenceId) {
               return res.status(400).json({
-                message: 'Residence must be assigned for tenants and residents when a building is selected',
-                code: 'RESIDENCE_REQUIRED'
+                message:
+                  'Residence must be assigned for tenants and residents when a building is selected',
+                code: 'RESIDENCE_REQUIRED',
               });
             }
           }
 
           // Check if user already exists
-          const existingUser = await db.select().from(schemaUsers).where(eq(schemaUsers.email, email)).limit(1);
+          const existingUser = await db
+            .select()
+            .from(schemaUsers)
+            .where(eq(schemaUsers.email, email))
+            .limit(1);
           if (existingUser.length > 0) {
             return res.status(409).json({
               message: 'User with this email already exists',
-              code: 'USER_EXISTS'
+              code: 'USER_EXISTS',
             });
           }
-          
+
           // Check for existing pending invitation and delete if found
-          const existingInvitation = await db.select({
-            id: invitations.id,
-            email: invitations.email,
-            status: invitations.status,
-            expiresAt: invitations.expiresAt,
-            organizationId: invitations.organizationId
-          })
+          const existingInvitation = await db
+            .select({
+              id: invitations.id,
+              email: invitations.email,
+              status: invitations.status,
+              expiresAt: invitations.expiresAt,
+              organizationId: invitations.organizationId,
+            })
             .from(invitations)
-            .where(and(
-              eq(invitations.email, email),
-              eq(invitations.organizationId, organizationId),
-              eq(invitations.status, 'pending'),
-              gte(invitations.expiresAt, new Date())
-            ))
-            .limit(1);
-            
-          if (existingInvitation.length > 0) {
-            // Delete existing invitation to replace with new one
-            console.warn(`🔄 Found existing invitation for ${email} in organization ${organizationId}, deleting...`);
-            
-            await db.delete(invitations)
-              .where(and(
+            .where(
+              and(
                 eq(invitations.email, email),
                 eq(invitations.organizationId, organizationId),
                 eq(invitations.status, 'pending'),
                 gte(invitations.expiresAt, new Date())
-              ));
-            
+              )
+            )
+            .limit(1);
+
+          if (existingInvitation.length > 0) {
+            // Delete existing invitation to replace with new one
+            console.warn(
+              `🔄 Found existing invitation for ${email} in organization ${organizationId}, deleting...`
+            );
+
+            await db
+              .delete(invitations)
+              .where(
+                and(
+                  eq(invitations.email, email),
+                  eq(invitations.organizationId, organizationId),
+                  eq(invitations.status, 'pending'),
+                  gte(invitations.expiresAt, new Date())
+                )
+              );
+
             // Create audit log for the deleted invitation
             await createInvitationAuditLog(
               existingInvitation[0].id,
@@ -570,48 +586,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'deleted',
               { reason: 'replaced_with_new_invitation', email, organizationId }
             );
-            
-            console.warn(`✅ Deleted existing invitation for ${email} in organization ${organizationId}`);
+
+            console.warn(
+              `✅ Deleted existing invitation for ${email} in organization ${organizationId}`
+            );
           }
-          
+
           // Generate secure token
           const token = generateSecureToken();
           const tokenHash = hashToken(token);
-          
+
           // Set expiration (7 days from now)
           const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-          
+
           // Create invitation
           const invitationContext = {
             organizationId,
             buildingId: buildingId === 'none' ? null : buildingId,
-            residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null
+            residenceId: ['tenant', 'resident'].includes(role as string) ? residenceId : null,
           };
 
-          const [newInvitation] = await db.insert(invitations).values({
-            email,
-            token,
-            tokenHash,
-            role: role as any,
-            invitedByUserId: currentUser.id,
-            organizationId,
-            buildingId: buildingId === 'none' ? null : buildingId,
-            expiresAt,
-            personalMessage,
-            invitationContext,
-          }).returning({
-            id: invitations.id,
-            email: invitations.email,
-            role: invitations.role,
-            status: invitations.status,
-            organizationId: invitations.organizationId,
-            buildingId: invitations.buildingId,
-            invitedByUserId: invitations.invitedByUserId,
-            createdAt: invitations.createdAt,
-            expiresAt: invitations.expiresAt,
-            personalMessage: invitations.personalMessage
-          });
-          
+          const [newInvitation] = await db
+            .insert(invitations)
+            .values({
+              email,
+              token,
+              tokenHash,
+              role: role as any,
+              invitedByUserId: currentUser.id,
+              organizationId,
+              buildingId: buildingId === 'none' ? null : buildingId,
+              expiresAt,
+              personalMessage,
+              invitationContext,
+            })
+            .returning({
+              id: invitations.id,
+              email: invitations.email,
+              role: invitations.role,
+              status: invitations.status,
+              organizationId: invitations.organizationId,
+              buildingId: invitations.buildingId,
+              invitedByUserId: invitations.invitedByUserId,
+              createdAt: invitations.createdAt,
+              expiresAt: invitations.expiresAt,
+              personalMessage: invitations.personalMessage,
+            });
+
           // Create audit log
           await createInvitationAuditLog(
             newInvitation.id,
@@ -622,22 +643,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'pending',
             { email, role, organizationId, buildingId, residenceId }
           );
-          
+
           // Send invitation email
           try {
             // Use localhost for development, production URL for production
             const isDevelopment = process.env.NODE_ENV !== 'production';
-            const baseUrl = isDevelopment ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000');
+            const baseUrl = isDevelopment
+              ? 'http://localhost:5000'
+              : process.env.FRONTEND_URL || 'http://localhost:5000';
             const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
-            
+
             // Get organization name
-            const organization = await db.select({ name: organizations.name })
+            const organization = await db
+              .select({ name: organizations.name })
               .from(organizations)
               .where(eq(organizations.id, organizationId))
               .limit(1);
-              
+
             const organizationName = organization[0]?.name || 'Your Organization';
-            
+
             console.log('📧 Attempting to send invitation email with params:', {
               to: email,
               recipientName: email.split('@')[0],
@@ -645,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               inviterName: `${currentUser.firstName} ${currentUser.lastName}`,
               expiresAt: expiresAt.toISOString(),
               language: 'fr',
-              personalMessage
+              personalMessage,
             });
 
             const emailSent = await emailService.sendInvitationEmail(
@@ -658,7 +682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'fr', // Default to French for Quebec
               personalMessage
             );
-            
+
             if (emailSent) {
               console.warn(`✅ Invitation email sent successfully to ${email}`);
             } else {
@@ -668,20 +692,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('❌ Failed to send invitation email:', ___emailError);
             // Don't fail the entire request if email fails, just log it
           }
-          
+
           // Return invitation data (no sensitive fields in return object)
           const safeInvitation = newInvitation;
-          
+
           // Use same environment detection for response URL
           const isDevelopmentResponse = process.env.NODE_ENV !== 'production';
-          const responseBaseUrl = isDevelopmentResponse ? 'http://localhost:5000' : (process.env.FRONTEND_URL || 'http://localhost:5000');
-          
+          const responseBaseUrl = isDevelopmentResponse
+            ? 'http://localhost:5000'
+            : process.env.FRONTEND_URL || 'http://localhost:5000';
+
           res.status(201).json({
             invitation: safeInvitation,
             message: 'Invitation created successfully',
-            invitationUrl: `${responseBaseUrl}/register?invitation=${token}`
+            invitationUrl: `${responseBaseUrl}/register?invitation=${token}`,
           });
-          
         } catch (_error) {
           console.error('Error creating invitation:', _error);
           res.status(500).json({ message: 'Failed to create invitation' });
@@ -690,52 +715,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // GET /api/invitations - List invitations
-    app.get('/api/invitations', requireAuth, authorize('read:users'), async (req: any, res: any) => {
-      try {
-        const invitationList = await db.select().from(invitations);
-        res.json(invitationList);
-      } catch (_error) {
-        console.error('Error fetching invitations:', _error);
-        res.status(500).json({ message: 'Failed to fetch invitations' });
+    app.get(
+      '/api/invitations',
+      requireAuth,
+      authorize('read:users'),
+      async (req: any, res: any) => {
+        try {
+          const invitationList = await db.select().from(invitations);
+          res.json(invitationList);
+        } catch (_error) {
+          console.error('Error fetching invitations:', _error);
+          res.status(500).json({ message: 'Failed to fetch invitations' });
+        }
       }
-    });
+    );
 
     // POST /api/invitations/validate - Validate invitation token
     app.post('/api/invitations/validate', async (req: any, res: any) => {
       try {
         const { token } = req.body;
         // Validating invitation token
-        
+
         if (!token) {
           // Missing token in request body
           return res.status(400).json({
             message: 'Token is required',
-            code: 'TOKEN_REQUIRED'
+            code: 'TOKEN_REQUIRED',
           });
         }
 
         // Find invitation by token hash (since we store hashed tokens)
         const tokenHash = hashToken(token);
-        console.warn('🔐 Token hash lookup:', { 
+        console.warn('🔐 Token hash lookup:', {
           originalToken: `${token.substring(0, 8)}...`,
-          tokenHash: `${tokenHash.substring(0, 8)}...` 
+          tokenHash: `${tokenHash.substring(0, 8)}...`,
         });
-        
-        const invitation = await db.select({
-          id: invitations.id,
-          email: invitations.email,
-          role: invitations.role,
-          status: invitations.status,
-          organizationId: invitations.organizationId,
-          buildingId: invitations.buildingId,
-          expiresAt: invitations.expiresAt,
-          invitedByUserId: invitations.invitedByUserId,
-          personalMessage: invitations.personalMessage
-        })
-        .from(invitations)
-        .where(eq(invitations.tokenHash, tokenHash))
-        .limit(1);
-        
+
+        const invitation = await db
+          .select({
+            id: invitations.id,
+            email: invitations.email,
+            role: invitations.role,
+            status: invitations.status,
+            organizationId: invitations.organizationId,
+            buildingId: invitations.buildingId,
+            expiresAt: invitations.expiresAt,
+            invitedByUserId: invitations.invitedByUserId,
+            personalMessage: invitations.personalMessage,
+          })
+          .from(invitations)
+          .where(eq(invitations.tokenHash, tokenHash))
+          .limit(1);
+
         console.warn('📊 Database query _result:', { found: invitation.length > 0 });
 
         if (invitation.length === 0) {
@@ -751,7 +782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({
             message: 'Invalid invitation token',
             code: 'TOKEN_INVALID',
-            isValid: false
+            isValid: false,
           });
         }
 
@@ -771,7 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(410).json({
             message: 'Invitation has expired',
             code: 'TOKEN_EXPIRED',
-            isValid: false
+            isValid: false,
           });
         }
 
@@ -789,20 +820,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(409).json({
             message: 'Invitation has already been used',
             code: 'TOKEN_USED',
-            isValid: false
+            isValid: false,
           });
         }
 
         // Get organization and inviter information
-        const organization = await db.select({ name: organizations.name })
+        const organization = await db
+          .select({ name: organizations.name })
           .from(organizations)
           .where(eq(organizations.id, invitationData.organizationId))
           .limit(1);
 
-        const inviter = await db.select({ 
-          firstName: schemaUsers.firstName, 
-          lastName: schemaUsers.lastName 
-        })
+        const inviter = await db
+          .select({
+            firstName: schemaUsers.firstName,
+            lastName: schemaUsers.lastName,
+          })
           .from(schemaUsers)
           .where(eq(schemaUsers.id, invitationData.invitedByUserId))
           .limit(1);
@@ -821,14 +854,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isValid: true,
           invitation: invitationData,
           organizationName: organization[0]?.name || 'Koveo Gestion',
-          inviterName: inviter[0] ? `${inviter[0].firstName} ${inviter[0].lastName}` : 'Administrator'
+          inviterName: inviter[0]
+            ? `${inviter[0].firstName} ${inviter[0].lastName}`
+            : 'Administrator',
         });
-
       } catch (_error) {
         console.error('Error validating invitation:', _error);
-        res.status(500).json({ 
+        res.status(500).json({
           message: 'Failed to validate invitation',
-          isValid: false 
+          isValid: false,
         });
       }
     });
@@ -837,37 +871,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
       try {
         const { token } = req.params;
-        const { password, firstName, lastName, phone, address, city, province, postalCode, language, dateOfBirth, dataCollectionConsent, marketingConsent, analyticsConsent, thirdPartyConsent, acknowledgedRights } = req.body;
+        const {
+          password,
+          firstName,
+          lastName,
+          phone,
+          address,
+          city,
+          province,
+          postalCode,
+          language,
+          dateOfBirth,
+          dataCollectionConsent,
+          marketingConsent,
+          analyticsConsent,
+          thirdPartyConsent,
+          acknowledgedRights,
+        } = req.body;
 
         if (!token) {
           return res.status(400).json({
             message: 'Token is required',
-            code: 'TOKEN_REQUIRED'
+            code: 'TOKEN_REQUIRED',
           });
         }
 
         if (!password || !firstName || !lastName) {
           return res.status(400).json({
             message: 'Password, first name, and last name are required',
-            code: 'MISSING_REQUIRED_FIELDS'
+            code: 'MISSING_REQUIRED_FIELDS',
           });
         }
 
         if (!dataCollectionConsent || !acknowledgedRights) {
           return res.status(400).json({
             message: 'Data collection consent and privacy rights acknowledgment are required',
-            code: 'CONSENT_REQUIRED'
+            code: 'CONSENT_REQUIRED',
           });
         }
 
         // Find and validate invitation
         const tokenHash = hashToken(token);
-        const invitation = await db.select()
+        const invitation = await db
+          .select()
           .from(invitations)
-          .where(and(
-            eq(invitations.tokenHash, tokenHash),
-            eq(invitations.status, 'pending')
-          ))
+          .where(and(eq(invitations.tokenHash, tokenHash), eq(invitations.status, 'pending')))
           .limit(1);
 
         if (invitation.length === 0) {
@@ -882,7 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           return res.status(404).json({
             message: 'Invalid or expired invitation',
-            code: 'INVALID_INVITATION'
+            code: 'INVALID_INVITATION',
           });
         }
 
@@ -901,16 +949,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           return res.status(410).json({
             message: 'Invitation has expired',
-            code: 'TOKEN_EXPIRED'
+            code: 'TOKEN_EXPIRED',
           });
         }
 
         // Check if user already exists
-        const existingUser = await db.select().from(schemaUsers).where(eq(schemaUsers.email, invitationData.email)).limit(1);
+        const existingUser = await db
+          .select()
+          .from(schemaUsers)
+          .where(eq(schemaUsers.email, invitationData.email))
+          .limit(1);
         if (existingUser.length > 0) {
           return res.status(409).json({
             message: 'User with this email already exists',
-            code: 'USER_EXISTS'
+            code: 'USER_EXISTS',
           });
         }
 
@@ -928,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName,
           role: invitationData.role,
           phone: phone || '',
-          language: language || 'fr'
+          language: language || 'fr',
         });
 
         // Create user-organization relationship
@@ -936,20 +988,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: newUser.id,
           organizationId: invitationData.organizationId,
           isActive: true,
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         });
 
         // If invitation includes a building/residence assignment, create those relationships
         if (invitationData.buildingId && ['tenant', 'resident'].includes(invitationData.role)) {
           // For now, we'll just log this - residence assignment might need additional logic
-          console.warn(`User ${newUser.id} assigned to building ${invitationData.buildingId} for role ${invitationData.role}`);
+          console.warn(
+            `User ${newUser.id} assigned to building ${invitationData.buildingId} for role ${invitationData.role}`
+          );
         }
 
         // Mark invitation as accepted
-        await db.update(invitations)
-          .set({ 
+        await db
+          .update(invitations)
+          .set({
             status: 'accepted',
-            acceptedAt: new Date()
+            acceptedAt: new Date(),
           })
           .where(eq(invitations.id, invitationData.id));
 
@@ -960,10 +1015,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req,
           'pending',
           'accepted',
-          { 
+          {
             email: invitationData.email,
             userId: newUser.id,
-            organizationId: invitationData.organizationId 
+            organizationId: invitationData.organizationId,
           }
         );
 
@@ -972,14 +1027,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(201).json({
           user: userData,
           message: 'Account created successfully',
-          redirectTo: '/login'
+          redirectTo: '/login',
         });
-
       } catch (_error) {
         console.error('Error accepting invitation:', _error);
-        res.status(500).json({ 
+        res.status(500).json({
           message: 'Failed to create account',
-          code: 'ACCOUNT_CREATION_FAILED'
+          code: 'ACCOUNT_CREATION_FAILED',
         });
       }
     });
@@ -992,89 +1046,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register improvement suggestions routes
   try {
     // GET /api/pillars/suggestions - Get improvement suggestions
-    app.get('/api/pillars/suggestions', requireAuth, authorize('read:improvement_suggestions'), async (req: any, res: any) => {
-      try {
-        // Fetch only the columns that exist in the database
-        const suggestions = await db
-          .select({
-            id: schema.improvementSuggestions.id,
-            title: schema.improvementSuggestions.title,
-            description: schema.improvementSuggestions.description,
-            category: schema.improvementSuggestions.category,
-            priority: schema.improvementSuggestions.priority,
-            status: schema.improvementSuggestions.status,
-            filePath: schema.improvementSuggestions.filePath,
-            createdAt: schema.improvementSuggestions.createdAt
-          })
-          .from(schema.improvementSuggestions)
-          .orderBy(desc(schema.improvementSuggestions.createdAt));
-        res.json(suggestions);
-      } catch (_error) {
-        console.error('Error fetching suggestions:', _error);
-        res.status(500).json({ message: 'Failed to fetch improvement suggestions' });
+    app.get(
+      '/api/pillars/suggestions',
+      requireAuth,
+      authorize('read:improvement_suggestions'),
+      async (req: any, res: any) => {
+        try {
+          // Fetch only the columns that exist in the database
+          const suggestions = await db
+            .select({
+              id: schema.improvementSuggestions.id,
+              title: schema.improvementSuggestions.title,
+              description: schema.improvementSuggestions.description,
+              category: schema.improvementSuggestions.category,
+              priority: schema.improvementSuggestions.priority,
+              status: schema.improvementSuggestions.status,
+              filePath: schema.improvementSuggestions.filePath,
+              createdAt: schema.improvementSuggestions.createdAt,
+            })
+            .from(schema.improvementSuggestions)
+            .orderBy(desc(schema.improvementSuggestions.createdAt));
+          res.json(suggestions);
+        } catch (_error) {
+          console.error('Error fetching suggestions:', _error);
+          res.status(500).json({ message: 'Failed to fetch improvement suggestions' });
+        }
       }
-    });
+    );
 
     // POST /api/pillars/suggestions/:id/acknowledge - Acknowledge a suggestion
-    app.post('/api/pillars/suggestions/:id/acknowledge', requireAuth, authorize('update:improvement_suggestions'), async (req: any, res: any) => {
-      try {
-        // Update directly in database
-        const [suggestion] = await db
-          .update(schema.improvementSuggestions)
-          .set({ status: 'Acknowledged' })
-          .where(eq(schema.improvementSuggestions.id, req.params.id))
-          .returning();
+    app.post(
+      '/api/pillars/suggestions/:id/acknowledge',
+      requireAuth,
+      authorize('update:improvement_suggestions'),
+      async (req: any, res: any) => {
+        try {
+          // Update directly in database
+          const [suggestion] = await db
+            .update(schema.improvementSuggestions)
+            .set({ status: 'Acknowledged' })
+            .where(eq(schema.improvementSuggestions.id, req.params.id))
+            .returning();
 
-        if (!suggestion) {
-          return res.status(404).json({ message: 'Suggestion not found' });
+          if (!suggestion) {
+            return res.status(404).json({ message: 'Suggestion not found' });
+          }
+          res.json(suggestion);
+        } catch (_error) {
+          console.error('Error acknowledging suggestion:', _error);
+          res.status(500).json({ message: 'Failed to update suggestion status' });
         }
-        res.json(suggestion);
-      } catch (_error) {
-        console.error('Error acknowledging suggestion:', _error);
-        res.status(500).json({ message: 'Failed to update suggestion status' });
       }
-    });
+    );
 
     // POST /api/pillars/suggestions/:id/complete - Complete a suggestion (delete it)
-    app.post('/api/pillars/suggestions/:id/complete', requireAuth, authorize('delete:improvement_suggestions'), async (req: any, res: any) => {
-      try {
-        // Delete the suggestion from database
-        const [deletedSuggestion] = await db
-          .delete(schema.improvementSuggestions)
-          .where(eq(schema.improvementSuggestions.id, req.params.id))
-          .returning({
-            id: schema.improvementSuggestions.id,
-            title: schema.improvementSuggestions.title,
-            description: schema.improvementSuggestions.description,
-            category: schema.improvementSuggestions.category,
-            priority: schema.improvementSuggestions.priority,
-            status: schema.improvementSuggestions.status
-          });
-
-        if (!deletedSuggestion) {
-          return res.status(404).json({ message: 'Suggestion not found' });
-        }
-
-        // Trigger continuous improvement update in background
-        console.warn('🔄 Triggering continuous improvement update...');
-        import('child_process')
-          .then(({ spawn }) => {
-            const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
-              detached: true,
-              stdio: 'ignore',
+    app.post(
+      '/api/pillars/suggestions/:id/complete',
+      requireAuth,
+      authorize('delete:improvement_suggestions'),
+      async (req: any, res: any) => {
+        try {
+          // Delete the suggestion from database
+          const [deletedSuggestion] = await db
+            .delete(schema.improvementSuggestions)
+            .where(eq(schema.improvementSuggestions.id, req.params.id))
+            .returning({
+              id: schema.improvementSuggestions.id,
+              title: schema.improvementSuggestions.title,
+              description: schema.improvementSuggestions.description,
+              category: schema.improvementSuggestions.category,
+              priority: schema.improvementSuggestions.priority,
+              status: schema.improvementSuggestions.status,
             });
-            qualityCheck.unref();
-          })
-          .catch((_error) => {
-            console.error('Error triggering quality check:', _error);
-          });
 
-        res.json({ message: 'Suggestion completed and deleted successfully' });
-      } catch (_error) {
-        console.error('Error completing suggestion:', _error);
-        res.status(500).json({ message: 'Failed to complete suggestion' });
+          if (!deletedSuggestion) {
+            return res.status(404).json({ message: 'Suggestion not found' });
+          }
+
+          // Trigger continuous improvement update in background
+          console.warn('🔄 Triggering continuous improvement update...');
+          import('child_process')
+            .then(({ spawn }) => {
+              const qualityCheck = spawn('tsx', ['scripts/run-quality-check.ts'], {
+                detached: true,
+                stdio: 'ignore',
+              });
+              qualityCheck.unref();
+            })
+            .catch((_error) => {
+              console.error('Error triggering quality check:', _error);
+            });
+
+          res.json({ message: 'Suggestion completed and deleted successfully' });
+        } catch (_error) {
+          console.error('Error completing suggestion:', _error);
+          res.status(500).json({ message: 'Failed to complete suggestion' });
+        }
       }
-    });
+    );
 
     log('✅ Improvement suggestions routes registered');
   } catch (_error) {
@@ -1086,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Import and register the Law 25 compliance route
     const law25ComplianceRouter = (await import('./routes/law25-compliance')).default;
     app.use('/api/law25-compliance', law25ComplianceRouter);
-    
+
     log('✅ Law 25 compliance routes registered');
   } catch (_error) {
     log(`❌ Law 25 compliance routes failed: ${_error}`, 'error');
@@ -1109,7 +1178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
-    // GET /api/user-residences - Get all user-residence relationships  
+    // GET /api/user-residences - Get all user-residence relationships
     app.get('/api/user-residences', requireAuth, async (req: any, res: any) => {
       try {
         const userRes = await db
@@ -1128,7 +1197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     log(`❌ User relationship endpoints failed: ${error}`, 'error');
   }
-  
+
   // Test route
   app.get('/test', (req, res) => {
     res.json({ message: 'Application running successfully' });
@@ -1161,7 +1230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(404).json({
       message: 'API endpoint not found',
       path: req.originalUrl,
-      code: 'NOT_FOUND'
+      code: 'NOT_FOUND',
     });
   });
 

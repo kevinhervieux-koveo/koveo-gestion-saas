@@ -35,50 +35,71 @@ interface ExtractableComponent {
 // Utility functions for component analysis
 const analyzeComponentComplexity = (pattern: string): number => {
   let complexity = 0;
-  
+
   // Add complexity for various features
-  if (pattern.includes('useState')) {complexity += 2;}
-  if (pattern.includes('useEffect')) {complexity += 2;}
-  if (pattern.includes('onClick')) {complexity += 1;}
-  if (pattern.includes('onChange')) {complexity += 1;}
-  if (pattern.includes('className')) {complexity += 1;}
-  if (pattern.includes('style=')) {complexity += 1;}
-  if (pattern.includes('conditional')) {complexity += 2;}
-  if (pattern.match(/\?\s*:/) || pattern.includes('&&')) {complexity += 1;} // Conditional rendering
-  if (pattern.match(/map\(/)) {complexity += 1;} // List rendering
-  
+  if (pattern.includes('useState')) {
+    complexity += 2;
+  }
+  if (pattern.includes('useEffect')) {
+    complexity += 2;
+  }
+  if (pattern.includes('onClick')) {
+    complexity += 1;
+  }
+  if (pattern.includes('onChange')) {
+    complexity += 1;
+  }
+  if (pattern.includes('className')) {
+    complexity += 1;
+  }
+  if (pattern.includes('style=')) {
+    complexity += 1;
+  }
+  if (pattern.includes('conditional')) {
+    complexity += 2;
+  }
+  if (pattern.match(/\?\s*:/) || pattern.includes('&&')) {
+    complexity += 1;
+  } // Conditional rendering
+  if (pattern.match(/map\(/)) {
+    complexity += 1;
+  } // List rendering
+
   return complexity;
 };
 
 const extractProps = (pattern: string): string[] => {
   const props = new Set<string>();
-  
+
   // Extract prop names from JSX attributes
   const attrMatches = pattern.match(/\s(\w+)=/g);
   if (attrMatches) {
-    attrMatches.forEach(match => {
+    attrMatches.forEach((match) => {
       const propName = match.trim().replace('=', '');
       if (!['className', 'style', 'key', 'ref'].includes(propName)) {
         props.add(propName);
       }
     });
   }
-  
+
   // Extract from destructured props
   const destructuredProps = pattern.match(/{\s*([^}]+)\s*}/);
   if (destructuredProps) {
-    const propList = destructuredProps[1].split(',').map(p => p.trim().split(':')[0].trim());
-    propList.forEach(prop => {
+    const propList = destructuredProps[1].split(',').map((p) => p.trim().split(':')[0].trim());
+    propList.forEach((prop) => {
       if (prop && !['children'].includes(prop)) {
         props.add(prop);
       }
     });
   }
-  
+
   return Array.from(_props);
 };
 
-const generateComponentTemplate = (type: ComponentPattern['type'], _props: string[]): ExtractableComponent => {
+const generateComponentTemplate = (
+  type: ComponentPattern['type'],
+  _props: string[]
+): ExtractableComponent => {
   const templates = {
     button: {
       name: 'StandardButton',
@@ -133,16 +154,16 @@ const StandardButton: React.FC<StandardButtonProps> = ({
       usage: [
         '<StandardButton variant="primary" onClick={handleSubmit}>Submit</StandardButton>',
         '<StandardButton variant="danger" onClick={handleDelete}>Delete</StandardButton>',
-        '<StandardButton variant="ghost" size="sm">Cancel</StandardButton>'
+        '<StandardButton variant="ghost" size="sm">Cancel</StandardButton>',
       ],
       benefits: [
         'Consistent button styling across the application',
         'Built-in loading and disabled states',
         'Reduced code duplication',
-        'Easy to maintain and update styling'
-      ]
+        'Easy to maintain and update styling',
+      ],
     },
-    
+
     form: {
       name: 'StandardForm',
       description: 'Reusable form wrapper with validation and error handling',
@@ -214,16 +235,16 @@ const StandardForm: React.FC<StandardFormProps> = ({
         '<StandardForm onSubmit={handleUserSubmit} validationSchema={userSchema}>',
         '  <FormField name="email" type="email" label="Email" />',
         '  <FormField name="password" type="password" label="Password" />',
-        '</StandardForm>'
+        '</StandardForm>',
       ],
       benefits: [
         'Centralized form validation logic',
         'Consistent error handling',
         'Built-in loading states',
-        'Reduced boilerplate code'
-      ]
+        'Reduced boilerplate code',
+      ],
     },
-    
+
     card: {
       name: 'StandardCard',
       description: 'Flexible card component with header, content, and actions',
@@ -291,16 +312,16 @@ const StandardCard: React.FC<StandardCardProps> = ({
         '<StandardCard title="User Profile" actions={<Button>Edit</Button>}>',
         '  <UserDetails user={user} />',
         '</StandardCard>',
-        '<StandardCard shadow={false} border={false}>Simple content</StandardCard>'
+        '<StandardCard shadow={false} border={false}>Simple content</StandardCard>',
       ],
       benefits: [
         'Consistent card styling across the app',
         'Flexible content and action areas',
         'Configurable spacing and styling',
-        'Accessible structure'
-      ]
+        'Accessible structure',
+      ],
     },
-    
+
     input: {
       name: 'StandardInput',
       description: 'Form input with built-in validation and error display',
@@ -401,16 +422,16 @@ const StandardInput: React.FC<StandardInputProps> = ({
       usage: [
         '<StandardInput name="email" label="Email Address" type="email" required />',
         '<StandardInput name="phone" label="Phone" type="tel" validation={validatePhone} />',
-        '<StandardInput name="description" label="Description" description="Optional field" />'
+        '<StandardInput name="description" label="Description" description="Optional field" />',
       ],
       benefits: [
         'Consistent input styling and behavior',
         'Built-in validation and error display',
         'Accessibility features included',
-        'Reduced form component complexity'
-      ]
+        'Reduced form component complexity',
+      ],
     },
-    
+
     modal: {
       name: 'StandardModal',
       description: 'Accessible modal dialog with backdrop and keyboard handling',
@@ -507,16 +528,16 @@ const StandardModal: React.FC<StandardModalProps> = ({
         '<StandardModal isOpen={showModal} onClose={closeModal} title="Confirm Action">',
         '  <p>Are you sure you want to delete this item?</p>',
         '</StandardModal>',
-        '<StandardModal isOpen={editMode} onClose={handleClose} size="lg" actions={<SaveButton />}>'
+        '<StandardModal isOpen={editMode} onClose={handleClose} size="lg" actions={<SaveButton />}>',
       ],
       benefits: [
         'Accessible modal implementation',
         'Consistent modal behavior across app',
         'Built-in keyboard and backdrop handling',
-        'Flexible sizing and content options'
-      ]
+        'Flexible sizing and content options',
+      ],
     },
-    
+
     table: {
       name: 'StandardTable',
       description: 'Data table with sorting, pagination, and selection',
@@ -705,21 +726,21 @@ function StandardTable<T extends { id: string | number }>({
         '  { _key: "email", label: "Email", sortable: true },',
         '  { _key: "role", label: "Role", render: (role) => <Badge>{role}</Badge> }',
         '];',
-        '<StandardTable data={users} columns={columns} loading={isLoading} />'
+        '<StandardTable data={users} columns={columns} loading={isLoading} />',
       ],
       benefits: [
         'Feature-rich data table out of the box',
         'Built-in sorting and pagination',
         'Flexible column rendering',
-        'Consistent table styling'
-      ]
-    }
+        'Consistent table styling',
+      ],
+    },
   };
-  
+
   const template = templates[type];
   return {
     ...template,
-    _props: props.length > 0 ? _props : template.props || []
+    _props: props.length > 0 ? _props : template.props || [],
   } as ExtractableComponent;
 };
 
@@ -729,14 +750,14 @@ describe('Component Extraction Analysis Tests', () => {
 
   beforeAll(() => {
     sourceFiles = [];
-    
+
     const scanDirectory = (dir: string) => {
       try {
         const items = fs.readdirSync(dir, { withFileTypes: true });
-        
+
         for (const item of items) {
           const fullPath = path.join(dir, item.name);
-          
+
           if (item.isDirectory() && !item.name.startsWith('.') && item.name !== 'node_modules') {
             scanDirectory(fullPath);
           } else if (item.isFile() && (item.name.endsWith('.tsx') || item.name.endsWith('.ts'))) {
@@ -747,26 +768,26 @@ describe('Component Extraction Analysis Tests', () => {
         // Directory might not exist
       }
     };
-    
+
     scanDirectory(clientDir);
   });
 
   describe('Button Component Analysis', () => {
     it('should identify extractable button patterns', () => {
       const buttonPatterns: ComponentPattern[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8').catch(() => '');
-        
+
         // Find button patterns
         const buttonMatches = content.match(/<button[^>]*>.*?<\/button>/gs) || [];
         const buttonComponentMatches = content.match(/<Button[^>]*>.*?<\/Button>/gs) || [];
-        
-        [...buttonMatches, ...buttonComponentMatches].forEach(pattern => {
+
+        [...buttonMatches, ...buttonComponentMatches].forEach((pattern) => {
           const complexity = analyzeComponentComplexity(pattern);
           const props = extractProps(pattern);
-          
-          const existingPattern = buttonPatterns.find(p => p.pattern === pattern);
+
+          const existingPattern = buttonPatterns.find((p) => p.pattern === pattern);
           if (existingPattern) {
             existingPattern.occurrences++;
             existingPattern.files.push(file);
@@ -777,31 +798,35 @@ describe('Component Extraction Analysis Tests', () => {
               occurrences: 1,
               files: [file],
               extractionPotential: complexity > 3 ? 'high' : complexity > 1 ? 'medium' : 'low',
-              complexityScore: complexity
+              complexityScore: complexity,
             });
           }
         });
       });
-      
-      const extractableButtons = buttonPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
-      
+
+      const extractableButtons = buttonPatterns.filter(
+        (p) => p.occurrences >= 2 || p.extractionPotential === 'high'
+      );
+
       console.warn('\n=== BUTTON COMPONENT ANALYSIS ===\n');
       console.warn(`Total button patterns found: ${buttonPatterns.length}`);
       console.warn(`Extractable button patterns: ${extractableButtons.length}`);
-      
+
       extractableButtons.forEach((pattern, _index) => {
-        console.warn(`\n${index + 1}. Button Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(
+          `\n${index + 1}. Button Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`
+        );
         console.warn(`   Occurrences: ${pattern.occurrences}`);
         console.warn(`   Files: ${pattern.files.length} files`);
         console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
-      
+
       if (extractableButtons.length > 0) {
         const buttonComponent = generateComponentTemplate('button', []);
         console.warn('\n=== SUGGESTED BUTTON COMPONENT ===\n');
         console.warn(buttonComponent.template);
       }
-      
+
       expect(buttonPatterns.length).toBeGreaterThan(0);
     });
   });
@@ -809,18 +834,18 @@ describe('Component Extraction Analysis Tests', () => {
   describe('Form Component Analysis', () => {
     it('should identify extractable form patterns', () => {
       const formPatterns: ComponentPattern[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8').catch(() => '');
-        
+
         // Find form patterns
         const formMatches = content.match(/<form[^>]*>.*?<\/form>/gs) || [];
-        
-        formMatches.forEach(pattern => {
+
+        formMatches.forEach((pattern) => {
           const complexity = analyzeComponentComplexity(pattern);
           const props = extractProps(pattern);
-          
-          const existingPattern = formPatterns.find(p => p.pattern === pattern);
+
+          const existingPattern = formPatterns.find((p) => p.pattern === pattern);
           if (existingPattern) {
             existingPattern.occurrences++;
             existingPattern.files.push(file);
@@ -831,31 +856,35 @@ describe('Component Extraction Analysis Tests', () => {
               occurrences: 1,
               files: [file],
               extractionPotential: complexity > 5 ? 'high' : complexity > 2 ? 'medium' : 'low',
-              complexityScore: complexity
+              complexityScore: complexity,
             });
           }
         });
       });
-      
-      const extractableForms = formPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
-      
+
+      const extractableForms = formPatterns.filter(
+        (p) => p.occurrences >= 2 || p.extractionPotential === 'high'
+      );
+
       console.warn('\n=== FORM COMPONENT ANALYSIS ===\n');
       console.warn(`Total form patterns found: ${formPatterns.length}`);
       console.warn(`Extractable form patterns: ${extractableForms.length}`);
-      
+
       extractableForms.forEach((pattern, _index) => {
-        console.warn(`\n${index + 1}. Form Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(
+          `\n${index + 1}. Form Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`
+        );
         console.warn(`   Occurrences: ${pattern.occurrences}`);
         console.warn(`   Files: ${pattern.files.length} files`);
         console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
-      
+
       if (extractableForms.length > 0) {
         const formComponent = generateComponentTemplate('form', []);
         console.warn('\n=== SUGGESTED FORM COMPONENT ===\n');
         console.warn(formComponent.template);
       }
-      
+
       expect(formPatterns.length).toBeGreaterThan(0);
     });
   });
@@ -863,21 +892,24 @@ describe('Component Extraction Analysis Tests', () => {
   describe('Card Component Analysis', () => {
     it('should identify extractable card patterns', () => {
       const cardPatterns: ComponentPattern[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8').catch(() => '');
-        
+
         // Find card-like patterns
-        const cardMatches = content.match(/<div[^>]*(?:card|bg-white.*rounded)[^>]*>.*?<\/div>/gs) || [];
-        
-        cardMatches.forEach(pattern => {
+        const cardMatches =
+          content.match(/<div[^>]*(?:card|bg-white.*rounded)[^>]*>.*?<\/div>/gs) || [];
+
+        cardMatches.forEach((pattern) => {
           const complexity = analyzeComponentComplexity(pattern);
           const props = extractProps(pattern);
-          
+
           // Skip very simple divs
-          if (pattern.length < 100) {return;}
-          
-          const existingPattern = cardPatterns.find(p => p.pattern === pattern);
+          if (pattern.length < 100) {
+            return;
+          }
+
+          const existingPattern = cardPatterns.find((p) => p.pattern === pattern);
           if (existingPattern) {
             existingPattern.occurrences++;
             existingPattern.files.push(file);
@@ -888,31 +920,35 @@ describe('Component Extraction Analysis Tests', () => {
               occurrences: 1,
               files: [file],
               extractionPotential: complexity > 3 ? 'high' : complexity > 1 ? 'medium' : 'low',
-              complexityScore: complexity
+              complexityScore: complexity,
             });
           }
         });
       });
-      
-      const extractableCards = cardPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
-      
+
+      const extractableCards = cardPatterns.filter(
+        (p) => p.occurrences >= 2 || p.extractionPotential === 'high'
+      );
+
       console.warn('\n=== CARD COMPONENT ANALYSIS ===\n');
       console.warn(`Total card patterns found: ${cardPatterns.length}`);
       console.warn(`Extractable card patterns: ${extractableCards.length}`);
-      
+
       extractableCards.forEach((pattern, _index) => {
-        console.warn(`\n${index + 1}. Card Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(
+          `\n${index + 1}. Card Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`
+        );
         console.warn(`   Occurrences: ${pattern.occurrences}`);
         console.warn(`   Files: ${pattern.files.length} files`);
         console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
-      
+
       if (extractableCards.length > 0) {
         const cardComponent = generateComponentTemplate('card', []);
         console.warn('\n=== SUGGESTED CARD COMPONENT ===\n');
         console.warn(cardComponent.template);
       }
-      
+
       expect(cardPatterns.length).toBeGreaterThan(0);
     });
   });
@@ -920,18 +956,21 @@ describe('Component Extraction Analysis Tests', () => {
   describe('Input Component Analysis', () => {
     it('should identify extractable input patterns', () => {
       const inputPatterns: ComponentPattern[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8').catch(() => '');
-        
+
         // Find input patterns with labels and error handling
-        const inputMatches = content.match(/(?:<label[^>]*>.*?<\/label>\s*)?<input[^>]*>[^<]*(?:<.*?error.*?>.*?<\/.*?>)?/gs) || [];
-        
-        inputMatches.forEach(pattern => {
+        const inputMatches =
+          content.match(
+            /(?:<label[^>]*>.*?<\/label>\s*)?<input[^>]*>[^<]*(?:<.*?error.*?>.*?<\/.*?>)?/gs
+          ) || [];
+
+        inputMatches.forEach((pattern) => {
           const complexity = analyzeComponentComplexity(pattern);
           const props = extractProps(pattern);
-          
-          const existingPattern = inputPatterns.find(p => p.pattern === pattern);
+
+          const existingPattern = inputPatterns.find((p) => p.pattern === pattern);
           if (existingPattern) {
             existingPattern.occurrences++;
             existingPattern.files.push(file);
@@ -942,31 +981,35 @@ describe('Component Extraction Analysis Tests', () => {
               occurrences: 1,
               files: [file],
               extractionPotential: complexity > 2 ? 'high' : complexity > 0 ? 'medium' : 'low',
-              complexityScore: complexity
+              complexityScore: complexity,
             });
           }
         });
       });
-      
-      const extractableInputs = inputPatterns.filter(p => p.occurrences >= 3 || p.extractionPotential === 'high');
-      
+
+      const extractableInputs = inputPatterns.filter(
+        (p) => p.occurrences >= 3 || p.extractionPotential === 'high'
+      );
+
       console.warn('\n=== INPUT COMPONENT ANALYSIS ===\n');
       console.warn(`Total input patterns found: ${inputPatterns.length}`);
       console.warn(`Extractable input patterns: ${extractableInputs.length}`);
-      
+
       extractableInputs.forEach((pattern, _index) => {
-        console.warn(`\n${index + 1}. Input Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(
+          `\n${index + 1}. Input Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`
+        );
         console.warn(`   Occurrences: ${pattern.occurrences}`);
         console.warn(`   Files: ${pattern.files.length} files`);
         console.warn(`   Pattern preview: ${pattern.pattern.substring(0, 100)}...`);
       });
-      
+
       if (extractableInputs.length > 0) {
         const inputComponent = generateComponentTemplate('input', []);
         console.warn('\n=== SUGGESTED INPUT COMPONENT ===\n');
         console.warn(inputComponent.template);
       }
-      
+
       expect(inputPatterns.length).toBeGreaterThan(0);
     });
   });
@@ -974,21 +1017,24 @@ describe('Component Extraction Analysis Tests', () => {
   describe('Modal Component Analysis', () => {
     it('should identify extractable modal patterns', () => {
       const modalPatterns: ComponentPattern[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8').catch(() => '');
-        
+
         // Find modal-like patterns
-        const modalMatches = content.match(/(?:modal|dialog|overlay|fixed.*inset-0).*?<\/div>/gs) || [];
-        
-        modalMatches.forEach(pattern => {
+        const modalMatches =
+          content.match(/(?:modal|dialog|overlay|fixed.*inset-0).*?<\/div>/gs) || [];
+
+        modalMatches.forEach((pattern) => {
           const complexity = analyzeComponentComplexity(pattern);
           const props = extractProps(pattern);
-          
+
           // Skip very simple patterns
-          if (pattern.length < 200) {return;}
-          
-          const existingPattern = modalPatterns.find(p => p.pattern === pattern);
+          if (pattern.length < 200) {
+            return;
+          }
+
+          const existingPattern = modalPatterns.find((p) => p.pattern === pattern);
           if (existingPattern) {
             existingPattern.occurrences++;
             existingPattern.files.push(file);
@@ -999,30 +1045,34 @@ describe('Component Extraction Analysis Tests', () => {
               occurrences: 1,
               files: [file],
               extractionPotential: complexity > 4 ? 'high' : complexity > 2 ? 'medium' : 'low',
-              complexityScore: complexity
+              complexityScore: complexity,
             });
           }
         });
       });
-      
-      const extractableModals = modalPatterns.filter(p => p.occurrences >= 2 || p.extractionPotential === 'high');
-      
+
+      const extractableModals = modalPatterns.filter(
+        (p) => p.occurrences >= 2 || p.extractionPotential === 'high'
+      );
+
       console.warn('\n=== MODAL COMPONENT ANALYSIS ===\n');
       console.warn(`Total modal patterns found: ${modalPatterns.length}`);
       console.warn(`Extractable modal patterns: ${extractableModals.length}`);
-      
+
       extractableModals.forEach((pattern, _index) => {
-        console.warn(`\n${index + 1}. Modal Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`);
+        console.warn(
+          `\n${index + 1}. Modal Pattern (Complexity: ${pattern.complexityScore}, Potential: ${pattern.extractionPotential})`
+        );
         console.warn(`   Occurrences: ${pattern.occurrences}`);
         console.warn(`   Files: ${pattern.files.length} files`);
       });
-      
+
       if (extractableModals.length > 0) {
         const modalComponent = generateComponentTemplate('modal', []);
         console.warn('\n=== SUGGESTED MODAL COMPONENT ===\n');
         console.warn(modalComponent.template);
       }
-      
+
       expect(modalPatterns.length).toBeGreaterThan(0);
     });
   });
@@ -1030,33 +1080,46 @@ describe('Component Extraction Analysis Tests', () => {
   describe('Comprehensive Component Library Generation', () => {
     it('should generate complete component library recommendations', () => {
       console.warn('\n=== COMPREHENSIVE COMPONENT LIBRARY RECOMMENDATIONS ===\n');
-      
-      const componentTypes: ComponentPattern['type'][] = ['button', 'form', 'card', 'input', 'modal', 'table'];
-      
-      componentTypes.forEach(type => {
+
+      const componentTypes: ComponentPattern['type'][] = [
+        'button',
+        'form',
+        'card',
+        'input',
+        'modal',
+        'table',
+      ];
+
+      componentTypes.forEach((type) => {
         const component = generateComponentTemplate(type, []);
-        
+
         console.warn(`\n## ${component.name}\n`);
         console.warn(`**Description**: ${component.description}\n`);
-        
+
         console.warn('**Benefits**:');
-        component.benefits.forEach(benefit => {
+        component.benefits.forEach((benefit) => {
           console.warn(`- ${benefit}`);
         });
-        
+
         console.warn('\n**Usage Examples**:');
-        component.usage.forEach(example => {
+        component.usage.forEach((example) => {
           console.warn(`\`\`\`tsx\n${example}\n\`\`\``);
         });
-        
+
         console.warn('\n---\n');
       });
-      
+
       console.warn('\n## Implementation Strategy\n');
-      console.warn('1. **Phase 1**: Implement StandardButton and StandardInput (highest impact, lowest effort)');
-      console.warn('2. **Phase 2**: Add StandardCard and StandardForm (medium effort, high _value)');  
-      console.warn('3. **Phase 3**: Complete with StandardModal and StandardTable (higher complexity)');
-      
+      console.warn(
+        '1. **Phase 1**: Implement StandardButton and StandardInput (highest impact, lowest effort)'
+      );
+      console.warn(
+        '2. **Phase 2**: Add StandardCard and StandardForm (medium effort, high _value)'
+      );
+      console.warn(
+        '3. **Phase 3**: Complete with StandardModal and StandardTable (higher complexity)'
+      );
+
       console.warn('\n## File Structure Recommendation\n');
       console.warn('```');
       console.warn('client/src/components/');
@@ -1078,7 +1141,7 @@ describe('Component Extraction Analysis Tests', () => {
       console.warn('    ├── types.ts');
       console.warn('    └── constants.ts');
       console.warn('```');
-      
+
       expect(componentTypes.length).toBe(6);
     });
   });

@@ -23,14 +23,14 @@ interface AnalysisResult {
  * Analyzes a feature request using Google's Gemini AI to generate implementation plan.
  * Provides detailed actionable items, technical recommendations, and effort estimates
  * specific to the Koveo Gestion property management platform architecture.
- * 
+ *
  * @param {Feature} feature - The feature object containing name, description, priority, and other details.
  * @param {string} documentationContext - System architecture and technical context for AI analysis.
  * @returns {Promise<AnalysisResult>} Promise resolving to structured analysis with actionable items.
- * 
+ *
  * @throws {Error} When GEMINI_API_KEY environment variable is not configured.
  * @throws {Error} When Gemini API request fails or returns invalid response.
- * 
+ *
  * @example
  * ```typescript
  * const feature = {
@@ -56,7 +56,7 @@ export async function analyzeFeatureWithGemini(
 ): Promise<AnalysisResult> {
   // Using fetch directly to call Gemini API
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  
+
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not configured');
   }
@@ -130,11 +130,15 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
           generationConfig: {
             responseMimeType: 'application/json',
             responseSchema: {
@@ -186,19 +190,25 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
     }
 
     const result = await response.json();
-    
+
     // Extract the text from Gemini's response structure
     if (result.candidates && result.candidates[0] && result.candidates[0].content) {
       const text = result.candidates[0].content.parts[0].text;
       const analysis: AnalysisResult = typeof text === 'string' ? JSON.parse(text) : text;
-      
+
       // Validate that we have multiple actionable items as required
       if (!analysis.actionableItems || analysis.actionableItems.length < 2) {
-        console.warn(`⚠️ AI analysis returned only ${analysis.actionableItems?.length || 0} actionable items, but should return 3-8 items`);
-        throw new Error(`AI analysis failed to generate multiple actionable items. Expected 3-8 items, got ${analysis.actionableItems?.length || 0}. Please try again.`);
+        console.warn(
+          `⚠️ AI analysis returned only ${analysis.actionableItems?.length || 0} actionable items, but should return 3-8 items`
+        );
+        throw new Error(
+          `AI analysis failed to generate multiple actionable items. Expected 3-8 items, got ${analysis.actionableItems?.length || 0}. Please try again.`
+        );
       }
-      
-      console.warn(`✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`);
+
+      console.warn(
+        `✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`
+      );
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');
@@ -213,11 +223,11 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
  * Transforms AI-generated actionable items into database-ready format.
  * Maps Gemini analysis results to the ActionableItem schema structure,
  * setting appropriate defaults and order indices for persistence.
- * 
+ *
  * @param {string} featureId - UUID of the feature these actionable items belong to.
  * @param {AnalysisResult} analysisResult - Structured analysis result from Gemini AI.
  * @returns {Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[]} Array of database-ready actionable items.
- * 
+ *
  * @example
  * ```typescript
  * const analysis = await analyzeFeatureWithGemini(feature, _context);
@@ -253,14 +263,14 @@ export function formatActionableItemsForDatabase(
  * Retrieves comprehensive system documentation context for AI feature analysis.
  * Provides detailed information about Koveo Gestion's architecture, patterns,
  * technologies, and Quebec Law 25 compliance requirements to guide AI analysis.
- * 
+ *
  * @returns {Promise<string>} Promise resolving to formatted documentation string containing:
  *   - Technology stack details (React, Express, PostgreSQL, etc.)
  *   - Database schema overview and key entities
  *   - API patterns and security considerations
  *   - UI/UX guidelines and accessibility requirements
  *   - Quebec regulatory compliance requirements.
- * 
+ *
  * @example
  * ```typescript
  * const context = await getDocumentationContext();

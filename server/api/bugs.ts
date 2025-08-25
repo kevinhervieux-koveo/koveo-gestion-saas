@@ -19,18 +19,18 @@ export function registerBugRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       console.log(`📋 Fetching bugs for user ${currentUser.id} with role ${currentUser.role}`);
-      
+
       const bugs = await storage.getBugsForUser(
         currentUser.id,
         currentUser.role,
         currentUser.organizationId
       );
-      
+
       console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
       res.json(bugs);
     } catch (error) {
@@ -53,7 +53,7 @@ export function registerBugRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -97,7 +97,7 @@ export function registerBugRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -141,7 +141,7 @@ export function registerBugRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -154,10 +154,28 @@ export function registerBugRoutes(app: Express): void {
 
       // Validate the request body
       const updateSchema = z.object({
-        title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters").optional(),
-        description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters").optional(),
-        category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']).optional(),
-        page: z.string().min(1, "Page is required").optional(),
+        title: z
+          .string()
+          .min(1, 'Title is required')
+          .max(200, 'Title must not exceed 200 characters')
+          .optional(),
+        description: z
+          .string()
+          .min(10, 'Description must be at least 10 characters')
+          .max(2000, 'Description must not exceed 2000 characters')
+          .optional(),
+        category: z
+          .enum([
+            'ui_ux',
+            'functionality',
+            'performance',
+            'data',
+            'security',
+            'integration',
+            'other',
+          ])
+          .optional(),
+        page: z.string().min(1, 'Page is required').optional(),
         priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
         reproductionSteps: z.string().optional(),
         environment: z.string().optional(),
@@ -178,12 +196,7 @@ export function registerBugRoutes(app: Express): void {
       }
 
       const updates = validation.data;
-      const bug = await storage.updateBug(
-        id,
-        updates,
-        currentUser.id,
-        currentUser.role
-      );
+      const bug = await storage.updateBug(id, updates, currentUser.id, currentUser.role);
 
       if (!bug) {
         return res.status(404).json({
@@ -215,7 +228,7 @@ export function registerBugRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -226,11 +239,7 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      const deleted = await storage.deleteBug(
-        id,
-        currentUser.id,
-        currentUser.role
-      );
+      const deleted = await storage.deleteBug(id, currentUser.id, currentUser.role);
 
       if (!deleted) {
         return res.status(404).json({

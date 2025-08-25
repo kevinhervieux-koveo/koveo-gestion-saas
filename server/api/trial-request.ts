@@ -25,9 +25,9 @@ const trialRequestSchema = z.object({
   city: z.string().optional(),
   province: z.string().optional(),
   postalCode: z.string().optional(),
-  numberOfBuildings: z.string().refine(val => parseInt(val) > 0, 'Must be a positive number'),
-  numberOfResidences: z.string().refine(val => parseInt(val) > 0, 'Must be a positive number'),
-  message: z.string().optional()
+  numberOfBuildings: z.string().refine((val) => parseInt(val) > 0, 'Must be a positive number'),
+  numberOfResidences: z.string().refine((val) => parseInt(val) > 0, 'Must be a positive number'),
+  message: z.string().optional(),
 });
 
 /**
@@ -43,11 +43,11 @@ router.post('/trial-request', async (req, res) => {
   try {
     // Validate request data
     const validationResult = trialRequestSchema.safeParse(req.body);
-    
+
     if (!validationResult.success) {
       return res.status(400).json({
         message: 'Invalid request data',
-        errors: validationResult.error.issues
+        errors: validationResult.error.issues,
       });
     }
 
@@ -57,13 +57,13 @@ router.post('/trial-request', async (req, res) => {
     if (!process.env.SENDGRID_API_KEY) {
       console.warn('Trial request received but SendGrid not configured:', _data);
       return res.status(500).json({
-        message: 'Email service not configured'
+        message: 'Email service not configured',
       });
     }
 
     // Prepare email content
     const emailSubject = `Nouvelle demande d'essai gratuit - ${data.company}`;
-    
+
     const emailText = `
 Nouvelle demande d'essai gratuit pour Koveo Gestion
 
@@ -130,7 +130,9 @@ Cette demande a été soumise via le site web Koveo Gestion.
         </div>
       </div>
 
-      ${data.address || data.city || data.province || data.postalCode ? `
+      ${
+        data.address || data.city || data.province || data.postalCode
+          ? `
       <div class="section">
         <h3>Adresse</h3>
         <div class="info-grid">
@@ -140,7 +142,9 @@ Cette demande a été soumise via le site web Koveo Gestion.
           ${data.postalCode ? `<span class="label">Code postal:</span><span>${data.postalCode}</span>` : ''}
         </div>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="section highlight">
         <h3>Informations sur les propriétés</h3>
@@ -152,12 +156,16 @@ Cette demande a été soumise via le site web Koveo Gestion.
         </div>
       </div>
 
-      ${data.message ? `
+      ${
+        data.message
+          ? `
       <div class="section">
         <h3>Message additionnel</h3>
         <p>${data.message.replace(/\n/g, '<br>')}</p>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
       
       <div class="footer">
         <p>Cette demande a été soumise via le site web Koveo Gestion</p>
@@ -167,7 +175,7 @@ Cette demande a été soumise via le site web Koveo Gestion.
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          timeZone: 'America/Toronto'
+          timeZone: 'America/Toronto',
         })}</p>
       </div>
     </div>
@@ -181,11 +189,11 @@ Cette demande a été soumise via le site web Koveo Gestion.
       to: 'info@koveo-gestion.com',
       from: {
         email: 'noreply@koveo-gestion.com',
-        name: 'Koveo Gestion - Demandes d\'essai'
+        name: "Koveo Gestion - Demandes d'essai",
       },
       replyTo: {
         email: data.email,
-        name: `${data.firstName} ${data.lastName}`
+        name: `${data.firstName} ${data.lastName}`,
       },
       subject: emailSubject,
       text: emailText,
@@ -193,41 +201,40 @@ Cette demande a été soumise via le site web Koveo Gestion.
       trackingSettings: {
         clickTracking: { enable: false },
         openTracking: { enable: false },
-        subscriptionTracking: { enable: false }
+        subscriptionTracking: { enable: false },
       },
       mailSettings: {
-        sandboxMode: { enable: false }
-      }
+        sandboxMode: { enable: false },
+      },
     };
 
     await mailService.send(emailData);
-    
+
     // Log successful request
     console.warn(`✅ Trial request email sent successfully for ${data.company} (${data.email})`);
     console.warn(`   Buildings: ${data.numberOfBuildings}, Residences: ${data.numberOfResidences}`);
 
     res.status(200).json({
       message: 'Trial request sent successfully',
-      success: true
+      success: true,
     });
-
   } catch (_error) {
     console.error('❌ Error processing trial request:', _error);
-    
+
     // Send appropriate error response
     if (error && typeof error === 'object' && 'code' in _error) {
       const sgError = error as { code: number; message: string };
       console.error('SendGrid error details:', sgError);
-      
+
       return res.status(500).json({
         message: 'Failed to send trial request email',
-        _error: 'Email service error'
+        _error: 'Email service error',
       });
     }
-    
+
     res.status(500).json({
       message: 'Internal server error',
-      _error: 'Failed to process request'
+      _error: 'Failed to process request',
     });
   }
 });
@@ -238,8 +245,8 @@ export default router;
 /**
  *
  * @param app
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 export function registerTrialRequestRoutes(app: express.Application) {
   app.use('/', router);
 }

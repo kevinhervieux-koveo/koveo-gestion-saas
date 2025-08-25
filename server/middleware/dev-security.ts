@@ -28,32 +28,36 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
     /\.ts$/,
     /\.tsx$/,
     /\.js\.map$/,
-    /\/src\//
+    /\/src\//,
   ];
 
   // Check if request is from external origin (not localhost/replit)
   const origin = req.headers.origin || '';
   const referer = req.headers.referer || '';
   const userAgent = req.headers['user-agent'] || '';
-  
+
   const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
-  const isReplit = origin.includes('replit.com') || origin.includes('replit.co') || origin.includes('replit.dev');
+  const isReplit =
+    origin.includes('replit.com') || origin.includes('replit.co') || origin.includes('replit.dev');
   const isInternalRequest = referer.includes('localhost') || referer.includes('replit');
-  const isBrowser = userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari');
-  
+  const isBrowser =
+    userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari');
+
   const isLegitimate = isLocalhost || isReplit || isInternalRequest || !origin;
 
   // Block external requests to development endpoints
   if (!isLegitimate && isBrowser) {
     const path = req.path.toLowerCase();
-    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(path));
-    
+    const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(path));
+
     if (isSuspicious) {
-      console.warn(`🚫 Blocked suspicious external request to dev server: ${path} from ${origin || 'unknown'}`);
+      console.warn(
+        `🚫 Blocked suspicious external request to dev server: ${path} from ${origin || 'unknown'}`
+      );
       return res.status(403).json({
         error: 'Access denied',
         message: 'External access to development resources is not permitted',
-        code: 'DEV_SECURITY_BLOCK'
+        code: 'DEV_SECURITY_BLOCK',
       });
     }
   }
@@ -79,23 +83,23 @@ export function devCorsMiddleware(req: Request, res: Response, next: NextFunctio
   }
 
   const origin = req.headers.origin;
-  
+
   // Only allow known development origins
   const allowedOrigins = [
     /^https?:\/\/localhost(:\d+)?$/,
     /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
     /^https?:\/\/.*\.replit\.com$/,
     /^https?:\/\/.*\.replit\.co$/,
-    /^https?:\/\/.*\.replit\.dev$/
+    /^https?:\/\/.*\.replit\.dev$/,
   ];
 
   if (origin) {
-    const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
+    const isAllowed = allowedOrigins.some((pattern) => pattern.test(origin));
     if (!isAllowed) {
       console.warn(`🚫 CORS blocked external origin in dev: ${origin}`);
       return res.status(403).json({
         error: 'CORS policy violation in development',
-        code: 'DEV_CORS_BLOCK'
+        code: 'DEV_CORS_BLOCK',
       });
     }
   }
@@ -105,5 +109,5 @@ export function devCorsMiddleware(req: Request, res: Response, next: NextFunctio
 
 export default {
   devSecurityMiddleware,
-  devCorsMiddleware
+  devCorsMiddleware,
 };

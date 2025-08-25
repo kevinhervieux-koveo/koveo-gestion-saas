@@ -78,13 +78,9 @@ interface ResidenceEditFormProps {
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [parkingSpaces, setParkingSpaces] = useState<string[]>(
-    residence.parkingSpaceNumbers || []
-  );
-  const [storageSpaces, setStorageSpaces] = useState<string[]>(
-    residence.storageSpaceNumbers || []
-  );
+
+  const [parkingSpaces, setParkingSpaces] = useState<string[]>(residence.parkingSpaceNumbers || []);
+  const [storageSpaces, setStorageSpaces] = useState<string[]>(residence.storageSpaceNumbers || []);
   const [newParkingSpace, setNewParkingSpace] = useState('');
   const [newStorageSpace, setNewStorageSpace] = useState('');
 
@@ -117,11 +113,11 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
           storageSpaceNumbers: storageSpaces,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update residence');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -178,15 +174,12 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
               <Label htmlFor='unitNumber'>Unit Number</Label>
-              <Input
-                id='unitNumber'
-                {...form.register('unitNumber')}
-              />
+              <Input id='unitNumber' {...form.register('unitNumber')} />
               {form.formState.errors.unitNumber && (
                 <p className='text-sm text-red-500'>{form.formState.errors.unitNumber.message}</p>
               )}
             </div>
-            
+
             <div className='space-y-2'>
               <Label htmlFor='floor'>Floor</Label>
               <Input
@@ -210,10 +203,12 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
                 {...form.register('squareFootage')}
               />
               {form.formState.errors.squareFootage && (
-                <p className='text-sm text-red-500'>{form.formState.errors.squareFootage.message}</p>
+                <p className='text-sm text-red-500'>
+                  {form.formState.errors.squareFootage.message}
+                </p>
               )}
             </div>
-            
+
             <div className='space-y-2'>
               <Label htmlFor='monthlyFees'>Monthly Fees ($)</Label>
               <Input
@@ -240,14 +235,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
                 <p className='text-sm text-red-500'>{form.formState.errors.bedrooms.message}</p>
               )}
             </div>
-            
+
             <div className='space-y-2'>
               <Label htmlFor='bathrooms'>Bathrooms</Label>
-              <Input
-                id='bathrooms'
-                placeholder='e.g., 2.5'
-                {...form.register('bathrooms')}
-              />
+              <Input id='bathrooms' placeholder='e.g., 2.5' {...form.register('bathrooms')} />
               {form.formState.errors.bathrooms && (
                 <p className='text-sm text-red-500'>{form.formState.errors.bathrooms.message}</p>
               )}
@@ -261,7 +252,9 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
                 {...form.register('ownershipPercentage')}
               />
               {form.formState.errors.ownershipPercentage && (
-                <p className='text-sm text-red-500'>{form.formState.errors.ownershipPercentage.message}</p>
+                <p className='text-sm text-red-500'>
+                  {form.formState.errors.ownershipPercentage.message}
+                </p>
               )}
             </div>
           </div>
@@ -287,14 +280,11 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             {parkingSpaces.map((space, _index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X
-                  className='w-3 h-3 cursor-pointer'
-                  onClick={() => removeParkingSpace(_index)}
-                />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeParkingSpace(_index)} />
               </Badge>
             ))}
           </div>
-          
+
           <div className='flex gap-2'>
             <Input
               placeholder='Add parking space number'
@@ -319,14 +309,11 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             {storageSpaces.map((space, _index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X
-                  className='w-3 h-3 cursor-pointer'
-                  onClick={() => removeStorageSpace(_index)}
-                />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeStorageSpace(_index)} />
               </Badge>
             ))}
           </div>
-          
+
           <div className='flex gap-2'>
             <Input
               placeholder='Add storage space number'
@@ -343,10 +330,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
 
       {/* Submit Button */}
       <div className='flex justify-end gap-2'>
-        <Button
-          type='submit'
-          disabled={updateResidenceMutation.isPending}
-        >
+        <Button type='submit' disabled={updateResidenceMutation.isPending}>
           {updateResidenceMutation.isPending ? 'Updating...' : 'Update Residence'}
         </Button>
       </div>

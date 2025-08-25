@@ -7,7 +7,7 @@ const mockDb = {
   select: jest.fn(),
   insert: jest.fn(),
   delete: jest.fn(),
-  update: jest.fn()
+  update: jest.fn(),
 };
 
 const mockQueryBuilder = {
@@ -16,16 +16,16 @@ const mockQueryBuilder = {
   innerJoin: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
   orderBy: jest.fn().mockReturnThis(),
-  values: jest.fn().mockReturnThis()
+  values: jest.fn().mockReturnThis(),
 };
 
 // Mock all query builder methods
-Object.keys(mockQueryBuilder).forEach(method => {
+Object.keys(mockQueryBuilder).forEach((method) => {
   (mockDb as any)[method] = jest.fn().mockReturnValue(mockQueryBuilder);
 });
 
 jest.mock('../../server/db', () => ({
-  db: mockDb
+  db: mockDb,
 }));
 
 describe('MoneyFlowAutomationService', () => {
@@ -36,7 +36,7 @@ describe('MoneyFlowAutomationService', () => {
     service = new MoneyFlowAutomationService();
     mockSystemUser = { id: 'system-user-123' };
     jest.clearAllMocks();
-    
+
     // Default mock for system user
     mockQueryBuilder.limit.mockResolvedValue([mockSystemUser]);
   });
@@ -60,8 +60,8 @@ describe('MoneyFlowAutomationService', () => {
           costs: ['1000.00'],
           totalAmount: '1000.00',
           startDate: '2024-01-01',
-          endDate: null
-        }
+          endDate: null,
+        },
       ];
 
       // Mock residences data
@@ -72,14 +72,14 @@ describe('MoneyFlowAutomationService', () => {
             buildingId: 'building-1',
             unitNumber: '101',
             monthlyFees: '500.00',
-            isActive: true
+            isActive: true,
           } as Residence,
           building: {
             id: 'building-1',
             name: 'Test Building',
-            isActive: true
-          } as Building
-        }
+            isActive: true,
+          } as Building,
+        },
       ];
 
       // Setup mocks
@@ -98,11 +98,11 @@ describe('MoneyFlowAutomationService', () => {
       });
 
       (mockDb.insert as jest.Mock).mockReturnValue({
-        values: jest.fn().mockResolvedValue(undefined)
+        values: jest.fn().mockResolvedValue(undefined),
       });
 
       (mockDb.delete as jest.Mock).mockReturnValue({
-        where: jest.fn().mockResolvedValue(undefined)
+        where: jest.fn().mockResolvedValue(undefined),
       });
 
       const result = await service.generateFutureMoneyFlowEntries();
@@ -135,11 +135,11 @@ describe('MoneyFlowAutomationService', () => {
     it('should calculate weekly recurrence correctly', async () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-01-31');
-      
+
       // Test weekly calculation logic
       const weeklyDates = [];
       const currentDate = new Date(startDate);
-      
+
       while (currentDate <= endDate) {
         weeklyDates.push(new Date(currentDate));
         currentDate.setDate(currentDate.getDate() + 7);
@@ -153,10 +153,10 @@ describe('MoneyFlowAutomationService', () => {
     it('should calculate monthly recurrence correctly', async () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       const monthlyDates = [];
       const currentDate = new Date(startDate);
-      
+
       while (currentDate <= endDate) {
         monthlyDates.push(new Date(currentDate));
         currentDate.setMonth(currentDate.getMonth() + 1);
@@ -170,10 +170,10 @@ describe('MoneyFlowAutomationService', () => {
     it('should calculate quarterly recurrence correctly', async () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       const quarterlyDates = [];
       const currentDate = new Date(startDate);
-      
+
       while (currentDate <= endDate) {
         quarterlyDates.push(new Date(currentDate));
         currentDate.setMonth(currentDate.getMonth() + 3);
@@ -187,10 +187,10 @@ describe('MoneyFlowAutomationService', () => {
     it('should calculate yearly recurrence correctly', async () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2026-12-31');
-      
+
       const yearlyDates = [];
       const currentDate = new Date(startDate);
-      
+
       while (currentDate <= endDate) {
         yearlyDates.push(new Date(currentDate));
         currentDate.setFullYear(currentDate.getFullYear() + 1);
@@ -205,9 +205,9 @@ describe('MoneyFlowAutomationService', () => {
       const customDates = ['2024-03-15', '2024-06-15', '2024-09-15', '2024-12-15'];
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       // Find dates within range
-      const validDates = customDates.filter(date => {
+      const validDates = customDates.filter((date) => {
         const d = new Date(date);
         return d >= startDate && d <= endDate;
       });
@@ -234,7 +234,7 @@ describe('MoneyFlowAutomationService', () => {
         { billCategory: 'supplies', expected: 'maintenance_expense' },
         { billCategory: 'taxes', expected: 'other_expense' },
         { billCategory: 'other', expected: 'other_expense' },
-        { billCategory: 'unknown_category', expected: 'other_expense' } // Default fallback
+        { billCategory: 'unknown_category', expected: 'other_expense' }, // Default fallback
       ];
 
       mappings.forEach(({ billCategory, expected }) => {
@@ -257,9 +257,14 @@ describe('MoneyFlowAutomationService', () => {
       }
 
       expect(expectedCosts).toEqual([
-        '1000.00', '1500.00', '2000.00', // First cycle
-        '1000.00', '1500.00', '2000.00', // Second cycle
-        '1000.00', '1500.00' // Partial third cycle
+        '1000.00',
+        '1500.00',
+        '2000.00', // First cycle
+        '1000.00',
+        '1500.00',
+        '2000.00', // Second cycle
+        '1000.00',
+        '1500.00', // Partial third cycle
       ]);
     });
   });
@@ -268,7 +273,7 @@ describe('MoneyFlowAutomationService', () => {
     it('should generate monthly entries starting from next month', () => {
       const startDate = new Date('2024-01-15'); // Mid-month
       const endDate = new Date('2024-06-30');
-      
+
       // Calculate expected first entry date (1st of next month)
       const firstEntryDate = new Date(startDate);
       firstEntryDate.setDate(1);
@@ -281,7 +286,7 @@ describe('MoneyFlowAutomationService', () => {
       // Count expected entries
       const monthlyDates = [];
       const currentDate = new Date(firstEntryDate);
-      
+
       while (currentDate <= endDate) {
         monthlyDates.push(new Date(currentDate));
         currentDate.setMonth(currentDate.getMonth() + 1);
@@ -295,7 +300,7 @@ describe('MoneyFlowAutomationService', () => {
         { monthlyFees: '0.00', shouldGenerate: false },
         { monthlyFees: '-100.00', shouldGenerate: false },
         { monthlyFees: null, shouldGenerate: false },
-        { monthlyFees: '500.00', shouldGenerate: true }
+        { monthlyFees: '500.00', shouldGenerate: true },
       ];
 
       testCases.forEach(({ monthlyFees, shouldGenerate }) => {
@@ -309,14 +314,14 @@ describe('MoneyFlowAutomationService', () => {
     it('should handle leap year calculations correctly', () => {
       const leapYear = 2024;
       const nonLeapYear = 2023;
-      
+
       // February dates in leap year vs non-leap year
       const feb2024 = new Date(leapYear, 1, 29); // Feb 29, 2024 (valid)
       const feb2023 = new Date(nonLeapYear, 1, 29); // Feb 29, 2023 (invalid, becomes Mar 1)
-      
+
       expect(feb2024.getMonth()).toBe(1); // February
       expect(feb2024.getDate()).toBe(29);
-      
+
       expect(feb2023.getMonth()).toBe(2); // March (auto-corrected)
       expect(feb2023.getDate()).toBe(1);
     });
@@ -326,7 +331,7 @@ describe('MoneyFlowAutomationService', () => {
       const testDates = [
         { start: new Date('2024-01-31'), addMonth: 1, expectedMonth: 1 }, // Jan 31 + 1 month = Feb 29 (leap year)
         { start: new Date('2024-03-31'), addMonth: 1, expectedMonth: 3 }, // Mar 31 + 1 month = Apr 30
-        { start: new Date('2024-05-31'), addMonth: 1, expectedMonth: 5 } // May 31 + 1 month = Jun 30
+        { start: new Date('2024-05-31'), addMonth: 1, expectedMonth: 5 }, // May 31 + 1 month = Jun 30
       ];
 
       testDates.forEach(({ start, addMonth, expectedMonth }) => {
@@ -341,7 +346,7 @@ describe('MoneyFlowAutomationService', () => {
     it('should generate entries up to 25 years in the future', () => {
       const startDate = new Date();
       const futureLimit = new Date();
-      futureLimit.setDate(startDate.getDate() + (25 * 365)); // 25 years
+      futureLimit.setDate(startDate.getDate() + 25 * 365); // 25 years
 
       const yearsDifference = futureLimit.getFullYear() - startDate.getFullYear();
       expect(yearsDifference).toBeGreaterThanOrEqual(24);
@@ -351,12 +356,12 @@ describe('MoneyFlowAutomationService', () => {
     it('should limit entries to prevent infinite loops', () => {
       const maxEntries = 10000;
       let entryCount = 0;
-      
+
       // Simulate entry generation with safety limit
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2049-12-31'); // 25 years
       const currentDate = new Date(startDate);
-      
+
       while (currentDate <= endDate && entryCount < maxEntries) {
         entryCount++;
         currentDate.setDate(currentDate.getDate() + 1); // Daily for extreme case
@@ -373,7 +378,9 @@ describe('MoneyFlowAutomationService', () => {
         throw new Error('Database connection failed');
       });
 
-      await expect(service.generateFutureMoneyFlowEntries()).rejects.toThrow('Database connection failed');
+      await expect(service.generateFutureMoneyFlowEntries()).rejects.toThrow(
+        'Database connection failed'
+      );
     });
 
     it('should handle missing system user', async () => {
@@ -381,7 +388,9 @@ describe('MoneyFlowAutomationService', () => {
       mockQueryBuilder.limit.mockResolvedValue([]);
 
       // This should eventually throw when trying to find a system user
-      await expect(service.generateFutureMoneyFlowEntries()).rejects.toThrow('No active users found for system operations');
+      await expect(service.generateFutureMoneyFlowEntries()).rejects.toThrow(
+        'No active users found for system operations'
+      );
     });
 
     it('should handle invalid bill data gracefully', async () => {
@@ -393,8 +402,8 @@ describe('MoneyFlowAutomationService', () => {
           paymentType: 'recurrent',
           schedulePayment: null, // Invalid: no schedule
           costs: [],
-          title: 'Invalid Bill'
-        }
+          title: 'Invalid Bill',
+        },
       ];
 
       mockDb.select.mockImplementation(() => {
@@ -413,23 +422,23 @@ describe('MoneyFlowAutomationService', () => {
   describe('Cleanup operations', () => {
     it('should clean up existing entries before generating new ones', async () => {
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({ rowCount: 5 }) // 5 entries deleted
+        where: jest.fn().mockResolvedValue({ rowCount: 5 }), // 5 entries deleted
       });
 
       // Test cleanup for bills
       await (service as any).cleanupExistingBillEntries('bill-123', new Date());
-      
+
       expect(mockDb.delete).toHaveBeenCalled();
     });
 
     it('should clean up residence entries correctly', async () => {
       mockDb.delete.mockReturnValue({
-        where: jest.fn().mockResolvedValue({ rowCount: 12 }) // 12 monthly entries deleted
+        where: jest.fn().mockResolvedValue({ rowCount: 12 }), // 12 monthly entries deleted
       });
 
       // Test cleanup for residences
       await (service as any).cleanupExistingResidenceEntries('residence-123', new Date());
-      
+
       expect(mockDb.delete).toHaveBeenCalled();
     });
   });
@@ -442,7 +451,7 @@ describe('MoneyFlowAutomationService', () => {
         residenceEntries: 400,
         futureEntries: 800,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
       // Mock database responses for statistics
@@ -455,7 +464,8 @@ describe('MoneyFlowAutomationService', () => {
         return query;
       });
 
-      mockQueryBuilder.limit.mockResolvedValueOnce([{ count: 1000 }]) // total
+      mockQueryBuilder.limit
+        .mockResolvedValueOnce([{ count: 1000 }]) // total
         .mockResolvedValueOnce([{ count: 600 }]) // bills
         .mockResolvedValueOnce([{ count: 400 }]) // residences
         .mockResolvedValueOnce([{ count: 800 }]) // future

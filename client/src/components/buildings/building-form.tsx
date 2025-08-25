@@ -1,6 +1,19 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 // Textarea component removed (unused)
 import { Button } from '@/components/ui/button';
@@ -59,23 +72,23 @@ export function BuildingForm({
 }: BuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             {/* Required Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="name"
+                name='name'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Building Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter building name" {...field} />
+                      <Input placeholder='Enter building name' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -83,14 +96,14 @@ export function BuildingForm({
               />
               <FormField
                 control={form.control}
-                name="organizationId"
+                name='organizationId'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select organization" />
+                          <SelectValue placeholder='Select organization' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -108,30 +121,30 @@ export function BuildingForm({
             </div>
 
             {/* Address Information */}
-            <div className="space-y-4">
+            <div className='space-y-4'>
               <FormField
                 control={form.control}
-                name="address"
+                name='address'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter street address" {...field} />
+                      <Input placeholder='Enter street address' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <FormField
                   control={form.control}
-                  name="city"
+                  name='city'
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input placeholder="Montreal" {...field} />
+                        <Input placeholder='Montreal' {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -139,7 +152,7 @@ export function BuildingForm({
                 />
                 <FormField
                   control={form.control}
-                  name="province"
+                  name='province'
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Province</FormLabel>
@@ -150,10 +163,10 @@ export function BuildingForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="QC">Quebec</SelectItem>
-                          <SelectItem value="ON">Ontario</SelectItem>
-                          <SelectItem value="BC">British Columbia</SelectItem>
-                          <SelectItem value="AB">Alberta</SelectItem>
+                          <SelectItem value='QC'>Quebec</SelectItem>
+                          <SelectItem value='ON'>Ontario</SelectItem>
+                          <SelectItem value='BC'>British Columbia</SelectItem>
+                          <SelectItem value='AB'>Alberta</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -162,12 +175,12 @@ export function BuildingForm({
                 />
                 <FormField
                   control={form.control}
-                  name="postalCode"
+                  name='postalCode'
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Postal Code</FormLabel>
                       <FormControl>
-                        <Input placeholder="H1A 1B1" {...field} />
+                        <Input placeholder='H1A 1B1' {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -179,7 +192,7 @@ export function BuildingForm({
             {/* Building Type */}
             <FormField
               control={form.control}
-              name="buildingType"
+              name='buildingType'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Building Type</FormLabel>
@@ -190,8 +203,8 @@ export function BuildingForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="condo">Condo</SelectItem>
-                      <SelectItem value="rental">Rental</SelectItem>
+                      <SelectItem value='condo'>Condo</SelectItem>
+                      <SelectItem value='rental'>Rental</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -200,19 +213,23 @@ export function BuildingForm({
             />
 
             {/* Optional Building Details */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               <FormField
                 control={form.control}
-                name="yearBuilt"
+                name='yearBuilt'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Year Built</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="2020" 
+                      <Input
+                        type='number'
+                        placeholder='2020'
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : Number(e.target._value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -221,16 +238,20 @@ export function BuildingForm({
               />
               <FormField
                 control={form.control}
-                name="totalUnits"
+                name='totalUnits'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Total Units</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="100" 
+                      <Input
+                        type='number'
+                        placeholder='100'
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : Number(e.target._value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -239,16 +260,20 @@ export function BuildingForm({
               />
               <FormField
                 control={form.control}
-                name="totalFloors"
+                name='totalFloors'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Total Floors</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="10" 
+                      <Input
+                        type='number'
+                        placeholder='10'
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : Number(e.target._value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -257,19 +282,23 @@ export function BuildingForm({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="parkingSpaces"
+                name='parkingSpaces'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Parking Spaces</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="50" 
+                      <Input
+                        type='number'
+                        placeholder='50'
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : Number(e.target._value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -278,16 +307,20 @@ export function BuildingForm({
               />
               <FormField
                 control={form.control}
-                name="storageSpaces"
+                name='storageSpaces'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Storage Spaces</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="25" 
+                      <Input
+                        type='number'
+                        placeholder='25'
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target._value))}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : Number(e.target._value)
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -298,23 +331,23 @@ export function BuildingForm({
 
             <FormField
               control={form.control}
-              name="managementCompany"
+              name='managementCompany'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Management Company</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter management company name" {...field} />
+                    <Input placeholder='Enter management company name' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <div className='flex justify-end gap-2 pt-4'>
+              <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : submitLabel}
               </Button>
             </div>

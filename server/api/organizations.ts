@@ -5,14 +5,14 @@
 
 import { Express } from 'express';
 import { db } from '../db';
-import { 
+import {
   organizations,
   buildings,
   residences,
   users,
   userOrganizations,
   userResidences,
-  invitations
+  invitations,
 } from '@shared/schema';
 import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
 import { requireAuth } from '../auth';
@@ -38,15 +38,17 @@ export function registerOrganizationRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
-      console.warn(`📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(
+        `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
+      );
 
       // Get organizations based on user role
       let organizationsQuery;
-      
+
       if (currentUser.role === 'admin') {
         // Admin can see all organizations
         organizationsQuery = db
@@ -99,16 +101,17 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.warn(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
+      console.warn(
+        `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
+      );
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
-
     } catch (_error) {
       console.error('❌ Error fetching organizations:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to fetch organizations'
+        message: 'Failed to fetch organizations',
       });
     }
   });
@@ -124,14 +127,14 @@ export function registerOrganizationRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -161,14 +164,13 @@ export function registerOrganizationRoutes(app: Express): void {
       console.warn(`✅ Found ${allOrganizations.length} organizations`);
 
       res.json({
-        organizations: allOrganizations
+        organizations: allOrganizations,
       });
-
     } catch (_error) {
       console.error('❌ Error fetching organizations:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to fetch organizations'
+        message: 'Failed to fetch organizations',
       });
     }
   });
@@ -183,7 +185,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -191,7 +193,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Admin access required to create organizations',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -199,46 +201,48 @@ export function registerOrganizationRoutes(app: Express): void {
       console.warn('📥 Creating organization with _data:', organizationData);
 
       // Insert new organization
-      const [newOrganization] = await db.insert(organizations).values({
-        name: organizationData.name,
-        type: organizationData.type,
-        address: organizationData.address,
-        city: organizationData.city,
-        province: organizationData.province || 'QC',
-        postalCode: organizationData.postalCode,
-        phone: organizationData.phone || null,
-        email: organizationData.email || null,
-        website: organizationData.website || null,
-        registrationNumber: organizationData.registrationNumber || null,
-      }).returning({
-        id: organizations.id,
-        name: organizations.name,
-        type: organizations.type,
-        address: organizations.address,
-        city: organizations.city,
-        province: organizations.province,
-        postalCode: organizations.postalCode,
-        phone: organizations.phone,
-        email: organizations.email,
-        website: organizations.website,
-        registrationNumber: organizations.registrationNumber,
-        isActive: organizations.isActive,
-        createdAt: organizations.createdAt,
-      });
+      const [newOrganization] = await db
+        .insert(organizations)
+        .values({
+          name: organizationData.name,
+          type: organizationData.type,
+          address: organizationData.address,
+          city: organizationData.city,
+          province: organizationData.province || 'QC',
+          postalCode: organizationData.postalCode,
+          phone: organizationData.phone || null,
+          email: organizationData.email || null,
+          website: organizationData.website || null,
+          registrationNumber: organizationData.registrationNumber || null,
+        })
+        .returning({
+          id: organizations.id,
+          name: organizations.name,
+          type: organizations.type,
+          address: organizations.address,
+          city: organizations.city,
+          province: organizations.province,
+          postalCode: organizations.postalCode,
+          phone: organizations.phone,
+          email: organizations.email,
+          website: organizations.website,
+          registrationNumber: organizations.registrationNumber,
+          isActive: organizations.isActive,
+          createdAt: organizations.createdAt,
+        });
 
       console.warn('✅ Created organization:', newOrganization.name);
-      
+
       // Create object storage hierarchy for the new organization
       const objectStorageService = new ObjectStorageService();
       await objectStorageService.createOrganizationHierarchy(newOrganization.id);
-      
-      res.status(201).json(newOrganization);
 
+      res.status(201).json(newOrganization);
     } catch (_error) {
       console.error('❌ Error creating organization:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to create organization'
+        message: 'Failed to create organization',
       });
     }
   });
@@ -253,7 +257,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -261,13 +265,13 @@ export function registerOrganizationRoutes(app: Express): void {
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Admin access required to update organizations',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
       const organizationId = req.params.id;
       const updateData = req.body;
-      
+
       console.warn('📝 Updating organization:', organizationId, 'with data:', updateData);
 
       // Check if organization exists
@@ -280,7 +284,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (existingOrg.length === 0) {
         return res.status(404).json({
           message: 'Organization not found',
-          code: 'NOT_FOUND'
+          code: 'NOT_FOUND',
         });
       }
 
@@ -320,12 +324,11 @@ export function registerOrganizationRoutes(app: Express): void {
 
       console.warn('✅ Organization updated successfully:', updatedOrganization.name);
       res.json(updatedOrganization);
-
     } catch (error) {
       console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to update organization'
+        message: 'Failed to update organization',
       });
     }
   });
@@ -336,20 +339,20 @@ export function registerOrganizationRoutes(app: Express): void {
    */
   app.get('/api/organizations/:id/deletion-impact', requireAuth, async (req: any, res) => {
     const organizationId = req.params.id;
-    
+
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -363,7 +366,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (organization.length === 0) {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Organization not found'
+          message: 'Organization not found',
         });
       }
 
@@ -378,11 +381,13 @@ export function registerOrganizationRoutes(app: Express): void {
         .select({ count: count() })
         .from(residences)
         .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-        .where(and(
-          eq(buildings.organizationId, organizationId),
-          eq(buildings.isActive, true),
-          eq(residences.isActive, true)
-        ));
+        .where(
+          and(
+            eq(buildings.organizationId, organizationId),
+            eq(buildings.isActive, true),
+            eq(residences.isActive, true)
+          )
+        );
 
       // Count invitations associated with this organization
       let totalInvitations = 0;
@@ -403,25 +408,26 @@ export function registerOrganizationRoutes(app: Express): void {
         .select({ count: count() })
         .from(userOrganizations)
         .innerJoin(users, eq(userOrganizations.userId, users.id))
-        .where(and(
-          eq(userOrganizations.organizationId, organizationId),
-          eq(userOrganizations.isActive, true),
-          eq(users.isActive, true)
-        ));
+        .where(
+          and(
+            eq(userOrganizations.organizationId, organizationId),
+            eq(userOrganizations.isActive, true),
+            eq(users.isActive, true)
+          )
+        );
 
       const impact = {
         organization: organization[0],
         buildings: buildingsCount[0]?.count || 0,
         residences: residencesCount[0]?.count || 0,
         invitations: totalInvitations,
-        potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0
+        potentialOrphanedUsers: potentialOrphansCount[0]?.count || 0,
       };
 
       res.json(impact);
-
     } catch (_error) {
       console.error('❌ Error analyzing deletion impact:', _error);
-      
+
       // Return partial data if we can get basic counts
       try {
         const organization = await db
@@ -442,17 +448,17 @@ export function registerOrganizationRoutes(app: Express): void {
             residences: 0,
             invitations: 0,
             potentialOrphanedUsers: 0,
-            note: 'Some data may not be available due to database schema issues'
+            note: 'Some data may not be available due to database schema issues',
           });
           return;
         }
       } catch (___fallbackError) {
         console.error('Fallback also failed:', ___fallbackError);
       }
-      
+
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to analyze deletion impact'
+        message: 'Failed to analyze deletion impact',
       });
     }
   });
@@ -467,14 +473,14 @@ export function registerOrganizationRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -491,7 +497,7 @@ export function registerOrganizationRoutes(app: Express): void {
       if (organization.length === 0) {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Organization not found'
+          message: 'Organization not found',
         });
       }
 
@@ -500,43 +506,41 @@ export function registerOrganizationRoutes(app: Express): void {
       const { cleanupOrphans } = await import('../utils/cleanup-orphans');
       const report = await cleanupOrphans();
       console.log(`🧹 Orphan cleanup report:`, report);
-      
+
       // Start transaction for cascading delete
       await db.transaction(async (tx) => {
         console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
-        
+
         // With proper cascade delete relationships in schema, we can now perform
         // a true cascade delete instead of manual transaction management
         // This will automatically delete all related buildings, residences, and relationships
-        
+
         // Delete organization - cascade relationships will handle the rest
-        await tx.delete(organizations)
-          .where(eq(organizations.id, organizationId));
-          
+        await tx.delete(organizations).where(eq(organizations.id, organizationId));
+
         console.log(`✅ Organization ${organizationId} deleted with automatic cascade`);
 
         // Cascade delete will handle user-organization relationships automatically
         const orphanedUsers = await tx
           .select({ id: users.id })
           .from(users)
-          .leftJoin(userOrganizations, and(
-            eq(users.id, userOrganizations.userId),
-            eq(userOrganizations.isActive, true)
-          ))
-          .where(and(
-            eq(users.isActive, true),
-            isNull(userOrganizations.userId)
-          ));
+          .leftJoin(
+            userOrganizations,
+            and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
+          )
+          .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
 
         if (orphanedUsers.length > 0) {
-          const orphanedUserIds = orphanedUsers.map(u => u.id);
-          await tx.update(users)
+          const orphanedUserIds = orphanedUsers.map((u) => u.id);
+          await tx
+            .update(users)
             .set({ isActive: false, updatedAt: new Date() })
             .where(inArray(users.id, orphanedUserIds));
         }
 
         // 9. Finally, soft delete the organization
-        await tx.update(organizations)
+        await tx
+          .update(organizations)
           .set({ isActive: false, updatedAt: new Date() })
           .where(eq(organizations.id, organizationId));
       });
@@ -549,14 +553,13 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json({
         message: 'Organization and related entities deleted successfully',
-        deletedOrganization: organization[0].name
+        deletedOrganization: organization[0].name,
       });
-
     } catch (_error) {
       console.error('❌ Error cascading delete organization:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to delete organization and related entities'
+        message: 'Failed to delete organization and related entities',
       });
     }
   });

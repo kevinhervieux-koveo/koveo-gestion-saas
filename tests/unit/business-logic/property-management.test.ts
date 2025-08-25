@@ -38,7 +38,7 @@ jest.mock('../../../server/db', () => ({
       },
       maintenanceRequests: {
         findMany: jest.fn(),
-      }
+      },
     },
     select: jest.fn(),
     insert: jest.fn(),
@@ -93,7 +93,7 @@ const testData = {
       email: 'contact@proprietes-quebec.ca',
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
-    }
+    },
   },
   buildings: {
     demoBuilding: {
@@ -146,7 +146,7 @@ const testData = {
       amenities: ['heritage_features', 'courtyard', 'storage'],
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
-    }
+    },
   },
   residences: {
     demo101: {
@@ -157,7 +157,7 @@ const testData = {
       squareFootage: 750,
       bedroomCount: 2,
       bathroomCount: 1,
-      rentAmount: 1200.00,
+      rentAmount: 1200.0,
       isActive: true,
       features: ['balcony', 'dishwasher'],
       createdAt: new Date('2024-01-01'),
@@ -171,7 +171,7 @@ const testData = {
       squareFootage: 950,
       bedroomCount: 2,
       bathroomCount: 2,
-      rentAmount: 1800.00,
+      rentAmount: 1800.0,
       isActive: true,
       features: ['city_view', 'parking_included', 'storage_included'],
       createdAt: new Date('2024-01-01'),
@@ -185,12 +185,12 @@ const testData = {
       squareFootage: 680,
       bedroomCount: 1,
       bathroomCount: 1,
-      rentAmount: 1100.00,
+      rentAmount: 1100.0,
       isActive: true,
       features: ['heritage_details', 'hardwood_floors'],
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
-    }
+    },
   },
   users: {
     admin: {
@@ -225,8 +225,8 @@ const testData = {
       isActive: true,
       phone: '+1-514-555-0003',
       language: 'fr',
-    }
-  }
+    },
+  },
 };
 
 describe('Property Management Business Logic Tests', () => {
@@ -243,17 +243,17 @@ describe('Property Management Business Logic Tests', () => {
         testData.organizations.demo,
         testData.organizations.koveo,
         testData.organizations.montreal,
-        testData.organizations.quebec
+        testData.organizations.quebec,
       ]);
 
       const organizations = await mockDb.query.organizations.findMany({
         where: { isActive: true },
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
       });
 
       expect(organizations).toHaveLength(4);
       expect(organizations[0]).toMatchObject(testData.organizations.demo);
-      expect(organizations.every(org => org.isActive)).toBe(true);
+      expect(organizations.every((org) => org.isActive)).toBe(true);
     });
 
     it('should handle Quebec-specific organization requirements', async () => {
@@ -261,7 +261,7 @@ describe('Property Management Business Logic Tests', () => {
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(quebecOrg);
 
       const organization = await mockDb.query.organizations.findFirst({
-        where: { id: quebecOrg.id }
+        where: { id: quebecOrg.id },
       });
 
       expect(organization.address).toContain('QC');
@@ -271,14 +271,14 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should validate organization contact information format', async () => {
       const organizations = Object.values(testData.organizations);
-      
-      organizations.forEach(org => {
+
+      organizations.forEach((org) => {
         // Quebec phone number format validation
         expect(org.phone).toMatch(/^\+1-\d{3}-\d{3}-\d{4}$/);
-        
+
         // Email format validation
         expect(org.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-        
+
         // Quebec postal code format (if present in address)
         if (org.address.includes('QC')) {
           // Accept both full postal codes and addresses without them
@@ -305,12 +305,12 @@ describe('Property Management Business Logic Tests', () => {
   describe('Building Management', () => {
     it('should retrieve buildings with organization relationships', async () => {
       mockDb.query.buildings.findMany.mockResolvedValueOnce([
-        { ...testData.buildings.montrealTower, organization: testData.organizations.montreal }
+        { ...testData.buildings.montrealTower, organization: testData.organizations.montreal },
       ]);
 
       const buildings = await mockDb.query.buildings.findMany({
         where: { isActive: true },
-        with: { organization: true }
+        with: { organization: true },
       });
 
       expect(buildings).toHaveLength(1);
@@ -320,8 +320,8 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should validate Quebec building address formats', async () => {
       const buildings = Object.values(testData.buildings);
-      
-      buildings.forEach(building => {
+
+      buildings.forEach((building) => {
         // Quebec address should contain province and postal code
         expect(building.address).toContain('QC');
         expect(building.city).toMatch(/^(Montreal|Quebec)$/);
@@ -332,13 +332,13 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should enforce building capacity and floor constraints', async () => {
       const buildings = Object.values(testData.buildings);
-      
-      buildings.forEach(building => {
+
+      buildings.forEach((building) => {
         // Total units should be reasonable for floor count
         const unitsPerFloor = building.totalUnits / building.totalFloors;
         expect(unitsPerFloor).toBeGreaterThan(0);
         expect(unitsPerFloor).toBeLessThan(50); // Reasonable upper limit
-        
+
         // Building should have positive dimensions
         expect(building.totalFloors).toBeGreaterThan(0);
         expect(building.totalUnits).toBeGreaterThan(0);
@@ -350,13 +350,11 @@ describe('Property Management Business Logic Tests', () => {
     it('should handle different building types correctly', async () => {
       const buildingTypes = ['residential', 'high_rise', 'heritage'];
       const buildings = Object.values(testData.buildings);
-      
-      expect(buildings.map(b => b.buildingType)).toEqual(
-        expect.arrayContaining(buildingTypes)
-      );
-      
+
+      expect(buildings.map((b) => b.buildingType)).toEqual(expect.arrayContaining(buildingTypes));
+
       // Heritage buildings should have specific constraints
-      const heritageBuilding = buildings.find(b => b.buildingType === 'heritage');
+      const heritageBuilding = buildings.find((b) => b.buildingType === 'heritage');
       expect(heritageBuilding?.amenities).toContain('heritage_features');
       expect(heritageBuilding?.yearBuilt).toBeLessThan(1980); // Older building
     });
@@ -369,14 +367,14 @@ describe('Property Management Business Logic Tests', () => {
           ...testData.residences.montreal2A,
           building: {
             ...testData.buildings.montrealTower,
-            organization: testData.organizations.montreal
-          }
-        }
+            organization: testData.organizations.montreal,
+          },
+        },
       ]);
 
       const residences = await mockDb.query.residences.findMany({
         where: { isActive: true },
-        with: { building: { with: { organization: true } } }
+        with: { building: { with: { organization: true } } },
       });
 
       expect(residences).toHaveLength(1);
@@ -386,24 +384,24 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should validate residence specifications', async () => {
       const residences = Object.values(testData.residences);
-      
-      residences.forEach(residence => {
+
+      residences.forEach((residence) => {
         // Unit numbers should be valid
         expect(residence.unitNumber).toMatch(/^[0-9A-Z]+$/);
-        
+
         // Floor should be valid
         expect(residence.floor).toBeGreaterThan(0);
-        
+
         // Square footage should be reasonable
         expect(residence.squareFootage).toBeGreaterThan(200);
         expect(residence.squareFootage).toBeLessThan(5000);
-        
+
         // Bedroom and bathroom counts should be logical
         expect(residence.bedroomCount).toBeGreaterThanOrEqual(0);
         expect(residence.bathroomCount).toBeGreaterThan(0);
         expect(residence.bedroomCount).toBeLessThanOrEqual(10);
         expect(residence.bathroomCount).toBeLessThanOrEqual(10);
-        
+
         // Rent amount should be positive
         expect(residence.rentAmount).toBeGreaterThan(0);
       });
@@ -411,13 +409,13 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should handle Quebec rental market pricing', async () => {
       const residences = Object.values(testData.residences);
-      
-      residences.forEach(residence => {
+
+      residences.forEach((residence) => {
         // Quebec rental prices should be within reasonable ranges
         const pricePerSqFt = residence.rentAmount / residence.squareFootage;
         expect(pricePerSqFt).toBeGreaterThan(0.5); // Minimum $/sqft
         expect(pricePerSqFt).toBeLessThan(5.0); // Maximum $/sqft
-        
+
         // Rent should correlate with bedroom count
         if (residence.bedroomCount === 1) {
           expect(residence.rentAmount).toBeLessThan(1500);
@@ -429,18 +427,23 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should validate residence features and amenities', async () => {
       const residences = Object.values(testData.residences);
-      
-      residences.forEach(residence => {
+
+      residences.forEach((residence) => {
         // Features should be an array
         expect(Array.isArray(residence.features)).toBe(true);
-        
+
         // Features should be reasonable
         const validFeatures = [
-          'balcony', 'dishwasher', 'city_view', 'parking_included',
-          'storage_included', 'heritage_details', 'hardwood_floors'
+          'balcony',
+          'dishwasher',
+          'city_view',
+          'parking_included',
+          'storage_included',
+          'heritage_details',
+          'hardwood_floors',
         ];
-        
-        residence.features.forEach(feature => {
+
+        residence.features.forEach((feature) => {
           expect(validFeatures).toContain(feature);
         });
       });
@@ -457,11 +460,11 @@ describe('Property Management Business Logic Tests', () => {
           isActive: true,
           canAccessAllOrganizations: false,
           joinedAt: new Date('2024-01-01'),
-        }
+        },
       ]);
 
       const userOrgs = await mockDb.query.userOrganizations.findMany({
-        where: { userId: testData.users.manager.id, isActive: true }
+        where: { userId: testData.users.manager.id, isActive: true },
       });
 
       expect(userOrgs).toHaveLength(1);
@@ -478,17 +481,17 @@ describe('Property Management Business Logic Tests', () => {
           isActive: true,
           startDate: new Date('2024-01-01'),
           endDate: new Date('2024-12-31'),
-          monthlyRent: 1800.00,
-        }
+          monthlyRent: 1800.0,
+        },
       ]);
 
       const userResidences = await mockDb.query.userResidences.findMany({
-        where: { userId: testData.users.tenant.id, isActive: true }
+        where: { userId: testData.users.tenant.id, isActive: true },
       });
 
       expect(userResidences).toHaveLength(1);
       expect(userResidences[0].relationshipType).toBe('tenant');
-      expect(userResidences[0].monthlyRent).toBe(1800.00);
+      expect(userResidences[0].monthlyRent).toBe(1800.0);
     });
 
     it('should enforce Quebec tenant-landlord relationship rules', async () => {
@@ -499,38 +502,42 @@ describe('Property Management Business Logic Tests', () => {
         isActive: true,
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-12-31'),
-        monthlyRent: 1800.00,
+        monthlyRent: 1800.0,
       };
 
       // Validate lease terms
       expect(tenantAssignment.startDate).toBeInstanceOf(Date);
       expect(tenantAssignment.endDate).toBeInstanceOf(Date);
-      expect(tenantAssignment.endDate.getTime()).toBeGreaterThan(tenantAssignment.startDate.getTime());
-      
+      expect(tenantAssignment.endDate.getTime()).toBeGreaterThan(
+        tenantAssignment.startDate.getTime()
+      );
+
       // Lease duration should be reasonable (6 months to 2 years)
-      const leaseDurationMonths = (tenantAssignment.endDate.getTime() - tenantAssignment.startDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+      const leaseDurationMonths =
+        (tenantAssignment.endDate.getTime() - tenantAssignment.startDate.getTime()) /
+        (1000 * 60 * 60 * 24 * 30);
       expect(leaseDurationMonths).toBeGreaterThanOrEqual(6);
       expect(leaseDurationMonths).toBeLessThanOrEqual(24);
-      
+
       // Monthly rent should match residence rent amount
       expect(tenantAssignment.monthlyRent).toBe(testData.residences.montreal2A.rentAmount);
     });
 
     it('should validate user language preferences for Quebec context', async () => {
       const users = Object.values(testData.users);
-      
-      users.forEach(user => {
+
+      users.forEach((user) => {
         // Language should be specified for Quebec users
         expect(['en', 'fr']).toContain(user.language);
-        
+
         // French users should have French names or addresses
         if (user.language === 'fr') {
-          const hasFrenchContent = 
-            user.firstName.includes('Pierre') || 
+          const hasFrenchContent =
+            user.firstName.includes('Pierre') ||
             user.firstName.includes('Marie') ||
             user.email.includes('gestionnaire') ||
             user.email.includes('locataire');
-          
+
           expect(hasFrenchContent || user.email.includes('montreal.ca')).toBe(true);
         }
       });
@@ -540,12 +547,10 @@ describe('Property Management Business Logic Tests', () => {
   describe('Complex Property Management Workflows', () => {
     it('should handle complete tenant onboarding workflow', async () => {
       // Step 1: Find available residence
-      mockDb.query.residences.findMany.mockResolvedValueOnce([
-        testData.residences.montreal2A
-      ]);
+      mockDb.query.residences.findMany.mockResolvedValueOnce([testData.residences.montreal2A]);
 
       const availableResidences = await mockDb.query.residences.findMany({
-        where: { isActive: true }
+        where: { isActive: true },
       });
 
       expect(availableResidences).toHaveLength(1);
@@ -594,7 +599,7 @@ describe('Property Management Business Logic Tests', () => {
 
     it('should handle building capacity and occupancy calculations', async () => {
       const building = testData.buildings.montrealTower;
-      
+
       // Mock current occupancy
       mockDb.query.userResidences.findMany.mockResolvedValueOnce([
         { residenceId: 'residence-1', isActive: true },
@@ -603,7 +608,7 @@ describe('Property Management Business Logic Tests', () => {
       ]);
 
       const occupiedUnits = await mockDb.query.userResidences.findMany({
-        where: { isActive: true }
+        where: { isActive: true },
       });
 
       const occupancyRate = (occupiedUnits.length / building.totalUnits) * 100;
@@ -619,14 +624,14 @@ describe('Property Management Business Logic Tests', () => {
       // Test compliance with Quebec residential tenancy laws
       const residence = testData.residences.montreal2A;
       const building = testData.buildings.montrealTower;
-      
+
       // Rent control compliance (varies by municipality)
       expect(residence.rentAmount).toBeGreaterThan(0);
-      
+
       // Building safety and habitability standards
       expect(building.yearBuilt).toBeGreaterThan(1920); // Modern safety standards
       expect(residence.bathroomCount).toBeGreaterThan(0); // Basic habitability
-      
+
       // Accessibility considerations for multi-floor buildings
       if (building.totalFloors > 3) {
         expect(building.amenities).toEqual(
@@ -641,44 +646,54 @@ describe('Property Management Business Logic Tests', () => {
       // Building must belong to an organization
       const building = testData.buildings.montrealTower;
       expect(building.organizationId).toBeTruthy();
-      expect(Object.values(testData.organizations).some(org => org.id === building.organizationId)).toBe(true);
+      expect(
+        Object.values(testData.organizations).some((org) => org.id === building.organizationId)
+      ).toBe(true);
 
       // Residence must belong to a building
       const residence = testData.residences.montreal2A;
       expect(residence.buildingId).toBeTruthy();
-      expect(Object.values(testData.buildings).some(bldg => bldg.id === residence.buildingId)).toBe(true);
+      expect(
+        Object.values(testData.buildings).some((bldg) => bldg.id === residence.buildingId)
+      ).toBe(true);
     });
 
     it('should validate business rule constraints', async () => {
       // Organization names should be unique
-      const orgNames = Object.values(testData.organizations).map(org => org.name);
+      const orgNames = Object.values(testData.organizations).map((org) => org.name);
       const uniqueOrgNames = new Set(orgNames);
       expect(uniqueOrgNames.size).toBe(orgNames.length);
 
       // Building names within an organization should be unique
-      const buildingsByOrg = Object.values(testData.buildings).reduce((acc, building) => {
-        if (!acc[building.organizationId]) {
-          acc[building.organizationId] = [];
-        }
-        acc[building.organizationId].push(building.name);
-        return acc;
-      }, {} as Record<string, string[]>);
+      const buildingsByOrg = Object.values(testData.buildings).reduce(
+        (acc, building) => {
+          if (!acc[building.organizationId]) {
+            acc[building.organizationId] = [];
+          }
+          acc[building.organizationId].push(building.name);
+          return acc;
+        },
+        {} as Record<string, string[]>
+      );
 
-      Object.values(buildingsByOrg).forEach(buildingNames => {
+      Object.values(buildingsByOrg).forEach((buildingNames) => {
         const uniqueBuildingNames = new Set(buildingNames);
         expect(uniqueBuildingNames.size).toBe(buildingNames.length);
       });
 
       // Unit numbers within a building should be unique
-      const residencesByBuilding = Object.values(testData.residences).reduce((acc, residence) => {
-        if (!acc[residence.buildingId]) {
-          acc[residence.buildingId] = [];
-        }
-        acc[residence.buildingId].push(residence.unitNumber);
-        return acc;
-      }, {} as Record<string, string[]>);
+      const residencesByBuilding = Object.values(testData.residences).reduce(
+        (acc, residence) => {
+          if (!acc[residence.buildingId]) {
+            acc[residence.buildingId] = [];
+          }
+          acc[residence.buildingId].push(residence.unitNumber);
+          return acc;
+        },
+        {} as Record<string, string[]>
+      );
 
-      Object.values(residencesByBuilding).forEach(unitNumbers => {
+      Object.values(residencesByBuilding).forEach((unitNumbers) => {
         const uniqueUnitNumbers = new Set(unitNumbers);
         expect(uniqueUnitNumbers.size).toBe(unitNumbers.length);
       });
@@ -695,11 +710,11 @@ describe('Property Management Business Logic Tests', () => {
           squareFootage: 300, // Minimum legal size in Quebec
           bedroomCount: 0, // Studio apartment
           bathroomCount: 1,
-          rentAmount: 800.00,
+          rentAmount: 800.0,
           isActive: true,
           features: ['murphy_bed'],
         },
-        
+
         // Penthouse unit
         penthouse: {
           id: 'penthouse-id',
@@ -709,13 +724,13 @@ describe('Property Management Business Logic Tests', () => {
           squareFootage: 2500,
           bedroomCount: 3,
           bathroomCount: 3,
-          rentAmount: 4500.00,
+          rentAmount: 4500.0,
           isActive: true,
           features: ['terrace', 'panoramic_view', 'luxury_finishes'],
-        }
+        },
       };
 
-      Object.values(edgeCases).forEach(residence => {
+      Object.values(edgeCases).forEach((residence) => {
         // Validate edge case constraints
         expect(residence.squareFootage).toBeGreaterThan(250); // Quebec minimum
         expect(residence.bedroomCount).toBeGreaterThanOrEqual(0);

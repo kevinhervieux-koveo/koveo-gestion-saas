@@ -1,6 +1,13 @@
 import type { Express } from 'express';
 import { storage } from '../storage';
-import { insertFeatureRequestSchema, insertFeatureRequestUpvoteSchema, type FeatureRequest, type InsertFeatureRequest, type FeatureRequestUpvote, type InsertFeatureRequestUpvote } from '@shared/schema';
+import {
+  insertFeatureRequestSchema,
+  insertFeatureRequestUpvoteSchema,
+  type FeatureRequest,
+  type InsertFeatureRequest,
+  type FeatureRequestUpvote,
+  type InsertFeatureRequestUpvote,
+} from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
 
@@ -19,18 +26,20 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
-      console.log(`📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`);
-      
+      console.log(
+        `📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`
+      );
+
       const featureRequests = await storage.getFeatureRequestsForUser(
         currentUser.id,
         currentUser.role,
         currentUser.organizationId
       );
-      
+
       console.log(`✅ Found ${featureRequests.length} feature requests for user ${currentUser.id}`);
       res.json(featureRequests);
     } catch (error) {
@@ -53,7 +62,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -97,7 +106,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -141,7 +150,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -162,12 +171,42 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       // Validate the request body
       const updateSchema = z.object({
-        title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters").optional(),
-        description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters").optional(),
-        need: z.string().min(5, "Need must be at least 5 characters").max(500, "Need must not exceed 500 characters").optional(),
-        category: z.enum(['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other']).optional(),
-        page: z.string().min(1, "Page is required").optional(),
-        status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']).optional(),
+        title: z
+          .string()
+          .min(1, 'Title is required')
+          .max(200, 'Title must not exceed 200 characters')
+          .optional(),
+        description: z
+          .string()
+          .min(10, 'Description must be at least 10 characters')
+          .max(2000, 'Description must not exceed 2000 characters')
+          .optional(),
+        need: z
+          .string()
+          .min(5, 'Need must be at least 5 characters')
+          .max(500, 'Need must not exceed 500 characters')
+          .optional(),
+        category: z
+          .enum([
+            'dashboard',
+            'property_management',
+            'resident_management',
+            'financial_management',
+            'maintenance',
+            'document_management',
+            'communication',
+            'reports',
+            'mobile_app',
+            'integrations',
+            'security',
+            'performance',
+            'other',
+          ])
+          .optional(),
+        page: z.string().min(1, 'Page is required').optional(),
+        status: z
+          .enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected'])
+          .optional(),
         assignedTo: z.string().uuid().nullable().optional(),
         adminNotes: z.string().optional(),
         mergedIntoId: z.string().uuid().nullable().optional(),
@@ -220,7 +259,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -239,11 +278,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      const deleted = await storage.deleteFeatureRequest(
-        id,
-        currentUser.id,
-        currentUser.role
-      );
+      const deleted = await storage.deleteFeatureRequest(id, currentUser.id, currentUser.role);
 
       if (!deleted) {
         return res.status(404).json({
@@ -275,7 +310,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -333,7 +368,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 

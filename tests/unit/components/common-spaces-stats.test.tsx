@@ -58,21 +58,19 @@ jest.mock('../../../client/src/hooks/use-mobile-menu', () => ({
     toggleMobileMenu: jest.fn(),
     closeMobileMenu: jest.fn(),
   }),
-  MobileMenuProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  MobileMenuProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // Mock Header component to prevent import issues
 jest.mock('../../../client/src/components/layout/header', () => ({
   __esModule: true,
-  default: () => <div data-testid="header">Header</div>,
+  default: () => <div data-testid='header'>Header</div>,
 }));
 
 // Mock Recharts components
 jest.mock('recharts', () => ({
   BarChart: ({ children, data }: any) => (
-    <div data-testid="bar-chart">
+    <div data-testid='bar-chart'>
       {data?.map((item: any, index: number) => (
         <div key={index} data-testid={`chart-item-${index}`}>
           {item.name}: {item.hours}h, {item.bookings} bookings
@@ -86,13 +84,13 @@ jest.mock('recharts', () => ({
       {name || dataKey}
     </div>
   ),
-  XAxis: () => <div data-testid="x-axis">X-Axis</div>,
-  YAxis: () => <div data-testid="y-axis">Y-Axis</div>,
-  CartesianGrid: () => <div data-testid="grid">Grid</div>,
-  Tooltip: () => <div data-testid="tooltip">Tooltip</div>,
-  Legend: () => <div data-testid="legend">Legend</div>,
+  XAxis: () => <div data-testid='x-axis'>X-Axis</div>,
+  YAxis: () => <div data-testid='y-axis'>Y-Axis</div>,
+  CartesianGrid: () => <div data-testid='grid'>Grid</div>,
+  Tooltip: () => <div data-testid='tooltip'>Tooltip</div>,
+  Legend: () => <div data-testid='legend'>Legend</div>,
   ResponsiveContainer: ({ children }: any) => (
-    <div data-testid="responsive-container" style={{ width: '100%', height: '100%' }}>
+    <div data-testid='responsive-container' style={{ width: '100%', height: '100%' }}>
       {children}
     </div>
   ),
@@ -100,15 +98,15 @@ jest.mock('recharts', () => ({
 
 // Mock Lucide React icons
 jest.mock('lucide-react', () => ({
-  Building2: () => <div data-testid="building-icon">Building</div>,
-  Users: () => <div data-testid="users-icon">Users</div>,
-  Clock: () => <div data-testid="clock-icon">Clock</div>,
-  BarChart3: () => <div data-testid="chart-icon">Chart</div>,
-  Ban: () => <div data-testid="ban-icon">Ban</div>,
-  CheckCircle: () => <div data-testid="check-icon">Check</div>,
-  User: () => <div data-testid="user-icon">User</div>,
-  TrendingUp: () => <div data-testid="trending-icon">Trending</div>,
-  Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
+  Building2: () => <div data-testid='building-icon'>Building</div>,
+  Users: () => <div data-testid='users-icon'>Users</div>,
+  Clock: () => <div data-testid='clock-icon'>Clock</div>,
+  BarChart3: () => <div data-testid='chart-icon'>Chart</div>,
+  Ban: () => <div data-testid='ban-icon'>Ban</div>,
+  CheckCircle: () => <div data-testid='check-icon'>Check</div>,
+  User: () => <div data-testid='user-icon'>User</div>,
+  TrendingUp: () => <div data-testid='trending-icon'>Trending</div>,
+  Calendar: () => <div data-testid='calendar-icon'>Calendar</div>,
 }));
 
 describe('Common Spaces Manager Statistics Page', () => {
@@ -125,7 +123,9 @@ describe('Common Spaces Manager Statistics Page', () => {
 
   describe('Access Control', () => {
     it('should render for manager users', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       expect(screen.getByTestId('common-spaces-stats-page')).toBeInTheDocument();
@@ -147,8 +147,10 @@ describe('Common Spaces Manager Statistics Page', () => {
       }));
 
       // Re-import component with mocked auth
-      const { default: RestrictedComponent } = await import('../../../client/src/pages/manager/common-spaces-stats');
-      
+      const { default: RestrictedComponent } = await import(
+        '../../../client/src/pages/manager/common-spaces-stats'
+      );
+
       render(
         <TestProviders>
           <RestrictedComponent />
@@ -156,18 +158,24 @@ describe('Common Spaces Manager Statistics Page', () => {
       );
 
       expect(screen.getByText('Accès refusé')).toBeInTheDocument();
-      expect(screen.getByText('Vous devez être gestionnaire ou administrateur pour accéder à cette page.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Vous devez être gestionnaire ou administrateur pour accéder à cette page.'
+        )
+      ).toBeInTheDocument();
     });
   });
 
   describe('Initial Data Loading and Rendering', () => {
     it('should render building and space selection dropdowns', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Check selection section
       expect(screen.getByText('Sélection')).toBeInTheDocument();
-      
+
       // Check dropdowns are present
       expect(screen.getByLabelText('Bâtiment')).toBeInTheDocument();
       expect(screen.getByLabelText('Espace commun')).toBeInTheDocument();
@@ -179,7 +187,9 @@ describe('Common Spaces Manager Statistics Page', () => {
     });
 
     it('should load and display buildings in dropdown', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Open building dropdown
@@ -193,20 +203,28 @@ describe('Common Spaces Manager Statistics Page', () => {
     });
 
     it('should show prompt to select space when no space is selected', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       await waitFor(() => {
         expect(screen.getByText('Sélectionnez un espace commun')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Choisissez un bâtiment et un espace commun pour voir les statistiques d\'utilisation.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Choisissez un bâtiment et un espace commun pour voir les statistiques d'utilisation."
+        )
+      ).toBeInTheDocument();
     });
   });
 
   describe('Statistics Rendering and Data Display', () => {
     beforeEach(async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Select building
@@ -251,7 +269,7 @@ describe('Common Spaces Manager Statistics Page', () => {
 
       expect(screen.getByText('Top 10 utilisateurs par heures')).toBeInTheDocument();
       expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
-      
+
       // Check chart items are rendered with data
       expect(screen.getByTestId('chart-item-0')).toHaveTextContent('John Doe: 12.5h, 8 bookings');
       expect(screen.getByTestId('chart-item-1')).toHaveTextContent('Jane Smith: 8h, 5 bookings');
@@ -264,7 +282,7 @@ describe('Common Spaces Manager Statistics Page', () => {
       });
 
       expect(screen.getByText('Statistiques des utilisateurs')).toBeInTheDocument();
-      
+
       // Check table headers
       expect(screen.getByText('Utilisateur')).toBeInTheDocument();
       expect(screen.getByText('Email')).toBeInTheDocument();
@@ -287,7 +305,9 @@ describe('Common Spaces Manager Statistics Page', () => {
 
   describe('User Management Actions', () => {
     beforeEach(async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Select building and space
@@ -309,14 +329,14 @@ describe('Common Spaces Manager Statistics Page', () => {
       // Check that action buttons are present for users
       expect(screen.getByTestId('button-block-user-1')).toBeInTheDocument();
       expect(screen.getByTestId('button-unblock-user-1')).toBeInTheDocument();
-      
+
       expect(screen.getByTestId('button-block-user-2')).toBeInTheDocument();
       expect(screen.getByTestId('button-unblock-user-2')).toBeInTheDocument();
 
       // Check button text
       const blockButtons = screen.getAllByText('Bloquer');
       const unblockButtons = screen.getAllByText('Débloquer');
-      
+
       expect(blockButtons).toHaveLength(2);
       expect(unblockButtons).toHaveLength(2);
     });
@@ -332,7 +352,7 @@ describe('Common Spaces Manager Statistics Page', () => {
             body: await request.json(),
           };
           return HttpResponse.json({
-            message: 'User blocked from booking this space'
+            message: 'User blocked from booking this space',
           });
         })
       );
@@ -374,7 +394,7 @@ describe('Common Spaces Manager Statistics Page', () => {
             body: await request.json(),
           };
           return HttpResponse.json({
-            message: 'User unblocked from booking this space'
+            message: 'User unblocked from booking this space',
           });
         })
       );
@@ -409,10 +429,7 @@ describe('Common Spaces Manager Statistics Page', () => {
       // Mock error response
       server.use(
         http.post('/api/common-spaces/users/:userId/restrictions', () => {
-          return HttpResponse.json(
-            { message: 'Internal server error' },
-            { status: 500 }
-          );
+          return HttpResponse.json({ message: 'Internal server error' }, { status: 500 });
         })
       );
 
@@ -435,7 +452,7 @@ describe('Common Spaces Manager Statistics Page', () => {
       // Mock slow response
       server.use(
         http.post('/api/common-spaces/users/:userId/restrictions', () => {
-          return new Promise(resolve => 
+          return new Promise((resolve) =>
             setTimeout(() => resolve(HttpResponse.json({ message: 'Success' })), 1000)
           );
         })
@@ -466,12 +483,14 @@ describe('Common Spaces Manager Statistics Page', () => {
               totalHours: 0,
               uniqueUsers: 0,
             },
-            userStats: []
+            userStats: [],
           });
         })
       );
 
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Select building and space
@@ -489,11 +508,17 @@ describe('Common Spaces Manager Statistics Page', () => {
       });
 
       expect(screen.getByText('Aucune donnée disponible')).toBeInTheDocument();
-      expect(screen.getByText('Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.'
+        )
+      ).toBeInTheDocument();
     });
 
     it('should reset space selection when building changes', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Select building and space
@@ -516,13 +541,15 @@ describe('Common Spaces Manager Statistics Page', () => {
 
   describe('Responsive Design and UI Elements', () => {
     it('should render all required UI sections', async () => {
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Check main sections
       expect(screen.getByTestId('common-spaces-stats-page')).toBeInTheDocument();
       expect(screen.getByText('Sélection')).toBeInTheDocument();
-      
+
       // Check that icons are rendered
       expect(screen.getByTestId('building-icon')).toBeInTheDocument();
     });
@@ -535,7 +562,9 @@ describe('Common Spaces Manager Statistics Page', () => {
         })
       );
 
-      const MockComponent = () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>;
+      const MockComponent = () => (
+        <div data-testid='common-spaces-stats-page'>Common Spaces Stats Page Mock</div>
+      );
       renderWithProviders(<MockComponent />);
 
       // Should show placeholder in dropdown during loading

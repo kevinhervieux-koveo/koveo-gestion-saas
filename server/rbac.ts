@@ -11,13 +11,13 @@ const db = drizzle({ client: pool, schema });
  * Authenticated user object with role-based access control information.
  * Contains user identity, role, and organization access rights for Quebec property management.
  * Used throughout the RBAC system for authorization decisions.
- * 
+ *
  * @interface AuthenticatedUser
  * @property {string} id - Unique user identifier (UUID).
  * @property {string} username - User's login username.
  * @property {string} email - User's email address.
  * @property {string} firstName - User's first name.
- * @property {string} lastName - User's last name  
+ * @property {string} lastName - User's last name
  * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system
  * @property {boolean} isActive - Whether the user account is active
  * @property {string[]} [organizations] - Array of organization IDs the user can access
@@ -39,7 +39,7 @@ export interface AuthenticatedUser {
  * Context object for evaluating resource access permissions in the RBAC system.
  * Provides all necessary information to determine if a user can perform an action
  * on a specific resource within the property management hierarchy.
- * 
+ *
  * @interface AccessContext
  * @property {AuthenticatedUser} user - The authenticated user requesting access.
  * @property {string} [organizationId] - Target organization ID for access check.
@@ -53,7 +53,14 @@ export interface AccessContext {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
-  resourceType: 'organization' | 'building' | 'residence' | 'user' | 'bill' | 'maintenance' | 'document';
+  resourceType:
+    | 'organization'
+    | 'building'
+    | 'residence'
+    | 'user'
+    | 'bill'
+    | 'maintenance'
+    | 'document';
   action: 'create' | 'read' | 'update' | 'delete';
 }
 
@@ -61,10 +68,10 @@ export interface AccessContext {
  * Retrieves all organization IDs that a user can access based on RBAC rules and memberships.
  * Implements Quebec property management access patterns including Demo organization access
  * for all users and Koveo organization global access privileges.
- * 
+ *
  * @param {string} userId - UUID of the user to check organization access for.
  * @returns {Promise<string[]>} Promise resolving to array of accessible organization IDs.
- * 
+ *
  * @example
  * ```typescript
  * const orgIds = await getUserAccessibleOrganizations('user-uuid');
@@ -79,7 +86,7 @@ export interface AccessContext {
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
     console.warn('Getting accessible organizations for user:', userId);
-    
+
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
       where: and(
@@ -87,25 +94,28 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
         eq(schema.userOrganizations.isActive, true)
       ),
       with: {
-        organization: true
-      }
+        organization: true,
+      },
     });
-    
-    console.warn('User organizations found:', userOrgs.map(uo => ({ 
-      orgId: uo.organizationId, 
-      orgName: uo.organization?.name, 
-      canAccessAll: uo.canAccessAllOrganizations 
-    })));
+
+    console.warn(
+      'User organizations found:',
+      userOrgs.map((uo) => ({
+        orgId: uo.organizationId,
+        orgName: uo.organization?.name,
+        canAccessAll: uo.canAccessAllOrganizations,
+      }))
+    );
 
     // Get Demo organization ID (always accessible)
     const demoOrg = await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, 'Demo')
+      where: eq(schema.organizations.name, 'Demo'),
     });
-    
+
     console.warn('Demo org found:', demoOrg?.id);
 
     const accessibleOrgIds = new Set<string>();
-    
+
     // Add Demo organization (accessible to everyone)
     if (demoOrg) {
       accessibleOrgIds.add(demoOrg.id);
@@ -113,14 +123,20 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 
     // Check each user organization membership
     for (const userOrg of userOrgs) {
-      if (userOrg.canAccessAllOrganizations || userOrg.organization?.name?.toLowerCase() === 'koveo') {
+      if (
+        userOrg.canAccessAllOrganizations ||
+        userOrg.organization?.name?.toLowerCase() === 'koveo'
+      ) {
         console.warn('User has full access - adding all organizations');
         // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
-          where: eq(schema.organizations.isActive, true)
+          where: eq(schema.organizations.isActive, true),
         });
-        console.warn('All organizations found:', allOrgs.map(o => ({ id: o.id, name: o.name })));
-        allOrgs.forEach(org => accessibleOrgIds.add(org.id));
+        console.warn(
+          'All organizations found:',
+          allOrgs.map((o) => ({ id: o.id, name: o.name }))
+        );
+        allOrgs.forEach((org) => accessibleOrgIds.add(org.id));
         break;
       } else {
         // User can access their own organization
@@ -141,10 +157,10 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
  * Retrieves all residence IDs that a user can access based on tenant/resident assignments.
  * Used primarily for tenant and resident roles to determine which specific residences
  * they can view and interact with in the property management system.
- * 
+ *
  * @param {string} userId - UUID of the user to check residence access for.
  * @returns {Promise<string[]>} Promise resolving to array of accessible residence IDs.
- * 
+ *
  * @example
  * ```typescript
  * const residenceIds = await getUserAccessibleResidences('tenant-user-uuid');
@@ -162,10 +178,10 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
       where: and(
         eq(schema.userResidences.userId, userId),
         eq(schema.userResidences.isActive, true)
-      )
+      ),
     });
 
-    return userResidences.map(ur => ur.residenceId);
+    return userResidences.map((ur) => ur.residenceId);
   } catch (error) {
     console.error('Error getting user accessible residences:', error);
     return [];
@@ -175,7 +191,7 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
 /**
  * Checks if a user belongs to the Open Demo organization (view-only demo users).
  * Open Demo users have restricted permissions and can only view/read data.
- * 
+ *
  * @param {string} userId - UUID of the user to check.
  * @returns {Promise<boolean>} Promise resolving to true if user is an Open Demo user.
  */
@@ -183,22 +199,22 @@ export async function isOpenDemoUser(userId: string): Promise<boolean> {
   try {
     // Get Open Demo organization
     const openDemoOrg = await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, 'Open Demo')
+      where: eq(schema.organizations.name, 'Open Demo'),
     });
-    
+
     if (!openDemoOrg) {
       return false;
     }
-    
+
     // Check if user belongs to Open Demo organization
     const userOrg = await db.query.userOrganizations.findFirst({
       where: and(
         eq(schema.userOrganizations.userId, userId),
         eq(schema.userOrganizations.organizationId, openDemoOrg.id),
         eq(schema.userOrganizations.isActive, true)
-      )
+      ),
     });
-    
+
     return !!userOrg;
   } catch (_error) {
     console.error('Error checking if user is Open Demo user:', _error);
@@ -209,19 +225,32 @@ export async function isOpenDemoUser(userId: string): Promise<boolean> {
 /**
  * Checks if a user can perform a write operation (create, update, delete).
  * Open Demo users are restricted to read-only access.
- * 
+ *
  * @param {string} userId - UUID of the user to check.
  * @param {'create' | 'update' | 'delete' | 'manage' | 'approve' | 'assign' | 'share' | 'export' | 'backup' | 'restore'} action - The action to check.
  * @returns {Promise<boolean>} Promise resolving to true if user can perform write operations.
  */
-export async function canUserPerformWriteOperation(userId: string, action: 'create' | 'update' | 'delete' | 'manage' | 'approve' | 'assign' | 'share' | 'export' | 'backup' | 'restore'): Promise<boolean> {
+export async function canUserPerformWriteOperation(
+  userId: string,
+  action:
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'manage'
+    | 'approve'
+    | 'assign'
+    | 'share'
+    | 'export'
+    | 'backup'
+    | 'restore'
+): Promise<boolean> {
   // Check if user is from Open Demo organization (view-only)
   const isOpenDemo = await isOpenDemoUser(userId);
   if (isOpenDemo) {
     console.warn(`Open Demo user ${userId} attempted restricted action: ${action}`);
     return false; // Open Demo users cannot perform any write operations
   }
-  
+
   return true; // Regular users can perform write operations based on their permissions
 }
 
@@ -229,11 +258,11 @@ export async function canUserPerformWriteOperation(userId: string, action: 'crea
  * Checks if a user has access to a specific organization based on RBAC rules.
  * Validates access through user organization memberships, Demo organization access,
  * and Koveo organization global privileges.
- * 
+ *
  * @param {string} userId - UUID of the user to check access for.
  * @param {string} organizationId - UUID of the organization to check access to.
  * @returns {Promise<boolean>} Promise resolving to true if user can access the organization.
- * 
+ *
  * @example
  * ```typescript
  * const hasAccess = await canUserAccessOrganization('user-uuid', 'org-uuid');
@@ -248,7 +277,10 @@ export async function canUserPerformWriteOperation(userId: string, action: 'crea
  * @param organizationId
  * @returns Function result.
  */
-export async function canUserAccessOrganization(userId: string, organizationId: string): Promise<boolean> {
+export async function canUserAccessOrganization(
+  userId: string,
+  organizationId: string
+): Promise<boolean> {
   const accessibleOrgs = await getUserAccessibleOrganizations(userId);
   return accessibleOrgs.includes(organizationId);
 }
@@ -256,11 +288,11 @@ export async function canUserAccessOrganization(userId: string, organizationId: 
 /**
  * Checks if a user has access to a specific building through organization membership.
  * Buildings are accessible if the user can access the organization that owns the building.
- * 
+ *
  * @param {string} userId - UUID of the user to check access for.
  * @param {string} buildingId - UUID of the building to check access to.
  * @returns {Promise<boolean>} Promise resolving to true if user can access the building.
- * 
+ *
  * @example
  * ```typescript
  * const canView = await canUserAccessBuilding('user-uuid', 'building-uuid');
@@ -278,10 +310,12 @@ export async function canUserAccessOrganization(userId: string, organizationId: 
 export async function canUserAccessBuilding(userId: string, buildingId: string): Promise<boolean> {
   try {
     const building = await db.query.buildings.findFirst({
-      where: eq(schema.buildings.id, buildingId)
+      where: eq(schema.buildings.id, buildingId),
     });
 
-    if (!building) {return false;}
+    if (!building) {
+      return false;
+    }
 
     return await canUserAccessOrganization(userId, building.organizationId);
   } catch (_error) {
@@ -294,11 +328,11 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
  * Checks if a user has access to a specific residence based on role and assignments.
  * Admin/Manager roles can access residences in their organizations.
  * Tenant/Resident roles can only access their specifically assigned residences.
- * 
+ *
  * @param {string} userId - UUID of the user to check access for.
  * @param {string} residenceId - UUID of the residence to check access to.
  * @returns {Promise<boolean>} Promise resolving to true if user can access the residence.
- * 
+ *
  * @example
  * ```typescript
  * const canAccess = await canUserAccessResidence('tenant-uuid', 'residence-uuid');
@@ -313,24 +347,31 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
  * @param residenceId
  * @returns Function result.
  */
-export async function canUserAccessResidence(userId: string, residenceId: string): Promise<boolean> {
+export async function canUserAccessResidence(
+  userId: string,
+  residenceId: string
+): Promise<boolean> {
   try {
     const user = await db.query.users.findFirst({
-      where: eq(schema.users.id, userId)
+      where: eq(schema.users.id, userId),
     });
 
-    if (!user) {return false;}
+    if (!user) {
+      return false;
+    }
 
     // Admins and managers can access any residence in their accessible organizations
     if (['admin', 'manager'].includes(user.role)) {
       const residence = await db.query.residences.findFirst({
         where: eq(schema.residences.id, residenceId),
         with: {
-          building: true
-        }
+          building: true,
+        },
       });
 
-      if (!residence) {return false;}
+      if (!residence) {
+        return false;
+      }
 
       return await canUserAccessOrganization(userId, residence.building.organizationId);
     }
@@ -356,28 +397,28 @@ export async function canUserAccessResidence(userId: string, residenceId: string
 export function requireOrganizationAccess(param: string = 'organizationId') {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED',
       });
     }
 
     const organizationId = req.params[param] || req.body[param] || req.query[param];
-    
+
     if (!organizationId) {
       return res.status(400).json({
         message: 'Organization ID is required',
-        code: 'MISSING_ORGANIZATION_ID'
+        code: 'MISSING_ORGANIZATION_ID',
       });
     }
 
     try {
       const hasAccess = await canUserAccessOrganization(req.user.id, organizationId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({
           message: 'Access denied to this organization',
-          code: 'ORGANIZATION_ACCESS_DENIED'
+          code: 'ORGANIZATION_ACCESS_DENIED',
         });
       }
 
@@ -386,7 +427,7 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
       console.error('Organization access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
-        code: 'AUTHORIZATION_ERROR'
+        code: 'AUTHORIZATION_ERROR',
       });
     }
   };
@@ -404,28 +445,28 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
 export function requireBuildingAccess(param: string = 'buildingId') {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED',
       });
     }
 
     const buildingId = req.params[param] || req.body[param] || req.query[param];
-    
+
     if (!buildingId) {
       return res.status(400).json({
         message: 'Building ID is required',
-        code: 'MISSING_BUILDING_ID'
+        code: 'MISSING_BUILDING_ID',
       });
     }
 
     try {
       const hasAccess = await canUserAccessBuilding(req.user.id, buildingId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({
           message: 'Access denied to this building',
-          code: 'BUILDING_ACCESS_DENIED'
+          code: 'BUILDING_ACCESS_DENIED',
         });
       }
 
@@ -434,7 +475,7 @@ export function requireBuildingAccess(param: string = 'buildingId') {
       console.error('Building access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
-        code: 'AUTHORIZATION_ERROR'
+        code: 'AUTHORIZATION_ERROR',
       });
     }
   };
@@ -452,28 +493,28 @@ export function requireBuildingAccess(param: string = 'buildingId') {
 export function requireResidenceAccess(param: string = 'residenceId') {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED',
       });
     }
 
     const residenceId = req.params[param] || req.body[param] || req.query[param];
-    
+
     if (!residenceId) {
       return res.status(400).json({
         message: 'Residence ID is required',
-        code: 'MISSING_RESIDENCE_ID'
+        code: 'MISSING_RESIDENCE_ID',
       });
     }
 
     try {
       const hasAccess = await canUserAccessResidence(req.user.id, residenceId);
-      
+
       if (!hasAccess) {
         return res.status(403).json({
           message: 'Access denied to this residence',
-          code: 'RESIDENCE_ACCESS_DENIED'
+          code: 'RESIDENCE_ACCESS_DENIED',
         });
       }
 
@@ -482,7 +523,7 @@ export function requireResidenceAccess(param: string = 'residenceId') {
       console.error('Residence access check _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
-        code: 'AUTHORIZATION_ERROR'
+        code: 'AUTHORIZATION_ERROR',
       });
     }
   };
@@ -499,9 +540,12 @@ export function requireResidenceAccess(param: string = 'residenceId') {
  * @param organizations
  * @returns Function result.
  */
-export async function filterOrganizationsByAccess(userId: string, organizations: unknown[]): Promise<any[]> {
+export async function filterOrganizationsByAccess(
+  userId: string,
+  organizations: unknown[]
+): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
-  return organizations.filter(org => accessibleOrgIds.includes(org.id));
+  return organizations.filter((org) => accessibleOrgIds.includes(org.id));
 }
 
 /**
@@ -515,9 +559,12 @@ export async function filterOrganizationsByAccess(userId: string, organizations:
  * @param buildings
  * @returns Function result.
  */
-export async function filterBuildingsByAccess(userId: string, buildings: unknown[]): Promise<any[]> {
+export async function filterBuildingsByAccess(
+  userId: string,
+  buildings: unknown[]
+): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
-  return buildings.filter(building => accessibleOrgIds.includes(building.organizationId));
+  return buildings.filter((building) => accessibleOrgIds.includes(building.organizationId));
 }
 
 /**
@@ -531,29 +578,34 @@ export async function filterBuildingsByAccess(userId: string, buildings: unknown
  * @param residences
  * @returns Function result.
  */
-export async function filterResidencesByAccess(userId: string, residences: unknown[]): Promise<any[]> {
+export async function filterResidencesByAccess(
+  userId: string,
+  residences: unknown[]
+): Promise<any[]> {
   const user = await db.query.users.findFirst({
-    where: eq(schema.users.id, userId)
+    where: eq(schema.users.id, userId),
   });
 
-  if (!user) {return [];}
+  if (!user) {
+    return [];
+  }
 
   // For admins/managers, filter by organization access
   if (['admin', 'manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
-    
+
     // Get all buildings in accessible organizations
     const accessibleBuildings = await db.query.buildings.findMany({
-      where: inArray(schema.buildings.organizationId, accessibleOrgIds)
+      where: inArray(schema.buildings.organizationId, accessibleOrgIds),
     });
-    
-    const accessibleBuildingIds = accessibleBuildings.map(b => b.id);
-    return residences.filter(residence => accessibleBuildingIds.includes(residence.buildingId));
+
+    const accessibleBuildingIds = accessibleBuildings.map((b) => b.id);
+    return residences.filter((residence) => accessibleBuildingIds.includes(residence.buildingId));
   }
 
   // For tenants/residents, only show their own residences
   const accessibleResidenceIds = await getUserAccessibleResidences(userId);
-  return residences.filter(residence => accessibleResidenceIds.includes(residence.id));
+  return residences.filter((residence) => accessibleResidenceIds.includes(residence.id));
 }
 
 /**
@@ -595,21 +647,23 @@ export async function getBuildingFilter(userId: string) {
  */
 export async function getResidenceFilter(userId: string) {
   const user = await db.query.users.findFirst({
-    where: eq(schema.users.id, userId)
+    where: eq(schema.users.id, userId),
   });
 
-  if (!user) {return eq(schema.residences.id, 'never-match');}
+  if (!user) {
+    return eq(schema.residences.id, 'never-match');
+  }
 
   // For admins/managers, filter by organization access
   if (['admin', 'manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
-    
+
     // Get all buildings in accessible organizations
     const accessibleBuildings = await db.query.buildings.findMany({
-      where: inArray(schema.buildings.organizationId, accessibleOrgIds)
+      where: inArray(schema.buildings.organizationId, accessibleOrgIds),
     });
-    
-    const accessibleBuildingIds = accessibleBuildings.map(b => b.id);
+
+    const accessibleBuildingIds = accessibleBuildings.map((b) => b.id);
     return inArray(schema.residences.buildingId, accessibleBuildingIds);
   }
 

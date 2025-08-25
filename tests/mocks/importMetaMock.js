@@ -12,9 +12,9 @@ const importMetaMock = {
     TEST: process.env.NODE_ENV === 'test',
     MODE: process.env.NODE_ENV || 'test',
     BASE_URL: '/',
-    VITE_API_URL: process.env.VITE_API_URL || '/api'
+    VITE_API_URL: process.env.VITE_API_URL || '/api',
   },
-  url: 'file:///mock/url'
+  url: 'file:///mock/url',
 };
 
 // Make import.meta available globally for Jest

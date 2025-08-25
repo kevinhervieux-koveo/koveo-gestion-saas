@@ -74,10 +74,10 @@ export const sessionConfig = session({
  * Enhanced password hashing using bcrypt with salt for Quebec Law 25 compliance.
  * Provides strong security using industry-standard bcrypt algorithm
  * with configurable salt rounds (default: 12).
- * 
+ *
  * @param {string} password - Plain text password to hash.
  * @returns {Promise<string>} Promise resolving to bcrypt hashed password.
- * 
+ *
  * @example
  * ```typescript
  * const hashedPassword = await hashPassword('userPassword123');
@@ -98,11 +98,11 @@ export async function hashPassword(password: string): Promise<string> {
 /**
  * Verifies a password against stored bcrypt hash using constant-time comparison.
  * Uses bcrypt.compare for secure password verification.
- * 
+ *
  * @param {string} password - Plain text password to verify.
  * @param {string} hashedPassword - Stored bcrypt hash from user record.
  * @returns {Promise<boolean>} Promise resolving to true if password matches, false otherwise.
- * 
+ *
  * @example
  * ```typescript
  * const user = await storage.getUserByEmail(email);
@@ -122,17 +122,16 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return await bcrypt.compare(password, hashedPassword);
 }
 
-
 /**
  * Authentication middleware to protect routes requiring user login.
  * Validates session existence, retrieves user data, and ensures account is active.
  * Automatically destroys invalid sessions for security.
- * 
+ *
  * @param {Request} req - Express request object with session data.
  * @param {Response} res - Express response object for sending error responses.
  * @param {NextFunction} next - Express next function to continue to protected route.
  * @returns {Promise<void>} Promise that resolves when authentication is verified.
- * 
+ *
  * @example
  * ```typescript
  * app.get('/api/protected-route', requireAuth, async (req, res) => {
@@ -150,9 +149,9 @@ export async function verifyPassword(password: string, hashedPassword: string): 
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.userId) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'Authentication required',
-      code: 'AUTH_REQUIRED' 
+      code: 'AUTH_REQUIRED',
     });
   }
 
@@ -160,11 +159,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
-        if (err) {console.error('Session destruction _error:', err);}
+        if (err) {
+          console.error('Session destruction _error:', err);
+        }
       });
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'User account not found or inactive',
-        code: 'USER_INACTIVE' 
+        code: 'USER_INACTIVE',
       });
     }
 
@@ -172,29 +173,32 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.session.role = user.role;
 
     // Add organization information to the user object - temporarily simplified due to relations issue
-    const userOrganizations = await db.select({
-      organizationId: schema.userOrganizations.organizationId,
-      canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations
-    })
-    .from(schema.userOrganizations)
-    .where(and(
-      eq(schema.userOrganizations.userId, user.id),
-      eq(schema.userOrganizations.isActive, true)
-    ));
+    const userOrganizations = await db
+      .select({
+        organizationId: schema.userOrganizations.organizationId,
+        canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+      })
+      .from(schema.userOrganizations)
+      .where(
+        and(
+          eq(schema.userOrganizations.userId, user.id),
+          eq(schema.userOrganizations.isActive, true)
+        )
+      );
 
     // Enhanced user object with organization access information
     req.user = {
       ...user,
-      organizations: userOrganizations.map(uo => uo.organizationId),
-      canAccessAllOrganizations: userOrganizations.some(uo => uo.canAccessAllOrganizations)
+      organizations: userOrganizations.map((uo) => uo.organizationId),
+      canAccessAllOrganizations: userOrganizations.some((uo) => uo.canAccessAllOrganizations),
     } as any;
-    
+
     next();
   } catch (_error) {
     console.error('Authentication _error:', _error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Authentication error',
-      code: 'AUTH_ERROR' 
+      code: 'AUTH_ERROR',
     });
   }
 }
@@ -203,15 +207,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
  * Role-based authorization middleware factory for Quebec property management roles.
  * Creates middleware that restricts access based on user roles such as admin, manager, tenant.
  * Must be used after requireAuth middleware.
- * 
+ *
  * @param {string[]} allowedRoles - Array of roles that can access the route (e.g., ['admin', 'manager']).
  * @returns {Function} Express middleware function for role validation.
- * 
+ *
  * @example
  * ```typescript
  * // Only admins can access user management
  * app.get('/api/admin/users', requireAuth, requireRole(['admin']), getUserList);
- * 
+ *
  * // Managers and admins can access building data
  * app.get('/api/buildings', requireAuth, requireRole(['admin', 'manager']), getBuildings);
  * ```
@@ -224,18 +228,18 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export function requireRole(allowedRoles: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED',
       });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: 'Insufficient permissions',
         code: 'INSUFFICIENT_PERMISSIONS',
         required: allowedRoles,
-        current: req.user.role
+        current: req.user.role,
       });
     }
 
@@ -247,18 +251,18 @@ export function requireRole(allowedRoles: string[]) {
  * Permission-based authorization middleware factory using the comprehensive RBAC system.
  * Validates user permissions based on the database RBAC system.
  * Must be used after requireAuth middleware.
- * 
+ *
  * @param {string} permission - Specific permission required to access the route (e.g., 'read:bill', 'create:maintenance_request').
  * @returns {Function} Express middleware function for permission validation.
- * 
+ *
  * @example
  * ```typescript
  * // Only users with 'read:bill' permission can access
  * app.get('/api/bills', requireAuth, authorize('read:bill'), getBills);
- * 
+ *
  * // Only users with 'delete:user' permission can delete users
  * app.delete('/api/users/:id', requireAuth, authorize('delete:user'), deleteUser);
- * 
+ *
  * // Multiple route protection
  * router.use(authorize('manage:building'));
  * router.post('/buildings', createBuilding);
@@ -273,9 +277,9 @@ export function requireRole(allowedRoles: string[]) {
 export function authorize(permission: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED',
       });
     }
 
@@ -289,7 +293,7 @@ export function authorize(permission: string) {
           code: 'PERMISSION_DENIED',
           required: permission,
           userRole: req.user.role,
-          details: `User with role '${req.user.role}' does not have permission '${permission}'`
+          details: `User with role '${req.user.role}' does not have permission '${permission}'`,
         });
       }
 
@@ -298,7 +302,7 @@ export function authorize(permission: string) {
       console.error('Authorization _error:', _error);
       return res.status(500).json({
         message: 'Authorization check failed',
-        code: 'AUTHORIZATION_ERROR'
+        code: 'AUTHORIZATION_ERROR',
       });
     }
   };
@@ -308,10 +312,10 @@ export function authorize(permission: string) {
  * Sets up authentication routes for Quebec-compliant user management.
  * Implements login, logout, registration, and current user endpoints
  * with proper session management and Law 25 compliance considerations.
- * 
+ *
  * @param {any} app - Express application instance to register routes on.
  * @returns {void} No return value - routes are registered directly on app.
- * 
+ *
  * @example
  * ```typescript
  * const app = express();
@@ -319,7 +323,7 @@ export function authorize(permission: string) {
  * setupAuthRoutes(app);
  * // Authentication routes are now available:
  * // POST /api/auth/login
- * // POST /api/auth/logout  
+ * // POST /api/auth/logout
  * // GET /api/auth/user
  * // POST /api/auth/register
  * ```
@@ -336,34 +340,34 @@ export function setupAuthRoutes(app: any) {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Email and password are required',
-          code: 'MISSING_CREDENTIALS' 
+          code: 'MISSING_CREDENTIALS',
         });
       }
 
       const user = await storage.getUserByEmail(email.toLowerCase());
       if (!user) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: 'Invalid credentials',
-          code: 'INVALID_CREDENTIALS' 
+          code: 'INVALID_CREDENTIALS',
         });
       }
 
       if (!user.isActive) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: 'Account is inactive',
-          code: 'ACCOUNT_INACTIVE' 
+          code: 'ACCOUNT_INACTIVE',
         });
       }
 
       // Use bcrypt for password verification
       const isValidPassword = await verifyPassword(password, user.password);
-      
+
       if (!isValidPassword) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: 'Invalid credentials',
-          code: 'INVALID_CREDENTIALS' 
+          code: 'INVALID_CREDENTIALS',
         });
       }
 
@@ -379,14 +383,13 @@ export function setupAuthRoutes(app: any) {
       const { password: _, ...userData } = user;
       res.json({
         user: userData,
-        message: 'Login successful'
+        message: 'Login successful',
       });
-
     } catch (_error) {
       console.error('Login _error:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Login failed',
-        code: 'LOGIN_ERROR' 
+        code: 'LOGIN_ERROR',
       });
     }
   });
@@ -396,9 +399,9 @@ export function setupAuthRoutes(app: any) {
     req.session.destroy((err) => {
       if (err) {
         console.error('Logout _error:', err);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Logout failed',
-          code: 'LOGOUT_ERROR' 
+          code: 'LOGOUT_ERROR',
         });
       }
 
@@ -410,9 +413,9 @@ export function setupAuthRoutes(app: any) {
   // Get current user route
   app.get('/api/auth/user', requireAuth, async (req: Request, res: Response) => {
     if (!req.user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Not authenticated',
-        code: 'NOT_AUTHENTICATED' 
+        code: 'NOT_AUTHENTICATED',
       });
     }
 
@@ -421,53 +424,57 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Register route (admin only for now)
-  app.post('/api/auth/register', requireAuth, requireRole(['admin']), async (req: Request, res: Response) => {
-    try {
-      const { email, password, firstName, lastName, role = 'tenant', language = 'fr' } = req.body;
+  app.post(
+    '/api/auth/register',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: Request, res: Response) => {
+      try {
+        const { email, password, firstName, lastName, role = 'tenant', language = 'fr' } = req.body;
 
-      if (!email || !password || !firstName || !lastName) {
-        return res.status(400).json({ 
-          message: 'All fields are required',
-          code: 'MISSING_FIELDS' 
+        if (!email || !password || !firstName || !lastName) {
+          return res.status(400).json({
+            message: 'All fields are required',
+            code: 'MISSING_FIELDS',
+          });
+        }
+
+        // Check if user already exists
+        const existingUser = await storage.getUserByEmail(email.toLowerCase());
+        if (existingUser) {
+          return res.status(409).json({
+            message: 'User already exists',
+            code: 'USER_EXISTS',
+          });
+        }
+
+        // Create user with bcrypt hashed password
+        const hashedPassword = await hashPassword(password);
+
+        const newUser = await storage.createUser({
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          firstName,
+          lastName,
+          username: email.toLowerCase(), // Use email as username
+          role,
+          language,
+        });
+
+        const { password: _, ...userData } = newUser;
+        res.status(201).json({
+          user: userData,
+          message: 'User created successfully',
+        });
+      } catch (_error) {
+        console.error('Registration _error:', _error);
+        res.status(500).json({
+          message: 'Registration failed',
+          code: 'REGISTRATION_ERROR',
         });
       }
-
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(email.toLowerCase());
-      if (existingUser) {
-        return res.status(409).json({ 
-          message: 'User already exists',
-          code: 'USER_EXISTS' 
-        });
-      }
-
-      // Create user with bcrypt hashed password
-      const hashedPassword = await hashPassword(password);
-      
-      const newUser = await storage.createUser({
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        firstName,
-        lastName,
-        username: email.toLowerCase(), // Use email as username
-        role,
-        language,
-      });
-
-      const { password: _, ...userData } = newUser;
-      res.status(201).json({
-        user: userData,
-        message: 'User created successfully'
-      });
-
-    } catch (_error) {
-      console.error('Registration _error:', _error);
-      res.status(500).json({ 
-        message: 'Registration failed',
-        code: 'REGISTRATION_ERROR' 
-      });
     }
-  });
+  );
 
   // Password Reset Request Route
   app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
@@ -475,18 +482,18 @@ export function setupAuthRoutes(app: any) {
       const { email } = req.body;
 
       if (!email) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Email is required',
-          code: 'MISSING_EMAIL' 
+          code: 'MISSING_EMAIL',
         });
       }
 
       const user = await storage.getUserByEmail(email.toLowerCase());
       if (!user || !user.isActive) {
         // Always respond with success for security (don't reveal if email exists)
-        return res.json({ 
+        return res.json({
           message: 'If this email exists, a password reset link has been sent.',
-          success: true 
+          success: true,
         });
       }
 
@@ -509,22 +516,27 @@ export function setupAuthRoutes(app: any) {
 
       // Send password reset email
       const host = req.get('host') || '';
-      
+
       // Use development URL for Replit environments, production URL otherwise
       let frontendUrl;
-      if (host.includes('replit.dev') || host.includes('replit.com') || host.includes('replit.co') || process.env.NODE_ENV === 'development') {
+      if (
+        host.includes('replit.dev') ||
+        host.includes('replit.com') ||
+        host.includes('replit.co') ||
+        process.env.NODE_ENV === 'development'
+      ) {
         // Use the actual Replit development URL
         frontendUrl = `${req.protocol}://${host}`;
       } else {
         // Use production URL from environment variable or fallback
         frontendUrl = process.env.FRONTEND_URL || `https://${host}`;
       }
-      
+
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
-      
+
       console.warn('Generated reset URL:', resetUrl);
-      
+
       const emailSent = await emailService.sendPasswordResetEmail(
         email.toLowerCase(),
         `${user.firstName} ${user.lastName}`,
@@ -533,22 +545,21 @@ export function setupAuthRoutes(app: any) {
 
       if (!emailSent) {
         console.error('Failed to send password reset email to:', email);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: 'Failed to send password reset email',
-          code: 'EMAIL_SEND_FAILED' 
+          code: 'EMAIL_SEND_FAILED',
         });
       }
 
-      res.json({ 
+      res.json({
         message: 'If this email exists, a password reset link has been sent.',
-        success: true 
+        success: true,
       });
-
     } catch (_error) {
       console.error('Password reset request _error:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Password reset request failed',
-        code: 'PASSWORD_RESET_REQUEST_ERROR' 
+        code: 'PASSWORD_RESET_REQUEST_ERROR',
       });
     }
   });
@@ -559,17 +570,17 @@ export function setupAuthRoutes(app: any) {
       const { token, password } = req.body;
 
       if (!token || !password) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Token and password are required',
-          code: 'MISSING_FIELDS' 
+          code: 'MISSING_FIELDS',
         });
       }
 
       // Validate password strength
       if (password.length < 8) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Password must be at least 8 characters long',
-          code: 'PASSWORD_TOO_SHORT' 
+          code: 'PASSWORD_TOO_SHORT',
         });
       }
 
@@ -577,63 +588,64 @@ export function setupAuthRoutes(app: any) {
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumbers = /\d/.test(password);
-      
+
       if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-        return res.status(400).json({ 
-          message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
-          code: 'PASSWORD_TOO_WEAK' 
+        return res.status(400).json({
+          message:
+            'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+          code: 'PASSWORD_TOO_WEAK',
         });
       }
 
       // Find the password reset token
       const resetToken = await storage.getPasswordResetToken(token);
       if (!resetToken) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid or expired password reset token',
-          code: 'INVALID_TOKEN' 
+          code: 'INVALID_TOKEN',
         });
       }
 
       // Check if token is expired
       if (new Date() > resetToken.expiresAt) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Password reset token has expired',
-          code: 'TOKEN_EXPIRED' 
+          code: 'TOKEN_EXPIRED',
         });
       }
 
       // Check if token has already been used
       if (resetToken.isUsed) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Password reset token has already been used',
-          code: 'TOKEN_ALREADY_USED' 
+          code: 'TOKEN_ALREADY_USED',
         });
       }
 
       // Verify token hash for additional security
       const tokenHash = createHash('sha256').update(token).digest('hex');
       if (tokenHash !== resetToken.tokenHash) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid password reset token',
-          code: 'INVALID_TOKEN_HASH' 
+          code: 'INVALID_TOKEN_HASH',
         });
       }
 
       // Get the user
       const user = await storage.getUser(resetToken.userId);
       if (!user || !user.isActive) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'User account not found or inactive',
-          code: 'USER_NOT_FOUND' 
+          code: 'USER_NOT_FOUND',
         });
       }
 
       // Update user password with bcrypt hashed version
       const hashedPassword = await hashPassword(password);
-      
-      await storage.updateUser(user.id, { 
+
+      await storage.updateUser(user.id, {
         password: hashedPassword,
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       });
 
       // Mark token as used
@@ -642,16 +654,15 @@ export function setupAuthRoutes(app: any) {
       // Clean up expired tokens
       await storage.cleanupExpiredPasswordResetTokens();
 
-      res.json({ 
+      res.json({
         message: 'Password has been reset successfully',
-        success: true 
+        success: true,
       });
-
     } catch (_error) {
       console.error('Password reset _error:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Password reset failed',
-        code: 'PASSWORD_RESET_ERROR' 
+        code: 'PASSWORD_RESET_ERROR',
       });
     }
   });

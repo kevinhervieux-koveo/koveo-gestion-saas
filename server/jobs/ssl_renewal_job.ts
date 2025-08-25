@@ -41,8 +41,10 @@ class SSLRenewalJob {
       enabled: process.env.SSL_RENEWAL_ENABLED !== 'false',
       batchSize: parseInt(process.env.SSL_RENEWAL_BATCH_SIZE || '5'),
       logLevel: (process.env.SSL_RENEWAL_LOG_LEVEL as any) || 'info',
-      expiryNotificationThresholdDays: parseInt(process.env.SSL_EXPIRY_NOTIFICATION_THRESHOLD_DAYS || '7'),
-      enableExpiryNotifications: process.env.SSL_EXPIRY_NOTIFICATIONS_ENABLED !== 'false'
+      expiryNotificationThresholdDays: parseInt(
+        process.env.SSL_EXPIRY_NOTIFICATION_THRESHOLD_DAYS || '7'
+      ),
+      enableExpiryNotifications: process.env.SSL_EXPIRY_NOTIFICATIONS_ENABLED !== 'false',
     };
 
     this.log('info', 'SSL Renewal Job initialized', { config: this.config });
@@ -67,17 +69,21 @@ class SSLRenewalJob {
       }
 
       // Schedule the job
-      this.jobTask = cron.schedule(this.config.schedule, async () => {
-        await this.executeRenewalJob();
-      }, {
-        timezone: process.env.TZ || 'UTC'
-      });
+      this.jobTask = cron.schedule(
+        this.config.schedule,
+        async () => {
+          await this.executeRenewalJob();
+        },
+        {
+          timezone: process.env.TZ || 'UTC',
+        }
+      );
 
       this.jobTask.start();
-      
+
       this.log('info', 'SSL renewal job started', {
         schedule: this.config.schedule,
-        timezone: process.env.TZ || 'UTC'
+        timezone: process.env.TZ || 'UTC',
       });
 
       // Run initial check if needed
@@ -90,9 +96,10 @@ class SSLRenewalJob {
       if (this.config.enableExpiryNotifications) {
         await this.checkForExpiringCertificates();
       }
-
     } catch (____error) {
-      this.log('error', 'Failed to start SSL renewal job', { _error: ___error instanceof Error ? ___error.message : 'Unknown error' });
+      this.log('error', 'Failed to start SSL renewal job', {
+        _error: ___error instanceof Error ? ___error.message : 'Unknown error',
+      });
       throw ___error;
     }
   }
@@ -129,7 +136,7 @@ class SSLRenewalJob {
       }
 
       const expiringCertificates = await this.getExpiringCertificates();
-      
+
       if (expiringCertificates.length === 0) {
         this.log('info', 'No certificates need renewal');
         return;
@@ -144,24 +151,30 @@ class SSLRenewalJob {
 
       for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
         const batch = batches[batchIndex];
-        this.log('info', `Processing batch ${batchIndex + 1}/${batches.length} with ${batch.length} certificates`);
+        this.log(
+          'info',
+          `Processing batch ${batchIndex + 1}/${batches.length} with ${batch.length} certificates`
+        );
 
         for (const certificate of batch) {
           try {
             await this.renewCertificate(certificate);
             successCount++;
-            
+
             // Small delay between renewals to avoid rate limiting
             await this.sleep(2000);
           } catch (____error) {
             failureCount++;
             this.log('error', `Failed to renew certificate for ${certificate.domain}`, {
               domain: certificate.domain,
-              _error: ___error instanceof Error ? ___error.message : 'Unknown error'
+              _error: ___error instanceof Error ? ___error.message : 'Unknown error',
             });
 
-            await this.handleRenewalFailure(certificate, ___error instanceof Error ? ___error.message : 'Unknown error');
-            
+            await this.handleRenewalFailure(
+              certificate,
+              ___error instanceof Error ? ___error.message : 'Unknown error'
+            );
+
             // Send failure notification if configured
             if (this.config.enableExpiryNotifications) {
               const newAttempts = (certificate.renewalAttempts || 0) + 1;
@@ -186,16 +199,17 @@ class SSLRenewalJob {
         duration: `${Math.round(duration / 1000)}s`,
         successCount,
         failureCount,
-        totalProcessed: successCount + failureCount
+        totalProcessed: successCount + failureCount,
       });
 
       // Send notification if there were failures
       if (failureCount > 0) {
         await this.sendFailureNotification(failureCount, successCount);
       }
-
     } catch (____error) {
-      this.log('error', 'SSL renewal job failed', { _error: ___error instanceof Error ? ___error.message : 'Unknown error' });
+      this.log('error', 'SSL renewal job failed', {
+        _error: ___error instanceof Error ? ___error.message : 'Unknown error',
+      });
       throw ___error;
     } finally {
       this.isRunning = false;
@@ -220,14 +234,12 @@ class SSLRenewalJob {
 
       // Get all certificates that are expiring within the notification threshold
       // This includes both auto-renewal enabled and disabled certificates
-      const expiringCertificates = await db.select()
+      const expiringCertificates = await db
+        .select()
         .from(sslCertificates)
         .where(
           and(
-            or(
-              eq(sslCertificates.status, 'active'),
-              eq(sslCertificates.status, 'expiring')
-            ),
+            or(eq(sslCertificates.status, 'active'), eq(sslCertificates.status, 'expiring')),
             lt(sslCertificates.validTo, notificationThresholdDate)
           )
         );
@@ -237,14 +249,19 @@ class SSLRenewalJob {
         return;
       }
 
-      this.log('info', `Found ${expiringCertificates.length} certificates expiring within ${this.config.expiryNotificationThresholdDays} days`);
+      this.log(
+        'info',
+        `Found ${expiringCertificates.length} certificates expiring within ${this.config.expiryNotificationThresholdDays} days`
+      );
 
       // Send notifications for each expiring certificate
       for (const certificate of expiringCertificates) {
         try {
           const expiryDate = new Date(certificate.validTo);
           const now = new Date();
-          const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const daysUntilExpiry = Math.ceil(
+            (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+          );
 
           // Only send notification if we haven't sent one recently
           // This prevents spam notifications for the same certificate
@@ -262,26 +279,29 @@ class SSLRenewalJob {
 
             // Update the certificate status to 'expiring' if it's currently 'active'
             if (certificate.status === 'active') {
-              await db.update(sslCertificates)
+              await db
+                .update(sslCertificates)
                 .set({
                   status: 'expiring',
-                  updatedAt: new Date()
+                  updatedAt: new Date(),
                 })
                 .where(eq(sslCertificates.id, certificate.id));
             }
 
-            this.log('info', `Sent expiry notification for ${certificate.domain} (expires in ${daysUntilExpiry} days)`);
+            this.log(
+              'info',
+              `Sent expiry notification for ${certificate.domain} (expires in ${daysUntilExpiry} days)`
+            );
           }
         } catch (____error) {
           this.log('error', `Failed to send expiry notification for ${certificate.domain}`, {
-            _error: ___error instanceof Error ? ___error.message : 'Unknown error'
+            _error: ___error instanceof Error ? ___error.message : 'Unknown error',
           });
         }
       }
-
     } catch (____error) {
       this.log('error', 'Failed to check for expiring certificates', {
-        _error: ___error instanceof Error ? ___error.message : 'Unknown error'
+        _error: ___error instanceof Error ? ___error.message : 'Unknown error',
       });
     }
   }
@@ -292,7 +312,10 @@ class SSLRenewalJob {
    * @param domain
    * @param daysUntilExpiry
    */
-  private async shouldSendExpiryNotification(domain: string, daysUntilExpiry: number): Promise<boolean> {
+  private async shouldSendExpiryNotification(
+    domain: string,
+    daysUntilExpiry: number
+  ): Promise<boolean> {
     // Always notify for expired certificates (daysUntilExpiry <= 0)
     if (daysUntilExpiry <= 0) {
       return true;
@@ -323,7 +346,8 @@ class SSLRenewalJob {
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() + this.config.renewalThresholdDays);
 
-    return await db.select()
+    return await db
+      .select()
       .from(sslCertificates)
       .where(
         and(
@@ -351,13 +375,14 @@ class SSLRenewalJob {
 
     try {
       // Update status to pending renewal
-      await db.update(sslCertificates)
+      await db
+        .update(sslCertificates)
         .set({
           status: 'pending_renewal',
           lastRenewalAttempt: new Date(),
           renewalAttempts: (certificate.renewalAttempts || 0) + 1,
           renewalError: null,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(sslCertificates.id, certificate.id));
 
@@ -371,7 +396,8 @@ class SSLRenewalJob {
       }
 
       // Update database with new certificate data
-      await db.update(sslCertificates)
+      await db
+        .update(sslCertificates)
         .set({
           certificateData: newCertificate.certificate,
           privateKey: newCertificate.privateKey,
@@ -384,19 +410,19 @@ class SSLRenewalJob {
           status: 'active',
           renewalAttempts: 0,
           renewalError: null,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(sslCertificates.id, certificate.id));
 
       this.log('info', `Successfully renewed certificate for ${certificate.domain}`, {
         domain: certificate.domain,
         validTo: newCertificate.validTo,
-        issuer: newCertificate.issuer
+        issuer: newCertificate.issuer,
       });
 
       // Send success notification if configured
       await this.sendSuccessNotification(certificate.domain, newCertificate);
-      
+
       // Send notification service success alert
       if (this.config.enableExpiryNotifications && (certificate.renewalAttempts || 0) > 0) {
         await notificationService.sendSSLRenewalSuccessAlert(
@@ -405,9 +431,10 @@ class SSLRenewalJob {
           certificate.renewalAttempts || 0
         );
       }
-
     } catch (_error) {
-      throw new Error(`Certificate renewal failed for ${certificate.domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+      throw new Error(
+        `Certificate renewal failed for ${certificate.domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -421,13 +448,14 @@ class SSLRenewalJob {
     const maxAttempts = certificate.maxRenewalAttempts || this.config.maxRetryAttempts;
     const status = newAttempts >= maxAttempts ? 'renewal_failed' : 'expiring';
 
-    await db.update(sslCertificates)
+    await db
+      .update(sslCertificates)
       .set({
         status,
         renewalAttempts: newAttempts,
         renewalError: errorMessage,
         lastRenewalAttempt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(sslCertificates.id, certificate.id));
 
@@ -436,7 +464,7 @@ class SSLRenewalJob {
       attempts: newAttempts,
       maxAttempts,
       finalStatus: status,
-      _error: errorMessage
+      _error: errorMessage,
     });
   }
 
@@ -452,7 +480,7 @@ class SSLRenewalJob {
       email: this.config.notificationEmail,
       staging: process.env.SSL_STAGING === 'true',
       keySize: parseInt(process.env.SSL_KEY_SIZE || '2048'),
-      storageDir: process.env.SSL_STORAGE_DIR || './ssl-certificates'
+      storageDir: process.env.SSL_STORAGE_DIR || './ssl-certificates',
     };
 
     this.sslService = await createSSLService(sslOptions);
@@ -469,7 +497,7 @@ class SSLRenewalJob {
     this.log('error', 'SSL renewal job completed with failures', {
       failureCount,
       successCount,
-      notificationEmail: this.config.notificationEmail
+      notificationEmail: this.config.notificationEmail,
     });
 
     // TODO: Integrate with email service or notification system
@@ -488,9 +516,9 @@ class SSLRenewalJob {
   private async sendSuccessNotification(domain: string, certificate: unknown): Promise<void> {
     this.log('info', `Certificate renewed successfully for ${domain}`, {
       domain,
-      validUntil: certificate.validTo
+      validUntil: certificate.validTo,
     });
-    
+
     // TODO: Send notification for important domains
   }
 
@@ -512,7 +540,7 @@ class SSLRenewalJob {
    * @param ms
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -548,7 +576,7 @@ class SSLRenewalJob {
       running: this.isRunning,
       schedule: this.config.schedule,
       nextRun: null, // Note: nextDates() method not available in this node-cron version
-      config: this.config
+      config: this.config,
     };
   }
 }

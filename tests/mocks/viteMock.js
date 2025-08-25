@@ -7,5 +7,5 @@ const serveStatic = jest.fn();
 module.exports = {
   log,
   setupVite,
-  serveStatic
+  serveStatic,
 };

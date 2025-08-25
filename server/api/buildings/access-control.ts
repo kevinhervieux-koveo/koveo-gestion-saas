@@ -1,10 +1,10 @@
 import { db } from '../../db';
-import { 
-  buildings, 
-  organizations, 
-  residences, 
+import {
+  buildings,
+  organizations,
+  residences,
   userResidences,
-  userOrganizations
+  userOrganizations,
 } from '@shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 
@@ -38,25 +38,20 @@ export async function getUserBuildingAccess(userId: string): Promise<UserAccess>
     .select({
       organizationId: userOrganizations.organizationId,
       organizationName: organizations.name,
-      canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations
+      canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
     })
     .from(userOrganizations)
     .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
-    .where(
-      and(
-        eq(userOrganizations.userId, userId),
-        eq(userOrganizations.isActive, true)
-      )
-    );
+    .where(and(eq(userOrganizations.userId, userId), eq(userOrganizations.isActive, true)));
 
-  const isKoveoUser = userOrgs.some(org => org.organizationName === 'Koveo');
-  const organizationIds = userOrgs.map(org => org.organizationId);
+  const isKoveoUser = userOrgs.some((org) => org.organizationName === 'Koveo');
+  const organizationIds = userOrgs.map((org) => org.organizationId);
 
   return {
     hasAccess: userOrgs.length > 0 || isKoveoUser,
     accessType: isKoveoUser ? 'koveo-global' : 'organization',
     organizationIds,
-    isKoveoUser
+    isKoveoUser,
   };
 }
 
@@ -74,8 +69,8 @@ export async function getUserBuildingAccess(userId: string): Promise<UserAccess>
  * @returns Function result.
  */
 export async function checkBuildingAccess(
-  userId: string, 
-  buildingId: string, 
+  userId: string,
+  buildingId: string,
   userRole: string
 ): Promise<UserAccess> {
   let hasAccess = false;
@@ -90,7 +85,7 @@ export async function checkBuildingAccess(
       hasAccess: true,
       accessType: 'koveo-global',
       organizationIds: userAccess.organizationIds,
-      isKoveoUser: true
+      isKoveoUser: true,
     };
   }
 
@@ -140,7 +135,7 @@ export async function checkBuildingAccess(
     hasAccess,
     accessType,
     organizationIds: userAccess.organizationIds,
-    isKoveoUser: false
+    isKoveoUser: false,
   };
 }
 
@@ -156,21 +151,21 @@ export async function checkBuildingAccess(
  * @returns Function result.
  */
 export async function getAccessibleBuildingIds(
-  userId: string, 
+  userId: string,
   userRole: string
-): Promise<{ buildingIds: string[], accessType: BuildingAccessType }> {
+): Promise<{ buildingIds: string[]; accessType: BuildingAccessType }> {
   const userAccess = await getUserBuildingAccess(userId);
-  
+
   // Koveo users get access to all buildings
   if (userAccess.isKoveoUser) {
     const allBuildings = await db
       .select({ id: buildings.id })
       .from(buildings)
       .where(eq(buildings.isActive, true));
-    
+
     return {
-      buildingIds: allBuildings.map(b => b.id),
-      accessType: 'koveo-global'
+      buildingIds: allBuildings.map((b) => b.id),
+      accessType: 'koveo-global',
     };
   }
 
@@ -188,7 +183,7 @@ export async function getAccessibleBuildingIds(
         )
       );
 
-    orgBuildings.forEach(building => buildingIds.add(building.id));
+    orgBuildings.forEach((building) => buildingIds.add(building.id));
   }
 
   // Residence-based access for all roles
@@ -196,17 +191,12 @@ export async function getAccessibleBuildingIds(
     .select({ buildingId: residences.buildingId })
     .from(userResidences)
     .innerJoin(residences, eq(userResidences.residenceId, residences.id))
-    .where(
-      and(
-        eq(userResidences.userId, userId),
-        eq(userResidences.isActive, true)
-      )
-    );
+    .where(and(eq(userResidences.userId, userId), eq(userResidences.isActive, true)));
 
-  userResidenceBuildings.forEach(residence => buildingIds.add(residence.buildingId));
+  userResidenceBuildings.forEach((residence) => buildingIds.add(residence.buildingId));
 
   return {
     buildingIds: Array.from(buildingIds),
-    accessType: userAccess.organizationIds.length > 0 ? 'both' : 'residence'
+    accessType: userAccess.organizationIds.length > 0 ? 'both' : 'residence',
   };
 }

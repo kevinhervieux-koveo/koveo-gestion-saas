@@ -326,10 +326,7 @@ describe('User API Routes', () => {
       const updatedUser = { ...mockUser, ...updateData };
       mockStorage.updateUser.mockResolvedValue(updatedUser);
 
-      await request(app)
-        .put('/api/users/user-123')
-        .send(dataWithPassword)
-        .expect(200);
+      await request(app).put('/api/users/user-123').send(dataWithPassword).expect(200);
 
       // Password should be omitted from the update call
       expect(mockStorage.updateUser).toHaveBeenCalledWith('user-123', {
@@ -455,11 +452,7 @@ describe('User API Routes', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      await request(app)
-        .post('/api/users')
-        .type('json')
-        .send('{ invalid json }')
-        .expect(400);
+      await request(app).post('/api/users').type('json').send('{ invalid json }').expect(400);
     });
   });
 

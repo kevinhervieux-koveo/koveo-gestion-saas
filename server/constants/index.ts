@@ -6,7 +6,7 @@
 export const ROLES = {
   ADMIN: 'admin',
   MANAGER: 'manager',
-  TENANT: 'tenant', 
+  TENANT: 'tenant',
   RESIDENT: 'resident',
 } as const;
 
@@ -114,7 +114,7 @@ export const LAW_25_COMPLIANCE = {
   ],
   REQUIRED_PRIVACY_NOTICES: [
     'data_collection_purpose',
-    'data_retention_period', 
+    'data_retention_period',
     'third_party_sharing',
     'user_rights',
     'contact_information',
@@ -154,20 +154,20 @@ export const FILE_UPLOAD = {
 /**
  *
  */
-export type Role = typeof ROLES[keyof typeof ROLES];
+export type Role = (typeof ROLES)[keyof typeof ROLES];
 /**
  *
  */
-export type OrganizationType = typeof ORGANIZATION_TYPES[keyof typeof ORGANIZATION_TYPES];
+export type OrganizationType = (typeof ORGANIZATION_TYPES)[keyof typeof ORGANIZATION_TYPES];
 /**
  *
  */
-export type BuildingType = typeof BUILDING_TYPES[keyof typeof BUILDING_TYPES];
+export type BuildingType = (typeof BUILDING_TYPES)[keyof typeof BUILDING_TYPES];
 /**
  *
  */
-export type Language = typeof LANGUAGES[keyof typeof LANGUAGES];
+export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES];
 /**
  *
  */
-export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

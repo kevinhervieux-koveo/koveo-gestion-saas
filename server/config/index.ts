@@ -10,23 +10,29 @@ const envSchema = z.object({
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   SESSION_SECRET: z.string().optional(),
-  
+
   // Email configuration
   SENDGRID_API_KEY: z.string().optional(),
   FROM_EMAIL: z.string().email().optional(),
-  
+
   // SSL configuration
-  SSL_ENABLED: z.string().transform(v => v === 'true').default(false),
-  SSL_STAGING: z.string().transform(v => v === 'true').default(true),
-  
+  SSL_ENABLED: z
+    .string()
+    .transform((v) => v === 'true')
+    .default(false),
+  SSL_STAGING: z
+    .string()
+    .transform((v) => v === 'true')
+    .default(true),
+
   // Performance configuration
   CACHE_TTL: z.string().transform(Number).default(300), // 5 minutes
   MAX_CACHE_SIZE: z.string().transform(Number).default(100),
-  
+
   // Security configuration
   RATE_LIMIT_WINDOW: z.string().transform(Number).default(900000), // 15 minutes
   RATE_LIMIT_MAX: z.string().transform(Number).default(100),
-  
+
   // Database optimization
   DB_POOL_SIZE: z.string().transform(Number).default(10),
   QUERY_TIMEOUT: z.string().transform(Number).default(30000), // 30 seconds
@@ -44,14 +50,14 @@ export const config = {
     isProduction: env.NODE_ENV === 'production',
     isTest: env.NODE_ENV === 'test',
   },
-  
+
   // Database configuration
   database: {
     url: env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },
-  
+
   // Session configuration
   session: {
     secret: env.SESSION_SECRET || 'koveo-gestion-secret-key',
@@ -60,32 +66,32 @@ export const config = {
     httpOnly: true,
     sameSite: 'strict' as const,
   },
-  
+
   // Email configuration
   email: {
     apiKey: env.SENDGRID_API_KEY,
     fromEmail: env.FROM_EMAIL || 'noreply@koveo.ca',
     enabled: !!env.SENDGRID_API_KEY,
   },
-  
+
   // SSL configuration
   ssl: {
     enabled: env.SSL_ENABLED,
     staging: env.SSL_STAGING,
   },
-  
+
   // Cache configuration
   cache: {
     ttl: env.CACHE_TTL,
     maxSize: env.MAX_CACHE_SIZE,
   },
-  
+
   // Rate limiting configuration
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW,
     max: env.RATE_LIMIT_MAX,
   },
-  
+
   // Quebec compliance settings
   quebec: {
     defaultLanguage: 'fr' as const,

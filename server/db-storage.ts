@@ -84,10 +84,10 @@ export class DatabaseStorage implements IStorage {
   @trackPerformance('createUser')
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(schema.users).values(insertUser).returning();
-    
+
     // Invalidate related caches
     CacheInvalidator.invalidateUserCaches('*');
-    
+
     return result[0];
   }
 
@@ -104,10 +104,10 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(schema.users.id, id))
       .returning();
-    
+
     // Invalidate specific user caches
     CacheInvalidator.invalidateUserCaches(id);
-    
+
     return result[0];
   }
 
@@ -118,7 +118,7 @@ export class DatabaseStorage implements IStorage {
    */
   @trackPerformance('getUserOrganizations')
   @cached('users', (userId: string) => `user_orgs:${userId}`)
-  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+  async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
     const user = await this.getUser(userId);
     if (!user || !user.organizationId) {
       return [];
@@ -133,17 +133,16 @@ export class DatabaseStorage implements IStorage {
    */
   @trackPerformance('getUserResidences')
   @cached('residences', (userId: string) => `user_residences:${userId}`)
-  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
     const result = await db
       .select({
         residenceId: schema.userResidences.residenceId,
       })
       .from(schema.userResidences)
-      .where(and(
-        eq(schema.userResidences.userId, userId),
-        eq(schema.userResidences.isActive, true)
-      ));
-    
+      .where(
+        and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
+      );
+
     return result;
   }
 
@@ -155,7 +154,10 @@ export class DatabaseStorage implements IStorage {
   @trackPerformance('getOrganizations')
   @cached('organizations', () => 'all_organizations')
   async getOrganizations(): Promise<Organization[]> {
-    return await db.select().from(schema.organizations).where(eq(schema.organizations.isActive, true));
+    return await db
+      .select()
+      .from(schema.organizations)
+      .where(eq(schema.organizations.isActive, true));
   }
 
   /**

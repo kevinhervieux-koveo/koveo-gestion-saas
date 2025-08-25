@@ -5,7 +5,7 @@ import { scopeQuery, type UserContext } from './scope-query';
 
 /**
  * Get all buildings accessible to the user based on their role and associations.
- * 
+ *
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of buildings the user can access.
  */
@@ -48,7 +48,7 @@ export async function getBuildingsForUser(userContext: UserContext) {
 
 /**
  * Get a single building by ID with role-based access control.
- * 
+ *
  * @param buildingId - The building ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the building if accessible, undefined otherwise.
@@ -97,7 +97,7 @@ export async function getBuildingById(buildingId: string, userContext: UserConte
 
 /**
  * Get buildings by organization with role-based filtering.
- * 
+ *
  * @param organizationId - Organization ID to filter by.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings in the organization.
@@ -122,12 +122,7 @@ export async function getBuildingsByOrganization(organizationId: string, userCon
       createdAt: buildings.createdAt,
     })
     .from(buildings)
-    .where(
-      and(
-        eq(buildings.organizationId, organizationId),
-        eq(buildings.isActive, true)
-      )
-    )
+    .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)))
     .orderBy(buildings.name);
 
   return await scopeQuery(baseQuery, userContext, 'buildings');
@@ -135,7 +130,7 @@ export async function getBuildingsByOrganization(organizationId: string, userCon
 
 /**
  * Search buildings by name or address with role-based filtering.
- * 
+ *
  * @param searchTerm - Search term to look for in name or address.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of matching buildings.
@@ -148,7 +143,7 @@ export async function getBuildingsByOrganization(organizationId: string, userCon
  */
 export async function searchBuildings(searchTerm: string, userContext: UserContext) {
   const searchPattern = `%${searchTerm}%`;
-  
+
   const baseQuery = db
     .select({
       id: buildings.id,
@@ -179,7 +174,7 @@ export async function searchBuildings(searchTerm: string, userContext: UserConte
 /**
  * Get building statistics with role-based filtering.
  * Includes residence count, maintenance request count, and budget information.
- * 
+ *
  * @param buildingId - Building ID to get statistics for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to building statistics if accessible.
@@ -201,13 +196,8 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
   const residenceCountQuery = await db
     .select({ count: count() })
     .from(residences)
-    .where(
-      and(
-        eq(residences.buildingId, buildingId),
-        eq(residences.isActive, true)
-      )
-    );
-  
+    .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
+
   const residenceCount = residenceCountQuery[0]?.count || 0;
 
   // Get active maintenance requests count
@@ -221,15 +211,15 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
         inArray(maintenanceRequests.status, ['submitted', 'acknowledged', 'in_progress'])
       )
     );
-  
+
   const activeMaintenanceCount = maintenanceCountQuery[0]?.count || 0;
 
   // Get current year budget total
   const currentYear = new Date().getFullYear();
   const budgetQuery = await db
-    .select({ 
+    .select({
       budgetedAmount: budgets.budgetedAmount,
-      actualAmount: budgets.actualAmount 
+      actualAmount: budgets.actualAmount,
     })
     .from(budgets)
     .where(
@@ -242,7 +232,7 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
 
   let totalBudgeted = 0;
   let totalActual = 0;
-  
+
   budgetQuery.forEach((budget: unknown) => {
     totalBudgeted += parseFloat(budget.budgetedAmount || '0');
     totalActual += parseFloat(budget.actualAmount || '0');
@@ -263,7 +253,7 @@ export async function getBuildingStatistics(buildingId: string, userContext: Use
 /**
  * Get buildings with their occupancy rates and basic statistics.
  * Shows percentage of occupied units and key metrics.
- * 
+ *
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings with occupancy information.
  */
@@ -298,17 +288,11 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
       const occupiedUnitsQuery = await db
         .select({ count: count() })
         .from(residences)
-        .where(
-          and(
-            eq(residences.buildingId, building.id),
-            eq(residences.isActive, true)
-          )
-        );
-      
+        .where(and(eq(residences.buildingId, building.id), eq(residences.isActive, true)));
+
       const occupiedUnits = occupiedUnitsQuery[0]?.count || 0;
-      const occupancyRate = building.totalUnits > 0 
-        ? Math.round((occupiedUnits / building.totalUnits) * 100) 
-        : 0;
+      const occupancyRate =
+        building.totalUnits > 0 ? Math.round((occupiedUnits / building.totalUnits) * 100) : 0;
 
       return {
         ...building,
@@ -323,7 +307,7 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
 
 /**
  * Get buildings by type with role-based filtering.
- * 
+ *
  * @param buildingType - Building type ('condo' or 'rental').
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of buildings of the specified type.
@@ -335,7 +319,7 @@ export async function getBuildingsWithOccupancy(userContext: UserContext) {
  * @returns Function result.
  */
 export async function getBuildingsByType(
-  buildingType: 'condo' | 'rental', 
+  buildingType: 'condo' | 'rental',
   userContext: UserContext
 ) {
   const baseQuery = db
@@ -354,12 +338,7 @@ export async function getBuildingsByType(
     })
     .from(buildings)
     .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-    .where(
-      and(
-        eq(buildings.buildingType, buildingType),
-        eq(buildings.isActive, true)
-      )
-    )
+    .where(and(eq(buildings.buildingType, buildingType), eq(buildings.isActive, true)))
     .orderBy(buildings.name);
 
   return await scopeQuery(baseQuery, userContext, 'buildings');
@@ -368,7 +347,7 @@ export async function getBuildingsByType(
 /**
  * Get building summary statistics for all accessible buildings.
  * Provides aggregated information about the user's building portfolio.
- * 
+ *
  * @param userContext - User context for access control.
  * @returns Promise resolving to building portfolio summary.
  */
@@ -380,17 +359,20 @@ export async function getBuildingsByType(
 export async function getBuildingSummary(userContext: UserContext) {
   // Get all accessible buildings
   const accessibleBuildingsQuery = await scopeQuery(
-    db.select({ 
-      id: buildings.id,
-      totalUnits: buildings.totalUnits,
-      buildingType: buildings.buildingType
-    }).from(buildings).where(eq(buildings.isActive, true)),
+    db
+      .select({
+        id: buildings.id,
+        totalUnits: buildings.totalUnits,
+        buildingType: buildings.buildingType,
+      })
+      .from(buildings)
+      .where(eq(buildings.isActive, true)),
     userContext,
     'buildings'
   );
-  
+
   const accessibleBuildings = await accessibleBuildingsQuery;
-  
+
   if (accessibleBuildings.length === 0) {
     return {
       totalBuildings: 0,
@@ -409,7 +391,7 @@ export async function getBuildingSummary(userContext: UserContext) {
   accessibleBuildings.forEach((building: unknown) => {
     totalBuildings++;
     totalUnits += building.totalUnits || 0;
-    
+
     if (building.buildingType === 'condo') {
       condoBuildings++;
     } else if (building.buildingType === 'rental') {
@@ -417,9 +399,7 @@ export async function getBuildingSummary(userContext: UserContext) {
     }
   });
 
-  const averageUnitsPerBuilding = totalBuildings > 0 
-    ? Math.round(totalUnits / totalBuildings) 
-    : 0;
+  const averageUnitsPerBuilding = totalBuildings > 0 ? Math.round(totalUnits / totalBuildings) : 0;
 
   return {
     totalBuildings,

@@ -7,7 +7,7 @@ import Bills from '@/pages/manager/bills';
 const mockBuildings = [
   { id: '1', name: 'Maple Heights Condos' },
   { id: '2', name: 'Oak Gardens Apartments' },
-  { id: '3', name: 'Pine Tower Complex' }
+  { id: '3', name: 'Pine Tower Complex' },
 ];
 
 const mockBills = [
@@ -27,7 +27,7 @@ const mockBills = [
     endDate: '2024-12-31',
     status: 'sent',
     createdAt: new Date('2024-01-01'),
-    buildingName: 'Maple Heights Condos'
+    buildingName: 'Maple Heights Condos',
   },
   {
     id: '2',
@@ -44,7 +44,7 @@ const mockBills = [
     startDate: '2024-01-01',
     status: 'paid',
     createdAt: new Date('2024-01-15'),
-    buildingName: 'Maple Heights Condos'
+    buildingName: 'Maple Heights Condos',
   },
   {
     id: '3',
@@ -61,7 +61,7 @@ const mockBills = [
     startDate: '2024-01-01',
     status: 'overdue',
     createdAt: new Date('2024-01-20'),
-    buildingName: 'Maple Heights Condos'
+    buildingName: 'Maple Heights Condos',
   },
   {
     id: '4',
@@ -78,8 +78,8 @@ const mockBills = [
     startDate: '2024-01-01',
     status: 'sent',
     createdAt: new Date('2024-01-10'),
-    buildingName: 'Maple Heights Condos'
-  }
+    buildingName: 'Maple Heights Condos',
+  },
 ];
 
 // Mock fetch
@@ -129,7 +129,9 @@ describe('Bills User Flow End-to-End Tests', () => {
 
       // Step 3: Verify initial state shows building selection prompt
       expect(screen.getByText('Select a Building')).toBeInTheDocument();
-      expect(screen.getByText('Choose a building from the filter above to view and manage its bills')).toBeInTheDocument();
+      expect(
+        screen.getByText('Choose a building from the filter above to view and manage its bills')
+      ).toBeInTheDocument();
 
       // Step 4: Select a building from dropdown
       await waitFor(() => {
@@ -190,7 +192,7 @@ describe('Bills User Flow End-to-End Tests', () => {
         } as Response)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => mockBills.filter(bill => bill.category === 'insurance'),
+          json: async () => mockBills.filter((bill) => bill.category === 'insurance'),
         } as Response);
 
       renderBillsPage();
@@ -231,10 +233,10 @@ describe('Bills User Flow End-to-End Tests', () => {
 
     it('should handle year filtering workflow', async () => {
       // Setup mocks for different years
-      const bills2023 = mockBills.map(bill => ({
+      const bills2023 = mockBills.map((bill) => ({
         ...bill,
         startDate: bill.startDate.replace('2024', '2023'),
-        createdAt: new Date('2023-01-01')
+        createdAt: new Date('2023-01-01'),
       }));
 
       mockFetch
@@ -365,7 +367,11 @@ describe('Bills User Flow End-to-End Tests', () => {
       // Verify no bills message
       await waitFor(() => {
         expect(screen.getByText('No Bills Found')).toBeInTheDocument();
-        expect(screen.getByText('No bills found for the selected filters. Create your first bill to get started.')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'No bills found for the selected filters. Create your first bill to get started.'
+          )
+        ).toBeInTheDocument();
         expect(screen.getByText('Create First Bill')).toBeInTheDocument();
       });
     });

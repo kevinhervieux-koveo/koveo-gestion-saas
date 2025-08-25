@@ -6,13 +6,34 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
@@ -34,7 +55,15 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'approved'
+    | 'rejected'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled';
   submitterId: string;
   buildingId: string;
   residenceId?: string;
@@ -108,12 +137,12 @@ const typeLabels = {
  *
  */
 export default function /**
-   * Resident demands page function.
-   */ /**
-   * Resident demands page function.
-   */
+ * Resident demands page function.
+ */ /**
+ * Resident demands page function.
+ */
 
- ResidentDemandsPage() {
+ResidentDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -133,7 +162,7 @@ export default function /**
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/manager/buildings'],
-    select: (data: any) => data?.buildings || []
+    select: (data: any) => data?.buildings || [],
   });
 
   // Fetch residences
@@ -147,9 +176,25 @@ export default function /**
   });
 
   // Provide default user to prevent type errors
-  const defaultUser: { id: string; role: string; email: string; firstName?: string; lastName?: string } = 
-    (currentUser && typeof currentUser === 'object' && 'id' in currentUser && 'role' in currentUser && 'email' in currentUser)
-      ? currentUser as { id: string; role: string; email: string; firstName?: string; lastName?: string }
+  const defaultUser: {
+    id: string;
+    role: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  } =
+    currentUser &&
+    typeof currentUser === 'object' &&
+    'id' in currentUser &&
+    'role' in currentUser &&
+    'email' in currentUser
+      ? (currentUser as {
+          id: string;
+          role: string;
+          email: string;
+          firstName?: string;
+          lastName?: string;
+        })
       : { id: '', role: 'tenant', email: '' };
 
   // Create demand mutation
@@ -194,20 +239,21 @@ export default function /**
 
   // Filter demands
   const filteredDemands = (demands as Demand[]).filter((demand: Demand) => {
-    const matchesSearch = demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || demand.status === statusFilter;
     const matchesType = typeFilter === 'all' || demand.type === typeFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
   // Group demands by status
   const draftDemands = filteredDemands.filter((d: Demand) => d.status === 'draft');
-  const activeDemands = filteredDemands.filter((d: Demand) => 
+  const activeDemands = filteredDemands.filter((d: Demand) =>
     ['submitted', 'under_review', 'approved', 'in_progress'].includes(d.status)
   );
-  const completedDemands = filteredDemands.filter((d: Demand) => 
+  const completedDemands = filteredDemands.filter((d: Demand) =>
     ['completed', 'rejected', 'cancelled'].includes(d.status)
   );
 
@@ -218,11 +264,11 @@ export default function /**
   const currentDemands = filteredDemands.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
-    setCurrentPage(prev => Math.max(1, prev - 1));
+    setCurrentPage((prev) => Math.max(1, prev - 1));
   };
 
   const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
   const handlePageClick = (page: number) => {
@@ -243,33 +289,41 @@ export default function /**
   };
 
   const DemandCard = ({ demand }: { demand: Demand }) => {
-    const building = buildings.find(b => b.id === demand.buildingId);
-    const residence = residences.find(r => r.id === demand.residenceId);
+    const building = buildings.find((b) => b.id === demand.buildingId);
+    const residence = residences.find((r) => r.id === demand.residenceId);
 
     return (
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow"
+      <Card
+        className='cursor-pointer hover:shadow-md transition-shadow'
         onClick={() => handleDemandClick(demand)}
       >
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{typeLabels[demand.type]}</Badge>
+        <CardHeader className='pb-3'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
               <Badge className={statusColors[demand.status]}>
                 {demand.status.replace('_', ' ')}
               </Badge>
             </div>
           </div>
-          <CardTitle className="text-base line-clamp-2">
+          <CardTitle className='text-base line-clamp-2'>
             {demand.description.substring(0, 100)}
             {demand.description.length > 100 && '...'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p><strong>Building:</strong> {building?.name || 'Unknown'}</p>
-            {residence && <p><strong>Residence:</strong> {residence.name}</p>}
-            <p><strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}</p>
+        <CardContent className='pt-0'>
+          <div className='text-sm text-muted-foreground space-y-1'>
+            <p>
+              <strong>Building:</strong> {building?.name || 'Unknown'}
+            </p>
+            {residence && (
+              <p>
+                <strong>Residence:</strong> {residence.name}
+              </p>
+            )}
+            <p>
+              <strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -282,12 +336,10 @@ export default function /**
    * @param isLoading - IsLoading parameter.
    */
 
-
-
   if (isLoading) {
     return (
       <PageLayout>
-        <LoadingState message="Loading demands..." />
+        <LoadingState message='Loading demands...' />
       </PageLayout>
     );
   }
@@ -296,44 +348,42 @@ export default function /**
     <PageLayout>
       <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
         <PageHeader
-          title="My Demands"
-          description="Submit and track your requests"
+          title='My Demands'
+          description='Submit and track your requests'
           actions={
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className='h-4 w-4 mr-2' />
                 New Demand
               </Button>
             </DialogTrigger>
           }
         />
-        
-        <DialogContent className="max-w-md">
+
+        <DialogContent className='max-w-md'>
           <DialogHeader>
             <DialogTitle>Create New Demand</DialogTitle>
-            <DialogDescription>
-              Submit a new request or complaint
-            </DialogDescription>
+            <DialogDescription>Submit a new request or complaint</DialogDescription>
           </DialogHeader>
           <Form {...newDemandForm}>
-            <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className="space-y-4">
+            <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
               <FormField
                 control={newDemandForm.control}
-                name="type"
+                name='type'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder='Select type' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                        <SelectItem value="complaint">Complaint</SelectItem>
-                        <SelectItem value="information">Information</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value='maintenance'>Maintenance</SelectItem>
+                        <SelectItem value='complaint'>Complaint</SelectItem>
+                        <SelectItem value='information'>Information</SelectItem>
+                        <SelectItem value='other'>Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -342,14 +392,14 @@ export default function /**
               />
               <FormField
                 control={newDemandForm.control}
-                name="buildingId"
+                name='buildingId'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Building</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select building" />
+                          <SelectValue placeholder='Select building' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -366,14 +416,14 @@ export default function /**
               />
               <FormField
                 control={newDemandForm.control}
-                name="description"
+                name='description'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe your request in detail..."
-                        className="min-h-[100px]"
+                        placeholder='Describe your request in detail...'
+                        className='min-h-[100px]'
                         {...field}
                         value={field.value as string}
                       />
@@ -383,10 +433,7 @@ export default function /**
                 )}
               />
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={createDemandMutation.isPending}
-                >
+                <Button type='submit' disabled={createDemandMutation.isPending}>
                   {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
                 </Button>
               </DialogFooter>
@@ -407,11 +454,11 @@ export default function /**
           onStatusChange: setStatusFilter,
           onTypeChange: setTypeFilter,
         }}
-        userRole="resident"
+        userRole='resident'
       />
 
       {/* Demands List */}
-      <div className="space-y-6">
+      <div className='space-y-6'>
         {/* Pagination */}
         {totalPages > 1 && (
           <div className='flex items-center justify-center gap-2'>
@@ -424,7 +471,7 @@ export default function /**
               <ChevronLeft className='h-4 w-4' />
               Previous
             </Button>
-            
+
             <div className='flex gap-1'>
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
@@ -437,7 +484,7 @@ export default function /**
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <Button
                     key={pageNum}
@@ -450,7 +497,7 @@ export default function /**
                 );
               })}
             </div>
-            
+
             <Button
               variant='outline'
               size='sm'
@@ -466,19 +513,20 @@ export default function /**
         {/* Page info */}
         {filteredDemands.length > 0 && (
           <div className='text-center text-sm text-muted-foreground'>
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of{' '}
+            {filteredDemands.length} demands
           </div>
         )}
 
         {/* Current page demands */}
         {currentDemands.length === 0 ? (
           <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">No demands found</p>
+            <CardContent className='p-6 text-center'>
+              <p className='text-muted-foreground'>No demands found</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             {currentDemands.map((demand: Demand) => (
               <DemandCard key={demand.id} demand={demand} />
             ))}

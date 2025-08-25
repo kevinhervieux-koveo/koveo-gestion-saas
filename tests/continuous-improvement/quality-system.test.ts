@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 
 /**
  * Continuous Improvement System Tests.
- * 
+ *
  * These tests validate that our quality metrics system is actually improving
  * code quality and finding real problems, not just reporting numbers.
  */
@@ -28,8 +28,8 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 3,
           moderateIssues: 4,
           minorIssues: 1,
-          description: 'Uncovered error handling in payment processing'
-        }
+          description: 'Uncovered error handling in payment processing',
+        },
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -43,12 +43,12 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 2,
           moderateIssues: 2,
           minorIssues: 1,
-          description: 'Missing test coverage for edge cases in validation'
-        }
+          description: 'Missing test coverage for edge cases in validation',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('coverage');
-      
+
       expect(effectiveness).toBeTruthy();
       expect(effectiveness!.totalMeasurements).toBe(2);
       expect(effectiveness!.totalRealIssuesFound).toBe(13);
@@ -65,7 +65,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 1,
         falsePositives: 8,
         missedIssues: 5,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -74,29 +74,31 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 0,
         falsePositives: 6,
         missedIssues: 4,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       const validation = MetricEffectivenessTracker.validateMetricQuality('badMetric');
-      
+
       expect(validation.isValid).toBe(false);
-      expect(validation.reasons).toEqual(expect.arrayContaining([
-        expect.stringMatching(/false positive/i)
-      ]));
-      expect(validation.recommendations).toEqual(expect.arrayContaining([
-        expect.stringMatching(/review metric implementation/i)
-      ]));
+      expect(validation.reasons).toEqual(
+        expect.arrayContaining([expect.stringMatching(/false positive/i)])
+      );
+      expect(validation.recommendations).toEqual(
+        expect.arrayContaining([expect.stringMatching(/review metric implementation/i)])
+      );
     });
 
     it('should generate improvement suggestions for low-performing metrics', () => {
       const suggestion = MetricEffectivenessTracker.generateImprovementSuggestion('coverage', 65);
-      
+
       expect(suggestion.metric).toBe('coverage');
       expect(suggestion.currentAccuracy).toBe(65);
       expect(suggestion.targetAccuracy).toBeGreaterThan(65);
       expect(suggestion.priority).toBe('medium');
       expect(suggestion.suggestions.length).toBeGreaterThan(0);
-      expect(suggestion.suggestions.some(s => s.includes('redesigning') || s.includes('thresholds'))).toBe(true);
+      expect(
+        suggestion.suggestions.some((s) => s.includes('redesigning') || s.includes('thresholds'))
+      ).toBe(true);
     });
 
     it('should track system health across all metrics', () => {
@@ -107,7 +109,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 5,
         falsePositives: 1,
         missedIssues: 0,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -116,7 +118,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 3,
         falsePositives: 0,
         missedIssues: 1,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -125,11 +127,11 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 2,
         falsePositives: 0,
         missedIssues: 0,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       const systemHealth = MetricEffectivenessTracker.getSystemHealth();
-      
+
       expect(systemHealth.healthStatus).toMatch(/good|excellent/);
       expect(systemHealth.averageAccuracy).toBeGreaterThan(80);
       expect(systemHealth.totalMetrics).toBe(3);
@@ -152,13 +154,14 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 3, // Error handling, edge cases
           moderateIssues: 2, // Validation logic
           minorIssues: 1, // Logging code
-          description: 'Found uncovered error handling in user authentication, payment processing validation, and file upload edge cases'
-        }
+          description:
+            'Found uncovered error handling in user authentication, payment processing validation, and file upload edge cases',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('coverage');
       const validation = MetricEffectivenessTracker.validateMetricQuality('coverage');
-      
+
       expect(effectiveness!.totalRealIssuesFound).toBe(6);
       expect(validation.isValid).toBe(true);
       expect(effectiveness!.issueSeverityDistribution.critical).toBe(3);
@@ -176,12 +179,13 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 1, // Complex function with high cognitive load
           moderateIssues: 2, // Duplicated code, missing error handling
           minorIssues: 1, // Naming inconsistency
-          description: 'Found complex authentication function, duplicated validation logic, and inconsistent naming in API endpoints'
-        }
+          description:
+            'Found complex authentication function, duplicated validation logic, and inconsistent naming in API endpoints',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('codeQuality');
-      
+
       expect(effectiveness!.totalRealIssuesFound).toBe(4);
       expect(effectiveness!.falsePositiveRate).toBe(25); // 1 out of 4
       expect(effectiveness!.issueSeverityDistribution.critical).toBe(1);
@@ -199,13 +203,14 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 1, // SQL injection vulnerability
           moderateIssues: 1, // Outdated dependency with known CVE
           minorIssues: 1, // Weak password policy
-          description: 'Found SQL injection in user search, vulnerable lodash version, and weak password requirements'
-        }
+          description:
+            'Found SQL injection in user search, vulnerable lodash version, and weak password requirements',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('securityIssues');
       const validation = MetricEffectivenessTracker.validateMetricQuality('securityIssues');
-      
+
       expect(effectiveness!.totalRealIssuesFound).toBe(3);
       expect(effectiveness!.totalFalsePositives).toBe(0);
       expect(validation.isValid).toBe(true);
@@ -224,12 +229,14 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 3, // Error messages not translated
           moderateIssues: 3, // Form labels missing French translations
           minorIssues: 2, // Help text not translated
-          description: 'Found missing translations for error messages, form validation, and help tooltips affecting French users'
-        }
+          description:
+            'Found missing translations for error messages, form validation, and help tooltips affecting French users',
+        },
       });
 
-      const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('translationCoverage');
-      
+      const effectiveness =
+        MetricEffectivenessTracker.getMetricEffectiveness('translationCoverage');
+
       expect(effectiveness!.totalRealIssuesFound).toBe(8);
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(75); // 8 found out of 10 total (8 + 2 missed)
     });
@@ -246,12 +253,12 @@ describe('Quality Metrics Continuous Improvement System', () => {
           criticalIssues: 0,
           moderateIssues: 1,
           minorIssues: 0,
-          description: 'Slow build time affecting development workflow and hot reload performance'
-        }
+          description: 'Slow build time affecting development workflow and hot reload performance',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('buildTime');
-      
+
       expect(effectiveness!.totalRealIssuesFound).toBe(1);
       expect(effectiveness!.averageAccuracy).toBe(100); // Found 1 out of 1 issue
     });
@@ -274,7 +281,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 10,
         falsePositives: 3,
         missedIssues: 5,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -283,7 +290,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 8,
         falsePositives: 2,
         missedIssues: 3,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -292,7 +299,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 5,
         falsePositives: 1,
         missedIssues: 1,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -301,11 +308,11 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 2,
         falsePositives: 0,
         missedIssues: 0,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('improvingCoverage');
-      
+
       expect(effectiveness!.accuracyTrend).toBeGreaterThan(10); // Should show significant improvement
       expect(effectiveness!.totalMissedIssues).toBe(9); // Total across all measurements
       expect(effectiveness!.recentMeasurements.length).toBeGreaterThan(0);
@@ -319,7 +326,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 8,
         falsePositives: 1,
         missedIssues: 0,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -328,7 +335,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 5,
         falsePositives: 2,
         missedIssues: 2,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       MetricEffectivenessTracker.recordMetricEffectiveness({
@@ -337,46 +344,52 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 3,
         falsePositives: 4,
         missedIssues: 4,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('degradingMetric');
       const validation = MetricEffectivenessTracker.validateMetricQuality('degradingMetric');
-      
+
       expect(effectiveness!.accuracyTrend).toBeLessThan(-10); // Should show significant degradation
       expect(validation.isValid).toBe(false);
-      expect(validation.reasons.some(r => r.includes('declining'))).toBe(true);
-      expect(validation.recommendations.some(r => r.includes('investigate'))).toBe(true);
+      expect(validation.reasons.some((r) => r.includes('declining'))).toBe(true);
+      expect(validation.recommendations.some((r) => r.includes('investigate'))).toBe(true);
     });
 
     it('should provide comprehensive system assessment', () => {
       // Add data for multiple metrics with varying performance
-      const metrics = ['coverage', 'codeQuality', 'securityIssues', 'translationCoverage', 'buildTime'];
-      
+      const metrics = [
+        'coverage',
+        'codeQuality',
+        'securityIssues',
+        'translationCoverage',
+        'buildTime',
+      ];
+
       metrics.forEach((metric, _index) => {
         // Different performance levels for each metric
-        const accuracy = 60 + (index * 10); // 60%, 70%, 80%, 90%, 100%
-        const realIssues = Math.max(1, 10 - (index * 2));
+        const accuracy = 60 + index * 10; // 60%, 70%, 80%, 90%, 100%
+        const realIssues = Math.max(1, 10 - index * 2);
         const falsePositives = Math.max(0, 3 - _index);
-        
+
         MetricEffectivenessTracker.recordMetricEffectiveness({
           metric,
           calculatedValue: `${accuracy}%`,
           realIssuesFound: realIssues,
           falsePositives,
           missedIssues: Math.max(0, 2 - _index),
-          projectPhase: 'development'
+          projectPhase: 'development',
         });
       });
 
       const systemHealth = MetricEffectivenessTracker.getSystemHealth();
-      
+
       expect(systemHealth.totalMetrics).toBe(5);
       expect(systemHealth.averageAccuracy).toBeGreaterThan(70);
-      expect(systemHealth.recommendations).toEqual(expect.arrayContaining([
-        expect.stringMatching(/improve/i)
-      ]));
-      
+      expect(systemHealth.recommendations).toEqual(
+        expect.arrayContaining([expect.stringMatching(/improve/i)])
+      );
+
       // Should identify some metrics as effective and some as needing improvement
       expect(systemHealth.effectiveMetrics).toBeGreaterThanOrEqual(2);
       expect(systemHealth.ineffectiveMetrics).toBeGreaterThanOrEqual(1);
@@ -391,7 +404,7 @@ describe('Quality Metrics Continuous Improvement System', () => {
         realIssuesFound: 5,
         falsePositives: 1,
         missedIssues: 1,
-        projectPhase: 'development'
+        projectPhase: 'development',
       });
 
       const exportData = MetricEffectivenessTracker.exportEffectivenessData();

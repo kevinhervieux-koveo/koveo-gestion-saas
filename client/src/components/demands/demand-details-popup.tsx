@@ -5,8 +5,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Edit2, Save, X, Send, Trash2, ArrowUp } from 'lucide-react';
@@ -24,7 +37,15 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'approved'
+    | 'rejected'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled';
   submitterId: string;
   buildingId: string;
   residenceId?: string;
@@ -97,7 +118,18 @@ interface DemandDetailsPopupProps {
 const editDemandSchema = z.object({
   type: z.enum(['maintenance', 'complaint', 'information', 'other']),
   description: z.string().min(10, 'Description must be at least 10 characters'),
-  status: z.enum(['draft', 'submitted', 'under_review', 'approved', 'rejected', 'in_progress', 'completed', 'cancelled']).optional(),
+  status: z
+    .enum([
+      'draft',
+      'submitted',
+      'under_review',
+      'approved',
+      'rejected',
+      'in_progress',
+      'completed',
+      'cancelled',
+    ])
+    .optional(),
   reviewNotes: z.string().optional(),
 });
 
@@ -145,7 +177,7 @@ const statusLabels = {
 
 /**
  * Displays detailed information about a demand in a popup dialog with edit functionality.
- * 
+ *
  * @param root0 - The props object.
  * @param root0.demand - The demand object to display.
  * @param root0.isOpen - Whether the popup is open.
@@ -154,35 +186,45 @@ const statusLabels = {
  * @param root0.onDemandUpdated - Callback when demand is updated.
  * @returns JSX element for the demand details popup.
  */
-export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDemandUpdated }: DemandDetailsPopupProps) {
+export default function DemandDetailsPopup({
+  demand,
+  isOpen,
+  onClose,
+  user,
+  onDemandUpdated,
+}: DemandDetailsPopupProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [newComment, setNewComment] = useState('');
 
   // Check permissions
-  const canEdit = demand && user && (
-    user.role === 'admin' ||
-    user.role === 'manager' ||
-    (demand.submitterId === user.id && ['draft', 'submitted'].includes(demand.status))
-  );
+  const canEdit =
+    demand &&
+    user &&
+    (user.role === 'admin' ||
+      user.role === 'manager' ||
+      (demand.submitterId === user.id && ['draft', 'submitted'].includes(demand.status)));
 
-  const canDelete = demand && user && (
-    user.role === 'admin' ||
-    user.role === 'manager' ||
-    (demand.submitterId === user.id && demand.status === 'draft')
-  );
+  const canDelete =
+    demand &&
+    user &&
+    (user.role === 'admin' ||
+      user.role === 'manager' ||
+      (demand.submitterId === user.id && demand.status === 'draft'));
 
-  const canChangeStatus = demand && user && (
-    user.role === 'admin' ||
-    user.role === 'manager' ||
-    (demand.submitterId === user.id && user.role === 'resident')
-  );
+  const canChangeStatus =
+    demand &&
+    user &&
+    (user.role === 'admin' ||
+      user.role === 'manager' ||
+      (demand.submitterId === user.id && user.role === 'resident'));
 
-  const canEscalate = demand && user && (
-    user.role === 'resident' && 
+  const canEscalate =
+    demand &&
+    user &&
+    user.role === 'resident' &&
     demand.submitterId !== user.id &&
-    !['completed', 'cancelled'].includes(demand.status)
-  );
+    !['completed', 'cancelled'].includes(demand.status);
 
   // Fetch comments
   const { data: comments = [], refetch: refetchComments } = useQuery<DemandComment[]>({
@@ -271,7 +313,7 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment, orderIndex: (comments.length + 1) }),
+        body: JSON.stringify({ comment, orderIndex: comments.length + 1 }),
       });
       if (!response.ok) {
         throw new Error('Failed to add comment');
@@ -333,44 +375,42 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
     }
   };
 
-  if (!demand) {return null;}
+  if (!demand) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className='flex items-center justify-between'>
             <span>Demand Details</span>
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               {canEdit && !isEditing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit2 className="h-4 w-4 mr-1" />
+                <Button variant='outline' size='sm' onClick={() => setIsEditing(true)}>
+                  <Edit2 className='h-4 w-4 mr-1' />
                   Edit
                 </Button>
               )}
               {canDelete && (
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   onClick={handleDelete}
                   disabled={deleteDemandMutation.isPending}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2 className='h-4 w-4 mr-1' />
                   Delete
                 </Button>
               )}
               {canEscalate && (
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   onClick={handleEscalate}
                   disabled={updateDemandMutation.isPending}
                 >
-                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <ArrowUp className='h-4 w-4 mr-1' />
                   Escalate to Manager
                 </Button>
               )}
@@ -378,13 +418,13 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className='space-y-6'>
           {/* Demand Details */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{typeLabels[demand.type]}</Badge>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
                   <Badge className={statusColors[demand.status]}>
                     {statusLabels[demand.status]}
                   </Badge>
@@ -395,30 +435,30 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
                     onValueChange={handleStatusChange}
                     disabled={updateDemandMutation.isPending}
                   >
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className='w-40'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value='draft'>Draft</SelectItem>
+                      <SelectItem value='submitted'>Submitted</SelectItem>
+                      <SelectItem value='under_review'>Under Review</SelectItem>
+                      <SelectItem value='approved'>Approved</SelectItem>
+                      <SelectItem value='rejected'>Rejected</SelectItem>
+                      <SelectItem value='in_progress'>In Progress</SelectItem>
+                      <SelectItem value='completed'>Completed</SelectItem>
+                      <SelectItem value='cancelled'>Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className='space-y-4'>
               {isEditing ? (
                 <Form {...editForm}>
-                  <form onSubmit={editForm.handleSubmit(handleSave)} className="space-y-4">
+                  <form onSubmit={editForm.handleSubmit(handleSave)} className='space-y-4'>
                     <FormField
                       control={editForm.control}
-                      name="type"
+                      name='type'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Type</FormLabel>
@@ -429,10 +469,10 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
-                              <SelectItem value="complaint">Complaint</SelectItem>
-                              <SelectItem value="information">Information</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value='maintenance'>Maintenance</SelectItem>
+                              <SelectItem value='complaint'>Complaint</SelectItem>
+                              <SelectItem value='information'>Information</SelectItem>
+                              <SelectItem value='other'>Other</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -441,15 +481,12 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
                     />
                     <FormField
                       control={editForm.control}
-                      name="description"
+                      name='description'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea
-                              className="min-h-[120px]"
-                              {...field}
-                            />
+                            <Textarea className='min-h-[120px]' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -458,64 +495,56 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
                     {user?.role === 'manager' && (
                       <FormField
                         control={editForm.control}
-                        name="reviewNotes"
+                        name='reviewNotes'
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Review Notes</FormLabel>
                             <FormControl>
-                              <Textarea
-                                placeholder="Add review notes..."
-                                {...field}
-                              />
+                              <Textarea placeholder='Add review notes...' {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     )}
-                    <div className="flex gap-2">
-                      <Button 
-                        type="submit" 
-                        disabled={updateDemandMutation.isPending}
-                      >
-                        <Save className="h-4 w-4 mr-1" />
+                    <div className='flex gap-2'>
+                      <Button type='submit' disabled={updateDemandMutation.isPending}>
+                        <Save className='h-4 w-4 mr-1' />
                         {updateDemandMutation.isPending ? 'Saving...' : 'Save'}
                       </Button>
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => setIsEditing(false)}
-                      >
-                        <X className="h-4 w-4 mr-1" />
+                      <Button type='button' variant='outline' onClick={() => setIsEditing(false)}>
+                        <X className='h-4 w-4 mr-1' />
                         Cancel
                       </Button>
                     </div>
                   </form>
                 </Form>
               ) : (
-                <div className="space-y-4">
+                <div className='space-y-4'>
                   <div>
                     <Label>Description</Label>
-                    <p className="mt-1 text-sm whitespace-pre-wrap">{demand.description}</p>
+                    <p className='mt-1 text-sm whitespace-pre-wrap'>{demand.description}</p>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
                     <div>
                       <Label>Submitted by</Label>
-                      <p className="mt-1">
+                      <p className='mt-1'>
                         {demand.submitter?.firstName} {demand.submitter?.lastName}
                         <br />
-                        <span className="text-muted-foreground">{demand.submitter?.email}</span>
+                        <span className='text-muted-foreground'>{demand.submitter?.email}</span>
                       </p>
                     </div>
                     <div>
                       <Label>Location</Label>
-                      <p className="mt-1">
+                      <p className='mt-1'>
                         {demand.building?.name}
                         {demand.residence && (
                           <>
                             <br />
-                            <span className="text-muted-foreground">Unit: {demand.residence.unitNumber}</span>
+                            <span className='text-muted-foreground'>
+                              Unit: {demand.residence.unitNumber}
+                            </span>
                           </>
                         )}
                       </p>
@@ -525,11 +554,13 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
                   {demand.reviewNotes && (
                     <div>
                       <Label>Review Notes</Label>
-                      <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{demand.reviewNotes}</p>
+                      <p className='mt-1 text-sm text-muted-foreground whitespace-pre-wrap'>
+                        {demand.reviewNotes}
+                      </p>
                     </div>
                   )}
 
-                  <div className="text-xs text-muted-foreground">
+                  <div className='text-xs text-muted-foreground'>
                     <p>Created: {new Date(demand.createdAt).toLocaleString()}</p>
                     <p>Updated: {new Date(demand.updatedAt).toLocaleString()}</p>
                   </div>
@@ -541,13 +572,13 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
           <Separator />
 
           {/* Comments Section */}
-          <div className="space-y-4">
-            <h3 className="font-semibold">Comments ({comments.length})</h3>
-            
+          <div className='space-y-4'>
+            <h3 className='font-semibold'>Comments ({comments.length})</h3>
+
             {/* Add Comment */}
-            <div className="space-y-2">
+            <div className='space-y-2'>
               <Textarea
-                placeholder="Add a comment..."
+                placeholder='Add a comment...'
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 rows={3}
@@ -555,32 +586,32 @@ export default function DemandDetailsPopup({ demand, isOpen, onClose, user, onDe
               <Button
                 onClick={handleAddComment}
                 disabled={!newComment.trim() || addCommentMutation.isPending}
-                size="sm"
+                size='sm'
               >
-                <Send className="h-4 w-4 mr-1" />
+                <Send className='h-4 w-4 mr-1' />
                 {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
               </Button>
             </div>
 
             {/* Comments List */}
-            <div className="space-y-3 max-h-60 overflow-y-auto">
+            <div className='space-y-3 max-h-60 overflow-y-auto'>
               {comments.map((comment) => (
                 <Card key={comment.id}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-medium text-sm">
+                  <CardContent className='p-4'>
+                    <div className='flex justify-between items-start mb-2'>
+                      <div className='font-medium text-sm'>
                         {comment.author.firstName} {comment.author.lastName}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className='text-xs text-muted-foreground'>
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap">{comment.comment}</p>
+                    <p className='text-sm whitespace-pre-wrap'>{comment.comment}</p>
                   </CardContent>
                 </Card>
               ))}
               {comments.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">No comments yet</p>
+                <p className='text-center text-muted-foreground py-4'>No comments yet</p>
               )}
             </div>
           </div>

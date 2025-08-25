@@ -60,9 +60,7 @@ export function getPriorityBadge(priority?: string) {
   }
   switch (priority) {
     case 'high':
-      return (
-        <Badge className='bg-red-100 text-red-800 hover:bg-red-100 ml-2'>High Priority</Badge>
-      );
+      return <Badge className='bg-red-100 text-red-800 hover:bg-red-100 ml-2'>High Priority</Badge>;
     case 'medium':
       return (
         <Badge className='bg-yellow-100 text-yellow-800 hover:bg-yellow-100 ml-2'>Medium</Badge>

@@ -7,25 +7,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { jest } from '@jest/globals';
 
 // Create a test query client
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
     },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+  });
 
 // Mock language provider
 const MockLanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  return <div data-testid="mock-language-provider">{children}</div>;
+  return <div data-testid='mock-language-provider'>{children}</div>;
 };
 
 // Mock toast provider
 const MockToastProvider = ({ children }: { children: React.ReactNode }) => {
-  return <div data-testid="mock-toast-provider">{children}</div>;
+  return <div data-testid='mock-toast-provider'>{children}</div>;
 };
 
 /**
@@ -39,9 +40,7 @@ export const TestProviders: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <QueryClientProvider client={queryClient}>
       <MockLanguageProvider>
-        <MockToastProvider>
-          {children}
-        </MockToastProvider>
+        <MockToastProvider>{children}</MockToastProvider>
       </MockLanguageProvider>
     </QueryClientProvider>
   );

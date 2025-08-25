@@ -1,11 +1,11 @@
 import { db } from '../../db';
-import { 
-  buildings, 
-  organizations, 
-  residences, 
+import {
+  buildings,
+  organizations,
+  residences,
   userResidences,
   userOrganizations,
-  documents
+  documents,
 } from '@shared/schema';
 import { eq, and, inArray, sql, isNull } from 'drizzle-orm';
 
@@ -75,7 +75,7 @@ export async function getAllBuildingsWithOrg(): Promise<BuildingWithOrg[]> {
       createdAt: buildings.createdAt,
       updatedAt: buildings.updatedAt,
       organizationName: organizations.name,
-      organizationType: organizations.type
+      organizationType: organizations.type,
     })
     .from(buildings)
     .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
@@ -92,7 +92,9 @@ export async function getAllBuildingsWithOrg(): Promise<BuildingWithOrg[]> {
  * @param organizationIds
  * @returns Function result.
  */
-export async function getBuildingsByOrganizations(organizationIds: string[]): Promise<BuildingWithOrg[]> {
+export async function getBuildingsByOrganizations(
+  organizationIds: string[]
+): Promise<BuildingWithOrg[]> {
   return await db
     .select({
       id: buildings.id,
@@ -114,16 +116,11 @@ export async function getBuildingsByOrganizations(organizationIds: string[]): Pr
       createdAt: buildings.createdAt,
       updatedAt: buildings.updatedAt,
       organizationName: organizations.name,
-      organizationType: organizations.type
+      organizationType: organizations.type,
     })
     .from(buildings)
     .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-    .where(
-      and(
-        inArray(buildings.organizationId, organizationIds),
-        eq(buildings.isActive, true)
-      )
-    )
+    .where(and(inArray(buildings.organizationId, organizationIds), eq(buildings.isActive, true)))
     .orderBy(organizations.name, buildings.name);
 }
 
@@ -158,7 +155,7 @@ export async function getBuildingsByUserResidences(userId: string): Promise<Buil
       createdAt: buildings.createdAt,
       updatedAt: buildings.updatedAt,
       organizationName: organizations.name,
-      organizationType: organizations.type
+      organizationType: organizations.type,
     })
     .from(buildings)
     .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
@@ -205,16 +202,11 @@ export async function getBuildingById(buildingId: string): Promise<BuildingWithO
       createdAt: buildings.createdAt,
       updatedAt: buildings.updatedAt,
       organizationName: organizations.name,
-      organizationType: organizations.type
+      organizationType: organizations.type,
     })
     .from(buildings)
     .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-    .where(
-      and(
-        eq(buildings.id, buildingId),
-        eq(buildings.isActive, true)
-      )
-    )
+    .where(and(eq(buildings.id, buildingId), eq(buildings.isActive, true)))
     .limit(1);
 
   return result.length > 0 ? result[0] : null;
@@ -234,12 +226,7 @@ export async function getBuildingStatistics(buildingId: string): Promise<Buildin
   const residenceCount = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(residences)
-    .where(
-      and(
-        eq(residences.buildingId, buildingId),
-        eq(residences.isActive, true)
-      )
-    );
+    .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
 
   const building = await db
     .select({ totalUnits: buildings.totalUnits })
@@ -249,15 +236,13 @@ export async function getBuildingStatistics(buildingId: string): Promise<Buildin
 
   const totalUnits = building[0]?.totalUnits || 0;
   const occupiedUnits = residenceCount[0]?.count || 0;
-  const occupancyRate = totalUnits > 0 
-    ? Math.round((occupiedUnits / totalUnits) * 100) 
-    : 0;
+  const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
 
   return {
     totalUnits,
     occupiedUnits,
     occupancyRate,
-    vacantUnits: totalUnits - occupiedUnits
+    vacantUnits: totalUnits - occupiedUnits,
   };
 }
 
@@ -277,32 +262,25 @@ export async function getBuildingDeletionImpact(buildingId: string) {
     .from(residences)
     .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
 
-  const residenceIds = buildingResidences.map(r => r.id);
+  const residenceIds = buildingResidences.map((r) => r.id);
 
   // Count associated documents (documents table uses boolean flags, not foreign keys)
   const documentsCount = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(documents)
-    .where(
-      residenceIds.length > 0 
-        ? eq(documents.residence, true)
-        : eq(documents.buildings, true)
-    );
+    .where(residenceIds.length > 0 ? eq(documents.residence, true) : eq(documents.buildings, true));
 
   // Count users who would become orphaned
   const orphanedUsersCount = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(userResidences)
     .where(
-      and(
-        inArray(userResidences.residenceId, residenceIds),
-        eq(userResidences.isActive, true)
-      )
+      and(inArray(userResidences.residenceId, residenceIds), eq(userResidences.isActive, true))
     );
 
   return {
     residencesCount: buildingResidences.length,
     documentsCount: documentsCount[0]?.count || 0,
-    affectedUsersCount: orphanedUsersCount[0]?.count || 0
+    affectedUsersCount: orphanedUsersCount[0]?.count || 0,
   };
 }

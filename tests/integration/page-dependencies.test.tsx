@@ -1,6 +1,6 @@
 /**
  * Page Dependencies Integration Test.
- * 
+ *
  * Ensures all page components can be imported without missing dependencies
  * and that all necessary packages are properly installed.
  */
@@ -22,21 +22,24 @@ describe('Page Dependencies Integration', () => {
    * @param relativePath
    * @returns Function result.
    */
-  function getAllPageFiles(dir: string, relativePath = ''): Array<{file: string, path: string, fullPath: string}> {
+  function getAllPageFiles(
+    dir: string,
+    relativePath = ''
+  ): Array<{ file: string; path: string; fullPath: string }> {
     const items = readdirSync(dir);
-    const pages: Array<{file: string, path: string, fullPath: string}> = [];
+    const pages: Array<{ file: string; path: string; fullPath: string }> = [];
 
-    items.forEach(item => {
+    items.forEach((item) => {
       const fullPath = join(dir, item);
       const currentRelativePath = relativePath ? `${relativePath}/${item}` : item;
-      
+
       if (statSync(fullPath).isDirectory()) {
         pages.push(...getAllPageFiles(fullPath, currentRelativePath));
       } else if (item.endsWith('.tsx')) {
         pages.push({
           file: item,
           path: currentRelativePath,
-          fullPath
+          fullPath,
         });
       }
     });
@@ -57,10 +60,10 @@ describe('Page Dependencies Integration', () => {
       '@radix-ui/react-slot',
       'class-variance-authority',
       '@hookform/resolvers',
-      'react-hook-form'
+      'react-hook-form',
     ];
 
-    essentialDependencies.forEach(dep => {
+    essentialDependencies.forEach((dep) => {
       it(`should have ${dep} installed`, () => {
         try {
           require(dep);
@@ -79,14 +82,15 @@ describe('Page Dependencies Integration', () => {
   describe('Page Import Validation', () => {
     it('should be able to import all page components without errors', async () => {
       const allPages = getAllPageFiles(pagesDir);
-      const importErrors: Array<{page: string, _error: string}> = [];
+      const importErrors: Array<{ page: string; _error: string }> = [];
 
       // Test a sample of critical pages to avoid overwhelming the test
-      const criticalPages = allPages.filter(page => 
-        page.path.includes('home.tsx') ||
-        page.path.includes('not-found.tsx') ||
-        page.path.includes('login.tsx') ||
-        page.path.includes('dashboard.tsx')
+      const criticalPages = allPages.filter(
+        (page) =>
+          page.path.includes('home.tsx') ||
+          page.path.includes('not-found.tsx') ||
+          page.path.includes('login.tsx') ||
+          page.path.includes('dashboard.tsx')
       );
 
       for (const page of criticalPages) {
@@ -97,7 +101,7 @@ describe('Page Dependencies Integration', () => {
         } catch (_error: unknown) {
           importErrors.push({
             page: page.path,
-            _error: error.message
+            _error: error.message,
           });
         }
       }
@@ -116,10 +120,10 @@ describe('Page Dependencies Integration', () => {
         '@/components/ui/button',
         '@/components/ui/card',
         '@/components/ui/input',
-        '@/components/ui/form'
+        '@/components/ui/form',
       ];
 
-      uiComponents.forEach(component => {
+      uiComponents.forEach((component) => {
         try {
           require(component.replace('@/', `${process.cwd()}/client/src/`));
         } catch (_error) {
@@ -130,13 +134,9 @@ describe('Page Dependencies Integration', () => {
     });
 
     it('should verify hooks are properly available', () => {
-      const hooks = [
-        '@/hooks/use-auth',
-        '@/hooks/use-language',
-        '@/hooks/use-toast'
-      ];
+      const hooks = ['@/hooks/use-auth', '@/hooks/use-language', '@/hooks/use-toast'];
 
-      hooks.forEach(hook => {
+      hooks.forEach((hook) => {
         try {
           require(hook.replace('@/', `${process.cwd()}/client/src/`));
         } catch (_error) {
@@ -154,12 +154,12 @@ describe('Page Dependencies Integration', () => {
         'jest-environment-jsdom',
         '@testing-library/react',
         '@testing-library/user-event',
-        '@testing-library/jest-dom'
+        '@testing-library/jest-dom',
       ];
 
       const missingPackages: string[] = [];
 
-      commonlyMissing.forEach(pkg => {
+      commonlyMissing.forEach((pkg) => {
         try {
           require(pkg);
         } catch (_error) {

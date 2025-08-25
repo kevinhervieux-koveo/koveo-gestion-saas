@@ -3,7 +3,7 @@ const scriptMock = {
   productionDemoSync: jest.fn().mockResolvedValue({ success: true }),
   healthCheck: jest.fn().mockResolvedValue({ status: 'healthy' }),
   quickSync: jest.fn().mockResolvedValue({ success: true }),
-  default: jest.fn()
+  default: jest.fn(),
 };
 
 module.exports = scriptMock;

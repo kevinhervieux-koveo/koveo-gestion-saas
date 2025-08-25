@@ -6,13 +6,34 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
@@ -26,7 +47,15 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'approved'
+    | 'rejected'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled';
   submitterId: string;
   buildingId: string;
   residenceId?: string;
@@ -116,11 +145,14 @@ export default function ManagerDemandsPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Fetch demands
-  const { data: demands = [], isLoading, error } = useQuery({
+  const {
+    data: demands = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
 
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
@@ -138,15 +170,15 @@ export default function ManagerDemandsPage() {
   });
 
   // Provide default user to prevent type errors
-  const defaultUser = currentUser || { 
-    id: '', 
-    role: 'tenant' as const, 
-    email: '', 
-    firstName: '', 
-    lastName: '', 
-    isActive: true, 
-    createdAt: '', 
-    updatedAt: '' 
+  const defaultUser = currentUser || {
+    id: '',
+    role: 'tenant' as const,
+    email: '',
+    firstName: '',
+    lastName: '',
+    isActive: true,
+    createdAt: '',
+    updatedAt: '',
   };
 
   // Create demand mutation
@@ -159,13 +191,12 @@ export default function ManagerDemandsPage() {
         },
         body: JSON.stringify(data),
       }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
       if (!response.ok) {
         throw new Error('Failed to create demand');
@@ -206,26 +237,26 @@ export default function ManagerDemandsPage() {
   // Filter demands - ensure demands is an array
   const demandsArray = Array.isArray(demands) ? demands : [];
   const filteredDemands = demandsArray.filter((demand: Demand) => {
-    const matchesSearch = demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         typeLabels[demand.type]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         demand.submitter?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         demand.building?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      typeLabels[demand.type]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      demand.submitter?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      demand.building?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || demand.status === statusFilter;
     const matchesType = typeFilter === 'all' || demand.type === typeFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
-
   // Group demands by status for manager view
-  const pendingDemands = filteredDemands.filter((d: Demand) => 
+  const pendingDemands = filteredDemands.filter((d: Demand) =>
     ['submitted', 'under_review'].includes(d.status)
   );
-  const activeDemands = filteredDemands.filter((d: Demand) => 
+  const activeDemands = filteredDemands.filter((d: Demand) =>
     ['approved', 'in_progress'].includes(d.status)
   );
-  const completedDemands = filteredDemands.filter((d: Demand) => 
+  const completedDemands = filteredDemands.filter((d: Demand) =>
     ['completed', 'rejected', 'cancelled'].includes(d.status)
   );
   const allDemands = filteredDemands;
@@ -244,34 +275,45 @@ export default function ManagerDemandsPage() {
   };
 
   const DemandCard = ({ demand }: { demand: Demand }) => {
-    const building = buildings.find(b => b.id === demand.buildingId);
-    const residence = residences.find(r => r.id === demand.residenceId);
+    const building = buildings.find((b) => b.id === demand.buildingId);
+    const residence = residences.find((r) => r.id === demand.residenceId);
 
     return (
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow"
+      <Card
+        className='cursor-pointer hover:shadow-md transition-shadow'
         onClick={() => handleDemandClick(demand)}
       >
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{typeLabels[demand.type]}</Badge>
+        <CardHeader className='pb-3'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
               <Badge className={statusColors[demand.status]}>
                 {demand.status.replace('_', ' ')}
               </Badge>
             </div>
           </div>
-          <CardTitle className="text-base line-clamp-2">
+          <CardTitle className='text-base line-clamp-2'>
             {demand.description.substring(0, 100)}
             {demand.description.length > 100 && '...'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p><strong>Submitted by:</strong> {demand.submitter?.firstName} {demand.submitter?.lastName}</p>
-            <p><strong>Building:</strong> {building?.name || 'Unknown'}</p>
-            {residence && <p><strong>Residence:</strong> {residence.name}</p>}
-            <p><strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}</p>
+        <CardContent className='pt-0'>
+          <div className='text-sm text-muted-foreground space-y-1'>
+            <p>
+              <strong>Submitted by:</strong> {demand.submitter?.firstName}{' '}
+              {demand.submitter?.lastName}
+            </p>
+            <p>
+              <strong>Building:</strong> {building?.name || 'Unknown'}
+            </p>
+            {residence && (
+              <p>
+                <strong>Residence:</strong> {residence.name}
+              </p>
+            )}
+            <p>
+              <strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -284,15 +326,13 @@ export default function ManagerDemandsPage() {
    * @param isLoading - IsLoading parameter.
    */
 
-
-
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header title='Demands Management' subtitle='Manage maintenance requests and demands' />
-        <div className="flex-1 overflow-auto p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">Loading demands...</div>
+        <div className='flex-1 overflow-auto p-6'>
+          <div className='flex items-center justify-center h-64'>
+            <div className='text-center'>Loading demands...</div>
           </div>
         </div>
       </div>
@@ -302,50 +342,49 @@ export default function ManagerDemandsPage() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='Demands Management' subtitle='Manage maintenance requests and demands' />
-      
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
           {/* Header Actions */}
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
-              <h2 className="text-2xl font-bold">All Demands</h2>
-              <p className="text-muted-foreground">
-                Review and manage resident demands
-              </p>
+              <h2 className='text-2xl font-bold'>All Demands</h2>
+              <p className='text-muted-foreground'>Review and manage resident demands</p>
             </div>
             <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className='h-4 w-4 mr-2' />
                   New Demand
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className='max-w-md'>
                 <DialogHeader>
                   <DialogTitle>Create New Demand</DialogTitle>
-                  <DialogDescription>
-                    Create a demand on behalf of a resident
-                  </DialogDescription>
+                  <DialogDescription>Create a demand on behalf of a resident</DialogDescription>
                 </DialogHeader>
                 <Form {...newDemandForm}>
-                  <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className="space-y-4">
+                  <form
+                    onSubmit={newDemandForm.handleSubmit(handleCreateDemand)}
+                    className='space-y-4'
+                  >
                     <FormField
                       control={newDemandForm.control}
-                      name="type"
+                      name='type'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Type</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder='Select type' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
-                              <SelectItem value="complaint">Complaint</SelectItem>
-                              <SelectItem value="information">Information</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value='maintenance'>Maintenance</SelectItem>
+                              <SelectItem value='complaint'>Complaint</SelectItem>
+                              <SelectItem value='information'>Information</SelectItem>
+                              <SelectItem value='other'>Other</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -354,14 +393,14 @@ export default function ManagerDemandsPage() {
                     />
                     <FormField
                       control={newDemandForm.control}
-                      name="buildingId"
+                      name='buildingId'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Building</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select building" />
+                                <SelectValue placeholder='Select building' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -378,14 +417,14 @@ export default function ManagerDemandsPage() {
                     />
                     <FormField
                       control={newDemandForm.control}
-                      name="description"
+                      name='description'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Describe the demand in detail..."
-                              className="min-h-[100px]"
+                              placeholder='Describe the demand in detail...'
+                              className='min-h-[100px]'
                               {...field}
                             />
                           </FormControl>
@@ -394,10 +433,7 @@ export default function ManagerDemandsPage() {
                       )}
                     />
                     <DialogFooter>
-                      <Button 
-                        type="submit" 
-                        disabled={createDemandMutation.isPending}
-                      >
+                      <Button type='submit' disabled={createDemandMutation.isPending}>
                         {createDemandMutation.isPending ? 'Creating...' : 'Create'}
                       </Button>
                     </DialogFooter>
@@ -408,104 +444,96 @@ export default function ManagerDemandsPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className='flex items-center gap-4'>
+            <div className='relative flex-1 max-w-sm'>
+              <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
               <Input
-                placeholder="Search demands..."
+                placeholder='Search demands...'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className='pl-10'
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className='w-40'>
+                <SelectValue placeholder='Status' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="under_review">Under Review</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value='all'>All Status</SelectItem>
+                <SelectItem value='draft'>Draft</SelectItem>
+                <SelectItem value='submitted'>Submitted</SelectItem>
+                <SelectItem value='under_review'>Under Review</SelectItem>
+                <SelectItem value='approved'>Approved</SelectItem>
+                <SelectItem value='in_progress'>In Progress</SelectItem>
+                <SelectItem value='completed'>Completed</SelectItem>
+                <SelectItem value='rejected'>Rejected</SelectItem>
+                <SelectItem value='cancelled'>Cancelled</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Type" />
+              <SelectTrigger className='w-40'>
+                <SelectValue placeholder='Type' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="complaint">Complaint</SelectItem>
-                <SelectItem value="information">Information</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value='all'>All Types</SelectItem>
+                <SelectItem value='maintenance'>Maintenance</SelectItem>
+                <SelectItem value='complaint'>Complaint</SelectItem>
+                <SelectItem value='information'>Information</SelectItem>
+                <SelectItem value='other'>Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Demands List */}
-          <Tabs defaultValue="pending" className="w-full">
+          <Tabs defaultValue='pending' className='w-full'>
             <TabsList>
-              <TabsTrigger value="pending">
-                Pending Review ({pendingDemands.length})
-              </TabsTrigger>
-              <TabsTrigger value="active">
-                Active ({activeDemands.length})
-              </TabsTrigger>
-              <TabsTrigger value="completed">
-                Completed ({completedDemands.length})
-              </TabsTrigger>
-              <TabsTrigger value="all">
-                All ({allDemands.length})
-              </TabsTrigger>
+              <TabsTrigger value='pending'>Pending Review ({pendingDemands.length})</TabsTrigger>
+              <TabsTrigger value='active'>Active ({activeDemands.length})</TabsTrigger>
+              <TabsTrigger value='completed'>Completed ({completedDemands.length})</TabsTrigger>
+              <TabsTrigger value='all'>All ({allDemands.length})</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="pending" className="space-y-4">
+
+            <TabsContent value='pending' className='space-y-4'>
               {pendingDemands.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">No demands pending review</p>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-muted-foreground'>No demands pending review</p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                   {pendingDemands.map((demand: Demand) => (
                     <DemandCard key={demand.id} demand={demand} />
                   ))}
                 </div>
               )}
             </TabsContent>
-            
-            <TabsContent value="active" className="space-y-4">
+
+            <TabsContent value='active' className='space-y-4'>
               {activeDemands.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">No active demands</p>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-muted-foreground'>No active demands</p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                   {activeDemands.map((demand: Demand) => (
                     <DemandCard key={demand.id} demand={demand} />
                   ))}
                 </div>
               )}
             </TabsContent>
-            
-            <TabsContent value="completed" className="space-y-4">
+
+            <TabsContent value='completed' className='space-y-4'>
               {completedDemands.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">No completed demands</p>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-muted-foreground'>No completed demands</p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                   {completedDemands.map((demand: Demand) => (
                     <DemandCard key={demand.id} demand={demand} />
                   ))}
@@ -513,26 +541,26 @@ export default function ManagerDemandsPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="all" className="space-y-4">
+            <TabsContent value='all' className='space-y-4'>
               {isLoading ? (
                 <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">Loading demands...</p>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-muted-foreground'>Loading demands...</p>
                   </CardContent>
                 </Card>
               ) : allDemands.length === 0 ? (
                 <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">No demands found</p>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-muted-foreground'>No demands found</p>
                     {demandsArray.length > 0 && (
-                      <p className="text-sm text-gray-400 mt-2">
+                      <p className='text-sm text-gray-400 mt-2'>
                         ({demandsArray.length} total demands loaded, but filtered out)
                       </p>
                     )}
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                   {allDemands.map((demand: Demand) => (
                     <DemandCard key={demand.id} demand={demand} />
                   ))}

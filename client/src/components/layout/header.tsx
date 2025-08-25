@@ -16,7 +16,7 @@ interface HeaderProps {
 /**
  * Page header component with title, subtitle, and workspace status indicator.
  * Provides consistent branding and navigation across all application pages.
- * 
+ *
  * @param {HeaderProps} props - Component props.
  * @param {string} props.title - Main page title to display.
  * @param {string} props.subtitle - Descriptive subtitle text.
@@ -26,8 +26,8 @@ interface HeaderProps {
  * function DashboardPage() {
  *   return (
  *     <div>
- *       <Header 
- *         title="Dashboard" 
+ *       <Header
+ *         title="Dashboard"
  *         subtitle="Overview of your property management system"
  *       />
  *       <main>Dashboard content...</main>
@@ -45,11 +45,11 @@ interface HeaderProps {
  */
 export function Header({ title, subtitle }: HeaderProps) {
   const { t } = useLanguage();
-  
+
   // Access mobile menu context
   const mobileMenu = useMobileMenu();
   const toggleMobileMenu = mobileMenu?.toggleMobileMenu;
-  
+
   const handleMobileMenuClick = () => {
     if (toggleMobileMenu) {
       toggleMobileMenu();
@@ -62,13 +62,13 @@ export function Header({ title, subtitle }: HeaderProps) {
         <div className='flex items-center space-x-4'>
           {/* Mobile menu button - always show on mobile for debugging */}
           <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
+            variant='ghost'
+            size='sm'
+            className='md:hidden'
             onClick={handleMobileMenuClick}
-            aria-label="Toggle navigation menu"
+            aria-label='Toggle navigation menu'
           >
-            <Menu className="h-6 w-6" />
+            <Menu className='h-6 w-6' />
           </Button>
           <div>
             <h2 className='text-2xl font-semibold text-gray-900'>{title}</h2>

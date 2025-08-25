@@ -4,11 +4,11 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { 
-  insertDemandSchema, 
+import {
+  insertDemandSchema,
   insertDemandCommentSchema,
   demandTypeEnum,
-  demandStatusEnum
+  demandStatusEnum,
 } from '../../../shared/schemas/operations';
 
 describe('Demands Schema Validation Tests', () => {
@@ -22,7 +22,7 @@ describe('Demands Schema Validation Tests', () => {
         buildingId: '323e4567-e89b-12d3-a456-426614174002',
         assignationResidenceId: '223e4567-e89b-12d3-a456-426614174001',
         assignationBuildingId: '323e4567-e89b-12d3-a456-426614174002',
-        status: 'submitted'
+        status: 'submitted',
       };
 
       expect(() => insertDemandSchema.parse(validDemand)).not.toThrow();
@@ -33,7 +33,7 @@ describe('Demands Schema Validation Tests', () => {
         type: 'maintenance',
         description: 'Test description',
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -41,16 +41,16 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should validate demand type enum', () => {
       const validTypes = ['maintenance', 'complaint', 'information', 'other'];
-      
-      validTypes.forEach(type => {
+
+      validTypes.forEach((type) => {
         const demand = {
           submitterId: '123e4567-e89b-12d3-a456-426614174000',
           type,
           description: 'Test description',
           residenceId: '223e4567-e89b-12d3-a456-426614174001',
-          buildingId: '323e4567-e89b-12d3-a456-426614174002'
+          buildingId: '323e4567-e89b-12d3-a456-426614174002',
         };
-        
+
         expect(() => insertDemandSchema.parse(demand)).not.toThrow();
       });
     });
@@ -61,7 +61,7 @@ describe('Demands Schema Validation Tests', () => {
         type: 'invalid_type',
         description: 'Test description',
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -72,7 +72,7 @@ describe('Demands Schema Validation Tests', () => {
         submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -80,14 +80,15 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should validate description length', () => {
       const shortDescription = 'This is a reasonable description for testing purposes';
-      const longDescription = 'This is a longer description that provides more detail about the maintenance request and should still be within acceptable limits for the demand system';
-      
+      const longDescription =
+        'This is a longer description that provides more detail about the maintenance request and should still be within acceptable limits for the demand system';
+
       const demandWithShortDesc = {
         submitterId: '123e4567-e89b-12d3-a456-426614174000',
         type: 'maintenance',
         description: shortDescription,
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       const demandWithLongDesc = {
@@ -95,7 +96,7 @@ describe('Demands Schema Validation Tests', () => {
         type: 'maintenance',
         description: longDescription,
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       // Both should pass with reasonable lengths
@@ -112,7 +113,7 @@ describe('Demands Schema Validation Tests', () => {
         buildingId: '323e4567-e89b-12d3-a456-426614174002',
         assignationResidenceId: '223e4567-e89b-12d3-a456-426614174001',
         assignationBuildingId: '323e4567-e89b-12d3-a456-426614174002',
-        reviewNotes: 'Initial review notes'
+        reviewNotes: 'Initial review notes',
       };
 
       expect(() => insertDemandSchema.parse(demandWithOptionals)).not.toThrow();
@@ -125,7 +126,7 @@ describe('Demands Schema Validation Tests', () => {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
         comment: 'This is a valid comment about the demand',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
@@ -135,7 +136,7 @@ describe('Demands Schema Validation Tests', () => {
       const invalidComment = {
         orderIndex: 1.0,
         comment: 'Missing demand ID',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -145,7 +146,7 @@ describe('Demands Schema Validation Tests', () => {
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
-        comment: 'Missing author ID'
+        comment: 'Missing author ID',
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -155,7 +156,7 @@ describe('Demands Schema Validation Tests', () => {
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -163,20 +164,21 @@ describe('Demands Schema Validation Tests', () => {
 
     it('should validate content length', () => {
       const shortContent = 'This is a reasonable comment.';
-      const longContent = 'This is a longer comment that provides more detail about the demand and includes additional context that would be helpful for understanding the issue.';
-      
+      const longContent =
+        'This is a longer comment that provides more detail about the demand and includes additional context that would be helpful for understanding the issue.';
+
       const commentWithShortContent = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
         comment: shortContent,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       const commentWithLongContent = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
         comment: longContent,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       // Both should pass with reasonable lengths
@@ -189,7 +191,7 @@ describe('Demands Schema Validation Tests', () => {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 1.0,
         comment: 'Valid comment data',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(comment)).not.toThrow();
@@ -200,13 +202,13 @@ describe('Demands Schema Validation Tests', () => {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         orderIndex: 2,
         comment: 'Comment with decimal order index',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
         comment: 'Comment without order index',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+        createdBy: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
@@ -219,27 +221,33 @@ describe('Demands Schema Validation Tests', () => {
       const validTypes = ['maintenance', 'complaint', 'information', 'other'];
       const invalidTypes = ['invalid', 'repair', 'request', ''];
 
-      validTypes.forEach(type => {
+      validTypes.forEach((type) => {
         expect(demandTypeEnum.enumValues).toContain(type);
       });
 
-      invalidTypes.forEach(type => {
+      invalidTypes.forEach((type) => {
         expect(demandTypeEnum.enumValues).not.toContain(type);
       });
     });
 
     it('should validate demand statuses', () => {
       const validStatuses = [
-        'draft', 'submitted', 'under_review', 'approved', 
-        'in_progress', 'completed', 'rejected', 'cancelled'
+        'draft',
+        'submitted',
+        'under_review',
+        'approved',
+        'in_progress',
+        'completed',
+        'rejected',
+        'cancelled',
       ];
       const invalidStatuses = ['pending', 'open', 'closed', 'resolved'];
 
-      validStatuses.forEach(status => {
+      validStatuses.forEach((status) => {
         expect(demandStatusEnum.enumValues).toContain(status);
       });
 
-      invalidStatuses.forEach(status => {
+      invalidStatuses.forEach((status) => {
         expect(demandStatusEnum.enumValues).not.toContain(status);
       });
     });
@@ -255,18 +263,18 @@ describe('Demands Schema Validation Tests', () => {
         type: 'maintenance',
         description: 'Test with valid UUID',
         residenceId: validUUID,
-        buildingId: validUUID
+        buildingId: validUUID,
       };
 
       expect(() => insertDemandSchema.parse(validDemand)).not.toThrow();
 
-      invalidUUIDs.forEach(invalidId => {
+      invalidUUIDs.forEach((invalidId) => {
         const invalidDemand = {
           submitterId: invalidId,
           type: 'maintenance',
           description: 'Test with invalid UUID',
           residenceId: validUUID,
-          buildingId: validUUID
+          buildingId: validUUID,
         };
 
         expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
@@ -279,16 +287,16 @@ describe('Demands Schema Validation Tests', () => {
         'Description with "quotes" and apostrophe\'s',
         'Description with <tags> and &symbols;',
         'Multi-line\ndescription\nwith breaks',
-        'Description with numbers 123 and symbols !@#$%^&*()'
+        'Description with numbers 123 and symbols !@#$%^&*()',
       ];
 
-      descriptionsWithSpecialChars.forEach(description => {
+      descriptionsWithSpecialChars.forEach((description) => {
         const demand = {
           submitterId: '123e4567-e89b-12d3-a456-426614174000',
           type: 'maintenance',
           description,
           residenceId: '223e4567-e89b-12d3-a456-426614174001',
-          buildingId: '323e4567-e89b-12d3-a456-426614174002'
+          buildingId: '323e4567-e89b-12d3-a456-426614174002',
         };
 
         expect(() => insertDemandSchema.parse(demand)).not.toThrow();
@@ -306,7 +314,7 @@ describe('Demands Schema Validation Tests', () => {
         type: 'maintenance',
         description: minValidDescription,
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       const demandMaxValid = {
@@ -314,7 +322,7 @@ describe('Demands Schema Validation Tests', () => {
         type: 'maintenance',
         description: maxValidDescription,
         residenceId: '223e4567-e89b-12d3-a456-426614174001',
-        buildingId: '323e4567-e89b-12d3-a456-426614174002'
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
       };
 
       expect(() => insertDemandSchema.parse(demandMinValid)).not.toThrow();

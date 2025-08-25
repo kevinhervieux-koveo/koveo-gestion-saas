@@ -29,15 +29,17 @@ class PerformanceMonitor {
    * Starts performance monitoring.
    */
   start(): void {
-    if (this.isMonitoring) {return;}
+    if (this.isMonitoring) {
+      return;
+    }
     this.isMonitoring = true;
 
     // Monitor initial page load metrics
     this.trackPageLoadMetrics();
-    
+
     // Monitor memory usage periodically
     this.startMemoryTracking();
-    
+
     // Set up performance observer if available
     this.setupPerformanceObserver();
   }
@@ -70,7 +72,7 @@ class PerformanceMonitor {
       }
       this.metrics.componentLoadTimes[componentName] = loadTime;
       this.componentLoadStart.delete(componentName);
-      
+
       // Log slow components
       if (loadTime > 1000) {
         console.warn(`Slow component load: ${componentName} took ${loadTime.toFixed(2)}ms`);
@@ -126,21 +128,23 @@ class PerformanceMonitor {
    */
   private startMemoryTracking(): void {
     const trackMemory = () => {
-      if (!this.isMonitoring) {return;}
-      
+      if (!this.isMonitoring) {
+        return;
+      }
+
       const usage = getMemoryUsage();
       if (usage) {
         this.metrics.memoryUsage = usage.used;
-        
+
         // Log memory pressure warnings
         if (usage.percentage > 80) {
           console.warn(`High memory usage: ${usage.used}MB (${usage.percentage}%)`);
         }
       }
-      
+
       setTimeout(trackMemory, 30000); // Every 30 seconds
     };
-    
+
     trackMemory();
   }
 
@@ -148,13 +152,16 @@ class PerformanceMonitor {
    * Sets up performance observer for detailed metrics.
    */
   private setupPerformanceObserver(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
       // Observe resource loading times
       const resourceObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (entry.duration > 2000) { // Log slow resources
+          if (entry.duration > 2000) {
+            // Log slow resources
             console.warn(`Slow resource: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
           }
         }
@@ -168,7 +175,6 @@ class PerformanceMonitor {
         }
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
-
     } catch (_error) {
       console.warn('Failed to set up performance observers:', _error);
     }
@@ -192,7 +198,7 @@ export const performanceMonitor = new PerformanceMonitor();
 export function usePerformanceTracking(componentName: string): void {
   useEffect(() => {
     performanceMonitor.markComponentLoadStart(componentName);
-    
+
     return () => {
       performanceMonitor.markComponentLoadEnd(componentName);
     };
@@ -208,43 +214,51 @@ export function usePerformanceTracking(componentName: string): void {
  */
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();
-  
+
   console.warn('Performance Analysis');
   console.warn('Load Time:', metrics.loadTime ? `${metrics.loadTime}ms` : 'N/A');
-  console.warn('DOM Content Loaded:', metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A');
-  console.warn('First Contentful Paint:', metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A');
+  console.warn(
+    'DOM Content Loaded:',
+    metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A'
+  );
+  console.warn(
+    'First Contentful Paint:',
+    metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A'
+  );
   console.warn('Memory Usage:', metrics.memoryUsage ? `${metrics.memoryUsage}MB` : 'N/A');
-  
+
   if (metrics.componentLoadTimes) {
     console.warn('Component Load Times:');
     Object.entries(metrics.componentLoadTimes).forEach(([name, time]) => {
       console.warn(`  ${name}: ${time.toFixed(2)}ms`);
     });
   }
-  
+
   // Provide optimization suggestions
   const suggestions = [];
-  
+
   if (metrics.memoryUsage && metrics.memoryUsage > 100) {
     suggestions.push('High memory usage detected. Consider implementing component lazy loading.');
   }
-  
+
   if (metrics.loadTime && metrics.loadTime > 3000) {
     suggestions.push('Slow page load. Consider bundle splitting and optimizing assets.');
   }
-  
+
   if (metrics.componentLoadTimes) {
     const slowComponents = Object.entries(metrics.componentLoadTimes)
       .filter(([, time]) => time > 500)
       .map(([name]) => name);
-    
+
     if (slowComponents.length > 0) {
-      suggestions.push(`Slow components detected: ${slowComponents.join(', ')}. Consider optimization.`);
+      suggestions.push(
+        `Slow components detected: ${slowComponents.join(', ')}. Consider optimization.`
+      );
     }
   }
-  
+
   if (suggestions.length > 0) {
     console.warn('Optimization Suggestions:');
-    suggestions.forEach(suggestion => console.warn('•', suggestion));
+    suggestions.forEach((suggestion) => console.warn('•', suggestion));
   }
 }

@@ -8,7 +8,7 @@ import App from '@/App';
 
 /**
  * Privacy Policy and Terms of Service Availability Tests.
- * 
+ *
  * Tests to ensure privacy policy and terms of service links are available
  * on all pages of the website as requested.
  */
@@ -19,14 +19,14 @@ import App from '@/App';
  * @param root0.children
  * @param root0.initialLocation
  * @param root0.isAuthenticated
-  * @returns Function result.
-*/
-function TestProviders({ 
-  children, 
+ * @returns Function result.
+ */
+function TestProviders({
+  children,
   initialLocation = '/',
-  isAuthenticated = false 
-}: { 
-  children: React.ReactNode; 
+  isAuthenticated = false,
+}: {
+  children: React.ReactNode;
   initialLocation?: string;
   isAuthenticated?: boolean;
 }) {
@@ -50,9 +50,7 @@ function TestProviders({
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialLocation]}>
         <LanguageProvider>
-          <AuthProvider value={mockAuthValue}>
-            {children}
-          </AuthProvider>
+          <AuthProvider value={mockAuthValue}>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -79,10 +77,11 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         );
 
         // Look for privacy policy link in various ways
-        const privacyLink = screen.queryByTestId('footer-privacy-link') ||
-                           screen.queryByText(/politique de confidentialité/i) ||
-                           screen.queryByText(/privacy policy/i) ||
-                           screen.queryByRole('link', { name: /privacy/i });
+        const privacyLink =
+          screen.queryByTestId('footer-privacy-link') ||
+          screen.queryByText(/politique de confidentialité/i) ||
+          screen.queryByText(/privacy policy/i) ||
+          screen.queryByRole('link', { name: /privacy/i });
 
         expect(privacyLink).toBeInTheDocument();
       });
@@ -95,10 +94,11 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         );
 
         // Look for terms of service link in various ways
-        const termsLink = screen.queryByTestId('footer-terms-link') ||
-                         screen.queryByText(/conditions d'utilisation/i) ||
-                         screen.queryByText(/terms of service/i) ||
-                         screen.queryByRole('link', { name: /terms/i });
+        const termsLink =
+          screen.queryByTestId('footer-terms-link') ||
+          screen.queryByText(/conditions d'utilisation/i) ||
+          screen.queryByText(/terms of service/i) ||
+          screen.queryByRole('link', { name: /terms/i });
 
         expect(termsLink).toBeInTheDocument();
       });
@@ -115,16 +115,18 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         const pageHtml = document.body.innerHTML || '';
 
         // Should contain privacy-related text
-        const hasPrivacyReference = pageContent.includes('politique de confidentialité') ||
-                                   pageContent.includes('privacy policy') ||
-                                   pageContent.includes('confidentialité') ||
-                                   pageHtml.includes('/privacy-policy');
+        const hasPrivacyReference =
+          pageContent.includes('politique de confidentialité') ||
+          pageContent.includes('privacy policy') ||
+          pageContent.includes('confidentialité') ||
+          pageHtml.includes('/privacy-policy');
 
         // Should contain terms-related text
-        const hasTermsReference = pageContent.includes('conditions d\'utilisation') ||
-                                 pageContent.includes('terms of service') ||
-                                 pageContent.includes('conditions') ||
-                                 pageHtml.includes('/terms-of-service');
+        const hasTermsReference =
+          pageContent.includes("conditions d'utilisation") ||
+          pageContent.includes('terms of service') ||
+          pageContent.includes('conditions') ||
+          pageHtml.includes('/terms-of-service');
 
         expect(hasPrivacyReference).toBe(true);
         expect(hasTermsReference).toBe(true);
@@ -142,11 +144,11 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
 
     protectedPages.forEach(({ path, name, role }) => {
       it(`should have privacy policy accessible from ${name}`, () => {
-        const mockUser = { 
-          id: '1', 
-          email: 'test@example.com', 
+        const mockUser = {
+          id: '1',
+          email: 'test@example.com',
           role,
-          organizationId: 'org-1' 
+          organizationId: 'org-1',
         };
 
         const mockAuthValue = {
@@ -159,7 +161,9 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         };
 
         render(
-          <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+          <QueryClientProvider
+            client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+          >
             <MemoryRouter initialEntries={[path]}>
               <LanguageProvider>
                 <AuthProvider value={mockAuthValue}>
@@ -175,26 +179,28 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         const pageHtml = document.body.innerHTML;
         const pageText = document.body.textContent || '';
 
-        const hasPrivacyAccess = pageText.includes('confidentialité') ||
-                                pageText.includes('privacy') ||
-                                pageHtml.includes('/privacy-policy') ||
-                                pageHtml.includes('privacy');
+        const hasPrivacyAccess =
+          pageText.includes('confidentialité') ||
+          pageText.includes('privacy') ||
+          pageHtml.includes('/privacy-policy') ||
+          pageHtml.includes('privacy');
 
         // If not directly visible, should at least have settings or profile access
-        const hasSettingsAccess = pageText.includes('settings') ||
-                                 pageText.includes('paramètres') ||
-                                 pageText.includes('profile') ||
-                                 pageText.includes('profil');
+        const hasSettingsAccess =
+          pageText.includes('settings') ||
+          pageText.includes('paramètres') ||
+          pageText.includes('profile') ||
+          pageText.includes('profil');
 
         expect(hasPrivacyAccess || hasSettingsAccess).toBe(true);
       });
 
       it(`should have terms of service accessible from ${name}`, () => {
-        const mockUser = { 
-          id: '1', 
-          email: 'test@example.com', 
+        const mockUser = {
+          id: '1',
+          email: 'test@example.com',
           role,
-          organizationId: 'org-1' 
+          organizationId: 'org-1',
         };
 
         const mockAuthValue = {
@@ -207,7 +213,9 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         };
 
         render(
-          <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+          <QueryClientProvider
+            client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+          >
             <MemoryRouter initialEntries={[path]}>
               <LanguageProvider>
                 <AuthProvider value={mockAuthValue}>
@@ -222,16 +230,18 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         const pageHtml = document.body.innerHTML;
         const pageText = document.body.textContent || '';
 
-        const hasTermsAccess = pageText.includes('conditions') ||
-                              pageText.includes('terms') ||
-                              pageHtml.includes('/terms-of-service') ||
-                              pageHtml.includes('terms');
+        const hasTermsAccess =
+          pageText.includes('conditions') ||
+          pageText.includes('terms') ||
+          pageHtml.includes('/terms-of-service') ||
+          pageHtml.includes('terms');
 
         // If not directly visible, should at least have settings or profile access
-        const hasSettingsAccess = pageText.includes('settings') ||
-                                 pageText.includes('paramètres') ||
-                                 pageText.includes('profile') ||
-                                 pageText.includes('profil');
+        const hasSettingsAccess =
+          pageText.includes('settings') ||
+          pageText.includes('paramètres') ||
+          pageText.includes('profile') ||
+          pageText.includes('profil');
 
         expect(hasTermsAccess || hasSettingsAccess).toBe(true);
       });
@@ -241,7 +251,7 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
   describe('Privacy Policy Page Accessibility', () => {
     it('should render privacy policy page directly', () => {
       render(
-        <TestProviders initialLocation="/privacy-policy">
+        <TestProviders initialLocation='/privacy-policy'>
           <App />
         </TestProviders>
       );
@@ -253,37 +263,41 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
 
     it('should have proper navigation back from privacy policy', () => {
       render(
-        <TestProviders initialLocation="/privacy-policy">
+        <TestProviders initialLocation='/privacy-policy'>
           <App />
         </TestProviders>
       );
 
       // Should have back navigation
-      const backButton = screen.queryByTestId('button-back') ||
-                         screen.queryByText(/retour/i) ||
-                         screen.queryByText(/back/i);
-      
+      const backButton =
+        screen.queryByTestId('button-back') ||
+        screen.queryByText(/retour/i) ||
+        screen.queryByText(/back/i);
+
       expect(backButton).toBeInTheDocument();
     });
 
     it('should maintain site navigation on privacy policy page', () => {
       render(
-        <TestProviders initialLocation="/privacy-policy">
+        <TestProviders initialLocation='/privacy-policy'>
           <App />
         </TestProviders>
       );
 
       // Should have logo and basic navigation
       expect(screen.getByTestId('logo-link')).toBeInTheDocument();
-      
+
       // Should have authentication options
-      const authButtons = screen.queryAllByRole('button').filter(button => 
-        button.textContent?.includes('connecter') ||
-        button.textContent?.includes('commencer') ||
-        button.textContent?.includes('login') ||
-        button.textContent?.includes('sign')
-      );
-      
+      const authButtons = screen
+        .queryAllByRole('button')
+        .filter(
+          (button) =>
+            button.textContent?.includes('connecter') ||
+            button.textContent?.includes('commencer') ||
+            button.textContent?.includes('login') ||
+            button.textContent?.includes('sign')
+        );
+
       expect(authButtons.length).toBeGreaterThan(0);
     });
   });
@@ -291,7 +305,7 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
   describe('Terms of Service Page Accessibility', () => {
     it('should render terms of service page directly', () => {
       render(
-        <TestProviders initialLocation="/terms-of-service">
+        <TestProviders initialLocation='/terms-of-service'>
           <App />
         </TestProviders>
       );
@@ -303,37 +317,41 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
 
     it('should have proper navigation back from terms of service', () => {
       render(
-        <TestProviders initialLocation="/terms-of-service">
+        <TestProviders initialLocation='/terms-of-service'>
           <App />
         </TestProviders>
       );
 
       // Should have back navigation
-      const backButton = screen.queryByTestId('button-back') ||
-                         screen.queryByText(/retour/i) ||
-                         screen.queryByText(/back/i);
-      
+      const backButton =
+        screen.queryByTestId('button-back') ||
+        screen.queryByText(/retour/i) ||
+        screen.queryByText(/back/i);
+
       expect(backButton).toBeInTheDocument();
     });
 
     it('should maintain site navigation on terms of service page', () => {
       render(
-        <TestProviders initialLocation="/terms-of-service">
+        <TestProviders initialLocation='/terms-of-service'>
           <App />
         </TestProviders>
       );
 
       // Should have logo and basic navigation
       expect(screen.getByTestId('logo-link')).toBeInTheDocument();
-      
+
       // Should have authentication options
-      const authButtons = screen.queryAllByRole('button').filter(button => 
-        button.textContent?.includes('connecter') ||
-        button.textContent?.includes('commencer') ||
-        button.textContent?.includes('login') ||
-        button.textContent?.includes('sign')
-      );
-      
+      const authButtons = screen
+        .queryAllByRole('button')
+        .filter(
+          (button) =>
+            button.textContent?.includes('connecter') ||
+            button.textContent?.includes('commencer') ||
+            button.textContent?.includes('login') ||
+            button.textContent?.includes('sign')
+        );
+
       expect(authButtons.length).toBeGreaterThan(0);
     });
   });
@@ -341,40 +359,47 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
   describe('Cross-Linking Between Privacy and Terms', () => {
     it('should have terms link on privacy policy page', () => {
       render(
-        <TestProviders initialLocation="/privacy-policy">
+        <TestProviders initialLocation='/privacy-policy'>
           <App />
         </TestProviders>
       );
 
       // Privacy policy should link to terms
-      const termsLink = screen.queryByTestId('footer-terms-link') ||
-                       screen.queryByText(/conditions d'utilisation/i);
-      
+      const termsLink =
+        screen.queryByTestId('footer-terms-link') ||
+        screen.queryByText(/conditions d'utilisation/i);
+
       expect(termsLink).toBeInTheDocument();
     });
 
     it('should have privacy link on terms of service page', () => {
       render(
-        <TestProviders initialLocation="/terms-of-service">
+        <TestProviders initialLocation='/terms-of-service'>
           <App />
         </TestProviders>
       );
 
       // Terms should link to privacy policy
-      const privacyLink = screen.queryByTestId('footer-privacy-link') ||
-                         screen.queryByText(/politique de confidentialité/i);
-      
+      const privacyLink =
+        screen.queryByTestId('footer-privacy-link') ||
+        screen.queryByText(/politique de confidentialité/i);
+
       expect(privacyLink).toBeInTheDocument();
     });
   });
 
   describe('Legal Compliance Messaging', () => {
     const allPages = [
-      '/', '/features', '/security', '/story', 
-      '/privacy-policy', '/terms-of-service', '/login'
+      '/',
+      '/features',
+      '/security',
+      '/story',
+      '/privacy-policy',
+      '/terms-of-service',
+      '/login',
     ];
 
-    allPages.forEach(page => {
+    allPages.forEach((page) => {
       it(`should display Quebec Law 25 compliance message on ${page}`, () => {
         render(
           <TestProviders initialLocation={page}>
@@ -403,11 +428,15 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
 
   describe('Footer Consistency', () => {
     const pagesWithFooters = [
-      '/', '/features', '/security', '/story', 
-      '/privacy-policy', '/terms-of-service'
+      '/',
+      '/features',
+      '/security',
+      '/story',
+      '/privacy-policy',
+      '/terms-of-service',
     ];
 
-    pagesWithFooters.forEach(page => {
+    pagesWithFooters.forEach((page) => {
       it(`should have consistent footer with legal links on ${page}`, () => {
         render(
           <TestProviders initialLocation={page}>
@@ -416,12 +445,12 @@ describe('Privacy Policy and Terms of Service Availability Tests', () => {
         );
 
         // Footer should contain legal information
-        const footerContent = document.querySelector('footer')?.textContent || 
-                             document.body.textContent || '';
-        
+        const footerContent =
+          document.querySelector('footer')?.textContent || document.body.textContent || '';
+
         expect(footerContent).toMatch(/conforme.*loi 25/i);
         expect(footerContent).toMatch(/données.*protégées|data.*protected/i);
-        
+
         // Should have both privacy and terms references
         expect(footerContent).toMatch(/confidentialité|privacy/i);
         expect(footerContent).toMatch(/conditions|terms/i);
@@ -445,28 +474,31 @@ export function validateLegalLinksAvailability(page: HTMLElement): {
   const issues: string[] = [];
 
   // Check for privacy policy link
-  const hasPrivacyLink = pageText.includes('politique de confidentialité') ||
-                        pageText.includes('privacy policy') ||
-                        pageHtml.includes('/privacy-policy');
+  const hasPrivacyLink =
+    pageText.includes('politique de confidentialité') ||
+    pageText.includes('privacy policy') ||
+    pageHtml.includes('/privacy-policy');
 
   if (!hasPrivacyLink) {
     issues.push('Privacy policy link not found');
   }
 
   // Check for terms of service link
-  const hasTermsLink = pageText.includes('conditions d\'utilisation') ||
-                      pageText.includes('terms of service') ||
-                      pageHtml.includes('/terms-of-service');
+  const hasTermsLink =
+    pageText.includes("conditions d'utilisation") ||
+    pageText.includes('terms of service') ||
+    pageHtml.includes('/terms-of-service');
 
   if (!hasTermsLink) {
     issues.push('Terms of service link not found');
   }
 
   // Check for compliance messaging
-  const hasComplianceMessage = pageText.includes('Loi 25') ||
-                              pageText.includes('Law 25') ||
-                              pageText.includes('conforme') ||
-                              pageText.includes('compliant');
+  const hasComplianceMessage =
+    pageText.includes('Loi 25') ||
+    pageText.includes('Law 25') ||
+    pageText.includes('conforme') ||
+    pageText.includes('compliant');
 
   if (!hasComplianceMessage) {
     issues.push('Quebec Law 25 compliance message not found');
@@ -492,15 +524,15 @@ export const QUEBEC_LEGAL_REQUIREMENTS = {
     'utilisation des données',
     'partage des données',
     'conservation des données',
-    'sécurité des données'
+    'sécurité des données',
   ],
   termsOfService: [
     'droit québécois',
     'juridiction québécoise',
     'service de gestion immobilière',
     'utilisateurs québécois',
-    'conformité réglementaire'
-  ]
+    'conformité réglementaire',
+  ],
 };
 
 /**
@@ -509,18 +541,19 @@ export const QUEBEC_LEGAL_REQUIREMENTS = {
  * @param content
  */
 export function validateQuebecLegalCompliance(
-  page: 'privacy' | 'terms', 
+  page: 'privacy' | 'terms',
   content: string
 ): {
   isCompliant: boolean;
   missingRequirements: string[];
 } {
-  const requirements = page === 'privacy' 
-    ? QUEBEC_LEGAL_REQUIREMENTS.privacyPolicy
-    : QUEBEC_LEGAL_REQUIREMENTS.termsOfService;
-  
-  const missingRequirements = requirements.filter(req => 
-    !content.toLowerCase().includes(req.toLowerCase())
+  const requirements =
+    page === 'privacy'
+      ? QUEBEC_LEGAL_REQUIREMENTS.privacyPolicy
+      : QUEBEC_LEGAL_REQUIREMENTS.termsOfService;
+
+  const missingRequirements = requirements.filter(
+    (req) => !content.toLowerCase().includes(req.toLowerCase())
   );
 
   return {

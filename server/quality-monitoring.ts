@@ -1,6 +1,6 @@
 /**
  * Quality Monitoring Integration for Continuous Improvement Pillar.
- * 
+ *
  * This module provides utilities for integrating new quality metrics
  * with the continuous improvement pillar automatically.
  */
@@ -31,20 +31,24 @@ interface QualityMetricConfig {
   /** Threshold configuration for warning and critical levels */
   thresholds: MetricThresholds;
   /** Function to generate improvement suggestions when thresholds are exceeded */
-  generateSuggestion: (_value: any, thresholdType: string, threshold: number) => InsertImprovementSuggestion;
+  generateSuggestion: (
+    _value: any,
+    thresholdType: string,
+    threshold: number
+  ) => InsertImprovementSuggestion;
 }
 
 /**
  * Registers a new quality metric for automated monitoring by the continuous improvement pillar.
  * The metric will be automatically analyzed every 5 minutes and generate improvement
  * suggestions when thresholds are exceeded.
- * 
+ *
  * @param {QualityMetricConfig} config - Configuration object for the quality metric monitoring.
  * @param {string} config.metricName - Name of the metric to monitor.
  * @param {MetricThresholds} config.thresholds - Warning and critical threshold values.
  * @param {Function} config.generateSuggestion - Function to create improvement suggestions.
  * @returns {void} No return value - metric monitoring is registered globally.
- * 
+ *
  * @example
  * ```typescript
  * addQualityMetricMonitoring({
@@ -70,7 +74,7 @@ export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
     metricName: config.metricName,
     analyze: async (_value: unknown) => {
       const suggestions: InsertImprovementSuggestion[] = [];
-      
+
       // Parse numeric values if they're strings with units
       let numericValue: number;
       if (typeof value === 'string') {
@@ -80,14 +84,17 @@ export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
       } else {
         return [];
       }
-      
+
       // Check against thresholds in order of severity
       if (config.thresholds.critical !== undefined && numericValue >= config.thresholds.critical) {
         suggestions.push(config.generateSuggestion(value, 'critical', config.thresholds.critical));
-      } else if (config.thresholds.warning !== undefined && numericValue >= config.thresholds.warning) {
+      } else if (
+        config.thresholds.warning !== undefined &&
+        numericValue >= config.thresholds.warning
+      ) {
         suggestions.push(config.generateSuggestion(value, 'warning', config.thresholds.warning));
       }
-      
+
       return suggestions;
     },
   });

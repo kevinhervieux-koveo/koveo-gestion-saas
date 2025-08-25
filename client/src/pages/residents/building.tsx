@@ -6,7 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Building, MapPin, Calendar, Users, Phone, Mail, FileText, Home, Car, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Building,
+  MapPin,
+  Calendar,
+  Users,
+  Phone,
+  Mail,
+  FileText,
+  Home,
+  Car,
+  Package,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -31,9 +44,11 @@ export default function MyBuilding() {
   const itemsPerPage = 10;
 
   // Fetch buildings accessible to the user
-  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{buildings: BuildingWithStats[]}>({
+  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{
+    buildings: BuildingWithStats[];
+  }>({
     queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest("GET", "/api/manager/buildings"),
+    queryFn: () => apiRequest('GET', '/api/manager/buildings'),
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
@@ -45,11 +60,11 @@ export default function MyBuilding() {
   const currentBuildings = buildings.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
-    setCurrentPage(prev => Math.max(1, prev - 1));
+    setCurrentPage((prev) => Math.max(1, prev - 1));
   };
 
   const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
   const handlePageClick = (page: number) => {
@@ -110,9 +125,7 @@ export default function MyBuilding() {
                     <Building className='w-5 h-5' />
                     {building.name}
                   </CardTitle>
-                  <div className='text-sm text-muted-foreground'>
-                    {building.organizationName}
-                  </div>
+                  <div className='text-sm text-muted-foreground'>{building.organizationName}</div>
                 </CardHeader>
                 <CardContent className='space-y-4'>
                   <div className='grid grid-cols-1 gap-3'>
@@ -128,7 +141,7 @@ export default function MyBuilding() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className='grid grid-cols-2 gap-3'>
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>Building Type</Label>
@@ -157,7 +170,7 @@ export default function MyBuilding() {
                         </div>
                       )}
                     </div>
-                    
+
                     {(building.parkingSpaces || building.storageSpaces) && (
                       <div className='grid grid-cols-2 gap-3'>
                         {building.parkingSpaces && (
@@ -165,7 +178,9 @@ export default function MyBuilding() {
                             <Label className='text-xs font-medium text-gray-500'>Parking</Label>
                             <div className='flex items-center gap-1'>
                               <Car className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>{building.parkingSpaces}</span>
+                              <span className='text-sm text-gray-700'>
+                                {building.parkingSpaces}
+                              </span>
                             </div>
                           </div>
                         )}
@@ -174,16 +189,20 @@ export default function MyBuilding() {
                             <Label className='text-xs font-medium text-gray-500'>Storage</Label>
                             <div className='flex items-center gap-1'>
                               <Package className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>{building.storageSpaces}</span>
+                              <span className='text-sm text-gray-700'>
+                                {building.storageSpaces}
+                              </span>
                             </div>
                           </div>
                         )}
                       </div>
                     )}
-                    
+
                     {building.managementCompany && (
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Management Company</Label>
+                        <Label className='text-xs font-medium text-gray-500'>
+                          Management Company
+                        </Label>
                         <p className='text-sm text-gray-700'>{building.managementCompany}</p>
                       </div>
                     )}
@@ -192,43 +211,58 @@ export default function MyBuilding() {
                     <div>
                       <Label className='text-xs font-medium text-gray-500'>Occupancy</Label>
                       <div className='flex items-center gap-2 text-sm'>
-                        <Badge variant="outline" className='text-xs'>
+                        <Badge variant='outline' className='text-xs'>
                           {building.occupiedUnits}/{building.totalUnits} units
                         </Badge>
-                        <Badge variant={building.occupancyRate >= 90 ? "default" : building.occupancyRate >= 70 ? "secondary" : "destructive"} className='text-xs'>
+                        <Badge
+                          variant={
+                            building.occupancyRate >= 90
+                              ? 'default'
+                              : building.occupancyRate >= 70
+                                ? 'secondary'
+                                : 'destructive'
+                          }
+                          className='text-xs'
+                        >
                           {Math.round(building.occupancyRate)}% occupied
                         </Badge>
                       </div>
                     </div>
-                    
+
                     {building.amenities && (
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>Amenities</Label>
                         <div className='flex flex-wrap gap-1 mt-1'>
                           {(() => {
                             try {
-                              const amenities = typeof building.amenities === 'string' 
-                                ? JSON.parse(building.amenities)
-                                : building.amenities;
-                              return Array.isArray(amenities) 
+                              const amenities =
+                                typeof building.amenities === 'string'
+                                  ? JSON.parse(building.amenities)
+                                  : building.amenities;
+                              return Array.isArray(amenities)
                                 ? amenities.slice(0, 3).map((amenity: string, index: number) => (
-                                    <Badge key={index} variant="outline" className='text-xs'>
+                                    <Badge key={index} variant='outline' className='text-xs'>
                                       {amenity}
                                     </Badge>
                                   ))
                                 : null;
                             } catch (_e) {
-                              return <span className='text-xs text-muted-foreground'>Unable to display amenities</span>;
+                              return (
+                                <span className='text-xs text-muted-foreground'>
+                                  Unable to display amenities
+                                </span>
+                              );
                             }
                           })()}
                           {(() => {
                             try {
-                              const amenities = typeof building.amenities === 'string' 
-                                ? JSON.parse(building.amenities)
-                                : building.amenities;
+                              const amenities =
+                                typeof building.amenities === 'string'
+                                  ? JSON.parse(building.amenities)
+                                  : building.amenities;
                               if (Array.isArray(amenities) && amenities.length > 3) {
                                 return (
-                                  <Badge variant="outline" className='text-xs'>
+                                  <Badge variant='outline' className='text-xs'>
                                     +{amenities.length - 3} more
                                   </Badge>
                                 );
@@ -242,11 +276,11 @@ export default function MyBuilding() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className='pt-4 border-t'>
-                    <Button 
-                      onClick={() => handleViewDocuments(building.id)} 
-                      variant='outline' 
+                    <Button
+                      onClick={() => handleViewDocuments(building.id)}
+                      variant='outline'
                       size='sm'
                       className='w-full justify-start'
                     >
@@ -258,7 +292,7 @@ export default function MyBuilding() {
               </Card>
             ))}
           </div>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className='flex items-center justify-center gap-2 mt-8'>
@@ -271,7 +305,7 @@ export default function MyBuilding() {
                 <ChevronLeft className='h-4 w-4' />
                 Previous
               </Button>
-              
+
               <div className='flex gap-1'>
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
@@ -284,7 +318,7 @@ export default function MyBuilding() {
                   } else {
                     pageNum = currentPage - 2 + i;
                   }
-                  
+
                   return (
                     <Button
                       key={pageNum}
@@ -297,7 +331,7 @@ export default function MyBuilding() {
                   );
                 })}
               </div>
-              
+
               <Button
                 variant='outline'
                 size='sm'
@@ -309,10 +343,11 @@ export default function MyBuilding() {
               </Button>
             </div>
           )}
-          
+
           {/* Page info */}
           <div className='text-center text-sm text-muted-foreground mt-4'>
-            Showing {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length} buildings
+            Showing {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
+            buildings
           </div>
         </div>
       </div>

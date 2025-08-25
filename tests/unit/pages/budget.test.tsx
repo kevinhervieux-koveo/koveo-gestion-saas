@@ -19,42 +19,48 @@ jest.mock('@/hooks/use-toast', () => ({
 
 // Mock all the Lucide React icons
 jest.mock('lucide-react', () => ({
-  DollarSign: () => <div data-testid="dollar-icon">$</div>,
-  Banknote: () => <div data-testid="banknote-icon">Banknote</div>,
-  Settings: () => <div data-testid="settings-icon">Settings</div>,
-  TrendingUp: () => <div data-testid="trending-up-icon">TrendingUp</div>,
-  Calculator: () => <div data-testid="calculator-icon">Calculator</div>,
-  Filter: () => <div data-testid="filter-icon">Filter</div>,
-  ChevronDown: () => <div data-testid="chevron-down-icon">ChevronDown</div>,
-  ChevronUp: () => <div data-testid="chevron-up-icon">ChevronUp</div>,
-  X: () => <div data-testid="close-icon">X</div>,
-  Plus: () => <div data-testid="plus-icon">Plus</div>,
-  Trash2: () => <div data-testid="trash-icon">Trash</div>,
-  Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
-  AlertTriangle: () => <div data-testid="alert-icon">AlertTriangle</div>,
-  ChevronLeft: () => <div data-testid="chevron-left-icon">ChevronLeft</div>,
-  ChevronRight: () => <div data-testid="chevron-right-icon">ChevronRight</div>,
-  Users: () => <div data-testid="users-icon">Users</div>,
-  Percent: () => <div data-testid="percent-icon">Percent</div>,
-  Maximize2: () => <div data-testid="maximize-icon">Maximize</div>,
-  Minimize2: () => <div data-testid="minimize-icon">Minimize</div>,
+  DollarSign: () => <div data-testid='dollar-icon'>$</div>,
+  Banknote: () => <div data-testid='banknote-icon'>Banknote</div>,
+  Settings: () => <div data-testid='settings-icon'>Settings</div>,
+  TrendingUp: () => <div data-testid='trending-up-icon'>TrendingUp</div>,
+  Calculator: () => <div data-testid='calculator-icon'>Calculator</div>,
+  Filter: () => <div data-testid='filter-icon'>Filter</div>,
+  ChevronDown: () => <div data-testid='chevron-down-icon'>ChevronDown</div>,
+  ChevronUp: () => <div data-testid='chevron-up-icon'>ChevronUp</div>,
+  X: () => <div data-testid='close-icon'>X</div>,
+  Plus: () => <div data-testid='plus-icon'>Plus</div>,
+  Trash2: () => <div data-testid='trash-icon'>Trash</div>,
+  Calendar: () => <div data-testid='calendar-icon'>Calendar</div>,
+  AlertTriangle: () => <div data-testid='alert-icon'>AlertTriangle</div>,
+  ChevronLeft: () => <div data-testid='chevron-left-icon'>ChevronLeft</div>,
+  ChevronRight: () => <div data-testid='chevron-right-icon'>ChevronRight</div>,
+  Users: () => <div data-testid='users-icon'>Users</div>,
+  Percent: () => <div data-testid='percent-icon'>Percent</div>,
+  Maximize2: () => <div data-testid='maximize-icon'>Maximize</div>,
+  Minimize2: () => <div data-testid='minimize-icon'>Minimize</div>,
 }));
 
 // Mock Recharts components
 jest.mock('recharts', () => ({
-  Area: () => <div data-testid="area-chart">Area</div>,
-  AreaChart: ({ children }: { children: React.ReactNode }) => <div data-testid="area-chart">{children}</div>,
-  XAxis: () => <div data-testid="x-axis">XAxis</div>,
-  YAxis: () => <div data-testid="y-axis">YAxis</div>,
-  CartesianGrid: () => <div data-testid="cartesian-grid">CartesianGrid</div>,
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
+  Area: () => <div data-testid='area-chart'>Area</div>,
+  AreaChart: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid='area-chart'>{children}</div>
+  ),
+  XAxis: () => <div data-testid='x-axis'>XAxis</div>,
+  YAxis: () => <div data-testid='y-axis'>YAxis</div>,
+  CartesianGrid: () => <div data-testid='cartesian-grid'>CartesianGrid</div>,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid='responsive-container'>{children}</div>
+  ),
 }));
 
 // Mock the chart components
 jest.mock('@/components/ui/chart', () => ({
-  ChartContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart-container">{children}</div>,
-  ChartTooltip: () => <div data-testid="chart-tooltip">Tooltip</div>,
-  ChartTooltipContent: () => <div data-testid="chart-tooltip-content">TooltipContent</div>,
+  ChartContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid='chart-container'>{children}</div>
+  ),
+  ChartTooltip: () => <div data-testid='chart-tooltip'>Tooltip</div>,
+  ChartTooltipContent: () => <div data-testid='chart-tooltip-content'>TooltipContent</div>,
 }));
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -71,7 +77,7 @@ const mockBuildings = [
   },
   {
     id: 'building-2',
-    name: 'Test Building B', 
+    name: 'Test Building B',
     address: '456 Test Avenue',
     organizationId: 'org-1',
   },
@@ -366,7 +372,7 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const categoriesToggle = screen.getByText('Categories');
         fireEvent.click(categoriesToggle);
-        
+
         expect(screen.getByText('Income: Monthly Fees')).toBeInTheDocument();
         expect(screen.getByText('Expense: Maintenance')).toBeInTheDocument();
       });
@@ -507,7 +513,7 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const updateButton = screen.getByText('Update Account');
         fireEvent.click(updateButton);
-        
+
         expect(screen.getByText('Update Bank Account')).toBeInTheDocument();
         expect(screen.getByLabelText('Bank Account Number')).toBeInTheDocument();
       });
@@ -548,7 +554,7 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const manageButton = screen.getByText('Manage Minimum Balances');
         fireEvent.click(manageButton);
-        
+
         expect(screen.getByText('Manage Minimum Balances')).toBeInTheDocument();
       });
     });
@@ -613,7 +619,7 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
         fireEvent.click(categoriesButton);
-        
+
         expect(screen.getByText('Income: Monthly Fees')).toBeInTheDocument();
         expect(screen.getByText('Income: Parking Fees')).toBeInTheDocument();
         expect(screen.getByText('Expense: Maintenance')).toBeInTheDocument();
@@ -635,11 +641,11 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const categoriesButton = screen.getByText('Categories');
         fireEvent.click(categoriesButton);
-        
+
         // Select a category filter
         const monthlyFeesCategory = screen.getByText('Income: Monthly Fees');
         fireEvent.click(monthlyFeesCategory);
-        
+
         // Check that selection is reflected
         expect(screen.getByText('1 categories')).toBeInTheDocument();
       });
@@ -745,7 +751,7 @@ describe('Budget Page Tests', () => {
       await waitFor(() => {
         const categoriesButton = screen.getByText('Catégories');
         fireEvent.click(categoriesButton);
-        
+
         expect(screen.getByText('Revenus: Frais mensuels')).toBeInTheDocument();
         expect(screen.getByText('Dépenses: Entretien')).toBeInTheDocument();
       });

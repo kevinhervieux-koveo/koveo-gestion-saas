@@ -10,10 +10,10 @@ export const LAYOUT = {
   PADDING_6: 'p-6',
 } as const;
 
-// Typography constants  
+// Typography constants
 export const TYPOGRAPHY = {
   TITLE_LARGE: 'text-3xl font-bold',
-  TITLE_GRAY: 'text-3xl font-bold text-gray-900', 
+  TITLE_GRAY: 'text-3xl font-bold text-gray-900',
   DESCRIPTION: 'text-muted-foreground',
   DESCRIPTION_GRAY: 'text-gray-600',
 } as const;
@@ -38,7 +38,7 @@ export const LOADING_MESSAGES = {
 // Common error messages
 export const ERROR_MESSAGES = {
   CREATE_FAILED: 'Failed to create',
-  UPDATE_FAILED: 'Failed to update', 
+  UPDATE_FAILED: 'Failed to update',
   DELETE_FAILED: 'Failed to delete',
   LOAD_FAILED: 'Failed to load',
 } as const;

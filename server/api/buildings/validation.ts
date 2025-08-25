@@ -17,7 +17,7 @@ export const CreateBuildingSchema = z.object({
   storageSpaces: z.number().int().min(0).optional(),
   amenities: z.array(z.string()).optional(),
   managementCompany: z.string().max(255).optional(),
-  organizationId: z.string().uuid('Valid organization ID is required')
+  organizationId: z.string().uuid('Valid organization ID is required'),
 });
 
 /**
@@ -37,14 +37,14 @@ export const UpdateBuildingSchema = z.object({
   storageSpaces: z.number().int().min(0).optional(),
   amenities: z.array(z.string()).optional(),
   managementCompany: z.string().max(255).optional(),
-  organizationId: z.string().uuid('Valid organization ID is required')
+  organizationId: z.string().uuid('Valid organization ID is required'),
 });
 
 /**
  * Building ID parameter validation.
  */
 export const BuildingIdSchema = z.object({
-  id: z.string().uuid('Valid building ID is required')
+  id: z.string().uuid('Valid building ID is required'),
 });
 
 /**
@@ -99,24 +99,27 @@ export function validateBuildingId(id: string) {
  * @param operation
  * @returns Function result.
  */
-export function validateBuildingPermissions(userRole: string, operation: 'read' | 'create' | 'update' | 'delete'): boolean {
+export function validateBuildingPermissions(
+  userRole: string,
+  operation: 'read' | 'create' | 'update' | 'delete'
+): boolean {
   switch (operation) {
     case 'read':
       // All authenticated users can read buildings they have access to
       return ['admin', 'manager', 'resident', 'tenant'].includes(userRole);
-    
+
     case 'create':
       // Only admins can create buildings
       return userRole === 'admin';
-    
+
     case 'update':
       // Admins and managers can update buildings
       return ['admin', 'manager'].includes(userRole);
-    
+
     case 'delete':
       // Only admins can delete buildings
       return userRole === 'admin';
-    
+
     default:
       return false;
   }
@@ -133,26 +136,26 @@ export function validateBuildingPermissions(userRole: string, operation: 'read' 
  */
 export function validateUserAuth(req: unknown): { user: any; isValid: boolean; error?: string } {
   const user = req.user || req.session?.user;
-  
+
   if (!user && !req.session?.userId) {
     return {
       user: null,
       isValid: false,
-      _error: 'Authentication required'
+      _error: 'Authentication required',
     };
   }
-  
+
   // If we have sessionId but no user object, we'll need to fetch it
   if (!user && req.session?.userId) {
     return {
       user: null,
       isValid: false,
-      _error: 'User session incomplete'
+      _error: 'User session incomplete',
     };
   }
-  
+
   return {
     user,
-    isValid: true
+    isValid: true,
   };
 }

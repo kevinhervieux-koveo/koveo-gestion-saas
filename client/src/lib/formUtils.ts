@@ -74,7 +74,7 @@ export const formUtils = {
     fieldNames?: (keyof T)[]
   ) => {
     if (fieldNames) {
-      fieldNames.forEach(fieldName => {
+      fieldNames.forEach((fieldName) => {
         form.clearErrors(fieldName as any);
       });
     } else {
@@ -83,10 +83,7 @@ export const formUtils = {
   },
 
   // Set form values programmatically
-  setFormValues: <T extends Record<string, any>>(
-    form: UseFormReturn<T>,
-    values: Partial<T>
-  ) => {
+  setFormValues: <T extends Record<string, any>>(form: UseFormReturn<T>, values: Partial<T>) => {
     Object.entries(values).forEach(([key, value]) => {
       form.setValue(key as keyof T, value);
     });
@@ -99,7 +96,7 @@ export const formUtils = {
   ): Promise<boolean> => {
     if (fieldNames) {
       const results = await Promise.all(
-        fieldNames.map(fieldName => form.trigger(fieldName as any))
+        fieldNames.map((fieldName) => form.trigger(fieldName as any))
       );
       return results.every(Boolean);
     }
@@ -120,10 +117,7 @@ export const defaultValues = {
 // Form validation helpers
 export const validationUtils = {
   // Create conditional validation
-  conditionalValidation: <T>(
-    condition: (data: any) => boolean,
-    schema: z.ZodSchema<T>
-  ) => {
+  conditionalValidation: <T>(condition: (data: any) => boolean, schema: z.ZodSchema<T>) => {
     return z.any().refine((data) => {
       if (condition(data)) {
         return schema.safeParse(data).success;
@@ -142,17 +136,22 @@ export const validationUtils = {
 
   // Date range validation
   dateRangeValidation: (startDateField: string, endDateField: string) => {
-    return z.any().refine((data) => {
-      const startDate = data[startDateField];
-      const endDate = data[endDateField];
-      
-      if (!startDate || !endDate) {return true;}
-      
-      return new Date(startDate) <= new Date(endDate);
-    }, {
-      message: 'End date must be after start date',
-      path: [endDateField],
-    });
+    return z.any().refine(
+      (data) => {
+        const startDate = data[startDateField];
+        const endDate = data[endDateField];
+
+        if (!startDate || !endDate) {
+          return true;
+        }
+
+        return new Date(startDate) <= new Date(endDate);
+      },
+      {
+        message: 'End date must be after start date',
+        path: [endDateField],
+      }
+    );
   },
 };
 
@@ -164,8 +163,8 @@ export const formPatterns = {
   }),
 
   // Filter form pattern
-  createFilterForm: (filters: string[] = []) => 
-    Object.fromEntries(filters.map(filter => [filter, 'all'])),
+  createFilterForm: (filters: string[] = []) =>
+    Object.fromEntries(filters.map((filter) => [filter, 'all'])),
 
   // Pagination form pattern
   createPaginationState: (itemsPerPage = 10) => ({

@@ -62,7 +62,7 @@ export function FormInput<T extends FieldValues>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className='text-red-500 ml-1'>*</span>}
           </FormLabel>
           <FormControl>
             <Input
@@ -76,11 +76,7 @@ export function FormInput<T extends FieldValues>({
               {...field}
             />
           </FormControl>
-          {description && (
-            <div className="text-sm text-muted-foreground">
-              {description}
-            </div>
-          )}
+          {description && <div className='text-sm text-muted-foreground'>{description}</div>}
           <FormMessage />
         </FormItem>
       )}

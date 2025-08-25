@@ -19,25 +19,24 @@ import { TestProviders } from '../../test-utils/providers';
 jest.mock('../../../client/src/lib/queryClient', () => ({
   apiRequest: jest.fn(),
   queryClient: {
-    invalidateQueries: jest.fn()
-  }
+    invalidateQueries: jest.fn(),
+  },
 }));
 
 jest.mock('../../../client/src/hooks/use-language', () => ({
   useLanguage: () => ({
     t: jest.fn((key: string) => key),
-    currentLanguage: 'fr'
-  })
+    currentLanguage: 'fr',
+  }),
 }));
 
 // Mock Wouter navigation
 jest.mock('wouter', () => ({
   useLocation: () => ['/', jest.fn()],
-  useParams: () => ({ token: 'test-token-12345' })
+  useParams: () => ({ token: 'test-token-12345' }),
 }));
 
 describe('Fixed User Creation Component Tests', () => {
-  
   describe('Step 1: Token Validation Component', () => {
     test('should render token validation step with proper props', async () => {
       const mockOnDataChange = jest.fn();
@@ -120,7 +119,7 @@ describe('Fixed User Creation Component Tests', () => {
       );
 
       const passwordInput = screen.getByLabelText(/password/i);
-      
+
       // Test weak password
       await userEvent.type(passwordInput, 'weak');
       await waitFor(() => {
@@ -157,7 +156,7 @@ describe('Fixed User Creation Component Tests', () => {
 
     test('should validate Quebec phone number format', async () => {
       const mockOnDataChange = jest.fn();
-      
+
       render(
         <TestProviders>
           <ProfileCompletionStep
@@ -215,13 +214,13 @@ describe('Fixed User Creation Component Tests', () => {
 
       // Find and check required consents
       const requiredCheckboxes = screen.getAllByRole('checkbox');
-      
+
       // Check data collection consent (required)
       if (requiredCheckboxes[0]) {
         await userEvent.click(requiredCheckboxes[0]);
       }
-      
-      // Check acknowledged rights (required for Law 25)  
+
+      // Check acknowledged rights (required for Law 25)
       if (requiredCheckboxes[requiredCheckboxes.length - 1]) {
         await userEvent.click(requiredCheckboxes[requiredCheckboxes.length - 1]);
       }
@@ -241,8 +240,8 @@ describe('Fixed User Creation Component Tests', () => {
         email: 'kevhervieux@gmail.com',
         role: 'manager' as const,
         organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
-        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba'
-      }
+        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
+      },
     };
 
     test('should render registration wizard with all steps', async () => {
@@ -253,7 +252,7 @@ describe('Fixed User Creation Component Tests', () => {
           description: 'Validate invitation token',
           component: TokenValidationStep,
           isComplete: false,
-          isValid: false
+          isValid: false,
         },
         {
           id: 'password-creation',
@@ -261,17 +260,13 @@ describe('Fixed User Creation Component Tests', () => {
           description: 'Create secure password',
           component: PasswordCreationStep,
           isComplete: false,
-          isValid: false
-        }
+          isValid: false,
+        },
       ];
 
       render(
         <TestProviders>
-          <RegistrationWizard
-            steps={mockSteps}
-            onComplete={jest.fn()}
-            onCancel={jest.fn()}
-          />
+          <RegistrationWizard steps={mockSteps} onComplete={jest.fn()} onCancel={jest.fn()} />
         </TestProviders>
       );
 
@@ -281,7 +276,7 @@ describe('Fixed User Creation Component Tests', () => {
     test('should handle step navigation', async () => {
       const mockOnComplete = jest.fn();
       const mockOnCancel = jest.fn();
-      
+
       const mockSteps = [
         {
           id: 'token-validation',
@@ -289,8 +284,8 @@ describe('Fixed User Creation Component Tests', () => {
           description: 'Validate invitation token',
           component: TokenValidationStep,
           isComplete: false,
-          isValid: false
-        }
+          isValid: false,
+        },
       ];
 
       render(
@@ -312,13 +307,13 @@ describe('Fixed User Creation Component Tests', () => {
     test('should prevent infinite loops in useEffect dependencies', () => {
       // This test validates that the fixes for infinite loops are working
       // The issue was having callback functions in useEffect dependencies
-      
+
       const problematicPattern = {
         // Before fix: [formData, onDataChange, onValidationChange] - caused infinite loops
         // After fix: [formData] - only depends on actual data
         useEffectDeps: ['formData'], // ✅ Fixed
         callbacksInDeps: false, // ✅ Fixed
-        infiniteLoopFixed: true // ✅ Fixed
+        infiniteLoopFixed: true, // ✅ Fixed
       };
 
       expect(problematicPattern.useEffectDeps).toEqual(['formData']);
@@ -329,12 +324,12 @@ describe('Fixed User Creation Component Tests', () => {
     test('should use consistent variable naming', () => {
       // This test validates that variable naming is consistent
       // The issue was inconsistent use of 'data' vs '_data', 'value' vs '_value'
-      
+
       const namingPattern = {
         propNaming: '_data', // ✅ Consistent with WizardStepProps
         parameterNaming: '_value', // ✅ Consistent naming
         interfaceMatch: true, // ✅ Matches component interfaces
-        namingFixed: true // ✅ Fixed
+        namingFixed: true, // ✅ Fixed
       };
 
       expect(namingPattern.propNaming).toBe('_data');
@@ -348,10 +343,10 @@ describe('Fixed User Creation Component Tests', () => {
     test('should validate Quebec French terminology', () => {
       const quebecTerms = {
         personalInfo: 'renseignements personnels',
-        dataCollection: 'collecte et traitement des données', 
+        dataCollection: 'collecte et traitement des données',
         consent: 'consentement',
         privacyRights: 'droits à la vie privée',
-        law25Compliance: 'conformité à la Loi 25'
+        law25Compliance: 'conformité à la Loi 25',
       };
 
       expect(quebecTerms.personalInfo).toBe('renseignements personnels');
@@ -366,7 +361,7 @@ describe('Fixed User Creation Component Tests', () => {
         marketingConsent: false, // Optional
         analyticsConsent: true, // Optional
         consentDate: new Date().toISOString(),
-        compliant: true
+        compliant: true,
       };
 
       expect(law25Requirements.dataCollectionConsent).toBe(true);

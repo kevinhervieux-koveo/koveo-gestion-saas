@@ -26,8 +26,8 @@ describe('Route Validation Tests', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
     hook = mockMemoryLocation({ path: '/' });
     mockFetch.mockClear();
@@ -35,7 +35,7 @@ describe('Route Validation Tests', () => {
 
   const renderWithProviders = (initialPath = '/') => {
     hook = mockMemoryLocation({ path: initialPath });
-    
+
     return render(
       <WouterRouter hook={hook}>
         <TestProviders queryClient={queryClient}>
@@ -51,30 +51,38 @@ describe('Route Validation Tests', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 401,
-        json: async () => ({ message: 'Authentication required' })
+        json: async () => ({ message: 'Authentication required' }),
       });
     });
 
     test('should render home page at /', async () => {
       renderWithProviders('/');
-      
-      await waitFor(() => {
-        // Look for any heading or main content
-        const content = screen.getByRole('main') || screen.getByRole('document') || screen.getByText(/Koveo/i);
-        expect(content).toBeInTheDocument();
-      }, { timeout: 3000 });
+
+      await waitFor(
+        () => {
+          // Look for any heading or main content
+          const content =
+            screen.getByRole('main') || screen.getByRole('document') || screen.getByText(/Koveo/i);
+          expect(content).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     test('should render login page at /login', async () => {
       renderWithProviders('/login');
-      
-      await waitFor(() => {
-        // Look for login form elements
-        const loginElement = screen.getByRole('button', { name: /sign in|login/i }) || 
-                           screen.getByText(/sign in|login/i) ||
-                           screen.getByLabelText(/email|password/i);
-        expect(loginElement).toBeInTheDocument();
-      }, { timeout: 3000 });
+
+      await waitFor(
+        () => {
+          // Look for login form elements
+          const loginElement =
+            screen.getByRole('button', { name: /sign in|login/i }) ||
+            screen.getByText(/sign in|login/i) ||
+            screen.getByLabelText(/email|password/i);
+          expect(loginElement).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
@@ -87,19 +95,22 @@ describe('Route Validation Tests', () => {
           id: '1',
           email: 'test@example.com',
           role: 'ADMIN',
-          organizationId: '1'
-        })
+          organizationId: '1',
+        }),
       });
     });
 
     describe('Admin Routes', () => {
       test('should render dashboard for admin', async () => {
         renderWithProviders('/dashboard');
-        
-        await waitFor(() => {
-          const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
-          expect(content).toBeInTheDocument();
-        }, { timeout: 3000 });
+
+        await waitFor(
+          () => {
+            const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
+            expect(content).toBeInTheDocument();
+          },
+          { timeout: 3000 }
+        );
       });
     });
 
@@ -111,18 +122,21 @@ describe('Route Validation Tests', () => {
             id: '2',
             email: 'manager@example.com',
             role: 'MANAGER',
-            organizationId: '1'
-          })
+            organizationId: '1',
+          }),
         });
       });
 
       test('should render dashboard for managers', async () => {
         renderWithProviders('/dashboard');
-        
-        await waitFor(() => {
-          const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
-          expect(content).toBeInTheDocument();
-        }, { timeout: 3000 });
+
+        await waitFor(
+          () => {
+            const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
+            expect(content).toBeInTheDocument();
+          },
+          { timeout: 3000 }
+        );
       });
     });
 
@@ -134,18 +148,21 @@ describe('Route Validation Tests', () => {
             id: '3',
             email: 'resident@example.com',
             role: 'RESIDENT',
-            organizationId: '1'
-          })
+            organizationId: '1',
+          }),
         });
       });
 
       test('should render dashboard for residents', async () => {
         renderWithProviders('/dashboard');
-        
-        await waitFor(() => {
-          const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
-          expect(content).toBeInTheDocument();
-        }, { timeout: 3000 });
+
+        await waitFor(
+          () => {
+            const content = screen.getByRole('main') || screen.getByText(/dashboard/i);
+            expect(content).toBeInTheDocument();
+          },
+          { timeout: 3000 }
+        );
       });
     });
   });
@@ -158,14 +175,14 @@ describe('Route Validation Tests', () => {
           id: '1',
           email: 'test@example.com',
           role: 'ADMIN',
-          organizationId: '1'
-        })
+          organizationId: '1',
+        }),
       });
     });
 
     test('should navigate between routes correctly', async () => {
       renderWithProviders('/');
-      
+
       // Verify initial route
       await waitFor(() => {
         expect(window.location.pathname === '/' || hook.path === '/').toBe(true);
@@ -181,18 +198,22 @@ describe('Route Validation Tests', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 401,
-        json: async () => ({ message: 'Authentication required' })
+        json: async () => ({ message: 'Authentication required' }),
       });
 
       renderWithProviders('/dashboard');
-      
+
       // Should handle unauthorized access gracefully
-      await waitFor(() => {
-        // Either redirected to login or showing an error/auth prompt
-        const hasAuthContent = screen.queryByText(/login|sign in|authentication/i) ||
-                              screen.queryByRole('button', { name: /login|sign in/i });
-        expect(hasAuthContent || true).toBeTruthy(); // Always pass for now as routing behavior varies
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          // Either redirected to login or showing an error/auth prompt
+          const hasAuthContent =
+            screen.queryByText(/login|sign in|authentication/i) ||
+            screen.queryByRole('button', { name: /login|sign in/i });
+          expect(hasAuthContent || true).toBeTruthy(); // Always pass for now as routing behavior varies
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
@@ -208,24 +229,30 @@ describe('Route Validation Tests', () => {
   describe('Error Handling', () => {
     test('should handle 404 routes gracefully', async () => {
       renderWithProviders('/non-existent-route');
-      
-      await waitFor(() => {
-        // Should handle unknown routes gracefully
-        const content = screen.getByRole('main') || screen.getByRole('document') || document.body;
-        expect(content).toBeInTheDocument();
-      }, { timeout: 3000 });
+
+      await waitFor(
+        () => {
+          // Should handle unknown routes gracefully
+          const content = screen.getByRole('main') || screen.getByRole('document') || document.body;
+          expect(content).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     test('should handle network errors in route loading', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
-      
+
       renderWithProviders('/dashboard');
-      
-      await waitFor(() => {
-        // Should handle network errors gracefully
-        const content = screen.getByRole('main') || screen.getByRole('document') || document.body;
-        expect(content).toBeInTheDocument();
-      }, { timeout: 3000 });
+
+      await waitFor(
+        () => {
+          // Should handle network errors gracefully
+          const content = screen.getByRole('main') || screen.getByRole('document') || document.body;
+          expect(content).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 });

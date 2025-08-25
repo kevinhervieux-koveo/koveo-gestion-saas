@@ -8,20 +8,20 @@ jest.mock('../../server/services/money-flow-automation', () => ({
     generateFutureMoneyFlowEntries: jest.fn(),
     generateForBill: jest.fn(),
     generateForResidence: jest.fn(),
-    getMoneyFlowStatistics: jest.fn()
-  }
+    getMoneyFlowStatistics: jest.fn(),
+  },
 }));
 
 // Mock node-cron
 const mockCronTask = {
   start: jest.fn(),
   stop: jest.fn(),
-  destroy: jest.fn()
+  destroy: jest.fn(),
 };
 
 jest.mock('node-cron', () => ({
   schedule: jest.fn().mockReturnValue(mockCronTask),
-  validate: jest.fn().mockReturnValue(true)
+  validate: jest.fn().mockReturnValue(true),
 }));
 
 describe('MoneyFlowJob Integration Tests', () => {
@@ -30,7 +30,7 @@ describe('MoneyFlowJob Integration Tests', () => {
   beforeEach(() => {
     moneyFlowJob = new MoneyFlowJob();
     jest.clearAllMocks();
-    
+
     // Set environment variables for testing
     process.env.MONEY_FLOW_ENABLED = 'true';
     process.env.MONEY_FLOW_SCHEDULE = '0 3 * * *';
@@ -47,7 +47,7 @@ describe('MoneyFlowJob Integration Tests', () => {
   describe('Job initialization', () => {
     it('should initialize with correct configuration', () => {
       const status = moneyFlowJob.getStatus();
-      
+
       expect(status.enabled).toBe(true);
       expect(status.schedule).toBe('0 3 * * *');
       expect(status.running).toBe(false);
@@ -56,7 +56,7 @@ describe('MoneyFlowJob Integration Tests', () => {
     it('should respect disabled configuration', () => {
       process.env.MONEY_FLOW_ENABLED = 'false';
       const disabledJob = new MoneyFlowJob();
-      
+
       const status = disabledJob.getStatus();
       expect(status.enabled).toBe(false);
     });
@@ -64,10 +64,10 @@ describe('MoneyFlowJob Integration Tests', () => {
     it('should use default configuration when env vars are missing', () => {
       delete process.env.MONEY_FLOW_SCHEDULE;
       delete process.env.MONEY_FLOW_LOG_LEVEL;
-      
+
       const defaultJob = new MoneyFlowJob();
       const status = defaultJob.getStatus();
-      
+
       expect(status.schedule).toBe('0 3 * * *'); // Default schedule
     });
   });
@@ -77,7 +77,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 150,
         residenceEntriesCreated: 75,
-        totalEntriesCreated: 225
+        totalEntriesCreated: 225,
       };
 
       const mockStats = {
@@ -86,13 +86,13 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 400,
         futureEntries: 800,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockResolvedValue(mockResult);
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockResolvedValue(
+        mockResult
+      );
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       await moneyFlowJob.executeMoneyFlowJob();
 
@@ -104,15 +104,16 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 50,
         residenceEntriesCreated: 25,
-        totalEntriesCreated: 75
+        totalEntriesCreated: 75,
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(mockResult), 100)));
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve(mockResult), 100))
+      );
 
       // Start first execution
       const execution1 = moneyFlowJob.executeMoneyFlowJob();
-      
+
       // Try to start second execution while first is running
       const execution2 = moneyFlowJob.executeMoneyFlowJob();
 
@@ -124,9 +125,10 @@ describe('MoneyFlowJob Integration Tests', () => {
 
     it('should retry on failure up to configured attempts', async () => {
       const error = new Error('Database connection failed');
-      
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValue(_error);
+
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockRejectedValue(
+        _error
+      );
 
       await moneyFlowJob.executeMoneyFlowJob();
 
@@ -139,7 +141,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 10,
         residenceEntriesCreated: 5,
-        totalEntriesCreated: 15
+        totalEntriesCreated: 15,
       };
 
       const mockStats = {
@@ -148,7 +150,7 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 40,
         futureEntries: 80,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
       (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
@@ -156,8 +158,7 @@ describe('MoneyFlowJob Integration Tests', () => {
         .mockRejectedValueOnce(_error) // Second attempt fails
         .mockResolvedValueOnce(mockResult); // Third attempt succeeds
 
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       await moneyFlowJob.executeMoneyFlowJob();
 
@@ -171,8 +172,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const billId = 'bill-123';
       const entriesCreated = 24; // 2 years of monthly payments
 
-      (moneyFlowAutomationService.generateForBill as jest.Mock)
-        .mockResolvedValue(entriesCreated);
+      (moneyFlowAutomationService.generateForBill as jest.Mock).mockResolvedValue(entriesCreated);
 
       const result = await moneyFlowJob.generateForBill(billId);
 
@@ -184,8 +184,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const billId = 'invalid-bill';
       const error = new Error('Bill not found');
 
-      (moneyFlowAutomationService.generateForBill as jest.Mock)
-        .mockRejectedValue(_error);
+      (moneyFlowAutomationService.generateForBill as jest.Mock).mockRejectedValue(_error);
 
       await expect(moneyFlowJob.generateForBill(billId)).rejects.toThrow('Bill not found');
     });
@@ -196,8 +195,9 @@ describe('MoneyFlowJob Integration Tests', () => {
       const residenceId = 'residence-456';
       const entriesCreated = 300; // 25 years of monthly fees
 
-      (moneyFlowAutomationService.generateForResidence as jest.Mock)
-        .mockResolvedValue(entriesCreated);
+      (moneyFlowAutomationService.generateForResidence as jest.Mock).mockResolvedValue(
+        entriesCreated
+      );
 
       const result = await moneyFlowJob.generateForResidence(residenceId);
 
@@ -209,10 +209,11 @@ describe('MoneyFlowJob Integration Tests', () => {
       const residenceId = 'invalid-residence';
       const error = new Error('Residence not found');
 
-      (moneyFlowAutomationService.generateForResidence as jest.Mock)
-        .mockRejectedValue(_error);
+      (moneyFlowAutomationService.generateForResidence as jest.Mock).mockRejectedValue(_error);
 
-      await expect(moneyFlowJob.generateForResidence(residenceId)).rejects.toThrow('Residence not found');
+      await expect(moneyFlowJob.generateForResidence(residenceId)).rejects.toThrow(
+        'Residence not found'
+      );
     });
   });
 
@@ -224,11 +225,10 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 2000,
         futureEntries: 4500,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       const stats = await moneyFlowJob.getStatistics();
 
@@ -239,8 +239,7 @@ describe('MoneyFlowJob Integration Tests', () => {
     it('should handle statistics errors', async () => {
       const error = new Error('Database query failed');
 
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockRejectedValue(_error);
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockRejectedValue(_error);
 
       await expect(moneyFlowJob.getStatistics()).rejects.toThrow('Database query failed');
     });
@@ -251,7 +250,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 500,
         residenceEntriesCreated: 250,
-        totalEntriesCreated: 750
+        totalEntriesCreated: 750,
       };
 
       const mockStats = {
@@ -260,13 +259,13 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 800,
         futureEntries: 1800,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockResolvedValue(mockResult);
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockResolvedValue(
+        mockResult
+      );
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       await moneyFlowJob.triggerFullRegeneration();
 
@@ -278,17 +277,20 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 100,
         residenceEntriesCreated: 50,
-        totalEntriesCreated: 150
+        totalEntriesCreated: 150,
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(mockResult), 100)));
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve(mockResult), 100))
+      );
 
       // Start job execution
       const execution = moneyFlowJob.executeMoneyFlowJob();
 
       // Try to trigger manual regeneration while job is running
-      await expect(moneyFlowJob.triggerFullRegeneration()).rejects.toThrow('Job is already running, please wait for completion');
+      await expect(moneyFlowJob.triggerFullRegeneration()).rejects.toThrow(
+        'Job is already running, please wait for completion'
+      );
 
       await execution;
     });
@@ -299,7 +301,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 1000,
         residenceEntriesCreated: 500,
-        totalEntriesCreated: 1500
+        totalEntriesCreated: 1500,
       };
 
       const mockStats = {
@@ -308,13 +310,13 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 4000,
         futureEntries: 9000,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockResolvedValue(mockResult);
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockResolvedValue(
+        mockResult
+      );
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       const startTime = Date.now();
       await moneyFlowJob.executeMoneyFlowJob();
@@ -328,7 +330,7 @@ describe('MoneyFlowJob Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 50000, // Large number of bill entries
         residenceEntriesCreated: 25000, // Large number of residence entries
-        totalEntriesCreated: 75000
+        totalEntriesCreated: 75000,
       };
 
       const mockStats = {
@@ -337,13 +339,13 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 40000,
         futureEntries: 95000,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockResolvedValue(mockResult);
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockResolvedValue(
+        mockResult
+      );
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       await expect(moneyFlowJob.executeMoneyFlowJob()).resolves.not.toThrow();
     });
@@ -352,11 +354,11 @@ describe('MoneyFlowJob Integration Tests', () => {
   describe('Logging and monitoring', () => {
     it('should log job execution details', async () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       const mockResult = {
         billEntriesCreated: 100,
         residenceEntriesCreated: 50,
-        totalEntriesCreated: 150
+        totalEntriesCreated: 150,
       };
 
       const mockStats = {
@@ -365,19 +367,17 @@ describe('MoneyFlowJob Integration Tests', () => {
         residenceEntries: 400,
         futureEntries: 900,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockResolvedValue(mockResult);
-      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock)
-        .mockResolvedValue(mockStats);
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockResolvedValue(
+        mockResult
+      );
+      (moneyFlowAutomationService.getMoneyFlowStatistics as jest.Mock).mockResolvedValue(mockStats);
 
       await moneyFlowJob.executeMoneyFlowJob();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[MONEY-FLOW]')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[MONEY-FLOW]'));
 
       consoleSpy.mockRestore();
     });
@@ -385,15 +385,14 @@ describe('MoneyFlowJob Integration Tests', () => {
     it('should log errors appropriately', async () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const error = new Error('Test error');
-      
-      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock)
-        .mockRejectedValue(_error);
+
+      (moneyFlowAutomationService.generateFutureMoneyFlowEntries as jest.Mock).mockRejectedValue(
+        _error
+      );
 
       await moneyFlowJob.executeMoneyFlowJob();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[ERROR]')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
 
       consoleSpy.mockRestore();
     });

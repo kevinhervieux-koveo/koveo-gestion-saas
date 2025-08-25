@@ -16,8 +16,8 @@ jest.mock('../../server/storage', () => ({
     getUser: jest.fn(),
     getUserByEmail: jest.fn(),
     createUser: jest.fn(),
-    updateUser: jest.fn()
-  }
+    updateUser: jest.fn(),
+  },
 }));
 
 // Mock dependencies
@@ -32,7 +32,7 @@ const createMockRequest = (overrides: Partial<Request> = {}): Partial<Request> =
   query: {},
   headers: {},
   ip: '127.0.0.1',
-  ...overrides
+  ...overrides,
 });
 
 const createMockResponse = (): Partial<Response> => {
@@ -40,7 +40,7 @@ const createMockResponse = (): Partial<Response> => {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
-    clearCookie: jest.fn().mockReturnThis()
+    clearCookie: jest.fn().mockReturnThis(),
   };
   return res;
 };
@@ -62,13 +62,13 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Test',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
       const req = createMockRequest({
-        session: { userId: '1', role: 'admin' }
+        session: { userId: '1', role: 'admin' },
       });
       const res = createMockResponse();
 
@@ -89,7 +89,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -101,7 +101,7 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'admin',
         isActive: false,
         firstName: 'Test',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
@@ -110,8 +110,8 @@ describe('RBAC Middleware Integration Tests', () => {
         session: {
           userId: '1',
           role: 'admin',
-          destroy: jest.fn((callback) => callback())
-        }
+          destroy: jest.fn((callback) => callback()),
+        },
       });
       const res = createMockResponse();
 
@@ -120,7 +120,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'User account not found or inactive',
-        code: 'USER_INACTIVE'
+        code: 'USER_INACTIVE',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -129,7 +129,7 @@ describe('RBAC Middleware Integration Tests', () => {
       mockStorage.getUser.mockRejectedValue(new Error('Database error'));
 
       const req = createMockRequest({
-        session: { userId: '1', role: 'admin' }
+        session: { userId: '1', role: 'admin' },
       });
       const res = createMockResponse();
 
@@ -138,7 +138,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication error',
-        code: 'AUTH_ERROR'
+        code: 'AUTH_ERROR',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -150,7 +150,7 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Test',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       // Mock database query for user organizations
@@ -161,21 +161,21 @@ describe('RBAC Middleware Integration Tests', () => {
               {
                 organizationId: 'org-1',
                 canAccessAllOrganizations: true,
-                organization: { id: 'org-1', name: 'Test Org' }
-              }
-            ])
-          }
-        }
+                organization: { id: 'org-1', name: 'Test Org' },
+              },
+            ]),
+          },
+        },
       };
 
       jest.doMock('drizzle-orm/neon-serverless', () => ({
-        drizzle: () => mockDb
+        drizzle: () => mockDb,
       }));
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
       const req = createMockRequest({
-        session: { userId: '1' } // No role/permissions initially
+        session: { userId: '1' }, // No role/permissions initially
       });
       const res = createMockResponse();
 
@@ -191,7 +191,7 @@ describe('RBAC Middleware Integration Tests', () => {
   describe('requireRole Middleware', () => {
     it('should allow access for users with correct role', async () => {
       const req = createMockRequest({
-        user: { id: '1', role: 'admin', isActive: true }
+        user: { id: '1', role: 'admin', isActive: true },
       });
       const res = createMockResponse();
 
@@ -204,7 +204,7 @@ describe('RBAC Middleware Integration Tests', () => {
 
     it('should deny access for users without correct role', async () => {
       const req = createMockRequest({
-        user: { id: '1', role: 'tenant', isActive: true }
+        user: { id: '1', role: 'tenant', isActive: true },
       });
       const res = createMockResponse();
 
@@ -216,7 +216,7 @@ describe('RBAC Middleware Integration Tests', () => {
         message: 'Insufficient permissions',
         code: 'INSUFFICIENT_PERMISSIONS',
         required: ['admin', 'manager'],
-        current: 'tenant'
+        current: 'tenant',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -231,7 +231,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -243,13 +243,13 @@ describe('RBAC Middleware Integration Tests', () => {
         { userRole: 'manager', allowedRoles: ['admin'], shouldPass: false },
         { userRole: 'manager', allowedRoles: ['manager', 'tenant'], shouldPass: true },
         { userRole: 'tenant', allowedRoles: ['admin', 'manager'], shouldPass: false },
-        { userRole: 'resident', allowedRoles: ['tenant', 'resident'], shouldPass: true }
+        { userRole: 'resident', allowedRoles: ['tenant', 'resident'], shouldPass: true },
       ];
 
       for (const test of roleTests) {
         jest.clearAllMocks();
         const req = createMockRequest({
-          user: { id: '1', role: test.userRole, isActive: true }
+          user: { id: '1', role: test.userRole, isActive: true },
         });
         const res = createMockResponse();
 
@@ -270,7 +270,7 @@ describe('RBAC Middleware Integration Tests', () => {
   describe('authorize Middleware (Permission-Based)', () => {
     it('should allow access for users with required permission', async () => {
       const req = createMockRequest({
-        user: { id: '1', role: 'admin', isActive: true }
+        user: { id: '1', role: 'admin', isActive: true },
       });
       const res = createMockResponse();
 
@@ -283,7 +283,7 @@ describe('RBAC Middleware Integration Tests', () => {
 
     it('should deny access for users without required permission', async () => {
       const req = createMockRequest({
-        user: { id: '1', role: 'tenant', isActive: true }
+        user: { id: '1', role: 'tenant', isActive: true },
       });
       const res = createMockResponse();
 
@@ -296,7 +296,7 @@ describe('RBAC Middleware Integration Tests', () => {
         code: 'PERMISSION_DENIED',
         required: 'delete:user',
         userRole: 'tenant',
-        details: "User with role 'tenant' does not have permission 'delete:user'"
+        details: "User with role 'tenant' does not have permission 'delete:user'",
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -311,7 +311,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -343,13 +343,13 @@ describe('RBAC Middleware Integration Tests', () => {
         { role: 'resident', permission: 'update:profile', shouldPass: true },
         { role: 'resident', permission: 'read:bill', shouldPass: true },
         { role: 'resident', permission: 'create:bill', shouldPass: false },
-        { role: 'resident', permission: 'delete:maintenance_request', shouldPass: false }
+        { role: 'resident', permission: 'delete:maintenance_request', shouldPass: false },
       ];
 
       for (const test of permissionTests) {
         jest.clearAllMocks();
         const req = createMockRequest({
-          user: { id: '1', role: test.role, isActive: true }
+          user: { id: '1', role: test.role, isActive: true },
         });
         const res = createMockResponse();
 
@@ -372,11 +372,11 @@ describe('RBAC Middleware Integration Tests', () => {
         checkPermission: jest.fn().mockImplementation(() => {
           throw new Error('Permission check failed');
         }),
-        permissions: {}
+        permissions: {},
       }));
 
       const req = createMockRequest({
-        user: { id: '1', role: 'admin', isActive: true }
+        user: { id: '1', role: 'admin', isActive: true },
       });
       const res = createMockResponse();
 
@@ -386,7 +386,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Authorization check failed',
-        code: 'AUTHORIZATION_ERROR'
+        code: 'AUTHORIZATION_ERROR',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -400,13 +400,13 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Admin',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
       const req = createMockRequest({
-        session: { userId: '1', role: 'admin' }
+        session: { userId: '1', role: 'admin' },
       });
       const res = createMockResponse();
 
@@ -431,13 +431,13 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'tenant',
         isActive: true,
         firstName: 'Tenant',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
       const req = createMockRequest({
-        session: { userId: '1', role: 'tenant' }
+        session: { userId: '1', role: 'tenant' },
       });
       const res = createMockResponse();
 
@@ -459,7 +459,7 @@ describe('RBAC Middleware Integration Tests', () => {
   describe('Edge Cases and Security Scenarios', () => {
     it('should handle malformed session data', async () => {
       const req = createMockRequest({
-        session: { userId: null, role: 'admin' }
+        session: { userId: null, role: 'admin' },
       });
       const res = createMockResponse();
 
@@ -476,14 +476,14 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'tenant', // Actual role in database
         isActive: true,
         firstName: 'Tenant',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
       const req = createMockRequest({
         session: { userId: '1', role: 'admin' }, // Tampered session role
-        user: { ...mockUser, role: 'admin' } // Tampered user object
+        user: { ...mockUser, role: 'admin' }, // Tampered user object
       });
       const res = createMockResponse();
 
@@ -497,7 +497,7 @@ describe('RBAC Middleware Integration Tests', () => {
 
     it('should validate permission existence before checking', async () => {
       const req = createMockRequest({
-        user: { id: '1', role: 'admin', isActive: true }
+        user: { id: '1', role: 'admin', isActive: true },
       });
       const res = createMockResponse();
 
@@ -508,7 +508,7 @@ describe('RBAC Middleware Integration Tests', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           code: 'PERMISSION_DENIED',
-          required: 'invalid:permission'
+          required: 'invalid:permission',
         })
       );
       expect(mockNext).not.toHaveBeenCalled();
@@ -521,14 +521,14 @@ describe('RBAC Middleware Integration Tests', () => {
         role: 'admin',
         isActive: true,
         firstName: 'Test',
-        lastName: 'User'
+        lastName: 'User',
       };
 
       mockStorage.getUser.mockResolvedValue(mockUser);
 
-      const requests = Array.from({ length: 5 }, (_, i) => 
+      const requests = Array.from({ length: 5 }, (_, i) =>
         createMockRequest({
-          session: { userId: '1', role: 'admin' }
+          session: { userId: '1', role: 'admin' },
         })
       );
       const responses = Array.from({ length: 5 }, () => createMockResponse());
@@ -536,14 +536,14 @@ describe('RBAC Middleware Integration Tests', () => {
 
       // Execute concurrent authentication
       await Promise.all(
-        requests.map((req, i) => 
+        requests.map((req, i) =>
           requireAuth(req as Request, responses[i] as Response, nextFunctions[i])
         )
       );
 
       // All should succeed
-      nextFunctions.forEach(next => expect(next).toHaveBeenCalled());
-      responses.forEach(res => expect(res.status).not.toHaveBeenCalled());
+      nextFunctions.forEach((next) => expect(next).toHaveBeenCalled());
+      responses.forEach((res) => expect(res.status).not.toHaveBeenCalled());
     });
   });
 });

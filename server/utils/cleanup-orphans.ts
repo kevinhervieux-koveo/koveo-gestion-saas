@@ -5,7 +5,13 @@
 
 import { db } from '../db';
 import { eq, and, isNull } from 'drizzle-orm';
-import { buildings, organizations, residences, userOrganizations, userResidences } from '../../shared/schema';
+import {
+  buildings,
+  organizations,
+  residences,
+  userOrganizations,
+  userResidences,
+} from '../../shared/schema';
 
 /**
  *
@@ -26,16 +32,11 @@ async function findOrphanBuildings() {
     .select({
       id: buildings.id,
       name: buildings.name,
-      organizationId: buildings.organizationId
+      organizationId: buildings.organizationId,
     })
     .from(buildings)
     .leftJoin(organizations, eq(buildings.organizationId, organizations.id))
-    .where(
-      and(
-        eq(buildings.isActive, true),
-        isNull(organizations.id)
-      )
-    );
+    .where(and(eq(buildings.isActive, true), isNull(organizations.id)));
 
   return orphanBuildings;
 }
@@ -48,16 +49,11 @@ async function findOrphanResidences() {
     .select({
       id: residences.id,
       unitNumber: residences.unitNumber,
-      buildingId: residences.buildingId
+      buildingId: residences.buildingId,
     })
     .from(residences)
     .leftJoin(buildings, eq(residences.buildingId, buildings.id))
-    .where(
-      and(
-        eq(residences.isActive, true),
-        isNull(buildings.id)
-      )
-    );
+    .where(and(eq(residences.isActive, true), isNull(buildings.id)));
 
   return orphanResidences;
 }
@@ -80,9 +76,9 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
     await db.transaction(async (tx) => {
       // Clean up orphan buildings
       if (orphanBuildings.length > 0) {
-        const buildingIds = orphanBuildings.map(b => b.id);
+        const buildingIds = orphanBuildings.map((b) => b.id);
         console.log(`🗑️ Removing ${buildingIds.length} orphan buildings:`, buildingIds);
-        
+
         await tx
           .update(buildings)
           .set({ isActive: false, updatedAt: new Date() })
@@ -91,9 +87,9 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
 
       // Clean up orphan residences
       if (orphanResidences.length > 0) {
-        const residenceIds = orphanResidences.map(r => r.id);
+        const residenceIds = orphanResidences.map((r) => r.id);
         console.log(`🗑️ Removing ${residenceIds.length} orphan residences:`, residenceIds);
-        
+
         await tx
           .update(residences)
           .set({ isActive: false, updatedAt: new Date() })
@@ -113,7 +109,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
     orphanResidences: orphanResidences.length,
     orphanUserOrganizations: 0,
     orphanUserResidences: 0,
-    cleanedUp
+    cleanedUp,
   };
 }
 
@@ -131,6 +127,6 @@ export async function generateOrphanReport(): Promise<OrphanCleanupReport> {
     orphanResidences: orphanResidences.length,
     orphanUserOrganizations: 0,
     orphanUserResidences: 0,
-    cleanedUp: false
+    cleanedUp: false,
   };
 }

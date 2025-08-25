@@ -20,22 +20,18 @@ interface PageHeaderProps {
  * @param root0.titleClassName
  * @param root0.descriptionClassName
  */
-export function PageHeader({ 
-  title, 
-  description, 
-  actions, 
-  titleClassName = 'text-3xl font-bold', 
-  descriptionClassName = 'text-muted-foreground' 
+export function PageHeader({
+  title,
+  description,
+  actions,
+  titleClassName = 'text-3xl font-bold',
+  descriptionClassName = 'text-muted-foreground',
 }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className='flex items-center justify-between'>
       <div>
         <h1 className={titleClassName}>{title}</h1>
-        {description && (
-          <p className={descriptionClassName}>
-            {description}
-          </p>
-        )}
+        {description && <p className={descriptionClassName}>{description}</p>}
       </div>
       {actions && <div>{actions}</div>}
     </div>

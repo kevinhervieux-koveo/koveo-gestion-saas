@@ -17,7 +17,7 @@ export const resetApiMocks = () => {
   mockApiRequest.mockResolvedValue({
     ok: true,
     json: () => Promise.resolve({ success: true }),
-    status: 200
+    status: 200,
   });
 };
 
@@ -29,7 +29,7 @@ export const mockApiSuccess = (data: any = { success: true }) => {
   mockApiRequest.mockResolvedValueOnce({
     ok: true,
     json: () => Promise.resolve(data),
-    status: 200
+    status: 200,
   });
 };
 
@@ -50,6 +50,6 @@ export const mockValidationError = (errors: Record<string, string>) => {
   mockApiRequest.mockResolvedValueOnce({
     ok: false,
     json: () => Promise.resolve({ errors }),
-    status: 400
+    status: 400,
   });
 };

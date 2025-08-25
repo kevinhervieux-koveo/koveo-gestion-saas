@@ -1,6 +1,6 @@
 /**
  * Database Integrity Tests.
- * 
+ *
  * This comprehensive test suite validates database structure, relationships,
  * and business rules to ensure data consistency and integrity.
  */
@@ -10,7 +10,6 @@ import { db } from '../../db';
 import { sql } from 'drizzle-orm';
 
 describe('Database Integrity Tests', () => {
-
   describe('Foreign Key Constraints', () => {
     it('should have all required foreign key relationships', async () => {
       const foreignKeys = await db.execute(sql`
@@ -33,7 +32,7 @@ describe('Database Integrity Tests', () => {
       `);
 
       expect(foreignKeys.rows.length).toBeGreaterThan(0);
-      
+
       // Verify key relationships exist
       const relationshipMap = new Map();
       foreignKeys.rows.forEach((row: any) => {
@@ -50,10 +49,10 @@ describe('Database Integrity Tests', () => {
         'buildings.organization_id',
         'demands.submitter_id',
         'demands.residence_id',
-        'demands.building_id'
+        'demands.building_id',
       ];
 
-      criticalRelationships.forEach(relationship => {
+      criticalRelationships.forEach((relationship) => {
         expect(relationshipMap.has(relationship)).toBe(true);
       });
     });
@@ -85,7 +84,7 @@ describe('Database Integrity Tests', () => {
         idTypeMap.get(suffix).push({
           table: row.table_name,
           column: row.column_name,
-          type: row.data_type
+          type: row.data_type,
         });
       });
 
@@ -115,7 +114,7 @@ describe('Database Integrity Tests', () => {
       `);
 
       expect(duplicateUnits.rows.length).toBe(0);
-      
+
       if (duplicateUnits.rows.length > 0) {
         console.error('Duplicate unit numbers found:', duplicateUnits.rows);
       }
@@ -130,7 +129,7 @@ describe('Database Integrity Tests', () => {
       `);
 
       expect(invalidEmails.rows.length).toBe(0);
-      
+
       if (invalidEmails.rows.length > 0) {
         console.error('Invalid email formats found:', invalidEmails.rows);
       }
@@ -156,7 +155,7 @@ describe('Database Integrity Tests', () => {
       `);
 
       expect(crossOrgAssignments.rows.length).toBe(0);
-      
+
       if (crossOrgAssignments.rows.length > 0) {
         console.error('Cross-organization assignments found:', crossOrgAssignments.rows);
       }
@@ -185,11 +184,11 @@ describe('Database Integrity Tests', () => {
         'organization_id',
         'user_id',
         'residence_id',
-        'email'
+        'email',
       ];
 
-      criticalIndexes.forEach(column => {
-        const hasIndex = indexDefs.some(def => def.includes(column));
+      criticalIndexes.forEach((column) => {
+        const hasIndex = indexDefs.some((def) => def.includes(column));
         expect(hasIndex).toBe(true);
       });
     });
@@ -229,10 +228,10 @@ describe('Database Integrity Tests', () => {
       const criticalCascades = [
         'residences.building_id', // Should cascade when building is deleted
         'user_residences.residence_id', // Should cascade when residence is deleted
-        'demands.residence_id' // Should cascade when residence is deleted
+        'demands.residence_id', // Should cascade when residence is deleted
       ];
 
-      criticalCascades.forEach(relationship => {
+      criticalCascades.forEach((relationship) => {
         expect(cascadeRules.has(relationship)).toBe(true);
         const rule = cascadeRules.get(relationship);
         expect(['CASCADE', 'RESTRICT', 'SET NULL']).toContain(rule);
@@ -257,7 +256,7 @@ describe('Database Integrity Tests', () => {
 
       // Allow for some variance in newer buildings still being set up
       expect(consistencyCheck.rows.length).toBeLessThanOrEqual(2);
-      
+
       if (consistencyCheck.rows.length > 0) {
         console.warn('Unit count inconsistencies found:', consistencyCheck.rows);
       }

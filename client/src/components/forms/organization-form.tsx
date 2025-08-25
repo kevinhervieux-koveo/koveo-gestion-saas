@@ -6,12 +6,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -41,14 +36,24 @@ interface OrganizationFormProps {
 
 // Define the form schema with Quebec-specific validation
 const organizationFormSchema = z.object({
-  name: z.string().min(1, 'Organization name is required').max(200, 'Name must be 200 characters or less'),
+  name: z
+    .string()
+    .min(1, 'Organization name is required')
+    .max(200, 'Name must be 200 characters or less'),
   type: z.string().min(1, 'Organization type is required'),
-  address: z.string().min(1, 'Address is required').max(300, 'Address must be 300 characters or less'),
+  address: z
+    .string()
+    .min(1, 'Address is required')
+    .max(300, 'Address must be 300 characters or less'),
   city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
   province: z.string().min(1, 'Province is required').default('QC'),
-  postalCode: z.string()
+  postalCode: z
+    .string()
     .min(1, 'Postal code is required')
-    .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/, 'Invalid Canadian postal code format'),
+    .regex(
+      /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/,
+      'Invalid Canadian postal code format'
+    ),
   phone: z.string().optional(),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   website: z.string().url('Invalid website URL').optional().or(z.literal('')),
@@ -129,28 +134,28 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       website: data.website || undefined,
       registrationNumber: data.registrationNumber || undefined,
     };
-    
+
     createOrganizationMutation.mutate(cleanData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Create New Organization</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="name"
+                name='name'
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className='md:col-span-2'>
                     <FormLabel>Organization Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter organization name" {...field} />
+                      <Input placeholder='Enter organization name' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,21 +164,21 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="type"
+                name='type'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select organization type" />
+                          <SelectValue placeholder='Select organization type' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="management_company">Management Company</SelectItem>
-                        <SelectItem value="syndicate">Syndicate</SelectItem>
-                        <SelectItem value="cooperative">Cooperative</SelectItem>
-                        <SelectItem value="condo_association">Condo Association</SelectItem>
+                        <SelectItem value='management_company'>Management Company</SelectItem>
+                        <SelectItem value='syndicate'>Syndicate</SelectItem>
+                        <SelectItem value='cooperative'>Cooperative</SelectItem>
+                        <SelectItem value='condo_association'>Condo Association</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -183,12 +188,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="registrationNumber"
+                name='registrationNumber'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Quebec Registration Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Business registration number" {...field} />
+                      <Input placeholder='Business registration number' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,12 +202,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="address"
+                name='address'
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className='md:col-span-2'>
                     <FormLabel>Address *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Street address" {...field} />
+                      <Input placeholder='Street address' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,12 +216,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="city"
+                name='city'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>City *</FormLabel>
                     <FormControl>
-                      <Input placeholder="City" {...field} />
+                      <Input placeholder='City' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -225,7 +230,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="province"
+                name='province'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Province</FormLabel>
@@ -236,19 +241,19 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="QC">Quebec (QC)</SelectItem>
-                        <SelectItem value="ON">Ontario (ON)</SelectItem>
-                        <SelectItem value="BC">British Columbia (BC)</SelectItem>
-                        <SelectItem value="AB">Alberta (AB)</SelectItem>
-                        <SelectItem value="SK">Saskatchewan (SK)</SelectItem>
-                        <SelectItem value="MB">Manitoba (MB)</SelectItem>
-                        <SelectItem value="NB">New Brunswick (NB)</SelectItem>
-                        <SelectItem value="NS">Nova Scotia (NS)</SelectItem>
-                        <SelectItem value="PE">Prince Edward Island (PE)</SelectItem>
-                        <SelectItem value="NL">Newfoundland and Labrador (NL)</SelectItem>
-                        <SelectItem value="NT">Northwest Territories (NT)</SelectItem>
-                        <SelectItem value="NU">Nunavut (NU)</SelectItem>
-                        <SelectItem value="YT">Yukon (YT)</SelectItem>
+                        <SelectItem value='QC'>Quebec (QC)</SelectItem>
+                        <SelectItem value='ON'>Ontario (ON)</SelectItem>
+                        <SelectItem value='BC'>British Columbia (BC)</SelectItem>
+                        <SelectItem value='AB'>Alberta (AB)</SelectItem>
+                        <SelectItem value='SK'>Saskatchewan (SK)</SelectItem>
+                        <SelectItem value='MB'>Manitoba (MB)</SelectItem>
+                        <SelectItem value='NB'>New Brunswick (NB)</SelectItem>
+                        <SelectItem value='NS'>Nova Scotia (NS)</SelectItem>
+                        <SelectItem value='PE'>Prince Edward Island (PE)</SelectItem>
+                        <SelectItem value='NL'>Newfoundland and Labrador (NL)</SelectItem>
+                        <SelectItem value='NT'>Northwest Territories (NT)</SelectItem>
+                        <SelectItem value='NU'>Nunavut (NU)</SelectItem>
+                        <SelectItem value='YT'>Yukon (YT)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -258,13 +263,13 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="postalCode"
+                name='postalCode'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Postal Code *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="A1A 1A1"
+                        placeholder='A1A 1A1'
                         {...field}
                         onChange={(e) => {
                           // Auto-format postal code to uppercase
@@ -280,12 +285,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="phone"
+                name='phone'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="(514) 123-4567" {...field} />
+                      <Input placeholder='(514) 123-4567' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -294,12 +299,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="email"
+                name='email'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="contact@organization.com" type="email" {...field} />
+                      <Input placeholder='contact@organization.com' type='email' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -308,12 +313,12 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
 
               <FormField
                 control={form.control}
-                name="website"
+                name='website'
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className='md:col-span-2'>
                     <FormLabel>Website</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://www.organization.com" {...field} />
+                      <Input placeholder='https://www.organization.com' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -321,19 +326,16 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
               />
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className='flex justify-end space-x-2 pt-4'>
               <Button
-                type="button"
-                variant="outline"
+                type='button'
+                variant='outline'
                 onClick={() => onOpenChange(false)}
                 disabled={createOrganizationMutation.isPending}
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={createOrganizationMutation.isPending}
-              >
+              <Button type='submit' disabled={createOrganizationMutation.isPending}>
                 {createOrganizationMutation.isPending ? 'Creating...' : 'Create Organization'}
               </Button>
             </div>

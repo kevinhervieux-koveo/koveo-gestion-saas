@@ -54,18 +54,12 @@ export async function addStatisticsToBuilding(building: unknown): Promise<Buildi
   const residenceCount = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(residences)
-    .where(
-      and(
-        eq(residences.buildingId, building.id),
-        eq(residences.isActive, true)
-      )
-    );
+    .where(and(eq(residences.buildingId, building.id), eq(residences.isActive, true)));
 
   // Calculate occupancy rate
   const occupiedUnits = residenceCount[0]?.count || 0;
-  const occupancyRate = building.totalUnits > 0 
-    ? Math.round((occupiedUnits / building.totalUnits) * 100) 
-    : 0;
+  const occupancyRate =
+    building.totalUnits > 0 ? Math.round((occupiedUnits / building.totalUnits) * 100) : 0;
 
   return {
     ...building,
@@ -73,8 +67,8 @@ export async function addStatisticsToBuilding(building: unknown): Promise<Buildi
       totalUnits: building.totalUnits,
       occupiedUnits,
       occupancyRate,
-      vacantUnits: building.totalUnits - occupiedUnits
-    }
+      vacantUnits: building.totalUnits - occupiedUnits,
+    },
   };
 }
 
@@ -87,10 +81,10 @@ export async function addStatisticsToBuilding(building: unknown): Promise<Buildi
  * @param buildings
  * @returns Function result.
  */
-export async function addStatisticsToBuildings(buildings: unknown[]): Promise<BuildingWithStatistics[]> {
-  return await Promise.all(
-    buildings.map(building => addStatisticsToBuilding(building))
-  );
+export async function addStatisticsToBuildings(
+  buildings: unknown[]
+): Promise<BuildingWithStatistics[]> {
+  return await Promise.all(buildings.map((building) => addStatisticsToBuilding(building)));
 }
 
 /**
@@ -108,7 +102,7 @@ export async function getAggregatedStatistics(buildingIds: string[]) {
       totalBuildings: 0,
       totalUnits: 0,
       totalOccupiedUnits: 0,
-      averageOccupancyRate: 0
+      averageOccupancyRate: 0,
     };
   }
 
@@ -116,39 +110,28 @@ export async function getAggregatedStatistics(buildingIds: string[]) {
   const buildingTotals = await db
     .select({
       totalUnits: sql<number>`sum(${buildings.totalUnits})::int`,
-      buildingCount: sql<number>`count(*)::int`
+      buildingCount: sql<number>`count(*)::int`,
     })
     .from(buildings)
-    .where(
-      and(
-        eq(buildings.isActive, true),
-        sql`${buildings.id} = ANY(${buildingIds})`
-      )
-    );
+    .where(and(eq(buildings.isActive, true), sql`${buildings.id} = ANY(${buildingIds})`));
 
   // Get total occupied units across all buildings
   const occupiedTotals = await db
     .select({
-      totalOccupied: sql<number>`count(*)::int`
+      totalOccupied: sql<number>`count(*)::int`,
     })
     .from(residences)
-    .where(
-      and(
-        eq(residences.isActive, true),
-        sql`${residences.buildingId} = ANY(${buildingIds})`
-      )
-    );
+    .where(and(eq(residences.isActive, true), sql`${residences.buildingId} = ANY(${buildingIds})`));
 
   const totalUnits = buildingTotals[0]?.totalUnits || 0;
   const totalOccupiedUnits = occupiedTotals[0]?.totalOccupied || 0;
-  const averageOccupancyRate = totalUnits > 0 
-    ? Math.round((totalOccupiedUnits / totalUnits) * 100) 
-    : 0;
+  const averageOccupancyRate =
+    totalUnits > 0 ? Math.round((totalOccupiedUnits / totalUnits) * 100) : 0;
 
   return {
     totalBuildings: buildingTotals[0]?.buildingCount || 0,
     totalUnits,
     totalOccupiedUnits,
-    averageOccupancyRate
+    averageOccupancyRate,
   };
 }

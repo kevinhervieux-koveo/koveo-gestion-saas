@@ -24,13 +24,13 @@ import { twMerge } from 'tailwind-merge';
  * @param {...any} inputs
  */
 export function /**
-   * Cn function.
-   * @param ...inputs - ...inputs parameter.
-   */ /**
-   * Cn function.
-   * @param ...inputs - ...inputs parameter.
-   */
+ * Cn function.
+ * @param ...inputs - ...inputs parameter.
+ */ /**
+ * Cn function.
+ * @param ...inputs - ...inputs parameter.
+ */
 
- cn(...inputs: ClassValue[]) {
+cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

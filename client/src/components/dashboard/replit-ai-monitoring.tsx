@@ -5,19 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Bot, 
-  Activity, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle2, 
+import {
+  Bot,
+  Activity,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
   AlertCircle,
   BarChart3,
   Brain,
   MessageSquare,
   Zap,
   Sparkles,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -70,7 +70,7 @@ interface AIInsight {
 
 /**
  * Replit AI Monitoring Component.
- * 
+ *
  * Displays AI agent performance metrics, interactions, and generated insights.
  * Provides interface for triggering AI analysis and applying suggestions.
  * @returns JSX element for the AI monitoring dashboard.
@@ -82,7 +82,7 @@ interface AIInsight {
 export function ReplitAIMonitoring() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
-  
+
   // Fetch AI metrics
   const { _data: metrics, isLoading: _metricsLoading } = useQuery<AIMetrics>({
     queryKey: ['/api/ai/metrics'],
@@ -152,11 +152,11 @@ export function ReplitAIMonitoring() {
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'high':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
+        return <AlertCircle className='h-4 w-4 text-red-500' />;
       case 'medium':
-        return <Activity className="h-4 w-4 text-yellow-500" />;
+        return <Activity className='h-4 w-4 text-yellow-500' />;
       case 'low':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className='h-4 w-4 text-green-500' />;
       default:
         return null;
     }
@@ -165,29 +165,29 @@ export function ReplitAIMonitoring() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'performance':
-        return <Zap className="h-4 w-4" />;
+        return <Zap className='h-4 w-4' />;
       case 'quality':
-        return <Sparkles className="h-4 w-4" />;
+        return <Sparkles className='h-4 w-4' />;
       case 'security':
-        return <AlertCircle className="h-4 w-4" />;
+        return <AlertCircle className='h-4 w-4' />;
       case 'ux':
-        return <MessageSquare className="h-4 w-4" />;
+        return <MessageSquare className='h-4 w-4' />;
       case 'efficiency':
-        return <TrendingUp className="h-4 w-4" />;
+        return <TrendingUp className='h-4 w-4' />;
       default:
-        return <Brain className="h-4 w-4" />;
+        return <Brain className='h-4 w-4' />;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Header with Action Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Bot className="h-8 w-8 text-blue-600" />
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-3'>
+          <Bot className='h-8 w-8 text-blue-600' />
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Replit AI Agent Monitoring</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className='text-2xl font-bold text-gray-900'>Replit AI Agent Monitoring</h2>
+            <p className='text-sm text-gray-600'>
               Track AI interactions and continuous improvement suggestions
             </p>
           </div>
@@ -195,12 +195,12 @@ export function ReplitAIMonitoring() {
         <Button
           onClick={() => analysisMutation.mutate()}
           disabled={analysisMutation.isPending}
-          className="flex items-center gap-2"
+          className='flex items-center gap-2'
         >
           {analysisMutation.isPending ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
+            <RefreshCw className='h-4 w-4 animate-spin' />
           ) : (
-            <Brain className="h-4 w-4" />
+            <Brain className='h-4 w-4' />
           )}
           Run AI Analysis
         </Button>
@@ -208,64 +208,64 @@ export function ReplitAIMonitoring() {
 
       {/* Key Metrics Overview */}
       {metrics && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Activity className="h-8 w-8 text-blue-500" />
-                <span className="text-2xl font-bold">{metrics.totalInteractions}</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <Activity className='h-8 w-8 text-blue-500' />
+                <span className='text-2xl font-bold'>{metrics.totalInteractions}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">Total Interactions</p>
+              <p className='text-sm text-gray-600 mt-2'>Total Interactions</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <CheckCircle2 className="h-8 w-8 text-green-500" />
-                <span className="text-2xl font-bold">{metrics.successRate}%</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <CheckCircle2 className='h-8 w-8 text-green-500' />
+                <span className='text-2xl font-bold'>{metrics.successRate}%</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">Success Rate</p>
+              <p className='text-sm text-gray-600 mt-2'>Success Rate</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Clock className="h-8 w-8 text-yellow-500" />
-                <span className="text-2xl font-bold">{metrics.avgResponseTime}ms</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <Clock className='h-8 w-8 text-yellow-500' />
+                <span className='text-2xl font-bold'>{metrics.avgResponseTime}ms</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">Avg Response</p>
+              <p className='text-sm text-gray-600 mt-2'>Avg Response</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Sparkles className="h-8 w-8 text-purple-500" />
-                <span className="text-2xl font-bold">{metrics.improvementsSuggested}</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <Sparkles className='h-8 w-8 text-purple-500' />
+                <span className='text-2xl font-bold'>{metrics.improvementsSuggested}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">Suggestions</p>
+              <p className='text-sm text-gray-600 mt-2'>Suggestions</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <TrendingUp className="h-8 w-8 text-indigo-500" />
-                <span className="text-2xl font-bold">{metrics.improvementsImplemented}</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <TrendingUp className='h-8 w-8 text-indigo-500' />
+                <span className='text-2xl font-bold'>{metrics.improvementsImplemented}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">Implemented</p>
+              <p className='text-sm text-gray-600 mt-2'>Implemented</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <BarChart3 className="h-8 w-8 text-cyan-500" />
-                <span className="text-2xl font-bold">{metrics.aiEfficiency}%</span>
+            <CardContent className='p-4'>
+              <div className='flex items-center justify-between'>
+                <BarChart3 className='h-8 w-8 text-cyan-500' />
+                <span className='text-2xl font-bold'>{metrics.aiEfficiency}%</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">AI Efficiency</p>
+              <p className='text-sm text-gray-600 mt-2'>AI Efficiency</p>
             </CardContent>
           </Card>
         </div>
@@ -273,14 +273,14 @@ export function ReplitAIMonitoring() {
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="interactions">Recent Interactions</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
+        <TabsList className='grid w-full grid-cols-3'>
+          <TabsTrigger value='overview'>Overview</TabsTrigger>
+          <TabsTrigger value='interactions'>Recent Interactions</TabsTrigger>
+          <TabsTrigger value='insights'>AI Insights</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value='overview' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>AI Performance Overview</CardTitle>
@@ -288,33 +288,33 @@ export function ReplitAIMonitoring() {
                 Real-time monitoring of Replit AI agent effectiveness
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className='space-y-4'>
               {metrics && (
                 <>
                   {/* Success Rate Progress */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Success Rate</span>
-                      <span className="text-sm text-gray-600">{metrics.successRate}%</span>
+                    <div className='flex items-center justify-between mb-2'>
+                      <span className='text-sm font-medium'>Success Rate</span>
+                      <span className='text-sm text-gray-600'>{metrics.successRate}%</span>
                     </div>
-                    <Progress value={metrics.successRate} className="h-2" />
+                    <Progress value={metrics.successRate} className='h-2' />
                   </div>
 
                   {/* AI Efficiency Progress */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">AI Efficiency Score</span>
-                      <span className="text-sm text-gray-600">{metrics.aiEfficiency}%</span>
+                    <div className='flex items-center justify-between mb-2'>
+                      <span className='text-sm font-medium'>AI Efficiency Score</span>
+                      <span className='text-sm text-gray-600'>{metrics.aiEfficiency}%</span>
                     </div>
-                    <Progress value={metrics.aiEfficiency} className="h-2" />
+                    <Progress value={metrics.aiEfficiency} className='h-2' />
                   </div>
 
                   {/* Categories Analyzed */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Categories Analyzed</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <h4 className='text-sm font-medium mb-2'>Categories Analyzed</h4>
+                    <div className='flex flex-wrap gap-2'>
                       {metrics.categoriesAnalyzed.map((category) => (
-                        <Badge key={category} variant="outline">
+                        <Badge key={category} variant='outline'>
                           {category}
                         </Badge>
                       ))}
@@ -323,7 +323,7 @@ export function ReplitAIMonitoring() {
 
                   {/* Last Analysis */}
                   <Alert>
-                    <Activity className="h-4 w-4" />
+                    <Activity className='h-4 w-4' />
                     <AlertDescription>
                       Last AI analysis completed: {new Date(metrics.lastAnalysis).toLocaleString()}
                     </AlertDescription>
@@ -335,7 +335,7 @@ export function ReplitAIMonitoring() {
         </TabsContent>
 
         {/* Interactions Tab */}
-        <TabsContent value="interactions" className="space-y-4">
+        <TabsContent value='interactions' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>Recent AI Interactions</CardTitle>
@@ -344,31 +344,35 @@ export function ReplitAIMonitoring() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className='space-y-3'>
                 {interactionsLoading ? (
-                  <div className="text-center py-8 text-gray-500">Loading interactions...</div>
+                  <div className='text-center py-8 text-gray-500'>Loading interactions...</div>
                 ) : interactions.length > 0 ? (
                   interactions.slice(0, 10).map((interaction) => (
-                    <div key={interaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Bot className="h-5 w-5 text-blue-500" />
+                    <div
+                      key={interaction.id}
+                      className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+                    >
+                      <div className='flex items-center gap-3'>
+                        <Bot className='h-5 w-5 text-blue-500' />
                         <div>
-                          <p className="font-medium text-sm">{interaction.action}</p>
-                          <p className="text-xs text-gray-600">
-                            {interaction.category} • {new Date(interaction.timestamp).toLocaleTimeString()}
+                          <p className='font-medium text-sm'>{interaction.action}</p>
+                          <p className='text-xs text-gray-600'>
+                            {interaction.category} •{' '}
+                            {new Date(interaction.timestamp).toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className='flex items-center gap-2'>
                         <Badge className={getStatusColor(interaction.status)}>
                           {interaction.status}
                         </Badge>
-                        <span className="text-xs text-gray-500">{interaction.duration}ms</span>
+                        <span className='text-xs text-gray-500'>{interaction.duration}ms</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className='text-center py-8 text-gray-500'>
                     No recent interactions recorded
                   </div>
                 )}
@@ -378,7 +382,7 @@ export function ReplitAIMonitoring() {
         </TabsContent>
 
         {/* Insights Tab */}
-        <TabsContent value="insights" className="space-y-4">
+        <TabsContent value='insights' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>AI-Generated Insights</CardTitle>
@@ -387,41 +391,42 @@ export function ReplitAIMonitoring() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {insightsLoading ? (
-                  <div className="text-center py-8 text-gray-500">Loading insights...</div>
+                  <div className='text-center py-8 text-gray-500'>Loading insights...</div>
                 ) : insights.length > 0 ? (
                   insights.map((insight) => (
-                    <div key={insight.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-start gap-2">
+                    <div
+                      key={insight.id}
+                      className='border rounded-lg p-4 hover:shadow-md transition-shadow'
+                    >
+                      <div className='flex items-start justify-between mb-2'>
+                        <div className='flex items-start gap-2'>
                           {getTypeIcon(insight.type)}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-sm flex items-center gap-2">
+                          <div className='flex-1'>
+                            <h4 className='font-semibold text-sm flex items-center gap-2'>
                               {insight.title}
                               {getPriorityIcon(insight.priority)}
                             </h4>
-                            <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                            <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-                              <span className="font-medium text-blue-900">Recommendation: </span>
-                              <span className="text-blue-700">{insight.recommendation}</span>
+                            <p className='text-sm text-gray-600 mt-1'>{insight.description}</p>
+                            <div className='mt-2 p-2 bg-blue-50 rounded text-sm'>
+                              <span className='font-medium text-blue-900'>Recommendation: </span>
+                              <span className='text-blue-700'>{insight.recommendation}</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2">
-                          <Badge className={getStatusColor(insight.status)}>
-                            {insight.status}
-                          </Badge>
-                          <span className="text-xs text-gray-500">
+                      <div className='flex items-center justify-between mt-3'>
+                        <div className='flex items-center gap-2'>
+                          <Badge className={getStatusColor(insight.status)}>{insight.status}</Badge>
+                          <span className='text-xs text-gray-500'>
                             {new Date(insight.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                         {insight.status === 'new' && (
                           <Button
-                            size="sm"
-                            variant="outline"
+                            size='sm'
+                            variant='outline'
                             onClick={() => applySuggestionMutation.mutate(insight.id)}
                             disabled={applySuggestionMutation.isPending}
                           >
@@ -432,7 +437,7 @@ export function ReplitAIMonitoring() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className='text-center py-8 text-gray-500'>
                     No insights available. Run an AI analysis to generate recommendations.
                   </div>
                 )}

@@ -6,10 +6,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Home, Search, Edit, Users, Building, MapPin, Car, Package, Bed, Bath, FileText } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Home,
+  Search,
+  Edit,
+  Users,
+  Building,
+  MapPin,
+  Car,
+  Package,
+  Bed,
+  Bath,
+  FileText,
+} from 'lucide-react';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 
 /**
@@ -59,12 +83,12 @@ interface Building {
  *
  */
 export default function /**
-   * Residences function.
-   */ /**
-   * Residences function.
-   */
+ * Residences function.
+ */ /**
+ * Residences function.
+ */
 
- Residences() {
+Residences() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
@@ -74,66 +98,75 @@ export default function /**
   const itemsPerPage = 10;
 
   // Fetch residences with search and filters
-  const { data: residences, isLoading: residencesLoading, refetch } = useQuery({
+  const {
+    data: residences,
+    isLoading: residencesLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
-   * If function.
-   * @param searchTerm - SearchTerm parameter.
-   */ /**
-   * If function.
-   * @param searchTerm - SearchTerm parameter.
-   */
+       * If function.
+       * @param searchTerm - SearchTerm parameter.
+       */ /**
+       * If function.
+       * @param searchTerm - SearchTerm parameter.
+       */
 
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      } /**
+       * If function.
+       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
+       */ /**
+       * If function.
+       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
+       */
 
-      if (searchTerm) {params.append('search', searchTerm);} /**
-   * If function.
-   * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-   */ /**
-   * If function.
-   * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-   */
+      if (selectedBuilding && selectedBuilding !== 'all') {
+        params.append('buildingId', selectedBuilding);
+      } /**
+       * If function.
+       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
+       */ /**
+       * If function.
+       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
+       */
 
+      if (selectedFloor && selectedFloor !== 'all') {
+        params.append('floor', selectedFloor);
+      }
 
-      if (selectedBuilding && selectedBuilding !== 'all') {params.append('buildingId', selectedBuilding);} /**
-   * If function.
-   * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-   */ /**
-   * If function.
-   * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-   */
-
-
-      if (selectedFloor && selectedFloor !== 'all') {params.append('floor', selectedFloor);}
-      
       const response = await fetch(`/api/residences?${params}`); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-      if (!response.ok) {throw new Error('Failed to fetch residences');}
+      if (!response.ok) {
+        throw new Error('Failed to fetch residences');
+      }
       return response.json() as Promise<Residence[]>;
-    }
+    },
   });
 
   // Fetch buildings for filter dropdown - use manager endpoint for proper permissions
@@ -141,9 +174,11 @@ export default function /**
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await fetch('/api/manager/buildings');
-      if (!response.ok) {throw new Error('Failed to fetch buildings');}
+      if (!response.ok) {
+        throw new Error('Failed to fetch buildings');
+      }
       return response.json();
-    }
+    },
   });
 
   // Extract buildings array from the response
@@ -154,15 +189,18 @@ export default function /**
     queryKey: ['/api/residences/all'],
     queryFn: async () => {
       const response = await fetch('/api/residences');
-      if (!response.ok) {throw new Error('Failed to fetch all residences');}
+      if (!response.ok) {
+        throw new Error('Failed to fetch all residences');
+      }
       return response.json() as Promise<Residence[]>;
-    }
+    },
   });
 
   // Get unique floors from all residences for filter dropdown
-  const availableFloors = allResidences 
-    ? [...new Set(allResidences.map(r => r.floor).filter(floor => floor != null))]
-        .sort((a, b) => a - b)
+  const availableFloors = allResidences
+    ? [...new Set(allResidences.map((r) => r.floor).filter((floor) => floor != null))].sort(
+        (a, b) => a - b
+      )
     : [];
 
   // Reset page when filters change
@@ -194,7 +232,6 @@ export default function /**
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          
           {/* Search and Filters */}
           <Card>
             <CardHeader>
@@ -214,7 +251,7 @@ export default function /**
                     className='w-full'
                   />
                 </div>
-                
+
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>Building</label>
                   <Select value={selectedBuilding} onValueChange={handleBuildingChange}>
@@ -231,7 +268,7 @@ export default function /**
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>Floor</label>
                   <Select value={selectedFloor} onValueChange={handleFloorChange}>
@@ -313,27 +350,25 @@ export default function /**
                           {residence.bathrooms || 0} bath
                         </span>
                       </div>
-                      
+
                       {residence.squareFootage && (
-                        <p className='text-sm text-gray-600'>
-                          {residence.squareFootage} sq ft
-                        </p>
+                        <p className='text-sm text-gray-600'>{residence.squareFootage} sq ft</p>
                       )}
-                      
+
                       {residence.parkingSpaceNumbers?.length > 0 && (
                         <p className='text-sm text-gray-600 flex items-center gap-1'>
                           <Car className='w-3 h-3' />
                           Parking: {residence.parkingSpaceNumbers.join(', ')}
                         </p>
                       )}
-                      
+
                       {residence.storageSpaceNumbers?.length > 0 && (
                         <p className='text-sm text-gray-600 flex items-center gap-1'>
                           <Package className='w-3 h-3' />
                           Storage: {residence.storageSpaceNumbers.join(', ')}
                         </p>
                       )}
-                      
+
                       {residence.monthlyFees && (
                         <p className='text-sm font-medium text-green-600'>
                           ${residence.monthlyFees}/month
@@ -367,11 +402,13 @@ export default function /**
 
                     {/* Action Buttons */}
                     <div className='flex gap-2'>
-                      <Button 
-                        variant='outline' 
-                        size='sm' 
+                      <Button
+                        variant='outline'
+                        size='sm'
                         className='flex-1'
-                        onClick={() => navigate(`/manager/residences/documents?residenceId=${residence.id}`)}
+                        onClick={() =>
+                          navigate(`/manager/residences/documents?residenceId=${residence.id}`)
+                        }
                         title='Manage residence documents'
                       >
                         <FileText className='w-3 h-3 mr-1' />
@@ -379,9 +416,9 @@ export default function /**
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant='outline' 
-                            size='sm' 
+                          <Button
+                            variant='outline'
+                            size='sm'
                             className='flex-1'
                             onClick={() => setEditingResidence(residence)}
                           >
@@ -390,18 +427,18 @@ export default function /**
                           </Button>
                         </DialogTrigger>
                         <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-                        <DialogHeader>
-                          <DialogTitle>Edit Unit {residence.unitNumber}</DialogTitle>
-                        </DialogHeader>
-                        {editingResidence && (
-                          <ResidenceEditForm 
-                            residence={editingResidence} 
-                            onSuccess={() => {
-                              refetch();
-                              setEditingResidence(null);
-                            }}
-                          />
-                        )}
+                          <DialogHeader>
+                            <DialogTitle>Edit Unit {residence.unitNumber}</DialogTitle>
+                          </DialogHeader>
+                          {editingResidence && (
+                            <ResidenceEditForm
+                              residence={editingResidence}
+                              onSuccess={() => {
+                                refetch();
+                                setEditingResidence(null);
+                              }}
+                            />
+                          )}
                         </DialogContent>
                       </Dialog>
                     </div>
@@ -417,12 +454,12 @@ export default function /**
               <Button
                 variant='outline'
                 size='sm'
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
                 Previous
               </Button>
-              
+
               <div className='flex items-center gap-2'>
                 <span className='text-sm text-gray-600'>Page</span>
                 <Input
@@ -448,16 +485,16 @@ export default function /**
                 />
                 <span className='text-sm text-gray-600'>of {totalPages}</span>
               </div>
-              
+
               <Button
                 variant='outline'
                 size='sm'
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
               >
                 Next
               </Button>
-              
+
               <div className='text-sm text-gray-600'>
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} residences
               </div>

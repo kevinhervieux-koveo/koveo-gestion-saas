@@ -63,7 +63,7 @@ interface OrganizationFormDialogProps {
 
 /**
  * Dialog component for creating and editing organizations with form validation.
- * 
+ *
  * @param props - Component properties.
  * @param props.open - Whether the dialog is open.
  * @param props.onOpenChange - Callback to handle dialog open state changes.
@@ -138,8 +138,8 @@ export function OrganizationFormDialog({
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: isEditing ? 'Organization Updated' : 'Organization Created',
-        description: isEditing 
-          ? 'Organization updated successfully' 
+        description: isEditing
+          ? 'Organization updated successfully'
           : 'Organization created successfully',
       });
       onOpenChange(false);
@@ -161,30 +161,27 @@ export function OrganizationFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Edit Organization' : 'Create Organization'}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Organization' : 'Create Organization'}</DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? 'Update the organization information below.' 
-              : 'Fill in the details to create a new organization.'
-            }
+            {isEditing
+              ? 'Update the organization information below.'
+              : 'Fill in the details to create a new organization.'}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            <div className='grid grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="name"
+                name='name'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter organization name" {...field} />
+                      <Input placeholder='Enter organization name' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,21 +190,21 @@ export function OrganizationFormDialog({
 
               <FormField
                 control={form.control}
-                name="type"
+                name='type'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization Type *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder='Select type' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="management_company">Management Company</SelectItem>
-                        <SelectItem value="syndicate">Syndicate</SelectItem>
-                        <SelectItem value="cooperative">Cooperative</SelectItem>
-                        <SelectItem value="condo_association">Condo Association</SelectItem>
+                        <SelectItem value='management_company'>Management Company</SelectItem>
+                        <SelectItem value='syndicate'>Syndicate</SelectItem>
+                        <SelectItem value='cooperative'>Cooperative</SelectItem>
+                        <SelectItem value='condo_association'>Condo Association</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -218,27 +215,27 @@ export function OrganizationFormDialog({
 
             <FormField
               control={form.control}
-              name="address"
+              name='address'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Address *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter address" {...field} />
+                    <Input placeholder='Enter address' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className='grid grid-cols-3 gap-4'>
               <FormField
                 control={form.control}
-                name="city"
+                name='city'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>City *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter city" {...field} />
+                      <Input placeholder='Enter city' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -247,12 +244,12 @@ export function OrganizationFormDialog({
 
               <FormField
                 control={form.control}
-                name="province"
+                name='province'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Province *</FormLabel>
                     <FormControl>
-                      <Input placeholder="QC" {...field} />
+                      <Input placeholder='QC' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -261,12 +258,12 @@ export function OrganizationFormDialog({
 
               <FormField
                 control={form.control}
-                name="postalCode"
+                name='postalCode'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Postal Code *</FormLabel>
                     <FormControl>
-                      <Input placeholder="H1H 1H1" {...field} />
+                      <Input placeholder='H1H 1H1' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -274,15 +271,15 @@ export function OrganizationFormDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className='grid grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="phone"
+                name='phone'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 (514) 555-0123" {...field} />
+                      <Input placeholder='+1 (514) 555-0123' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -291,12 +288,12 @@ export function OrganizationFormDialog({
 
               <FormField
                 control={form.control}
-                name="email"
+                name='email'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Contact email" type="email" {...field} />
+                      <Input placeholder='Contact email' type='email' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -306,12 +303,12 @@ export function OrganizationFormDialog({
 
             <FormField
               control={form.control}
-              name="website"
+              name='website'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Website</FormLabel>
                   <FormControl>
-                    <Input placeholder="Website URL" {...field} />
+                    <Input placeholder='Website URL' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -320,12 +317,12 @@ export function OrganizationFormDialog({
 
             <FormField
               control={form.control}
-              name="registrationNumber"
+              name='registrationNumber'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Registration Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter registration number" {...field} />
+                    <Input placeholder='Enter registration number' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -333,16 +330,15 @@ export function OrganizationFormDialog({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending 
-                  ? 'Saving...' 
-                  : isEditing 
-                    ? 'Update Organization' 
-                    : 'Create Organization'
-                }
+              <Button type='submit' disabled={mutation.isPending}>
+                {mutation.isPending
+                  ? 'Saving...'
+                  : isEditing
+                    ? 'Update Organization'
+                    : 'Create Organization'}
               </Button>
             </DialogFooter>
           </form>

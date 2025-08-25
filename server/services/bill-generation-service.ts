@@ -7,7 +7,7 @@ import type { Bill } from '../../shared/schema';
 
 /**
  * Advanced Bill Generation Service.
- * 
+ *
  * Handles the sophisticated bill management system including:
  * - Creating future bill instances (not just money flow entries)
  * - Multiple payment plans (60% now, 40% later, etc.)
@@ -16,18 +16,14 @@ import type { Bill } from '../../shared/schema';
  * - Parent-child bill relationships.
  */
 export class BillGenerationService {
-  
   /**
    * Get bills by reference (auto-generated bills linked to a parent).
    * @param parentBillId
    */
   private async getBillsByReference(parentBillId: string): Promise<Bill[]> {
     try {
-      const existingBills = await db
-        .select()
-        .from(bills)
-        .where(eq(bills.reference, parentBillId));
-      
+      const existingBills = await db.select().from(bills).where(eq(bills.reference, parentBillId));
+
       return existingBills;
     } catch (_error) {
       console.error(`❌ Error fetching bills by reference:`, _error);
@@ -44,19 +40,19 @@ export class BillGenerationService {
     try {
       await db
         .update(bills)
-        .set({ 
+        .set({
           endDate: endDate.toISOString().split('T')[0],
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(bills.id, billId));
-      
+
       console.warn(`📅 Set recurrence end date for bill ${billId}: ${endDate.toISOString()}`);
     } catch (_error) {
       console.error(`❌ Error setting recurrence end date:`, _error);
       throw error;
     }
   }
-  
+
   /**
    * Generate future bill instances for a recurrent bill up to 3 years.
    * Creates actual bill records that users can interact with individually.
@@ -75,7 +71,7 @@ export class BillGenerationService {
     // Calculate projection period - respect endDate if set
     const startDate = new Date(parentBill.startDate);
     startDate.setFullYear(startDate.getFullYear() + 1); // Start from next year
-    
+
     let endDate: Date;
     if (parentBill.endDate) {
       endDate = new Date(parentBill.endDate);
@@ -89,10 +85,12 @@ export class BillGenerationService {
     // Check if there are already auto-generated bills to avoid duplicates
     const existingBills = await this.getBillsByReference(parentBill.id);
     if (existingBills.length > 0) {
-      console.warn(`⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`);
+      console.warn(
+        `⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`
+      );
       return {
         billsCreated: 0,
-        generatedUntil: endDate.toISOString().split('T')[0]
+        generatedUntil: endDate.toISOString().split('T')[0],
       };
     }
 
@@ -107,10 +105,10 @@ export class BillGenerationService {
     for (const occurrenceDate of occurrences) {
       // Handle multiple payment plans
       const paymentParts = this.calculatePaymentParts(parentBill, occurrenceDate);
-      
+
       for (let partIndex = 0; partIndex < paymentParts.length; partIndex++) {
         const paymentPart = paymentParts[partIndex];
-        
+
         const generatedBill = {
           id: uuidv4(),
           buildingId: parentBill.buildingId,
@@ -125,7 +123,7 @@ export class BillGenerationService {
           startDate: paymentPart.dueDate.toISOString().split('T')[0],
           status: 'draft' as const,
           notes: `Auto-generated from: ${parentBill.title} (Bill #${parentBill.billNumber}). Generated as part ${partIndex + 1}/${paymentParts.length} for ${occurrenceDate.toLocaleDateString()}.`,
-          createdBy: parentBill.createdBy
+          createdBy: parentBill.createdBy,
         };
 
         generatedBills.push(generatedBill);
@@ -148,7 +146,7 @@ export class BillGenerationService {
 
     return {
       billsCreated,
-      generatedUntil: endDate.toISOString().split('T')[0]
+      generatedUntil: endDate.toISOString().split('T')[0],
     };
   }
 
@@ -161,12 +159,15 @@ export class BillGenerationService {
    * @param parentBill
    * @param occurrenceDate
    */
-  private calculatePaymentParts(parentBill: Bill, occurrenceDate: Date): Array<{
+  private calculatePaymentParts(
+    parentBill: Bill,
+    occurrenceDate: Date
+  ): Array<{
     amount: number;
     dueDate: Date;
     partNumber: number;
   }> {
-    const costs = parentBill.costs.map(cost => parseFloat(cost));
+    const costs = parentBill.costs.map((cost) => parseFloat(cost));
     const paymentParts: Array<{ amount: number; dueDate: Date; partNumber: number }> = [];
 
     if (costs.length === 1) {
@@ -174,13 +175,13 @@ export class BillGenerationService {
       paymentParts.push({
         amount: costs[0],
         dueDate: new Date(occurrenceDate),
-        partNumber: 1
+        partNumber: 1,
       });
     } else {
       // Multiple payments - create payment schedule
       costs.forEach((amount, _index) => {
         const dueDate = new Date(occurrenceDate);
-        
+
         // For multiple costs, spread payments over time
         // First payment on occurrence date, subsequent payments monthly
         dueDate.setMonth(dueDate.getMonth() + _index);
@@ -188,7 +189,7 @@ export class BillGenerationService {
         paymentParts.push({
           amount,
           dueDate,
-          partNumber: index + 1
+          partNumber: index + 1,
         });
       });
     }
@@ -202,12 +203,12 @@ export class BillGenerationService {
    */
   private detectScheduleType(parentBill: Bill): string {
     const costs = parentBill.costs || [];
-    
+
     // Auto-detect based on cost array length and bill patterns
     if (costs.length === 12) {
       return 'monthly'; // 12 payments = monthly
     } else if (costs.length === 4) {
-      return 'quarterly'; // 4 payments = quarterly  
+      return 'quarterly'; // 4 payments = quarterly
     } else if (costs.length === 2) {
       return 'yearly'; // 2 payments = bi-annual, treat as yearly with split
     } else if (costs.length === 1) {
@@ -223,7 +224,7 @@ export class BillGenerationService {
         return 'yearly'; // Default to yearly
       }
     }
-    
+
     return 'yearly'; // Default fallback
   }
 
@@ -274,7 +275,11 @@ export class BillGenerationService {
    * @param endDate
    * @param customDates
    */
-  private calculateCustomOccurrences(startDate: Date, endDate: Date, customDates: string[]): Date[] {
+  private calculateCustomOccurrences(
+    startDate: Date,
+    endDate: Date,
+    customDates: string[]
+  ): Date[] {
     const occurrences: Date[] = [];
     const startYear = startDate.getFullYear();
     const endYear = endDate.getFullYear();
@@ -312,9 +317,17 @@ export class BillGenerationService {
    * @param partIndex
    * @param totalParts
    */
-  private generateBillTitle(parentBill: Bill, occurrenceDate: Date, partIndex: number, totalParts: number): string {
-    const monthYear = occurrenceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    
+  private generateBillTitle(
+    parentBill: Bill,
+    occurrenceDate: Date,
+    partIndex: number,
+    totalParts: number
+  ): string {
+    const monthYear = occurrenceDate.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+
     if (totalParts > 1) {
       return `${parentBill.title} ${monthYear} (Auto-Generated)`;
     } else {
@@ -330,14 +343,13 @@ export class BillGenerationService {
     try {
       const result = await db
         .delete(bills)
-        .where(and(
-          eq(bills.reference, parentBillId),
-          eq(bills.autoGenerated, true),
-          or(
-            eq(bills.status, 'draft'),
-            eq(bills.status, 'sent')
+        .where(
+          and(
+            eq(bills.reference, parentBillId),
+            eq(bills.autoGenerated, true),
+            or(eq(bills.status, 'draft'), eq(bills.status, 'sent'))
           )
-        ));
+        );
 
       console.warn(`🧹 Cleaned up existing auto-generated bills for parent ${parentBillId}`);
     } catch (_error) {
@@ -363,7 +375,10 @@ export class BillGenerationService {
    * @param parentBillId
    * @param updates
    */
-  async updateGeneratedBillsFromParent(parentBillId: string, updates: Partial<Bill>): Promise<{
+  async updateGeneratedBillsFromParent(
+    parentBillId: string,
+    updates: Partial<Bill>
+  ): Promise<{
     billsUpdated: number;
   }> {
     console.warn(`🔄 Updating generated bills for parent ${parentBillId}`);
@@ -372,10 +387,7 @@ export class BillGenerationService {
     const generatedBills = await db
       .select()
       .from(bills)
-      .where(and(
-        eq(bills.reference, parentBillId),
-        eq(bills.autoGenerated, true)
-      ));
+      .where(and(eq(bills.reference, parentBillId), eq(bills.autoGenerated, true)));
 
     let billsUpdated = 0;
 
@@ -391,8 +403,12 @@ export class BillGenerationService {
         }
       }
 
-      if (updates.category) {updatedFields.category = updates.category;}
-      if (updates.vendor) {updatedFields.vendor = updates.vendor;}
+      if (updates.category) {
+        updatedFields.category = updates.category;
+      }
+      if (updates.vendor) {
+        updatedFields.vendor = updates.vendor;
+      }
       if (updates.notes) {
         updatedFields.notes = `Auto-generated bill - ${updates.notes}`;
       }
@@ -400,10 +416,7 @@ export class BillGenerationService {
       if (Object.keys(updatedFields).length > 0) {
         updatedFields.updatedAt = new Date();
 
-        await db
-          .update(bills)
-          .set(updatedFields)
-          .where(eq(bills.id, generatedBill.id));
+        await db.update(bills).set(updatedFields).where(eq(bills.id, generatedBill.id));
 
         billsUpdated++;
       }
@@ -419,10 +432,15 @@ export class BillGenerationService {
    * @param parentBillId
    * @param deleteAllFuture
    */
-  async deleteGeneratedBills(parentBillId: string, deleteAllFuture: boolean = false): Promise<{
+  async deleteGeneratedBills(
+    parentBillId: string,
+    deleteAllFuture: boolean = false
+  ): Promise<{
     billsDeleted: number;
   }> {
-    console.warn(`🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`);
+    console.warn(
+      `🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`
+    );
 
     let whereCondition;
 
@@ -438,16 +456,11 @@ export class BillGenerationService {
       whereCondition = and(
         eq(bills.reference, parentBillId),
         eq(bills.autoGenerated, true),
-        or(
-          eq(bills.status, 'draft'),
-          eq(bills.status, 'sent')
-        )
+        or(eq(bills.status, 'draft'), eq(bills.status, 'sent'))
       );
     }
 
-    const result = await db
-      .delete(bills)
-      .where(whereCondition);
+    const result = await db.delete(bills).where(whereCondition);
 
     const billsDeleted = result.rowCount || 0;
     console.warn(`✅ Deleted ${billsDeleted} generated bills`);
@@ -470,20 +483,17 @@ export class BillGenerationService {
     const generatedBills = await db
       .select()
       .from(bills)
-      .where(and(
-        eq(bills.reference, parentBillId),
-        eq(bills.autoGenerated, true)
-      ));
+      .where(and(eq(bills.reference, parentBillId), eq(bills.autoGenerated, true)));
 
     const today = new Date().toISOString().split('T')[0];
-    
+
     const stats = {
       totalGenerated: generatedBills.length,
       paidBills: 0,
       pendingBills: 0,
       futureBills: 0,
       totalAmount: 0,
-      paidAmount: 0
+      paidAmount: 0,
     };
 
     for (const bill of generatedBills) {
@@ -516,7 +526,7 @@ export class BillGenerationService {
       .set({
         status: 'paid',
         notes: `Payment confirmed on ${paymentReceivedDate.toLocaleDateString()}`,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(bills.id, billId));
 

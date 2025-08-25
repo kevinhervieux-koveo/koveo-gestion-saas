@@ -1,5 +1,11 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Control, FieldPath, FieldValues } from 'react-hook-form';
 
 /**
@@ -62,13 +68,9 @@ export function FormSelect<T extends FieldValues>({
         <FormItem className={className}>
           <FormLabel>
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className='text-red-500 ml-1'>*</span>}
           </FormLabel>
-          <Select 
-            onValueChange={field.onChange} 
-            value={field.value}
-            disabled={disabled}
-          >
+          <Select onValueChange={field.onChange} value={field.value} disabled={disabled}>
             <FormControl>
               <SelectTrigger data-testid={testId}>
                 <SelectValue placeholder={placeholder} />
@@ -76,21 +78,13 @@ export function FormSelect<T extends FieldValues>({
             </FormControl>
             <SelectContent>
               {options.map((option) => (
-                <SelectItem 
-                  key={option.value} 
-                  value={option.value}
-                  disabled={option.disabled}
-                >
+                <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {description && (
-            <div className="text-sm text-muted-foreground">
-              {description}
-            </div>
-          )}
+          {description && <div className='text-sm text-muted-foreground'>{description}</div>}
           <FormMessage />
         </FormItem>
       )}

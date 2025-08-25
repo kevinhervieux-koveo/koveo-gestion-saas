@@ -1,13 +1,13 @@
 /// <reference types='../../../types/browser-apis' />
-import { useState } from "react";
-import type { ReactNode } from "react";
-import Uppy from "@uppy/core";
-import { DashboardModal } from "@uppy/react";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-import AwsS3 from "@uppy/aws-s3";
-import type { UploadResult } from "@uppy/core";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import Uppy from '@uppy/core';
+import { DashboardModal } from '@uppy/react';
+import '@uppy/core/dist/style.min.css';
+import '@uppy/dashboard/dist/style.min.css';
+import AwsS3 from '@uppy/aws-s3';
+import type { UploadResult } from '@uppy/core';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props interface for ObjectUploader component.
@@ -16,19 +16,17 @@ interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
   onGetUploadParameters: () => Promise<{
-    method: "PUT";
+    method: 'PUT';
     url: string;
   }>;
-  onComplete?: (
-    _result: UploadResult<Record<string, unknown>, Record<string, unknown>>
-  ) => void;
+  onComplete?: (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => void;
   buttonClassName?: string;
   children: ReactNode;
 }
 
 /**
  * A file upload component that renders as a button and provides a modal interface for file management.
- * 
+ *
  * @param root0 - Component props object.
  * @param root0.maxNumberOfFiles - Maximum number of files allowed (default: 1).
  * @param root0.maxFileSize - Maximum file size in bytes (default: 10MB).
@@ -59,7 +57,7 @@ export function ObjectUploader({
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
       })
-      .on("complete", (_result) => {
+      .on('complete', (_result) => {
         onComplete?.(_result);
       })
   );

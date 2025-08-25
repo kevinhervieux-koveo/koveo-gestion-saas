@@ -25,10 +25,7 @@ export type ExpressMiddleware = (
 /**
  *
  */
-export type ExpressHandler = (
-  req: AuthenticatedRequest,
-  res: Response
-) => void | Promise<void>;
+export type ExpressHandler = (req: AuthenticatedRequest, res: Response) => void | Promise<void>;
 
 // API Response types
 /**

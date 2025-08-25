@@ -14,15 +14,15 @@ import { cn } from '@/lib/utils';
 
  */
 
-function  /**
-   * Menubar menu function.
-   * @param { ...props } - { ...props } parameter.
-   */  /**
-   * Menubar menu function.
-   * @param { ...props } - { ...props } parameter.
-   */
+function /**
+ * Menubar menu function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Menubar menu function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
+MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu {...props} />;
 }
 
@@ -34,15 +34,15 @@ function  /**
 
  */
 
-function  /**
-   * Menubar group function.
-   * @param { ...props } - { ...props } parameter.
-   */  /**
-   * Menubar group function.
-   * @param { ...props } - { ...props } parameter.
-   */
+function /**
+ * Menubar group function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Menubar group function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
+MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group {...props} />;
 }
 
@@ -54,15 +54,15 @@ function  /**
 
  */
 
-function  /**
-   * Menubar portal function.
-   * @param { ...props } - { ...props } parameter.
-   */  /**
-   * Menubar portal function.
-   * @param { ...props } - { ...props } parameter.
-   */
+function /**
+ * Menubar portal function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Menubar portal function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
+MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal {...props} />;
 }
 
@@ -74,15 +74,15 @@ function  /**
 
  */
 
-function  /**
-   * Menubar radio group function.
-   * @param { ...props } - { ...props } parameter.
-   */  /**
-   * Menubar radio group function.
-   * @param { ...props } - { ...props } parameter.
-   */
+function /**
+ * Menubar radio group function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Menubar radio group function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
+MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
   return <MenubarPrimitive.RadioGroup {...props} />;
 }
 
@@ -94,15 +94,15 @@ function  /**
 
  */
 
-function  /**
-   * Menubar sub function.
-   * @param { ...props } - { ...props } parameter.
-   */  /**
-   * Menubar sub function.
-   * @param { ...props } - { ...props } parameter.
-   */
+function /**
+ * Menubar sub function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Menubar sub function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- MenubarSub({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
+MenubarSub({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot='menubar-sub' {...props} />;
 }
 

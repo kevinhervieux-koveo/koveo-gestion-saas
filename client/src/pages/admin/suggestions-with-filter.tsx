@@ -75,7 +75,11 @@ const filterSortConfig: FilterSortConfig = {
         { label: 'Security', _value: 'Security', icon: Shield },
         { label: 'Performance', _value: 'Performance', icon: Zap },
         { label: 'Continuous Improvement', _value: 'Continuous Improvement', icon: Terminal },
-        { label: 'Replit AI Agent Monitoring', _value: 'Replit AI Agent Monitoring', icon: MessageSquare },
+        {
+          label: 'Replit AI Agent Monitoring',
+          _value: 'Replit AI Agent Monitoring',
+          icon: MessageSquare,
+        },
       ],
       defaultOperator: 'equals',
     },
@@ -148,7 +152,7 @@ const filterSortConfig: FilterSortConfig = {
  * Owner suggestions page with advanced filtering and sorting capabilities.
  * Displays improvement suggestions for the property management system with comprehensive
  * filter options, status management, and AI-generated prompts for implementation.
- * 
+ *
  * @returns {JSX.Element} Rendered suggestions page with filter/sort controls.
  */
 export default function OwnerSuggestionsWithFilter() {
@@ -268,7 +272,9 @@ export default function OwnerSuggestionsWithFilter() {
           <div className='flex items-center gap-2 text-sm text-gray-600'>
             <Terminal className='h-4 w-4' />
             <span className='font-medium'>Refresh Command:</span>
-            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>tsx scripts/run-quality-check.ts</code>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              tsx scripts/run-quality-check.ts
+            </code>
           </div>
         </div>
       </div>

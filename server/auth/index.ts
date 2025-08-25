@@ -1,6 +1,6 @@
 /**
  * Enhanced Authentication and Authorization Module.
- * 
+ *
  * Provides comprehensive RBAC, security monitoring, and audit logging
  * for the Koveo Gestion property management system.
  */
@@ -13,7 +13,7 @@ export {
   requireAuth,
   requireRole,
   authorize,
-  setupAuthRoutes
+  setupAuthRoutes,
 } from '../auth';
 
 // Export enhanced invitation RBAC
@@ -25,5 +25,5 @@ export {
   createEnhancedInvitationAuditLog,
   withPermissionInheritance,
   SecurityAlertLevel,
-  type SecurityAlert
+  type SecurityAlert,
 } from './invitation-rbac';

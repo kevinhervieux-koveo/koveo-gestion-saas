@@ -4,7 +4,7 @@ import { Language } from '@/lib/i18n';
 /**
  * Language toggle component for switching between English and French.
  * Provides bilingual support as required by Quebec property management regulations.
- * 
+ *
  * @returns {JSX.Element} Toggle buttons for English/French language selection.
  * @example
  * ```typescript
@@ -27,13 +27,13 @@ import { Language } from '@/lib/i18n';
 /**
  * Language switcher function.
  */
-export function  /**
-   * Language switcher function.
-   */  /**
-   * Language switcher function.
-   */
+export function /**
+ * Language switcher function.
+ */ /**
+ * Language switcher function.
+ */
 
- LanguageSwitcher() {
+LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   return (

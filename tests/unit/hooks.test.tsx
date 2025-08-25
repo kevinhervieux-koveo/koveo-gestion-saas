@@ -29,11 +29,7 @@ const mockMatchMedia = (matches: boolean) => ({
  */
 function MobileTestComponent() {
   const isMobile = useIsMobile();
-  return (
-    <div data-testid="mobile-status">
-      {isMobile ? 'mobile' : 'desktop'}
-    </div>
-  );
+  return <div data-testid='mobile-status'>{isMobile ? 'mobile' : 'desktop'}</div>;
 }
 
 // Test component for useLanguage hook
@@ -47,21 +43,15 @@ function MobileTestComponent() {
  */
 function LanguageTestComponent() {
   const { language, setLanguage, t } = useLanguage();
-  
+
   return (
     <div>
-      <span data-testid="current-language">{language}</span>
-      <span data-testid="translated-text">{t('dashboard')}</span>
-      <button 
-        onClick={() => setLanguage('fr')}
-        data-testid="set-french"
-      >
+      <span data-testid='current-language'>{language}</span>
+      <span data-testid='translated-text'>{t('dashboard')}</span>
+      <button onClick={() => setLanguage('fr')} data-testid='set-french'>
         Set French
       </button>
-      <button 
-        onClick={() => setLanguage('en')}
-        data-testid="set-english"
-      >
+      <button onClick={() => setLanguage('en')} data-testid='set-english'>
         Set English
       </button>
     </div>
@@ -79,22 +69,19 @@ function LanguageTestComponent() {
  */
 function ToastTestComponent() {
   const { toast: showToast, toasts, dismiss } = useToast();
-  
+
   return (
     <div>
-      <button 
+      <button
         onClick={() => showToast({ title: 'Test Toast', description: 'Test message' })}
-        data-testid="show-toast"
+        data-testid='show-toast'
       >
         Show Toast
       </button>
-      <button 
-        onClick={() => dismiss()}
-        data-testid="dismiss-all"
-      >
+      <button onClick={() => dismiss()} data-testid='dismiss-all'>
         Dismiss All
       </button>
-      <div data-testid="toast-count">{toasts.length}</div>
+      <div data-testid='toast-count'>{toasts.length}</div>
       {toasts.map((toast) => (
         <div key={toast.id} data-testid={`toast-${toast.id}`}>
           {toast.title}
@@ -107,11 +94,11 @@ function ToastTestComponent() {
 describe('Quebec Property Management Hooks', () => {
   describe('useIsMobile Hook', () => {
     let originalMatchMedia: typeof window.matchMedia;
-    
+
     beforeEach(() => {
       originalMatchMedia = window.matchMedia;
     });
-    
+
     afterEach(() => {
       window.matchMedia = originalMatchMedia;
     });
@@ -119,18 +106,18 @@ describe('Quebec Property Management Hooks', () => {
     it('should detect mobile screen size correctly', () => {
       window.matchMedia = jest.fn().mockImplementation(() => mockMatchMedia(true));
       Object.defineProperty(window, 'innerWidth', { writable: true, _value: 500 });
-      
+
       render(<MobileTestComponent />);
-      
+
       expect(screen.getByTestId('mobile-status')).toHaveTextContent('mobile');
     });
 
     it('should detect desktop screen size correctly', () => {
       window.matchMedia = jest.fn().mockImplementation(() => mockMatchMedia(false));
       Object.defineProperty(window, 'innerWidth', { writable: true, _value: 1024 });
-      
+
       render(<MobileTestComponent />);
-      
+
       expect(screen.getByTestId('mobile-status')).toHaveTextContent('desktop');
     });
 
@@ -138,13 +125,13 @@ describe('Quebec Property Management Hooks', () => {
       const matchMediaMock = jest.fn().mockImplementation(() => mockMatchMedia(false));
       window.matchMedia = matchMediaMock;
       Object.defineProperty(window, 'innerWidth', { writable: true, _value: 1024 });
-      
+
       render(<MobileTestComponent />);
       expect(screen.getByTestId('mobile-status')).toHaveTextContent('desktop');
 
       // Simulate screen size change
       Object.defineProperty(window, 'innerWidth', { writable: true, _value: 500 });
-      
+
       // Trigger resize event
       act(() => {
         window.dispatchEvent(new Event('resize'));
@@ -166,7 +153,7 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should switch to French for Quebec compliance', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <LanguageProvider>
           <LanguageTestComponent />
@@ -181,7 +168,7 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should switch back to English', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <LanguageProvider>
           <LanguageTestComponent />
@@ -209,7 +196,7 @@ describe('Quebec Property Management Hooks', () => {
        */
       function TestMissingKey() {
         const { t } = useLanguage();
-        return <span data-testid="missing-key">{t('nonExistentKey' as never)}</span>;
+        return <span data-testid='missing-key'>{t('nonExistentKey' as never)}</span>;
       }
 
       render(
@@ -236,12 +223,14 @@ describe('Quebec Property Management Hooks', () => {
       }
 
       // Capture console errors during this test
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* silence console errors for this test */ });
-      
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+        /* silence console errors for this test */
+      });
+
       expect(() => render(<ComponentWithoutProvider />)).toThrow(
         'useLanguage must be used within a LanguageProvider'
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -254,7 +243,7 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should create toast notifications', async () => {
       const user = userEvent.setup();
-      
+
       render(<ToastTestComponent />);
 
       expect(screen.getByTestId('toast-count')).toHaveTextContent('0');
@@ -268,7 +257,7 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should dismiss functionality exists', async () => {
       const user = userEvent.setup();
-      
+
       render(<ToastTestComponent />);
 
       // Create a toast
@@ -282,14 +271,14 @@ describe('Quebec Property Management Hooks', () => {
       const dismissButton = screen.getByTestId('dismiss-all');
       expect(dismissButton).toBeInTheDocument();
       await user.click(dismissButton);
-      
+
       // Test that the dismiss function was called (focus on functionality, not state)
       expect(dismissButton).toBeInTheDocument();
     });
 
     it('should create toast with proper content', async () => {
       const user = userEvent.setup();
-      
+
       render(<ToastTestComponent />);
 
       await user.click(screen.getByTestId('show-toast'));

@@ -26,9 +26,7 @@ describe('AI Monitoring API Tests (Real Data)', () => {
 
   describe('GET /api/ai/metrics', () => {
     it('should return AI metrics successfully', async () => {
-      const response = await request(app)
-        .get('/api/ai/metrics')
-        .expect(200);
+      const response = await request(app).get('/api/ai/metrics').expect(200);
 
       // Should return metrics structure, even if empty/default values
       expect(response.body).toHaveProperty('totalInteractions');
@@ -46,9 +44,7 @@ describe('AI Monitoring API Tests (Real Data)', () => {
 
   describe('POST /api/ai/analyze', () => {
     it('should trigger AI analysis successfully', async () => {
-      const response = await request(app)
-        .post('/api/ai/analyze')
-        .expect(200);
+      const response = await request(app).post('/api/ai/analyze').expect(200);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('insightsGenerated');

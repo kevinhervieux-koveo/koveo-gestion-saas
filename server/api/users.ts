@@ -28,14 +28,14 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       console.warn(`📊 Fetching users for user ${currentUser.id} with role ${currentUser.role}`);
-      
+
       let users;
-      
+
       if (currentUser.role === 'admin') {
         // Admin can see all users
         users = await storage.getUsers();
@@ -43,7 +43,7 @@ export function registerUserRoutes(app: Express): void {
         // Managers and other users can only see users from their organizations
         users = await storage.getUsersByOrganizations(currentUser.id);
       }
-      
+
       console.warn(`✅ Found ${users.length} users for user ${currentUser.id}`);
       res.json(users);
     } catch (error) {
@@ -259,7 +259,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       // Get user role from session
       const userRole = req.user?.role;
-      
+
       if (!userRole) {
         return res.status(400).json({
           _error: 'Bad request',
@@ -273,7 +273,7 @@ export function registerUserRoutes(app: Express): void {
         .filter((rp: any) => rp.role === userRole)
         .map((rp: any) => rp.permission?.name)
         .filter(Boolean);
-      
+
       // Create response with Zod validation
       const responseData = {
         role: userRole,
@@ -289,7 +289,7 @@ export function registerUserRoutes(app: Express): void {
       });
 
       const validatedResponse = permissionsResponseSchema.parse(responseData);
-      
+
       res.json(validatedResponse);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -322,7 +322,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -330,14 +330,14 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.role !== 'admin') {
         return res.status(403).json({
           message: 'Only administrators can modify organization assignments',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       if (!userId || !Array.isArray(organizationIds)) {
         return res.status(400).json({
           message: 'User ID and organization IDs array are required',
-          code: 'INVALID_REQUEST'
+          code: 'INVALID_REQUEST',
         });
       }
 
@@ -346,14 +346,12 @@ export function registerUserRoutes(app: Express): void {
       if (!user) {
         return res.status(404).json({
           message: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
       // Remove existing organization assignments
-      await db
-        .delete(schema.userOrganizations)
-        .where(eq(schema.userOrganizations.userId, userId));
+      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
 
       // Add new organization assignments
       if (organizationIds.length > 0) {
@@ -370,7 +368,7 @@ export function registerUserRoutes(app: Express): void {
       res.json({
         message: 'Organization assignments updated successfully',
         userId,
-        organizationIds
+        organizationIds,
       });
     } catch (error) {
       console.error('Failed to update user organizations:', error);
@@ -392,7 +390,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -400,7 +398,7 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.id !== userId && !['admin', 'manager'].includes(currentUser.role)) {
         return res.status(403).json({
           message: 'Insufficient permissions',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -429,7 +427,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -437,14 +435,14 @@ export function registerUserRoutes(app: Express): void {
       if (!['admin', 'manager'].includes(currentUser.role)) {
         return res.status(403).json({
           message: 'Insufficient permissions to modify residence assignments',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       if (!userId || !Array.isArray(residenceAssignments)) {
         return res.status(400).json({
           message: 'User ID and residence assignments array are required',
-          code: 'INVALID_REQUEST'
+          code: 'INVALID_REQUEST',
         });
       }
 
@@ -453,7 +451,7 @@ export function registerUserRoutes(app: Express): void {
       if (!user) {
         return res.status(404).json({
           message: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
@@ -470,7 +468,7 @@ export function registerUserRoutes(app: Express): void {
           if (residence.length === 0) {
             return res.status(404).json({
               message: `Residence ${assignment.residenceId} not found`,
-              code: 'RESIDENCE_NOT_FOUND'
+              code: 'RESIDENCE_NOT_FOUND',
             });
           }
 
@@ -479,35 +477,40 @@ export function registerUserRoutes(app: Express): void {
           const managerOrgs = await db
             .select({ organizationId: schema.userOrganizations.organizationId })
             .from(schema.userOrganizations)
-            .where(and(
-              eq(schema.userOrganizations.userId, currentUser.id),
-              eq(schema.userOrganizations.isActive, true)
-            ));
-          
-          const orgIds = managerOrgs.map(org => org.organizationId);
-          
-          const accessibleBuildings = orgIds.length > 0 ? await db
-            .select({ id: schema.buildings.id })
-            .from(schema.buildings)
-            .where(and(
-              inArray(schema.buildings.organizationId, orgIds),
-              eq(schema.buildings.isActive, true)
-            )) : [];
-          
-          const hasAccess = accessibleBuildings.some(b => b.id === residence[0].buildingId);
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, currentUser.id),
+                eq(schema.userOrganizations.isActive, true)
+              )
+            );
+
+          const orgIds = managerOrgs.map((org) => org.organizationId);
+
+          const accessibleBuildings =
+            orgIds.length > 0
+              ? await db
+                  .select({ id: schema.buildings.id })
+                  .from(schema.buildings)
+                  .where(
+                    and(
+                      inArray(schema.buildings.organizationId, orgIds),
+                      eq(schema.buildings.isActive, true)
+                    )
+                  )
+              : [];
+
+          const hasAccess = accessibleBuildings.some((b) => b.id === residence[0].buildingId);
           if (!hasAccess) {
             return res.status(403).json({
               message: `Insufficient permissions for residence ${assignment.residenceId}`,
-              code: 'INSUFFICIENT_PERMISSIONS'
+              code: 'INSUFFICIENT_PERMISSIONS',
             });
           }
         }
       }
 
       // Remove existing residence assignments
-      await db
-        .delete(schema.userResidences)
-        .where(eq(schema.userResidences.userId, userId));
+      await db.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
 
       // Add new residence assignments
       if (residenceAssignments.length > 0) {
@@ -526,7 +529,7 @@ export function registerUserRoutes(app: Express): void {
       res.json({
         message: 'Residence assignments updated successfully',
         userId,
-        assignmentCount: residenceAssignments.length
+        assignmentCount: residenceAssignments.length,
       });
     } catch (error) {
       console.error('Failed to update user residences:', error);
@@ -546,7 +549,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -555,7 +558,7 @@ export function registerUserRoutes(app: Express): void {
       if (!userData) {
         return res.status(404).json({
           message: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
@@ -563,31 +566,59 @@ export function registerUserRoutes(app: Express): void {
       const { password, ...userDataExport } = userData;
 
       // Get related data
-      const [organizations, residences, bills, documents, notifications, maintenanceRequests] = await Promise.all([
-        db.select().from(schema.userOrganizations).where(eq(schema.userOrganizations.userId, currentUser.id)),
-        db.select().from(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
-        db.select().from(schema.bills).innerJoin(schema.userResidences, eq(schema.bills.residenceId, schema.userResidences.residenceId))
-          .where(eq(schema.userResidences.userId, currentUser.id)),
-        db.select().from(schema.documents).innerJoin(schema.documentResident, eq(schema.documents.id, schema.documentResident.documentId))
-          .where(eq(schema.documentResident.userId, currentUser.id)),
-        db.select().from(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
-        db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
-      ]);
+      const [organizations, residences, bills, documents, notifications, maintenanceRequests] =
+        await Promise.all([
+          db
+            .select()
+            .from(schema.userOrganizations)
+            .where(eq(schema.userOrganizations.userId, currentUser.id)),
+          db
+            .select()
+            .from(schema.userResidences)
+            .where(eq(schema.userResidences.userId, currentUser.id)),
+          db
+            .select()
+            .from(schema.bills)
+            .innerJoin(
+              schema.userResidences,
+              eq(schema.bills.residenceId, schema.userResidences.residenceId)
+            )
+            .where(eq(schema.userResidences.userId, currentUser.id)),
+          db
+            .select()
+            .from(schema.documents)
+            .innerJoin(
+              schema.documentResident,
+              eq(schema.documents.id, schema.documentResident.documentId)
+            )
+            .where(eq(schema.documentResident.userId, currentUser.id)),
+          db
+            .select()
+            .from(schema.notifications)
+            .where(eq(schema.notifications.userId, currentUser.id)),
+          db
+            .select()
+            .from(schema.maintenanceRequests)
+            .where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+        ]);
 
       const exportData = {
         personalInformation: userDataExport,
         organizations,
         residences,
-        bills: bills.map(b => b.bills),
-        documents: documents.map(d => d.documents),
+        bills: bills.map((b) => b.bills),
+        documents: documents.map((d) => d.documents),
         notifications,
         maintenanceRequests,
         exportDate: new Date().toISOString(),
-        note: 'This export contains all personal data we have on file for you in compliance with Quebec Law 25.'
+        note: 'This export contains all personal data we have on file for you in compliance with Quebec Law 25.',
       };
 
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`
+      );
       res.json(exportData);
     } catch (error) {
       console.error('Failed to export user data:', error);
@@ -607,7 +638,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -617,21 +648,27 @@ export function registerUserRoutes(app: Express): void {
       if (confirmEmail !== currentUser.email) {
         return res.status(400).json({
           message: 'Email confirmation does not match',
-          code: 'EMAIL_MISMATCH'
+          code: 'EMAIL_MISMATCH',
         });
       }
 
       // Delete all related data in the correct order to handle foreign key constraints
       await Promise.all([
         // Delete user relationships
-        db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, currentUser.id)),
+        db
+          .delete(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.userId, currentUser.id)),
         db.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
-        db.delete(schema.documentResident).where(eq(schema.documentResident.userId, currentUser.id)),
-        
+        db
+          .delete(schema.documentResident)
+          .where(eq(schema.documentResident.userId, currentUser.id)),
+
         // Delete user-created content
         db.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
-        db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
-        
+        db
+          .delete(schema.maintenanceRequests)
+          .where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+
         // Delete invitations
         db.delete(schema.invitations).where(eq(schema.invitations.email, currentUser.email)),
       ]);
@@ -640,7 +677,9 @@ export function registerUserRoutes(app: Express): void {
       await db.delete(schema.users).where(eq(schema.users.id, currentUser.id));
 
       // Log the deletion for audit purposes
-      console.log(`User account deleted: ${currentUser.email} (${currentUser.id}). Reason: ${reason || 'Not provided'}`);
+      console.log(
+        `User account deleted: ${currentUser.email} (${currentUser.id}). Reason: ${reason || 'Not provided'}`
+      );
 
       // Clear session
       if (req.session) {
@@ -652,8 +691,9 @@ export function registerUserRoutes(app: Express): void {
       }
 
       res.json({
-        message: 'Account successfully deleted. All personal data has been permanently removed from our systems.',
-        deletionDate: new Date().toISOString()
+        message:
+          'Account successfully deleted. All personal data has been permanently removed from our systems.',
+        deletionDate: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Failed to delete user account:', error);
@@ -673,12 +713,14 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       // Validate the update data (excluding password updates for security)
-      const updateSchema = insertUserSchema.partial().omit({ password: true, id: true, role: true });
+      const updateSchema = insertUserSchema
+        .partial()
+        .omit({ password: true, id: true, role: true });
       const validatedData = updateSchema.parse(req.body);
 
       const user = await storage.updateUser(currentUser.id, {
@@ -689,7 +731,7 @@ export function registerUserRoutes(app: Express): void {
       if (!user) {
         return res.status(404).json({
           message: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
@@ -714,7 +756,7 @@ export function registerUserRoutes(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -723,17 +765,17 @@ export function registerUserRoutes(app: Express): void {
       if (!currentPassword || !newPassword) {
         return res.status(400).json({
           message: 'Current password and new password are required',
-          code: 'INVALID_INPUT'
+          code: 'INVALID_INPUT',
         });
       }
 
       // Verify current password
       const bcrypt = require('bcryptjs');
       const user = await storage.getUser(currentUser.id);
-      if (!user || !await bcrypt.compare(currentPassword, user.password)) {
+      if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
         return res.status(400).json({
           message: 'Current password is incorrect',
-          code: 'INVALID_PASSWORD'
+          code: 'INVALID_PASSWORD',
         });
       }
 
@@ -747,7 +789,7 @@ export function registerUserRoutes(app: Express): void {
       } as any);
 
       res.json({
-        message: 'Password changed successfully'
+        message: 'Password changed successfully',
       });
     } catch (error) {
       console.error('Failed to change password:', error);

@@ -56,7 +56,7 @@ export class SSLService {
       email: options.email,
       staging: options.staging || false,
       keySize: options.keySize || 2048,
-      storageDir: options.storageDir || './ssl-certificates'
+      storageDir: options.storageDir || './ssl-certificates',
     };
   }
 
@@ -72,19 +72,21 @@ export class SSLService {
       this.accountKey = await this.getOrCreateAccountKey();
 
       // Create ACME client
-      const directoryUrl = this.options.staging 
-        ? acme.directory.letsencrypt.staging 
+      const directoryUrl = this.options.staging
+        ? acme.directory.letsencrypt.staging
         : acme.directory.letsencrypt.production;
 
       this.client = new acme.Client({
         directoryUrl,
-        accountKey: this.accountKey!
+        accountKey: this.accountKey!,
       });
 
       // Create account if it doesn't exist
       await this.ensureAccount();
     } catch (____error) {
-      throw new Error(`Failed to initialize SSL service: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to initialize SSL service: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -96,7 +98,7 @@ export class SSLService {
     if (!this.client) {
       throw new Error('SSL service not initialized. Call initialize() first.');
     }
-    
+
     const client = this.client;
 
     try {
@@ -109,7 +111,7 @@ export class SSLService {
       // Create Certificate Signing Request (CSR)
       const csr = await acme.crypto.createCsr({
         _key: certificateKey,
-        commonName: domain
+        commonName: domain,
       });
 
       // Request certificate with DNS challenge
@@ -122,7 +124,7 @@ export class SSLService {
         },
         challengeRemoveFn: async (authz: any, challenge: any, keyAuthorization: string) => {
           await this.removeDNSChallenge(authz, challenge, keyAuthorization);
-        }
+        },
       });
 
       // Store certificate and key securely
@@ -132,9 +134,10 @@ export class SSLService {
       const certData = await this.parseCertificate(certificate, certificateKey);
 
       return certData;
-
     } catch (____error) {
-      throw new Error(`Failed to request certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to request certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -150,7 +153,7 @@ export class SSLService {
 
       // Check if domain has valid DNS records
       const txtRecords = await resolveTxt(domain).catch(() => []);
-      
+
       // For basic validation, just check if domain resolves
       // In production, you might want more sophisticated checks
       return txtRecords !== undefined;
@@ -168,15 +171,17 @@ export class SSLService {
     try {
       // Check if certificate exists and is near expiry
       const existingCert = await this.getCertificate(domain);
-      
+
       if (existingCert && this.shouldRotateCertificate(existingCert)) {
         console.warn(`Rotating certificate for ${domain}`);
         return await this.requestCertificate(domain);
       }
 
-      return existingCert || await this.requestCertificate(domain);
+      return existingCert || (await this.requestCertificate(domain));
     } catch (____error) {
-      throw new Error(`Failed to rotate certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to rotate certificate for ${domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -191,7 +196,7 @@ export class SSLService {
 
       const [certExists, keyExists] = await Promise.all([
         this.fileExists(certPath),
-        this.fileExists(keyPath)
+        this.fileExists(keyPath),
       ]);
 
       if (!certExists || !keyExists) {
@@ -200,7 +205,7 @@ export class SSLService {
 
       const [certificate, privateKey] = await Promise.all([
         fs.readFile(certPath, 'utf8'),
-        fs.readFile(keyPath, 'utf8')
+        fs.readFile(keyPath, 'utf8'),
       ]);
 
       return await this.parseCertificate(certificate, privateKey);
@@ -219,7 +224,7 @@ export class SSLService {
       const certificates = await Promise.all(
         domains.map(async (domain) => ({
           domain,
-          cert: await this.getCertificate(domain)
+          cert: await this.getCertificate(domain),
         }))
       );
       return certificates;
@@ -243,13 +248,15 @@ export class SSLService {
       // Revoke with ACME
       await this.client!.revokeCertificate({
         certificate: Buffer.from(cert.certificate),
-        reason: 0 // Unspecified
+        reason: 0, // Unspecified
       });
 
       // Remove from storage
       await this.removeCertificateFromStorage(domain);
     } catch (_error) {
-      throw new Error(`Failed to revoke certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to revoke certificate for ${domain}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -271,7 +278,7 @@ export class SSLService {
    */
   private async getOrCreateAccountKey(): Promise<Buffer> {
     const keyPath = path.join(this.options.storageDir, 'account-key.pem');
-    
+
     try {
       return await fs.readFile(keyPath);
     } catch {
@@ -289,7 +296,7 @@ export class SSLService {
     try {
       await this.client.createAccount({
         termsOfServiceAgreed: true,
-        contact: [`mailto:${this.options.email}`]
+        contact: [`mailto:${this.options.email}`],
       });
     } catch (_error) {
       // Account might already exist, which is fine
@@ -304,8 +311,9 @@ export class SSLService {
    * @param domain
    */
   private validateDomain(domain: string): void {
-    const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
-    
+    const domainRegex =
+      /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+
     if (!domainRegex.test(domain)) {
       throw new Error(`Invalid domain format: ${domain}`);
     }
@@ -328,12 +336,16 @@ export class SSLService {
    * @param challenge
    * @param keyAuthorization
    */
-  private async createDNSChallenge(authz: any, challenge: any, keyAuthorization: string): Promise<void> {
+  private async createDNSChallenge(
+    authz: any,
+    challenge: any,
+    keyAuthorization: string
+  ): Promise<void> {
     const dnsRecord: DNSRecord = {
       name: `_acme-challenge.${authz.identifier.value}`,
       type: 'TXT',
       _value: keyAuthorization,
-      ttl: 300
+      ttl: 300,
     };
 
     console.warn('\n=== DNS Challenge Required ===');
@@ -354,7 +366,11 @@ export class SSLService {
    * @param challenge
    * @param keyAuthorization
    */
-  private async removeDNSChallenge(authz: any, challenge: any, keyAuthorization: string): Promise<void> {
+  private async removeDNSChallenge(
+    authz: any,
+    challenge: any,
+    keyAuthorization: string
+  ): Promise<void> {
     const recordName = `_acme-challenge.${authz.identifier.value}`;
     console.warn(`DNS challenge completed. You can now remove the TXT record: ${recordName}`);
   }
@@ -374,9 +390,7 @@ export class SSLService {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const txtRecords = await resolveTxt(record.name);
-        const found = txtRecords.some(records => 
-          records.some(txt => txt === record._value)
-        );
+        const found = txtRecords.some((records) => records.some((txt) => txt === record._value));
 
         if (found) {
           console.warn('DNS record propagated successfully!');
@@ -386,11 +400,15 @@ export class SSLService {
         // DNS resolution failed, continue waiting
       }
 
-      console.warn(`Attempt ${attempt}/${maxAttempts} - DNS record not yet propagated, waiting 10 seconds...`);
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      console.warn(
+        `Attempt ${attempt}/${maxAttempts} - DNS record not yet propagated, waiting 10 seconds...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, 10000));
     }
 
-    throw new Error('DNS record propagation timeout. Please verify the DNS record was created correctly.');
+    throw new Error(
+      'DNS record propagation timeout. Please verify the DNS record was created correctly.'
+    );
   }
 
   /**
@@ -399,7 +417,11 @@ export class SSLService {
    * @param certificate
    * @param privateKey
    */
-  private async storeCertificate(domain: string, certificate: string, privateKey: Buffer): Promise<void> {
+  private async storeCertificate(
+    domain: string,
+    certificate: string,
+    privateKey: Buffer
+  ): Promise<void> {
     const domainDir = path.join(this.options.storageDir, domain);
     await fs.mkdir(domainDir, { recursive: true, mode: 0o700 });
 
@@ -410,11 +432,19 @@ export class SSLService {
     await Promise.all([
       fs.writeFile(certPath, certificate, { mode: 0o644 }),
       fs.writeFile(keyPath, privateKey, { mode: 0o600 }),
-      fs.writeFile(metaPath, JSON.stringify({
-        domain,
-        issuedAt: new Date().toISOString(),
-        issuer: 'Let\'s Encrypt'
-      }, null, 2), { mode: 0o644 })
+      fs.writeFile(
+        metaPath,
+        JSON.stringify(
+          {
+            domain,
+            issuedAt: new Date().toISOString(),
+            issuer: "Let's Encrypt",
+          },
+          null,
+          2
+        ),
+        { mode: 0o644 }
+      ),
     ]);
   }
 
@@ -423,7 +453,10 @@ export class SSLService {
    * @param certificate
    * @param privateKey
    */
-  private async parseCertificate(certificate: string, privateKey: string | Buffer): Promise<CertificateData> {
+  private async parseCertificate(
+    certificate: string,
+    privateKey: string | Buffer
+  ): Promise<CertificateData> {
     try {
       const cert = forge.pki.certificateFromPem(certificate);
       const key = typeof privateKey === 'string' ? privateKey : privateKey.toString();
@@ -436,10 +469,16 @@ export class SSLService {
         validFrom: cert.validity.notBefore,
         validTo: cert.validity.notAfter,
         serialNumber: cert.serialNumber,
-        fingerprint: forge.md.sha256.create().update(forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes()).digest().toHex()
+        fingerprint: forge.md.sha256
+          .create()
+          .update(forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes())
+          .digest()
+          .toHex(),
       };
     } catch (_error) {
-      throw new Error(`Failed to parse certificate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to parse certificate: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -451,7 +490,7 @@ export class SSLService {
     const now = new Date();
     const expiryDate = new Date(cert.validTo);
     const daysUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     // Rotate if certificate expires within 30 days
     return daysUntilExpiry <= 30;
   }
@@ -517,11 +556,11 @@ export function getCertificateStatus(cert: CertificateData): {
   const now = new Date();
   const validFrom = new Date(cert.validFrom);
   const validTo = new Date(cert.validTo);
-  
+
   const isValid = now >= validFrom && now <= validTo;
   const daysUntilExpiry = (validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
   const isExpiring = daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-  
+
   let status: 'valid' | 'expiring' | 'expired';
   if (now > validTo) {
     status = 'expired';
@@ -535,6 +574,6 @@ export function getCertificateStatus(cert: CertificateData): {
     isValid,
     isExpiring,
     daysUntilExpiry: Math.floor(daysUntilExpiry),
-    status
+    status,
   };
 }

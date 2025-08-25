@@ -1,6 +1,6 @@
 /**
  * Mobile Testing Utilities for Koveo Gestion Property Management Platform.
- * 
+ *
  * This module provides comprehensive utilities for testing mobile experiences,
  * including viewport management, touch simulation, and mobile-specific assertions.
  */
@@ -30,25 +30,25 @@ export const BREAKPOINTS = {
  */
 export const mockMobileViewport = (device: keyof typeof MOBILE_DEVICES) => {
   const { width, height, userAgent } = MOBILE_DEVICES[device];
-  
+
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
     configurable: true,
     _value: width,
   });
-  
+
   Object.defineProperty(window, 'innerHeight', {
     writable: true,
     configurable: true,
     _value: height,
   });
-  
+
   Object.defineProperty(navigator, 'userAgent', {
     writable: true,
     configurable: true,
     _value: userAgent,
   });
-  
+
   window.dispatchEvent(new Event('resize'));
 };
 
@@ -65,16 +65,16 @@ export const touchEvents = {
    */
   tap: (element: Element, coordinates?: { x: number; y: number }) => {
     const { x = 0, y = 0 } = coordinates || {};
-    
+
     fireEvent.touchStart(element, {
       touches: [{ clientX: x, clientY: y }],
     });
-    
+
     fireEvent.touchEnd(element, {
       changedTouches: [{ clientX: x, clientY: y }],
     });
   },
-  
+
   /**
    * Simulates a long press gesture.
    * @param element
@@ -82,26 +82,22 @@ export const touchEvents = {
    */
   longPress: async (element: Element, duration = 500) => {
     fireEvent.touchStart(element);
-    
-    await new Promise(resolve => setTimeout(resolve, duration));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, duration));
+
     fireEvent.touchEnd(element);
   },
-  
+
   /**
    * Simulates a swipe gesture.
    * @param element
    * @param direction
    * @param distance
    */
-  swipe: (
-    element: Element, 
-    direction: 'left' | 'right' | 'up' | 'down',
-    distance = 100
-  ) => {
+  swipe: (element: Element, direction: 'left' | 'right' | 'up' | 'down', distance = 100) => {
     const startCoords = { x: 100, y: 100 };
     const endCoords = { ...startCoords };
-    
+
     switch (direction) {
       case 'left':
         endCoords.x -= distance;
@@ -116,20 +112,20 @@ export const touchEvents = {
         endCoords.y += distance;
         break;
     }
-    
+
     fireEvent.touchStart(element, {
       touches: [startCoords],
     });
-    
+
     fireEvent.touchMove(element, {
       touches: [endCoords],
     });
-    
+
     fireEvent.touchEnd(element, {
       changedTouches: [endCoords],
     });
   },
-  
+
   /**
    * Simulates pinch-to-zoom gesture.
    * @param element
@@ -138,24 +134,24 @@ export const touchEvents = {
   pinch: (element: Element, scale: number) => {
     const center = { x: 150, y: 150 };
     const distance = 50;
-    
+
     const touch1 = { x: center.x - distance, y: center.y };
     const touch2 = { x: center.x + distance, y: center.y };
-    
+
     // Start pinch
     fireEvent.touchStart(element, {
       touches: [touch1, touch2],
     });
-    
+
     // Move touches based on scale
     const newDistance = distance * scale;
     const newTouch1 = { x: center.x - newDistance, y: center.y };
     const newTouch2 = { x: center.x + newDistance, y: center.y };
-    
+
     fireEvent.touchMove(element, {
       touches: [newTouch1, newTouch2],
     });
-    
+
     fireEvent.touchEnd(element, {
       changedTouches: [newTouch1, newTouch2],
     });
@@ -172,53 +168,53 @@ export const orientation = {
    */
   portrait: (device: keyof typeof MOBILE_DEVICES) => {
     const { width, height } = MOBILE_DEVICES[device];
-    
+
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
       _value: Math.min(width, height),
     });
-    
+
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
       _value: Math.max(width, height),
     });
-    
+
     Object.defineProperty(screen, 'orientation', {
       writable: true,
       configurable: true,
       _value: { angle: 0, type: 'portrait-primary' },
     });
-    
+
     window.dispatchEvent(new Event('orientationchange'));
   },
-  
+
   /**
    * Sets device to landscape mode.
    * @param device
    */
   landscape: (device: keyof typeof MOBILE_DEVICES) => {
     const { width, height } = MOBILE_DEVICES[device];
-    
+
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
       _value: Math.max(width, height),
     });
-    
+
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
       _value: Math.min(width, height),
     });
-    
+
     Object.defineProperty(screen, 'orientation', {
       writable: true,
       configurable: true,
       _value: { angle: 90, type: 'landscape-primary' },
     });
-    
+
     window.dispatchEvent(new Event('orientationchange'));
   },
 };
@@ -242,7 +238,7 @@ export const networkConditions = {
       },
     });
   },
-  
+
   /**
    * Simulates offline condition.
    */
@@ -252,10 +248,10 @@ export const networkConditions = {
       configurable: true,
       _value: false,
     });
-    
+
     window.dispatchEvent(new Event('offline'));
   },
-  
+
   /**
    * Simulates online condition.
    */
@@ -265,7 +261,7 @@ export const networkConditions = {
       configurable: true,
       _value: true,
     });
-    
+
     window.dispatchEvent(new Event('online'));
   },
 };
@@ -282,10 +278,10 @@ export const accessibility = {
     const computedStyle = window.getComputedStyle(element);
     const minHeight = parseInt(computedStyle.minHeight) || parseInt(computedStyle.height);
     const minWidth = parseInt(computedStyle.minWidth) || parseInt(computedStyle.width);
-    
+
     return minHeight >= 44 && minWidth >= 44;
   },
-  
+
   /**
    * Simulates screen reader navigation.
    */
@@ -296,14 +292,14 @@ export const accessibility = {
         code: 'ArrowDown',
       });
     },
-    
+
     previous: () => {
       fireEvent.keyDown(document.activeElement || document.body, {
         _key: 'ArrowUp',
         code: 'ArrowUp',
       });
     },
-    
+
     activate: () => {
       fireEvent.keyDown(document.activeElement || document.body, {
         _key: 'Enter',
@@ -322,12 +318,12 @@ export const performance = {
    */
   simulateSlowCPU: () => {
     const originalSetTimeout = window.setTimeout;
-    
+
     window.setTimeout = ((callback: Function, delay: number = 0) => {
       return originalSetTimeout(callback, delay * 4); // 4x slower
     }) as any;
   },
-  
+
   /**
    * Measures component render time.
    * @param renderFn
@@ -335,9 +331,9 @@ export const performance = {
   measureRenderTime: async (renderFn: () => void): Promise<number> => {
     const start = performance.now();
     renderFn();
-    await new Promise(resolve => setTimeout(resolve, 0)); // Wait for next tick
+    await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for next tick
     const end = performance.now();
-    
+
     return end - start;
   },
 };
@@ -352,33 +348,33 @@ export const forms = {
    */
   showKeyboard: (inputElement: Element) => {
     const viewport = window.innerHeight;
-    
+
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
       _value: viewport * 0.6, // Keyboard typically takes ~40% of screen
     });
-    
+
     window.dispatchEvent(new Event('resize'));
-    
+
     // Focus the input
     fireEvent.focus(inputElement);
   },
-  
+
   /**
    * Simulates mobile keyboard hiding.
    */
   hideKeyboard: () => {
     const device = MOBILE_DEVICES.iphone_12; // Default device
-    
+
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
       _value: device.height,
     });
-    
+
     window.dispatchEvent(new Event('resize'));
-    
+
     // Blur active element
     if (document.activeElement) {
       fireEvent.blur(document.activeElement);
@@ -403,17 +399,17 @@ export const propertyManagement = {
   ) => {
     // Select property
     touchEvents.tap(propertySelect);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Fill description
     fireEvent.change(descriptionInput, {
-      target: { _value: 'Leaky faucet in unit 4B bathroom' }
+      target: { _value: 'Leaky faucet in unit 4B bathroom' },
     });
-    
+
     // Submit form
     touchEvents.tap(submitButton);
   },
-  
+
   /**
    * Simulates resident communication flow.
    * @param recipientSelect
@@ -426,12 +422,12 @@ export const propertyManagement = {
     sendButton: Element
   ) => {
     touchEvents.tap(recipientSelect);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     fireEvent.change(messageInput, {
-      target: { _value: 'Monthly maintenance reminder for your unit' }
+      target: { _value: 'Monthly maintenance reminder for your unit' },
     });
-    
+
     touchEvents.tap(sendButton);
   },
 };

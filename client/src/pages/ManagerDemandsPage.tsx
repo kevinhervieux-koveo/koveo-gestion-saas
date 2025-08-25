@@ -1,19 +1,50 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Search, Filter, Eye, Edit2, CheckCircle, XCircle, Clock, Building2, Home, User } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  Eye,
+  Edit2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Building2,
+  Home,
+  User,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
@@ -32,7 +63,14 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'approved'
+    | 'rejected'
+    | 'in_progress'
+    | 'completed';
   submitterId: string;
   buildingId: string;
   residenceId?: string;
@@ -105,12 +143,12 @@ const statusLabels = {
  *
  */
 export default function /**
-   * Manager demands page function.
-   */ /**
-   * Manager demands page function.
-   */
+ * Manager demands page function.
+ */ /**
+ * Manager demands page function.
+ */
 
- ManagerDemandsPage() {
+ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -146,13 +184,12 @@ export default function /**
         },
         body: JSON.stringify(data),
       }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
       if (!response.ok) {
         throw new Error('Failed to review demand');
@@ -189,39 +226,37 @@ export default function /**
 
   // Filter demands
   const filteredDemands = (demands as Demand[]).filter((demand: Demand) => {
-    const matchesSearch = demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (demand.submitter && (
-                           demand.submitter.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           demand.submitter.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           demand.submitter.email.toLowerCase().includes(searchTerm.toLowerCase())
-                         ));
+    const matchesSearch =
+      demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (demand.submitter &&
+        (demand.submitter.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          demand.submitter.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          demand.submitter.email.toLowerCase().includes(searchTerm.toLowerCase())));
     const matchesStatus = statusFilter === 'all' || demand.status === statusFilter;
     const matchesType = typeFilter === 'all' || demand.type === typeFilter;
     const matchesBuilding = buildingFilter === 'all' || demand.buildingId === buildingFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType && matchesBuilding;
   });
 
   // Group demands by status
-  const pendingDemands = filteredDemands.filter((d: Demand) => 
-    ['submitted'].includes(d.status)
-  );
-  const reviewDemands = filteredDemands.filter((d: Demand) => 
+  const pendingDemands = filteredDemands.filter((d: Demand) => ['submitted'].includes(d.status));
+  const reviewDemands = filteredDemands.filter((d: Demand) =>
     ['under_review', 'approved', 'in_progress'].includes(d.status)
   );
-  const completedDemands = filteredDemands.filter((d: Demand) => 
+  const completedDemands = filteredDemands.filter((d: Demand) =>
     ['completed', 'rejected'].includes(d.status)
   );
 
-  const handleReviewDemand = (_data: ReviewFormData) => { /**
-   * If function.
-   * @param selectedDemand - SelectedDemand parameter.
-   */ /**
-   * If function.
-   * @param selectedDemand - SelectedDemand parameter.
-   */
-
+  const handleReviewDemand = (_data: ReviewFormData) => {
+    /**
+     * If function.
+     * @param selectedDemand - SelectedDemand parameter.
+     */ /**
+     * If function.
+     * @param selectedDemand - SelectedDemand parameter.
+     */
 
     if (selectedDemand) {
       reviewDemandMutation.mutate({ id: selectedDemand.id, data: _data });
@@ -236,7 +271,7 @@ export default function /**
   const handleOpenReview = (demand: Demand) => {
     setSelectedDemand(demand);
     reviewForm.reset({
-      status: demand.status === 'submitted' ? 'under_review' : demand.status as any,
+      status: demand.status === 'submitted' ? 'under_review' : (demand.status as any),
       reviewNotes: demand.reviewNotes || '',
       assignationBuildingId: demand.assignationBuildingId || '',
       assignationResidenceId: demand.assignationResidenceId || '',
@@ -247,108 +282,105 @@ export default function /**
   const quickApprove = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      data: { status: 'approved', reviewNotes: 'Approved by manager' }
+      data: { status: 'approved', reviewNotes: 'Approved by manager' },
     });
   };
 
   const quickReject = (demand: Demand) => {
     reviewDemandMutation.mutate({
       id: demand.id,
-      data: { status: 'rejected', reviewNotes: 'Rejected by manager' }
+      data: { status: 'rejected', reviewNotes: 'Rejected by manager' },
     });
   };
 
   const DemandCard = ({ demand }: { demand: Demand }) => {
-    const building = buildings.find(b => b.id === demand.buildingId);
-    const residence = residences.find(r => r.id === demand.residenceId);
+    const building = buildings.find((b) => b.id === demand.buildingId);
+    const residence = residences.find((r) => r.id === demand.residenceId);
 
     return (
-      <Card className="cursor-pointer hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{typeLabels[demand.type]}</Badge>
-              <Badge className={statusColors[demand.status]}>
-                {statusLabels[demand.status]}
-              </Badge>
+      <Card className='cursor-pointer hover:shadow-md transition-shadow'>
+        <CardHeader className='pb-3'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
+              <Badge className={statusColors[demand.status]}>{statusLabels[demand.status]}</Badge>
             </div>
-            <div className="flex items-center gap-1">
+            <div className='flex items-center gap-1'>
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={(e) => {
                   e.stopPropagation();
                   handleViewDemand(demand);
                 }}
               >
-                <Eye className="h-4 w-4" />
+                <Eye className='h-4 w-4' />
               </Button>
               {demand.status === 'submitted' && (
                 <>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant='ghost'
+                    size='sm'
                     onClick={(e) => {
                       e.stopPropagation();
                       quickApprove(demand);
                     }}
-                    className="text-green-600 hover:text-green-700"
+                    className='text-green-600 hover:text-green-700'
                   >
-                    <CheckCircle className="h-4 w-4" />
+                    <CheckCircle className='h-4 w-4' />
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant='ghost'
+                    size='sm'
                     onClick={(e) => {
                       e.stopPropagation();
                       quickReject(demand);
                     }}
-                    className="text-red-600 hover:text-red-700"
+                    className='text-red-600 hover:text-red-700'
                   >
-                    <XCircle className="h-4 w-4" />
+                    <XCircle className='h-4 w-4' />
                   </Button>
                 </>
               )}
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={(e) => {
                   e.stopPropagation();
                   handleOpenReview(demand);
                 }}
               >
-                <Edit2 className="h-4 w-4" />
+                <Edit2 className='h-4 w-4' />
               </Button>
             </div>
           </div>
-          <CardTitle className="text-base line-clamp-2">
+          <CardTitle className='text-base line-clamp-2'>
             {demand.description.substring(0, 100)}
             {demand.description.length > 100 && '...'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-sm text-muted-foreground space-y-1">
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
+        <CardContent className='pt-0'>
+          <div className='text-sm text-muted-foreground space-y-1'>
+            <div className='flex items-center gap-1'>
+              <User className='h-3 w-3' />
               <span>
-                {demand.submitter 
-                  ? `${demand.submitter.firstName} ${demand.submitter.lastName}` 
-                  : 'Unknown User'
-                }
+                {demand.submitter
+                  ? `${demand.submitter.firstName} ${demand.submitter.lastName}`
+                  : 'Unknown User'}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <Building2 className="h-3 w-3" />
+            <div className='flex items-center gap-1'>
+              <Building2 className='h-3 w-3' />
               <span>{building?.name || 'Unknown Building'}</span>
             </div>
             {residence && (
-              <div className="flex items-center gap-1">
-                <Home className="h-3 w-3" />
+              <div className='flex items-center gap-1'>
+                <Home className='h-3 w-3' />
                 <span>{residence.name}</span>
               </div>
             )}
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+            <div className='flex items-center gap-1'>
+              <Clock className='h-3 w-3' />
               <span>{new Date(demand.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
@@ -363,81 +395,77 @@ export default function /**
    * @param isLoading - IsLoading parameter.
    */
 
-
-
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">Loading demands...</div>
+      <div className='container mx-auto py-6'>
+        <div className='flex items-center justify-center h-64'>
+          <div className='text-center'>Loading demands...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className='container mx-auto py-6 space-y-6'>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold">Manage Demands</h1>
-          <p className="text-muted-foreground">
-            Review and manage resident requests
-          </p>
+          <h1 className='text-3xl font-bold'>Manage Demands</h1>
+          <p className='text-muted-foreground'>Review and manage resident requests</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-blue-50">
+        <div className='flex items-center gap-2'>
+          <Badge variant='outline' className='bg-blue-50'>
             {pendingDemands.length} Pending Review
           </Badge>
-          <Badge variant="outline" className="bg-yellow-50">
+          <Badge variant='outline' className='bg-yellow-50'>
             {reviewDemands.length} In Progress
           </Badge>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <div className='flex items-center gap-4 flex-wrap'>
+        <div className='relative flex-1 max-w-sm'>
+          <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
           <Input
-            placeholder="Search demands, users..."
+            placeholder='Search demands, users...'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className='pl-10'
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
+          <SelectTrigger className='w-40'>
+            <SelectValue placeholder='Status' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="submitted">Submitted</SelectItem>
-            <SelectItem value="under_review">Under Review</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value='all'>All Status</SelectItem>
+            <SelectItem value='submitted'>Submitted</SelectItem>
+            <SelectItem value='under_review'>Under Review</SelectItem>
+            <SelectItem value='approved'>Approved</SelectItem>
+            <SelectItem value='in_progress'>In Progress</SelectItem>
+            <SelectItem value='completed'>Completed</SelectItem>
+            <SelectItem value='rejected'>Rejected</SelectItem>
           </SelectContent>
         </Select>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Type" />
+          <SelectTrigger className='w-40'>
+            <SelectValue placeholder='Type' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="maintenance">Maintenance</SelectItem>
-            <SelectItem value="complaint">Complaint</SelectItem>
-            <SelectItem value="information">Information</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value='all'>All Types</SelectItem>
+            <SelectItem value='maintenance'>Maintenance</SelectItem>
+            <SelectItem value='complaint'>Complaint</SelectItem>
+            <SelectItem value='information'>Information</SelectItem>
+            <SelectItem value='other'>Other</SelectItem>
           </SelectContent>
         </Select>
         <Select value={buildingFilter} onValueChange={setBuildingFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Building" />
+          <SelectTrigger className='w-40'>
+            <SelectValue placeholder='Building' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
+            <SelectItem value='all'>All Buildings</SelectItem>
             {buildings.map((building) => (
               <SelectItem key={building.id} value={building.id}>
                 {building.name}
@@ -448,60 +476,54 @@ export default function /**
       </div>
 
       {/* Demands List */}
-      <Tabs defaultValue="pending" className="w-full">
+      <Tabs defaultValue='pending' className='w-full'>
         <TabsList>
-          <TabsTrigger value="pending">
-            Pending Review ({pendingDemands.length})
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            In Progress ({reviewDemands.length})
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed ({completedDemands.length})
-          </TabsTrigger>
+          <TabsTrigger value='pending'>Pending Review ({pendingDemands.length})</TabsTrigger>
+          <TabsTrigger value='active'>In Progress ({reviewDemands.length})</TabsTrigger>
+          <TabsTrigger value='completed'>Completed ({completedDemands.length})</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="pending" className="space-y-4">
+
+        <TabsContent value='pending' className='space-y-4'>
           {pendingDemands.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No demands pending review</p>
+              <CardContent className='p-6 text-center'>
+                <p className='text-muted-foreground'>No demands pending review</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
               {pendingDemands.map((demand: Demand) => (
                 <DemandCard key={demand.id} demand={demand} />
               ))}
             </div>
           )}
         </TabsContent>
-        
-        <TabsContent value="active" className="space-y-4">
+
+        <TabsContent value='active' className='space-y-4'>
           {reviewDemands.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No active demands</p>
+              <CardContent className='p-6 text-center'>
+                <p className='text-muted-foreground'>No active demands</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
               {reviewDemands.map((demand: Demand) => (
                 <DemandCard key={demand.id} demand={demand} />
               ))}
             </div>
           )}
         </TabsContent>
-        
-        <TabsContent value="completed" className="space-y-4">
+
+        <TabsContent value='completed' className='space-y-4'>
           {completedDemands.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No completed demands</p>
+              <CardContent className='p-6 text-center'>
+                <p className='text-muted-foreground'>No completed demands</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
               {completedDemands.map((demand: Demand) => (
                 <DemandCard key={demand.id} demand={demand} />
               ))}
@@ -512,44 +534,53 @@ export default function /**
 
       {/* View Demand Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className='max-w-2xl'>
           <DialogHeader>
             <DialogTitle>Demand Details</DialogTitle>
           </DialogHeader>
           {selectedDemand && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{typeLabels[selectedDemand.type]}</Badge>
+            <div className='space-y-4'>
+              <div className='flex items-center gap-2'>
+                <Badge variant='outline'>{typeLabels[selectedDemand.type]}</Badge>
                 <Badge className={statusColors[selectedDemand.status]}>
                   {statusLabels[selectedDemand.status]}
                 </Badge>
               </div>
               <div>
                 <Label>Submitted by</Label>
-                <p className="mt-1 text-sm">
-                  {selectedDemand.submitter 
-                    ? `${selectedDemand.submitter.firstName} ${selectedDemand.submitter.lastName} (${selectedDemand.submitter.email})` 
-                    : 'Unknown User'
-                  }
+                <p className='mt-1 text-sm'>
+                  {selectedDemand.submitter
+                    ? `${selectedDemand.submitter.firstName} ${selectedDemand.submitter.lastName} (${selectedDemand.submitter.email})`
+                    : 'Unknown User'}
                 </p>
               </div>
               <div>
                 <Label>Description</Label>
-                <p className="mt-1 text-sm">{selectedDemand.description}</p>
+                <p className='mt-1 text-sm'>{selectedDemand.description}</p>
               </div>
               {selectedDemand.reviewNotes && (
                 <div>
                   <Label>Review Notes</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">{selectedDemand.reviewNotes}</p>
+                  <p className='mt-1 text-sm text-muted-foreground'>{selectedDemand.reviewNotes}</p>
                 </div>
               )}
-              <div className="text-sm text-muted-foreground">
-                <p><strong>Building:</strong> {buildings.find(b => b.id === selectedDemand.buildingId)?.name || 'Unknown'}</p>
+              <div className='text-sm text-muted-foreground'>
+                <p>
+                  <strong>Building:</strong>{' '}
+                  {buildings.find((b) => b.id === selectedDemand.buildingId)?.name || 'Unknown'}
+                </p>
                 {selectedDemand.residenceId && (
-                  <p><strong>Residence:</strong> {residences.find(r => r.id === selectedDemand.residenceId)?.name || 'Unknown'}</p>
+                  <p>
+                    <strong>Residence:</strong>{' '}
+                    {residences.find((r) => r.id === selectedDemand.residenceId)?.name || 'Unknown'}
+                  </p>
                 )}
-                <p><strong>Created:</strong> {new Date(selectedDemand.createdAt).toLocaleString()}</p>
-                <p><strong>Updated:</strong> {new Date(selectedDemand.updatedAt).toLocaleString()}</p>
+                <p>
+                  <strong>Created:</strong> {new Date(selectedDemand.createdAt).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Updated:</strong> {new Date(selectedDemand.updatedAt).toLocaleString()}
+                </p>
               </div>
             </div>
           )}
@@ -558,33 +589,31 @@ export default function /**
 
       {/* Review Demand Dialog */}
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className='max-w-md'>
           <DialogHeader>
             <DialogTitle>Review Demand</DialogTitle>
-            <DialogDescription>
-              Update the status and add review notes
-            </DialogDescription>
+            <DialogDescription>Update the status and add review notes</DialogDescription>
           </DialogHeader>
           <Form {...reviewForm}>
-            <form onSubmit={reviewForm.handleSubmit(handleReviewDemand)} className="space-y-4">
+            <form onSubmit={reviewForm.handleSubmit(handleReviewDemand)} className='space-y-4'>
               <FormField
                 control={reviewForm.control}
-                name="status"
+                name='status'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder='Select status' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="under_review">Under Review</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value='under_review'>Under Review</SelectItem>
+                        <SelectItem value='approved'>Approved</SelectItem>
+                        <SelectItem value='rejected'>Rejected</SelectItem>
+                        <SelectItem value='in_progress'>In Progress</SelectItem>
+                        <SelectItem value='completed'>Completed</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -593,14 +622,14 @@ export default function /**
               />
               <FormField
                 control={reviewForm.control}
-                name="reviewNotes"
+                name='reviewNotes'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Review Notes</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Add notes about your review decision..."
-                        className="min-h-[100px]"
+                        placeholder='Add notes about your review decision...'
+                        className='min-h-[100px]'
                         {...field}
                       />
                     </FormControl>
@@ -610,18 +639,18 @@ export default function /**
               />
               <FormField
                 control={reviewForm.control}
-                name="assignationBuildingId"
+                name='assignationBuildingId'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assign to Building (Optional)</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select building" />
+                          <SelectValue placeholder='Select building' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">No Assignment</SelectItem>
+                        <SelectItem value='none'>No Assignment</SelectItem>
                         {buildings.map((building) => (
                           <SelectItem key={building.id} value={building.id}>
                             {building.name}
@@ -634,10 +663,7 @@ export default function /**
                 )}
               />
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={reviewDemandMutation.isPending}
-                >
+                <Button type='submit' disabled={reviewDemandMutation.isPending}>
                   {reviewDemandMutation.isPending ? 'Updating...' : 'Update Demand'}
                 </Button>
               </DialogFooter>

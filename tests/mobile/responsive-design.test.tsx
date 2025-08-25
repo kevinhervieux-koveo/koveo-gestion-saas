@@ -35,9 +35,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
+      <BrowserRouter>{component}</BrowserRouter>
     </QueryClientProvider>
   );
 };
@@ -51,22 +49,22 @@ describe('Responsive Design Tests', () => {
   describe('Layout Components', () => {
     it('should render mobile-optimized header on small screens', async () => {
       const { default: Header } = await import('../../client/src/components/layout/header');
-      
+
       renderWithProviders(<Header />);
-      
+
       // Check for mobile-specific elements
       const header = screen.getByRole('banner');
       expect(header).toBeInTheDocument();
-      
+
       // Verify mobile-optimized styling classes
       expect(header).toHaveClass('lg:px-6'); // Responsive padding
     });
 
     it('should adapt sidebar for mobile navigation', async () => {
       const { default: Sidebar } = await import('../../client/src/components/layout/sidebar');
-      
+
       renderWithProviders(<Sidebar />);
-      
+
       // On mobile, sidebar should be collapsible or hidden
       const sidebar = screen.getByRole('navigation');
       expect(sidebar).toBeInTheDocument();
@@ -76,40 +74,47 @@ describe('Responsive Design Tests', () => {
   describe('Dashboard Responsiveness', () => {
     it('should render owner dashboard responsively across breakpoints', async () => {
       const { default: OwnerDashboard } = await import('../../client/src/pages/owner/dashboard');
-      
+
       // Test mobile layout
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       renderWithProviders(<OwnerDashboard />);
-      
+
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
-      
+
       // Test tablet layout
       mockViewport(BREAKPOINTS.tablet.width, BREAKPOINTS.tablet.height);
       renderWithProviders(<OwnerDashboard />);
-      
+
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
-      
+
       // Test desktop layout
       mockViewport(BREAKPOINTS.desktop.width, BREAKPOINTS.desktop.height);
       renderWithProviders(<OwnerDashboard />);
-      
+
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
     });
 
     it('should render resident dashboard with mobile-optimized layout', async () => {
-      const { default: ResidentDashboard } = await import('../../client/src/pages/residents/dashboard');
-      
+      const { default: ResidentDashboard } = await import(
+        '../../client/src/pages/residents/dashboard'
+      );
+
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       renderWithProviders(<ResidentDashboard />);
-      
+
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
     });
   });
 
   describe('Card Component Responsiveness', () => {
     it('should adapt card layouts for different screen sizes', () => {
-      const { Card, CardContent, CardHeader, CardTitle } = require('../../client/src/components/ui/card');
-      
+      const {
+        Card,
+        CardContent,
+        CardHeader,
+        CardTitle,
+      } = require('../../client/src/components/ui/card');
+
       // Test mobile card layout
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       render(
@@ -122,7 +127,7 @@ describe('Responsive Design Tests', () => {
           </CardContent>
         </Card>
       );
-      
+
       const card = screen.getByText('Property Information').closest('[class*="rounded-"]');
       expect(card).toBeInTheDocument();
       expect(card).toHaveClass('border');
@@ -133,20 +138,20 @@ describe('Responsive Design Tests', () => {
     it('should render forms with mobile-optimized input sizing', () => {
       const { Input } = require('../../client/src/components/ui/input');
       const { Label } = require('../../client/src/components/ui/label');
-      
+
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       render(
         <div>
-          <Label htmlFor="property-name">Property Name</Label>
-          <Input 
-            id="property-name" 
-            type="text" 
-            placeholder="Enter property name"
-            className="w-full"
+          <Label htmlFor='property-name'>Property Name</Label>
+          <Input
+            id='property-name'
+            type='text'
+            placeholder='Enter property name'
+            className='w-full'
           />
         </div>
       );
-      
+
       const input = screen.getByLabelText(/Property Name/i);
       expect(input).toBeInTheDocument();
       expect(input).toHaveClass('w-full');
@@ -154,15 +159,15 @@ describe('Responsive Design Tests', () => {
 
     it('should handle textarea responsiveness for maintenance requests', () => {
       const { Textarea } = require('../../client/src/components/ui/textarea');
-      
+
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       render(
-        <Textarea 
-          placeholder="Describe the maintenance issue..."
-          className="min-h-[120px] resize-none"
+        <Textarea
+          placeholder='Describe the maintenance issue...'
+          className='min-h-[120px] resize-none'
         />
       );
-      
+
       const textarea = screen.getByPlaceholderText(/Describe the maintenance issue/i);
       expect(textarea).toBeInTheDocument();
       expect(textarea).toHaveClass('min-h-[120px]');
@@ -171,11 +176,18 @@ describe('Responsive Design Tests', () => {
 
   describe('Table Responsiveness', () => {
     it('should handle table overflow on mobile devices', () => {
-      const { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } = require('../../client/src/components/ui/table');
-      
+      const {
+        Table,
+        TableHeader,
+        TableBody,
+        TableRow,
+        TableHead,
+        TableCell,
+      } = require('../../client/src/components/ui/table');
+
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       render(
-        <div className="overflow-x-auto">
+        <div className='overflow-x-auto'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -196,7 +208,7 @@ describe('Responsive Design Tests', () => {
           </Table>
         </div>
       );
-      
+
       expect(screen.getByText('Property')).toBeInTheDocument();
       expect(screen.getByText('Maple Heights')).toBeInTheDocument();
     });
@@ -205,20 +217,20 @@ describe('Responsive Design Tests', () => {
   describe('Navigation Responsiveness', () => {
     it('should show mobile navigation patterns', () => {
       const { Button } = require('../../client/src/components/ui/button');
-      
+
       mockViewport(BREAKPOINTS.mobile.width, BREAKPOINTS.mobile.height);
       render(
-        <div className="flex justify-between items-center p-4 md:hidden">
-          <Button variant="ghost" size="sm">
+        <div className='flex justify-between items-center p-4 md:hidden'>
+          <Button variant='ghost' size='sm'>
             ☰ Menu
           </Button>
-          <h1 className="text-lg font-semibold">Koveo Gestion</h1>
-          <Button variant="ghost" size="sm">
+          <h1 className='text-lg font-semibold'>Koveo Gestion</h1>
+          <Button variant='ghost' size='sm'>
             👤
           </Button>
         </div>
       );
-      
+
       expect(screen.getByText('☰ Menu')).toBeInTheDocument();
       expect(screen.getByText('Koveo Gestion')).toBeInTheDocument();
     });

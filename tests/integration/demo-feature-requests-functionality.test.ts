@@ -14,16 +14,16 @@ describe('Demo Feature Request Functionality Tests', () => {
   const demoUsers = {
     admin: {
       email: 'manager@563pionniers.test',
-      password: 'TestManager2024!'
+      password: 'TestManager2024!',
     },
     tenant: {
-      email: 'tenant@563pionniers.test', 
-      password: 'TestTenant2024!'
+      email: 'tenant@563pionniers.test',
+      password: 'TestTenant2024!',
     },
     resident: {
       email: 'resident@563pionniers.test',
-      password: 'TestResident2024!'
-    }
+      password: 'TestResident2024!',
+    },
   };
 
   let createdFeatureRequestIds: string[] = [];
@@ -37,10 +37,8 @@ describe('Demo Feature Request Functionality Tests', () => {
       // Login all demo users
       for (const [role, credentials] of Object.entries(demoUsers)) {
         console.log(`🔐 Logging in demo ${role}...`);
-        
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send(credentials);
+
+        const response = await request(app).post('/api/auth/login').send(credentials);
 
         if (response.status === 200 && response.headers['set-cookie']) {
           demoUserCookies[role] = response.headers['set-cookie'];
@@ -59,7 +57,7 @@ describe('Demo Feature Request Functionality Tests', () => {
     // Cleanup: Delete any feature requests created during testing
     if (createdFeatureRequestIds.length > 0 && demoUserCookies.admin) {
       console.log('🧹 Cleaning up test feature requests...');
-      
+
       for (const featureRequestId of createdFeatureRequestIds) {
         try {
           await request(app)
@@ -75,10 +73,11 @@ describe('Demo Feature Request Functionality Tests', () => {
   describe('Feature Request Creation by Different User Roles', () => {
     const sampleFeatureRequest = {
       title: 'Enhanced Dashboard Analytics',
-      description: 'Add more detailed analytics and reporting capabilities to the dashboard with real-time data visualization.',
+      description:
+        'Add more detailed analytics and reporting capabilities to the dashboard with real-time data visualization.',
       need: 'Users need better insights into their property performance and tenant behavior to make informed decisions.',
       category: 'dashboard',
-      page: 'Dashboard'
+      page: 'Dashboard',
     };
 
     test('should allow admin to create feature request', async () => {
@@ -111,7 +110,7 @@ describe('Demo Feature Request Functionality Tests', () => {
         ...sampleFeatureRequest,
         title: 'Mobile App for Tenants',
         category: 'mobile_app',
-        page: 'Mobile Application'
+        page: 'Mobile Application',
       };
 
       const response = await request(app)
@@ -136,7 +135,7 @@ describe('Demo Feature Request Functionality Tests', () => {
         ...sampleFeatureRequest,
         title: 'Improved Maintenance Request System',
         category: 'maintenance',
-        page: 'Maintenance'
+        page: 'Maintenance',
       };
 
       const response = await request(app)
@@ -162,7 +161,7 @@ describe('Demo Feature Request Functionality Tests', () => {
       const invalidFeatureRequest = {
         title: '',
         description: 'Short',
-        category: 'dashboard'
+        category: 'dashboard',
         // Missing need and page fields
       };
 
@@ -186,7 +185,7 @@ describe('Demo Feature Request Functionality Tests', () => {
         description: 'This is a test feature request with invalid category.',
         need: 'Testing validation rules.',
         category: 'invalid_category',
-        page: 'Test Page'
+        page: 'Test Page',
       };
 
       const response = await request(app)
@@ -212,7 +211,7 @@ describe('Demo Feature Request Functionality Tests', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Admin should see submitter information
       if (response.body.length > 0) {
         const featureRequest = response.body[0];
@@ -233,7 +232,7 @@ describe('Demo Feature Request Functionality Tests', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Non-admin should NOT see submitter information
       if (response.body.length > 0) {
         const featureRequest = response.body[0];
@@ -260,7 +259,7 @@ describe('Demo Feature Request Functionality Tests', () => {
           description: 'This feature request is for testing upvoting functionality.',
           need: 'Testing the upvoting system.',
           category: 'other',
-          page: 'Test'
+          page: 'Test',
         });
 
       expect(response.status).toBe(201);
@@ -332,7 +331,7 @@ describe('Demo Feature Request Functionality Tests', () => {
           description: 'This feature request is for testing admin management functionality.',
           need: 'Testing admin capabilities.',
           category: 'other',
-          page: 'Admin Test'
+          page: 'Admin Test',
         });
 
       expect(response.status).toBe(201);
@@ -349,7 +348,7 @@ describe('Demo Feature Request Functionality Tests', () => {
       const updates = {
         status: 'under_review',
         assignedTo: 'john.doe@example.com',
-        adminNotes: 'Reviewing this feature request for feasibility.'
+        adminNotes: 'Reviewing this feature request for feasibility.',
       };
 
       const response = await request(app)
@@ -371,7 +370,7 @@ describe('Demo Feature Request Functionality Tests', () => {
 
       const updates = {
         status: 'completed',
-        adminNotes: 'Trying to update as non-admin'
+        adminNotes: 'Trying to update as non-admin',
       };
 
       const response = await request(app)
@@ -396,12 +395,16 @@ describe('Demo Feature Request Functionality Tests', () => {
       expect(response.body).toHaveProperty('success', true);
 
       // Remove from cleanup list since it's already deleted
-      createdFeatureRequestIds = createdFeatureRequestIds.filter(id => id !== adminTestFeatureRequestId);
+      createdFeatureRequestIds = createdFeatureRequestIds.filter(
+        (id) => id !== adminTestFeatureRequestId
+      );
     });
 
     test('should prevent non-admin from deleting feature request', async () => {
       if (!demoUserCookies.tenant || createdFeatureRequestIds.length === 0) {
-        console.log('⏭️ Skipping non-admin delete test - missing cookies or no test feature requests');
+        console.log(
+          '⏭️ Skipping non-admin delete test - missing cookies or no test feature requests'
+        );
         return;
       }
 
@@ -422,7 +425,7 @@ describe('Demo Feature Request Functionality Tests', () => {
       }
 
       const nonExistentId = '00000000-0000-0000-0000-000000000000';
-      
+
       const response = await request(app)
         .get(`/api/feature-requests/${nonExistentId}`)
         .set('Cookie', demoUserCookies.admin);
@@ -437,7 +440,7 @@ describe('Demo Feature Request Functionality Tests', () => {
       }
 
       const nonExistentId = '00000000-0000-0000-0000-000000000000';
-      
+
       const response = await request(app)
         .post(`/api/feature-requests/${nonExistentId}/upvote`)
         .set('Cookie', demoUserCookies.tenant);
@@ -456,7 +459,7 @@ describe('Demo Feature Request Functionality Tests', () => {
       }
 
       const startTime = Date.now();
-      
+
       const response = await request(app)
         .get('/api/feature-requests')
         .set('Cookie', demoUserCookies.admin);

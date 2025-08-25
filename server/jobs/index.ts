@@ -16,13 +16,13 @@ import { moneyFlowJob } from './money_flow_job';
 export async function startJobs(): Promise<void> {
   try {
     console.warn('Starting background jobs...');
-    
+
     // Start SSL renewal job
     await sslRenewalJob.start();
-    
+
     // Start Money Flow automation job
     await moneyFlowJob.start();
-    
+
     console.warn('All background jobs started successfully');
   } catch (____error) {
     console.error('Failed to start background jobs:', _error);
@@ -39,10 +39,10 @@ export async function startJobs(): Promise<void> {
  */
 export function stopJobs(): void {
   console.warn('Stopping background jobs...');
-  
+
   sslRenewalJob.stop();
   moneyFlowJob.stop();
-  
+
   console.warn('All background jobs stopped');
 }
 
@@ -56,7 +56,7 @@ export function stopJobs(): void {
 export function getJobsStatus(): Record<string, any> {
   return {
     sslRenewal: sslRenewalJob.getStatus(),
-    moneyFlow: moneyFlowJob.getStatus()
+    moneyFlow: moneyFlowJob.getStatus(),
   };
 }
 

@@ -18,7 +18,15 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: {children: React.ReactNode, href?: string, [_key: string]: any}) => (
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href?: string;
+    [_key: string]: any;
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -153,7 +161,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       mockApiRequest
         .mockResolvedValueOnce({ buildings: mockBuildings })
         .mockResolvedValueOnce({ organizations: mockOrganizations })
-        .mockResolvedValueOnce({ 
+        .mockResolvedValueOnce({
           message: 'Building created successfully',
           building: {
             id: 'new-building-id',
@@ -169,27 +177,30 @@ describe('Buildings Management E2E Workflow Tests', () => {
             totalFloors: 20,
             parkingSpaces: 80,
             storageSpaces: 50,
-          }
+          },
         })
-        .mockResolvedValueOnce({ 
-          buildings: [...mockBuildings, {
-            id: 'new-building-id',
-            name: 'Tour Moderne',
-            organizationId: 'org-koveo',
-            organizationName: 'Koveo Management',
-            address: '789 Rue University',
-            city: 'Montréal',
-            province: 'QC',
-            postalCode: 'H3A 2B4',
-            buildingType: 'condo',
-            yearBuilt: 2024,
-            totalUnits: 100,
-            totalFloors: 20,
-            parkingSpaces: 80,
-            storageSpaces: 50,
-            accessType: 'organization',
-            isActive: true,
-          }]
+        .mockResolvedValueOnce({
+          buildings: [
+            ...mockBuildings,
+            {
+              id: 'new-building-id',
+              name: 'Tour Moderne',
+              organizationId: 'org-koveo',
+              organizationName: 'Koveo Management',
+              address: '789 Rue University',
+              city: 'Montréal',
+              province: 'QC',
+              postalCode: 'H3A 2B4',
+              buildingType: 'condo',
+              yearBuilt: 2024,
+              totalUnits: 100,
+              totalFloors: 20,
+              parkingSpaces: 80,
+              storageSpaces: 50,
+              accessType: 'organization',
+              isActive: true,
+            },
+          ],
         });
 
       render(<Buildings />, { wrapper: createWrapper() });
@@ -218,7 +229,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       // Select organization
       const orgSelect = screen.getByRole('combobox');
       await user.click(orgSelect);
-      
+
       await waitFor(async () => {
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
@@ -301,14 +312,14 @@ describe('Buildings Management E2E Workflow Tests', () => {
       mockApiRequest
         .mockResolvedValueOnce({ buildings: mockBuildings })
         .mockResolvedValueOnce({ organizations: mockOrganizations })
-        .mockResolvedValueOnce({ 
+        .mockResolvedValueOnce({
           message: 'Building updated successfully',
           building: {
             ...mockBuildings[1],
             name: 'Résidence Les Érables - Rénové',
             parkingSpaces: 0,
             storageSpaces: 0,
-          }
+          },
         })
         .mockResolvedValueOnce({ buildings: mockBuildings });
 
@@ -396,10 +407,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
 
       // Verify delete API call
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'DELETE',
-          '/api/admin/buildings/building-1'
-        );
+        expect(mockApiRequest).toHaveBeenCalledWith('DELETE', '/api/admin/buildings/building-1');
       });
 
       // Verify success notification
@@ -606,7 +614,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
 
         const orgSelect = screen.getByRole('combobox');
         await user.click(orgSelect);
-        
+
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
 
@@ -644,7 +652,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
       const slowPromise = new Promise((resolve) => {
         setTimeout(() => resolve({ buildings: mockBuildings }), 100);
       });
-      
+
       mockApiRequest
         .mockReturnValueOnce(slowPromise)
         .mockResolvedValueOnce({ organizations: mockOrganizations });
@@ -684,7 +692,7 @@ describe('Buildings Management E2E Workflow Tests', () => {
 
         const orgSelect = screen.getByRole('combobox');
         await user.click(orgSelect);
-        
+
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
 

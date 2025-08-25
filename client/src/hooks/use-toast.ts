@@ -28,7 +28,7 @@ let count = 0;
 /**
  * Generates a unique identifier for toast notifications.
  * Uses an incrementing counter with overflow protection to ensure uniqueness.
- * 
+ *
  * @returns {string} Unique string identifier for the toast.
  * @example
  * ```typescript
@@ -40,12 +40,12 @@ let count = 0;
  * @returns Function result.
  */
 function /**
-   * Gen id function.
-   */ /**
-   * Gen id function.
-   */
+ * Gen id function.
+ */ /**
+ * Gen id function.
+ */
 
- genId() {
+genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER;
   return count.toString();
 }
@@ -116,7 +116,8 @@ const addToRemoveQueue = (toastId: string) => {
  * @param action - Action parameter.
  * @returns State result.
  */
-export const reducer = (state: State, action: Action): State => { /**
+export const reducer = (state: State, action: Action): State => {
+  /**
    * Switch function.
    * @param action.type - Action.type parameter.
    */
@@ -140,7 +141,6 @@ export const reducer = (state: State, action: Action): State => { /**
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
 
-
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -161,11 +161,10 @@ export const reducer = (state: State, action: Action): State => { /**
         ),
       };
     }
-    case 'REMOVE_TOAST': /**
-   * If function.
-   * @param action.toastId === undefined - action.toastId === undefined parameter.
-   */
-
+    case 'REMOVE_TOAST' /**
+     * If function.
+     * @param action.toastId === undefined - action.toastId === undefined parameter.
+     */:
       if (action.toastId === undefined) {
         return {
           ...state,
@@ -186,7 +185,7 @@ let memoryState: State = { toasts: [] };
 /**
  * Dispatches an action to update the toast state and notifies all listeners.
  * Central state management function for the toast system.
- * 
+ *
  * @param {Action} action - The action object containing type and payload data.
  * @example
  * ```typescript
@@ -200,14 +199,14 @@ let memoryState: State = { toasts: [] };
  * @returns Function result.
  */
 function /**
-   * Dispatch function.
-   * @param action - Action parameter.
-   */ /**
-   * Dispatch function.
-   * @param action - Action parameter.
-   */
+ * Dispatch function.
+ * @param action - Action parameter.
+ */ /**
+ * Dispatch function.
+ * @param action - Action parameter.
+ */
 
- dispatch(action: Action) {
+dispatch(action: Action) {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);
@@ -223,7 +222,7 @@ type Toast = Omit<ToasterToast, 'id'>;
 /**
  * Creates and displays a new toast notification.
  * Automatically generates a unique ID and provides update/dismiss functions.
- * 
+ *
  * @param {Toast} props - Toast configuration including title, description, and other display options.
  * @returns {object} Object containing toast ID and control functions (dismiss, update).
  * @example
@@ -232,10 +231,10 @@ type Toast = Omit<ToasterToast, 'id'>;
  *   title: 'Success',
  *   description: 'Operation completed successfully'
  * });
- * 
+ *
  * // Later dismiss the toast
  * dismiss();
- * 
+ *
  * // Or update its content
  * update({ title: 'Updated Title' });
  * ```
@@ -246,14 +245,14 @@ type Toast = Omit<ToasterToast, 'id'>;
  * @returns Function result.
  */
 function /**
-   * Toast function.
-   * @param { ...props } - { ...props } parameter.
-   */ /**
-   * Toast function.
-   * @param { ...props } - { ...props } parameter.
-   */
+ * Toast function.
+ * @param { ...props } - { ...props } parameter.
+ */ /**
+ * Toast function.
+ * @param { ...props } - { ...props } parameter.
+ */
 
- toast({ ...props }: Toast) {
+toast({ ...props }: Toast) {
   const id = genId();
 
   const update = (_props: ToasterToast) =>
@@ -269,14 +268,14 @@ function /**
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => { /**
-   * If function.
-   * @param !open - !open parameter.
-   */ /**
-   * If function.
-   * @param !open - !open parameter.
-   */
-
+      onOpenChange: (open) => {
+        /**
+         * If function.
+         * @param !open - !open parameter.
+         */ /**
+         * If function.
+         * @param !open - !open parameter.
+         */
 
         if (!open) {
           dismiss();
@@ -295,7 +294,7 @@ function /**
 /**
  * React hook for managing toast notifications in components.
  * Provides access to toast state and functions for creating and dismissing toasts.
- * 
+ *
  * @returns {object} Toast state and control functions.
  * @returns {ToasterToast[]} Returns.toasts - Array of current active toasts.
  * @returns {Function} Returns.toast - Function to create new toast notifications.
@@ -304,14 +303,14 @@ function /**
  * ```typescript
  * function MyComponent() {
  *   const { toast, dismiss, toasts } = useToast();
- * 
+ *
  *   const showSuccess = () => {
  *     toast({
  *       title: 'Success!',
  *       description: 'Your changes have been saved.'
  *     });
  *   };
- * 
+ *
  *   return (
  *     <button onClick={showSuccess}>Save Changes</button>
  *   );
@@ -323,25 +322,24 @@ function /**
  * @returns Function result.
  */
 function /**
-   * Use toast function.
-   */ /**
-   * Use toast function.
-   */
+ * Use toast function.
+ */ /**
+ * Use toast function.
+ */
 
- useToast() {
+useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
     listeners.push(setState);
     return () => {
       const index = listeners.indexOf(setState); /**
-   * If function.
-   * @param index > -1 - index > -1 parameter.
-   */ /**
-   * If function.
-   * @param index > -1 - index > -1 parameter.
-   */
-
+       * If function.
+       * @param index > -1 - index > -1 parameter.
+       */ /**
+       * If function.
+       * @param index > -1 - index > -1 parameter.
+       */
 
       if (index > -1) {
         listeners.splice(index, 1);

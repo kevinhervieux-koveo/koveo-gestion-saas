@@ -17,7 +17,7 @@ describe('Semgrep Performance Analysis', () => {
   beforeAll(async () => {
     // Create performance-specific semgrep rules if they don't exist
     const performanceRulesPath = 'tests/security/semgrep-performance-rules.yml';
-    
+
     try {
       await fs.access(performanceRulesPath);
     } catch {
@@ -39,14 +39,17 @@ describe('Semgrep Performance Analysis', () => {
 
   describe('React Performance Patterns', () => {
     it('should detect inefficient re-renders', () => {
-      const rerenderIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.inefficient-rerenders'
-      ) || [];
+      const rerenderIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.inefficient-rerenders'
+        ) || [];
 
       if (rerenderIssues.length > 0) {
         console.warn(`🔄 Found ${rerenderIssues.length} potential re-render issues:`);
-        rerenderIssues.forEach(violation => {
-          console.warn(`   - ${violation.path}:${violation.start.line} - ${violation.extra.message}`);
+        rerenderIssues.forEach((violation) => {
+          console.warn(
+            `   - ${violation.path}:${violation.start.line} - ${violation.extra.message}`
+          );
         });
       }
 
@@ -55,13 +58,16 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect missing useMemo for expensive calculations', () => {
-      const memoIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-usememo'
-      ) || [];
+      const memoIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-usememo'
+        ) || [];
 
       if (memoIssues.length > 0) {
-        console.warn(`🧠 Found ${memoIssues.length} expensive calculations that could use useMemo:`);
-        memoIssues.slice(0, 8).forEach(violation => {
+        console.warn(
+          `🧠 Found ${memoIssues.length} expensive calculations that could use useMemo:`
+        );
+        memoIssues.slice(0, 8).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -70,13 +76,16 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect missing useCallback for event handlers', () => {
-      const callbackIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-usecallback'
-      ) || [];
+      const callbackIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-usecallback'
+        ) || [];
 
       if (callbackIssues.length > 0) {
-        console.warn(`⚡ Found ${callbackIssues.length} event handlers that could use useCallback:`);
-        callbackIssues.slice(0, 8).forEach(violation => {
+        console.warn(
+          `⚡ Found ${callbackIssues.length} event handlers that could use useCallback:`
+        );
+        callbackIssues.slice(0, 8).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -85,13 +94,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect large component trees', () => {
-      const largeComponents = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.large-component-tree'
-      ) || [];
+      const largeComponents =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.large-component-tree'
+        ) || [];
 
       if (largeComponents.length > 0) {
         console.warn(`🌳 Found ${largeComponents.length} potentially large component trees:`);
-        largeComponents.forEach(violation => {
+        largeComponents.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -102,13 +112,14 @@ describe('Semgrep Performance Analysis', () => {
 
   describe('Database Query Optimization', () => {
     it('should detect N+1 query patterns', () => {
-      const n1Queries = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.n1-query-pattern'
-      ) || [];
+      const n1Queries =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.n1-query-pattern'
+        ) || [];
 
       if (n1Queries.length > 0) {
         console.warn(`🗄️ Found ${n1Queries.length} potential N+1 query patterns:`);
-        n1Queries.forEach(violation => {
+        n1Queries.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -118,13 +129,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect missing database indexes', () => {
-      const indexIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-db-indexes'
-      ) || [];
+      const indexIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-db-indexes'
+        ) || [];
 
       if (indexIssues.length > 0) {
         console.warn(`📊 Found ${indexIssues.length} queries that might benefit from indexes:`);
-        indexIssues.slice(0, 6).forEach(violation => {
+        indexIssues.slice(0, 6).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -133,13 +145,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect inefficient database operations', () => {
-      const inefficientOps = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.inefficient-db-operations'
-      ) || [];
+      const inefficientOps =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.inefficient-db-operations'
+        ) || [];
 
       if (inefficientOps.length > 0) {
         console.warn(`⚠️ Found ${inefficientOps.length} inefficient database operations:`);
-        inefficientOps.forEach(violation => {
+        inefficientOps.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -150,13 +163,16 @@ describe('Semgrep Performance Analysis', () => {
 
   describe('Network and API Performance', () => {
     it('should detect missing request caching', () => {
-      const cachingIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-request-caching'
-      ) || [];
+      const cachingIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-request-caching'
+        ) || [];
 
       if (cachingIssues.length > 0) {
-        console.warn(`📦 Found ${cachingIssues.length} API requests that could benefit from caching:`);
-        cachingIssues.slice(0, 6).forEach(violation => {
+        console.warn(
+          `📦 Found ${cachingIssues.length} API requests that could benefit from caching:`
+        );
+        cachingIssues.slice(0, 6).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -165,13 +181,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect inefficient data fetching patterns', () => {
-      const fetchingIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.inefficient-data-fetching'
-      ) || [];
+      const fetchingIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.inefficient-data-fetching'
+        ) || [];
 
       if (fetchingIssues.length > 0) {
         console.warn(`🌐 Found ${fetchingIssues.length} inefficient data fetching patterns:`);
-        fetchingIssues.slice(0, 6).forEach(violation => {
+        fetchingIssues.slice(0, 6).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -180,13 +197,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect missing request batching opportunities', () => {
-      const batchingIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-request-batching'
-      ) || [];
+      const batchingIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-request-batching'
+        ) || [];
 
       if (batchingIssues.length > 0) {
         console.warn(`📤 Found ${batchingIssues.length} opportunities for request batching:`);
-        batchingIssues.slice(0, 5).forEach(violation => {
+        batchingIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -197,13 +215,14 @@ describe('Semgrep Performance Analysis', () => {
 
   describe('Memory and Resource Management', () => {
     it('should detect potential memory leaks', () => {
-      const memoryLeaks = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.potential-memory-leaks'
-      ) || [];
+      const memoryLeaks =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.potential-memory-leaks'
+        ) || [];
 
       if (memoryLeaks.length > 0) {
         console.warn(`🧠 Found ${memoryLeaks.length} potential memory leak patterns:`);
-        memoryLeaks.forEach(violation => {
+        memoryLeaks.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -213,13 +232,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect inefficient string operations', () => {
-      const stringIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.inefficient-string-operations'
-      ) || [];
+      const stringIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.inefficient-string-operations'
+        ) || [];
 
       if (stringIssues.length > 0) {
         console.warn(`🔤 Found ${stringIssues.length} inefficient string operations:`);
-        stringIssues.slice(0, 6).forEach(violation => {
+        stringIssues.slice(0, 6).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -228,13 +248,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect inefficient array operations', () => {
-      const arrayIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.inefficient-array-operations'
-      ) || [];
+      const arrayIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.inefficient-array-operations'
+        ) || [];
 
       if (arrayIssues.length > 0) {
         console.warn(`📝 Found ${arrayIssues.length} inefficient array operations:`);
-        arrayIssues.slice(0, 6).forEach(violation => {
+        arrayIssues.slice(0, 6).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -245,13 +266,14 @@ describe('Semgrep Performance Analysis', () => {
 
   describe('Bundle Size and Loading Performance', () => {
     it('should detect large import statements', () => {
-      const largeImports = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.large-imports'
-      ) || [];
+      const largeImports =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.large-imports'
+        ) || [];
 
       if (largeImports.length > 0) {
         console.warn(`📦 Found ${largeImports.length} potentially large imports:`);
-        largeImports.forEach(violation => {
+        largeImports.forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -260,13 +282,14 @@ describe('Semgrep Performance Analysis', () => {
     });
 
     it('should detect missing lazy loading opportunities', () => {
-      const lazyLoadingIssues = performanceResults.results?.filter(
-        result => result.check_id === 'koveo.performance.missing-lazy-loading'
-      ) || [];
+      const lazyLoadingIssues =
+        performanceResults.results?.filter(
+          (result) => result.check_id === 'koveo.performance.missing-lazy-loading'
+        ) || [];
 
       if (lazyLoadingIssues.length > 0) {
         console.warn(`⏳ Found ${lazyLoadingIssues.length} components that could be lazy loaded:`);
-        lazyLoadingIssues.slice(0, 5).forEach(violation => {
+        lazyLoadingIssues.slice(0, 5).forEach((violation) => {
           console.warn(`   - ${violation.path}:${violation.start.line}`);
         });
       }
@@ -278,12 +301,11 @@ describe('Semgrep Performance Analysis', () => {
   afterAll(async () => {
     // Generate performance analysis report
     const totalIssues = performanceResults.results?.length || 0;
-    const criticalIssues = performanceResults.results?.filter(
-      r => r.extra?.severity === 'ERROR'
-    ).length || 0;
-    
+    const criticalIssues =
+      performanceResults.results?.filter((r) => r.extra?.severity === 'ERROR').length || 0;
+
     const categories = {};
-    performanceResults.results?.forEach(result => {
+    performanceResults.results?.forEach((result) => {
       const category = result.check_id.split('.')[2] || 'other';
       categories[category] = (categories[category] || 0) + 1;
     });
@@ -292,7 +314,7 @@ describe('Semgrep Performance Analysis', () => {
     console.warn(`   Total performance issues found: ${totalIssues}`);
     console.warn(`   Critical issues: ${criticalIssues}`);
     console.warn('   Issues by category:');
-    
+
     Object.entries(categories).forEach(([category, count]) => {
       console.warn(`     - ${category}: ${count}`);
     });

@@ -46,14 +46,14 @@ interface LanguageProviderProps {
  * @param { children } - { children } parameter.
  */
 export function /**
-   * Language provider function.
-   * @param { children } - { children } parameter.
-   */ /**
-   * Language provider function.
-   * @param { children } - { children } parameter.
-   */
+ * Language provider function.
+ * @param { children } - { children } parameter.
+ */ /**
+ * Language provider function.
+ * @param { children } - { children } parameter.
+ */
 
- LanguageProvider({ children }: LanguageProviderProps) {
+LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (_key: keyof typeof translations.en): string => {
@@ -92,12 +92,12 @@ export function /**
  * Use language function.
  */
 export function /**
-   * Use language function.
-   */ /**
-   * Use language function.
-   */
+ * Use language function.
+ */ /**
+ * Use language function.
+ */
 
- useLanguage() {
+useLanguage() {
   const context = useContext(LanguageContext); /**
    * If function.
    * @param context === undefined - context === undefined parameter.
@@ -105,7 +105,6 @@ export function /**
    * If function.
    * @param context === undefined - context === undefined parameter.
    */
-
 
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');

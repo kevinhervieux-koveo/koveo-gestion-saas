@@ -47,26 +47,26 @@ export const crudHelpers = {
     }
   ): Promise<U> => {
     try {
-      const response = await apiRequest('POST', endpoint, data) as U;
-      
+      const response = (await apiRequest('POST', endpoint, data)) as U;
+
       if (options?.showSuccessToast !== false) {
         toast({
           title: 'Success',
           description: options?.successMessage || 'Item created successfully',
         });
       }
-      
+
       options?.onSuccess?.(response);
       return response;
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to create item';
-      
+
       toast({
         title: 'Error',
         description: errorMessage,
         variant: 'destructive',
       });
-      
+
       options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
@@ -85,26 +85,26 @@ export const crudHelpers = {
     }
   ): Promise<U> => {
     try {
-      const response = await apiRequest('PUT', `${endpoint}/${id}`, data) as U;
-      
+      const response = (await apiRequest('PUT', `${endpoint}/${id}`, data)) as U;
+
       if (options?.showSuccessToast !== false) {
         toast({
           title: 'Success',
           description: options?.successMessage || 'Item updated successfully',
         });
       }
-      
+
       options?.onSuccess?.(response);
       return response;
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to update item';
-      
+
       toast({
         title: 'Error',
         description: errorMessage,
         variant: 'destructive',
       });
-      
+
       options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
@@ -125,29 +125,31 @@ export const crudHelpers = {
     // Show confirmation dialog if message provided
     if (options?.confirmMessage) {
       const confirmed = window.confirm(options.confirmMessage);
-      if (!confirmed) {return;}
+      if (!confirmed) {
+        return;
+      }
     }
 
     try {
       await apiRequest('DELETE', `${endpoint}/${id}`);
-      
+
       if (options?.showSuccessToast !== false) {
         toast({
           title: 'Success',
           description: options?.successMessage || 'Item deleted successfully',
         });
       }
-      
+
       options?.onSuccess?.();
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to delete item';
-      
+
       toast({
         title: 'Error',
         description: errorMessage,
         variant: 'destructive',
       });
-      
+
       options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
@@ -162,10 +164,10 @@ export const crudHelpers = {
     }
   ): Promise<T> => {
     try {
-      return await apiRequest('GET', endpoint) as T;
+      return (await apiRequest('GET', endpoint)) as T;
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to fetch data';
-      
+
       if (options?.showErrorToast !== false) {
         toast({
           title: 'Error',
@@ -173,7 +175,7 @@ export const crudHelpers = {
           variant: 'destructive',
         });
       }
-      
+
       options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
@@ -185,47 +187,48 @@ export const queryKeys = {
   // Generate consistent query keys
   all: (resource: string) => [resource] as const,
   lists: (resource: string) => [...queryKeys.all(resource), 'list'] as const,
-  list: (resource: string, filters?: Record<string, any>) => 
+  list: (resource: string, filters?: Record<string, any>) =>
     [...queryKeys.lists(resource), filters] as const,
   details: (resource: string) => [...queryKeys.all(resource), 'detail'] as const,
-  detail: (resource: string, id: string) => 
-    [...queryKeys.details(resource), id] as const,
-  
+  detail: (resource: string, id: string) => [...queryKeys.details(resource), id] as const,
+
   // Common resource query keys
   users: {
     all: () => queryKeys.all('/api/users'),
     list: (filters?: any) => queryKeys.list('/api/users', filters),
     detail: (id: string) => queryKeys.detail('/api/users', id),
   },
-  
+
   buildings: {
     all: () => queryKeys.all('/api/buildings'),
     list: (filters?: any) => queryKeys.list('/api/buildings', filters),
     detail: (id: string) => queryKeys.detail('/api/buildings', id),
   },
-  
+
   residences: {
     all: () => queryKeys.all('/api/residences'),
     list: (filters?: any) => queryKeys.list('/api/residences', filters),
     detail: (id: string) => queryKeys.detail('/api/residences', id),
   },
-  
+
   demands: {
     all: () => queryKeys.all('/api/demands'),
     list: (filters?: any) => queryKeys.list('/api/demands', filters),
     detail: (id: string) => queryKeys.detail('/api/demands', id),
   },
-  
+
   bills: {
     all: () => queryKeys.all('/api/bills'),
     list: (filters?: any) => queryKeys.list('/api/bills', filters),
     detail: (id: string) => queryKeys.detail('/api/bills', id),
   },
-  
+
   documents: {
     all: () => queryKeys.all('/api/documents'),
-    byBuilding: (buildingId: string) => [...queryKeys.all('/api/documents'), 'building', buildingId] as const,
-    byResidence: (residenceId: string) => [...queryKeys.all('/api/documents'), 'residence', residenceId] as const,
+    byBuilding: (buildingId: string) =>
+      [...queryKeys.all('/api/documents'), 'building', buildingId] as const,
+    byResidence: (residenceId: string) =>
+      [...queryKeys.all('/api/documents'), 'residence', residenceId] as const,
   },
 };
 
@@ -249,14 +252,14 @@ export const mutationHelpers = {
         // Note: This would need to be implemented with actual queryClient
         // options.invalidateQueries.forEach(queryKey => queryClient.invalidateQueries({ queryKey }));
       }
-      
+
       if (options?.showToast !== false) {
         toast({
           title: 'Success',
           description: options?.successMessage || 'Operation completed successfully',
         });
       }
-      
+
       options?.onSuccess?.(data, variables);
     },
     onError: (error: any, variables: TVariables) => {
@@ -265,7 +268,7 @@ export const mutationHelpers = {
         description: error.message || 'Operation failed',
         variant: 'destructive',
       });
-      
+
       options?.onError?.(error, variables);
     },
   }),
@@ -276,17 +279,17 @@ export const urlHelpers = {
   // Build query string from object
   buildQueryString: (params: Record<string, any>): string => {
     const searchParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
         if (Array.isArray(value)) {
-          value.forEach(v => searchParams.append(key, v.toString()));
+          value.forEach((v) => searchParams.append(key, v.toString()));
         } else {
           searchParams.append(key, value.toString());
         }
       }
     });
-    
+
     const queryString = searchParams.toString();
     return queryString ? `?${queryString}` : '';
   },
@@ -295,7 +298,7 @@ export const urlHelpers = {
   parseQueryString: (queryString: string): Record<string, string | string[]> => {
     const params = new URLSearchParams(queryString);
     const result: Record<string, string | string[]> = {};
-    
+
     for (const [key, value] of params.entries()) {
       if (result[key]) {
         // Convert to array if multiple values
@@ -308,7 +311,7 @@ export const urlHelpers = {
         result[key] = value;
       }
     }
-    
+
     return result;
   },
 };
@@ -325,17 +328,10 @@ export const pollingHelpers = {
   // Common polling intervals
   intervals: {
     fast: 5000, // 5 seconds
-    normal: 30000, // 30 seconds  
+    normal: 30000, // 30 seconds
     slow: 60000, // 1 minute
   },
 };
 
 // Export main helpers
-export {
-  crudHelpers as default,
-  queryKeys,
-  mutationHelpers,
-  urlHelpers,
-  pollingHelpers,
-  ApiError,
-};
+export { crudHelpers as default, queryKeys, mutationHelpers, urlHelpers, pollingHelpers, ApiError };

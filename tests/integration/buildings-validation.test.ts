@@ -78,7 +78,9 @@ describe('Buildings API Integration Validation Tests', () => {
   // Mock validation function
   const validateField = (fieldName: string, _value: unknown) => {
     const rules = buildingValidationRules[fieldName as keyof typeof buildingValidationRules];
-    if (!rules) {return { valid: true };}
+    if (!rules) {
+      return { valid: true };
+    }
 
     const errors: string[] = [];
 
@@ -143,7 +145,7 @@ describe('Buildings API Integration Validation Tests', () => {
     const allErrors: string[] = [];
     let isValid = true;
 
-    Object.keys(buildingValidationRules).forEach(fieldName => {
+    Object.keys(buildingValidationRules).forEach((fieldName) => {
       const result = validateField(fieldName, buildingData[fieldName]);
       if (!result.valid) {
         isValid = false;
@@ -170,7 +172,7 @@ describe('Buildings API Integration Validation Tests', () => {
     it('should accept valid required fields', () => {
       const nameResult = validateField('name', 'Test Building');
       const orgResult = validateField('organizationId', '123e4567-e89b-12d3-a456-426614174000');
-      
+
       expect(nameResult.valid).toBe(true);
       expect(orgResult.valid).toBe(true);
     });
@@ -191,7 +193,7 @@ describe('Buildings API Integration Validation Tests', () => {
     it('should validate address length', () => {
       const longAddress = 'A'.repeat(301);
       const result = validateField('address', longAddress);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('address must be at most 300 characters');
     });
@@ -199,7 +201,7 @@ describe('Buildings API Integration Validation Tests', () => {
     it('should validate city length', () => {
       const longCity = 'A'.repeat(101);
       const result = validateField('city', longCity);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('city must be at most 100 characters');
     });
@@ -207,7 +209,7 @@ describe('Buildings API Integration Validation Tests', () => {
     it('should validate management company length', () => {
       const longCompany = 'A'.repeat(201);
       const result = validateField('managementCompany', longCompany);
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('managementCompany must be at most 200 characters');
     });
@@ -289,13 +291,29 @@ describe('Buildings API Integration Validation Tests', () => {
 
   describe('Enum Field Validation', () => {
     it('should validate province enum', () => {
-      const validProvinces = ['QC', 'ON', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU'];
+      const validProvinces = [
+        'QC',
+        'ON',
+        'BC',
+        'AB',
+        'MB',
+        'SK',
+        'NS',
+        'NB',
+        'NL',
+        'PE',
+        'YT',
+        'NT',
+        'NU',
+      ];
       const invalidProvince = validateField('province', 'XX');
-      
-      expect(invalidProvince.valid).toBe(false);
-      expect(invalidProvince.errors).toContain('province must be one of: ' + validProvinces.join(', '));
 
-      validProvinces.forEach(province => {
+      expect(invalidProvince.valid).toBe(false);
+      expect(invalidProvince.errors).toContain(
+        'province must be one of: ' + validProvinces.join(', ')
+      );
+
+      validProvinces.forEach((province) => {
         const result = validateField('province', province);
         expect(result.valid).toBe(true);
       });
@@ -304,11 +322,11 @@ describe('Buildings API Integration Validation Tests', () => {
     it('should validate building type enum', () => {
       const validTypes = ['condo', 'rental'];
       const invalidType = validateField('buildingType', 'apartment');
-      
+
       expect(invalidType.valid).toBe(false);
       expect(invalidType.errors).toContain('buildingType must be one of: ' + validTypes.join(', '));
 
-      validTypes.forEach(type => {
+      validTypes.forEach((type) => {
         const result = validateField('buildingType', type);
         expect(result.valid).toBe(true);
       });
@@ -320,12 +338,12 @@ describe('Buildings API Integration Validation Tests', () => {
       const validCodes = ['H3A 1A1', 'M5V 3A8', 'V6B1A1', 'K1A0A6'];
       const invalidCodes = ['12345', 'ABC123', 'H3A1A', 'H3A 1A12'];
 
-      validCodes.forEach(code => {
+      validCodes.forEach((code) => {
         const result = validateField('postalCode', code);
         expect(result.valid).toBe(true);
       });
 
-      invalidCodes.forEach(code => {
+      invalidCodes.forEach((code) => {
         const result = validateField('postalCode', code);
         expect(result.valid).toBe(false);
         expect(result.errors).toContain('postalCode format is invalid');
@@ -347,12 +365,12 @@ describe('Buildings API Integration Validation Tests', () => {
         '123e4567-e89b-12d3-a456-426614174000-extra',
       ];
 
-      validUUIDs.forEach(uuid => {
+      validUUIDs.forEach((uuid) => {
         const result = validateField('organizationId', uuid);
         expect(result.valid).toBe(true);
       });
 
-      invalidUUIDs.forEach(uuid => {
+      invalidUUIDs.forEach((uuid) => {
         const result = validateField('organizationId', uuid);
         expect(result.valid).toBe(false);
         expect(result.errors).toContain('organizationId must be a valid UUID');
@@ -434,7 +452,7 @@ describe('Buildings API Integration Validation Tests', () => {
       const otherCodes = ['M5V 3A8', 'V6B 1A1', 'T2P 2M7']; // Ontario, BC, Alberta
 
       // All Canadian postal codes should be valid
-      [...quebecCodes, ...otherCodes].forEach(code => {
+      [...quebecCodes, ...otherCodes].forEach((code) => {
         const result = validateField('postalCode', code);
         expect(result.valid).toBe(true);
       });
@@ -486,7 +504,7 @@ describe('Buildings API Integration Validation Tests', () => {
       const specialCharBuilding = {
         name: 'Building with "quotes" & <tags>',
         organizationId: '123e4567-e89b-12d3-a456-426614174000',
-        address: '123 O\'Connor St. - Unit #5',
+        address: "123 O'Connor St. - Unit #5",
       };
 
       const result = validateBuilding(specialCharBuilding);
@@ -555,12 +573,20 @@ describe('Buildings API Integration Validation Tests', () => {
 
     it('should treat all optional fields as truly optional', () => {
       const optionalFields = [
-        'address', 'city', 'province', 'postalCode', 'buildingType',
-        'yearBuilt', 'totalUnits', 'totalFloors', 'parkingSpaces',
-        'storageSpaces', 'managementCompany'
+        'address',
+        'city',
+        'province',
+        'postalCode',
+        'buildingType',
+        'yearBuilt',
+        'totalUnits',
+        'totalFloors',
+        'parkingSpaces',
+        'storageSpaces',
+        'managementCompany',
       ];
 
-      optionalFields.forEach(field => {
+      optionalFields.forEach((field) => {
         const buildingWithoutField = {
           name: 'Test Building',
           organizationId: '123e4567-e89b-12d3-a456-426614174000',

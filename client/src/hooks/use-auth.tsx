@@ -36,15 +36,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   // Check if we're on a public page that doesn't need auth
-  const isPublicPage = window.location.pathname.includes('/register') || 
-                       window.location.pathname.includes('/login') ||
-                       window.location.pathname.includes('/forgot-password') ||
-                       window.location.pathname.includes('/reset-password') ||
-                       window.location.pathname.includes('/accept-invitation') ||
-                       window.location.pathname === '/';
+  const isPublicPage =
+    window.location.pathname.includes('/register') ||
+    window.location.pathname.includes('/login') ||
+    window.location.pathname.includes('/forgot-password') ||
+    window.location.pathname.includes('/reset-password') ||
+    window.location.pathname.includes('/accept-invitation') ||
+    window.location.pathname === '/';
 
   // Query to get current user (always enabled, but we handle public pages differently)
-  const { data: userData, isLoading, isError } = useQuery<User | null>({
+  const {
+    data: userData,
+    isLoading,
+    isError,
+  } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
     enabled: true, // Always run auth query to prevent reload redirects
     queryFn: async () => {
@@ -52,16 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/api/auth/user', {
           credentials: 'include',
         });
-        
+
         if (response.status === 401) {
           return null; // Not authenticated
         }
-        
+
         if (!response.ok) {
           throw new Error(`${response.status}: ${response.statusText}`);
         }
-        
-        return await response.json() as User;
+
+        return (await response.json()) as User;
       } catch (_error) {
         // Silently handle auth failures on public pages
         if (!isPublicPage) {
@@ -79,9 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUser(userData || null);
-    
-    // If user is null (unauthorized) and we're not on a public page, redirect to home
 
+    // If user is null (unauthorized) and we're not on a public page, redirect to home
 
     if (userData === null && !isPublicPage && !isLoading) {
       console.warn('Unauthorized access detected, redirecting to home page');
@@ -99,15 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({ email, password }),
       }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
       if (!response.ok) {
         const error = await response.json();
@@ -152,67 +155,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Login function that authenticates a user with email and password.
-   * 
+   *
    * @param email - User's email address.
    * @param password - User's password.
    * @returns Promise resolving to user data.
    */
-  const login = /**
-   * Async function.
-   * @param email - Email parameter.
-   * @param password - Password parameter.
-   * @returns Promise resolving to .
-   */ /**
-   * Async function.
-   * @param email - Email parameter.
-   * @param password - Password parameter.
-   * @returns Promise resolving to .
-   */
+  const login =
+    /**
+     * Async function.
+     * @param email - Email parameter.
+     * @param password - Password parameter.
+     * @returns Promise resolving to .
+     */ /**
+     * Async function.
+     * @param email - Email parameter.
+     * @param password - Password parameter.
+     * @returns Promise resolving to .
+     */
 
- async (email: string, password: string): Promise<{ user: User }> => {
-    const result = await loginMutation.mutateAsync({ email, password });
-    return result;
-  };
+    async (email: string, password: string): Promise<{ user: User }> => {
+      const result = await loginMutation.mutateAsync({ email, password });
+      return result;
+    };
 
   /**
    * Logout function that ends the user session.
    */
-  const logout = /**
-   * Async function.
-   * @returns Promise resolving to void=.
-   */ /**
-   * Async function.
-   * @returns Promise resolving to void=.
-   */
+  const logout =
+    /**
+     * Async function.
+     * @returns Promise resolving to void=.
+     */ /**
+     * Async function.
+     * @returns Promise resolving to void=.
+     */
 
- async (): Promise<void> => {
-    await logoutMutation.mutateAsync();
-  };
+    async (): Promise<void> => {
+      await logoutMutation.mutateAsync();
+    };
 
   /**
    * Check if the current user has a specific role or any of the provided roles.
-   * 
+   *
    * @param role - Single role string or array of roles to check.
    * @returns True if user has the required role(s).
    */
-  const hasRole = (role: string | string[]): boolean => { /**
-   * If function.
-   * @param !user - !user parameter.
-   */
-  /**
-   * If function.
-   * @param !user - !user parameter.
-   */ /**
-   * If function.
-   * @param !user - !user parameter.
-   */
+  const hasRole = (role: string | string[]): boolean => {
+    /**
+     * If function.
+     * @param !user - !user parameter.
+     */
+    /**
+     * If function.
+     * @param !user - !user parameter.
+     */ /**
+     * If function.
+     * @param !user - !user parameter.
+     */
 
-  /**
-   * If function.
-   * @param !user - !user parameter.
-   */
+    /**
+     * If function.
+     * @param !user - !user parameter.
+     */
 
-    if (!user) {return false;}
+    if (!user) {
+      return false;
+    }
     if (Array.isArray(role)) {
       return role.includes(user.role);
     }
@@ -221,12 +229,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Check if the current user has any of the provided roles.
-   * 
+   *
    * @param roles - Array of roles to check against.
    * @returns True if user has any of the specified roles.
    */
   const hasAnyRole = (roles: string[]): boolean => {
-    if (!user) {return false;}
+    if (!user) {
+      return false;
+    }
     return roles.includes(user.role);
   };
 
@@ -240,17 +250,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasAnyRole,
   };
 
-  return (
-    <AuthContext.Provider value={_value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={_value}>{children}</AuthContext.Provider>;
 }
 
 /**
  * Hook to access authentication context.
  * Must be used within an AuthProvider.
- * 
+ *
  * @returns Authentication context with user state and actions.
  * @throws Error if used outside of AuthProvider.
  */
@@ -263,14 +269,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * @returns AuthContextType result.
  */
 export function /**
-   * Use auth function.
-   * @returns AuthContextType result.
-   */ /**
-   * Use auth function.
-   * @returns AuthContextType result.
-   */
+ * Use auth function.
+ * @returns AuthContextType result.
+ */ /**
+ * Use auth function.
+ * @returns AuthContextType result.
+ */
 
- useAuth(): AuthContextType {
+useAuth(): AuthContextType {
   const context = useContext(AuthContext); /**
    * If function.
    * @param context === undefined - context === undefined parameter.
@@ -278,7 +284,6 @@ export function /**
    * If function.
    * @param context === undefined - context === undefined parameter.
    */
-
 
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

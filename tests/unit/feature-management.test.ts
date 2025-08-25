@@ -93,16 +93,20 @@ describe('Feature Management API Tests', () => {
     });
 
     it('should accept all valid status values', async () => {
-      const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
-      
+      const validStatuses = [
+        'submitted',
+        'planned',
+        'in-progress',
+        'ai-analyzed',
+        'completed',
+        'cancelled',
+      ];
+
       for (const status of validStatuses) {
         const mockFeature = { id: 'test-id', status, updatedAt: new Date() };
         require('../../server/db').db.update.mockResolvedValueOnce([mockFeature]);
 
-        await request(app)
-          .post('/api/features/test-id/update-status')
-          .send({ status })
-          .expect(200);
+        await request(app).post('/api/features/test-id/update-status').send({ status }).expect(200);
       }
     });
   });
@@ -213,9 +217,7 @@ describe('Feature Management API Tests', () => {
         getDocumentationContext: jest.fn().mockResolvedValue('Koveo Gestion context'),
       }));
 
-      const response = await request(app)
-        .post('/api/features/test-feature-id/analyze')
-        .expect(200);
+      const response = await request(app).post('/api/features/test-feature-id/analyze').expect(200);
 
       expect(response.body.message).toBe('Analysis completed successfully');
     });
@@ -228,9 +230,7 @@ describe('Feature Management API Tests', () => {
 
       require('../../server/db').db.select.mockResolvedValueOnce([mockFeature]);
 
-      const response = await request(app)
-        .post('/api/features/test-feature-id/analyze')
-        .expect(400);
+      const response = await request(app).post('/api/features/test-feature-id/analyze').expect(400);
 
       expect(response.body.message).toContain('must be in "in-progress" status');
     });

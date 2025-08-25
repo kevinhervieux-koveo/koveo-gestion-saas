@@ -33,7 +33,14 @@ import { useLanguage } from '@/hooks/use-language';
 /**
  * FieldType type definition.
  */
-export type FieldType = 'text' | 'email' | 'password' | 'textarea' | 'select' | 'checkbox' | 'number';
+export type FieldType =
+  | 'text'
+  | 'email'
+  | 'password'
+  | 'textarea'
+  | 'select'
+  | 'checkbox'
+  | 'number';
 
 /**
  * Configuration for a single form field
@@ -78,10 +85,10 @@ interface StandardFormProps {
 
 /**
  * Standard Form Component
- * 
+ *
  * Provides reusable form handling with validation, consistent styling,
  * and standardized field types to reduce form code duplication.
- * 
+ *
  * @param props - Form configuration and handlers
  * @returns Standardized form component
  */
@@ -123,7 +130,7 @@ interface StandardFormProps {
 } - children
 } parameter.
  */
-export function  /**
+export function /**
    * Standard form function.
    * @param {
   schema - {
@@ -140,7 +147,7 @@ export function  /**
    * @param children
 } - children
 } parameter.
-   */  /**
+   */ /**
    * Standard form function.
    * @param {
   schema - {
@@ -159,7 +166,7 @@ export function  /**
 } parameter.
    */
 
- StandardForm({
+StandardForm({
   schema,
   fields,
   onSubmit,
@@ -170,7 +177,7 @@ export function  /**
   isLoading = false,
   showCancel = false,
   className = '',
-  children
+  children,
 }: StandardFormProps) {
   const { t } = useLanguage();
 
@@ -182,21 +189,31 @@ export function  /**
   const handleSubmit = async (_data: unknown) => {
     try {
       await onSubmit(data as Record<string, unknown>);
-    }  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
+    } catch (_error) {
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */ /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
 
- catch (_error) {
       console.error('Form submission _error:', _error);
     }
   };
 
   const renderField = (fieldConfig: FormFieldConfig) => {
-    const { name, label, type, placeholder, description, options, rows, disabled, className: fieldClassName } = fieldConfig;
+    const {
+      name,
+      label,
+      type,
+      placeholder,
+      description,
+      options,
+      rows,
+      disabled,
+      className: fieldClassName,
+    } = fieldConfig;
 
     return (
       <FormField
@@ -208,15 +225,10 @@ export function  /**
             <FormLabel>{label}</FormLabel>
             <FormControl>
               {type === 'text' || type === 'email' || type === 'password' ? (
-                <Input
-                  type={type}
-                  placeholder={placeholder}
-                  disabled={disabled}
-                  {...field}
-                />
+                <Input type={type} placeholder={placeholder} disabled={disabled} {...field} />
               ) : type === 'number' ? (
                 <Input
-                  type="number"
+                  type='number'
                   placeholder={placeholder}
                   disabled={disabled}
                   {...field}
@@ -230,8 +242,8 @@ export function  /**
                   {...field}
                 />
               ) : type === 'select' ? (
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                   disabled={disabled}
                 >
@@ -247,13 +259,13 @@ export function  /**
                   </SelectContent>
                 </Select>
               ) : type === 'checkbox' ? (
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     disabled={disabled}
                   />
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  <label className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                     {placeholder}
                   </label>
                 </div>
@@ -271,25 +283,20 @@ export function  /**
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className={`space-y-4 ${className}`}>
         {fields.map(renderField)}
-        
+
         {children}
-        
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4">
+
+        <div className='flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4'>
           {showCancel && onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isLoading}
-            >
+            <Button type='button' variant='outline' onClick={onCancel} disabled={isLoading}>
               {cancelText || t('cancel')}
             </Button>
           )}
-          
-          <Button type="submit" disabled={isLoading}>
+
+          <Button type='submit' disabled={isLoading}>
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
                 Processing...
               </>
             ) : (

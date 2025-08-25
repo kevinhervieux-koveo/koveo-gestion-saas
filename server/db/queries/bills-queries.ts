@@ -6,7 +6,7 @@ import { scopeQuery, type UserContext } from './scope-query';
 /**
  * Get all bills accessible to the user based on their role and associations.
  * This query automatically applies role-based filtering.
- * 
+ *
  * @param userContext - User context containing role and entity associations.
  * @returns Promise resolving to array of bills the user can access.
  */
@@ -40,7 +40,7 @@ export async function getBillsForUser(userContext: UserContext) {
 /**
  * Get bills for a specific residence with role-based access control.
  * Users can only see bills for residences they have access to.
- * 
+ *
  * @param residenceId - The residence ID to get bills for.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of bills for the residence.
@@ -66,7 +66,7 @@ export async function getBillsForResidence(residenceId: string, userContext: Use
  * Managers see overdue bills for all their managed properties,
  * owners see overdue bills for their properties,
  * tenants see only their own overdue bills.
- * 
+ *
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of overdue bills.
  */
@@ -77,7 +77,7 @@ export async function getBillsForResidence(residenceId: string, userContext: Use
  */
 export async function getOverdueBills(userContext: UserContext) {
   const today = new Date().toISOString().split('T')[0];
-  
+
   const baseQuery = db
     .select({
       id: bills.id,
@@ -97,12 +97,7 @@ export async function getOverdueBills(userContext: UserContext) {
     .from(bills)
     .innerJoin(residences, eq(bills.residenceId, residences.id))
     .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-    .where(
-      and(
-        lte(bills.dueDate, today),
-        inArray(bills.status, ['sent', 'overdue'] as const)
-      )
-    )
+    .where(and(lte(bills.dueDate, today), inArray(bills.status, ['sent', 'overdue'] as const)))
     .orderBy(desc(bills.dueDate));
 
   return await scopeQuery(baseQuery, userContext, 'bills');
@@ -110,7 +105,7 @@ export async function getOverdueBills(userContext: UserContext) {
 
 /**
  * Get bills by status with role-based filtering.
- * 
+ *
  * @param status - Bill status to filter by.
  * @param userContext - User context for access control.
  * @returns Promise resolving to array of bills with the specified status.
@@ -137,7 +132,7 @@ export async function getBillsByStatus(
 /**
  * Get bills within a date range with role-based filtering.
  * Useful for financial reporting and analysis.
- * 
+ *
  * @param startDate - Start date (YYYY-MM-DD format).
  * @param endDate - End date (YYYY-MM-DD format).
  * @param userContext - User context for access control.
@@ -175,12 +170,7 @@ export async function getBillsByDateRange(
     .from(bills)
     .innerJoin(residences, eq(bills.residenceId, residences.id))
     .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-    .where(
-      and(
-        gte(bills.issueDate, startDate),
-        lte(bills.issueDate, endDate)
-      )
-    )
+    .where(and(gte(bills.issueDate, startDate), lte(bills.issueDate, endDate)))
     .orderBy(desc(bills.issueDate));
 
   return await scopeQuery(baseQuery, userContext, 'bills');
@@ -189,7 +179,7 @@ export async function getBillsByDateRange(
 /**
  * Get a single bill by ID with role-based access control.
  * Users can only access bills for residences they have access to.
- * 
+ *
  * @param billId - The bill ID to retrieve.
  * @param userContext - User context for access control.
  * @returns Promise resolving to the bill if accessible, undefined otherwise.
@@ -238,7 +228,7 @@ export async function getBillById(billId: string, userContext: UserContext) {
 /**
  * Get bill summary statistics for the user's accessible data.
  * Provides aggregated financial information scoped to user's permissions.
- * 
+ *
  * @param userContext - User context for access control.
  * @returns Promise resolving to bill summary statistics.
  */
@@ -254,10 +244,10 @@ export async function getBillSummary(userContext: UserContext) {
     userContext,
     'bills'
   );
-  
+
   const accessibleBills = await accessibleBillsQuery;
   const billIds = accessibleBills.map((b: { id: string }) => b.id);
-  
+
   if (billIds.length === 0) {
     return {
       totalOutstanding: '0',
@@ -271,7 +261,7 @@ export async function getBillSummary(userContext: UserContext) {
 
   // Get aggregated statistics for accessible bills
   const today = new Date().toISOString().split('T')[0];
-  
+
   const summaryQuery = await db
     .select({
       status: bills.status,
@@ -283,7 +273,7 @@ export async function getBillSummary(userContext: UserContext) {
     .where(inArray(bills.id, billIds));
 
   const summary = await summaryQuery;
-  
+
   // Process the results to calculate totals
   let totalOutstanding = 0;
   let totalPaid = 0;
@@ -295,7 +285,7 @@ export async function getBillSummary(userContext: UserContext) {
   summary.forEach((row: { totalAmount?: string; status: string; isOverdue?: boolean }) => {
     const amount = parseFloat(row.totalAmount || '0');
     billCount++;
-    
+
     if (row.status === 'paid') {
       totalPaid += amount;
       paidCount++;

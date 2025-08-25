@@ -9,13 +9,33 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { ObjectUploader } from '@/components/ObjectUploader';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
   FileText,
   Download,
   Calendar,
@@ -30,7 +50,7 @@ import {
   Building,
   MapPin,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
@@ -100,7 +120,7 @@ const DOCUMENT_CATEGORIES = [
   { _value: 'utilities', label: 'Utilities' },
   { _value: 'renovation', label: 'Renovation' },
   { _value: 'inventory', label: 'Inventory' },
-  { _value: 'other', label: 'Other' }
+  { _value: 'other', label: 'Other' },
 ];
 
 const documentSchema = z.object({
@@ -115,20 +135,20 @@ const documentSchema = z.object({
  *
  */
 export default function /**
-   * Residence documents function.
-   */ /**
-   * Residence documents function.
-   */
+ * Residence documents function.
+ */ /**
+ * Residence documents function.
+ */
 
- ResidenceDocuments() {
+ResidenceDocuments() {
   // Get residenceId from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const residenceId = urlParams.get('residenceId');
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedYear, setSelectedYear] = useState<string>("all");
-  const [tenantVisibilityFilter, setTenantVisibilityFilter] = useState<string>("all");
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [tenantVisibilityFilter, setTenantVisibilityFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<ResidenceDocument | null>(null);
@@ -143,86 +163,91 @@ export default function /**
   const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Get current user info
   const { _data: user } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ['/api/auth/user'],
   });
 
   // Get residences info
   const { _data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ["/api/residences"],
+    queryKey: ['/api/residences'],
   });
 
   // Get buildings info for context
   const { _data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
-    queryKey: ["/api/manager/buildings"],
+    queryKey: ['/api/manager/buildings'],
   });
 
-  const residence = residences.find(r => r.id === residenceId);
-  const building = buildingsResponse?.buildings?.find(b => b.id === residence?.buildingId);
+  const residence = residences.find((r) => r.id === residenceId);
+  const building = buildingsResponse?.buildings?.find((b) => b.id === residence?.buildingId);
 
   // Get documents for this specific residence
-  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{documents: ResidenceDocument[]}>({
-    queryKey: ["/api/documents", { type: "resident", residenceId }],
-    queryFn: async () => { /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */ /**
-   * If function.
-   * @param !residenceId - !residenceId parameter.
-   */
+  const { _data: documentsResponse, isLoading: documentsLoading } = useQuery<{
+    documents: ResidenceDocument[];
+  }>({
+    queryKey: ['/api/documents', { type: 'resident', residenceId }],
+    queryFn: async () => {
+      /**
+       * If function.
+       * @param !residenceId - !residenceId parameter.
+       */ /**
+       * If function.
+       * @param !residenceId - !residenceId parameter.
+       */
 
-
-      if (!residenceId) {return {documents: []};}
+      if (!residenceId) {
+        return { documents: [] };
+      }
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
+      /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
-
-      if (!response.ok) {throw new Error('Failed to fetch documents');}
+      if (!response.ok) {
+        throw new Error('Failed to fetch documents');
+      }
       return response.json();
     },
     enabled: !!residenceId,
   });
-  
+
   const documents = documentsResponse?.documents || [];
 
   // Get available years from documents
   const availableYears = useMemo(() => {
     const years = new Set<string>();
-    documents.forEach(doc => {
+    documents.forEach((doc) => {
       const year = new Date(doc.dateReference).getFullYear().toString();
       years.add(year);
     });
@@ -231,15 +256,17 @@ export default function /**
 
   // Filter documents
   const filteredDocuments = useMemo(() => {
-    return documents.filter(doc => {
+    return documents.filter((doc) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === "all" || doc.type === selectedCategory;
-      const matchesYear = selectedYear === "all" || 
+      const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
+      const matchesYear =
+        selectedYear === 'all' ||
         new Date(doc.dateReference).getFullYear().toString() === selectedYear;
-      const matchesTenantVisibility = tenantVisibilityFilter === "all" || 
-        (tenantVisibilityFilter === "visible" && doc.isVisibleToTenants) ||
-        (tenantVisibilityFilter === "hidden" && !doc.isVisibleToTenants);
-      
+      const matchesTenantVisibility =
+        tenantVisibilityFilter === 'all' ||
+        (tenantVisibilityFilter === 'visible' && doc.isVisibleToTenants) ||
+        (tenantVisibilityFilter === 'hidden' && !doc.isVisibleToTenants);
+
       return matchesSearch && matchesCategory && matchesYear && matchesTenantVisibility;
     });
   }, [documents, searchTerm, selectedCategory, selectedYear, tenantVisibilityFilter]);
@@ -259,10 +286,10 @@ export default function /**
   const form = useForm<z.infer<typeof documentSchema>>({
     resolver: zodResolver(documentSchema),
     defaultValues: {
-      name: "",
-      type: "",
+      name: '',
+      type: '',
       dateReference: new Date().toISOString().split('T')[0],
-      description: "",
+      description: '',
       isVisibleToTenants: true,
     },
   });
@@ -290,55 +317,59 @@ export default function /**
         throw new Error('Failed to create document');
       }
 
-      toast({ title: "Success", description: "Document created successfully" });
+      toast({ title: 'Success', description: 'Document created successfully' });
       setIsCreateDialogOpen(false);
       setUploadedFile(null);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
-    } /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */ /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
+      queryClient.invalidateQueries({
+        queryKey: ['/api/documents', { type: 'resident', residenceId }],
+      });
+    } catch (_error) {
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */ /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
 
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
-  /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
- catch (_error) {
-      toast({ 
-        title: "Error", 
-        description: "Failed to create document",
-        variant: "destructive" 
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
+      /**
+       * Catch function.
+       * @param _error - _error parameter.
+       */
+      toast({
+        title: 'Error',
+        description: 'Failed to create document',
+        variant: 'destructive',
       });
     }
   };
 
   // Handle document update
-  const handleUpdateDocument = async (_data: z.infer<typeof documentSchema>) => { /**
-   * If function.
-   * @param !selectedDocument - !selectedDocument parameter.
-   */ /**
-   * If function.
-   * @param !selectedDocument - !selectedDocument parameter.
-   */
+  const handleUpdateDocument = async (_data: z.infer<typeof documentSchema>) => {
+    /**
+     * If function.
+     * @param !selectedDocument - !selectedDocument parameter.
+     */ /**
+     * If function.
+     * @param !selectedDocument - !selectedDocument parameter.
+     */
 
-
-    if (!selectedDocument) {return;}
+    if (!selectedDocument) {
+      return;
+    }
 
     try {
       const updateData = {
@@ -360,25 +391,29 @@ export default function /**
         throw new Error('Failed to update document');
       }
 
-      toast({ title: "Success", description: "Document updated successfully" });
+      toast({ title: 'Success', description: 'Document updated successfully' });
       setIsViewDialogOpen(false);
       setIsEditMode(false);
       setSelectedDocument(null);
       setUploadedFile(null);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/documents', { type: 'resident', residenceId }],
+      });
     } catch (_error) {
-      toast({ 
-        title: "Error", 
-        description: "Failed to update document",
-        variant: "destructive" 
+      toast({
+        title: 'Error',
+        description: 'Failed to update document',
+        variant: 'destructive',
       });
     }
   };
 
   // Handle document deletion
   const handleDeleteDocument = async (documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) {return;}
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/documents/${documentId}`, {
@@ -389,13 +424,15 @@ export default function /**
         throw new Error('Failed to delete document');
       }
 
-      toast({ title: "Success", description: "Document deleted successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/documents", { type: "resident", residenceId }] });
+      toast({ title: 'Success', description: 'Document deleted successfully' });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/documents', { type: 'resident', residenceId }],
+      });
     } catch (_error) {
-      toast({ 
-        title: "Error", 
-        description: "Failed to delete document",
-        variant: "destructive" 
+      toast({
+        title: 'Error',
+        description: 'Failed to delete document',
+        variant: 'destructive',
       });
     }
   };
@@ -410,21 +447,21 @@ export default function /**
 
   const handleNewDocumentUploadComplete = (_result: unknown) => {
     setIsUploadingNewFile(false); /**
-   * If function.
-   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
-   */
-  /**
-   * If function.
-   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
-   */ /**
-   * If function.
-   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
-   */
+     * If function.
+     * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+     */
+    /**
+     * If function.
+     * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+     */ /**
+     * If function.
+     * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+     */
 
-  /**
-   * If function.
-   * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
-   */
+    /**
+     * If function.
+     * @param result.successful && result.successful[0] - result.successful && result.successful[0] parameter.
+     */
 
     if (result.successful && result.successful[0]) {
       const file = result.successful[0];
@@ -464,16 +501,14 @@ export default function /**
    * @param !residenceId - !residenceId parameter.
    */
 
-
-
   if (!residenceId) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className='min-h-screen bg-gray-50'>
         <Header />
-        <div className="container mx-auto p-6">
+        <div className='container mx-auto p-6'>
           <Card>
-            <CardContent className="p-6">
-              <p className="text-center text-gray-500">No residence ID provided</p>
+            <CardContent className='p-6'>
+              <p className='text-center text-gray-500'>No residence ID provided</p>
             </CardContent>
           </Card>
         </div>
@@ -487,16 +522,14 @@ export default function /**
    * @param !residence - !residence parameter.
    */
 
-
-
   if (!residence) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className='min-h-screen bg-gray-50'>
         <Header />
-        <div className="container mx-auto p-6">
+        <div className='container mx-auto p-6'>
           <Card>
-            <CardContent className="p-6">
-              <p className="text-center text-gray-500">Residence not found</p>
+            <CardContent className='p-6'>
+              <p className='text-center text-gray-500'>Residence not found</p>
             </CardContent>
           </Card>
         </div>
@@ -505,14 +538,14 @@ export default function /**
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       <Header />
-      
-      <div className="container mx-auto p-6 space-y-6">
+
+      <div className='container mx-auto p-6 space-y-6'>
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Link href="/residents/residence" className="hover:text-blue-600 flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" />
+        <div className='flex items-center gap-2 text-sm text-gray-600'>
+          <Link href='/residents/residence' className='hover:text-blue-600 flex items-center gap-1'>
+            <ArrowLeft className='w-4 h-4' />
             Back to Residence
           </Link>
           <span>/</span>
@@ -520,105 +553,107 @@ export default function /**
         </div>
 
         {/* Page Header */}
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-            <div className="flex items-center gap-2 text-gray-600 mt-1">
-              <Home className="w-4 h-4" />
+            <h1 className='text-2xl font-bold text-gray-900'>Documents</h1>
+            <div className='flex items-center gap-2 text-gray-600 mt-1'>
+              <Home className='w-4 h-4' />
               <span>Unit {residence.unitNumber}</span>
               {building && (
                 <>
                   <span>•</span>
-                  <Building className="w-4 h-4" />
+                  <Building className='w-4 h-4' />
                   <span>{building.name}</span>
                   <span>•</span>
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className='w-4 h-4' />
                   <span>{building.address}</span>
                 </>
               )}
             </div>
           </div>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className='w-4 h-4 mr-2' />
                 Add Document
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
               <DialogHeader>
                 <DialogTitle>Add New Document</DialogTitle>
                 <DialogDescription>
                   Upload a file or create a document entry for this residence.
                 </DialogDescription>
               </DialogHeader>
-              
+
               {/* File Upload Section */}
               {!uploadedFile ? (
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Document File</h3>
-                  <p className="text-gray-500 mb-4">Select a file to upload for this document (optional)</p>
+                <div className='border-2 border-dashed border-gray-200 rounded-lg p-6 text-center'>
+                  <Upload className='mx-auto h-12 w-12 text-gray-400 mb-4' />
+                  <h3 className='text-lg font-medium text-gray-900 mb-2'>Upload Document File</h3>
+                  <p className='text-gray-500 mb-4'>
+                    Select a file to upload for this document (optional)
+                  </p>
                   <ObjectUploader
                     maxNumberOfFiles={1}
                     maxFileSize={50 * 1024 * 1024} // 50MB
                     onGetUploadParameters={handleNewDocumentUpload}
                     onComplete={handleNewDocumentUploadComplete}
-                    buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                    buttonClassName='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md'
                     disabled={isUploadingNewFile}
                   >
                     {isUploadingNewFile ? 'Uploading...' : 'Select File'}
                   </ObjectUploader>
                 </div>
               ) : (
-                <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                  <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-green-600 mr-3" />
-                    <div className="flex-1">
-                      <p className="font-medium text-green-800">{uploadedFile.fileName}</p>
-                      <p className="text-sm text-green-600">
+                <div className='border border-green-200 bg-green-50 rounded-lg p-4'>
+                  <div className='flex items-center'>
+                    <FileText className='h-8 w-8 text-green-600 mr-3' />
+                    <div className='flex-1'>
+                      <p className='font-medium text-green-800'>{uploadedFile.fileName}</p>
+                      <p className='text-sm text-green-600'>
                         File ready to attach ({(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB)
                       </p>
                     </div>
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={() => setUploadedFile(null)}
-                      className="text-green-600 hover:text-green-800"
+                      className='text-green-600 hover:text-green-800'
                     >
                       Remove
                     </Button>
                   </div>
                 </div>
               )}
-              
+
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateDocument)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(handleCreateDocument)} className='space-y-4'>
                   <FormField
                     control={form.control}
-                    name="name"
+                    name='name'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Document Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter document name" {...field} />
+                          <Input placeholder='Enter document name' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
-                    name="type"
+                    name='type'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Document Type</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select document type" />
+                              <SelectValue placeholder='Select document type' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -633,31 +668,31 @@ export default function /**
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
-                    name="dateReference"
+                    name='dateReference'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Reference Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type='date' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
-                    name="description"
+                    name='description'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Description (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Add a description for this document"
-                            className="min-h-[80px]"
+                          <Textarea
+                            placeholder='Add a description for this document'
+                            className='min-h-[80px]'
                             {...field}
                           />
                         </FormControl>
@@ -665,35 +700,34 @@ export default function /**
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
-                    name="isVisibleToTenants"
+                    name='isVisibleToTenants'
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">Available For Tenant</FormLabel>
-                          <div className="text-sm text-gray-500">
+                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                        <div className='space-y-0.5'>
+                          <FormLabel className='text-base font-medium'>
+                            Available For Tenant
+                          </FormLabel>
+                          <div className='text-sm text-gray-500'>
                             Allow tenants to view this document
                           </div>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
                   />
-                  
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1">
+
+                  <div className='flex gap-2 pt-4'>
+                    <Button type='submit' className='flex-1'>
                       Create Document
                     </Button>
                     <Button
-                      type="button"
-                      variant="outline"
+                      type='button'
+                      variant='outline'
                       onClick={() => {
                         setIsCreateDialogOpen(false);
                         setUploadedFile(null);
@@ -711,28 +745,30 @@ export default function /**
 
         {/* Filters */}
         <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Label htmlFor="search" className="text-sm font-medium">Search Documents</Label>
+          <CardContent className='p-6'>
+            <div className='flex flex-col sm:flex-row gap-4'>
+              <div className='flex-1'>
+                <Label htmlFor='search' className='text-sm font-medium'>
+                  Search Documents
+                </Label>
                 <Input
-                  id="search"
-                  placeholder="Search by document name..."
+                  id='search'
+                  placeholder='Search by document name...'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target._value)}
-                  className="mt-1"
+                  className='mt-1'
                 />
               </div>
-              
-              <div className="flex gap-4">
+
+              <div className='flex gap-4'>
                 <div>
-                  <Label className="text-sm font-medium">Category</Label>
+                  <Label className='text-sm font-medium'>Category</Label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-40 mt-1">
+                    <SelectTrigger className='w-40 mt-1'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value='all'>All Categories</SelectItem>
                       {DOCUMENT_CATEGORIES.map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
@@ -741,15 +777,15 @@ export default function /**
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium">Year</Label>
+                  <Label className='text-sm font-medium'>Year</Label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-24 mt-1">
+                    <SelectTrigger className='w-24 mt-1'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value='all'>All</SelectItem>
                       {availableYears.map((year) => (
                         <SelectItem key={year} value={year}>
                           {year}
@@ -758,30 +794,31 @@ export default function /**
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium">Tenant Access</Label>
+                  <Label className='text-sm font-medium'>Tenant Access</Label>
                   <Select value={tenantVisibilityFilter} onValueChange={setTenantVisibilityFilter}>
-                    <SelectTrigger className="w-32 mt-1">
+                    <SelectTrigger className='w-32 mt-1'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="visible">Visible</SelectItem>
-                      <SelectItem value="hidden">Hidden</SelectItem>
+                      <SelectItem value='all'>All</SelectItem>
+                      <SelectItem value='visible'>Visible</SelectItem>
+                      <SelectItem value='hidden'>Hidden</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
-            
-            <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <div className="text-sm text-gray-600">
-                Showing {startIndex + 1}-{Math.min(endIndex, filteredDocuments.length)} of {filteredDocuments.length} documents
+
+            <div className='flex items-center justify-between mt-4 pt-4 border-t'>
+              <div className='text-sm text-gray-600'>
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredDocuments.length)} of{' '}
+                {filteredDocuments.length} documents
               </div>
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Filtered results</span>
+              <div className='flex items-center gap-2'>
+                <Filter className='w-4 h-4 text-gray-400' />
+                <span className='text-sm text-gray-600'>Filtered results</span>
               </div>
             </div>
           </CardContent>
@@ -790,59 +827,61 @@ export default function /**
         {/* Documents List */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
+            <CardTitle className='flex items-center gap-2'>
+              <FileText className='w-5 h-5' />
               Documents ({filteredDocuments.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             {documentsLoading ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Loading documents...</p>
+              <div className='text-center py-8'>
+                <p className='text-gray-500'>Loading documents...</p>
               </div>
             ) : filteredDocuments.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-2">
-                  {documents.length === 0 ? 'No documents found' : 'No documents match your filters'}
+              <div className='text-center py-8'>
+                <FileText className='w-12 h-12 text-gray-300 mx-auto mb-4' />
+                <p className='text-gray-500 mb-2'>
+                  {documents.length === 0
+                    ? 'No documents found'
+                    : 'No documents match your filters'}
                 </p>
-                <p className="text-sm text-gray-400">
-                  {documents.length === 0 
+                <p className='text-sm text-gray-400'>
+                  {documents.length === 0
                     ? 'Add your first document using the button above'
-                    : 'Try adjusting your search or filter criteria'
-                  }
+                    : 'Try adjusting your search or filter criteria'}
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className='grid gap-4'>
                 {paginatedDocuments.map((document) => (
                   <div
                     key={document.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+                    className='border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors'
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-medium text-gray-900 truncate">{document.name}</h3>
-                          <Badge variant="outline" className="shrink-0">
-                            {DOCUMENT_CATEGORIES.find(cat => cat.value === document.type)?.label || document.type}
+                    <div className='flex items-start justify-between'>
+                      <div className='flex-1 min-w-0'>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <h3 className='font-medium text-gray-900 truncate'>{document.name}</h3>
+                          <Badge variant='outline' className='shrink-0'>
+                            {DOCUMENT_CATEGORIES.find((cat) => cat.value === document.type)
+                              ?.label || document.type}
                           </Badge>
-                          <Badge 
-                            variant={document.isVisibleToTenants ? "secondary" : "destructive"} 
-                            className="shrink-0 text-xs"
+                          <Badge
+                            variant={document.isVisibleToTenants ? 'secondary' : 'destructive'}
+                            className='shrink-0 text-xs'
                           >
-                            {document.isVisibleToTenants ? "Tenant Visible" : "Tenant Hidden"}
+                            {document.isVisibleToTenants ? 'Tenant Visible' : 'Tenant Hidden'}
                           </Badge>
                         </div>
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
+
+                        <div className='flex items-center gap-4 text-sm text-gray-600 mb-2'>
+                          <div className='flex items-center gap-1'>
+                            <Calendar className='w-4 h-4' />
                             {new Date(document.dateReference).toLocaleDateString()}
                           </div>
                           {document.fileName && (
-                            <div className="flex items-center gap-1">
-                              <FileText className="w-4 h-4" />
+                            <div className='flex items-center gap-1'>
+                              <FileText className='w-4 h-4' />
                               {document.fileName}
                             </div>
                           )}
@@ -850,39 +889,39 @@ export default function /**
                             <span>{(parseInt(document.fileSize) / 1024 / 1024).toFixed(2)} MB</span>
                           )}
                         </div>
-                        
-                        <div className="text-xs text-gray-500">
+
+                        <div className='text-xs text-gray-500'>
                           Uploaded {new Date(document.uploadDate).toLocaleDateString()}
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-1 ml-4">
+
+                      <div className='flex items-center gap-1 ml-4'>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => {
                             setSelectedDocument(document);
                             setIsViewDialogOpen(true);
                           }}
-                          title="View Details"
+                          title='View Details'
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className='w-4 h-4' />
                         </Button>
-                        
+
                         {document.fileUrl && (
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={() => window.open(document.fileUrl, '_blank')}
-                            title="Download File"
+                            title='Download File'
                           >
-                            <Download className="w-4 h-4" />
+                            <Download className='w-4 h-4' />
                           </Button>
                         )}
-                        
+
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => {
                             setSelectedDocument(document);
                             setIsEditMode(true);
@@ -890,24 +929,26 @@ export default function /**
                             form.reset({
                               name: document.name,
                               type: document.type,
-                              dateReference: document.dateReference ? document.dateReference.split('T')[0] : new Date().toISOString().split('T')[0],
+                              dateReference: document.dateReference
+                                ? document.dateReference.split('T')[0]
+                                : new Date().toISOString().split('T')[0],
                               description: '',
                               isVisibleToTenants: document.isVisibleToTenants ?? true,
                             });
                           }}
-                          title="Edit Document"
+                          title='Edit Document'
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className='w-4 h-4' />
                         </Button>
-                        
+
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => handleDeleteDocument(document.id)}
-                          title="Delete Document"
-                          className="text-red-600 hover:text-red-700"
+                          title='Delete Document'
+                          className='text-red-600 hover:text-red-700'
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className='w-4 h-4' />
                         </Button>
                       </div>
                     </div>
@@ -915,33 +956,33 @@ export default function /**
                 ))}
               </div>
             )}
-            
+
             {/* Pagination Controls */}
             {filteredDocuments.length > 0 && totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-                <div className="text-sm text-gray-500">
+              <div className='flex items-center justify-between px-4 py-3 border-t border-gray-200'>
+                <div className='text-sm text-gray-500'>
                   Page {currentPage} of {totalPages}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-1"
+                    className='flex items-center gap-1'
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className='w-4 h-4' />
                     Previous
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-1"
+                    className='flex items-center gap-1'
                   >
                     Next
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className='w-4 h-4' />
                   </Button>
                 </div>
               </div>
@@ -950,17 +991,16 @@ export default function /**
         </Card>
 
         {/* View/Edit Document Dialog */}
-        <Dialog 
-          open={isViewDialogOpen} 
+        <Dialog
+          open={isViewDialogOpen}
           onOpenChange={(open) => {
             setIsViewDialogOpen(open); /**
-   * If function.
-   * @param !open - !open parameter.
-   */ /**
-   * If function.
-   * @param !open - !open parameter.
-   */
-
+             * If function.
+             * @param !open - !open parameter.
+             */ /**
+             * If function.
+             * @param !open - !open parameter.
+             */
 
             if (!open) {
               setSelectedDocument(null);
@@ -970,67 +1010,73 @@ export default function /**
             }
           }}
         >
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
-              <DialogTitle>
-                {isEditMode ? 'Edit Document' : 'Document Details'}
-              </DialogTitle>
+              <DialogTitle>{isEditMode ? 'Edit Document' : 'Document Details'}</DialogTitle>
             </DialogHeader>
-            
+
             {selectedDocument && (
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {isEditMode ? (
                   <>
                     {/* File Upload Section for Edit */}
                     {!uploadedFile && !selectedDocument.fileUrl && (
-                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
-                        <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500 mb-4">Add a file to this document</p>
+                      <div className='border-2 border-dashed border-gray-200 rounded-lg p-6 text-center'>
+                        <Upload className='mx-auto h-8 w-8 text-gray-400 mb-2' />
+                        <p className='text-sm text-gray-500 mb-4'>Add a file to this document</p>
                         <ObjectUploader
                           maxNumberOfFiles={1}
                           maxFileSize={50 * 1024 * 1024}
                           onGetUploadParameters={() => handleFileUpload(selectedDocument.id)}
-                          onComplete={(_result) => handleFileUploadComplete(result, selectedDocument.id)}
-                          buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                          onComplete={(_result) =>
+                            handleFileUploadComplete(result, selectedDocument.id)
+                          }
+                          buttonClassName='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm'
                           disabled={uploadingDocumentId === selectedDocument.id}
                         >
-                          {uploadingDocumentId === selectedDocument.id ? 'Uploading...' : 'Select File'}
+                          {uploadingDocumentId === selectedDocument.id
+                            ? 'Uploading...'
+                            : 'Select File'}
                         </ObjectUploader>
                       </div>
                     )}
-                    
+
                     {(uploadedFile || selectedDocument.fileUrl) && (
-                      <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                        <div className="flex items-center">
-                          <FileText className="h-8 w-8 text-green-600 mr-3" />
-                          <div className="flex-1">
-                            <p className="font-medium text-green-800">
-                              {uploadedFile?.fileName || selectedDocument.fileName || 'File attached'}
+                      <div className='border border-green-200 bg-green-50 rounded-lg p-4'>
+                        <div className='flex items-center'>
+                          <FileText className='h-8 w-8 text-green-600 mr-3' />
+                          <div className='flex-1'>
+                            <p className='font-medium text-green-800'>
+                              {uploadedFile?.fileName ||
+                                selectedDocument.fileName ||
+                                'File attached'}
                             </p>
-                            <p className="text-sm text-green-600">
-                              {uploadedFile ? 
-                                `New file (${(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB)` :
-                                `Current file${selectedDocument.fileSize ? ` (${(parseInt(selectedDocument.fileSize) / 1024 / 1024).toFixed(2)} MB)` : ''}`
-                              }
+                            <p className='text-sm text-green-600'>
+                              {uploadedFile
+                                ? `New file (${(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB)`
+                                : `Current file${selectedDocument.fileSize ? ` (${(parseInt(selectedDocument.fileSize) / 1024 / 1024).toFixed(2)} MB)` : ''}`}
                             </p>
                           </div>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={() => setUploadedFile(null)}
-                            className="text-green-600 hover:text-green-800"
+                            className='text-green-600 hover:text-green-800'
                           >
                             {uploadedFile ? 'Remove' : 'Replace'}
                           </Button>
                         </div>
                       </div>
                     )}
-                    
+
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(handleUpdateDocument)} className="space-y-4">
+                      <form
+                        onSubmit={form.handleSubmit(handleUpdateDocument)}
+                        className='space-y-4'
+                      >
                         <FormField
                           control={form.control}
-                          name="name"
+                          name='name'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Document Name</FormLabel>
@@ -1041,10 +1087,10 @@ export default function /**
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
-                          name="type"
+                          name='type'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Document Type</FormLabel>
@@ -1066,31 +1112,31 @@ export default function /**
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
-                          name="dateReference"
+                          name='dateReference'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Reference Date</FormLabel>
                               <FormControl>
-                                <Input type="date" {...field} />
+                                <Input type='date' {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
-                          name="description"
+                          name='description'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Description</FormLabel>
                               <FormControl>
-                                <Textarea 
-                                  placeholder="Add a description for this document"
-                                  className="min-h-[80px]"
+                                <Textarea
+                                  placeholder='Add a description for this document'
+                                  className='min-h-[80px]'
                                   {...field}
                                 />
                               </FormControl>
@@ -1098,35 +1144,34 @@ export default function /**
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
-                          name="isVisibleToTenants"
+                          name='isVisibleToTenants'
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base font-medium">Available For Tenant</FormLabel>
-                                <div className="text-sm text-gray-500">
+                            <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                              <div className='space-y-0.5'>
+                                <FormLabel className='text-base font-medium'>
+                                  Available For Tenant
+                                </FormLabel>
+                                <div className='text-sm text-gray-500'>
                                   Allow tenants to view this document
                                 </div>
                               </div>
                               <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                             </FormItem>
                           )}
                         />
-                        
-                        <div className="flex gap-2 pt-4">
-                          <Button type="submit" className="flex-1">
+
+                        <div className='flex gap-2 pt-4'>
+                          <Button type='submit' className='flex-1'>
                             Update Document
                           </Button>
                           <Button
-                            type="button"
-                            variant="outline"
+                            type='button'
+                            variant='outline'
                             onClick={() => setIsEditMode(false)}
                           >
                             Cancel
@@ -1137,67 +1182,65 @@ export default function /**
                   </>
                 ) : (
                   <>
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                       <div>
-                        <Label className="text-sm font-medium text-gray-600">Document Name</Label>
-                        <p className="text-lg font-semibold">{selectedDocument.name}</p>
+                        <Label className='text-sm font-medium text-gray-600'>Document Name</Label>
+                        <p className='text-lg font-semibold'>{selectedDocument.name}</p>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
+
+                      <div className='grid grid-cols-2 gap-4'>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Category</Label>
-                          <p className="capitalize">
-                            {DOCUMENT_CATEGORIES.find(cat => cat.value === selectedDocument.type)?.label || selectedDocument.type}
+                          <Label className='text-sm font-medium text-gray-600'>Category</Label>
+                          <p className='capitalize'>
+                            {DOCUMENT_CATEGORIES.find((cat) => cat.value === selectedDocument.type)
+                              ?.label || selectedDocument.type}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">Reference Date</Label>
+                          <Label className='text-sm font-medium text-gray-600'>
+                            Reference Date
+                          </Label>
                           <p>{new Date(selectedDocument.dateReference).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      
+
                       {selectedDocument.fileUrl && (
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">File</Label>
-                          <div className="flex items-center gap-2 mt-1">
-                            <FileText className="w-4 h-4" />
+                          <Label className='text-sm font-medium text-gray-600'>File</Label>
+                          <div className='flex items-center gap-2 mt-1'>
+                            <FileText className='w-4 h-4' />
                             <span>{selectedDocument.fileName || 'Document file'}</span>
                             {selectedDocument.fileSize && (
-                              <span className="text-sm text-gray-500">
-                                ({(parseInt(selectedDocument.fileSize) / 1024 / 1024).toFixed(2)} MB)
+                              <span className='text-sm text-gray-500'>
+                                ({(parseInt(selectedDocument.fileSize) / 1024 / 1024).toFixed(2)}{' '}
+                                MB)
                               </span>
                             )}
                             <Button
-                              variant="outline"
-                              size="sm"
+                              variant='outline'
+                              size='sm'
                               onClick={() => window.open(selectedDocument.fileUrl, '_blank')}
-                              className="ml-auto"
+                              className='ml-auto'
                             >
-                              <Download className="w-4 h-4 mr-1" />
+                              <Download className='w-4 h-4 mr-1' />
                               Download
                             </Button>
                           </div>
                         </div>
                       )}
-                      
+
                       <div>
-                        <Label className="text-sm font-medium text-gray-600">Upload Date</Label>
+                        <Label className='text-sm font-medium text-gray-600'>Upload Date</Label>
                         <p>{new Date(selectedDocument.uploadDate).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        onClick={() => setIsEditMode(true)}
-                        className="flex-1"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
+
+                    <div className='flex gap-2 pt-4'>
+                      <Button onClick={() => setIsEditMode(true)} className='flex-1'>
+                        <Edit className='w-4 h-4 mr-2' />
                         Edit Document
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsViewDialogOpen(false)}
-                      >
+                      <Button variant='outline' onClick={() => setIsViewDialogOpen(false)}>
                         Close
                       </Button>
                     </div>

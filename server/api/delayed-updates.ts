@@ -13,17 +13,16 @@ import { delayedUpdateService } from '../services/delayed-update-service';
  * @returns Function result.
  */
 export function registerDelayedUpdateRoutes(app: Express) {
-  
   // Get delayed update status and pending updates
   app.get('/api/delayed-updates/status', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins and managers can access delayed update status
       if (user.role !== 'admin' && user.role !== 'manager' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin or Manager privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -34,19 +33,19 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Delayed update service is operational',
         lastChecked: new Date().toISOString(),
         info: {
-          description: 'Money flow and budget updates are automatically scheduled 15 minutes after dependencies change',
+          description:
+            'Money flow and budget updates are automatically scheduled 15 minutes after dependencies change',
           triggers: [
             'Bill created or updated → Money flow update → Budget update',
-            'Residence updated (monthly fees) → Money flow update → Budget update'
-          ]
-        }
+            'Residence updated (monthly fees) → Money flow update → Budget update',
+          ],
+        },
       });
-
     } catch (_error) {
       console.error('Error getting delayed update status:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to get delayed update status',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -56,18 +55,18 @@ export function registerDelayedUpdateRoutes(app: Express) {
     try {
       const user = req.user;
       const { billId } = req.body;
-      
+
       // Only admins can force immediate updates
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       if (!billId) {
-        return res.status(400).json({ 
-          message: 'billId is required' 
+        return res.status(400).json({
+          message: 'billId is required',
         });
       }
 
@@ -80,14 +79,13 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Immediate update completed for bill',
         billId,
         triggeredBy: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error forcing immediate bill update:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to force immediate bill update',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -97,22 +95,24 @@ export function registerDelayedUpdateRoutes(app: Express) {
     try {
       const user = req.user;
       const { residenceId } = req.body;
-      
+
       // Only admins can force immediate updates
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       if (!residenceId) {
-        return res.status(400).json({ 
-          message: 'residenceId is required' 
+        return res.status(400).json({
+          message: 'residenceId is required',
         });
       }
 
-      console.warn(`⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`);
+      console.warn(
+        `⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`
+      );
 
       // Force immediate update
       await delayedUpdateService.forceImmediateResidenceUpdate(residenceId);
@@ -121,14 +121,13 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Immediate update completed for residence',
         residenceId,
         triggeredBy: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (_error) {
       console.error('Error forcing immediate residence update:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to force immediate residence update',
-        _error: _error instanceof Error ? _error.message : 'Unknown error'
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -137,12 +136,12 @@ export function registerDelayedUpdateRoutes(app: Express) {
   app.get('/api/delayed-updates/health', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-      
+
       // Only admins can access health check
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: 'Access denied. Admin privileges required.',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -155,24 +154,23 @@ export function registerDelayedUpdateRoutes(app: Express) {
         pendingUpdates: {
           bills: status.pendingBillUpdates,
           residences: status.pendingResidenceUpdates,
-          budgets: status.pendingBudgetUpdates
+          budgets: status.pendingBudgetUpdates,
         },
         currentTime,
         systemInfo: {
           nodeVersion: process.version,
           platform: process.platform,
           uptime: process.uptime(),
-          memoryUsage: process.memoryUsage()
+          memoryUsage: process.memoryUsage(),
         },
-        message: 'Delayed update system is operational'
+        message: 'Delayed update system is operational',
       });
-
     } catch (_error) {
       console.error('Error in delayed update health check:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         status: 'unhealthy',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
-        message: 'Delayed update system encountered an error'
+        message: 'Delayed update system encountered an error',
       });
     }
   });

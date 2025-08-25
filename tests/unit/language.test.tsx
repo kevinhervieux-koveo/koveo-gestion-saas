@@ -13,14 +13,14 @@ import { LanguageProvider, useLanguage } from '../../client/src/hooks/use-langua
  */
 function TestComponent(): JSX.Element {
   const { language, t, setLanguage } = useLanguage();
-  
+
   return (
     <div>
-      <span data-testid="current-language">{language}</span>
-      <span data-testid="dashboard-text">{t('dashboard')}</span>
-      <button 
+      <span data-testid='current-language'>{language}</span>
+      <span data-testid='dashboard-text'>{t('dashboard')}</span>
+      <button
         onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
-        data-testid="language-toggle"
+        data-testid='language-toggle'
       >
         Toggle Language
       </button>
@@ -42,7 +42,7 @@ describe('Language Provider', () => {
 
   it('should switch to French when language is changed', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <LanguageProvider>
         <TestComponent />

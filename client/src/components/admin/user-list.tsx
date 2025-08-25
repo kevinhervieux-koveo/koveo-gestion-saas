@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
-import { useCreateUpdateMutation as useUpdateMutation, useDeleteMutation } from '@/lib/common-hooks';
+import {
+  useCreateUpdateMutation as useUpdateMutation,
+  useDeleteMutation,
+} from '@/lib/common-hooks';
 import type { TableColumn, TableAction, BulkAction } from '@/components/ui/data-table';
 import { DataTable } from '@/components/ui/data-table';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 // import { Button } from '@/components/ui/button'; // Removed unused import
-import { 
-  UserX, 
-  // UserCheck, // Removed unused import 
-  Edit, 
+import {
+  UserX,
+  // UserCheck, // Removed unused import
+  Edit,
   Trash2,
-  Mail
+  Mail,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@shared/schema';
@@ -62,7 +65,7 @@ interface EditUserDialogProps {
  */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
-  
+
   const updateUserMutation = useUpdateMutation<User, { role: string; isActive: boolean }>(
     (_data) => `/api/users/${user?.id}`,
     {
@@ -71,7 +74,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       onSuccessCallback: () => {
         onOpenChange(false);
         onSuccess();
-      }
+      },
     }
   );
 
@@ -94,7 +97,9 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
     },
   ];
 
-  if (!user) {return null;}
+  if (!user) {
+    return null;
+  }
 
   return (
     <BaseDialog
@@ -102,7 +107,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       onOpenChange={onOpenChange}
       title={t('editUser')}
       description={`Edit user: ${user.firstName} ${user.lastName}`}
-      maxWidth="md"
+      maxWidth='md'
     >
       <StandardForm
         schema={editUserSchema}
@@ -111,7 +116,9 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
           role: user.role,
           isActive: user.isActive,
         }}
-        onSubmit={(_data) => updateUserMutation.mutate(_data as { role: string; isActive: boolean })}
+        onSubmit={(_data) =>
+          updateUserMutation.mutate(_data as { role: string; isActive: boolean })
+        }
         isLoading={updateUserMutation.isPending}
         submitText={t('updateUser')}
         showCancel
@@ -131,12 +138,12 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
  * @param root0.isLoading - Whether the component is in loading state.
  * @returns JSX element for the user list component.
  */
-export function UserListComponent({ 
-  users, 
-  selectedUsers, 
+export function UserListComponent({
+  users,
+  selectedUsers,
   onSelectionChange,
   onBulkAction,
-  isLoading = false 
+  isLoading = false,
 }: UserListComponentProps) {
   const { t } = useLanguage();
   const { user: currentUser, hasRole } = useAuth();
@@ -146,13 +153,10 @@ export function UserListComponent({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // API mutations using our reusable hooks
-  const deleteUserMutation = useDeleteMutation<string>(
-    (userId) => `/api/users/${userId}`,
-    {
-      successMessage: 'User deleted successfully',
-      invalidateQueries: ['/api/users'],
-    }
-  );
+  const deleteUserMutation = useDeleteMutation<string>((userId) => `/api/users/${userId}`, {
+    successMessage: 'User deleted successfully',
+    invalidateQueries: ['/api/users'],
+  });
 
   const resetPasswordMutation = useApiMutation({
     method: 'POST',
@@ -164,22 +168,28 @@ export function UserListComponent({
   const canDeleteUser = hasRole(['admin']);
 
   const formatDate = (date: Date | string | null) => {
-    if (!date) {return 'Never';}
+    if (!date) {
+      return 'Never';
+    }
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return dateObj.toLocaleDateString();
   };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'manager': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'tenant': return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case 'admin':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'manager':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'tenant':
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
   const getStatusBadgeColor = (isActive: boolean) => {
-    return isActive 
+    return isActive
       ? 'bg-green-100 text-green-800 hover:bg-green-200'
       : 'bg-red-100 text-red-800 hover:bg-red-200';
   };
@@ -202,7 +212,7 @@ export function UserListComponent({
     const confirmed = window.confirm(
       `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
     );
-    
+
     if (confirmed) {
       deleteUserMutation.mutate(user.id);
     }
@@ -214,26 +224,22 @@ export function UserListComponent({
       _key: 'avatar',
       label: '',
       accessor: (user) => (
-        <Avatar className="h-8 w-8">
+        <Avatar className='h-8 w-8'>
           <AvatarImage src={user.profileImage || ''} />
-          <AvatarFallback className="text-xs">
+          <AvatarFallback className='text-xs'>
             {`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
           </AvatarFallback>
         </Avatar>
       ),
-      width: '12'
+      width: '12',
     },
     {
       _key: 'user',
       label: t('user'),
       accessor: (user) => (
         <div>
-          <div className="font-medium">
-            {`${user.firstName} ${user.lastName}`}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {user.email}
-          </div>
+          <div className='font-medium'>{`${user.firstName} ${user.lastName}`}</div>
+          <div className='text-sm text-muted-foreground'>{user.email}</div>
         </div>
       ),
     },
@@ -243,10 +249,7 @@ export function UserListComponent({
       accessor: 'role',
       hideOnMobile: true,
       render: (role) => (
-        <Badge 
-          variant="secondary" 
-          className={getRoleBadgeColor(role as string)}
-        >
+        <Badge variant='secondary' className={getRoleBadgeColor(role as string)}>
           {role as string}
         </Badge>
       ),
@@ -257,10 +260,7 @@ export function UserListComponent({
       accessor: 'isActive',
       hideOnMobile: true,
       render: (isActive) => (
-        <Badge 
-          variant="secondary"
-          className={getStatusBadgeColor(isActive as boolean)}
-        >
+        <Badge variant='secondary' className={getStatusBadgeColor(isActive as boolean)}>
           {(isActive as boolean) ? 'Active' : 'Inactive'}
         </Badge>
       ),
@@ -270,66 +270,89 @@ export function UserListComponent({
       label: t('lastLogin'),
       accessor: (user) => formatDate(user.lastLoginAt),
       hideOnMobile: true,
-      className: 'text-sm text-muted-foreground'
+      className: 'text-sm text-muted-foreground',
     },
     {
       _key: 'joinedDate',
       label: t('joinedDate'),
       accessor: (user) => formatDate(user.createdAt),
       hideOnMobile: true,
-      className: 'text-sm text-muted-foreground'
+      className: 'text-sm text-muted-foreground',
     },
   ];
 
   // Table actions configuration
   const actions: TableAction<User>[] = [
-    ...(canEditUser ? [{
-      label: 'Edit User',
-      icon: Edit,
-      onClick: handleEditUser,
-    }] : []),
+    ...(canEditUser
+      ? [
+          {
+            label: 'Edit User',
+            icon: Edit,
+            onClick: handleEditUser,
+          },
+        ]
+      : []),
     {
       label: 'Reset Password',
       icon: Mail,
       onClick: (user: User) => resetPasswordMutation.mutate(user.id),
     },
-    ...(canEditUser ? [{
-      label: 'Toggle Status',
-      icon: UserX,
-      onClick: (user: User) => onBulkAction('toggle_status', { userIds: [user.id] }),
-    }] : []),
-    ...(canDeleteUser ? [{
-      label: 'Delete User',
-      icon: Trash2,
-      onClick: handleDeleteUser,
-      disabled: (user: User) => user.id === currentUser?.id,
-      variant: 'destructive' as const,
-      separator: true,
-    }] : []),
+    ...(canEditUser
+      ? [
+          {
+            label: 'Toggle Status',
+            icon: UserX,
+            onClick: (user: User) => onBulkAction('toggle_status', { userIds: [user.id] }),
+          },
+        ]
+      : []),
+    ...(canDeleteUser
+      ? [
+          {
+            label: 'Delete User',
+            icon: Trash2,
+            onClick: handleDeleteUser,
+            disabled: (user: User) => user.id === currentUser?.id,
+            variant: 'destructive' as const,
+            separator: true,
+          },
+        ]
+      : []),
   ];
 
   // Bulk actions configuration
   const bulkActions: BulkAction<User>[] = [
-    ...(canEditUser ? [{
-      label: 'Activate Selected',
-      onClick: (users: User[]) => onBulkAction('bulk_activate', { userIds: users.map(u => u.id) }),
-    }, {
-      label: 'Deactivate Selected',
-      onClick: (users: User[]) => onBulkAction('bulk_deactivate', { userIds: users.map(u => u.id) }),
-    }] : []),
-    ...(canDeleteUser ? [{
-      label: 'Delete Selected',
-      variant: 'destructive' as const,
-      onClick: (users: User[]) => {
-        const userIds = users.filter(u => u.id !== currentUser?.id).map(u => u.id);
-        if (userIds.length > 0) {
-          const confirmed = window.confirm(`Delete ${userIds.length} selected users?`);
-          if (confirmed) {
-            onBulkAction('bulk_delete', { userIds });
-          }
-        }
-      },
-    }] : []),
+    ...(canEditUser
+      ? [
+          {
+            label: 'Activate Selected',
+            onClick: (users: User[]) =>
+              onBulkAction('bulk_activate', { userIds: users.map((u) => u.id) }),
+          },
+          {
+            label: 'Deactivate Selected',
+            onClick: (users: User[]) =>
+              onBulkAction('bulk_deactivate', { userIds: users.map((u) => u.id) }),
+          },
+        ]
+      : []),
+    ...(canDeleteUser
+      ? [
+          {
+            label: 'Delete Selected',
+            variant: 'destructive' as const,
+            onClick: (users: User[]) => {
+              const userIds = users.filter((u) => u.id !== currentUser?.id).map((u) => u.id);
+              if (userIds.length > 0) {
+                const confirmed = window.confirm(`Delete ${userIds.length} selected users?`);
+                if (confirmed) {
+                  onBulkAction('bulk_delete', { userIds });
+                }
+              }
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -339,7 +362,7 @@ export function UserListComponent({
         columns={columns}
         actions={actions}
         bulkActions={bulkActions}
-        keyAccessor="id"
+        keyAccessor='id'
         title={t('usersList')}
         selectable
         isLoading={isLoading}

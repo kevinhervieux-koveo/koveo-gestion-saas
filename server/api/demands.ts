@@ -1,14 +1,14 @@
 import { Express } from 'express';
 import { db } from '../db';
-import { 
-  demands, 
-  demandComments, 
-  residences, 
-  buildings, 
-  users, 
+import {
+  demands,
+  demandComments,
+  residences,
+  buildings,
+  users,
   userResidences,
   userOrganizations,
-  organizations
+  organizations,
 } from '../../shared/schema';
 import { eq, and, or, inArray, desc, asc } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
@@ -16,7 +16,7 @@ import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/sche
 
 /**
  * Register demand routes for managing resident demands and complaints.
- * 
+ *
  * @param app - Express application instance.
  */
 /**
@@ -52,18 +52,18 @@ export function registerDemandRoutes(app: Express) {
             id: users.id,
             firstName: users.firstName,
             lastName: users.lastName,
-            email: users.email
+            email: users.email,
           },
           residence: {
             id: residences.id,
             unitNumber: residences.unitNumber,
-            buildingId: residences.buildingId
+            buildingId: residences.buildingId,
           },
           building: {
             id: buildings.id,
             name: buildings.name,
-            address: buildings.address
-          }
+            address: buildings.address,
+          },
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
@@ -83,9 +83,9 @@ export function registerDemandRoutes(app: Express) {
           .select({ organizationId: userOrganizations.organizationId })
           .from(userOrganizations)
           .where(eq(userOrganizations.userId, user.id));
-        
-        orgIds = userOrgs.map(org => org.organizationId);
-        
+
+        orgIds = userOrgs.map((org) => org.organizationId);
+
         if (orgIds.length > 0) {
           query = query.innerJoin(organizations, eq(buildings.organizationId, organizations.id));
           // Add organization filter later with other conditions
@@ -98,34 +98,39 @@ export function registerDemandRoutes(app: Express) {
           .select({ residenceId: userResidences.residenceId })
           .from(userResidences)
           .where(eq(userResidences.userId, user.id));
-        
-        residenceIds = userResidenceData.map(ur => ur.residenceId);
+
+        residenceIds = userResidenceData.map((ur) => ur.residenceId);
       }
 
       // Apply filters
       const conditions = [];
-      
+
       // Add role-based conditions
       if (user.role === 'manager' && orgIds.length > 0) {
         conditions.push(inArray(buildings.organizationId, orgIds));
       } else if (user.role !== 'admin') {
         if (residenceIds.length > 0) {
           conditions.push(
-            or(
-              eq(demands.submitterId, user.id),
-              inArray(demands.residenceId, residenceIds)
-            )
+            or(eq(demands.submitterId, user.id), inArray(demands.residenceId, residenceIds))
           );
         } else {
           conditions.push(eq(demands.submitterId, user.id));
         }
       }
-      
+
       // Add filter conditions
-      if (buildingId) {conditions.push(eq(demands.buildingId, buildingId));}
-      if (residenceId) {conditions.push(eq(demands.residenceId, residenceId));}
-      if (type) {conditions.push(eq(demands.type, type));}
-      if (status) {conditions.push(eq(demands.status, status));}
+      if (buildingId) {
+        conditions.push(eq(demands.buildingId, buildingId));
+      }
+      if (residenceId) {
+        conditions.push(eq(demands.residenceId, residenceId));
+      }
+      if (type) {
+        conditions.push(eq(demands.type, type));
+      }
+      if (status) {
+        conditions.push(eq(demands.status, status));
+      }
 
       // Apply conditions to query if any exist
       let finalQuery;
@@ -141,12 +146,13 @@ export function registerDemandRoutes(app: Express) {
       let filteredResults = results;
       if (search) {
         const searchTerm = search.toLowerCase();
-        filteredResults = results.filter(demand => 
-          demand.description.toLowerCase().includes(searchTerm) ||
-          demand.submitter.firstName?.toLowerCase().includes(searchTerm) ||
-          demand.submitter.lastName?.toLowerCase().includes(searchTerm) ||
-          demand.residence.unitNumber.toLowerCase().includes(searchTerm) ||
-          demand.building.name.toLowerCase().includes(searchTerm)
+        filteredResults = results.filter(
+          (demand) =>
+            demand.description.toLowerCase().includes(searchTerm) ||
+            demand.submitter.firstName?.toLowerCase().includes(searchTerm) ||
+            demand.submitter.lastName?.toLowerCase().includes(searchTerm) ||
+            demand.residence.unitNumber.toLowerCase().includes(searchTerm) ||
+            demand.building.name.toLowerCase().includes(searchTerm)
         );
       }
 
@@ -183,18 +189,18 @@ export function registerDemandRoutes(app: Express) {
             id: users.id,
             firstName: users.firstName,
             lastName: users.lastName,
-            email: users.email
+            email: users.email,
           },
           residence: {
             id: residences.id,
             unitNumber: residences.unitNumber,
-            buildingId: residences.buildingId
+            buildingId: residences.buildingId,
           },
           building: {
             id: buildings.id,
             name: buildings.name,
-            address: buildings.address
-          }
+            address: buildings.address,
+          },
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
@@ -217,17 +223,17 @@ export function registerDemandRoutes(app: Express) {
             .select({ organizationId: userOrganizations.organizationId })
             .from(userOrganizations)
             .where(eq(userOrganizations.userId, user.id));
-          
+
           const buildingOrg = await db
             .select({ organizationId: buildings.organizationId })
             .from(buildings)
             .where(eq(buildings.id, demandData.buildingId))
             .limit(1);
-          
-          const hasAccess = userOrgs.some(org => 
-            buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
+
+          const hasAccess = userOrgs.some(
+            (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
           );
-          
+
           if (!hasAccess) {
             return res.status(403).json({ message: 'Access denied' });
           }
@@ -237,10 +243,13 @@ export function registerDemandRoutes(app: Express) {
             .select({ residenceId: userResidences.residenceId })
             .from(userResidences)
             .where(eq(userResidences.userId, user.id));
-          
-          const residenceIds = userResidenceData.map(ur => ur.residenceId);
-          
-          if (demandData.submitterId !== user.id && !residenceIds.includes(demandData.residenceId)) {
+
+          const residenceIds = userResidenceData.map((ur) => ur.residenceId);
+
+          if (
+            demandData.submitterId !== user.id &&
+            !residenceIds.includes(demandData.residenceId)
+          ) {
             return res.status(403).json({ message: 'Access denied' });
           }
         }
@@ -262,13 +271,12 @@ export function registerDemandRoutes(app: Express) {
       // Validate input
       const validatedData = insertDemandSchema.parse(demandData);
 
-
       // Auto-populate residence and building from user's primary residence if not provided
       if (!validatedData.residenceId || !validatedData.buildingId) {
         const userResidenceData = await db
-          .select({ 
+          .select({
             residenceId: userResidences.residenceId,
-            buildingId: residences.buildingId
+            buildingId: residences.buildingId,
           })
           .from(userResidences)
           .innerJoin(residences, eq(userResidences.residenceId, residences.id))
@@ -276,7 +284,9 @@ export function registerDemandRoutes(app: Express) {
           .limit(1);
 
         if (userResidenceData.length === 0) {
-          return res.status(400).json({ message: 'User must be assigned to a residence to create demands' });
+          return res
+            .status(400)
+            .json({ message: 'User must be assigned to a residence to create demands' });
         }
 
         validatedData.residenceId = validatedData.residenceId || userResidenceData[0].residenceId;
@@ -288,10 +298,7 @@ export function registerDemandRoutes(app: Express) {
         submitterId: user.id,
       };
 
-      const newDemand = await db
-        .insert(demands)
-        .values([demandInsertData])
-        .returning();
+      const newDemand = await db.insert(demands).values([demandInsertData]).returning();
 
       res.status(201).json(newDemand[0]);
     } catch (error: any) {
@@ -311,11 +318,7 @@ export function registerDemandRoutes(app: Express) {
       const updates = req.body;
 
       // Get the current demand
-      const currentDemand = await db
-        .select()
-        .from(demands)
-        .where(eq(demands.id, id))
-        .limit(1);
+      const currentDemand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
 
       if (currentDemand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
@@ -333,21 +336,26 @@ export function registerDemandRoutes(app: Express) {
           .select({ organizationId: userOrganizations.organizationId })
           .from(userOrganizations)
           .where(eq(userOrganizations.userId, user.id));
-        
+
         const buildingOrg = await db
           .select({ organizationId: buildings.organizationId })
           .from(buildings)
           .where(eq(buildings.id, demand.buildingId))
           .limit(1);
-        
-        canUpdate = userOrgs.some(org => 
-          buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
+
+        canUpdate = userOrgs.some(
+          (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
         );
       } else if (demand.submitterId === user.id) {
         // Users can update their own demands (limited fields)
         canUpdate = true;
         // Restrict what residents can update
-        const allowedFields = ['description', 'type', 'assignationResidenceId', 'assignationBuildingId'];
+        const allowedFields = [
+          'description',
+          'type',
+          'assignationResidenceId',
+          'assignationBuildingId',
+        ];
         const restrictedUpdates: any = {};
         for (const [key, value] of Object.entries(updates)) {
           if (allowedFields.includes(key)) {
@@ -381,11 +389,7 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
 
       // Get the current demand
-      const currentDemand = await db
-        .select()
-        .from(demands)
-        .where(eq(demands.id, id))
-        .limit(1);
+      const currentDemand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
 
       if (currentDemand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
@@ -403,15 +407,15 @@ export function registerDemandRoutes(app: Express) {
           .select({ organizationId: userOrganizations.organizationId })
           .from(userOrganizations)
           .where(eq(userOrganizations.userId, user.id));
-        
+
         const buildingOrg = await db
           .select({ organizationId: buildings.organizationId })
           .from(buildings)
           .where(eq(buildings.id, demand.buildingId))
           .limit(1);
-        
-        canDelete = userOrgs.some(org => 
-          buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
+
+        canDelete = userOrgs.some(
+          (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
         );
       } else if (demand.submitterId === user.id && demand.status === 'draft') {
         // Users can only delete their own draft demands
@@ -438,11 +442,7 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
 
       // First check if user has access to the demand
-      const demand = await db
-        .select()
-        .from(demands)
-        .where(eq(demands.id, id))
-        .limit(1);
+      const demand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
 
       if (demand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
@@ -463,8 +463,8 @@ export function registerDemandRoutes(app: Express) {
             id: users.id,
             firstName: users.firstName,
             lastName: users.lastName,
-            email: users.email
-          }
+            email: users.email,
+          },
         })
         .from(demandComments)
         .innerJoin(users, eq(demandComments.createdBy, users.id))
@@ -489,15 +489,11 @@ export function registerDemandRoutes(app: Express) {
       const validatedData = insertDemandCommentSchema.parse({
         ...commentData,
         demandId: id,
-        createdBy: user.id
+        createdBy: user.id,
       });
 
       // Check if user has access to the demand (similar logic as above)
-      const demand = await db
-        .select()
-        .from(demands)
-        .where(eq(demands.id, id))
-        .limit(1);
+      const demand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
 
       if (demand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
@@ -511,16 +507,11 @@ export function registerDemandRoutes(app: Express) {
         .orderBy(desc(demandComments.orderIndex))
         .limit(1);
 
-      const nextOrderIndex = lastComment.length > 0 
-        ? parseFloat(lastComment[0].orderIndex) + 1
-        : 1;
+      const nextOrderIndex = lastComment.length > 0 ? parseFloat(lastComment[0].orderIndex) + 1 : 1;
 
       const orderIndex = nextOrderIndex;
 
-      const newComment = await db
-        .insert(demandComments)
-        .values(validatedData)
-        .returning();
+      const newComment = await db.insert(demandComments).values(validatedData).returning();
 
       res.status(201).json(newComment[0]);
     } catch (error: any) {

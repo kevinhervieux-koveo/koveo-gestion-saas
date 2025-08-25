@@ -7,14 +7,14 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import express from 'express';
 import request from 'supertest';
 import { db } from '../../../server/db';
-import { 
-  users, 
-  organizations, 
-  buildings, 
-  residences, 
+import {
+  users,
+  organizations,
+  buildings,
+  residences,
   demands,
   userOrganizations,
-  userResidences
+  userResidences,
 } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 
@@ -37,7 +37,7 @@ describe('API Security Integration Tests', () => {
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    
+
     // Mock authentication middleware
     app.use((req: unknown, res: unknown, next: unknown) => {
       const authHeader = req.headers.authorization;
@@ -46,7 +46,7 @@ describe('API Security Integration Tests', () => {
       }
 
       const token = authHeader.replace('Bearer ', '');
-      
+
       // Mock token validation and user assignment
       switch (token) {
         case 'admin-token':
@@ -64,13 +64,13 @@ describe('API Security Integration Tests', () => {
         default:
           return res.status(401).json({ message: 'Invalid token' });
       }
-      
+
       next();
     });
 
     // Register API routes (mock implementation)
     registerSecurityTestRoutes(app);
-    
+
     await setupTestData();
   });
 
@@ -91,85 +91,106 @@ describe('API Security Integration Tests', () => {
    */
   async function setupTestData() {
     // Create test organization
-    const [org] = await db.insert(organizations).values({
-      name: 'Security Test Org',
-      type: 'management_company',
-      address: '123 Security St',
-      city: 'Montreal',
-      province: 'QC',
-      postalCode: 'H1S 1S1',
-      phone: '514-555-0200',
-      email: 'security@test.com'
-    }).returning();
+    const [org] = await db
+      .insert(organizations)
+      .values({
+        name: 'Security Test Org',
+        type: 'management_company',
+        address: '123 Security St',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1S 1S1',
+        phone: '514-555-0200',
+        email: 'security@test.com',
+      })
+      .returning();
 
     // Create test users
-    const [admin] = await db.insert(users).values({
-      username: 'admin_security',
-      email: 'admin.security@test.com',
-      password: 'hashed_password',
-      firstName: 'Admin',
-      lastName: 'Security',
-      role: 'admin'
-    }).returning();
+    const [admin] = await db
+      .insert(users)
+      .values({
+        username: 'admin_security',
+        email: 'admin.security@test.com',
+        password: 'hashed_password',
+        firstName: 'Admin',
+        lastName: 'Security',
+        role: 'admin',
+      })
+      .returning();
 
-    const [manager] = await db.insert(users).values({
-      username: 'manager_security',
-      email: 'manager.security@test.com',
-      password: 'hashed_password',
-      firstName: 'Manager',
-      lastName: 'Security',
-      role: 'manager'
-    }).returning();
+    const [manager] = await db
+      .insert(users)
+      .values({
+        username: 'manager_security',
+        email: 'manager.security@test.com',
+        password: 'hashed_password',
+        firstName: 'Manager',
+        lastName: 'Security',
+        role: 'manager',
+      })
+      .returning();
 
-    const [resident] = await db.insert(users).values({
-      username: 'resident_security',
-      email: 'resident.security@test.com',
-      password: 'hashed_password',
-      firstName: 'Resident',
-      lastName: 'Security',
-      role: 'resident'
-    }).returning();
+    const [resident] = await db
+      .insert(users)
+      .values({
+        username: 'resident_security',
+        email: 'resident.security@test.com',
+        password: 'hashed_password',
+        firstName: 'Resident',
+        lastName: 'Security',
+        role: 'resident',
+      })
+      .returning();
 
-    const [tenant] = await db.insert(users).values({
-      username: 'tenant_security',
-      email: 'tenant.security@test.com',
-      password: 'hashed_password',
-      firstName: 'Tenant',
-      lastName: 'Security',
-      role: 'tenant'
-    }).returning();
+    const [tenant] = await db
+      .insert(users)
+      .values({
+        username: 'tenant_security',
+        email: 'tenant.security@test.com',
+        password: 'hashed_password',
+        firstName: 'Tenant',
+        lastName: 'Security',
+        role: 'tenant',
+      })
+      .returning();
 
     // Link users to organization
     await db.insert(userOrganizations).values([
       { userId: admin.id, organizationId: org.id, organizationRole: 'admin' },
       { userId: manager.id, organizationId: org.id, organizationRole: 'manager' },
       { userId: resident.id, organizationId: org.id, organizationRole: 'resident' },
-      { userId: tenant.id, organizationId: org.id, organizationRole: 'tenant' }
+      { userId: tenant.id, organizationId: org.id, organizationRole: 'tenant' },
     ]);
 
     // Create test building and residence
-    const [building] = await db.insert(buildings).values({
-      organizationId: org.id,
-      name: 'Security Test Building',
-      address: '456 Security Ave',
-      city: 'Montreal',
-      province: 'QC',
-      postalCode: 'H1S 2S2',
-      buildingType: 'Apartment',
-      totalUnits: 5
-    }).returning();
+    const [building] = await db
+      .insert(buildings)
+      .values({
+        organizationId: org.id,
+        name: 'Security Test Building',
+        address: '456 Security Ave',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1S 2S2',
+        buildingType: 'Apartment',
+        totalUnits: 5,
+      })
+      .returning();
 
-    const [residence] = await db.insert(residences).values({
-      buildingId: building.id,
-      unitNumber: '101',
-      floor: 1,
-      squareFootage: 750
-    }).returning();
+    const [residence] = await db
+      .insert(residences)
+      .values({
+        buildingId: building.id,
+        unitNumber: '101',
+        floor: 1,
+        squareFootage: 750,
+      })
+      .returning();
 
     await db.insert(userResidences).values({
       userId: resident.id,
       residenceId: residence.id,
-      residenceRole: 'owner'
+      residenceRole: 'owner',
     });
 
     testData = {
@@ -183,7 +204,7 @@ describe('API Security Integration Tests', () => {
       adminToken: 'admin-token',
       managerToken: 'manager-token',
       residentToken: 'resident-token',
-      tenantToken: 'tenant-token'
+      tenantToken: 'tenant-token',
     };
   }
 
@@ -261,9 +282,9 @@ describe('API Security Integration Tests', () => {
       if (req.user?.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied' });
       }
-      res.json({ 
+      res.json({
         message: 'Sensitive data access granted',
-        _data: 'CONFIDENTIAL_INFORMATION' 
+        _data: 'CONFIDENTIAL_INFORMATION',
       });
     });
 
@@ -273,21 +294,20 @@ describe('API Security Integration Tests', () => {
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ message: 'Query parameter required' });
       }
-      
+
       // This would be vulnerable to SQL injection in real code
       // Here we simulate detection of malicious input
       if (query.includes("'") || query.includes(';') || query.includes('--')) {
         return res.status(400).json({ message: 'Invalid characters detected' });
       }
-      
+
       res.json({ message: 'Search completed', query });
     });
   }
 
   describe('Authentication Tests', () => {
     it('should reject requests without authorization header', async () => {
-      const response = await request(app)
-        .get('/api/authenticated');
+      const response = await request(app).get('/api/authenticated');
 
       expect(response.status).toBe(401);
       expect(response.body.message).toContain('Authorization header required');
@@ -453,8 +473,8 @@ describe('API Security Integration Tests', () => {
       const maliciousQueries = [
         "'; DROP TABLE users; --",
         "' OR '1'='1",
-        "1; DELETE FROM demands WHERE 1=1; --",
-        "' UNION SELECT * FROM users --"
+        '1; DELETE FROM demands WHERE 1=1; --',
+        "' UNION SELECT * FROM users --",
       ];
 
       for (const query of maliciousQueries) {
@@ -472,7 +492,7 @@ describe('API Security Integration Tests', () => {
       const safeQueries = [
         'kitchen faucet repair',
         'maintenance request 2025',
-        'building regulations'
+        'building regulations',
       ];
 
       for (const query of safeQueries) {
@@ -508,7 +528,7 @@ describe('API Security Integration Tests', () => {
 
       // Other roles should be denied
       const roles = [testData.managerToken, testData.residentToken, testData.tenantToken];
-      
+
       for (const token of roles) {
         const response = await request(app)
           .get('/api/sensitive-data')
@@ -534,14 +554,12 @@ describe('API Security Integration Tests', () => {
   describe('Rate Limiting and Abuse Prevention', () => {
     it('should handle concurrent requests gracefully', async () => {
       const requests = Array.from({ length: 10 }, () =>
-        request(app)
-          .get('/api/authenticated')
-          .set('Authorization', `Bearer ${testData.adminToken}`)
+        request(app).get('/api/authenticated').set('Authorization', `Bearer ${testData.adminToken}`)
       );
 
       const responses = await Promise.all(requests);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
       });
     });
@@ -556,11 +574,11 @@ describe('API Security Integration Tests', () => {
           .set('Authorization', `Bearer ${testData.managerToken}`),
         request(app)
           .get('/api/authenticated')
-          .set('Authorization', `Bearer ${testData.residentToken}`)
+          .set('Authorization', `Bearer ${testData.residentToken}`),
       ];
 
       const responses = await Promise.all(differentUserRequests);
-      
+
       expect(responses[0].body.userId).toBe(testData.admin.id);
       expect(responses[1].body.userId).toBe(testData.manager.id);
       expect(responses[2].body.userId).toBe(testData.resident.id);
@@ -582,8 +600,7 @@ describe('API Security Integration Tests', () => {
     });
 
     it('should handle preflight requests correctly', async () => {
-      const response = await request(app)
-        .options('/api/authenticated');
+      const response = await request(app).options('/api/authenticated');
 
       // CORS preflight handling would be tested here
       expect(response.status).toBe(200);

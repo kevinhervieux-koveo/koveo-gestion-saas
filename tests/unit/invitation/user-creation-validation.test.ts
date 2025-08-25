@@ -5,7 +5,6 @@
  */
 
 describe('User Creation Process Validation', () => {
-  
   describe('Registration Data Validation', () => {
     test('should validate complete user registration data structure', () => {
       // Based on successful registration from logs
@@ -13,17 +12,17 @@ describe('User Creation Process Validation', () => {
         // Step 1: Token validation
         token: 'e38ddf5e720e8708dd2034539199e33a35e7cff5cb7867eb525c77c01cb7b771',
         invitationId: '77d296ae-b71e-41f5-bcc3-d2abbd04a6b9',
-        
-        // Step 2: Password creation 
+
+        // Step 2: Password creation
         password: 'StrongPassword123!',
         confirmPassword: 'StrongPassword123!',
-        
+
         // Step 3: Profile completion
         firstName: 'Kevin',
         lastName: 'Hervieux',
         phone: '514-712-8441',
         language: 'fr',
-        
+
         // Step 4: Quebec privacy consent
         privacyConsents: {
           dataCollectionConsent: true,
@@ -31,14 +30,14 @@ describe('User Creation Process Validation', () => {
           analyticsConsent: true,
           thirdPartyConsent: false,
           acknowledgedRights: true,
-          consentDate: '2025-08-23T17:54:24.591Z'
+          consentDate: '2025-08-23T17:54:24.591Z',
         },
-        
+
         // Backend assignment data
         email: 'kevhervieux@gmail.com',
         role: 'manager',
         organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
-        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba'
+        buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
       };
 
       // Validate all required fields are present
@@ -47,11 +46,11 @@ describe('User Creation Process Validation', () => {
       expect(registrationData.lastName).toBe('Hervieux');
       expect(registrationData.email).toBe('kevhervieux@gmail.com');
       expect(registrationData.role).toBe('manager');
-      
+
       // Validate Quebec-specific data
       expect(registrationData.phone).toBe('514-712-8441');
       expect(registrationData.language).toBe('fr');
-      
+
       // Validate Quebec Law 25 compliance
       expect(registrationData.privacyConsents.dataCollectionConsent).toBe(true);
       expect(registrationData.privacyConsents.acknowledgedRights).toBe(true);
@@ -64,7 +63,7 @@ describe('User Creation Process Validation', () => {
         { password: 'WeakPassword', isValid: false },
         { password: 'WeakPassword123', isValid: false },
         { password: 'StrongPassword123!', isValid: true },
-        { password: 'MonMotDePasse2024!', isValid: true } // Quebec French
+        { password: 'MonMotDePasse2024!', isValid: true }, // Quebec French
       ];
 
       passwordTests.forEach(({ password, isValid }) => {
@@ -73,8 +72,9 @@ describe('User Creation Process Validation', () => {
         const hasLowercase = /[a-z]/.test(password);
         const hasNumbers = /\d/.test(password);
         const hasSymbols = /[!@#$%^&*]/.test(password);
-        
-        const actuallyValid = hasMinLength && hasUppercase && hasLowercase && hasNumbers && hasSymbols;
+
+        const actuallyValid =
+          hasMinLength && hasUppercase && hasLowercase && hasNumbers && hasSymbols;
         expect(actuallyValid).toBe(isValid);
       });
     });
@@ -86,7 +86,7 @@ describe('User Creation Process Validation', () => {
         { phone: '+1-514-712-8441', isValid: true },
         { phone: '5147128441', isValid: true },
         { phone: '123', isValid: false },
-        { phone: 'not-a-phone', isValid: false }
+        { phone: 'not-a-phone', isValid: false },
       ];
 
       phoneFormats.forEach(({ phone, isValid }) => {
@@ -114,7 +114,7 @@ describe('User Creation Process Validation', () => {
         buildingId: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
         isActive: true,
         createdAt: '2025-08-23T17:54:24.591Z',
-        lastLogin: null
+        lastLogin: null,
       };
 
       expect(createdUser.id).toBeDefined();
@@ -135,8 +135,8 @@ describe('User Creation Process Validation', () => {
         demoOrganization: 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6',
         accessibleOrganizations: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo
-          '72263718-6559-4216-bd93-524f7acdcbbc' // User's org
-        ]
+          '72263718-6559-4216-bd93-524f7acdcbbc', // User's org
+        ],
       };
 
       expect(userAccess.accessibleOrganizations).toHaveLength(2);
@@ -152,7 +152,7 @@ describe('User Creation Process Validation', () => {
         canEditBuildings: true,
         canDeleteBuildings: false, // Only admin can delete
         organizationAccess: 'all', // Manager sees all in org
-        buildingAssignment: '005b0e63-6a0a-44c9-bf01-2b779b316bba'
+        buildingAssignment: '005b0e63-6a0a-44c9-bf01-2b779b316bba',
       };
 
       expect(managerRoleAccess.role).toBe('manager');
@@ -170,11 +170,12 @@ describe('User Creation Process Validation', () => {
         action: 'validation_success',
         performedBy: undefined, // No user yet during validation
         ipAddress: '172.31.107.66',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
         details: { email: 'kevhervieux@gmail.com' },
         previousStatus: 'pending',
         newStatus: undefined,
-        timestamp: '2025-08-23T17:51:42.173Z'
+        timestamp: '2025-08-23T17:51:42.173Z',
       };
 
       expect(validationAuditLog.action).toBe('validation_success');
@@ -189,15 +190,16 @@ describe('User Creation Process Validation', () => {
         action: 'accepted',
         performedBy: '6a71e61e-a841-4106-bde7-dd2945653d49',
         ipAddress: '172.31.107.66',
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
         details: {
           email: 'kevhervieux@gmail.com',
           userId: '6a71e61e-a841-4106-bde7-dd2945653d49',
-          organizationId: '72263718-6559-4216-bd93-524f7acdcbbc'
+          organizationId: '72263718-6559-4216-bd93-524f7acdcbbc',
         },
         previousStatus: 'pending',
         newStatus: 'accepted',
-        timestamp: '2025-08-23T17:54:24.591Z'
+        timestamp: '2025-08-23T17:54:24.591Z',
       };
 
       expect(acceptanceAuditLog.action).toBe('accepted');
@@ -218,14 +220,14 @@ describe('User Creation Process Validation', () => {
         acknowledgedRights: true, // Required for Law 25
         consentDate: '2025-08-23T17:54:24.591Z',
         law25Compliance: true,
-        consentVersion: '2024.1'
+        consentVersion: '2024.1',
       };
 
       // Required consents for Quebec Law 25
       expect(quebecConsents.dataCollectionConsent).toBe(true);
       expect(quebecConsents.acknowledgedRights).toBe(true);
       expect(quebecConsents.consentDate).toBeDefined();
-      
+
       // Optional consents can be true or false
       expect(typeof quebecConsents.marketingConsent).toBe('boolean');
       expect(typeof quebecConsents.analyticsConsent).toBe('boolean');
@@ -239,7 +241,7 @@ describe('User Creation Process Validation', () => {
         privacyRights: 'droits à la vie privée',
         consent: 'consentement',
         lawCompliance: 'conformité à la Loi 25',
-        dataProtection: 'protection des données'
+        dataProtection: 'protection des données',
       };
 
       // Validate Quebec-specific French terms are used
@@ -260,11 +262,15 @@ describe('User Creation Process Validation', () => {
         slowQueryThreshold: 100, // ms
         targetQueryTime: 50, // ms
         createUserQueryTime: 177.84, // ms from logs
-        recommendation: 'Add database indexes'
+        recommendation: 'Add database indexes',
       };
 
-      expect(performanceMetrics.createUserQueryTime).toBeGreaterThan(performanceMetrics.slowQueryThreshold);
-      expect(performanceMetrics.averageQueryTime).toBeGreaterThan(performanceMetrics.targetQueryTime);
+      expect(performanceMetrics.createUserQueryTime).toBeGreaterThan(
+        performanceMetrics.slowQueryThreshold
+      );
+      expect(performanceMetrics.averageQueryTime).toBeGreaterThan(
+        performanceMetrics.targetQueryTime
+      );
       expect(performanceMetrics.slowQueries).toBe(2);
       expect(performanceMetrics.recommendation).toBe('Add database indexes');
     });
@@ -275,11 +281,13 @@ describe('User Creation Process Validation', () => {
         { key: 'users:user:222f5a0d-6bc6-4f28-9f4d-32c133eedvcase33', status: 'hit' },
         { key: 'users:user_email:kevhervieux@gmail.com', status: 'miss' },
         { key: 'users:user:6a71e61e-a841-4106-bde7-dd2945653d49', status: 'cached' },
-        { key: 'users:all_users', status: 'miss' }
+        { key: 'users:all_users', status: 'miss' },
       ];
 
-      const hitCount = cacheScenarios.filter(s => s.status === 'hit' || s.status === 'cached').length;
-      const missCount = cacheScenarios.filter(s => s.status === 'miss').length;
+      const hitCount = cacheScenarios.filter(
+        (s) => s.status === 'hit' || s.status === 'cached'
+      ).length;
+      const missCount = cacheScenarios.filter((s) => s.status === 'miss').length;
 
       expect(hitCount).toBeGreaterThan(0);
       expect(missCount).toBeGreaterThan(0);
@@ -296,11 +304,9 @@ describe('User Creation Process Validation', () => {
         sessionEstablished: true,
         organizationsAccessed: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo
-          '72263718-6559-4216-bd93-524f7acdcbbc' // User's org
+          '72263718-6559-4216-bd93-524f7acdcbbc', // User's org
         ],
-        buildingsAccessed: [
-          '005b0e63-6a0a-44c9-bf01-2b779b316bba'
-        ]
+        buildingsAccessed: ['005b0e63-6a0a-44c9-bf01-2b779b316bba'],
       };
 
       expect(loginAttempt.sessionEstablished).toBe(true);
@@ -319,7 +325,7 @@ describe('User Creation Process Validation', () => {
         demoResidences: 9, // From logs
         demoUsers: 9, // From logs
         demoBuildingDocuments: 31, // From logs
-        demoResidenceDocuments: 87 // From logs
+        demoResidenceDocuments: 87, // From logs
       };
 
       expect(demoAccess.demoOrgId).toBe('e98cc553-c2d7-4854-877a-7cc9eeb8c6b6');
@@ -337,18 +343,18 @@ describe('User Creation Process Validation', () => {
         useEffectWithCallbacks: {
           before: '[formData, onDataChange, onValidationChange]', // ❌ Caused infinite loops
           after: '[formData]', // ✅ Fixed
-          fixed: true
+          fixed: true,
         },
         variableNaming: {
           before: 'value', // ❌ Undefined variable
           after: '_value', // ✅ Consistent naming
-          fixed: true
+          fixed: true,
         },
         propInterface: {
           before: 'data', // ❌ Interface mismatch
           after: '_data', // ✅ Matches WizardStepProps
-          fixed: true
-        }
+          fixed: true,
+        },
       };
 
       expect(problematicPatterns.useEffectWithCallbacks.fixed).toBe(true);
@@ -361,9 +367,10 @@ describe('User Creation Process Validation', () => {
       const emailURLGeneration = {
         environment: 'development',
         baseURL: process.env.REPLIT_DOMAINS || 'localhost:5000',
-        urlFormat: 'https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev',
+        urlFormat:
+          'https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev',
         isReplitFormat: true,
-        emailURLCorrect: true
+        emailURLCorrect: true,
       };
 
       const isReplitURL = emailURLGeneration.urlFormat.includes('.replit.dev');
@@ -384,10 +391,10 @@ describe('User Creation Process Validation', () => {
         demoAccessGranted: true,
         sessionEstablished: true,
         cacheInvalidated: true,
-        performanceMonitored: true
+        performanceMonitored: true,
       };
 
-      Object.values(systemSetup).forEach(value => {
+      Object.values(systemSetup).forEach((value) => {
         expect(value).toBe(true);
       });
     });
@@ -401,7 +408,7 @@ describe('User Creation Process Validation', () => {
         law25Compliance: true,
         bilingualSupport: true,
         propertyManagementFocus: true,
-        organizationName: '563 montée des pionniers'
+        organizationName: '563 montée des pionniers',
       };
 
       expect(quebecContext.language).toBe('fr');

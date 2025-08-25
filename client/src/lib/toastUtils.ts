@@ -30,7 +30,7 @@ export const toastUtils = {
 
   updateError: (entity: string) => {
     toast({
-      title: 'Error', 
+      title: 'Error',
       description: `Failed to update ${entity}`,
       variant: 'destructive',
     });
@@ -54,7 +54,7 @@ export const toastUtils = {
   updateSuccess: (entity: string) => {
     toast({
       title: 'Success',
-      description: `${entity} updated successfully`, 
+      description: `${entity} updated successfully`,
     });
   },
 

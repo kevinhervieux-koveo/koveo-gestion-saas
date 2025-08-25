@@ -3,11 +3,7 @@ import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import type { FinancialPeriodData, FinancialCacheEntry } from '@shared/schemas/financial-views';
 import * as schema from '@shared/schema';
 
-const { 
-  bills, 
-  residences, 
-  buildings 
-} = schema;
+const { bills, residences, buildings } = schema;
 
 /**
  * Dynamic Financial Calculator - Replaces the money_flow table with real-time calculations
@@ -36,7 +32,7 @@ export class DynamicFinancialCalculator {
     forceRefresh = false
   ): Promise<FinancialPeriodData> {
     const cacheKey = this.generateCacheKey(startDate, endDate);
-    
+
     // Try to get from cache first (unless force refresh)
     if (!forceRefresh) {
       const cached = await this.getCachedData(buildingId, cacheKey, startDate, endDate);
@@ -49,10 +45,10 @@ export class DynamicFinancialCalculator {
     // Calculate fresh data
     console.warn(`⚡ Calculating fresh financial data for building ${buildingId}`);
     const financialData = await this.calculateFinancialData(buildingId, startDate, endDate);
-    
+
     // Cache the result
     await this.cacheFinancialData(buildingId, cacheKey, startDate, endDate, financialData);
-    
+
     return financialData;
   }
 
@@ -107,7 +103,7 @@ export class DynamicFinancialCalculator {
       startDate,
       endDate,
       monthlyData,
-      summary
+      summary,
     };
   }
 
@@ -127,18 +123,18 @@ export class DynamicFinancialCalculator {
     const monthlyData: unknown[] = [];
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
-    
+
     // Iterate through each month in the range
     const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    
+
     while (currentDate <= endDate) {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
-      
+
       // Calculate income for this month (mainly from residences)
       const incomeByCategory: Record<string, number> = {};
       let totalIncome = 0;
-      
+
       // Process residence monthly fees
       for (const residence of residences) {
         const monthlyFee = parseFloat(residence.monthlyFees || '0');
@@ -168,7 +164,7 @@ export class DynamicFinancialCalculator {
         totalExpenses,
         netCashFlow: totalIncome - totalExpenses,
         incomeByCategory,
-        expensesByCategory
+        expensesByCategory,
       });
 
       // Move to next month
@@ -190,8 +186,12 @@ export class DynamicFinancialCalculator {
     const targetDate = new Date(year, month - 1, 1);
 
     // Check if bill is active for this month
-    if (targetDate < billStartDate) {return 0;}
-    if (billEndDate && targetDate > billEndDate) {return 0;}
+    if (targetDate < billStartDate) {
+      return 0;
+    }
+    if (billEndDate && targetDate > billEndDate) {
+      return 0;
+    }
 
     const totalAmount = parseFloat(bill.totalAmount || '0');
 
@@ -199,30 +199,32 @@ export class DynamicFinancialCalculator {
     switch (bill.schedulePayment) {
       case 'monthly':
         return totalAmount;
-      
+
       case 'quarterly':
         // Only charge in quarters: Jan, Apr, Jul, Oct
         return [1, 4, 7, 10].includes(month) ? totalAmount : 0;
-      
+
       case 'yearly':
         // Only charge in the start month of each year
         const startMonth = billStartDate.getMonth() + 1;
         return month === startMonth ? totalAmount : 0;
-      
+
       case 'weekly':
         // Approximate: 4.33 weeks per month
         return totalAmount * 4.33;
-      
+
       case 'custom':
         // Check if this month has a custom date
-        if (bill.scheduleCustom?.some((date: string) => {
-          const customDate = new Date(date);
-          return customDate.getFullYear() === year && customDate.getMonth() + 1 === month;
-        })) {
+        if (
+          bill.scheduleCustom?.some((date: string) => {
+            const customDate = new Date(date);
+            return customDate.getFullYear() === year && customDate.getMonth() + 1 === month;
+          })
+        ) {
           return totalAmount;
         }
         return 0;
-      
+
       default:
         return 0;
     }
@@ -234,21 +236,21 @@ export class DynamicFinancialCalculator {
    */
   private mapBillCategoryToExpenseCategory(billCategory: string): string {
     const mapping: Record<string, string> = {
-      'insurance': 'insurance',
-      'maintenance': 'maintenance_expense',
-      'salary': 'administrative_expense',
-      'utilities': 'utilities',
-      'cleaning': 'cleaning',
-      'security': 'security',
-      'landscaping': 'landscaping',
-      'professional_services': 'professional_services',
-      'administration': 'administrative_expense',
-      'repairs': 'repairs',
-      'supplies': 'supplies',
-      'taxes': 'taxes',
-      'technology': 'administrative_expense',
-      'reserves': 'reserves',
-      'other': 'other_expense'
+      insurance: 'insurance',
+      maintenance: 'maintenance_expense',
+      salary: 'administrative_expense',
+      utilities: 'utilities',
+      cleaning: 'cleaning',
+      security: 'security',
+      landscaping: 'landscaping',
+      professional_services: 'professional_services',
+      administration: 'administrative_expense',
+      repairs: 'repairs',
+      supplies: 'supplies',
+      taxes: 'taxes',
+      technology: 'administrative_expense',
+      reserves: 'reserves',
+      other: 'other_expense',
     };
 
     return mapping[billCategory] || 'other_expense';
@@ -278,7 +280,11 @@ export class DynamicFinancialCalculator {
    * @param endDate
    * @param params
    */
-  private generateCacheKey(startDate: string, endDate: string, params?: Record<string, any>): string {
+  private generateCacheKey(
+    startDate: string,
+    endDate: string,
+    params?: Record<string, any>
+  ): string {
     const baseKey = `financial_${startDate}_${endDate}`;
     if (params && Object.keys(_params).length > 0) {
       const paramStr = Object.entries(_params)
@@ -382,8 +388,10 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-    console.warn(`🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`);
-    
+    console.warn(
+      `🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`
+    );
+
     await db.execute(sql`
       DELETE FROM financial_cache WHERE building_id = ${buildingId}
     `);
@@ -409,7 +417,7 @@ export class DynamicFinancialCalculator {
     `);
 
     const row = stats.rows[0];
-    
+
     return {
       totalEntries: parseInt(row.total_entries as string),
       expiredEntries: parseInt(row.expired_entries as string),

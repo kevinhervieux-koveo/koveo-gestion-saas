@@ -8,7 +8,7 @@ import HomePage from '@/pages/home';
 
 /**
  * Platform Trial Forms Tests.
- * 
+ *
  * Tests to ensure forms and CTAs for trying the platform work correctly.
  * Validates form functionality, user flows, and conversion paths.
  */
@@ -18,14 +18,14 @@ import HomePage from '@/pages/home';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
-  * @returns Promise resolving to result.
-*/
-function TestProviders({ 
-  children, 
-  initialLocation = '/' 
-}: { 
-  children: React.ReactNode; 
-  initialLocation?: string; 
+ * @returns Promise resolving to result.
+ */
+function TestProviders({
+  children,
+  initialLocation = '/',
+}: {
+  children: React.ReactNode;
+  initialLocation?: string;
 }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -37,9 +37,7 @@ function TestProviders({
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialLocation]}>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <LanguageProvider>{children}</LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -70,7 +68,7 @@ describe('Platform Trial Forms Tests', () => {
       const getStartedButtons = screen.getAllByText(/get started|start managing today/i);
       expect(getStartedButtons.length).toBeGreaterThan(0);
 
-      getStartedButtons.forEach(button => {
+      getStartedButtons.forEach((button) => {
         const buttonElement = button.closest('button');
         expect(buttonElement).toBeInTheDocument();
         expect(buttonElement).toHaveAttribute('data-testid');
@@ -80,7 +78,7 @@ describe('Platform Trial Forms Tests', () => {
 
     it('should handle CTA button clicks correctly', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestProviders>
           <HomePage />
@@ -89,9 +87,9 @@ describe('Platform Trial Forms Tests', () => {
 
       const ctaButton = screen.getByText(/get started|start managing today/i);
       const buttonElement = ctaButton.closest('button');
-      
+
       expect(buttonElement).toBeInTheDocument();
-      
+
       await user.click(buttonElement!);
       expect(mockSetLocation).toHaveBeenCalledWith('/login');
     });
@@ -118,7 +116,7 @@ describe('Platform Trial Forms Tests', () => {
   describe('Sign Up Flow Integration', () => {
     it('should provide clear sign up path', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestProviders>
           <HomePage />
@@ -127,11 +125,11 @@ describe('Platform Trial Forms Tests', () => {
 
       // Find sign-up related buttons
       const signUpButton = screen.queryByText(/sign up|get started|join now/i);
-      
+
       if (signUpButton) {
         const buttonElement = signUpButton.closest('button');
         expect(buttonElement).toBeEnabled();
-        
+
         await user.click(buttonElement!);
         expect(mockSetLocation).toHaveBeenCalled();
       }
@@ -162,7 +160,7 @@ describe('Platform Trial Forms Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should provide ways to contact or request demo
       const contactIndicators = [
         /contact.*us/i,
@@ -173,9 +171,7 @@ describe('Platform Trial Forms Tests', () => {
         /expert.*support/i,
       ];
 
-      const hasContactOption = contactIndicators.some(pattern => 
-        pattern.test(pageContent)
-      );
+      const hasContactOption = contactIndicators.some((pattern) => pattern.test(pageContent));
 
       // Should have some way to contact or learn more
       expect(hasContactOption || pageContent.includes('support')).toBe(true);
@@ -192,7 +188,7 @@ describe('Platform Trial Forms Tests', () => {
       document.body.appendChild(mockContactForm);
 
       const user = userEvent.setup();
-      
+
       const emailInput = screen.getByTestId('contact-email');
       const messageInput = screen.getByTestId('contact-message');
       const submitButton = screen.getByTestId('contact-submit');
@@ -220,7 +216,7 @@ describe('Platform Trial Forms Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should encourage account creation
       expect(pageContent).toMatch(/get started|sign up|create account|join/i);
     });
@@ -234,8 +230,8 @@ describe('Platform Trial Forms Tests', () => {
 
       // Should have clear path to registration
       const registrationButtons = screen.queryAllByText(/get started|sign up|register/i);
-      
-      registrationButtons.forEach(button => {
+
+      registrationButtons.forEach((button) => {
         const buttonElement = button.closest('button');
         if (buttonElement) {
           expect(buttonElement).toBeEnabled();
@@ -271,8 +267,8 @@ describe('Platform Trial Forms Tests', () => {
 
       // All inputs should have labels
       expect(labels.length).toBeGreaterThan(0);
-      
-      labels.forEach(label => {
+
+      labels.forEach((label) => {
         const forAttribute = label.getAttribute('for');
         if (forAttribute) {
           const correspondingInput = document.getElementById(forAttribute);
@@ -299,7 +295,7 @@ describe('Platform Trial Forms Tests', () => {
 
       // Try to submit without email
       await user.click(submitButton);
-      
+
       // Should show validation (browser native or custom)
       expect(emailInput).toBeInvalid();
 
@@ -329,8 +325,8 @@ describe('Platform Trial Forms Tests', () => {
 
       // Forms should be mobile-friendly
       const buttons = screen.getAllByRole('button');
-      
-      buttons.forEach(button => {
+
+      buttons.forEach((button) => {
         // Buttons should be large enough for mobile
         const styles = window.getComputedStyle(button);
         // Mobile buttons should have adequate touch targets
@@ -340,7 +336,7 @@ describe('Platform Trial Forms Tests', () => {
 
     it('should handle touch interactions properly', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestProviders>
           <HomePage />
@@ -348,10 +344,10 @@ describe('Platform Trial Forms Tests', () => {
       );
 
       const ctaButton = screen.getAllByRole('button')[0];
-      
+
       // Should handle touch events (simulated as clicks)
       await user.click(ctaButton);
-      
+
       // Should not have double-tap delays or issues
       expect(ctaButton).toHaveBeenInteractedWith;
     });
@@ -373,7 +369,7 @@ describe('Platform Trial Forms Tests', () => {
 
       // Form should handle errors without crashing
       await user.click(submitButton);
-      
+
       // Should still be interactable after error
       expect(submitButton).toBeEnabled();
 
@@ -389,7 +385,7 @@ describe('Platform Trial Forms Tests', () => {
         'Message must be at least 10 characters',
       ];
 
-      mockErrors.forEach(error => {
+      mockErrors.forEach((error) => {
         expect(_error).toMatch(/(please|required|must|should)/i);
         expect(error.length).toBeGreaterThan(10);
       });
@@ -406,11 +402,11 @@ describe('Platform Trial Forms Tests', () => {
 
       // Forms should have tracking attributes
       const buttons = screen.getAllByRole('button');
-      
-      buttons.forEach(button => {
+
+      buttons.forEach((button) => {
         // Should have data attributes for tracking
         expect(button).toHaveAttribute('data-testid');
-        
+
         // Important CTA buttons should be trackable
         if (button.textContent?.includes('Get Started')) {
           expect(button).toHaveAttribute('data-testid', 'button-get-started');
@@ -420,7 +416,7 @@ describe('Platform Trial Forms Tests', () => {
 
     it('should track user interactions properly', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestProviders>
           <HomePage />
@@ -428,10 +424,10 @@ describe('Platform Trial Forms Tests', () => {
       );
 
       const ctaButton = screen.getByText(/get started/i);
-      
+
       // Click should be trackable
       await user.click(ctaButton);
-      
+
       // Verify interaction happened (navigation or state change)
       expect(mockSetLocation).toHaveBeenCalled();
     });
@@ -440,7 +436,7 @@ describe('Platform Trial Forms Tests', () => {
   describe('Form Performance', () => {
     it('should load forms quickly without performance issues', () => {
       const startTime = performance.now();
-      
+
       render(
         <TestProviders>
           <HomePage />
@@ -449,7 +445,7 @@ describe('Platform Trial Forms Tests', () => {
 
       const endTime = performance.now();
       const renderTime = endTime - startTime;
-      
+
       // Should render quickly (less than 100ms for basic rendering)
       expect(renderTime).toBeLessThan(1000);
     });
@@ -457,7 +453,7 @@ describe('Platform Trial Forms Tests', () => {
     it('should handle form state efficiently', async () => {
       // Mock form state changes
       const user = userEvent.setup();
-      
+
       // Create mock form
       const mockForm = document.createElement('div');
       mockForm.innerHTML = `
@@ -467,12 +463,12 @@ describe('Platform Trial Forms Tests', () => {
       document.body.appendChild(mockForm);
 
       const input = screen.getByTestId('test-input');
-      
+
       // Fast typing should be handled smoothly
       await user.type(input, 'Quick typing test');
-      
+
       expect(input).toHaveValue('Quick typing test');
-      
+
       // Clean up
       document.body.removeChild(mockForm);
     });
@@ -497,7 +493,7 @@ export const FORM_TEST_SCENARIOS = {
       message: '', // Empty required field
     },
   },
-  
+
   trialSignup: {
     fields: ['email', 'password', 'firstName', 'lastName', 'company'],
     requiredFields: ['email', 'password', 'firstName', 'lastName'],
@@ -509,7 +505,7 @@ export const FORM_TEST_SCENARIOS = {
       company: 'Property Management Co.',
     },
   },
-  
+
   demoRequest: {
     fields: ['email', 'company', 'role', 'propertyCount', 'message'],
     requiredFields: ['email', 'company'],
@@ -527,17 +523,16 @@ export const FORM_TEST_SCENARIOS = {
  *
  * @param formData
  */
-export async function fillFormData(
-  formData: Record<string, string>
-): Promise<void> {
+export async function fillFormData(formData: Record<string, string>): Promise<void> {
   const user = userEvent.setup();
-  
+
   for (const [_fieldName, value] of Object.entries(formData)) {
-    const field = screen.queryByLabelText(new RegExp(fieldName, 'i')) ||
-                  screen.queryByPlaceholderText(new RegExp(fieldName, 'i')) ||
-                  screen.queryByTestId(fieldName) ||
-                  screen.queryByTestId(`${fieldName}-input`);
-    
+    const field =
+      screen.queryByLabelText(new RegExp(fieldName, 'i')) ||
+      screen.queryByPlaceholderText(new RegExp(fieldName, 'i')) ||
+      screen.queryByTestId(fieldName) ||
+      screen.queryByTestId(`${fieldName}-input`);
+
     if (field) {
       await user.clear(field);
       await user.type(field, _value);
@@ -551,11 +546,11 @@ export async function fillFormData(
  */
 export async function submitForm(formTestId?: string): Promise<void> {
   const user = userEvent.setup();
-  
-  const submitButton = formTestId 
+
+  const submitButton = formTestId
     ? screen.getByTestId(`${formTestId}-submit`)
     : screen.getByRole('button', { name: /submit|send|start|sign up|get started/i });
-  
+
   await user.click(submitButton);
 }
 
@@ -568,37 +563,37 @@ export function validateFormAccessibility(form: HTMLElement): {
   issues: string[];
 } {
   const issues: string[] = [];
-  
+
   // Check for labels
   const inputs = form.querySelectorAll('input, textarea, select');
-  inputs.forEach(input => {
+  inputs.forEach((input) => {
     const id = input.id;
     const label = form.querySelector(`label[for="${id}"]`);
     const ariaLabel = input.getAttribute('aria-label');
-    
+
     if (!label && !ariaLabel) {
       issues.push(`Input ${input.getAttribute('name') || 'unnamed'} lacks label`);
     }
   });
-  
+
   // Check for submit button
   const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
   if (!submitButton) {
     issues.push('Form lacks submit button');
   }
-  
+
   // Check for required field indicators
   const requiredFields = form.querySelectorAll('[required]');
-  requiredFields.forEach(field => {
+  requiredFields.forEach((field) => {
     const fieldContainer = field.closest('div, fieldset');
-    const hasRequiredIndicator = fieldContainer?.textContent?.includes('*') ||
-                                field.getAttribute('aria-required') === 'true';
-    
+    const hasRequiredIndicator =
+      fieldContainer?.textContent?.includes('*') || field.getAttribute('aria-required') === 'true';
+
     if (!hasRequiredIndicator) {
       issues.push(`Required field ${field.getAttribute('name')} not clearly marked`);
     }
   });
-  
+
   return {
     isAccessible: issues.length === 0,
     issues,

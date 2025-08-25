@@ -9,32 +9,29 @@ interface TestProvidersProps {
   queryClient?: QueryClient;
 }
 
-export const TestProviders = ({ 
-  children, 
-  queryClient
-}: TestProvidersProps) => {
-  const testQueryClient = queryClient || new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0,
+export const TestProviders = ({ children, queryClient }: TestProvidersProps) => {
+  const testQueryClient =
+    queryClient ||
+    new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          gcTime: 0,
+        },
+        mutations: {
+          retry: false,
+        },
       },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
+    });
 
   return (
     <QueryClientProvider client={testQueryClient}>
-      <div data-testid="test-providers">
-        {children}
-      </div>
+      <div data-testid='test-providers'>{children}</div>
     </QueryClientProvider>
   );
 };
 
-export const createTestQueryClient = () => 
+export const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {

@@ -70,9 +70,10 @@ export function RoadmapSection({
   onToggleStrategic,
 }: RoadmapSectionProps) {
   // Filter features based on search term
-  const filteredFeatures = section.features.filter(feature =>
-    feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    feature.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFeatures = section.features.filter(
+    (feature) =>
+      feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feature.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Don't render section if no features match search
@@ -98,11 +99,7 @@ export function RoadmapSection({
               <CardDescription>{section.description}</CardDescription>
             </div>
           </div>
-          {isExpanded ? (
-            <ChevronDown className='w-5 h-5' />
-          ) : (
-            <ChevronRight className='w-5 h-5' />
-          )}
+          {isExpanded ? <ChevronDown className='w-5 h-5' /> : <ChevronRight className='w-5 h-5' />}
         </div>
       </CardHeader>
 

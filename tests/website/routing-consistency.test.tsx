@@ -9,7 +9,7 @@ import App from '@/App';
 
 /**
  * Routing Consistency Tests.
- * 
+ *
  * Tests to ensure navigation and routing work consistently across the platform.
  * Validates route accessibility, navigation patterns, and user experience flow.
  */
@@ -20,14 +20,14 @@ import App from '@/App';
  * @param root0.children
  * @param root0.initialLocation
  * @param root0.userRole
-  * @returns Function result.
-*/
-function TestProviders({ 
-  children, 
+ * @returns Function result.
+ */
+function TestProviders({
+  children,
   initialLocation = '/',
-  userRole = 'manager'
-}: { 
-  children: React.ReactNode; 
+  userRole = 'manager',
+}: {
+  children: React.ReactNode;
   initialLocation?: string;
   userRole?: string;
 }) {
@@ -42,7 +42,7 @@ function TestProviders({
     id: '1',
     email: 'test@example.com',
     role: userRole,
-    organizationId: 'org-1'
+    organizationId: 'org-1',
   };
 
   const mockAuthValue = {
@@ -58,9 +58,7 @@ function TestProviders({
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialLocation]}>
         <LanguageProvider>
-          <AuthProvider value={mockAuthValue}>
-            {children}
-          </AuthProvider>
+          <AuthProvider value={mockAuthValue}>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -78,7 +76,7 @@ describe('Routing Consistency Tests', () => {
       { path: '/register', name: 'Register' },
     ];
 
-    publicRoutes.forEach(route => {
+    publicRoutes.forEach((route) => {
       it(`should render ${route.name} page at ${route.path}`, () => {
         render(
           <TestProviders initialLocation={route.path}>
@@ -88,7 +86,7 @@ describe('Routing Consistency Tests', () => {
 
         // Page should render without errors
         expect(document.body).toBeInTheDocument();
-        
+
         // Should not show loading spinner indefinitely
         expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
       });
@@ -96,15 +94,14 @@ describe('Routing Consistency Tests', () => {
 
     it('should handle invalid public routes', () => {
       render(
-        <TestProviders initialLocation="/non-existent-route">
+        <TestProviders initialLocation='/non-existent-route'>
           <App />
         </TestProviders>
       );
 
       // Should show 404 or redirect to valid route
       expect(
-        screen.queryByText(/not found|404/i) || 
-        screen.queryByText(/home|login/i)
+        screen.queryByText(/not found|404/i) || screen.queryByText(/home|login/i)
       ).toBeInTheDocument();
     });
   });
@@ -127,8 +124,8 @@ describe('Routing Consistency Tests', () => {
       { path: '/residents/demands', name: 'Resident Demands', roles: ['resident'] },
     ];
 
-    protectedRoutes.forEach(route => {
-      route.roles.forEach(role => {
+    protectedRoutes.forEach((route) => {
+      route.roles.forEach((role) => {
         it(`should render ${route.name} for ${role} role`, () => {
           render(
             <TestProviders initialLocation={route.path} userRole={role}>
@@ -144,10 +141,10 @@ describe('Routing Consistency Tests', () => {
 
       // Test unauthorized access
       const unauthorizedRoles = ['admin', 'manager', 'resident'].filter(
-        role => !route.roles.includes(role)
+        (role) => !route.roles.includes(role)
       );
-      
-      unauthorizedRoles.forEach(role => {
+
+      unauthorizedRoles.forEach((role) => {
         it(`should restrict ${route.name} access for ${role} role`, () => {
           render(
             <TestProviders initialLocation={route.path} userRole={role}>
@@ -158,7 +155,7 @@ describe('Routing Consistency Tests', () => {
           // Should show access denied or redirect
           expect(
             screen.queryByText(/access denied|unauthorized|not found/i) ||
-            screen.queryByText(/dashboard|login/i)
+              screen.queryByText(/dashboard|login/i)
           ).toBeInTheDocument();
         });
       });
@@ -168,19 +165,20 @@ describe('Routing Consistency Tests', () => {
   describe('Navigation Consistency', () => {
     it('should maintain consistent sidebar navigation', () => {
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
 
       // Sidebar should be present
-      const sidebar = screen.queryByRole('navigation') || 
-                     screen.queryByTestId('sidebar') ||
-                     document.querySelector('[data-testid*="sidebar"]');
-      
+      const sidebar =
+        screen.queryByRole('navigation') ||
+        screen.queryByTestId('sidebar') ||
+        document.querySelector('[data-testid*="sidebar"]');
+
       if (sidebar) {
         expect(sidebar).toBeInTheDocument();
-        
+
         // Should contain navigation links
         const navLinks = sidebar.querySelectorAll('a, button[role="link"]');
         expect(navLinks.length).toBeGreaterThan(0);
@@ -196,37 +194,35 @@ describe('Routing Consistency Tests', () => {
 
       roles.forEach(({ role, expectedSections }) => {
         render(
-          <TestProviders initialLocation="/dashboard" userRole={role}>
+          <TestProviders initialLocation='/dashboard' userRole={role}>
             <App />
           </TestProviders>
         );
 
         const pageContent = document.body.textContent || '';
-        
-        expectedSections.forEach(section => {
-          expect(pageContent.toLowerCase()).toMatch(
-            new RegExp(section.toLowerCase())
-          );
+
+        expectedSections.forEach((section) => {
+          expect(pageContent.toLowerCase()).toMatch(new RegExp(section.toLowerCase()));
         });
       });
     });
 
     it('should handle navigation between different sections', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
 
       // Try to find navigation links
       const navLinks = screen.queryAllByRole('link').slice(0, 3); // Test first 3 links
-      
+
       for (const link of navLinks) {
         if (link.getAttribute('href') && !link.getAttribute('href')!.startsWith('http')) {
           await user.click(link);
-          
+
           // Navigation should work without errors
           expect(document.body).toBeInTheDocument();
         }
@@ -253,14 +249,14 @@ describe('Routing Consistency Tests', () => {
     it('should handle nested routes consistently', () => {
       const nestedRoutes = [
         '/manager/buildings/documents',
-        '/manager/residences/documents', 
+        '/manager/residences/documents',
         '/residents/residence/documents',
         '/residents/building/documents',
       ];
 
-      nestedRoutes.forEach(route => {
+      nestedRoutes.forEach((route) => {
         render(
-          <TestProviders initialLocation={route} userRole="manager">
+          <TestProviders initialLocation={route} userRole='manager'>
             <App />
           </TestProviders>
         );
@@ -273,25 +269,29 @@ describe('Routing Consistency Tests', () => {
     it('should maintain breadcrumb consistency', () => {
       const routesWithBreadcrumbs = [
         { route: '/manager/buildings', expectedBreadcrumbs: ['Dashboard', 'Buildings'] },
-        { route: '/admin/organizations', expectedBreadcrumbs: ['Dashboard', 'Admin', 'Organizations'] },
+        {
+          route: '/admin/organizations',
+          expectedBreadcrumbs: ['Dashboard', 'Admin', 'Organizations'],
+        },
         { route: '/residents/residence', expectedBreadcrumbs: ['Dashboard', 'Residence'] },
       ];
 
       routesWithBreadcrumbs.forEach(({ route, expectedBreadcrumbs }) => {
         render(
-          <TestProviders initialLocation={route} userRole="admin">
+          <TestProviders initialLocation={route} userRole='admin'>
             <App />
           </TestProviders>
         );
 
         // Look for breadcrumb elements
-        const breadcrumbElement = screen.queryByRole('navigation', { name: /breadcrumb/i }) ||
-                                 screen.queryByTestId('breadcrumbs') ||
-                                 document.querySelector('[aria-label*="breadcrumb"]');
+        const breadcrumbElement =
+          screen.queryByRole('navigation', { name: /breadcrumb/i }) ||
+          screen.queryByTestId('breadcrumbs') ||
+          document.querySelector('[aria-label*="breadcrumb"]');
 
         if (breadcrumbElement) {
           const breadcrumbText = breadcrumbElement.textContent || '';
-          expectedBreadcrumbs.forEach(crumb => {
+          expectedBreadcrumbs.forEach((crumb) => {
             expect(breadcrumbText).toContain(crumb);
           });
         }
@@ -302,27 +302,28 @@ describe('Routing Consistency Tests', () => {
   describe('Route Transitions and Loading States', () => {
     it('should handle route transitions smoothly', async () => {
       const user = userEvent.setup();
-      
+
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
 
       // Look for navigation elements
-      const navElement = document.querySelector('[data-testid*="nav"]') ||
-                        document.querySelector('nav') ||
-                        document.querySelector('[role="navigation"]');
+      const navElement =
+        document.querySelector('[data-testid*="nav"]') ||
+        document.querySelector('nav') ||
+        document.querySelector('[role="navigation"]');
 
       if (navElement) {
         const links = navElement.querySelectorAll('a[href^="/"]');
-        
+
         if (links.length > 0) {
           const firstLink = links[0] as HTMLElement;
           await user.click(firstLink);
-          
+
           // Should not show loading indefinitely
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
         }
       }
@@ -330,7 +331,7 @@ describe('Routing Consistency Tests', () => {
 
     it('should show appropriate loading states during navigation', () => {
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
@@ -343,7 +344,7 @@ describe('Routing Consistency Tests', () => {
   describe('Error Handling in Routing', () => {
     it('should handle 404 routes gracefully', () => {
       render(
-        <TestProviders initialLocation="/this-route-does-not-exist">
+        <TestProviders initialLocation='/this-route-does-not-exist'>
           <App />
         </TestProviders>
       );
@@ -352,9 +353,9 @@ describe('Routing Consistency Tests', () => {
       const pageContent = document.body.textContent || '';
       expect(
         pageContent.includes('not found') ||
-        pageContent.includes('404') ||
-        pageContent.includes('Dashboard') ||
-        pageContent.includes('Home')
+          pageContent.includes('404') ||
+          pageContent.includes('Dashboard') ||
+          pageContent.includes('Home')
       ).toBe(true);
     });
 
@@ -367,7 +368,7 @@ describe('Routing Consistency Tests', () => {
         '/residents/residence/',
       ];
 
-      malformedUrls.forEach(url => {
+      malformedUrls.forEach((url) => {
         render(
           <TestProviders initialLocation={url}>
             <App />
@@ -382,7 +383,7 @@ describe('Routing Consistency Tests', () => {
     it('should handle authentication redirects consistently', () => {
       const protectedRoutes = ['/dashboard', '/admin/organizations', '/manager/buildings'];
 
-      protectedRoutes.forEach(route => {
+      protectedRoutes.forEach((route) => {
         // Test unauthenticated access
         const unauthenticatedProps = {
           user: null,
@@ -409,9 +410,9 @@ describe('Routing Consistency Tests', () => {
         const pageContent = document.body.textContent || '';
         expect(
           pageContent.includes('loading') ||
-          pageContent.includes('login') ||
-          pageContent.includes('sign in') ||
-          pageContent.includes('Home')
+            pageContent.includes('login') ||
+            pageContent.includes('sign in') ||
+            pageContent.includes('Home')
         ).toBe(true);
       });
     });
@@ -425,17 +426,18 @@ describe('Routing Consistency Tests', () => {
         configurable: true,
         _value: 375,
       });
-      
+
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
 
       // Mobile navigation should be present
-      const mobileNav = screen.queryByTestId('mobile-nav') ||
-                       screen.queryByTestId('mobile-menu') ||
-                       document.querySelector('[data-testid*="mobile"]');
+      const mobileNav =
+        screen.queryByTestId('mobile-nav') ||
+        screen.queryByTestId('mobile-menu') ||
+        document.querySelector('[data-testid*="mobile"]');
 
       // Mobile navigation functionality would be tested here
       expect(document.body).toBeInTheDocument();
@@ -446,14 +448,14 @@ describe('Routing Consistency Tests', () => {
     it('should support direct access to deep routes', () => {
       const deepRoutes = [
         '/admin/organizations',
-        '/manager/buildings', 
+        '/manager/buildings',
         '/manager/budget',
         '/residents/residence',
       ];
 
-      deepRoutes.forEach(route => {
+      deepRoutes.forEach((route) => {
         render(
-          <TestProviders initialLocation={route} userRole="admin">
+          <TestProviders initialLocation={route} userRole='admin'>
             <App />
           </TestProviders>
         );
@@ -467,7 +469,7 @@ describe('Routing Consistency Tests', () => {
     it('should maintain state during browser back/forward', () => {
       // This would test browser history integration
       render(
-        <TestProviders initialLocation="/dashboard" userRole="manager">
+        <TestProviders initialLocation='/dashboard' userRole='manager'>
           <App />
         </TestProviders>
       );
@@ -489,7 +491,7 @@ export const ROUTE_DEFINITIONS = {
     { path: '/reset-password', component: 'ResetPasswordPage' },
     { path: '/accept-invitation', component: 'InvitationAcceptancePage' },
   ],
-  
+
   admin: [
     { path: '/admin/organizations', component: 'AdminOrganizations' },
     { path: '/admin/documentation', component: 'AdminDocumentation' },
@@ -500,7 +502,7 @@ export const ROUTE_DEFINITIONS = {
     { path: '/admin/suggestions', component: 'AdminSuggestions' },
     { path: '/admin/permissions', component: 'AdminPermissions' },
   ],
-  
+
   manager: [
     { path: '/manager/buildings', component: 'ManagerBuildings' },
     { path: '/manager/buildings/documents', component: 'BuildingDocuments' },
@@ -511,7 +513,7 @@ export const ROUTE_DEFINITIONS = {
     { path: '/manager/demands', component: 'ManagerDemands' },
     { path: '/manager/user-management', component: 'ManagerUserManagement' },
   ],
-  
+
   residents: [
     { path: '/residents/residence', component: 'ResidentsResidence' },
     { path: '/residents/residence/documents', component: 'ResidentsResidenceDocuments' },
@@ -519,7 +521,7 @@ export const ROUTE_DEFINITIONS = {
     { path: '/residents/building/documents', component: 'ResidentsBuildingDocuments' },
     { path: '/residents/demands', component: 'ResidentsDemands' },
   ],
-  
+
   settings: [
     { path: '/settings/settings', component: 'SettingsSettings' },
     { path: '/settings/bug-reports', component: 'SettingsBugReports' },
@@ -532,15 +534,13 @@ export const ROUTE_DEFINITIONS = {
  * @param route
  * @param userRole
  */
-export function validateRouteAccessibility(
-  route: string, 
-  userRole: string
-): boolean {
-  const routeConfig = Object.entries(ROUTE_DEFINITIONS).find(([section, routes]) => 
-    routes.some(r => r.path === route) && 
-    (section === 'public' || section === userRole || userRole === 'admin')
+export function validateRouteAccessibility(route: string, userRole: string): boolean {
+  const routeConfig = Object.entries(ROUTE_DEFINITIONS).find(
+    ([section, routes]) =>
+      routes.some((r) => r.path === route) &&
+      (section === 'public' || section === userRole || userRole === 'admin')
   );
-  
+
   return !!routeConfig;
 }
 
@@ -550,26 +550,26 @@ export function validateRouteAccessibility(
  */
 export function getExpectedRoutesForRole(role: string): string[] {
   const routes: string[] = [];
-  
+
   // Public routes available to all
-  routes.push(...ROUTE_DEFINITIONS.public.map(r => r.path));
-  
+  routes.push(...ROUTE_DEFINITIONS.public.map((r) => r.path));
+
   // Role-specific routes
   if (role === 'admin') {
-    routes.push(...ROUTE_DEFINITIONS.admin.map(r => r.path));
-    routes.push(...ROUTE_DEFINITIONS.manager.map(r => r.path)); // Admin can access manager routes
+    routes.push(...ROUTE_DEFINITIONS.admin.map((r) => r.path));
+    routes.push(...ROUTE_DEFINITIONS.manager.map((r) => r.path)); // Admin can access manager routes
   }
-  
+
   if (role === 'manager' || role === 'admin') {
-    routes.push(...ROUTE_DEFINITIONS.manager.map(r => r.path));
+    routes.push(...ROUTE_DEFINITIONS.manager.map((r) => r.path));
   }
-  
+
   if (role === 'resident') {
-    routes.push(...ROUTE_DEFINITIONS.residents.map(r => r.path));
+    routes.push(...ROUTE_DEFINITIONS.residents.map((r) => r.path));
   }
-  
+
   // Settings available to all authenticated users
-  routes.push(...ROUTE_DEFINITIONS.settings.map(r => r.path));
-  
+  routes.push(...ROUTE_DEFINITIONS.settings.map((r) => r.path));
+
   return routes;
 }

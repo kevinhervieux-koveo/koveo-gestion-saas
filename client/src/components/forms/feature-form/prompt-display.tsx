@@ -37,12 +37,12 @@ interface PromptDisplayProps {
  * @param root0.isSaving
  * @returns Function result.
  */
-export function PromptDisplay({ 
-  prompt, 
-  feature: _feature, 
-  onSavePrompt, 
+export function PromptDisplay({
+  prompt,
+  feature: _feature,
+  onSavePrompt,
   onCopyToClipboard,
-  isSaving = false 
+  isSaving = false,
 }: PromptDisplayProps) {
   const { toast } = useToast();
   const [promptTitle, setPromptTitle] = useState('Implementation Prompt');
@@ -72,46 +72,46 @@ export function PromptDisplay({
       });
       return;
     }
-    
+
     onSavePrompt(prompt, promptTitle.trim());
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Generated Development Prompt</h3>
-        <div className="flex gap-2">
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
+        <h3 className='text-lg font-semibold'>Generated Development Prompt</h3>
+        <div className='flex gap-2'>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={handleCopyPrompt}
-            className="flex items-center gap-1"
+            className='flex items-center gap-1'
           >
-            <Copy className="h-3 w-3" />
+            <Copy className='h-3 w-3' />
             Copy to Clipboard
           </Button>
-          
+
           {_feature?.id && (
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="promptTitle" className="text-xs text-gray-600">
+            <div className='flex items-center gap-2'>
+              <div className='flex flex-col gap-1'>
+                <Label htmlFor='promptTitle' className='text-xs text-gray-600'>
                   Save as Actionable Item:
                 </Label>
-                <div className="flex gap-1">
+                <div className='flex gap-1'>
                   <Input
-                    id="promptTitle"
-                    placeholder="Enter title..."
+                    id='promptTitle'
+                    placeholder='Enter title...'
                     value={promptTitle}
                     onChange={(e) => setPromptTitle(e.target._value)}
-                    className="text-sm h-8 w-40"
+                    className='text-sm h-8 w-40'
                   />
                   <Button
-                    size="sm"
+                    size='sm'
                     onClick={handleSavePrompt}
                     disabled={isSaving || !promptTitle.trim()}
-                    className="flex items-center gap-1 h-8"
+                    className='flex items-center gap-1 h-8'
                   >
-                    <Save className="h-3 w-3" />
+                    <Save className='h-3 w-3' />
                     {isSaving ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
@@ -121,17 +121,17 @@ export function PromptDisplay({
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg border">
-        <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed max-h-96 overflow-y-auto">
+      <div className='bg-gray-50 p-4 rounded-lg border'>
+        <pre className='whitespace-pre-wrap text-sm font-mono leading-relaxed max-h-96 overflow-y-auto'>
           {prompt}
         </pre>
       </div>
 
-      <div className="text-xs text-gray-500 space-y-1">
+      <div className='text-xs text-gray-500 space-y-1'>
         <p>
           <strong>Usage Instructions:</strong>
         </p>
-        <ul className="list-disc list-inside space-y-1 ml-2">
+        <ul className='list-disc list-inside space-y-1 ml-2'>
           <li>Copy this prompt and paste it into ChatGPT, Claude, or another AI assistant</li>
           <li>The AI will have full context about Koveo Gestion's architecture and requirements</li>
           <li>Request specific implementation details or ask follow-up questions</li>

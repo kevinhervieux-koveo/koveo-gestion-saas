@@ -5,10 +5,21 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   Home,
   Building,
@@ -42,11 +53,20 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Feature, ActionableItem } from '@shared/schema';
 import { FeatureForm } from '@/components/forms';
-import { useFeatureDuplicateAnalysis, getDuplicateBadge, getDuplicateNote } from '@/components/roadmap/feature-duplicate-analysis';
+import {
+  useFeatureDuplicateAnalysis,
+  getDuplicateBadge,
+  getDuplicateNote,
+} from '@/components/roadmap/feature-duplicate-analysis';
 import { RoadmapSection, type Section } from '@/components/roadmap/roadmap-section';
 import { generateLLMHelpForm } from '@/components/roadmap/llm-help-form';
-import { getStatusIcon, getStatusBadge, getPriorityBadge, getActionableItemStatusIcon, getActionableItemStatusBadge } from '@/components/roadmap/feature-status-badges';
-
+import {
+  getStatusIcon,
+  getStatusBadge,
+  getPriorityBadge,
+  getActionableItemStatusIcon,
+  getActionableItemStatusBadge,
+} from '@/components/roadmap/feature-status-badges';
 
 /**
  * Owner roadmap page displaying all features with planning capabilities.
@@ -78,9 +98,9 @@ export default function OwnerRoadmap() {
   // Actionable item status update mutation
   const actionableItemMutation = useMutation({
     mutationFn: ({ itemId, status }: { itemId: string; status: string }) =>
-      apiRequest('PUT', `/api/actionable-items/${itemId}`, { 
-        status, 
-        completedAt: status === 'completed' ? new Date() : null 
+      apiRequest('PUT', `/api/actionable-items/${itemId}`, {
+        status,
+        completedAt: status === 'completed' ? new Date() : null,
       }),
     onSuccess: () => {
       toast({
@@ -154,10 +174,14 @@ export default function OwnerRoadmap() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch features from the database
-  const { data: features = [], isLoading, error } = useQuery({
+  const {
+    data: features = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['/api/features', 'roadmap'],
     queryFn: async () => {
-      const res = await fetch('/api/features?roadmap=true', { 
+      const res = await fetch('/api/features?roadmap=true', {
         credentials: 'include',
       });
       if (!res.ok) {
@@ -177,19 +201,19 @@ export default function OwnerRoadmap() {
    */
   const fetchActionableItems = useCallback(async (featureId: string) => {
     // Check if already fetched to prevent duplicate requests
-    setActionableItems(prev => {
+    setActionableItems((prev) => {
       if (prev[featureId]) {
         return prev; // Already fetched, don't update state
       }
       // Set as loading/empty to prevent duplicate requests
       return { ...prev, [featureId]: [] };
     });
-    
+
     try {
       const response = await fetch(`/api/features/${featureId}/actionable-items`);
       if (response.ok) {
         const items = await response.json();
-        setActionableItems(current => ({ ...current, [featureId]: items }));
+        setActionableItems((current) => ({ ...current, [featureId]: items }));
       } else {
         console.error('Failed to fetch actionable items:', response.statusText);
       }
@@ -240,18 +264,21 @@ export default function OwnerRoadmap() {
    * Toggles feature expansion and fetches actionable items if needed.
    * @param featureId
    */
-  const toggleFeatureExpansion = useCallback((featureId: string) => {
-    setExpandedFeatures(prev => {
-      const isExpanded = prev.includes(featureId);
-      if (isExpanded) {
-        return prev.filter(id => id !== featureId);
-      } else {
-        // Fetch actionable items when expanding
-        fetchActionableItems(featureId);
-        return [...prev, featureId];
-      }
-    });
-  }, [fetchActionableItems]);
+  const toggleFeatureExpansion = useCallback(
+    (featureId: string) => {
+      setExpandedFeatures((prev) => {
+        const isExpanded = prev.includes(featureId);
+        if (isExpanded) {
+          return prev.filter((id) => id !== featureId);
+        } else {
+          // Fetch actionable items when expanding
+          fetchActionableItems(featureId);
+          return [...prev, featureId];
+        }
+      });
+    },
+    [fetchActionableItems]
+  );
 
   // Use the duplicate analysis hook
   const { duplicateAnalysis, duplicateStats } = useFeatureDuplicateAnalysis(features);
@@ -281,7 +308,8 @@ export default function OwnerRoadmap() {
       await navigator.clipboard.writeText(generateLLMHelpForm());
       toast({
         title: 'Enhanced LLM Help Form Copied',
-        description: 'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
+        description:
+          'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
     } catch (_error) {
@@ -298,32 +326,36 @@ export default function OwnerRoadmap() {
     if (!searchTerm.trim()) {
       return features;
     }
-    
+
     const searchLower = searchTerm.toLowerCase().trim();
-    return features.filter((feature: Feature) => 
-      feature.name.toLowerCase().includes(searchLower) ||
-      feature.description?.toLowerCase().includes(searchLower) ||
-      feature.category.toLowerCase().includes(searchLower)
+    return features.filter(
+      (feature: Feature) =>
+        feature.name.toLowerCase().includes(searchLower) ||
+        feature.description?.toLowerCase().includes(searchLower) ||
+        feature.category.toLowerCase().includes(searchLower)
     );
   }, [features, searchTerm]);
 
   // Group features by category and strategic path
-  const groupedFeatures = filteredFeatures.reduce((acc: Record<string, Feature[]>, feature: Feature) => {
-    // Handle Strategic Path as a special case
-    if ((feature as any).isStrategicPath) {
-      if (!acc['Strategic Path']) {
-        acc['Strategic Path'] = [];
+  const groupedFeatures = filteredFeatures.reduce(
+    (acc: Record<string, Feature[]>, feature: Feature) => {
+      // Handle Strategic Path as a special case
+      if ((feature as any).isStrategicPath) {
+        if (!acc['Strategic Path']) {
+          acc['Strategic Path'] = [];
+        }
+        acc['Strategic Path'].push(feature);
       }
-      acc['Strategic Path'].push(feature);
-    }
-    
-    // Also group by category
-    if (!acc[feature.category]) {
-      acc[feature.category] = [];
-    }
-    acc[feature.category].push(feature);
-    return acc;
-  }, {});
+
+      // Also group by category
+      if (!acc[feature.category]) {
+        acc[feature.category] = [];
+      }
+      acc[feature.category].push(feature);
+      return acc;
+    },
+    {}
+  );
 
   // Debug logging
 
@@ -414,7 +446,6 @@ export default function OwnerRoadmap() {
     },
   ];
 
-
   const calculateProgress = (_features: Feature[]) => {
     const completed = _features.filter((f) => f.status === 'completed').length;
     const inProgress = _features.filter((f) => f.status === 'in-progress').length;
@@ -448,7 +479,7 @@ export default function OwnerRoadmap() {
         title='Product Roadmap'
         subtitle='Complete feature list and development progress (Live Data)'
       />
-      
+
       {/* Search Bar */}
       <div className='bg-white border-b px-6 py-4'>
         <div className='relative max-w-md'>
@@ -463,7 +494,8 @@ export default function OwnerRoadmap() {
         </div>
         {searchTerm && (
           <div className='mt-2 text-sm text-gray-600'>
-            Found {filteredFeatures.length} feature{filteredFeatures.length !== 1 ? 's' : ''} matching "{searchTerm}"
+            Found {filteredFeatures.length} feature{filteredFeatures.length !== 1 ? 's' : ''}{' '}
+            matching "{searchTerm}"
             {filteredFeatures.length !== features.length && (
               <button
                 onClick={() => setSearchTerm('')}
@@ -482,7 +514,9 @@ export default function OwnerRoadmap() {
           <div className='flex items-center gap-2 text-sm text-gray-600'>
             <Terminal className='h-4 w-4' />
             <span className='font-medium'>Refresh Command:</span>
-            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run validate</code>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              npm run validate
+            </code>
           </div>
         </div>
       </div>
@@ -500,29 +534,30 @@ export default function OwnerRoadmap() {
                   </span>
                 </div>
                 <div className='text-xs text-blue-600'>
-                  {process.env.NODE_ENV === 'development' ? 'DEV → PROD Sync Enabled' : 'Production Environment'}
+                  {process.env.NODE_ENV === 'development'
+                    ? 'DEV → PROD Sync Enabled'
+                    : 'Production Environment'}
                 </div>
               </div>
               <p className='text-xs text-blue-700 mt-2'>
-                {process.env.NODE_ENV === 'development' 
+                {process.env.NODE_ENV === 'development'
                   ? 'New feature requests automatically appear as "Submitted" status and sync to production. Updates to roadmap features are automatically synchronized.'
-                  : 'This is the production roadmap. Changes are synchronized from the development environment.'
-                }
+                  : 'This is the production roadmap. Changes are synchronized from the development environment.'}
               </p>
             </CardContent>
           </Card>
 
           {/* Create New Item Buttons */}
           <div className='flex justify-end gap-3 mb-6'>
-            <Button 
-              onClick={handleCopyLLMForm} 
+            <Button
+              onClick={handleCopyLLMForm}
               variant='outline'
               className='border-purple-200 text-purple-700 hover:bg-purple-50'
             >
               <MessageCircle className='w-4 h-4 mr-2' />
               LLM Help Form
             </Button>
-            <Button 
+            <Button
               onClick={() => syncMutation.mutate()}
               variant='outline'
               disabled={syncMutation.isPending}
@@ -581,9 +616,7 @@ export default function OwnerRoadmap() {
             </Card>
             <Card>
               <CardContent className='p-4'>
-                <div className='text-2xl font-bold text-red-600'>
-                  {duplicateStats.totalExact}
-                </div>
+                <div className='text-2xl font-bold text-red-600'>{duplicateStats.totalExact}</div>
                 <div className='text-sm text-gray-600'>Exact Duplicates</div>
               </CardContent>
             </Card>
@@ -599,18 +632,22 @@ export default function OwnerRoadmap() {
 
           {/* Feature Sections - Now Collapsible */}
           <Accordion
-            type="multiple"
+            type='multiple'
             value={expandedSections}
             onValueChange={setExpandedSections}
-            className="space-y-4"
+            className='space-y-4'
           >
             {sections.map((section) => {
               const SectionIcon = section.icon;
               const stats = calculateProgress(section.features);
 
               return (
-                <AccordionItem key={section.title} value={section.title} className="border rounded-lg overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline">
+                <AccordionItem
+                  key={section.title}
+                  value={section.title}
+                  className='border rounded-lg overflow-hidden'
+                >
+                  <AccordionTrigger className='hover:no-underline'>
                     <Card className='w-full shadow-none border-none'>
                       <CardHeader className='bg-gray-50'>
                         <div className='flex items-start justify-between'>
@@ -620,11 +657,15 @@ export default function OwnerRoadmap() {
                             </div>
                             <div>
                               <CardTitle className='text-lg text-left'>{section.title}</CardTitle>
-                              <CardDescription className='mt-1 text-left'>{section.description}</CardDescription>
+                              <CardDescription className='mt-1 text-left'>
+                                {section.description}
+                              </CardDescription>
                             </div>
                           </div>
                           <div className='text-right'>
-                            <div className='text-2xl font-bold text-koveo-navy'>{stats.progress}%</div>
+                            <div className='text-2xl font-bold text-koveo-navy'>
+                              {stats.progress}%
+                            </div>
                             <div className='text-xs text-gray-500'>
                               {stats.completed}/{section.features.length} complete
                             </div>
@@ -647,9 +688,9 @@ export default function OwnerRoadmap() {
                         {section.features.length === 0 ? (
                           <div className='p-8 text-center text-gray-500'>
                             <div className='mb-2'>No features in this category yet</div>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant='outline'
+                              size='sm'
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleCreateNewItem();
@@ -661,11 +702,16 @@ export default function OwnerRoadmap() {
                           </div>
                         ) : (
                           section.features.map((feature) => {
-                            const isExpanded = expandedFeatures.includes(feature.id || feature.name);
+                            const isExpanded = expandedFeatures.includes(
+                              feature.id || feature.name
+                            );
                             const items = actionableItems[feature.id || feature.name] || [];
-                            
+
                             return (
-                              <div key={feature.id || feature.name} className='border-l-4 border-transparent hover:border-blue-400'>
+                              <div
+                                key={feature.id || feature.name}
+                                className='border-l-4 border-transparent hover:border-blue-400'
+                              >
                                 {/* Feature Header */}
                                 <div className='p-4 hover:bg-blue-50 transition-colors'>
                                   <div className='flex items-start space-x-3'>
@@ -687,7 +733,7 @@ export default function OwnerRoadmap() {
                                     </div>
                                     <div className='flex-1'>
                                       <div className='flex items-center flex-wrap'>
-                                        <span 
+                                        <span
                                           className='font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer'
                                           onClick={() => handleFeatureClick(feature)}
                                         >
@@ -709,39 +755,68 @@ export default function OwnerRoadmap() {
                                           </Badge>
                                         )}
                                       </div>
-                                      <p className='text-sm text-gray-600 mt-1'>{feature.description}</p>
-                                      
+                                      <p className='text-sm text-gray-600 mt-1'>
+                                        {feature.description}
+                                      </p>
+
                                       {/* Feature Controls */}
                                       <div className='flex items-center gap-4 mt-3 pt-2 border-t border-gray-100'>
                                         {/* Status Change */}
                                         <div className='flex items-center gap-2'>
-                                          <Label htmlFor={`status-${feature.id}`} className='text-xs text-gray-600'>Status:</Label>
+                                          <Label
+                                            htmlFor={`status-${feature.id}`}
+                                            className='text-xs text-gray-600'
+                                          >
+                                            Status:
+                                          </Label>
                                           <Select
                                             value={feature.status}
-                                            onValueChange={(value) => statusMutation.mutate({ featureId: feature.id!, status: value })}
+                                            onValueChange={(value) =>
+                                              statusMutation.mutate({
+                                                featureId: feature.id!,
+                                                status: value,
+                                              })
+                                            }
                                             disabled={statusMutation.isPending}
                                           >
-                                            <SelectTrigger id={`status-${feature.id}`} className='w-32 h-7 text-xs'>
+                                            <SelectTrigger
+                                              id={`status-${feature.id}`}
+                                              className='w-32 h-7 text-xs'
+                                            >
                                               <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
                                               <SelectItem value='submitted'>Submitted</SelectItem>
                                               <SelectItem value='planned'>Planned</SelectItem>
-                                              <SelectItem value='in-progress'>In Progress</SelectItem>
-                                              <SelectItem value='ai-analyzed'>AI Analyzed</SelectItem>
+                                              <SelectItem value='in-progress'>
+                                                In Progress
+                                              </SelectItem>
+                                              <SelectItem value='ai-analyzed'>
+                                                AI Analyzed
+                                              </SelectItem>
                                               <SelectItem value='completed'>Completed</SelectItem>
                                               <SelectItem value='cancelled'>Cancelled</SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
-                                        
+
                                         {/* Strategic Path Toggle */}
                                         <div className='flex items-center gap-2'>
-                                          <Label htmlFor={`strategic-${feature.id}`} className='text-xs text-gray-600'>Strategic Path:</Label>
+                                          <Label
+                                            htmlFor={`strategic-${feature.id}`}
+                                            className='text-xs text-gray-600'
+                                          >
+                                            Strategic Path:
+                                          </Label>
                                           <Switch
                                             id={`strategic-${feature.id}`}
                                             checked={(feature as any).isStrategicPath || false}
-                                            onCheckedChange={(checked) => strategicMutation.mutate({ featureId: feature.id!, isStrategicPath: checked })}
+                                            onCheckedChange={(checked) =>
+                                              strategicMutation.mutate({
+                                                featureId: feature.id!,
+                                                isStrategicPath: checked,
+                                              })
+                                            }
                                             disabled={strategicMutation.isPending}
                                             className='scale-75'
                                           />
@@ -764,12 +839,17 @@ export default function OwnerRoadmap() {
                                         <ListTodo className='w-6 h-6 mx-auto mb-2 text-gray-400' />
                                         No actionable items yet.
                                         <br />
-                                        <span className='text-xs'>Generate a development prompt to create tasks.</span>
+                                        <span className='text-xs'>
+                                          Generate a development prompt to create tasks.
+                                        </span>
                                       </div>
                                     ) : (
                                       <div className='divide-y divide-gray-200'>
                                         {items.map((item, _index) => (
-                                          <div key={item.id || _index} className='p-3 pl-12 hover:bg-white transition-colors'>
+                                          <div
+                                            key={item.id || _index}
+                                            className='p-3 pl-12 hover:bg-white transition-colors'
+                                          >
                                             <div className='flex items-start space-x-3'>
                                               <button
                                                 onClick={() => handleToggleActionableItem(item)}
@@ -781,7 +861,9 @@ export default function OwnerRoadmap() {
                                               <div className='flex-1'>
                                                 <div className='flex items-center justify-between'>
                                                   <div className='flex items-center space-x-2'>
-                                                    <span className='text-sm font-medium text-gray-900'>{item.title}</span>
+                                                    <span className='text-sm font-medium text-gray-900'>
+                                                      {item.title}
+                                                    </span>
                                                     {getActionableItemStatusBadge(item.status)}
                                                     {(item as any).estimatedEffort && (
                                                       <Badge variant='outline' className='text-xs'>
@@ -792,32 +874,50 @@ export default function OwnerRoadmap() {
                                                   <div className='flex items-center gap-2'>
                                                     <Select
                                                       value={item.status}
-                                                      onValueChange={(_value) => handleActionableItemStatusChange(item, _value)}
+                                                      onValueChange={(_value) =>
+                                                        handleActionableItemStatusChange(
+                                                          item,
+                                                          _value
+                                                        )
+                                                      }
                                                       disabled={actionableItemMutation.isPending}
                                                     >
                                                       <SelectTrigger className='w-24 h-6 text-xs'>
                                                         <SelectValue />
                                                       </SelectTrigger>
                                                       <SelectContent>
-                                                        <SelectItem value='pending'>Todo</SelectItem>
-                                                        <SelectItem value='in-progress'>Working</SelectItem>
-                                                        <SelectItem value='completed'>Done</SelectItem>
-                                                        <SelectItem value='blocked'>Blocked</SelectItem>
+                                                        <SelectItem value='pending'>
+                                                          Todo
+                                                        </SelectItem>
+                                                        <SelectItem value='in-progress'>
+                                                          Working
+                                                        </SelectItem>
+                                                        <SelectItem value='completed'>
+                                                          Done
+                                                        </SelectItem>
+                                                        <SelectItem value='blocked'>
+                                                          Blocked
+                                                        </SelectItem>
                                                       </SelectContent>
                                                     </Select>
                                                   </div>
                                                 </div>
-                                                <p className='text-xs text-gray-600 mt-1'>{item.description}</p>
+                                                <p className='text-xs text-gray-600 mt-1'>
+                                                  {item.description}
+                                                </p>
                                                 {(item as any).technicalDetails && (
                                                   <p className='text-xs text-gray-500 mt-1'>
-                                                    <strong>Technical:</strong> {(item as any).technicalDetails}
+                                                    <strong>Technical:</strong>{' '}
+                                                    {(item as any).technicalDetails}
                                                   </p>
                                                 )}
                                                 {(item as any).implementationPrompt && (
                                                   <div className='mt-2 p-2 bg-blue-50 border border-blue-200 rounded'>
                                                     <div className='flex items-start justify-between'>
                                                       <div className='flex-1'>
-                                                        <p className='text-xs font-medium text-blue-900 mb-1'>Replit AI Agent Prompt:</p>
+                                                        <p className='text-xs font-medium text-blue-900 mb-1'>
+                                                          Replit AI Agent Prompt:
+                                                        </p>
                                                         <p className='text-xs text-blue-800 whitespace-pre-wrap font-mono'>
                                                           {(item as any).implementationPrompt}
                                                         </p>
@@ -826,7 +926,11 @@ export default function OwnerRoadmap() {
                                                         variant='ghost'
                                                         size='sm'
                                                         className='ml-2 h-6 px-2'
-                                                        onClick={() => handleCopyPrompt((item as any).implementationPrompt || '')}
+                                                        onClick={() =>
+                                                          handleCopyPrompt(
+                                                            (item as any).implementationPrompt || ''
+                                                          )
+                                                        }
                                                       >
                                                         <Copy className='w-3 h-3 mr-1' />
                                                         Copy
@@ -856,11 +960,7 @@ export default function OwnerRoadmap() {
         </div>
       </div>
 
-      <FeatureForm
-        feature={selectedFeature}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+      <FeatureForm feature={selectedFeature} open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }

@@ -23,10 +23,10 @@ jest.mock('@/hooks/use-auth', () => ({
       lastName: 'User',
       email: 'demo@test.com',
       role: 'admin',
-      language: 'fr'
-    }
+      language: 'fr',
+    },
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock API calls
@@ -34,14 +34,14 @@ const mockQueryResult = {
   data: [],
   isLoading: false,
   error: null,
-  refetch: jest.fn()
+  refetch: jest.fn(),
 };
 
 const mockMutationResult = {
   mutate: jest.fn(),
   isPending: false,
   isError: false,
-  error: null
+  error: null,
 };
 
 jest.mock('@tanstack/react-query', () => ({
@@ -49,8 +49,8 @@ jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(() => mockQueryResult),
   useMutation: jest.fn(() => mockMutationResult),
   useQueryClient: jest.fn(() => ({
-    invalidateQueries: jest.fn()
-  }))
+    invalidateQueries: jest.fn(),
+  })),
 }));
 
 /**
@@ -62,17 +62,15 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/settings/bug-reports']}>
         <LanguageProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -124,7 +122,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('renders loading state correctly', () => {
       mockQueryResult.isLoading = true;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -138,7 +136,7 @@ describe('Bug Reports Frontend Tests', () => {
   describe('Bug Creation Dialog', () => {
     test('opens create bug dialog when button is clicked', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -153,7 +151,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('create bug form has all required fields', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -173,7 +171,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('form validation works for required fields', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -192,7 +190,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('can fill and submit bug form', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -215,7 +213,7 @@ describe('Bug Reports Frontend Tests', () => {
         description: 'Test bug description',
         category: 'functionality',
         page: '/test-page',
-        priority: 'medium'
+        priority: 'medium',
       });
     });
 
@@ -224,7 +222,7 @@ describe('Bug Reports Frontend Tests', () => {
       mockMutationResult.mutate = jest.fn((data, { onSuccess }) => {
         onSuccess && onSuccess();
       });
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -232,7 +230,7 @@ describe('Bug Reports Frontend Tests', () => {
       );
 
       await user.click(screen.getByTestId('button-create-bug'));
-      
+
       // Fill required fields
       await user.type(screen.getByTestId('input-bug-title'), 'Test Bug');
       await user.type(screen.getByTestId('textarea-bug-description'), 'Test description');
@@ -258,7 +256,7 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'functionality',
         page: '/test1',
         createdAt: new Date('2024-01-15').toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       },
       {
         id: 'bug-2',
@@ -269,13 +267,13 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'ui_ux',
         page: '/test2',
         createdAt: new Date('2024-01-10').toISOString(),
-        createdBy: 'demo-user-123'
-      }
+        createdBy: 'demo-user-123',
+      },
     ];
 
     test('displays list of bugs when data is available', () => {
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -290,7 +288,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('displays bug status badges correctly', () => {
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -303,7 +301,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('displays bug priority indicators', () => {
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -316,7 +314,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('displays bug categories', () => {
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -339,7 +337,7 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'functionality',
         page: '/login',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       },
       {
         id: 'bug-2',
@@ -350,14 +348,14 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'ui_ux',
         page: '/dashboard',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
-      }
+        createdBy: 'demo-user-123',
+      },
     ];
 
     test('search functionality filters bugs by title', async () => {
       const user = userEvent.setup();
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -375,7 +373,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('status filter works correctly', async () => {
       const user = userEvent.setup();
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -393,7 +391,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('priority filter works correctly', async () => {
       const user = userEvent.setup();
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -411,7 +409,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('category filter works correctly', async () => {
       const user = userEvent.setup();
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -429,7 +427,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('can clear all filters', async () => {
       const user = userEvent.setup();
       mockQueryResult.data = mockBugs;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -461,11 +459,11 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'other',
         page: '/test',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       };
 
       mockQueryResult.data = [bugWithStatus];
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -485,11 +483,11 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'other',
         page: '/test',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       };
 
       mockQueryResult.data = [bugWithPriority];
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -509,11 +507,11 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'security',
         page: '/test',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       };
 
       mockQueryResult.data = [bugWithCategory];
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -528,7 +526,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('handles form submission during loading state', async () => {
       const user = userEvent.setup();
       mockMutationResult.isPending = true;
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -536,7 +534,7 @@ describe('Bug Reports Frontend Tests', () => {
       );
 
       await user.click(screen.getByTestId('button-create-bug'));
-      
+
       const submitButton = screen.getByTestId('button-submit-bug');
       expect(submitButton).toBeDisabled();
       expect(submitButton).toHaveTextContent('Création...');
@@ -546,7 +544,7 @@ describe('Bug Reports Frontend Tests', () => {
       const user = userEvent.setup();
       mockMutationResult.isError = true;
       mockMutationResult.error = { message: 'Server error' };
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -561,7 +559,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('validates maximum character limits', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -597,7 +595,7 @@ describe('Bug Reports Frontend Tests', () => {
 
     test('supports keyboard navigation', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -631,11 +629,11 @@ describe('Bug Reports Frontend Tests', () => {
         category: 'other',
         page: '/test',
         createdAt: new Date().toISOString(),
-        createdBy: 'demo-user-123'
+        createdBy: 'demo-user-123',
       }));
 
       mockQueryResult.data = manyBugs;
-      
+
       const startTime = performance.now();
       render(
         <TestWrapper>
@@ -651,7 +649,7 @@ describe('Bug Reports Frontend Tests', () => {
     test('filters are debounced for search input', async () => {
       const user = userEvent.setup();
       jest.useFakeTimers();
-      
+
       render(
         <TestWrapper>
           <BugReportsPage />
@@ -659,16 +657,16 @@ describe('Bug Reports Frontend Tests', () => {
       );
 
       const searchInput = screen.getByTestId('input-search-bugs');
-      
+
       // Type quickly
       await user.type(searchInput, 'test');
-      
+
       // Fast typing shouldn't trigger immediate filtering
       expect(searchInput).toHaveValue('test');
-      
+
       // After debounce delay, filtering should occur
       jest.advanceTimersByTime(500);
-      
+
       jest.useRealTimers();
     });
   });

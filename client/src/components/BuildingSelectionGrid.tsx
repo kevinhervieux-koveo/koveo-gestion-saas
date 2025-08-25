@@ -25,11 +25,11 @@ import type { Building } from '@shared/schema';
  * @param props.onBuildingSelect - OnBuildingSelect parameter.
  * @returns JSX element.
  */
-export function BuildingSelectionGrid({ 
-  buildings, 
-  onBuildingSelect 
-}: { 
-  buildings: Building[]; 
+export function BuildingSelectionGrid({
+  buildings,
+  onBuildingSelect,
+}: {
+  buildings: Building[];
   onBuildingSelect: (_buildingId: string) => void;
 }) {
   return (
@@ -45,9 +45,9 @@ export function BuildingSelectionGrid({
           <p className='text-gray-600 mb-6'>Choose a building to view and manage its bills</p>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {buildings.map((building) => (
-              <BuildingCard 
-                key={building.id} 
-                building={building} 
+              <BuildingCard
+                key={building.id}
+                building={building}
                 onSelect={() => onBuildingSelect(building.id)}
               />
             ))}
@@ -65,15 +65,9 @@ export function BuildingSelectionGrid({
  * @param root0.onSelect - Callback when card is selected.
  * @returns Building card JSX.
  */
-function BuildingCard({ 
-  building, 
-  onSelect 
-}: { 
-  building: Building; 
-  onSelect: () => void;
-}) {
+function BuildingCard({ building, onSelect }: { building: Building; onSelect: () => void }) {
   return (
-    <Card 
+    <Card
       className='hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-blue-300 group'
       onClick={onSelect}
     >
@@ -84,18 +78,12 @@ function BuildingCard({
               <h3 className='font-semibold text-lg group-hover:text-blue-600 transition-colors'>
                 {building.name}
               </h3>
-              <p className='text-sm text-gray-500 mt-1'>
-                {building.address}
-              </p>
-              {building.city && (
-                <p className='text-sm text-gray-500'>
-                  {building.city}
-                </p>
-              )}
+              <p className='text-sm text-gray-500 mt-1'>{building.address}</p>
+              {building.city && <p className='text-sm text-gray-500'>{building.city}</p>}
             </div>
             <BuildingIcon className='w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors' />
           </div>
-          
+
           <div className='flex items-center justify-between text-sm'>
             <div className='flex items-center gap-4'>
               {building.buildingType && (
@@ -105,11 +93,11 @@ function BuildingCard({
               )}
             </div>
           </div>
-          
+
           <div className='pt-2 border-t border-gray-100'>
-            <Button 
-              variant='outline' 
-              size='sm' 
+            <Button
+              variant='outline'
+              size='sm'
               className='w-full group-hover:bg-blue-50 group-hover:border-blue-300'
               onClick={(e) => {
                 e.stopPropagation();

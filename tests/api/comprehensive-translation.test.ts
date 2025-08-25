@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 /**
  * Comprehensive Translation API Test Suite.
- * 
+ *
  * This test suite validates that all API endpoints properly handle bilingual content
  * and return appropriate language-specific responses for Quebec Law 25 compliance.
  */
@@ -72,11 +72,11 @@ class MockAPIClient {
   private getTranslation(_key: string): string {
     const keys = _key.split('.');
     let _value: any = mockTranslations[this.language];
-    
+
     for (const k of keys) {
       _value = _value?.[k];
     }
-    
+
     return _value || _key;
   }
 
@@ -105,7 +105,7 @@ class MockAPIClient {
     if (!_data.name) {
       throw new Error(this.getTranslation('validation.required'));
     }
-    
+
     return {
       _data: { id: '2', ..._data },
       message: this.getTranslation('messages.created'),
@@ -120,9 +120,10 @@ class MockAPIClient {
       _data: {
         totalIncome: 50000,
         totalExpenses: 30000,
-        categories: this.language === 'fr' 
-          ? ['Frais de copropriété', 'Entretien', 'Assurance']
-          : ['Condo Fees', 'Maintenance', 'Insurance'],
+        categories:
+          this.language === 'fr'
+            ? ['Frais de copropriété', 'Entretien', 'Assurance']
+            : ['Condo Fees', 'Maintenance', 'Insurance'],
       },
       message: this.getTranslation('messages.success'),
     };
@@ -134,23 +135,23 @@ class MockAPIClient {
    */
   async validateUser(userData: any) {
     const errors: string[] = [];
-    
+
     if (!userData.email) {
       errors.push(this.getTranslation('validation.required'));
     } else if (!userData.email.includes('@')) {
       errors.push(this.getTranslation('validation.email'));
     }
-    
+
     if (!userData.password) {
       errors.push(this.getTranslation('validation.required'));
     } else if (userData.password.length < 8) {
       errors.push(this.getTranslation('validation.password'));
     }
-    
+
     if (errors.length > 0) {
       throw new Error(errors.join(', '));
     }
-    
+
     return {
       _data: userData,
       message: this.getTranslation('messages.success'),
@@ -293,14 +294,14 @@ describe('Comprehensive Translation API Tests', () => {
 
     it('handles missing translations gracefully', async () => {
       apiClient.setLanguage('en');
-      
+
       // Mock a missing translation key
       const originalGetTranslation = (apiClient as any).getTranslation;
       (apiClient as any).getTranslation = jest.fn().mockReturnValue('fallback.key');
-      
+
       const result = await apiClient.getBuildings();
       expect(result.message).toBe('fallback.key');
-      
+
       // Restore original method
       (apiClient as any).getTranslation = originalGetTranslation;
     });
@@ -332,7 +333,7 @@ describe('Comprehensive Translation API Tests', () => {
     it('maintains consistency in Quebec French across all endpoints', async () => {
       const buildingResult = await apiClient.getBuildings();
       const budgetResult = await apiClient.getBudget();
-      
+
       // Both should use Quebec French
       expect(buildingResult._data[0].address).toContain('Rue');
       expect(budgetResult._data.categories).toContain('Frais de copropriété');
@@ -342,25 +343,25 @@ describe('Comprehensive Translation API Tests', () => {
   describe('Error Handling and Localization', () => {
     it('localizes validation error messages', async () => {
       const testCases = [
-        { 
-          lang: 'en' as const, 
+        {
+          lang: 'en' as const,
           _data: { email: '', password: '' },
-          expectedErrors: ['This field is required']
+          expectedErrors: ['This field is required'],
         },
-        { 
-          lang: 'fr' as const, 
+        {
+          lang: 'fr' as const,
           _data: { email: '', password: '' },
-          expectedErrors: ['Ce champ est obligatoire']
+          expectedErrors: ['Ce champ est obligatoire'],
         },
       ];
 
       for (const testCase of testCases) {
         apiClient.setLanguage(testCase.lang);
-        
+
         try {
           await apiClient.validateUser(testCase._data);
         } catch (_error) {
-          testCase.expectedErrors.forEach(expectedError => {
+          testCase.expectedErrors.forEach((expectedError) => {
             expect(_error.message).toContain(expectedError);
           });
         }
@@ -396,30 +397,30 @@ describe('Comprehensive Translation API Tests', () => {
   describe('Performance and Caching', () => {
     it('efficiently handles language switching without performance degradation', async () => {
       const startTime = Date.now();
-      
+
       // Perform multiple language switches
       for (let i = 0; i < 10; i++) {
         apiClient.setLanguage(i % 2 === 0 ? 'en' : 'fr');
         await apiClient.getBuildings();
       }
-      
+
       const endTime = Date.now();
       const executionTime = endTime - startTime;
-      
+
       // Should complete within reasonable time (less than 100ms for this mock)
       expect(executionTime).toBeLessThan(100);
     });
 
     it('caches translation keys for repeated access', () => {
       const getTranslationSpy = jest.spyOn(apiClient as any, 'getTranslation');
-      
+
       apiClient.setLanguage('en');
-      
+
       // Call same method multiple times
       for (let i = 0; i < 5; i++) {
         apiClient.getBuildings();
       }
-      
+
       // Should call getTranslation but not excessively
       expect(getTranslationSpy).toHaveBeenCalled();
     });
@@ -429,10 +430,10 @@ describe('Comprehensive Translation API Tests', () => {
     it('maintains data structure consistency across languages', async () => {
       apiClient.setLanguage('en');
       const englishResult = await apiClient.getBudget();
-      
+
       apiClient.setLanguage('fr');
       const frenchResult = await apiClient.getBudget();
-      
+
       // Structure should be identical
       expect(englishResult._data.totalIncome).toBe(frenchResult._data.totalIncome);
       expect(englishResult._data.totalExpenses).toBe(frenchResult._data.totalExpenses);
@@ -442,13 +443,13 @@ describe('Comprehensive Translation API Tests', () => {
     it('translates only user-facing content, not system data', async () => {
       apiClient.setLanguage('en');
       const englishBuilding = await apiClient.getBuildings();
-      
+
       apiClient.setLanguage('fr');
       const frenchBuilding = await apiClient.getBuildings();
-      
+
       // ID should remain the same
       expect(englishBuilding._data[0].id).toBe(frenchBuilding._data[0].id);
-      
+
       // Address should be translated (for demo purposes)
       expect(englishBuilding._data[0].address).not.toBe(frenchBuilding._data[0].address);
     });

@@ -9,29 +9,28 @@ import { notifications, users, type InsertNotification } from '@shared/schema';
 export class NotificationService {
   /**
    * Send an SSL certificate expiry notification to all administrators.
-   * 
+   *
    * @param domain - The domain name of the expiring certificate.
    * @param expiryDate - The certificate expiry date.
    * @param daysUntilExpiry - Number of days until certificate expires.
    */
   async sendSSLExpiryAlert(
-    domain: string, 
-    expiryDate: Date, 
+    domain: string,
+    expiryDate: Date,
     daysUntilExpiry: number
   ): Promise<void> {
     try {
       // Get all admin users
-      const adminUsers = await db.select({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        role: users.role
-      })
-      .from(users)
-      .where(
-        eq(users.role, 'admin')
-      );
+      const adminUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.role, 'admin'));
 
       if (adminUsers.length === 0) {
         console.warn('No administrators found to send SSL expiry notification');
@@ -42,39 +41,43 @@ export class NotificationService {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'America/Montreal'
+        timeZone: 'America/Montreal',
       });
 
       const title = `SSL Certificate Expiring Soon: ${domain}`;
-      const message = daysUntilExpiry <= 0 
-        ? `URGENT: SSL certificate for ${domain} has expired on ${formattedExpiryDate}. Immediate action required to maintain security.`
-        : daysUntilExpiry === 1
-        ? `CRITICAL: SSL certificate for ${domain} expires tomorrow (${formattedExpiryDate}). Please renew immediately.`
-        : `SSL certificate for ${domain} expires in ${daysUntilExpiry} days on ${formattedExpiryDate}. Please ensure renewal is scheduled.`;
+      const message =
+        daysUntilExpiry <= 0
+          ? `URGENT: SSL certificate for ${domain} has expired on ${formattedExpiryDate}. Immediate action required to maintain security.`
+          : daysUntilExpiry === 1
+            ? `CRITICAL: SSL certificate for ${domain} expires tomorrow (${formattedExpiryDate}). Please renew immediately.`
+            : `SSL certificate for ${domain} expires in ${daysUntilExpiry} days on ${formattedExpiryDate}. Please ensure renewal is scheduled.`;
 
       // Create notifications for all administrators
-      const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
+      const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
         type: 'system',
         title,
         message,
         relatedEntityId: null, // Could be SSL certificate ID if needed
-        relatedEntityType: 'ssl_certificate'
+        relatedEntityType: 'ssl_certificate',
       }));
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.warn(`SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
-      
+      console.warn(
+        `SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`
+      );
     } catch (_error) {
       console.error('Failed to send SSL expiry notification:', _error);
-      throw new Error(`Failed to send SSL expiry notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to send SSL expiry notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Send SSL certificate renewal failure notification to administrators.
-   * 
+   *
    * @param domain - The domain name of the failed certificate renewal.
    * @param errorMessage - The error message from the renewal attempt.
    * @param attemptCount - Current number of renewal attempts.
@@ -88,15 +91,14 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Get all admin users
-      const adminUsers = await db.select({
-        id: users.id,
-        email: users.email,
-        role: users.role
-      })
-      .from(users)
-      .where(
-        eq(users.role, 'admin')
-      );
+      const adminUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.role, 'admin'));
 
       if (adminUsers.length === 0) {
         console.warn('No administrators found to send SSL renewal failure notification');
@@ -104,33 +106,37 @@ export class NotificationService {
       }
 
       const title = `SSL Certificate Renewal Failed: ${domain}`;
-      const message = attemptCount >= maxAttempts
-        ? `CRITICAL: SSL certificate renewal for ${domain} has failed ${attemptCount}/${maxAttempts} times. Manual intervention required. Last _error: ${errorMessage}`
-        : `SSL certificate renewal attempt ${attemptCount}/${maxAttempts} failed for ${domain}. Error: ${errorMessage}. Automatic retry will be attempted.`;
+      const message =
+        attemptCount >= maxAttempts
+          ? `CRITICAL: SSL certificate renewal for ${domain} has failed ${attemptCount}/${maxAttempts} times. Manual intervention required. Last _error: ${errorMessage}`
+          : `SSL certificate renewal attempt ${attemptCount}/${maxAttempts} failed for ${domain}. Error: ${errorMessage}. Automatic retry will be attempted.`;
 
-      const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
+      const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
         type: 'system',
         title,
         message,
         relatedEntityId: null,
-        relatedEntityType: 'ssl_certificate'
+        relatedEntityType: 'ssl_certificate',
       }));
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.warn(`SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
-      
+      console.warn(
+        `SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`
+      );
     } catch (error) {
       console.error('Failed to send SSL renewal failure notification:', error);
-      throw new Error(`Failed to send SSL renewal failure notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to send SSL renewal failure notification: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Send SSL certificate renewal success notification to administrators.
    * Only sent for certificates that previously had renewal issues.
-   * 
+   *
    * @param domain - The domain name of the successfully renewed certificate.
    * @param newExpiryDate - The new expiry date of the renewed certificate.
    * @param previousAttempts - Number of previous failed attempts.
@@ -146,15 +152,14 @@ export class NotificationService {
     }
 
     try {
-      const adminUsers = await db.select({
-        id: users.id,
-        email: users.email,
-        role: users.role
-      })
-      .from(users)
-      .where(
-        eq(users.role, 'admin')
-      );
+      const adminUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.role, 'admin'));
 
       if (adminUsers.length === 0) {
         return;
@@ -164,25 +169,26 @@ export class NotificationService {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'America/Montreal'
+        timeZone: 'America/Montreal',
       });
 
       const title = `SSL Certificate Renewed Successfully: ${domain}`;
       const message = `SSL certificate for ${domain} has been successfully renewed after ${previousAttempts} previous attempts. New expiry date: ${formattedExpiryDate}.`;
 
-      const notificationInserts: InsertNotification[] = adminUsers.map(admin => ({
+      const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
         type: 'system',
         title,
         message,
         relatedEntityId: null,
-        relatedEntityType: 'ssl_certificate'
+        relatedEntityType: 'ssl_certificate',
       }));
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.warn(`SSL renewal success notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
-      
+      console.warn(
+        `SSL renewal success notification sent to ${adminUsers.length} administrators for domain: ${domain}`
+      );
     } catch (error) {
       console.error('Failed to send SSL renewal success notification:', error);
       // Don't throw error for success notifications
@@ -191,13 +197,14 @@ export class NotificationService {
 
   /**
    * Get the count of unread SSL notifications for a user.
-   * 
+   *
    * @param userId - The user ID to check notifications for.
    * @returns Number of unread SSL notifications.
    */
   async getUnreadSSLNotificationCount(userId: string): Promise<number> {
     try {
-      const result = await db.select()
+      const result = await db
+        .select()
         .from(notifications)
         .where(
           and(

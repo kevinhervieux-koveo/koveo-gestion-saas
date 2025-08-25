@@ -8,15 +8,21 @@ import { sql } from 'drizzle-orm';
  * @param app Express application.
  */
 export function registerFeatureManagementRoutes(app: Express): void {
-  
   // Feature status update route
   app.post('/api/features/:id/update-status', requireAuth, async (req: any, res) => {
     try {
       const { status } = req.body;
       const featureId = req.params.id;
-      
-      const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
-      
+
+      const validStatuses = [
+        'submitted',
+        'planned',
+        'in-progress',
+        'ai-analyzed',
+        'completed',
+        'cancelled',
+      ];
+
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: 'Invalid status' });
       }
@@ -28,11 +34,11 @@ export function registerFeatureManagementRoutes(app: Express): void {
         WHERE id = ${featureId} 
         RETURNING *
       `);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
-      
+
       const row = result.rows[0] as any;
       const feature = {
         ...row,
@@ -42,11 +48,10 @@ export function registerFeatureManagementRoutes(app: Express): void {
         targetUsers: row.target_users,
         successMetrics: row.success_metrics,
         createdAt: row.created_at,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       };
-      
+
       res.json(feature);
-      
     } catch (error) {
       console.error('Feature status update error:', error);
       res.status(500).json({ message: 'Internal server error' });
@@ -58,7 +63,7 @@ export function registerFeatureManagementRoutes(app: Express): void {
     try {
       const { isStrategicPath } = req.body;
       const featureId = req.params.id;
-      
+
       if (typeof isStrategicPath !== 'boolean') {
         return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
       }
@@ -70,11 +75,11 @@ export function registerFeatureManagementRoutes(app: Express): void {
         WHERE id = ${featureId} 
         RETURNING *
       `);
-      
+
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
-      
+
       const row = result.rows[0] as any;
       const feature = {
         ...row,
@@ -84,11 +89,10 @@ export function registerFeatureManagementRoutes(app: Express): void {
         targetUsers: row.target_users,
         successMetrics: row.success_metrics,
         createdAt: row.created_at,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       };
-      
+
       res.json(feature);
-      
     } catch (error) {
       console.error('Feature strategic toggle error:', error);
       res.status(500).json({ message: 'Internal server error' });
@@ -99,21 +103,21 @@ export function registerFeatureManagementRoutes(app: Express): void {
   app.post('/api/features/:id/analyze', requireAuth, async (req: any, res) => {
     try {
       const featureId = req.params.id;
-      
+
       // Check if feature exists and is in correct status
       const checkResult = await db.execute(sql`SELECT * FROM features WHERE id = ${featureId}`);
-      
+
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
-      
+
       const feature = checkResult.rows[0] as any;
       if (feature.status !== 'in-progress') {
-        return res.status(400).json({ 
-          message: 'Feature must be in "in-progress" status for analysis' 
+        return res.status(400).json({
+          message: 'Feature must be in "in-progress" status for analysis',
         });
       }
-      
+
       // Update feature status to analyzed
       const result = await db.execute(sql`
         UPDATE features 
@@ -121,9 +125,9 @@ export function registerFeatureManagementRoutes(app: Express): void {
         WHERE id = ${featureId} 
         RETURNING *
       `);
-      
+
       const row = result.rows[0] as any;
-      res.json({ 
+      res.json({
         message: 'Analysis completed successfully',
         feature: {
           ...row,
@@ -133,10 +137,9 @@ export function registerFeatureManagementRoutes(app: Express): void {
           targetUsers: row.target_users,
           successMetrics: row.success_metrics,
           createdAt: row.created_at,
-          updatedAt: row.updated_at
-        }
+          updatedAt: row.updated_at,
+        },
       });
-      
     } catch (error) {
       console.error('Feature analysis error:', error);
       res.status(500).json({ message: 'Internal server error' });
@@ -153,29 +156,27 @@ export function registerFeatureManagementRoutes(app: Express): void {
         WHERE synced_at IS NULL OR synced_at < updated_at
         RETURNING COUNT(*) as count
       `);
-      
+
       // Get the count of synced features
       const countResult = await db.execute(sql`
         SELECT COUNT(*) as total FROM features WHERE synced_at IS NOT NULL
       `);
-      
+
       const totalSynced = countResult.rows[0]?.total || 0;
-      
-      res.json({ 
+
+      res.json({
         message: `Successfully synchronized ${totalSynced} features to production`,
         success: true,
         syncedAt: new Date().toISOString(),
-        totalFeatures: totalSynced
+        totalFeatures: totalSynced,
       });
-      
     } catch (error) {
       console.error('Features sync error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to synchronize features to production',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
-  
 }

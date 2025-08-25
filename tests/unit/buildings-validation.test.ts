@@ -13,10 +13,20 @@ const buildingFormSchema = z.object({
   organizationId: z.string().min(1, 'Organization is required'),
   address: z.string().optional(),
   city: z.string().optional(),
-  province: z.enum(['QC', 'ON', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU']).default('QC'),
-  postalCode: z.string().regex(/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/, 'Invalid postal code format').optional(),
+  province: z
+    .enum(['QC', 'ON', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU'])
+    .default('QC'),
+  postalCode: z
+    .string()
+    .regex(/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/, 'Invalid postal code format')
+    .optional(),
   buildingType: z.enum(['condo', 'rental']).default('condo'),
-  yearBuilt: z.number().int().min(1800).max(new Date().getFullYear() + 5).optional(),
+  yearBuilt: z
+    .number()
+    .int()
+    .min(1800)
+    .max(new Date().getFullYear() + 5)
+    .optional(),
   totalUnits: z.number().int().min(0).max(10000).optional(),
   totalFloors: z.number().int().min(1).max(200).optional(),
   parkingSpaces: z.number().int().min(0).max(50000).optional(),
@@ -32,7 +42,11 @@ const buildingSearchSchema = z.object({
   minUnits: z.number().int().min(0).optional(),
   maxUnits: z.number().int().min(0).optional(),
   minYear: z.number().int().min(1800).optional(),
-  maxYear: z.number().int().max(new Date().getFullYear() + 5).optional(),
+  maxYear: z
+    .number()
+    .int()
+    .max(new Date().getFullYear() + 5)
+    .optional(),
 });
 
 describe('Building Validation Tests', () => {
@@ -72,9 +86,11 @@ describe('Building Validation Tests', () => {
         const result = buildingFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues.some(issue => 
-            issue.path.includes('name') && issue.message.includes('required')
-          )).toBe(true);
+          expect(
+            result.error.issues.some(
+              (issue) => issue.path.includes('name') && issue.message.includes('required')
+            )
+          ).toBe(true);
         }
       });
 
@@ -83,9 +99,11 @@ describe('Building Validation Tests', () => {
         const result = buildingFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues.some(issue => 
-            issue.path.includes('organizationId') && issue.message.includes('required')
-          )).toBe(true);
+          expect(
+            result.error.issues.some(
+              (issue) => issue.path.includes('organizationId') && issue.message.includes('required')
+            )
+          ).toBe(true);
         }
       });
 
@@ -109,9 +127,11 @@ describe('Building Validation Tests', () => {
         const result = buildingFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues.some(issue => 
-            issue.path.includes('name') && issue.message.includes('too long')
-          )).toBe(true);
+          expect(
+            result.error.issues.some(
+              (issue) => issue.path.includes('name') && issue.message.includes('too long')
+            )
+          ).toBe(true);
         }
       });
 
@@ -126,9 +146,9 @@ describe('Building Validation Tests', () => {
         const result = buildingFormSchema.safeParse(invalidData);
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues.some(issue => 
-            issue.path.includes('managementCompany')
-          )).toBe(true);
+          expect(
+            result.error.issues.some((issue) => issue.path.includes('managementCompany'))
+          ).toBe(true);
         }
       });
 
@@ -148,8 +168,8 @@ describe('Building Validation Tests', () => {
     describe('Postal Code Validation', () => {
       it('should accept valid Canadian postal codes', () => {
         const validPostalCodes = ['H3A 1A1', 'M5V 3A8', 'V6B 1A1', 'T2P 2M7'];
-        
-        validPostalCodes.forEach(postalCode => {
+
+        validPostalCodes.forEach((postalCode) => {
           const data = { ...validBuildingData, postalCode };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -164,8 +184,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid postal code formats', () => {
         const invalidPostalCodes = ['12345', 'ABC 123', 'H3A1A', 'H3A 1A12'];
-        
-        invalidPostalCodes.forEach(postalCode => {
+
+        invalidPostalCodes.forEach((postalCode) => {
           const data = { ...validBuildingData, postalCode };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -181,9 +201,23 @@ describe('Building Validation Tests', () => {
 
     describe('Province Validation', () => {
       it('should accept all Canadian provinces and territories', () => {
-        const provinces = ['QC', 'ON', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU'];
-        
-        provinces.forEach(province => {
+        const provinces = [
+          'QC',
+          'ON',
+          'BC',
+          'AB',
+          'MB',
+          'SK',
+          'NS',
+          'NB',
+          'NL',
+          'PE',
+          'YT',
+          'NT',
+          'NU',
+        ];
+
+        provinces.forEach((province) => {
           const data = { ...validBuildingData, province: province as any };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -192,8 +226,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid province codes', () => {
         const invalidProvinces = ['XX', 'US', 'CA', 'Quebec', 'Ontario'];
-        
-        invalidProvinces.forEach(province => {
+
+        invalidProvinces.forEach((province) => {
           const data = { ...validBuildingData, province: province as any };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -216,8 +250,8 @@ describe('Building Validation Tests', () => {
     describe('Building Type Validation', () => {
       it('should accept valid building types', () => {
         const validTypes = ['condo', 'rental'];
-        
-        validTypes.forEach(buildingType => {
+
+        validTypes.forEach((buildingType) => {
           const data = { ...validBuildingData, buildingType: buildingType as any };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -226,8 +260,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid building types', () => {
         const invalidTypes = ['apartment', 'house', 'commercial', 'mixed'];
-        
-        invalidTypes.forEach(buildingType => {
+
+        invalidTypes.forEach((buildingType) => {
           const data = { ...validBuildingData, buildingType: buildingType as any };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -269,8 +303,8 @@ describe('Building Validation Tests', () => {
       it('should validate year built range', () => {
         const currentYear = new Date().getFullYear();
         const validYears = [1800, 1950, 2000, currentYear, currentYear + 5];
-        
-        validYears.forEach(year => {
+
+        validYears.forEach((year) => {
           const data = { ...validBuildingData, yearBuilt: year };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -279,8 +313,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid year built values', () => {
         const invalidYears = [1799, new Date().getFullYear() + 6, -100, 3000];
-        
-        invalidYears.forEach(year => {
+
+        invalidYears.forEach((year) => {
           const data = { ...validBuildingData, yearBuilt: year };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -289,8 +323,8 @@ describe('Building Validation Tests', () => {
 
       it('should validate total units range', () => {
         const validUnits = [0, 1, 50, 500, 10000];
-        
-        validUnits.forEach(units => {
+
+        validUnits.forEach((units) => {
           const data = { ...validBuildingData, totalUnits: units };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -299,8 +333,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid total units values', () => {
         const invalidUnits = [-1, 10001, 999999];
-        
-        invalidUnits.forEach(units => {
+
+        invalidUnits.forEach((units) => {
           const data = { ...validBuildingData, totalUnits: units };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -309,8 +343,8 @@ describe('Building Validation Tests', () => {
 
       it('should validate total floors range', () => {
         const validFloors = [1, 5, 50, 200];
-        
-        validFloors.forEach(floors => {
+
+        validFloors.forEach((floors) => {
           const data = { ...validBuildingData, totalFloors: floors };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(true);
@@ -319,8 +353,8 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid total floors values', () => {
         const invalidFloors = [0, -1, 201, 1000];
-        
-        invalidFloors.forEach(floors => {
+
+        invalidFloors.forEach((floors) => {
           const data = { ...validBuildingData, totalFloors: floors };
           const result = buildingFormSchema.safeParse(data);
           expect(result.success).toBe(false);
@@ -329,10 +363,10 @@ describe('Building Validation Tests', () => {
 
       it('should validate parking and storage spaces', () => {
         const validSpaces = [0, 10, 100, 1000, 50000];
-        
-        validSpaces.forEach(spaces => {
-          const data = { 
-            ...validBuildingData, 
+
+        validSpaces.forEach((spaces) => {
+          const data = {
+            ...validBuildingData,
             parkingSpaces: spaces,
             storageSpaces: spaces,
           };
@@ -343,11 +377,11 @@ describe('Building Validation Tests', () => {
 
       it('should reject invalid parking and storage spaces', () => {
         const invalidSpaces = [-1, 50001, 999999];
-        
-        invalidSpaces.forEach(spaces => {
+
+        invalidSpaces.forEach((spaces) => {
           const parkingData = { ...validBuildingData, parkingSpaces: spaces };
           const storageData = { ...validBuildingData, storageSpaces: spaces };
-          
+
           expect(buildingFormSchema.safeParse(parkingData).success).toBe(false);
           expect(buildingFormSchema.safeParse(storageData).success).toBe(false);
         });
@@ -403,8 +437,8 @@ describe('Building Validation Tests', () => {
 
     it('should reject invalid UUID format for organizationId', () => {
       const invalidUuids = ['not-a-uuid', '123', 'abc-def-ghi'];
-      
-      invalidUuids.forEach(uuid => {
+
+      invalidUuids.forEach((uuid) => {
         const data = { organizationId: uuid };
         const result = buildingSearchSchema.safeParse(data);
         expect(result.success).toBe(false);
@@ -511,7 +545,7 @@ describe('Building Validation Tests', () => {
       const specialCharData = {
         ...validBuildingData,
         name: 'Building with "quotes" & <tags> and \' apostrophes',
-        address: '123 O\'Connor St. - Unit #5 & 1/2',
+        address: "123 O'Connor St. - Unit #5 & 1/2",
       };
       const result = buildingFormSchema.safeParse(specialCharData);
       expect(result.success).toBe(true);

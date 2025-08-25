@@ -14,26 +14,26 @@ describe('Error Detection in Project Organization', () => {
     test('should not have broken imports', async () => {
       const tsFiles = await glob('**/*.{ts,tsx}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const brokenImports: string[] = [];
 
-      tsFiles.forEach(file => {
+      tsFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Extract imports
         const importRegex = /import .* from ['"]([^'"]+)['"]/g;
         let match;
 
         while ((match = importRegex.exec(content)) !== null) {
           const importPath = match[1];
-          
+
           // Skip external modules and aliases
           if (importPath.startsWith('.')) {
             const resolvedPath = path.resolve(path.dirname(filePath), importPath);
-            
+
             // Check for various extensions
             const possiblePaths = [
               resolvedPath,
@@ -43,11 +43,11 @@ describe('Error Detection in Project Organization', () => {
               `${resolvedPath}.jsx`,
               path.join(resolvedPath, 'index.ts'),
               path.join(resolvedPath, 'index.tsx'),
-              path.join(resolvedPath, 'index.js')
+              path.join(resolvedPath, 'index.js'),
             ];
 
-            const exists = possiblePaths.some(p => fs.existsSync(p));
-            
+            const exists = possiblePaths.some((p) => fs.existsSync(p));
+
             if (!exists) {
               brokenImports.push(`${file}: Cannot resolve import "${importPath}"`);
             }
@@ -56,9 +56,10 @@ describe('Error Detection in Project Organization', () => {
       });
 
       // Filter out test-specific and development import issues
-      const criticalBrokenImports = brokenImports.filter(importError => 
-        !importError.includes('test-invitation-rbac.ts') &&
-        !importError.includes('roadmap-component.test.tsx')
+      const criticalBrokenImports = brokenImports.filter(
+        (importError) =>
+          !importError.includes('test-invitation-rbac.ts') &&
+          !importError.includes('roadmap-component.test.tsx')
       );
       expect(criticalBrokenImports).toEqual([]);
     });
@@ -67,15 +68,15 @@ describe('Error Detection in Project Organization', () => {
       const dependencies = new Map<string, Set<string>>();
       const tsFiles = await glob('**/*.{ts,tsx}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**', '**/*.test.*', '**/*.spec.*']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**', '**/*.test.*', '**/*.spec.*'],
       });
 
       // Build dependency graph
-      tsFiles.forEach(file => {
+      tsFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const deps = new Set<string>();
-        
+
         const importRegex = /import .* from ['"]([^'"]+)['"]/g;
         let match;
 
@@ -110,7 +111,9 @@ describe('Error Detection in Project Organization', () => {
         if (recursionStack.has(node)) {
           const cycleStart = visitPath.indexOf(node);
           const cycle = visitPath.slice(cycleStart).concat(node);
-          circularDeps.push(`Circular dependency: ${cycle.map(p => path.relative(rootDir, p)).join(' -> ')}`);
+          circularDeps.push(
+            `Circular dependency: ${cycle.map((p) => path.relative(rootDir, p)).join(' -> ')}`
+          );
           return true;
         }
 
@@ -149,7 +152,7 @@ describe('Error Detection in Project Organization', () => {
         'server/routes.ts',
         'server/storage.ts',
         'server/auth.ts',
-        'client/src/lib/**/*.ts'
+        'client/src/lib/**/*.ts',
       ];
 
       const filesWithAny: string[] = [];
@@ -157,13 +160,13 @@ describe('Error Detection in Project Organization', () => {
       for (const pattern of criticalPaths) {
         const files = await glob(pattern, {
           cwd: rootDir,
-          ignore: ['**/*.test.*', '**/*.spec.*']
+          ignore: ['**/*.test.*', '**/*.spec.*'],
         });
 
-        files.forEach(file => {
+        files.forEach((file) => {
           const filePath = path.join(rootDir, file);
           const content = fs.readFileSync(filePath, 'utf-8');
-          
+
           // Check for explicit 'any' usage (not in comments)
           const lines = content.split('\n');
           lines.forEach((line, _index) => {
@@ -171,7 +174,7 @@ describe('Error Detection in Project Organization', () => {
             if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
               return;
             }
-            
+
             if (line.includes(': any') || line.includes('<any>') || line.includes('as any')) {
               filesWithAny.push(`${file}:${index + 1}: Contains 'any' type`);
             }
@@ -188,11 +191,11 @@ describe('Error Detection in Project Organization', () => {
       const schemaPath = path.join(rootDir, 'shared', 'schema.ts');
       if (fs.existsSync(schemaPath)) {
         const content = fs.readFileSync(schemaPath, 'utf-8');
-        
+
         // Check for proper exports
         expect(content).toContain('export');
         expect(content).toContain('export type');
-        
+
         // Check for proper type definitions
         expect(content).toContain('z.infer');
       }
@@ -215,7 +218,7 @@ describe('Error Detection in Project Organization', () => {
     test('should have proper path aliases configured', () => {
       const tsConfigPath = path.join(rootDir, 'tsconfig.json');
       const viteConfigPath = path.join(rootDir, 'vite.config.ts');
-      
+
       const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf-8'));
       const viteConfig = fs.readFileSync(viteConfigPath, 'utf-8');
 
@@ -232,15 +235,9 @@ describe('Error Detection in Project Organization', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-      const requiredScripts = [
-        'dev',
-        'build',
-        'test',
-        'db:push',
-        'db:migrate'
-      ];
+      const requiredScripts = ['dev', 'build', 'test', 'db:push', 'db:migrate'];
 
-      requiredScripts.forEach(script => {
+      requiredScripts.forEach((script) => {
         expect(packageJson.scripts).toHaveProperty(script);
       });
     });
@@ -250,7 +247,7 @@ describe('Error Detection in Project Organization', () => {
     test('should not have hardcoded secrets', async () => {
       const sourceFiles = await glob('**/*.{ts,tsx,js,jsx}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const filesWithSecrets: string[] = [];
@@ -259,20 +256,23 @@ describe('Error Detection in Project Organization', () => {
         /secret\s*=\s*["'][^"']+["']/i,
         /password\s*=\s*["'][^"']+["']/i,
         /token\s*=\s*["'][^"']+["']/i,
-        /Bearer\s+[A-Za-z0-9\-._~\+\/]+/
+        /Bearer\s+[A-Za-z0-9\-._~\+\/]+/,
       ];
 
-      sourceFiles.forEach(file => {
+      sourceFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
-        secretPatterns.forEach(pattern => {
+
+        secretPatterns.forEach((pattern) => {
           if (pattern.test(content)) {
             // Check if it's not a placeholder or example
             const matches = content.match(pattern);
-            if (matches && !matches[0].includes('process.env') && 
-                !matches[0].includes('YOUR_') && 
-                !matches[0].includes('EXAMPLE_')) {
+            if (
+              matches &&
+              !matches[0].includes('process.env') &&
+              !matches[0].includes('YOUR_') &&
+              !matches[0].includes('EXAMPLE_')
+            ) {
               filesWithSecrets.push(`${file}: Potential hardcoded secret`);
             }
           }
@@ -280,11 +280,12 @@ describe('Error Detection in Project Organization', () => {
       });
 
       // Allow some hardcoded secrets in test files and examples
-      const allowedSecretFiles = filesWithSecrets.filter(file => 
-        !file.includes('.test.') && 
-        !file.includes('.spec.') && 
-        !file.includes('example') &&
-        !file.includes('mock')
+      const allowedSecretFiles = filesWithSecrets.filter(
+        (file) =>
+          !file.includes('.test.') &&
+          !file.includes('.spec.') &&
+          !file.includes('example') &&
+          !file.includes('mock')
       );
       expect(allowedSecretFiles).toEqual([]);
     });
@@ -292,20 +293,20 @@ describe('Error Detection in Project Organization', () => {
     test('should use environment variables for configuration', () => {
       const serverFiles = glob.sync('server/**/*.{ts,js}', {
         cwd: rootDir,
-        ignore: ['**/*.test.*', '**/*.spec.*']
+        ignore: ['**/*.test.*', '**/*.spec.*'],
       });
 
       const filesWithoutEnvVars: string[] = [];
 
-      serverFiles.forEach(file => {
+      serverFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Check for direct port numbers or URLs
         if (content.includes('localhost:') && !content.includes('process.env')) {
           filesWithoutEnvVars.push(`${file}: Hardcoded localhost URL`);
         }
-        
+
         if (/port\s*=\s*\d{4}/.test(content) && !content.includes('process.env')) {
           filesWithoutEnvVars.push(`${file}: Hardcoded port number`);
         }
@@ -321,16 +322,16 @@ describe('Error Detection in Project Organization', () => {
       const schemaPath = path.join(rootDir, 'shared', 'schema.ts');
       if (fs.existsSync(schemaPath)) {
         const content = fs.readFileSync(schemaPath, 'utf-8');
-        
+
         // Check for proper table definitions
         expect(content).toContain('pgTable');
-        
+
         // Check for proper ID fields
         expect(content).toContain('uuid');
-        
+
         // Check for timestamps
         expect(content).toContain('timestamp');
-        
+
         // Check for proper relations
         expect(content).toContain('references');
       }
@@ -339,15 +340,11 @@ describe('Error Detection in Project Organization', () => {
     test('should have proper database migrations', () => {
       const migrationsDir = path.join(rootDir, 'migrations');
       if (fs.existsSync(migrationsDir)) {
-        const migrations = fs.readdirSync(migrationsDir)
-          .filter(f => f.endsWith('.sql'));
-        
-        migrations.forEach(migration => {
-          const content = fs.readFileSync(
-            path.join(migrationsDir, migration), 
-            'utf-8'
-          );
-          
+        const migrations = fs.readdirSync(migrationsDir).filter((f) => f.endsWith('.sql'));
+
+        migrations.forEach((migration) => {
+          const content = fs.readFileSync(path.join(migrationsDir, migration), 'utf-8');
+
           // Check for basic SQL structure
           expect(content).toMatch(/CREATE TABLE|ALTER TABLE|DROP TABLE/i);
         });
@@ -359,27 +356,31 @@ describe('Error Detection in Project Organization', () => {
     test('should have proper React component structure', async () => {
       const componentFiles = await glob('client/src/components/**/*.tsx', {
         cwd: rootDir,
-        ignore: ['**/*.test.*', '**/*.spec.*']
+        ignore: ['**/*.test.*', '**/*.spec.*'],
       });
 
       const issues: string[] = [];
 
-      componentFiles.forEach(file => {
+      componentFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const componentName = path.basename(file, '.tsx');
-        
+
         // Check for proper component export
         if (!content.includes('export') && !file.includes('index')) {
           issues.push(`${file}: No export found`);
         }
-        
+
         // Check for prop types definition
-        if (content.includes('_props:') && !content.includes('interface') && 
-            !content.includes('type') && !content.includes('Props')) {
+        if (
+          content.includes('_props:') &&
+          !content.includes('interface') &&
+          !content.includes('type') &&
+          !content.includes('Props')
+        ) {
           issues.push(`${file}: Missing prop types definition`);
         }
-        
+
         // Check for proper JSX return
         if (!content.includes('return') && !content.includes('=>')) {
           issues.push(`${file}: No return statement found`);
@@ -387,9 +388,10 @@ describe('Error Detection in Project Organization', () => {
       });
 
       // Filter out shadcn UI components which may not have explicit return statements
-      const filteredIssues = issues.filter(issue => 
-        !issue.includes('client/src/components/ui/') ||
-        !issue.includes('No return statement found')
+      const filteredIssues = issues.filter(
+        (issue) =>
+          !issue.includes('client/src/components/ui/') ||
+          !issue.includes('No return statement found')
       );
       expect(filteredIssues).toEqual([]);
     });
@@ -397,25 +399,25 @@ describe('Error Detection in Project Organization', () => {
     test('should not have unused imports', async () => {
       const tsFiles = await glob('**/*.{ts,tsx}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const filesWithUnusedImports: string[] = [];
 
-      tsFiles.forEach(file => {
+      tsFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Extract named imports
         const namedImportRegex = /import\s+{([^}]+)}\s+from/g;
         let match;
 
         while ((match = namedImportRegex.exec(content)) !== null) {
-          const imports = match[1].split(',').map(i => i.trim());
-          
-          imports.forEach(imp => {
+          const imports = match[1].split(',').map((i) => i.trim());
+
+          imports.forEach((imp) => {
             const importName = imp.split(' as ')[0].trim();
-            
+
             // Check if import is used in the file (excluding the import line)
             const contentWithoutImport = content.replace(match[0], '');
             if (!contentWithoutImport.includes(importName)) {
@@ -436,11 +438,11 @@ describe('Error Detection in Project Organization', () => {
       const routesPath = path.join(rootDir, 'server', 'routes.ts');
       if (fs.existsSync(routesPath)) {
         const content = fs.readFileSync(routesPath, 'utf-8');
-        
+
         // Check for proper route definitions
         expect(content).toContain('app.get');
         expect(content).toContain('app.post');
-        
+
         // Check for error handling
         expect(content).toContain('try');
         expect(content).toContain('catch');
@@ -450,15 +452,15 @@ describe('Error Detection in Project Organization', () => {
     test('should have consistent API endpoints', () => {
       const clientFiles = glob.sync('client/src/**/*.{ts,tsx}', {
         cwd: rootDir,
-        ignore: ['**/*.test.*', '**/*.spec.*']
+        ignore: ['**/*.test.*', '**/*.spec.*'],
       });
 
       const apiEndpoints = new Set<string>();
 
-      clientFiles.forEach(file => {
+      clientFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Extract API calls
         const apiRegex = /['"`]\/api\/[^'"`]+['"`]/g;
         let match;
@@ -470,15 +472,15 @@ describe('Error Detection in Project Organization', () => {
 
       // Check that all endpoints follow consistent naming
       const inconsistentEndpoints: string[] = [];
-      apiEndpoints.forEach(endpoint => {
+      apiEndpoints.forEach((endpoint) => {
         if (!/^\/api\/[a-z\-\/]+$/.test(endpoint)) {
           inconsistentEndpoints.push(endpoint);
         }
       });
 
       // Allow template endpoints with parameters during development
-      const realInconsistentEndpoints = inconsistentEndpoints.filter(endpoint => 
-        !endpoint.includes('${') && !endpoint.includes('?')
+      const realInconsistentEndpoints = inconsistentEndpoints.filter(
+        (endpoint) => !endpoint.includes('${') && !endpoint.includes('?')
       );
       expect(realInconsistentEndpoints).toEqual([]);
     });

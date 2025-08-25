@@ -14,7 +14,7 @@ export const demoBillsData = [
     costs: [1276.29],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
     id: '22b8cc1b-2537-4fbf-98e5-f11ef0bade2b',
@@ -25,7 +25,7 @@ export const demoBillsData = [
     costs: [1403.91],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
     id: 'c04a4f42-70b2-47dc-a400-7c3b0e4a0417',
@@ -36,7 +36,7 @@ export const demoBillsData = [
     costs: [1659.17],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
     id: '113157c7-686c-46ca-9f4a-9b60461d9a73',
@@ -47,7 +47,7 @@ export const demoBillsData = [
     costs: [1531.54],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
     id: 'a835b435-3615-42dc-9d49-8cff39f2fc06',
@@ -58,7 +58,7 @@ export const demoBillsData = [
     costs: [1276.29],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   // Add some utility bills for variety
   {
@@ -66,24 +66,24 @@ export const demoBillsData = [
     billNumber: 'UTIL-2025-001',
     paymentType: 'recurrent' as const,
     category: 'utilities' as const,
-    totalAmount: 850.00,
-    costs: [425.00, 425.00],
+    totalAmount: 850.0,
+    costs: [425.0, 425.0],
     startDate: '2025-01-01',
     endDate: '2025-12-31',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
     id: 'ins-001',
     billNumber: 'INS-2025-001',
     paymentType: 'unique' as const,
     category: 'insurance' as const,
-    totalAmount: 2500.00,
-    costs: [2500.00],
+    totalAmount: 2500.0,
+    costs: [2500.0],
     startDate: '2025-01-01',
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
-  }
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
+  },
 ];
 
 export const demoBuildingsData = [
@@ -97,10 +97,10 @@ export const demoBuildingsData = [
     postalCode: 'H1A 1A1',
     isActive: true,
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   },
   {
-    id: 'demo-building-2', 
+    id: 'demo-building-2',
     organizationId: DEMO_ORG_ID,
     name: 'Demo Building 2',
     address: '200 Demo Boulevard',
@@ -109,8 +109,8 @@ export const demoBuildingsData = [
     postalCode: 'H1B 1B1',
     isActive: true,
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
-  }
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
+  },
 ];
 
 /**
@@ -128,7 +128,7 @@ export function getDemoOrganization() {
     postalCode: 'H1C 1C1',
     isActive: true,
     createdAt: new Date('2025-01-01T00:00:00Z'),
-    updatedAt: new Date('2025-01-01T00:00:00Z')
+    updatedAt: new Date('2025-01-01T00:00:00Z'),
   };
 }
 
@@ -148,15 +148,15 @@ export function getDemoBuildings() {
  */
 export function getDemoBills(paymentType?: string, category?: string) {
   let filteredBills = demoBillsData;
-  
+
   if (paymentType) {
-    filteredBills = filteredBills.filter(bill => bill.paymentType === paymentType);
+    filteredBills = filteredBills.filter((bill) => bill.paymentType === paymentType);
   }
-  
+
   if (category) {
-    filteredBills = filteredBills.filter(bill => bill.category === category);
+    filteredBills = filteredBills.filter((bill) => bill.category === category);
   }
-  
+
   return filteredBills;
 }
 
@@ -173,8 +173,8 @@ export function getDemoUsers() {
       organizationId: DEMO_ORG_ID,
       isActive: true,
       createdAt: new Date('2025-01-01T00:00:00Z'),
-      updatedAt: new Date('2025-01-01T00:00:00Z')
-    }
+      updatedAt: new Date('2025-01-01T00:00:00Z'),
+    },
   ];
 }
 
@@ -186,11 +186,11 @@ export function validateDemoDataStructure() {
   const org = getDemoOrganization();
   const buildings = getDemoBuildings();
   const bills = getDemoBills();
-  
+
   return {
     hasOrganization: !!org,
     buildingCount: buildings.length,
     billCount: bills.length,
-    isValidStructure: !!org && buildings.length > 0 && bills.length > 0
+    isValidStructure: !!org && buildings.length > 0 && bills.length > 0,
   };
 }

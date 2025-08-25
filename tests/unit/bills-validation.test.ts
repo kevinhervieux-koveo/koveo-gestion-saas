@@ -4,7 +4,7 @@ import { z } from 'zod';
 // Bill validation schemas (would normally be imported from the API)
 const billCategorySchema = z.enum([
   'insurance',
-  'maintenance', 
+  'maintenance',
   'salary',
   'utilities',
   'cleaning',
@@ -15,7 +15,7 @@ const billCategorySchema = z.enum([
   'repairs',
   'supplies',
   'taxes',
-  'other'
+  'other',
 ]);
 
 const paymentTypeSchema = z.enum(['unique', 'recurrent']);
@@ -38,14 +38,14 @@ const createBillSchema = z.object({
   startDate: z.string(),
   endDate: z.string().optional(),
   status: billStatusSchema.optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 });
 
 const billFilterSchema = z.object({
   buildingId: z.string().uuid(),
   category: z.string().optional(),
   year: z.string().optional(),
-  status: billStatusSchema.optional()
+  status: billStatusSchema.optional(),
 });
 
 describe('Bills Validation Tests', () => {
@@ -53,7 +53,7 @@ describe('Bills Validation Tests', () => {
     it('should accept all valid bill categories', () => {
       const validCategories = [
         'insurance',
-        'maintenance', 
+        'maintenance',
         'salary',
         'utilities',
         'cleaning',
@@ -64,10 +64,10 @@ describe('Bills Validation Tests', () => {
         'repairs',
         'supplies',
         'taxes',
-        'other'
+        'other',
       ];
 
-      validCategories.forEach(category => {
+      validCategories.forEach((category) => {
         const result = billCategorySchema.safeParse(category);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -84,10 +84,10 @@ describe('Bills Validation Tests', () => {
         '',
         null,
         undefined,
-        123
+        123,
       ];
 
-      invalidCategories.forEach(category => {
+      invalidCategories.forEach((category) => {
         const result = billCategorySchema.safeParse(category);
         expect(result.success).toBe(false);
       });
@@ -98,7 +98,7 @@ describe('Bills Validation Tests', () => {
     it('should accept valid payment types', () => {
       const validTypes = ['unique', 'recurrent'];
 
-      validTypes.forEach(type => {
+      validTypes.forEach((type) => {
         const result = paymentTypeSchema.safeParse(type);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -108,16 +108,9 @@ describe('Bills Validation Tests', () => {
     });
 
     it('should reject invalid payment types', () => {
-      const invalidTypes = [
-        'one_time',
-        'recurring',
-        'UNIQUE',
-        '',
-        null,
-        undefined
-      ];
+      const invalidTypes = ['one_time', 'recurring', 'UNIQUE', '', null, undefined];
 
-      invalidTypes.forEach(type => {
+      invalidTypes.forEach((type) => {
         const result = paymentTypeSchema.safeParse(type);
         expect(result.success).toBe(false);
       });
@@ -128,7 +121,7 @@ describe('Bills Validation Tests', () => {
     it('should accept valid schedule payment options', () => {
       const validSchedules = ['weekly', 'monthly', 'quarterly', 'yearly', 'custom'];
 
-      validSchedules.forEach(schedule => {
+      validSchedules.forEach((schedule) => {
         const result = schedulePaymentSchema.safeParse(schedule);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -138,16 +131,9 @@ describe('Bills Validation Tests', () => {
     });
 
     it('should reject invalid schedule payment options', () => {
-      const invalidSchedules = [
-        'daily',
-        'biweekly',
-        'annually',
-        'MONTHLY',
-        '',
-        null
-      ];
+      const invalidSchedules = ['daily', 'biweekly', 'annually', 'MONTHLY', '', null];
 
-      invalidSchedules.forEach(schedule => {
+      invalidSchedules.forEach((schedule) => {
         const result = schedulePaymentSchema.safeParse(schedule);
         expect(result.success).toBe(false);
       });
@@ -158,7 +144,7 @@ describe('Bills Validation Tests', () => {
     it('should accept valid bill statuses', () => {
       const validStatuses = ['draft', 'sent', 'overdue', 'paid', 'cancelled'];
 
-      validStatuses.forEach(status => {
+      validStatuses.forEach((status) => {
         const result = billStatusSchema.safeParse(status);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -168,16 +154,9 @@ describe('Bills Validation Tests', () => {
     });
 
     it('should reject invalid bill statuses', () => {
-      const invalidStatuses = [
-        'pending',
-        'completed',
-        'PAID',
-        'active',
-        '',
-        null
-      ];
+      const invalidStatuses = ['pending', 'completed', 'PAID', 'active', '', null];
 
-      invalidStatuses.forEach(status => {
+      invalidStatuses.forEach((status) => {
         const result = billStatusSchema.safeParse(status);
         expect(result.success).toBe(false);
       });
@@ -192,10 +171,10 @@ describe('Bills Validation Tests', () => {
       category: 'maintenance' as const,
       vendor: 'Test Vendor',
       paymentType: 'unique' as const,
-      costs: [100.50],
-      totalAmount: 100.50,
+      costs: [100.5],
+      totalAmount: 100.5,
       startDate: '2024-01-01',
-      status: 'draft' as const
+      status: 'draft' as const,
     };
 
     it('should accept valid bill data', () => {
@@ -239,7 +218,7 @@ describe('Bills Validation Tests', () => {
         paymentType: 'unique' as const,
         costs: [50],
         totalAmount: 50,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const result = createBillSchema.safeParse(minimalData);
@@ -251,7 +230,7 @@ describe('Bills Validation Tests', () => {
         ...validBillData,
         paymentType: 'recurrent' as const,
         schedulePayment: 'monthly' as const,
-        endDate: '2024-12-31'
+        endDate: '2024-12-31',
       };
 
       const result = createBillSchema.safeParse(recurrentData);
@@ -263,7 +242,7 @@ describe('Bills Validation Tests', () => {
         ...validBillData,
         paymentType: 'recurrent' as const,
         schedulePayment: 'custom' as const,
-        scheduleCustom: ['2024-01-15', '2024-04-15', '2024-07-15', '2024-10-15']
+        scheduleCustom: ['2024-01-15', '2024-04-15', '2024-07-15', '2024-10-15'],
       };
 
       const result = createBillSchema.safeParse(customData);
@@ -277,7 +256,7 @@ describe('Bills Validation Tests', () => {
         buildingId: '123e4567-e89b-12d3-a456-426614174000',
         category: 'insurance',
         year: '2024',
-        status: 'paid' as const
+        status: 'paid' as const,
       };
 
       const result = billFilterSchema.safeParse(validFilters);
@@ -287,7 +266,7 @@ describe('Bills Validation Tests', () => {
     it('should require buildingId to be UUID', () => {
       const invalidFilters = {
         buildingId: 'invalid-uuid',
-        category: 'insurance'
+        category: 'insurance',
       };
 
       const result = billFilterSchema.safeParse(invalidFilters);
@@ -296,7 +275,7 @@ describe('Bills Validation Tests', () => {
 
     it('should accept minimal filter with only buildingId', () => {
       const minimalFilters = {
-        buildingId: '123e4567-e89b-12d3-a456-426614174000'
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       const result = billFilterSchema.safeParse(minimalFilters);
@@ -306,7 +285,7 @@ describe('Bills Validation Tests', () => {
     it('should reject invalid status in filters', () => {
       const invalidFilters = {
         buildingId: '123e4567-e89b-12d3-a456-426614174000',
-        status: 'invalid_status'
+        status: 'invalid_status',
       };
 
       const result = billFilterSchema.safeParse(invalidFilters);
@@ -323,7 +302,7 @@ describe('Bills Validation Tests', () => {
         paymentType: 'unique' as const,
         costs: [999999.99],
         totalAmount: 999999.99,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const result = createBillSchema.safeParse(largeCostData);
@@ -339,7 +318,7 @@ describe('Bills Validation Tests', () => {
         schedulePayment: 'quarterly' as const,
         costs: [500, 600, 700, 800],
         totalAmount: 2600,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const result = createBillSchema.safeParse(multiCostData);
@@ -354,7 +333,7 @@ describe('Bills Validation Tests', () => {
         paymentType: 'unique' as const,
         costs: [],
         totalAmount: 100,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const result = createBillSchema.safeParse(emptyCostsData);
@@ -370,7 +349,7 @@ describe('Bills Validation Tests', () => {
         paymentType: 'unique' as const,
         costs: [100],
         totalAmount: 100,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       const result = createBillSchema.safeParse(longTextData);

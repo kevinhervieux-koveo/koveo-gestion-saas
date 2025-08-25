@@ -16,21 +16,21 @@ import { storage } from '../storage';
 function transformPermission(permission: string) {
   const [action, resource] = permission.split(':');
   const resourceType = resource.replace(/_/g, ' ');
-  
+
   // Determine category based on resource type
   let category = 'Other';
   const categoryMap: { [key: string]: string } = {
-    'users': 'User Management',
-    'organizations': 'Organization Management', 
-    'buildings': 'Building Management',
-    'residences': 'Residence Management',
-    'bills': 'Financial Management',
-    'budgets': 'Financial Management',
-    'maintenance_requests': 'Maintenance Management',
-    'documents': 'Document Management',
-    'notifications': 'Communication',
-    'features': 'System Features',
-    'reports': 'Reports & Analytics'
+    users: 'User Management',
+    organizations: 'Organization Management',
+    buildings: 'Building Management',
+    residences: 'Residence Management',
+    bills: 'Financial Management',
+    budgets: 'Financial Management',
+    maintenance_requests: 'Maintenance Management',
+    documents: 'Document Management',
+    notifications: 'Communication',
+    features: 'System Features',
+    reports: 'Reports & Analytics',
   };
   category = categoryMap[resource] || 'Other';
 
@@ -43,7 +43,7 @@ function transformPermission(permission: string) {
     action: action,
     category: category,
     isActive: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -57,8 +57,7 @@ function transformPermission(permission: string) {
  * @returns Function result.
  */
 export function registerPermissionsRoutes(app: Express) {
-  
-  // Get all system permissions from database  
+  // Get all system permissions from database
   app.get('/api/permissions', requireAuth, authorize('read:users'), async (req, res) => {
     try {
       const permissions = await storage.getPermissions();
@@ -85,7 +84,7 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const permissions = await storage.getPermissions();
       const rolePermissions = await storage.getRolePermissions();
-      
+
       // Group permissions by resource type
       const permissionsByResource = permissions.reduce((acc: any, permission: any) => {
         if (!acc[permission.resourceType]) {
@@ -107,7 +106,7 @@ export function registerPermissionsRoutes(app: Express) {
         permissionsByResource,
         roleMatrix,
         permissions,
-        rolePermissions
+        rolePermissions,
       });
     } catch (error) {
       console.error('Error fetching permissions matrix:', error);
@@ -127,83 +126,95 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Grant permission to user
-  app.post('/api/user-permissions', requireAuth, authorize('manage_permissions:users'), async (req, res) => {
-    try {
-      const { userId, permissionId, reason } = req.body;
-      
-      if (!userId || !permissionId) {
-        return res.status(400).json({ 
-          message: 'userId and permissionId are required' 
-        });
-      }
+  app.post(
+    '/api/user-permissions',
+    requireAuth,
+    authorize('manage_permissions:users'),
+    async (req, res) => {
+      try {
+        const { userId, permissionId, reason } = req.body;
 
-      // Validate that the permission exists in database
-      const permission = await storage.getPermissions().then(perms => 
-        perms.find(p => p.id === permissionId || p.name === permissionId)
-      );
-      
-      if (!permission) {
-        return res.status(400).json({ 
-          message: 'Invalid permission' 
-        });
-      }
+        if (!userId || !permissionId) {
+          return res.status(400).json({
+            message: 'userId and permissionId are required',
+          });
+        }
 
-      // TODO: Implement user permission override in database
-      // For now, return success but note that this would need database schema changes
-      res.status(501).json({ 
-        message: 'User permission overrides not yet implemented',
-        note: 'This feature requires additional database schema for user_permission_overrides table'
-      });
-      
-    } catch (error) {
-      console.error('Error granting user permission:', error);
-      res.status(500).json({ message: 'Failed to grant user permission' });
+        // Validate that the permission exists in database
+        const permission = await storage
+          .getPermissions()
+          .then((perms) => perms.find((p) => p.id === permissionId || p.name === permissionId));
+
+        if (!permission) {
+          return res.status(400).json({
+            message: 'Invalid permission',
+          });
+        }
+
+        // TODO: Implement user permission override in database
+        // For now, return success but note that this would need database schema changes
+        res.status(501).json({
+          message: 'User permission overrides not yet implemented',
+          note: 'This feature requires additional database schema for user_permission_overrides table',
+        });
+      } catch (error) {
+        console.error('Error granting user permission:', error);
+        res.status(500).json({ message: 'Failed to grant user permission' });
+      }
     }
-  });
+  );
 
   // Revoke permission from user
-  app.delete('/api/user-permissions/:userId/:permissionId', requireAuth, authorize('manage:user_roles'), async (req, res) => {
-    try {
-      const { userId, permissionId } = req.params;
-      
-      // TODO: Implement user permission revocation in database
-      res.status(501).json({ 
-        message: 'User permission overrides not yet implemented',
-        note: 'This feature requires additional database schema for user_permission_overrides table'
-      });
-      
-    } catch (error) {
-      console.error('Error revoking user permission:', error);
-      res.status(500).json({ message: 'Failed to revoke user permission' });
+  app.delete(
+    '/api/user-permissions/:userId/:permissionId',
+    requireAuth,
+    authorize('manage:user_roles'),
+    async (req, res) => {
+      try {
+        const { userId, permissionId } = req.params;
+
+        // TODO: Implement user permission revocation in database
+        res.status(501).json({
+          message: 'User permission overrides not yet implemented',
+          note: 'This feature requires additional database schema for user_permission_overrides table',
+        });
+      } catch (error) {
+        console.error('Error revoking user permission:', error);
+        res.status(500).json({ message: 'Failed to revoke user permission' });
+      }
     }
-  });
+  );
 
   // Update role permissions (admin only)
-  app.patch('/api/role-permissions/:role', requireAuth, authorize('manage:user_roles'), async (req, res) => {
-    try {
-      const { role } = req.params;
-      const { permissions } = req.body;
-      
-      if (!['admin', 'manager', 'tenant', 'resident'].includes(role)) {
-        return res.status(400).json({ message: 'Invalid role' });
-      }
+  app.patch(
+    '/api/role-permissions/:role',
+    requireAuth,
+    authorize('manage:user_roles'),
+    async (req, res) => {
+      try {
+        const { role } = req.params;
+        const { permissions } = req.body;
 
-      if (!Array.isArray(permissions)) {
-        return res.status(400).json({ message: 'Permissions must be an array' });
-      }
+        if (!['admin', 'manager', 'tenant', 'resident'].includes(role)) {
+          return res.status(400).json({ message: 'Invalid role' });
+        }
 
-      // TODO: Implement role permission updates
-      // This would require updating the permissions.json file or moving to database
-      res.status(501).json({ 
-        message: 'Role permission updates not yet implemented',
-        note: 'This feature requires implementing a mechanism to update permissions.json or move permissions to database'
-      });
-      
-    } catch (error) {
-      console.error('Error updating role permissions:', error);
-      res.status(500).json({ message: 'Failed to update role permissions' });
+        if (!Array.isArray(permissions)) {
+          return res.status(400).json({ message: 'Permissions must be an array' });
+        }
+
+        // TODO: Implement role permission updates
+        // This would require updating the permissions.json file or moving to database
+        res.status(501).json({
+          message: 'Role permission updates not yet implemented',
+          note: 'This feature requires implementing a mechanism to update permissions.json or move permissions to database',
+        });
+      } catch (error) {
+        console.error('Error updating role permissions:', error);
+        res.status(500).json({ message: 'Failed to update role permissions' });
+      }
     }
-  });
+  );
 
   // Get permission categories for organization
   app.get('/api/permission-categories', requireAuth, authorize('read:users'), async (req, res) => {
@@ -211,35 +222,36 @@ export function registerPermissionsRoutes(app: Express) {
       // Generate categories based on database permissions
       const permissions = await storage.getPermissions();
       const categoryMap: { [key: string]: any[] } = {};
-      
-      permissions.forEach(permission => {
-        const categoryName = {
-          'users': 'User Management',
-          'organizations': 'Organization Management', 
-          'buildings': 'Building Management',
-          'residences': 'Residence Management',
-          'bills': 'Financial Management',
-          'budgets': 'Financial Management',
-          'maintenance_requests': 'Maintenance Management',
-          'documents': 'Document Management',
-          'notifications': 'Communication',
-          'features': 'System Features',
-          'reports': 'Reports & Analytics'
-        }[permission.resourceType] || 'Other';
-        
+
+      permissions.forEach((permission) => {
+        const categoryName =
+          {
+            users: 'User Management',
+            organizations: 'Organization Management',
+            buildings: 'Building Management',
+            residences: 'Residence Management',
+            bills: 'Financial Management',
+            budgets: 'Financial Management',
+            maintenance_requests: 'Maintenance Management',
+            documents: 'Document Management',
+            notifications: 'Communication',
+            features: 'System Features',
+            reports: 'Reports & Analytics',
+          }[permission.resourceType] || 'Other';
+
         if (!categoryMap[categoryName]) {
           categoryMap[categoryName] = [];
         }
         categoryMap[categoryName].push(permission);
       });
-      
+
       const categories = Object.entries(categoryMap).map(([name, perms]) => ({
         id: name.toLowerCase().replace(/\s+/g, '-'),
         name,
         permissions: perms,
-        count: perms.length
+        count: perms.length,
       }));
-      
+
       res.json(categories);
     } catch (error) {
       console.error('Error fetching permission categories:', error);
@@ -251,24 +263,24 @@ export function registerPermissionsRoutes(app: Express) {
   app.post('/api/permissions/validate', requireAuth, async (req, res) => {
     try {
       const { permission } = req.body;
-      
+
       if (!permission) {
         return res.status(400).json({ message: 'Permission is required' });
       }
 
       // Check permission via database
       const rolePermissions = await storage.getRolePermissions();
-      const hasPermission = rolePermissions.some((rp: any) => 
-        rp.role === req.user!.role && rp.permission && rp.permission.name === permission
+      const hasPermission = rolePermissions.some(
+        (rp: any) =>
+          rp.role === req.user!.role && rp.permission && rp.permission.name === permission
       );
-      
+
       res.json({
         hasPermission,
         role: req.user!.role,
         permission,
-        message: hasPermission ? 'Permission granted' : 'Permission denied'
+        message: hasPermission ? 'Permission granted' : 'Permission denied',
       });
-      
     } catch (error) {
       console.error('Error validating permission:', error);
       res.status(500).json({ message: 'Failed to validate permission' });

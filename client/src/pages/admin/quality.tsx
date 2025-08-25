@@ -16,7 +16,9 @@ export default function Quality() {
           <div className='flex items-center gap-2 text-sm text-gray-600'>
             <Terminal className='h-4 w-4' />
             <span className='font-medium'>Refresh Command:</span>
-            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run quality:check</code>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              npm run quality:check
+            </code>
           </div>
         </div>
       </div>

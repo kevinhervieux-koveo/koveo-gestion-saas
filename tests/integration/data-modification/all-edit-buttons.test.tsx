@@ -35,13 +35,13 @@ const mockOrganization = {
   registrationNumber: 'REG123',
   isActive: true,
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 };
 
 const mockBill = {
   id: 'test-bill-id',
   billNumber: 'BILL-001',
-  amount: 1500.00,
+  amount: 1500.0,
   dueDate: new Date('2025-12-31'),
   type: 'monthly_fee',
   status: 'sent' as const,
@@ -64,7 +64,7 @@ const mockBill = {
   reminderDays: 7,
   notes: null,
   isActive: true,
-  createdBy: 'test-user-id'
+  createdBy: 'test-user-id',
 };
 
 const mockUser = {
@@ -72,7 +72,7 @@ const mockUser = {
   email: 'test@example.com',
   role: 'admin',
   firstName: 'Test',
-  lastName: 'User'
+  lastName: 'User',
 };
 
 describe('Data Modification - All Edit Buttons and Forms', () => {
@@ -85,8 +85,8 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       queryClient: {
         invalidateQueries: jest.fn(),
         setQueryData: jest.fn(),
-        getQueryData: jest.fn()
-      }
+        getQueryData: jest.fn(),
+      },
     }));
   });
 
@@ -96,7 +96,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
-      status: 200
+      status: 200,
     });
   });
 
@@ -128,13 +128,17 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/organizations', expect.objectContaining({
-          name: 'New Organization',
-          type: 'syndicate',
-          address: '456 New Street',
-          city: 'Quebec City',
-          postalCode: 'G1G 1G1'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/organizations',
+          expect.objectContaining({
+            name: 'New Organization',
+            type: 'syndicate',
+            address: '456 New Street',
+            city: 'Quebec City',
+            postalCode: 'G1G 1G1',
+          })
+        );
       });
 
       await waitFor(() => {
@@ -170,9 +174,13 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/organizations/${mockOrganization.id}`, expect.objectContaining({
-          name: 'Updated Organization'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/organizations/${mockOrganization.id}`,
+          expect.objectContaining({
+            name: 'Updated Organization',
+          })
+        );
       });
     });
 
@@ -207,11 +215,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
       render(
         <TestProviders>
-          <SendInvitationDialog
-            open={true}
-            onOpenChange={onOpenChange}
-            onSuccess={jest.fn()}
-          />
+          <SendInvitationDialog open={true} onOpenChange={onOpenChange} onSuccess={jest.fn()} />
         </TestProviders>
       );
 
@@ -226,12 +230,16 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/invitations', expect.objectContaining({
-          email: 'newuser@example.com',
-          firstName: 'New',
-          lastName: 'User',
-          role: 'resident'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/invitations',
+          expect.objectContaining({
+            email: 'newuser@example.com',
+            firstName: 'New',
+            lastName: 'User',
+            role: 'resident',
+          })
+        );
       });
     });
 
@@ -256,7 +264,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await waitFor(() => {
         expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/auth/login', {
           email: 'test@example.com',
-          password: 'password123'
+          password: 'password123',
         });
       });
     });
@@ -269,19 +277,21 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       );
 
       // Fill out forgot password form
-      const emailInput = screen.getByRole('textbox', { name: /email/i }) || 
-                        screen.getByPlaceholderText(/email/i) ||
-                        screen.getByTestId('input-email');
+      const emailInput =
+        screen.getByRole('textbox', { name: /email/i }) ||
+        screen.getByPlaceholderText(/email/i) ||
+        screen.getByTestId('input-email');
       await user.type(emailInput, 'test@example.com');
 
       // Submit form
-      const submitButton = screen.getByRole('button', { name: /send|envoyer/i }) ||
-                          screen.getByTestId('button-submit');
+      const submitButton =
+        screen.getByRole('button', { name: /send|envoyer/i }) ||
+        screen.getByTestId('button-submit');
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/auth/forgot-password', {
-          email: 'test@example.com'
+          email: 'test@example.com',
         });
       });
     });
@@ -298,10 +308,10 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       );
 
       // Fill out password reset form
-      const passwordInput = screen.getByTestId('input-password') || 
-                           screen.getByPlaceholderText(/password/i);
-      const confirmInput = screen.getByTestId('input-confirm-password') || 
-                         screen.getByPlaceholderText(/confirm/i);
+      const passwordInput =
+        screen.getByTestId('input-password') || screen.getByPlaceholderText(/password/i);
+      const confirmInput =
+        screen.getByTestId('input-confirm-password') || screen.getByPlaceholderText(/confirm/i);
 
       await user.type(passwordInput, 'newPassword123');
       await user.type(confirmInput, 'newPassword123');
@@ -313,7 +323,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await waitFor(() => {
         expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/auth/reset-password', {
           token: 'reset-token',
-          password: 'newPassword123'
+          password: 'newPassword123',
         });
       });
     });
@@ -325,10 +335,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
       render(
         <TestProviders>
-          <BillCreateForm
-            buildingId="test-building-id"
-            onSuccess={onSuccess}
-          />
+          <BillCreateForm buildingId='test-building-id' onSuccess={onSuccess} />
         </TestProviders>
       );
 
@@ -342,12 +349,16 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/bills', expect.objectContaining({
-          billNumber: 'BILL-002',
-          amount: 2000.00,
-          type: 'special_assessment',
-          residenceId: 'test-residence-id'
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/bills',
+          expect.objectContaining({
+            billNumber: 'BILL-002',
+            amount: 2000.0,
+            type: 'special_assessment',
+            residenceId: 'test-residence-id',
+          })
+        );
       });
     });
 
@@ -356,11 +367,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
 
       render(
         <TestProviders>
-          <BillEditForm
-            bill={mockBill}
-            onSuccess={onSuccess}
-            onCancel={jest.fn()}
-          />
+          <BillEditForm bill={mockBill} onSuccess={onSuccess} onCancel={jest.fn()} />
         </TestProviders>
       );
 
@@ -378,9 +385,13 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('PUT', `/api/bills/${mockBill.id}`, expect.objectContaining({
-          amount: 1750.00
-        }));
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          `/api/bills/${mockBill.id}`,
+          expect.objectContaining({
+            amount: 1750.0,
+          })
+        );
       });
     });
   });
@@ -420,10 +431,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     it('should handle form validation properly', async () => {
       render(
         <TestProviders>
-          <BillCreateForm
-            buildingId="test-building-id"
-            onSuccess={jest.fn()}
-          />
+          <BillCreateForm buildingId='test-building-id' onSuccess={jest.fn()} />
         </TestProviders>
       );
 
@@ -446,7 +454,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
     it('should disable submit buttons during API calls', async () => {
       // Mock slow API response
       let resolvePromise: (value: any) => void;
-      const slowPromise = new Promise(resolve => {
+      const slowPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
       mockApiRequest.mockReturnValueOnce(slowPromise);
@@ -480,7 +488,7 @@ describe('Data Modification - All Edit Buttons and Forms', () => {
       // Resolve the promise
       resolvePromise!({
         ok: true,
-        json: () => Promise.resolve({ success: true })
+        json: () => Promise.resolve({ success: true }),
       });
     });
 

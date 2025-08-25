@@ -7,10 +7,10 @@ import * as fs from 'fs';
 
 /**
  * PRE-DEPLOYMENT CHECKLIST TESTS.
- * 
+ *
  * This test suite acts as a final validation before deployment.
  * ALL tests in this suite MUST pass before deploying to production.
- * 
+ *
  * If any test fails, deployment should be BLOCKED until fixed.
  */
 describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
@@ -21,17 +21,17 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
       // Simulate production static file serving
       const publicPath = path.resolve(__dirname, '../../../server/public');
-      
+
       if (fs.existsSync(publicPath)) {
         // Production mode - serve built files
         app.use(express.static(publicPath));
-        
+
         // SPA fallback route - THIS IS CRITICAL
         app.get('*', (req, res) => {
           if (req.path.startsWith('/api')) {
             return res.status(404).json({ _error: 'API route not found' });
           }
-          
+
           const indexPath = path.resolve(publicPath, 'index.html');
           if (fs.existsSync(indexPath)) {
             res.sendFile(indexPath);
@@ -52,10 +52,10 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
       // THE CRITICAL TEST - Root must not be 404
       const response = await request(app).get('/');
-      
+
       expect(response.status).not.toBe(404);
       expect(response.status).toBe(200);
-      
+
       if (response.status !== 200) {
         throw new Error(`🚨 DEPLOYMENT BLOCKED: Root route returns ${response.status}, not 200`);
       }
@@ -63,16 +63,16 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
     test('🚨 CRITICAL: Health check endpoints must be accessible', async () => {
       const app = express();
-      
+
       // Add health check endpoints (these are critical for load balancers)
       app.get('/api/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
       });
-      
+
       app.get('/healthz', (req, res) => {
         res.send('OK');
       });
-      
+
       app.get('/ready', (req, res) => {
         res.json({ ready: true, timestamp: new Date().toISOString() });
       });
@@ -99,7 +99,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
     test('🚨 CRITICAL: Database connection must work', async () => {
       expect(process.env.DATABASE_URL).toBeDefined();
-      
+
       if (!process.env.DATABASE_URL) {
         throw new Error('🚨 DEPLOYMENT BLOCKED: DATABASE_URL environment variable not set');
       }
@@ -107,10 +107,10 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       try {
         // Skip database optimization during test
         process.env.SKIP_DB_OPTIMIZATION = 'true';
-        
+
         const { db } = await import('../../../server/db');
         const result = await db.execute('SELECT 1 as test');
-        
+
         expect(_result).toBeDefined();
       } catch (_error) {
         throw new Error(`🚨 DEPLOYMENT BLOCKED: Database connection failed - ${error}`);
@@ -119,10 +119,12 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
     test('🚨 CRITICAL: Required environment variables must be set', () => {
       const requiredEnvVars = ['DATABASE_URL'];
-      const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-      
+      const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
       if (missingVars.length > 0) {
-        throw new Error(`🚨 DEPLOYMENT BLOCKED: Missing environment variables: ${missingVars.join(', ')}`);
+        throw new Error(
+          `🚨 DEPLOYMENT BLOCKED: Missing environment variables: ${missingVars.join(', ')}`
+        );
       }
     });
 
@@ -152,11 +154,11 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       const buildPaths = [
         path.resolve(__dirname, '../../../server/public/index.html'),
         path.resolve(__dirname, '../../../server/public/assets'),
-        path.resolve(__dirname, '../../../dist/index.js')
+        path.resolve(__dirname, '../../../dist/index.js'),
       ];
 
       if (process.env.NODE_ENV === 'production') {
-        buildPaths.forEach(buildPath => {
+        buildPaths.forEach((buildPath) => {
           if (!fs.existsSync(buildPath)) {
             console.warn(`⚠️ WARNING: Production build file missing: ${buildPath}`);
           }
@@ -171,10 +173,10 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
       const requiredScripts = ['build', 'build:client', 'build:server', 'start'];
-      const missingScripts = requiredScripts.filter(script => !packageJson.scripts[script]);
+      const missingScripts = requiredScripts.filter((script) => !packageJson.scripts[script]);
 
       expect(missingScripts).toEqual([]);
-      
+
       // Start script should be production-ready
       expect(packageJson.scripts.start).toContain('production');
       expect(packageJson.scripts.start).toContain('dist/index.js');
@@ -186,7 +188,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
       if (fs.existsSync(publicPath)) {
         app.use(express.static(publicPath));
-        
+
         // Test that static files are served
         const indexPath = path.resolve(publicPath, 'index.html');
         if (fs.existsSync(indexPath)) {
@@ -204,14 +206,14 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
     test('🟢 API routes should be properly structured', async () => {
       const app = express();
       app.use(express.json());
-      
+
       await registerRoutes(app);
-      
+
       // Test that some key API routes exist and return proper status codes
       const apiTests = [
         { path: '/api/health', expectedStatus: 200 },
         { path: '/api/auth/login', expectedMethod: 'POST', expectedStatus: [400, 401] }, // Bad request or unauthorized
-        { path: '/api/users', expectedMethod: 'GET', expectedStatus: [401, 403] } // Unauthorized or forbidden
+        { path: '/api/users', expectedMethod: 'GET', expectedStatus: [401, 403] }, // Unauthorized or forbidden
       ];
 
       for (const test of apiTests) {
@@ -236,25 +238,25 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
     test('🟢 Error handling should be robust', async () => {
       const app = express();
-      
+
       // Route that throws an error
       app.get('/test-error-handling', () => {
         throw new Error('Test error for deployment validation');
       });
-      
+
       // Error handler
       app.use((err: any, req: any, res: any, next: any) => {
-        res.status(500).json({ 
+        res.status(500).json({
           message: err.message || 'Internal Server Error',
-          _error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+          _error: process.env.NODE_ENV === 'development' ? err.stack : undefined,
         });
       });
 
       const response = await request(app).get('/test-error-handling');
-      
+
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
-      
+
       // In production, should not expose stack traces
       if (process.env.NODE_ENV === 'production') {
         expect(response.body._error).toBeUndefined();
@@ -263,12 +265,14 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
 
     test('🟢 Memory usage should be reasonable', () => {
       const memoryUsage = process.memoryUsage();
-      
+
       // Warn if memory usage is very high (over 512MB)
       if (memoryUsage.heapUsed > 512 * 1024 * 1024) {
-        console.warn(`⚠️ WARNING: High memory usage: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`);
+        console.warn(
+          `⚠️ WARNING: High memory usage: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`
+        );
       }
-      
+
       // Should have some memory usage (application is running)
       expect(memoryUsage.heapUsed).toBeGreaterThan(10 * 1024 * 1024); // At least 10MB
     });
@@ -277,7 +281,7 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
   describe('🔍 DEPLOYMENT ENVIRONMENT VALIDATION', () => {
     test('🔍 Port configuration should be valid', () => {
       const port = parseInt(process.env.PORT || process.env.REPL_PORT || '8080', 10);
-      
+
       expect(port).toBeGreaterThan(0);
       expect(port).toBeLessThan(65536);
       expect(port).not.toBeNaN();
@@ -286,21 +290,17 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
     test('🔍 Node.js version should be compatible', () => {
       const nodeVersion = process.version;
       const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0], 10);
-      
+
       // Should be Node 18 or higher
       expect(majorVersion).toBeGreaterThanOrEqual(18);
-      
+
       console.warn(`ℹ️ Node.js version: ${nodeVersion}`);
     });
 
     test('🔍 Critical dependencies should be available', () => {
-      const criticalModules = [
-        'express',
-        'drizzle-orm',
-        '@neondatabase/serverless'
-      ];
-      
-      criticalModules.forEach(moduleName => {
+      const criticalModules = ['express', 'drizzle-orm', '@neondatabase/serverless'];
+
+      criticalModules.forEach((moduleName) => {
         expect(() => {
           require(moduleName);
         }).not.toThrow();
@@ -317,20 +317,22 @@ describe('🚨 PRE-DEPLOYMENT CHECKLIST - CRITICAL TESTS', () => {
         port: process.env.PORT || process.env.REPL_PORT || '8080',
         databaseConfigured: !!process.env.DATABASE_URL,
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       };
-      
+
       console.warn('📋 DEPLOYMENT READINESS REPORT:');
       console.warn('================================');
       console.warn(`🕒 Timestamp: ${report.timestamp}`);
       console.warn(`🟢 Node.js: ${report.nodeVersion}`);
       console.warn(`🌍 Environment: ${report.environment}`);
       console.warn(`🚪 Port: ${report.port}`);
-      console.warn(`💾 Database: ${report.databaseConfigured ? '✅ Configured' : '❌ Not configured'}`);
+      console.warn(
+        `💾 Database: ${report.databaseConfigured ? '✅ Configured' : '❌ Not configured'}`
+      );
       console.warn(`📊 Memory: ${Math.round(report.memoryUsage.heapUsed / 1024 / 1024)}MB used`);
       console.warn(`⏱️ Uptime: ${Math.round(report.uptime)}s`);
       console.warn('================================');
-      
+
       // All critical items should be ready
       expect(report.databaseConfigured).toBe(true);
       expect(parseInt(report.port, 10)).toBeGreaterThan(0);

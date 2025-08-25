@@ -1,6 +1,6 @@
 /**
  * @file Unit tests for Buildings Management page
- * Tests component rendering, user interactions, role-based permissions, 
+ * Tests component rendering, user interactions, role-based permissions,
  * form validation, and data handling for building management functionality.
  */
 
@@ -18,7 +18,15 @@ const mockLocation = ['/manager/buildings', mockPush];
 
 jest.mock('wouter', () => ({
   useLocation: () => mockLocation,
-  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [_key: string]: unknown }) => (
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [_key: string]: unknown;
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -141,9 +149,7 @@ describe('Buildings Management Page', () => {
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <MobileMenuProvider>
-            {children}
-          </MobileMenuProvider>
+          <MobileMenuProvider>{children}</MobileMenuProvider>
         </LanguageProvider>
       </QueryClientProvider>
     );
@@ -158,34 +164,34 @@ describe('Buildings Management Page', () => {
     mockCreateMutation.mockClear();
     mockUpdateMutation.mockClear();
     mockDeleteMutation.mockClear();
-    
+
     // Default successful mock for buildings hook - match the actual hook interface
     mockUseBuildings.mockReturnValue({
       buildings: mockBuildings,
       organizations: mockOrganizations,
       isLoading: false,
       _error: null,
-      form: { 
+      form: {
         reset: jest.fn(),
         handleSubmit: jest.fn(() => jest.fn()),
         control: {},
         formState: { errors: {} },
         setValue: jest.fn(),
         getValues: jest.fn(),
-        watch: jest.fn()
+        watch: jest.fn(),
       },
-      editForm: { 
+      editForm: {
         reset: jest.fn(),
         handleSubmit: jest.fn(() => jest.fn()),
         control: {},
         formState: { errors: {} },
         setValue: jest.fn(),
         getValues: jest.fn(),
-        watch: jest.fn()
+        watch: jest.fn(),
       },
       isAddDialogOpen: false,
       setIsAddDialogOpen: jest.fn(),
-      isEditDialogOpen: false, 
+      isEditDialogOpen: false,
       setIsEditDialogOpen: jest.fn(),
       editingBuilding: null,
       deletingBuilding: null,
@@ -235,7 +241,9 @@ describe('Buildings Management Page', () => {
       render(<Buildings />, { wrapper: createWrapper() });
 
       expect(screen.getByText('Access Restricted')).toBeInTheDocument();
-      expect(screen.getByText(/This page is only available to managers and administrators/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/This page is only available to managers and administrators/)
+      ).toBeInTheDocument();
     });
 
     it('should show access denied for tenant users', () => {
@@ -498,7 +506,7 @@ describe('Buildings Management Page', () => {
 
       const orgSelect = screen.getByRole('combobox');
       await user.click(orgSelect);
-      
+
       await waitFor(async () => {
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
@@ -740,10 +748,7 @@ describe('Buildings Management Page', () => {
       await user.click(deleteButtons[0]);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'DELETE',
-          '/api/admin/buildings/building-1'
-        );
+        expect(mockApiRequest).toHaveBeenCalledWith('DELETE', '/api/admin/buildings/building-1');
       });
     });
   });
@@ -792,7 +797,7 @@ describe('Buildings Management Page', () => {
 
         const orgSelect = screen.getByRole('combobox');
         await user.click(orgSelect);
-        
+
         const orgOption = screen.getByText('Koveo Management (management_company)');
         await user.click(orgOption);
 
@@ -824,9 +829,12 @@ describe('Buildings Management Page', () => {
       });
 
       // Mock pending API request
-      mockApiRequest.mockImplementation(() => new Promise(() => {
-        // Intentionally empty to simulate pending state
-      }));
+      mockApiRequest.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Intentionally empty to simulate pending state
+          })
+      );
 
       render(<Buildings />, { wrapper: createWrapper() });
 
@@ -847,9 +855,12 @@ describe('Buildings Management Page', () => {
       mockApiRequest
         .mockResolvedValueOnce({ buildings: mockBuildings })
         .mockResolvedValueOnce({ organizations: mockOrganizations })
-        .mockImplementation(() => new Promise(() => {
-          // Intentionally empty to simulate pending create request
-        }));
+        .mockImplementation(
+          () =>
+            new Promise(() => {
+              // Intentionally empty to simulate pending create request
+            })
+        );
 
       render(<Buildings />, { wrapper: createWrapper() });
 

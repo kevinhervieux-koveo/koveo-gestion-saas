@@ -1,6 +1,13 @@
-import * as React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface ScrollableDialogProps {
   open: boolean;
@@ -11,14 +18,14 @@ interface ScrollableDialogProps {
   footer?: React.ReactNode;
   className?: string;
   contentClassName?: string;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   testId?: string;
 }
 
 /**
  * A reusable scrollable dialog component that ensures forms fit in the screen
  * and are scrollable when content exceeds viewport height.
- * 
+ *
  * Features:
  * - Responsive height constraint (90% of viewport)
  * - Fixed header and footer
@@ -34,43 +41,37 @@ export function ScrollableDialog({
   footer,
   className,
   contentClassName,
-  maxWidth = "lg",
-  testId = "scrollable-dialog"
+  maxWidth = 'lg',
+  testId = 'scrollable-dialog',
 }: ScrollableDialogProps) {
   const maxWidthClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md", 
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    "2xl": "max-w-2xl",
-    full: "max-w-full"
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
+    full: 'max-w-full',
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className={cn(
           // Base layout and constraints
           maxWidthClasses[maxWidth],
-          "max-h-[90vh]",
-          "overflow-hidden",
-          "flex",
-          "flex-col",
+          'max-h-[90vh]',
+          'overflow-hidden',
+          'flex',
+          'flex-col',
           // Responsive padding
-          "p-0",
+          'p-0',
           className
         )}
         data-testid={testId}
       >
         {/* Fixed Header */}
-        <DialogHeader className={cn(
-          "flex-shrink-0",
-          "px-6 pt-6 pb-4",
-          "border-b border-gray-100"
-        )}>
-          <DialogTitle data-testid={`${testId}-title`}>
-            {title}
-          </DialogTitle>
+        <DialogHeader className={cn('flex-shrink-0', 'px-6 pt-6 pb-4', 'border-b border-gray-100')}>
+          <DialogTitle data-testid={`${testId}-title`}>{title}</DialogTitle>
           {description && (
             <DialogDescription data-testid={`${testId}-description`}>
               {description}
@@ -79,16 +80,16 @@ export function ScrollableDialog({
         </DialogHeader>
 
         {/* Scrollable Content Area */}
-        <div 
+        <div
           className={cn(
-            "flex-1",
-            "overflow-y-auto",
-            "px-6",
-            "py-4",
+            'flex-1',
+            'overflow-y-auto',
+            'px-6',
+            'py-4',
             // Custom scrollbar styling
-            "scrollbar-thin",
-            "scrollbar-thumb-gray-300",
-            "scrollbar-track-gray-100",
+            'scrollbar-thin',
+            'scrollbar-thumb-gray-300',
+            'scrollbar-track-gray-100',
             contentClassName
           )}
           data-testid={`${testId}-content`}
@@ -98,13 +99,8 @@ export function ScrollableDialog({
 
         {/* Fixed Footer */}
         {footer && (
-          <DialogFooter 
-            className={cn(
-              "flex-shrink-0",
-              "px-6 pb-6 pt-4",
-              "border-t border-gray-100",
-              "gap-2"
-            )}
+          <DialogFooter
+            className={cn('flex-shrink-0', 'px-6 pb-6 pt-4', 'border-t border-gray-100', 'gap-2')}
             data-testid={`${testId}-footer`}
           >
             {footer}
@@ -148,26 +144,26 @@ export function useFormDialog(initialOpen = false) {
     openDialog,
     closeDialog,
     handleSubmit,
-    setIsLoading
+    setIsLoading,
   };
 }
 
 /**
  * Utility component for form sections within scrollable dialogs
  */
-export function DialogSection({ 
-  title, 
-  children, 
-  className 
-}: { 
-  title?: string; 
-  children: React.ReactNode; 
-  className?: string; 
+export function DialogSection({
+  title,
+  children,
+  className,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {title && (
-        <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2">
+        <h3 className='text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2'>
           {title}
         </h3>
       )}

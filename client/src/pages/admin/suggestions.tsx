@@ -35,11 +35,23 @@ interface ImprovementSuggestion {
 const categoryConfig = [
   { name: 'Code Quality', icon: Code, color: 'bg-blue-50 text-blue-700 border-blue-200' },
   { name: 'Testing', icon: CheckCircle, color: 'bg-green-50 text-green-700 border-green-200' },
-  { name: 'Documentation', icon: FileText, color: 'bg-purple-50 text-purple-700 border-purple-200' },
+  {
+    name: 'Documentation',
+    icon: FileText,
+    color: 'bg-purple-50 text-purple-700 border-purple-200',
+  },
   { name: 'Security', icon: Shield, color: 'bg-red-50 text-red-700 border-red-200' },
   { name: 'Performance', icon: Zap, color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  { name: 'Continuous Improvement', icon: Terminal, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  { name: 'Replit AI Agent Monitoring', icon: MessageSquare, color: 'bg-teal-50 text-teal-700 border-teal-200' },
+  {
+    name: 'Continuous Improvement',
+    icon: Terminal,
+    color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  },
+  {
+    name: 'Replit AI Agent Monitoring',
+    icon: MessageSquare,
+    color: 'bg-teal-50 text-teal-700 border-teal-200',
+  },
 ];
 
 /**
@@ -55,23 +67,24 @@ export default function OwnerSuggestions() {
 
   // Group suggestions by category and take 2 from each
   const categorizedSuggestions = useMemo(() => {
-    const grouped = suggestions.reduce((acc, suggestion) => {
-      if (!acc[suggestion.category]) {
-        acc[suggestion.category] = [];
-      }
-      // Only add if not done and we have less than 2 in this category
-      if (suggestion.status !== 'Done' && acc[suggestion.category].length < 2) {
-        acc[suggestion.category].push(suggestion);
-      }
-      return acc;
-    }, {} as Record<string, ImprovementSuggestion[]>);
+    const grouped = suggestions.reduce(
+      (acc, suggestion) => {
+        if (!acc[suggestion.category]) {
+          acc[suggestion.category] = [];
+        }
+        // Only add if not done and we have less than 2 in this category
+        if (suggestion.status !== 'Done' && acc[suggestion.category].length < 2) {
+          acc[suggestion.category].push(suggestion);
+        }
+        return acc;
+      },
+      {} as Record<string, ImprovementSuggestion[]>
+    );
 
     // Sort suggestions within each category by priority
-    const priorityOrder = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
-    Object.keys(grouped).forEach(category => {
-      grouped[category].sort((a, b) => 
-        priorityOrder[a.priority] - priorityOrder[b.priority]
-      );
+    const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+    Object.keys(grouped).forEach((category) => {
+      grouped[category].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
     });
 
     return grouped;
@@ -151,12 +164,12 @@ export default function OwnerSuggestions() {
   };
 
   const getCategoryIcon = (categoryName: string) => {
-    const config = categoryConfig.find(c => c.name === categoryName);
+    const config = categoryConfig.find((c) => c.name === categoryName);
     return config?.icon || MessageSquare;
   };
 
   const getCategoryColor = (categoryName: string) => {
-    const config = categoryConfig.find(c => c.name === categoryName);
+    const config = categoryConfig.find((c) => c.name === categoryName);
     return config?.color || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
@@ -173,7 +186,9 @@ export default function OwnerSuggestions() {
           <div className='flex items-center gap-2 text-sm text-gray-600'>
             <Terminal className='h-4 w-4' />
             <span className='font-medium'>Refresh Command:</span>
-            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run quality:check</code>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              npm run quality:check
+            </code>
           </div>
         </div>
       </div>
@@ -185,7 +200,9 @@ export default function OwnerSuggestions() {
             <CardContent className='pt-6'>
               <div className='flex items-center justify-between'>
                 <div>
-                  <h3 className='text-lg font-semibold text-blue-900'>Continuous Improvement Overview</h3>
+                  <h3 className='text-lg font-semibold text-blue-900'>
+                    Continuous Improvement Overview
+                  </h3>
                   <p className='text-sm text-blue-700 mt-1'>
                     Displaying 2 priority suggestions per category for focused improvements
                   </p>
@@ -206,110 +223,118 @@ export default function OwnerSuggestions() {
               {categoryConfig.map((category) => {
                 const categorySuggestions = categorizedSuggestions[category.name] || [];
                 const Icon = category.icon;
-                
-                if (categorySuggestions.length === 0) {return null;}
-                
+
+                if (categorySuggestions.length === 0) {
+                  return null;
+                }
+
                 return (
                   <div key={category.name} className='space-y-4'>
                     {/* Category Header */}
-                    <div className={`flex items-center gap-3 p-3 rounded-lg border ${category.color}`}>
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-lg border ${category.color}`}
+                    >
                       <Icon className='h-5 w-5' />
                       <h2 className='text-lg font-semibold'>{category.name}</h2>
                       <Badge variant='outline' className='ml-auto'>
-                        {categorySuggestions.length} {categorySuggestions.length === 1 ? 'suggestion' : 'suggestions'}
+                        {categorySuggestions.length}{' '}
+                        {categorySuggestions.length === 1 ? 'suggestion' : 'suggestions'}
                       </Badge>
                     </div>
-                    
+
                     {/* Category Suggestions */}
                     <div className='grid gap-4 md:grid-cols-2'>
                       {categorySuggestions.map((suggestion) => (
-                        <Card key={suggestion.id} className='hover:shadow-lg transition-all hover:scale-[1.02]'>
-                    <CardHeader>
-                      <div className='flex items-start justify-between'>
-                        <div className='flex-1'>
-                          <CardTitle className='text-lg font-semibold text-koveo-navy'>
-                            {suggestion.title}
-                          </CardTitle>
-                          <CardDescription className='mt-2'>
-                            {suggestion.description}
-                          </CardDescription>
-                        </div>
-                        <div className='flex flex-col gap-2 ml-4'>
-                          <Badge className={getPriorityColor(suggestion.priority)}>
-                            {suggestion.priority} Priority
-                          </Badge>
-                          <Badge className={getStatusColor(suggestion.status)}>
-                            {suggestion.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
+                        <Card
+                          key={suggestion.id}
+                          className='hover:shadow-lg transition-all hover:scale-[1.02]'
+                        >
+                          <CardHeader>
+                            <div className='flex items-start justify-between'>
+                              <div className='flex-1'>
+                                <CardTitle className='text-lg font-semibold text-koveo-navy'>
+                                  {suggestion.title}
+                                </CardTitle>
+                                <CardDescription className='mt-2'>
+                                  {suggestion.description}
+                                </CardDescription>
+                              </div>
+                              <div className='flex flex-col gap-2 ml-4'>
+                                <Badge className={getPriorityColor(suggestion.priority)}>
+                                  {suggestion.priority} Priority
+                                </Badge>
+                                <Badge className={getStatusColor(suggestion.status)}>
+                                  {suggestion.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardHeader>
 
-                    <CardContent>
-                      <div className='mb-4'>
-                        <div className='flex items-center gap-4 text-sm text-gray-600 mb-3'>
-                          <span className='flex items-center gap-1'>
-                            <MessageSquare size={16} />
-                            {suggestion.category}
-                          </span>
-                          <span>
-                            Created: {new Date(suggestion.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
+                          <CardContent>
+                            <div className='mb-4'>
+                              <div className='flex items-center gap-4 text-sm text-gray-600 mb-3'>
+                                <span className='flex items-center gap-1'>
+                                  <MessageSquare size={16} />
+                                  {suggestion.category}
+                                </span>
+                                <span>
+                                  Created: {new Date(suggestion.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
 
-                        {/* AI Agent Prompt */}
-                        <div className='bg-blue-50 border border-blue-200 rounded-lg p-3'>
-                          <div className='text-xs font-semibold text-blue-800 mb-2 uppercase tracking-wide'>
-                            AI Agent Prompt
-                          </div>
-                          <div className='text-sm text-blue-900 font-mono bg-white border rounded px-3 py-2 select-all cursor-pointer'>
-                            {getAIPrompt(suggestion)}
-                          </div>
-                          <div className='text-xs text-blue-600 mt-1'>
-                            Click to select and copy the prompt above
-                          </div>
-                        </div>
-                      </div>
+                              {/* AI Agent Prompt */}
+                              <div className='bg-blue-50 border border-blue-200 rounded-lg p-3'>
+                                <div className='text-xs font-semibold text-blue-800 mb-2 uppercase tracking-wide'>
+                                  AI Agent Prompt
+                                </div>
+                                <div className='text-sm text-blue-900 font-mono bg-white border rounded px-3 py-2 select-all cursor-pointer'>
+                                  {getAIPrompt(suggestion)}
+                                </div>
+                                <div className='text-xs text-blue-600 mt-1'>
+                                  Click to select and copy the prompt above
+                                </div>
+                              </div>
+                            </div>
 
-                      <div className='flex items-center justify-between'>
-                        <div></div>
+                            <div className='flex items-center justify-between'>
+                              <div></div>
 
-                        <div className='flex gap-2'>
-                          {suggestion.status === 'New' && (
-                            <Button
-                              size='sm'
-                              variant='outline'
-                              onClick={() => acknowledgeMutation.mutate(suggestion.id)}
-                              disabled={acknowledgeMutation.isPending}
-                              className='flex items-center gap-2'
-                            >
-                              <Clock size={16} />
-                              Acknowledge
-                            </Button>
-                          )}
+                              <div className='flex gap-2'>
+                                {suggestion.status === 'New' && (
+                                  <Button
+                                    size='sm'
+                                    variant='outline'
+                                    onClick={() => acknowledgeMutation.mutate(suggestion.id)}
+                                    disabled={acknowledgeMutation.isPending}
+                                    className='flex items-center gap-2'
+                                  >
+                                    <Clock size={16} />
+                                    Acknowledge
+                                  </Button>
+                                )}
 
-                          {(suggestion.status === 'New' ||
-                            suggestion.status === 'Acknowledged') && (
-                            <Button
-                              size='sm'
-                              onClick={() => completeMutation.mutate(suggestion.id)}
-                              disabled={completeMutation.isPending}
-                              className='flex items-center gap-2'
-                            >
-                              <CheckCircle size={16} />
-                              Mark Complete
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
+                                {(suggestion.status === 'New' ||
+                                  suggestion.status === 'Acknowledged') && (
+                                  <Button
+                                    size='sm'
+                                    onClick={() => completeMutation.mutate(suggestion.id)}
+                                    disabled={completeMutation.isPending}
+                                    className='flex items-center gap-2'
+                                  >
+                                    <CheckCircle size={16} />
+                                    Mark Complete
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
                         </Card>
                       ))}
                     </div>
                   </div>
                 );
               })}
-              
+
               {/* Empty State */}
               {Object.values(categorizedSuggestions).flat().length === 0 && (
                 <Card>
@@ -319,8 +344,8 @@ export default function OwnerSuggestions() {
                       No Active Suggestions
                     </h3>
                     <p className='text-gray-500 text-center max-w-md'>
-                      All suggestions have been completed or no improvement suggestions have been generated yet. 
-                      Run the quality check to generate new recommendations.
+                      All suggestions have been completed or no improvement suggestions have been
+                      generated yet. Run the quality check to generate new recommendations.
                     </p>
                   </CardContent>
                 </Card>

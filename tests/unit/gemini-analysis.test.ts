@@ -3,10 +3,10 @@
  * @description Test suite for AI feature analysis functionality.
  */
 
-import { 
-  analyzeFeatureWithGemini, 
-  formatActionableItemsForDatabase, 
-  getDocumentationContext 
+import {
+  analyzeFeatureWithGemini,
+  formatActionableItemsForDatabase,
+  getDocumentationContext,
 } from '../../server/services/gemini-analysis';
 
 // Mock fetch for Gemini API
@@ -54,44 +54,48 @@ describe('Gemini Analysis Service Tests', () => {
       organizationId: 'org-1',
       userId: 'user-123',
       aiAnalysisResult: null,
-      aiAnalyzedAt: null
+      aiAnalyzedAt: null,
     };
 
     const mockGeminiResponse = {
-      candidates: [{
-        content: {
-          parts: [{
-            text: JSON.stringify({
-              summary: 'SSL certificate management feature implementation',
-              actionableItems: [
-                {
-                  title: '1. Create SSL Certificate Database Table',
-                  description: 'Create database table for SSL certificates',
-                  technicalDetails: 'Use Drizzle ORM with PostgreSQL',
-                  implementationPrompt: 'Add ssl_certificates table to schema',
-                  testingRequirements: 'Write migration tests',
-                  estimatedEffort: '1 day',
-                  dependencies: [],
-                },
-                {
-                  title: '2. Implement SSL Certificate Acquisition Service',
-                  description: 'Service to obtain SSL certificates',
-                  technicalDetails: 'Use ACME protocol with Let\'s Encrypt',
-                  implementationPrompt: 'Create SSL service class',
-                  testingRequirements: 'Integration tests with staging environment',
-                  estimatedEffort: '2 days',
-                  dependencies: [],
-                },
-              ],
-              recommendations: [
-                'Use certificate manager for easier management',
-                'Implement robust error handling',
-              ],
-              estimatedTotalEffort: '8 days',
-            }),
-          }],
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  summary: 'SSL certificate management feature implementation',
+                  actionableItems: [
+                    {
+                      title: '1. Create SSL Certificate Database Table',
+                      description: 'Create database table for SSL certificates',
+                      technicalDetails: 'Use Drizzle ORM with PostgreSQL',
+                      implementationPrompt: 'Add ssl_certificates table to schema',
+                      testingRequirements: 'Write migration tests',
+                      estimatedEffort: '1 day',
+                      dependencies: [],
+                    },
+                    {
+                      title: '2. Implement SSL Certificate Acquisition Service',
+                      description: 'Service to obtain SSL certificates',
+                      technicalDetails: "Use ACME protocol with Let's Encrypt",
+                      implementationPrompt: 'Create SSL service class',
+                      testingRequirements: 'Integration tests with staging environment',
+                      estimatedEffort: '2 days',
+                      dependencies: [],
+                    },
+                  ],
+                  recommendations: [
+                    'Use certificate manager for easier management',
+                    'Implement robust error handling',
+                  ],
+                  estimatedTotalEffort: '8 days',
+                }),
+              },
+            ],
+          },
         },
-      }],
+      ],
     };
 
     it('should analyze feature successfully', async () => {
@@ -135,15 +139,17 @@ describe('Gemini Analysis Service Tests', () => {
         text: async () => 'Bad Request',
       });
 
-      await expect(analyzeFeatureWithGemini(mockFeature, 'context'))
-        .rejects.toThrow('Gemini API _error: 400 - Bad Request');
+      await expect(analyzeFeatureWithGemini(mockFeature, 'context')).rejects.toThrow(
+        'Gemini API _error: 400 - Bad Request'
+      );
     });
 
     it('should handle network errors', async () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(analyzeFeatureWithGemini(mockFeature, 'context'))
-        .rejects.toThrow('Failed to analyze feature: Error: Network error');
+      await expect(analyzeFeatureWithGemini(mockFeature, 'context')).rejects.toThrow(
+        'Failed to analyze feature: Error: Network error'
+      );
     });
 
     it('should handle invalid API response format', async () => {
@@ -152,15 +158,17 @@ describe('Gemini Analysis Service Tests', () => {
         json: async () => ({ invalid: 'response' }),
       });
 
-      await expect(analyzeFeatureWithGemini(mockFeature, 'context'))
-        .rejects.toThrow('Invalid response from Gemini');
+      await expect(analyzeFeatureWithGemini(mockFeature, 'context')).rejects.toThrow(
+        'Invalid response from Gemini'
+      );
     });
 
     it('should throw error when API key is missing', async () => {
       delete process.env.GEMINI_API_KEY;
 
-      await expect(analyzeFeatureWithGemini(mockFeature, 'context'))
-        .rejects.toThrow('GEMINI_API_KEY is not configured');
+      await expect(analyzeFeatureWithGemini(mockFeature, 'context')).rejects.toThrow(
+        'GEMINI_API_KEY is not configured'
+      );
 
       // Restore API key
       process.env.GEMINI_API_KEY = 'test-api-key';
@@ -235,13 +243,13 @@ describe('Gemini Analysis Service Tests', () => {
 
     it('should handle empty dependencies', () => {
       const result = formatActionableItemsForDatabase('test-id', mockAnalysisResult);
-      
+
       expect(result[1].dependencies).toBeNull();
     });
 
     it('should set correct order indices', () => {
       const result = formatActionableItemsForDatabase('test-id', mockAnalysisResult);
-      
+
       // Order indices are set during formatting but not part of the returned interface
       expect(result.length).toBe(2);
     });

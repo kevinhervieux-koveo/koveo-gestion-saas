@@ -15,7 +15,9 @@ jest.mock('../../../server/rbac');
 
 const mockStorage = storage as jest.Mocked<typeof storage>;
 const mockIsOpenDemoUser = isOpenDemoUser as jest.MockedFunction<typeof isOpenDemoUser>;
-const mockCanUserPerformWriteOperation = canUserPerformWriteOperation as jest.MockedFunction<typeof canUserPerformWriteOperation>;
+const mockCanUserPerformWriteOperation = canUserPerformWriteOperation as jest.MockedFunction<
+  typeof canUserPerformWriteOperation
+>;
 
 describe('Open Demo Organization RBAC Tests', () => {
   let app: express.Application;
@@ -24,38 +26,38 @@ describe('Open Demo Organization RBAC Tests', () => {
   // Test users
   const openDemoManager = {
     id: 'open-demo-manager-id',
-    email: 'demo.manager.open@example.com', 
+    email: 'demo.manager.open@example.com',
     password: 'Demo@123456',
     role: 'manager',
     isActive: true,
     firstName: 'Demo',
     lastName: 'Manager',
     organizations: ['open-demo-org-id'],
-    canAccessAllOrganizations: false
+    canAccessAllOrganizations: false,
   };
 
   const openDemoTenant = {
     id: 'open-demo-tenant-id',
     email: 'demo.tenant.open@example.com',
-    password: 'Demo@123456', 
+    password: 'Demo@123456',
     role: 'tenant',
     isActive: true,
     firstName: 'Demo',
     lastName: 'Tenant',
     organizations: ['open-demo-org-id'],
-    canAccessAllOrganizations: false
+    canAccessAllOrganizations: false,
   };
 
   const openDemoResident = {
     id: 'open-demo-resident-id',
     email: 'demo.resident.open@example.com',
     password: 'Demo@123456',
-    role: 'resident', 
+    role: 'resident',
     isActive: true,
     firstName: 'Demo',
     lastName: 'Resident',
     organizations: ['open-demo-org-id'],
-    canAccessAllOrganizations: false
+    canAccessAllOrganizations: false,
   };
 
   const regularUser = {
@@ -67,14 +69,14 @@ describe('Open Demo Organization RBAC Tests', () => {
     firstName: 'Regular',
     lastName: 'User',
     organizations: ['regular-org-id'],
-    canAccessAllOrganizations: false
+    canAccessAllOrganizations: false,
   };
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
     app.use(sessionConfig);
-    
+
     // Setup all routes
     setupAuthRoutes(app as any);
     registerUserRoutes(app as any);
@@ -82,7 +84,7 @@ describe('Open Demo Organization RBAC Tests', () => {
     registerDocumentRoutes(app as any);
     registerBillRoutes(app as any);
     registerOrganizationRoutes(app as any);
-    
+
     agent = request.agent(app);
     jest.clearAllMocks();
   });
@@ -92,12 +94,10 @@ describe('Open Demo Organization RBAC Tests', () => {
       mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
       mockStorage.updateUser.mockResolvedValue(openDemoManager);
 
-      const response = await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
-        });
+      const response = await agent.post('/api/auth/login').send({
+        email: 'demo.manager.open@example.com',
+        password: 'Demo@123456',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.user.role).toBe('manager');
@@ -109,12 +109,10 @@ describe('Open Demo Organization RBAC Tests', () => {
       mockStorage.getUserByEmail.mockResolvedValue(openDemoTenant);
       mockStorage.updateUser.mockResolvedValue(openDemoTenant);
 
-      const response = await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'demo.tenant.open@example.com', 
-          password: 'Demo@123456'
-        });
+      const response = await agent.post('/api/auth/login').send({
+        email: 'demo.tenant.open@example.com',
+        password: 'Demo@123456',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.user.role).toBe('tenant');
@@ -125,12 +123,10 @@ describe('Open Demo Organization RBAC Tests', () => {
       mockStorage.getUserByEmail.mockResolvedValue(openDemoResident);
       mockStorage.updateUser.mockResolvedValue(openDemoResident);
 
-      const response = await agent
-        .post('/api/auth/login')
-        .send({
-          email: 'demo.resident.open@example.com',
-          password: 'Demo@123456'
-        });
+      const response = await agent.post('/api/auth/login').send({
+        email: 'demo.resident.open@example.com',
+        password: 'Demo@123456',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.user.role).toBe('resident');
@@ -142,7 +138,9 @@ describe('Open Demo Organization RBAC Tests', () => {
     test('should correctly identify Open Demo users', async () => {
       // Mock RBAC functions
       mockIsOpenDemoUser.mockImplementation(async (userId: string) => {
-        return ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(userId);
+        return ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(
+          userId
+        );
       });
 
       expect(await isOpenDemoUser('open-demo-manager-id')).toBe(true);
@@ -156,13 +154,21 @@ describe('Open Demo Organization RBAC Tests', () => {
     beforeEach(() => {
       // Mock RBAC functions to simulate Open Demo restrictions
       mockIsOpenDemoUser.mockImplementation(async (userId: string) => {
-        return ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(userId);
+        return ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(
+          userId
+        );
       });
 
-      mockCanUserPerformWriteOperation.mockImplementation(async (userId: string, action: string) => {
-        const isOpenDemo = ['open-demo-manager-id', 'open-demo-tenant-id', 'open-demo-resident-id'].includes(userId);
-        return !isOpenDemo; // Open Demo users cannot perform write operations
-      });
+      mockCanUserPerformWriteOperation.mockImplementation(
+        async (userId: string, action: string) => {
+          const isOpenDemo = [
+            'open-demo-manager-id',
+            'open-demo-tenant-id',
+            'open-demo-resident-id',
+          ].includes(userId);
+          return !isOpenDemo; // Open Demo users cannot perform write operations
+        }
+      );
     });
 
     test('should prevent Open Demo manager from write operations', async () => {
@@ -213,23 +219,21 @@ describe('Open Demo Organization RBAC Tests', () => {
         // Login as Open Demo manager
         mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
         mockStorage.updateUser.mockResolvedValue(openDemoManager);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         // Mock RBAC check to prevent write operations
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
 
-        const response = await agent
-          .post('/api/users')
-          .send({
-            email: 'newuser@example.com',
-            firstName: 'New',
-            lastName: 'User',
-            role: 'tenant'
-          });
+        const response = await agent.post('/api/users').send({
+          email: 'newuser@example.com',
+          firstName: 'New',
+          lastName: 'User',
+          role: 'tenant',
+        });
 
         // Should be forbidden due to Open Demo restrictions
         expect(response.status).toBe(403);
@@ -240,20 +244,18 @@ describe('Open Demo Organization RBAC Tests', () => {
         // Login as Open Demo tenant
         mockStorage.getUserByEmail.mockResolvedValue(openDemoTenant);
         mockStorage.updateUser.mockResolvedValue(openDemoTenant);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.tenant.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
 
-        const response = await agent
-          .patch('/api/users/some-user-id')
-          .send({
-            firstName: 'Updated',
-            lastName: 'Name'
-          });
+        const response = await agent.patch('/api/users/some-user-id').send({
+          firstName: 'Updated',
+          lastName: 'Name',
+        });
 
         expect(response.status).toBe(403);
         expect(response.body.message).toMatch(/view.*only|read.*only|demo.*restriction/i);
@@ -263,10 +265,10 @@ describe('Open Demo Organization RBAC Tests', () => {
         // Login as Open Demo resident
         mockStorage.getUserByEmail.mockResolvedValue(openDemoResident);
         mockStorage.updateUser.mockResolvedValue(openDemoResident);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.resident.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
@@ -282,22 +284,20 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should prevent Open Demo manager from creating buildings', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
         mockStorage.updateUser.mockResolvedValue(openDemoManager);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
 
-        const response = await agent
-          .post('/api/buildings')
-          .send({
-            name: 'Test Building',
-            address: '123 Test St',
-            city: 'Montreal',
-            organizationId: 'open-demo-org-id'
-          });
+        const response = await agent.post('/api/buildings').send({
+          name: 'Test Building',
+          address: '123 Test St',
+          city: 'Montreal',
+          organizationId: 'open-demo-org-id',
+        });
 
         expect(response.status).toBe(403);
         expect(response.body.message).toMatch(/view.*only|read.*only|demo.*restriction/i);
@@ -306,19 +306,17 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should prevent Open Demo users from updating buildings', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
         mockStorage.updateUser.mockResolvedValue(openDemoManager);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
 
-        const response = await agent
-          .patch('/api/buildings/building-id')
-          .send({
-            name: 'Updated Building Name'
-          });
+        const response = await agent.patch('/api/buildings/building-id').send({
+          name: 'Updated Building Name',
+        });
 
         expect(response.status).toBe(403);
         expect(response.body.message).toMatch(/view.*only|read.*only|demo.*restriction/i);
@@ -327,10 +325,10 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should prevent Open Demo users from deleting buildings', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
         mockStorage.updateUser.mockResolvedValue(openDemoManager);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         mockCanUserPerformWriteOperation.mockResolvedValue(false);
@@ -346,18 +344,20 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should allow Open Demo users to read organization data', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoManager);
         mockStorage.updateUser.mockResolvedValue(openDemoManager);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.manager.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         // Mock successful read operation
-        mockStorage.getOrganizations = jest.fn().mockResolvedValue([{
-          id: 'open-demo-org-id',
-          name: 'Open Demo',
-          type: 'management_company'
-        }]);
+        mockStorage.getOrganizations = jest.fn().mockResolvedValue([
+          {
+            id: 'open-demo-org-id',
+            name: 'Open Demo',
+            type: 'management_company',
+          },
+        ]);
 
         const response = await agent.get('/api/organizations');
 
@@ -368,18 +368,20 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should allow Open Demo users to read building data', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoTenant);
         mockStorage.updateUser.mockResolvedValue(openDemoTenant);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.tenant.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         // Mock successful read operation
-        mockStorage.getBuildings = jest.fn().mockResolvedValue([{
-          id: 'building-id',
-          name: 'Demo Building',
-          organizationId: 'open-demo-org-id'
-        }]);
+        mockStorage.getBuildings = jest.fn().mockResolvedValue([
+          {
+            id: 'building-id',
+            name: 'Demo Building',
+            organizationId: 'open-demo-org-id',
+          },
+        ]);
 
         const response = await agent.get('/api/buildings');
 
@@ -389,10 +391,10 @@ describe('Open Demo Organization RBAC Tests', () => {
       test('should allow Open Demo users to read their user profile', async () => {
         mockStorage.getUserByEmail.mockResolvedValue(openDemoResident);
         mockStorage.updateUser.mockResolvedValue(openDemoResident);
-        
+
         await agent.post('/api/auth/login').send({
           email: 'demo.resident.open@example.com',
-          password: 'Demo@123456'
+          password: 'Demo@123456',
         });
 
         const response = await agent.get('/api/auth/user');
@@ -408,7 +410,7 @@ describe('Open Demo Organization RBAC Tests', () => {
     const testCases = [
       { user: openDemoManager, role: 'manager' },
       { user: openDemoTenant, role: 'tenant' },
-      { user: openDemoResident, role: 'resident' }
+      { user: openDemoResident, role: 'resident' },
     ];
 
     testCases.forEach(({ user, role }) => {
@@ -418,7 +420,7 @@ describe('Open Demo Organization RBAC Tests', () => {
           mockCanUserPerformWriteOperation.mockResolvedValue(false);
 
           const writeOperations = ['create', 'update', 'delete', 'manage', 'approve', 'assign'];
-          
+
           for (const operation of writeOperations) {
             expect(await canUserPerformWriteOperation(user.id, operation as any)).toBe(false);
           }

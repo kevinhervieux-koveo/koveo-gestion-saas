@@ -2,9 +2,33 @@
 const mockStorage = {
   async getPillars() {
     return [
-      { id: '1', name: 'Validation & QA Pillar', description: 'Test pillar', status: 'active', order: '1', configuration: {}, createdAt: new Date() },
-      { id: '2', name: 'Testing Pillar', description: 'Test pillar', status: 'active', order: '2', configuration: {}, createdAt: new Date() },
-      { id: '3', name: 'Security Pillar', description: 'Test pillar', status: 'active', order: '3', configuration: {}, createdAt: new Date() }
+      {
+        id: '1',
+        name: 'Validation & QA Pillar',
+        description: 'Test pillar',
+        status: 'active',
+        order: '1',
+        configuration: {},
+        createdAt: new Date(),
+      },
+      {
+        id: '2',
+        name: 'Testing Pillar',
+        description: 'Test pillar',
+        status: 'active',
+        order: '2',
+        configuration: {},
+        createdAt: new Date(),
+      },
+      {
+        id: '3',
+        name: 'Security Pillar',
+        description: 'Test pillar',
+        status: 'active',
+        order: '3',
+        configuration: {},
+        createdAt: new Date(),
+      },
     ];
   },
   async createPillar(_data: unknown) {
@@ -13,15 +37,34 @@ const mockStorage = {
   async getWorkspaceStatuses() {
     return [
       { id: '1', component: 'Environment Setup', status: 'completed', lastUpdated: new Date() },
-      { id: '2', component: 'Dependencies Installation', status: 'completed', lastUpdated: new Date() }
+      {
+        id: '2',
+        component: 'Dependencies Installation',
+        status: 'completed',
+        lastUpdated: new Date(),
+      },
     ];
   },
   async getQualityMetrics() {
     return [
-      { id: '1', metricType: 'Code Coverage', _value: 85, threshold: 80, status: 'passing', recordedAt: new Date() },
-      { id: '2', metricType: 'Code Quality', _value: 92, threshold: 85, status: 'passing', recordedAt: new Date() }
+      {
+        id: '1',
+        metricType: 'Code Coverage',
+        _value: 85,
+        threshold: 80,
+        status: 'passing',
+        recordedAt: new Date(),
+      },
+      {
+        id: '2',
+        metricType: 'Code Quality',
+        _value: 92,
+        threshold: 85,
+        status: 'passing',
+        recordedAt: new Date(),
+      },
     ];
-  }
+  },
 };
 
 describe('API Integration Tests', () => {

@@ -1,36 +1,33 @@
 import { Express } from 'express';
 import { requireAuth } from '../auth';
-import { 
-  getUserBuildingAccess, 
-  checkBuildingAccess, 
-  getAccessibleBuildingIds 
+import {
+  getUserBuildingAccess,
+  checkBuildingAccess,
+  getAccessibleBuildingIds,
 } from './buildings/access-control';
-import { 
-  getAllBuildingsWithOrg, 
-  getBuildingsByOrganizations, 
-  getBuildingsByUserResidences, 
-  getBuildingById, 
+import {
+  getAllBuildingsWithOrg,
+  getBuildingsByOrganizations,
+  getBuildingsByUserResidences,
+  getBuildingById,
   getBuildingStatistics,
-  getBuildingDeletionImpact 
+  getBuildingDeletionImpact,
 } from './buildings/queries';
-import { 
-  createBuilding, 
-  updateBuilding, 
-  deleteBuilding, 
-  cascadeDeleteBuilding, 
-  buildingExists 
+import {
+  createBuilding,
+  updateBuilding,
+  deleteBuilding,
+  cascadeDeleteBuilding,
+  buildingExists,
 } from './buildings/operations';
-import { 
-  validateBuildingCreate, 
-  validateBuildingUpdate, 
-  validateBuildingId, 
-  validateBuildingPermissions, 
-  validateUserAuth 
+import {
+  validateBuildingCreate,
+  validateBuildingUpdate,
+  validateBuildingId,
+  validateBuildingPermissions,
+  validateUserAuth,
 } from './buildings/validation';
-import { 
-  addStatisticsToBuildings, 
-  addStatisticsToBuilding 
-} from './buildings/statistics';
+import { addStatisticsToBuildings, addStatisticsToBuilding } from './buildings/statistics';
 
 /**
  * Registers refactored building routes with improved modularity and maintainability.
@@ -42,7 +39,6 @@ import {
  * @returns Function result.
  */
 export function registerBuildingRoutesRefactored(app: Express): void {
-  
   /**
    * GET /api/manager/buildings - Retrieves buildings based on user role and associations.
    */
@@ -53,26 +49,28 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!authResult.isValid) {
         return res.status(401).json({
           message: authResult.error,
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
       let currentUser = authResult.user;
-      
+
       // If we only have userId, fetch the user
       if (!currentUser && req.session?.userId) {
         const { storage } = await import('../storage');
         currentUser = await storage.getUser(req.session.userId);
       }
-      
+
       if (!currentUser) {
         return res.status(401).json({
           message: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
-      console.warn(`📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(
+        `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
+      );
 
       // Get user access information
       const userAccess = await getUserBuildingAccess(currentUser.id);
@@ -80,34 +78,33 @@ export function registerBuildingRoutesRefactored(app: Express): void {
 
       if (userAccess.isKoveoUser) {
         console.warn(`🌟 Koveo organization user detected - granting access to ALL buildings`);
-        
+
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await getAllBuildingsWithOrg();
-        accessibleBuildings = allBuildings.map(building => ({
+        accessibleBuildings = allBuildings.map((building) => ({
           ...building,
-          accessType: 'koveo-global'
+          accessType: 'koveo-global',
         }));
-        
       } else {
         // Regular users: Get buildings based on role and associations
         if (currentUser.role === 'admin' || currentUser.role === 'manager') {
           if (userAccess.organizationIds.length > 0) {
             const orgBuildings = await getBuildingsByOrganizations(userAccess.organizationIds);
-            accessibleBuildings = orgBuildings.map(building => ({
+            accessibleBuildings = orgBuildings.map((building) => ({
               ...building,
-              accessType: 'organization'
+              accessType: 'organization',
             }));
           }
         }
 
         // Add buildings from user residences
         const residenceBuildings = await getBuildingsByUserResidences(currentUser.id);
-        residenceBuildings.forEach(building => {
-          const existingBuilding = accessibleBuildings.find(b => b.id === building.id);
+        residenceBuildings.forEach((building) => {
+          const existingBuilding = accessibleBuildings.find((b) => b.id === building.id);
           if (!existingBuilding) {
             accessibleBuildings.push({
               ...building,
-              accessType: 'residence'
+              accessType: 'residence',
             });
           } else {
             existingBuilding.accessType = 'both';
@@ -121,22 +118,23 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.warn(`✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`);
+      console.warn(
+        `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
+      );
 
       res.json({
         buildings: buildingsWithStats,
         meta: {
           total: buildingsWithStats.length,
           userRole: currentUser.role,
-          userId: currentUser.id
-        }
+          userId: currentUser.id,
+        },
       });
-
     } catch (_error) {
       console.error('Failed to fetch manager buildings:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to fetch buildings'
+        message: 'Failed to fetch buildings',
       });
     }
   });
@@ -148,11 +146,11 @@ export function registerBuildingRoutesRefactored(app: Express): void {
     try {
       const currentUser = req.user;
       const buildingId = req.params.id;
-      
+
       if (!currentUser) {
         return res.status(401).json({
           _error: 'Unauthorized',
-          message: 'Authentication required'
+          message: 'Authentication required',
         });
       }
 
@@ -162,47 +160,48 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (___validationError) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: 'Invalid building ID format'
+          message: 'Invalid building ID format',
         });
       }
 
-      console.warn(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
+      console.warn(
+        `📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`
+      );
 
       // Check if user has access to this building
       const accessCheck = await checkBuildingAccess(currentUser.id, buildingId, currentUser.role);
-      
+
       if (!accessCheck.hasAccess) {
         return res.status(403).json({
           _error: 'Forbidden',
-          message: 'You do not have access to this building'
+          message: 'You do not have access to this building',
         });
       }
 
       // Get building details
       const building = await getBuildingById(buildingId);
-      
+
       if (!building) {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Building not found'
+          message: 'Building not found',
         });
       }
 
       // Add statistics to building
       const buildingWithStats = await addStatisticsToBuilding({
         ...building,
-        accessType: accessCheck.accessType
+        accessType: accessCheck.accessType,
       });
 
       res.json({
-        building: buildingWithStats
+        building: buildingWithStats,
       });
-
     } catch (_error) {
       console.error('Failed to fetch building details:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to fetch building details'
+        message: 'Failed to fetch building details',
       });
     }
   });
@@ -216,7 +215,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -224,7 +223,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!validateBuildingPermissions(currentUser.role, 'create')) {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -235,7 +234,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (_validationError: unknown) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: validationError.message || 'Invalid building data'
+          message: validationError.message || 'Invalid building data',
         });
       }
 
@@ -248,14 +247,13 @@ export function registerBuildingRoutesRefactored(app: Express): void {
 
       res.status(201).json({
         message: 'Building created successfully',
-        building: newBuilding
+        building: newBuilding,
       });
-
     } catch (_error) {
       console.error('❌ Error creating building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to create building'
+        message: 'Failed to create building',
       });
     }
   });
@@ -269,7 +267,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -277,7 +275,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!validateBuildingPermissions(currentUser.role, 'update')) {
         return res.status(403).json({
           message: 'Admin or Manager access required',
-          code: 'ADMIN_MANAGER_REQUIRED'
+          code: 'ADMIN_MANAGER_REQUIRED',
         });
       }
 
@@ -289,7 +287,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (___validationError) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: 'Invalid building ID format'
+          message: 'Invalid building ID format',
         });
       }
 
@@ -300,7 +298,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (_validationError: unknown) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: validationError.message || 'Invalid building data'
+          message: validationError.message || 'Invalid building data',
         });
       }
 
@@ -310,7 +308,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!(await buildingExists(buildingId))) {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Building not found'
+          message: 'Building not found',
         });
       }
 
@@ -321,14 +319,13 @@ export function registerBuildingRoutesRefactored(app: Express): void {
 
       res.json({
         message: 'Building updated successfully',
-        building: updatedBuilding
+        building: updatedBuilding,
       });
-
     } catch (_error) {
       console.error('❌ Error updating building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to update building'
+        message: 'Failed to update building',
       });
     }
   });
@@ -342,7 +339,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -350,7 +347,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!validateBuildingPermissions(currentUser.role, 'delete')) {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -362,17 +359,19 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (___validationError) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: 'Invalid building ID format'
+          message: 'Invalid building ID format',
         });
       }
 
-      console.warn(`🔍 Admin ${currentUser.id} analyzing deletion impact for building: ${buildingId}`);
+      console.warn(
+        `🔍 Admin ${currentUser.id} analyzing deletion impact for building: ${buildingId}`
+      );
 
       // Check if building exists
       if (!(await buildingExists(buildingId))) {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Building not found'
+          message: 'Building not found',
         });
       }
 
@@ -383,17 +382,17 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         buildingId,
         impact: {
           ...impact,
-          warning: impact.residencesCount > 0 || impact.documentsCount > 0 || impact.affectedUsersCount > 0
-            ? 'This action will affect multiple entities. Use cascade delete to proceed.'
-            : null
-        }
+          warning:
+            impact.residencesCount > 0 || impact.documentsCount > 0 || impact.affectedUsersCount > 0
+              ? 'This action will affect multiple entities. Use cascade delete to proceed.'
+              : null,
+        },
       });
-
     } catch (_error) {
       console.error('❌ Error analyzing building deletion impact:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to analyze deletion impact'
+        message: 'Failed to analyze deletion impact',
       });
     }
   });
@@ -407,7 +406,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -415,7 +414,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       if (!validateBuildingPermissions(currentUser.role, 'delete')) {
         return res.status(403).json({
           message: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
+          code: 'ADMIN_REQUIRED',
         });
       }
 
@@ -427,7 +426,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (___validationError) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: 'Invalid building ID format'
+          message: 'Invalid building ID format',
         });
       }
 
@@ -440,21 +439,20 @@ export function registerBuildingRoutesRefactored(app: Express): void {
 
       res.json({
         message: 'Building and related entities deleted successfully',
-        deletedBuilding: deletedBuilding.name
+        deletedBuilding: deletedBuilding.name,
       });
-
     } catch (_error: unknown) {
       if (error.message === 'Building not found') {
         return res.status(404).json({
           _error: 'Not found',
-          message: 'Building not found'
+          message: 'Building not found',
         });
       }
 
       console.error('❌ Error cascading delete building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
-        message: 'Failed to delete building and related entities'
+        message: 'Failed to delete building and related entities',
       });
     }
   });

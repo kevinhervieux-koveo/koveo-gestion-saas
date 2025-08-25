@@ -2,10 +2,10 @@
 
 /**
  * Cleanup Orphaned Records Script.
- * 
+ *
  * This script identifies and removes orphaned records from the database.
  * It should be run periodically or after major database operations to ensure data integrity.
- * 
+ *
  * Usage: npm run cleanup:orphans.
  */
 
@@ -27,7 +27,7 @@ interface OrphanReport {
  */
 async function detectOrphans(): Promise<OrphanReport[]> {
   console.log(chalk.blue('🔍 Scanning database for orphaned records...'));
-  
+
   const reports: OrphanReport[] = [];
 
   // Check for orphaned residences (both non-existent and inactive buildings)
@@ -46,12 +46,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     JOIN buildings b ON r.building_id = b.id 
     WHERE r.is_active = true AND b.is_active = false
   `);
-  
+
   if (orphanedResidences.rows.length > 0) {
     reports.push({
       entity: 'residences',
       count: orphanedResidences.rows.length,
-      records: orphanedResidences.rows
+      records: orphanedResidences.rows,
     });
   }
 
@@ -64,12 +64,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     LEFT JOIN residences r ON ur.residence_id = r.id 
     WHERE u.id IS NULL OR r.id IS NULL
   `);
-  
+
   if (orphanedUserResidences.rows.length > 0) {
     reports.push({
       entity: 'user_residences',
       count: orphanedUserResidences.rows.length,
-      records: orphanedUserResidences.rows
+      records: orphanedUserResidences.rows,
     });
   }
 
@@ -81,12 +81,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     LEFT JOIN organizations o ON b.organization_id = o.id 
     WHERE o.id IS NULL
   `);
-  
+
   if (orphanedBuildings.rows.length > 0) {
     reports.push({
       entity: 'buildings',
       count: orphanedBuildings.rows.length,
-      records: orphanedBuildings.rows
+      records: orphanedBuildings.rows,
     });
   }
 
@@ -100,12 +100,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     LEFT JOIN buildings b ON d.building_id = b.id
     WHERE u.id IS NULL OR r.id IS NULL OR b.id IS NULL
   `);
-  
+
   if (orphanedDemands.rows.length > 0) {
     reports.push({
       entity: 'demands',
       count: orphanedDemands.rows.length,
-      records: orphanedDemands.rows
+      records: orphanedDemands.rows,
     });
   }
 
@@ -122,12 +122,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
       (c.entity = 'residence' AND r.id IS NULL) OR
       (c.entity = 'user' AND u.id IS NULL)
   `);
-  
+
   if (orphanedContacts.rows.length > 0) {
     reports.push({
       entity: 'contacts',
       count: orphanedContacts.rows.length,
-      records: orphanedContacts.rows
+      records: orphanedContacts.rows,
     });
   }
 
@@ -139,12 +139,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     LEFT JOIN residences r ON b.residence_id = r.id 
     WHERE r.id IS NULL
   `);
-  
+
   if (orphanedBills.rows.length > 0) {
     reports.push({
       entity: 'bills',
       count: orphanedBills.rows.length,
-      records: orphanedBills.rows
+      records: orphanedBills.rows,
     });
   }
 
@@ -157,12 +157,12 @@ async function detectOrphans(): Promise<OrphanReport[]> {
     LEFT JOIN users u ON m.submitted_by = u.id
     WHERE r.id IS NULL OR u.id IS NULL
   `);
-  
+
   if (orphanedMaintenance.rows.length > 0) {
     reports.push({
       entity: 'maintenance_requests',
       count: orphanedMaintenance.rows.length,
-      records: orphanedMaintenance.rows
+      records: orphanedMaintenance.rows,
     });
   }
 
@@ -178,7 +178,7 @@ async function deleteOrphans(reports: OrphanReport[]): Promise<void> {
 
   for (const report of reports) {
     console.log(chalk.red(`Deleting ${report.count} orphaned ${report.entity}...`));
-    
+
     switch (report.entity) {
       case 'residences':
         await db.execute(sql`
@@ -301,12 +301,12 @@ async function main() {
     }
 
     console.log(chalk.yellow('⚠️  Orphaned records detected:'));
-    reports.forEach(report => {
+    reports.forEach((report) => {
       console.log(chalk.red(`  - ${report.count} orphaned ${report.entity}`));
     });
 
     console.log('\n' + chalk.blue('Detailed breakdown:'));
-    reports.forEach(report => {
+    reports.forEach((report) => {
       console.log(chalk.yellow(`\n${report.entity.toUpperCase()}:`));
       report.records?.slice(0, 5).forEach((record: any) => {
         console.log('  ', JSON.stringify(record, null, 2));
@@ -320,7 +320,6 @@ async function main() {
 
     console.log('\n' + chalk.green.bold('✅ Cleanup completed successfully!'));
     console.log(chalk.blue('Recommendation: Run the orphan detection tests to verify cleanup.'));
-
   } catch (error) {
     console.error(chalk.red.bold('❌ Error during cleanup:'), error);
     process.exit(1);

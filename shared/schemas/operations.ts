@@ -67,12 +67,7 @@ export const bugStatusEnum = pgEnum('bug_status', [
   'closed',
 ]);
 
-export const bugPriorityEnum = pgEnum('bug_priority', [
-  'low',
-  'medium',
-  'high',
-  'critical',
-]);
+export const bugPriorityEnum = pgEnum('bug_priority', ['low', 'medium', 'high', 'critical']);
 
 export const bugCategoryEnum = pgEnum('bug_category', [
   'ui_ux',
@@ -96,7 +91,7 @@ export const featureRequestStatusEnum = pgEnum('feature_request_status', [
 export const featureRequestCategoryEnum = pgEnum('feature_request_category', [
   'dashboard',
   'property_management',
-  'resident_management', 
+  'resident_management',
   'financial_management',
   'maintenance',
   'document_management',
@@ -173,10 +168,8 @@ export const demands = pgTable('demands', {
     .notNull()
     .references(() => users.id),
   type: demandTypeEnum('type').notNull(),
-  assignationResidenceId: uuid('assignation_residence_id')
-    .references(() => residences.id),
-  assignationBuildingId: uuid('assignation_building_id')
-    .references(() => buildings.id),
+  assignationResidenceId: uuid('assignation_residence_id').references(() => residences.id),
+  assignationBuildingId: uuid('assignation_building_id').references(() => buildings.id),
   description: text('description').notNull(),
   residenceId: uuid('residence_id')
     .notNull()
@@ -312,7 +305,10 @@ export const insertDemandSchema = z.object({
   type: z.enum(['maintenance', 'complaint', 'information', 'other']),
   assignationResidenceId: z.string().uuid().optional(),
   assignationBuildingId: z.string().uuid().optional(),
-  description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters'),
   residenceId: z.string().uuid().optional(),
   buildingId: z.string().uuid().optional(),
   status: z.string().default('draft'),
@@ -322,16 +318,30 @@ export const insertDemandSchema = z.object({
 export const insertDemandCommentSchema = z.object({
   demandId: z.string().uuid(),
   orderIndex: z.number().int(),
-  comment: z.string().min(1, "Comment content is required").max(1000, "Comment must not exceed 1000 characters"),
+  comment: z
+    .string()
+    .min(1, 'Comment content is required')
+    .max(1000, 'Comment must not exceed 1000 characters'),
   createdBy: z.string().uuid(),
 });
 
 export const insertBugSchema = z.object({
   createdBy: z.string().uuid(),
-  title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
-  category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
-  page: z.string().min(1, "Page is required"),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters'),
+  category: z.enum([
+    'ui_ux',
+    'functionality',
+    'performance',
+    'data',
+    'security',
+    'integration',
+    'other',
+  ]),
+  page: z.string().min(1, 'Page is required'),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   reproductionSteps: z.string().optional(),
   environment: z.string().optional(),
@@ -339,11 +349,31 @@ export const insertBugSchema = z.object({
 
 export const insertFeatureRequestSchema = z.object({
   createdBy: z.string().uuid(),
-  title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
-  need: z.string().min(5, "Need must be at least 5 characters").max(500, "Need must not exceed 500 characters"),
-  category: z.enum(['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other']),
-  page: z.string().min(1, "Page is required"),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must not exceed 2000 characters'),
+  need: z
+    .string()
+    .min(5, 'Need must be at least 5 characters')
+    .max(500, 'Need must not exceed 500 characters'),
+  category: z.enum([
+    'dashboard',
+    'property_management',
+    'resident_management',
+    'financial_management',
+    'maintenance',
+    'document_management',
+    'communication',
+    'reports',
+    'mobile_app',
+    'integrations',
+    'security',
+    'performance',
+    'other',
+  ]),
+  page: z.string().min(1, 'Page is required'),
 });
 
 export const insertFeatureRequestUpvoteSchema = z.object({

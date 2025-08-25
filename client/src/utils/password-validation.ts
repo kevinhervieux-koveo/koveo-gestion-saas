@@ -28,9 +28,22 @@ export interface PasswordCriteria {
  * Common weak passwords and patterns to avoid.
  */
 const COMMON_PATTERNS = [
-  'password', '123456', 'admin', 'user', 'test', 'demo',
-  'qwerty', 'azerty', 'letmein', 'welcome', 'monkey',
-  'dragon', 'master', 'shadow', 'superman', 'batman'
+  'password',
+  '123456',
+  'admin',
+  'user',
+  'test',
+  'demo',
+  'qwerty',
+  'azerty',
+  'letmein',
+  'welcome',
+  'monkey',
+  'dragon',
+  'master',
+  'shadow',
+  'superman',
+  'batman',
 ];
 
 /**
@@ -42,13 +55,15 @@ const COMMON_PATTERNS = [
  * @param password
  * @returns Function result.
  */
-export function validatePasswordStrength(password: string | undefined | null): PasswordStrengthResult {
+export function validatePasswordStrength(
+  password: string | undefined | null
+): PasswordStrengthResult {
   // Safety guard: handle undefined/null inputs
   if (!password || typeof password !== 'string') {
     return {
       score: 0,
       feedback: ['Veuillez entrer un mot de passe'],
-      isValid: false
+      isValid: false,
     };
   }
   const criteria = getPasswordCriteria(password);
@@ -103,16 +118,17 @@ export function validatePasswordStrength(password: string | undefined | null): P
   score = Math.min(4, Math.max(0, score));
 
   // Determine if password is valid (minimum requirements met)
-  const isValid = criteria.minLength && 
-                  criteria.hasUpperCase && 
-                  criteria.hasLowerCase && 
-                  (criteria.hasNumbers || criteria.hasSymbols) &&
-                  criteria.noCommonPatterns;
+  const isValid =
+    criteria.minLength &&
+    criteria.hasUpperCase &&
+    criteria.hasLowerCase &&
+    (criteria.hasNumbers || criteria.hasSymbols) &&
+    criteria.noCommonPatterns;
 
   return {
     score: Math.round(score),
     feedback: feedback.length > 0 ? feedback : ['Mot de passe sécurisé'],
-    isValid
+    isValid,
   };
 }
 
@@ -134,7 +150,7 @@ export function getPasswordCriteria(password: string | undefined | null): Passwo
       hasLowerCase: false,
       hasNumbers: false,
       hasSymbols: false,
-      noCommonPatterns: false
+      noCommonPatterns: false,
     };
   }
   return {
@@ -143,9 +159,9 @@ export function getPasswordCriteria(password: string | undefined | null): Passwo
     hasLowerCase: /[a-z]/.test(password),
     hasNumbers: /\d/.test(password),
     hasSymbols: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    noCommonPatterns: !COMMON_PATTERNS.some(pattern => 
+    noCommonPatterns: !COMMON_PATTERNS.some((pattern) =>
       password.toLowerCase().includes(pattern.toLowerCase())
-    )
+    ),
   };
 }
 

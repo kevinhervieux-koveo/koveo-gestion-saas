@@ -1,33 +1,70 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
-import { Building, Search, Plus, Edit, Trash2, MapPin, Phone, Mail, Calendar, Users } from "lucide-react";
-import { Header } from "@/components/layout/header";
-import { Link } from "wouter";
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { apiRequest } from '@/lib/queryClient';
+import {
+  Building,
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar,
+  Users,
+} from 'lucide-react';
+import { Header } from '@/components/layout/header';
+import { Link } from 'wouter';
 
 // Form schema for creating/editing buildings
 const buildingFormSchema = z.object({
-  name: z.string().min(1, "Building name is required").max(255, "Name too long"),
-  address: z.string().min(1, "Address is required").max(500, "Address too long"),
-  city: z.string().min(1, "City is required").max(100, "City too long"),
-  province: z.string().min(1, "Province is required").max(100, "Province too long"),
-  postalCode: z.string().min(1, "Postal code is required").max(20, "Postal code too long"),
+  name: z.string().min(1, 'Building name is required').max(255, 'Name too long'),
+  address: z.string().min(1, 'Address is required').max(500, 'Address too long'),
+  city: z.string().min(1, 'City is required').max(100, 'City too long'),
+  province: z.string().min(1, 'Province is required').max(100, 'Province too long'),
+  postalCode: z.string().min(1, 'Postal code is required').max(20, 'Postal code too long'),
   buildingType: z.enum(['condo', 'apartment', 'townhouse', 'commercial', 'mixed_use', 'other']),
-  totalUnits: z.number().int().min(1, "Must have at least 1 unit").max(300, "Maximum 300 units allowed"),
-  organizationId: z.string().min(1, "Organization is required"),
+  totalUnits: z
+    .number()
+    .int()
+    .min(1, 'Must have at least 1 unit')
+    .max(300, 'Maximum 300 units allowed'),
+  organizationId: z.string().min(1, 'Organization is required'),
 });
 
 /**
@@ -76,30 +113,26 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
   const canEdit = ['admin', 'manager'].includes(userRole || '');
 
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
-            <Building className="h-5 w-5 text-blue-600" />
-            <CardTitle className="text-lg truncate">{building.name}</CardTitle>
+        <div className='flex items-start justify-between'>
+          <div className='flex items-center space-x-2'>
+            <Building className='h-5 w-5 text-blue-600' />
+            <CardTitle className='text-lg truncate'>{building.name}</CardTitle>
           </div>
           {canEdit && (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onEdit(building)}
-              >
-                <Edit className="h-3 w-3" />
+            <div className='flex gap-1'>
+              <Button size='sm' variant='ghost' onClick={() => onEdit(building)}>
+                <Edit className='h-3 w-3' />
               </Button>
               {isAdmin && (
                 <Button
-                  size="sm"
-                  variant="ghost"
+                  size='sm'
+                  variant='ghost'
                   onClick={() => onDelete(building)}
-                  className="text-red-600 hover:text-red-700"
+                  className='text-red-600 hover:text-red-700'
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className='h-3 w-3' />
                 </Button>
               )}
             </div>
@@ -107,30 +140,28 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="h-4 w-4 mr-2" />
-            <span className="truncate">{building.address}</span>
+        <div className='space-y-2'>
+          <div className='flex items-center text-sm text-gray-600'>
+            <MapPin className='h-4 w-4 mr-2' />
+            <span className='truncate'>{building.address}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <span>{building.city}, {building.province} {building.postalCode}</span>
+          <div className='flex items-center text-sm text-gray-600'>
+            <span>
+              {building.city}, {building.province} {building.postalCode}
+            </span>
           </div>
-          <div className="flex items-center justify-between pt-2">
-            <Badge variant="outline">
-              {building.totalUnits} units
-            </Badge>
-            <Badge variant="secondary">
-              {building.buildingType}
-            </Badge>
+          <div className='flex items-center justify-between pt-2'>
+            <Badge variant='outline'>{building.totalUnits} units</Badge>
+            <Badge variant='secondary'>{building.buildingType}</Badge>
           </div>
-          <div className="pt-2 flex gap-2">
+          <div className='pt-2 flex gap-2'>
             <Link href={`/manager/buildings/${building.id}/documents`}>
-              <Button size="sm" variant="outline" className="flex-1">
+              <Button size='sm' variant='outline' className='flex-1'>
                 Documents
               </Button>
             </Link>
             <Link href={`/manager/buildings/${building.id}/residences`}>
-              <Button size="sm" variant="outline" className="flex-1">
+              <Button size='sm' variant='outline' className='flex-1'>
                 Residences
               </Button>
             </Link>
@@ -179,7 +210,7 @@ function BuildingForm({
 }: BuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className='max-w-2xl'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -188,16 +219,16 @@ function BuildingForm({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name="name"
+                name='name'
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className='md:col-span-2'>
                     <FormLabel>Building Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter building name" {...field} />
+                      <Input placeholder='Enter building name' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,12 +237,12 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="address"
+                name='address'
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className='md:col-span-2'>
                     <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter street address" {...field} />
+                      <Input placeholder='Enter street address' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -220,12 +251,12 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="city"
+                name='city'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter city" {...field} />
+                      <Input placeholder='Enter city' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,30 +265,30 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="province"
+                name='province'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Province</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select province" />
+                          <SelectValue placeholder='Select province' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="QC">Quebec</SelectItem>
-                        <SelectItem value="ON">Ontario</SelectItem>
-                        <SelectItem value="BC">British Columbia</SelectItem>
-                        <SelectItem value="AB">Alberta</SelectItem>
-                        <SelectItem value="MB">Manitoba</SelectItem>
-                        <SelectItem value="SK">Saskatchewan</SelectItem>
-                        <SelectItem value="NS">Nova Scotia</SelectItem>
-                        <SelectItem value="NB">New Brunswick</SelectItem>
-                        <SelectItem value="PE">Prince Edward Island</SelectItem>
-                        <SelectItem value="NL">Newfoundland and Labrador</SelectItem>
-                        <SelectItem value="NT">Northwest Territories</SelectItem>
-                        <SelectItem value="NU">Nunavut</SelectItem>
-                        <SelectItem value="YT">Yukon</SelectItem>
+                        <SelectItem value='QC'>Quebec</SelectItem>
+                        <SelectItem value='ON'>Ontario</SelectItem>
+                        <SelectItem value='BC'>British Columbia</SelectItem>
+                        <SelectItem value='AB'>Alberta</SelectItem>
+                        <SelectItem value='MB'>Manitoba</SelectItem>
+                        <SelectItem value='SK'>Saskatchewan</SelectItem>
+                        <SelectItem value='NS'>Nova Scotia</SelectItem>
+                        <SelectItem value='NB'>New Brunswick</SelectItem>
+                        <SelectItem value='PE'>Prince Edward Island</SelectItem>
+                        <SelectItem value='NL'>Newfoundland and Labrador</SelectItem>
+                        <SelectItem value='NT'>Northwest Territories</SelectItem>
+                        <SelectItem value='NU'>Nunavut</SelectItem>
+                        <SelectItem value='YT'>Yukon</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -267,12 +298,12 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="postalCode"
+                name='postalCode'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Postal Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="H1H 1H1" {...field} />
+                      <Input placeholder='H1H 1H1' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -281,23 +312,23 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="buildingType"
+                name='buildingType'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Building Type</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select building type" />
+                          <SelectValue placeholder='Select building type' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="condo">Condominium</SelectItem>
-                        <SelectItem value="apartment">Apartment</SelectItem>
-                        <SelectItem value="townhouse">Townhouse</SelectItem>
-                        <SelectItem value="commercial">Commercial</SelectItem>
-                        <SelectItem value="mixed_use">Mixed Use</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value='condo'>Condominium</SelectItem>
+                        <SelectItem value='apartment'>Apartment</SelectItem>
+                        <SelectItem value='townhouse'>Townhouse</SelectItem>
+                        <SelectItem value='commercial'>Commercial</SelectItem>
+                        <SelectItem value='mixed_use'>Mixed Use</SelectItem>
+                        <SelectItem value='other'>Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -307,12 +338,12 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="totalUnits"
+                name='totalUnits'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Total Units</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Enter total units" {...field} />
+                      <Input type='number' placeholder='Enter total units' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -321,14 +352,14 @@ function BuildingForm({
 
               <FormField
                 control={form.control}
-                name="organizationId"
+                name='organizationId'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select organization" />
+                          <SelectValue placeholder='Select organization' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -346,11 +377,11 @@ function BuildingForm({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : submitLabel}
+              <Button type='submit' disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : submitLabel}
               </Button>
             </DialogFooter>
           </form>
@@ -368,7 +399,7 @@ export default function Buildings() {
   const queryClient = useQueryClient();
 
   // State variables
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<BuildingData | null>(null);
@@ -376,37 +407,44 @@ export default function Buildings() {
 
   // Get current user
   const { data: user } = useQuery({
-    queryKey: ["/api/auth/user"],
-    queryFn: () => apiRequest("GET", "/api/auth/user") as Promise<any>,
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
   // Fetch organizations for form
   const { data: organizations = [] } = useQuery({
-    queryKey: ["/api/organizations"],
+    queryKey: ['/api/organizations'],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/organizations");
+      const response = await apiRequest('GET', '/api/organizations');
       return await response.json();
     },
   });
 
   // Fetch buildings using the working manager endpoint
-  const { data: buildingsData, isLoading, error: _error } = useQuery({
-    queryKey: ["/api/manager/buildings"],
+  const {
+    data: buildingsData,
+    isLoading,
+    error: _error,
+  } = useQuery({
+    queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/manager/buildings");
+      const response = await apiRequest('GET', '/api/manager/buildings');
       return await response.json();
     },
   });
-  
+
   // Extract buildings array from the wrapped response
   const buildings = (buildingsData as any)?.buildings || [];
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
-    if (!Array.isArray(buildings)) {return [];}
-    return buildings.filter((building) =>
-      building.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      building.address.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!Array.isArray(buildings)) {
+      return [];
+    }
+    return buildings.filter(
+      (building) =>
+        building.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        building.address.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [buildings, searchTerm]);
 
@@ -414,14 +452,14 @@ export default function Buildings() {
   const form = useForm<BuildingFormData>({
     resolver: zodResolver(buildingFormSchema),
     defaultValues: {
-      name: "",
-      address: "",
-      city: "",
-      province: "QC",
-      postalCode: "",
-      buildingType: "condo",
+      name: '',
+      address: '',
+      city: '',
+      province: 'QC',
+      postalCode: '',
+      buildingType: 'condo',
       totalUnits: 1,
-      organizationId: "",
+      organizationId: '',
     },
   });
 
@@ -432,63 +470,63 @@ export default function Buildings() {
 
   // Mutations
   const createBuildingMutation = useMutation({
-    mutationFn: (data: BuildingFormData) => apiRequest("POST", "/api/buildings", data),
+    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/buildings', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsAddDialogOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Building created successfully",
+        title: 'Success',
+        description: 'Building created successfully',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create building",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to create building',
+        variant: 'destructive',
       });
     },
   });
 
   const updateBuildingMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: BuildingFormData }) =>
-      apiRequest("PUT", `/api/buildings/${id}`, data),
+      apiRequest('PUT', `/api/buildings/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsEditDialogOpen(false);
       setEditingBuilding(null);
       editForm.reset();
       toast({
-        title: "Success",
-        description: "Building updated successfully",
+        title: 'Success',
+        description: 'Building updated successfully',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update building",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to update building',
+        variant: 'destructive',
       });
     },
   });
 
   const deleteBuildingMutation = useMutation({
-    mutationFn: (buildingId: string) => apiRequest("DELETE", `/api/admin/buildings/${buildingId}`),
+    mutationFn: (buildingId: string) => apiRequest('DELETE', `/api/admin/buildings/${buildingId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/manager/buildings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/buildings"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/buildings'] });
       setDeletingBuilding(null);
       toast({
-        title: "Success",
-        description: "Building deleted successfully",
+        title: 'Success',
+        description: 'Building deleted successfully',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete building",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to delete building',
+        variant: 'destructive',
       });
     },
   });
@@ -531,10 +569,10 @@ export default function Buildings() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Buildings" subtitle="Loading buildings..." />
-        <div className="flex-1 overflow-auto p-6">
-          <div className="text-center py-8">Loading buildings...</div>
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title='Buildings' subtitle='Loading buildings...' />
+        <div className='flex-1 overflow-auto p-6'>
+          <div className='text-center py-8'>Loading buildings...</div>
         </div>
       </div>
     );
@@ -542,19 +580,19 @@ export default function Buildings() {
 
   if (_error) {
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Buildings" subtitle="Error loading buildings" />
-        
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-4xl mx-auto">
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title='Buildings' subtitle='Error loading buildings' />
+
+        <div className='flex-1 overflow-auto p-6'>
+          <div className='max-w-4xl mx-auto'>
             <Card>
-              <CardContent className="p-8 text-center">
-                <Building className="w-16 h-16 mx-auto text-red-400 mb-4" />
-                <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Buildings</h3>
-                <p className="text-red-500 mb-4">
+              <CardContent className='p-8 text-center'>
+                <Building className='w-16 h-16 mx-auto text-red-400 mb-4' />
+                <h3 className='text-lg font-semibold text-red-600 mb-2'>Error Loading Buildings</h3>
+                <p className='text-red-500 mb-4'>
                   Failed to load buildings data. Please try again later.
                 </p>
-                <Badge variant="destructive">Error</Badge>
+                <Badge variant='destructive'>Error</Badge>
               </CardContent>
             </Card>
           </div>
@@ -564,29 +602,29 @@ export default function Buildings() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <Header 
-        title="Buildings" 
-        subtitle={`Manage ${filteredBuildings.length} building${filteredBuildings.length !== 1 ? 's' : ''} in your organization`} 
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header
+        title='Buildings'
+        subtitle={`Manage ${filteredBuildings.length} building${filteredBuildings.length !== 1 ? 's' : ''} in your organization`}
       />
-      
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
+
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-6xl mx-auto space-y-6'>
           {/* Search and Add Building Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full sm:w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <div className='flex flex-col sm:flex-row gap-4 items-center justify-between'>
+            <div className='relative w-full sm:w-96'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
               <Input
-                placeholder="Search buildings by name or address..."
+                placeholder='Search buildings by name or address...'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className='pl-10'
               />
             </div>
-            
+
             {user?.role === 'admin' && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className='w-4 h-4 mr-2' />
                 Add Building
               </Button>
             )}
@@ -594,7 +632,7 @@ export default function Buildings() {
 
           {/* Buildings Grid */}
           {filteredBuildings.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
               {filteredBuildings.map((building) => (
                 <BuildingCard
                   key={building.id}
@@ -607,15 +645,15 @@ export default function Buildings() {
             </div>
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
-                <Building className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Buildings Found</h3>
-                <p className="text-gray-500 mb-4">
-                  {user?.role === 'admin' 
-                    ? 'No buildings are currently registered in your organizations.' 
-                    : 'You don\'t have access to any buildings yet.'}
+              <CardContent className='p-8 text-center'>
+                <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Buildings Found</h3>
+                <p className='text-gray-500 mb-4'>
+                  {user?.role === 'admin'
+                    ? 'No buildings are currently registered in your organizations.'
+                    : "You don't have access to any buildings yet."}
                 </p>
-                <Badge variant="secondary">No Data</Badge>
+                <Badge variant='secondary'>No Data</Badge>
               </CardContent>
             </Card>
           )}
@@ -628,8 +666,8 @@ export default function Buildings() {
             onSubmit={handleCreateBuilding}
             organizations={organizations}
             isSubmitting={createBuildingMutation.isPending}
-            title="Add New Building"
-            submitLabel="Create Building"
+            title='Add New Building'
+            submitLabel='Create Building'
           />
 
           {/* Edit Building Dialog */}
@@ -640,8 +678,8 @@ export default function Buildings() {
             onSubmit={handleUpdateBuilding}
             organizations={organizations}
             isSubmitting={updateBuildingMutation.isPending}
-            title="Edit Building"
-            submitLabel="Update Building"
+            title='Edit Building'
+            submitLabel='Update Building'
           />
 
           {/* Delete Confirmation Dialog */}
@@ -650,19 +688,20 @@ export default function Buildings() {
               <DialogHeader>
                 <DialogTitle>Delete Building</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete "{deletingBuilding?.name}"? This action cannot be undone.
+                  Are you sure you want to delete "{deletingBuilding?.name}"? This action cannot be
+                  undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeletingBuilding(null)}>
+                <Button variant='outline' onClick={() => setDeletingBuilding(null)}>
                   Cancel
                 </Button>
                 <Button
-                  variant="destructive"
+                  variant='destructive'
                   onClick={confirmDeleteBuilding}
                   disabled={deleteBuildingMutation.isPending}
                 >
-                  {deleteBuildingMutation.isPending ? "Deleting..." : "Delete"}
+                  {deleteBuildingMutation.isPending ? 'Deleting...' : 'Delete'}
                 </Button>
               </DialogFooter>
             </DialogContent>

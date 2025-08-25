@@ -88,7 +88,7 @@ export interface IStorage {
    * @returns {Promise<User[]>} Array of users from accessible organizations.
    */
   getUsersByOrganizations(_userId: string): Promise<User[]>;
-  
+
   /**
    * Retrieves a specific user by their unique identifier.
    *
@@ -103,7 +103,7 @@ export interface IStorage {
    * @param {string} _userId - The unique user identifier.
    * @returns {Promise<Array<{organizationId: string}>>} Array of organization IDs the user belongs to.
    */
-  getUserOrganizations(_userId: string): Promise<Array<{organizationId: string}>>;
+  getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
 
   /**
    * Retrieves residences for a specific user.
@@ -111,8 +111,8 @@ export interface IStorage {
    * @param {string} _userId - The unique user identifier.
    * @returns {Promise<Array<{residenceId: string}>>} Array of residence IDs the user is associated with.
    */
-  getUserResidences(_userId: string): Promise<Array<{residenceId: string}>>;
-  
+  getUserResidences(_userId: string): Promise<Array<{ residenceId: string }>>;
+
   /**
    * Retrieves a user by their email address.
    *
@@ -120,7 +120,7 @@ export interface IStorage {
    * @returns {Promise<User | undefined>} User record or undefined if not found.
    */
   getUserByEmail(_email: string): Promise<User | undefined>;
-  
+
   /**
    * Creates a new user in the storage system.
    *
@@ -128,7 +128,7 @@ export interface IStorage {
    * @returns {Promise<User>} The created user record with generated ID and timestamps.
    */
   createUser(_user: InsertUser): Promise<User>;
-  
+
   /**
    * Updates an existing user's information.
    *
@@ -146,7 +146,7 @@ export interface IStorage {
    * @returns {Promise<PasswordResetToken>} The created token record.
    */
   createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken>;
-  
+
   /**
    * Retrieves a password reset token by its token string.
    *
@@ -154,7 +154,7 @@ export interface IStorage {
    * @returns {Promise<PasswordResetToken | undefined>} Token record or undefined if not found.
    */
   getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined>;
-  
+
   /**
    * Marks a password reset token as used.
    *
@@ -162,7 +162,7 @@ export interface IStorage {
    * @returns {Promise<PasswordResetToken | undefined>} Updated token record or undefined if not found.
    */
   markPasswordResetTokenAsUsed(_tokenId: string): Promise<PasswordResetToken | undefined>;
-  
+
   /**
    * Deletes expired password reset tokens.
    *
@@ -177,7 +177,7 @@ export interface IStorage {
    * @returns {Promise<Organization[]>} Array of all organization records.
    */
   getOrganizations(): Promise<Organization[]>;
-  
+
   /**
    * Retrieves a specific organization by its unique identifier.
    *
@@ -185,7 +185,7 @@ export interface IStorage {
    * @returns {Promise<Organization | undefined>} Organization record or undefined if not found.
    */
   getOrganization(_id: string): Promise<Organization | undefined>;
-  
+
   /**
    * Retrieves an organization by its name.
    *
@@ -193,7 +193,7 @@ export interface IStorage {
    * @returns {Promise<Organization | undefined>} Organization record or undefined if not found.
    */
   getOrganizationByName(_name: string): Promise<Organization | undefined>;
-  
+
   /**
    * Creates a new organization in the storage system.
    *
@@ -201,7 +201,7 @@ export interface IStorage {
    * @returns {Promise<Organization>} The created organization record with generated ID.
    */
   createOrganization(_organization: InsertOrganization): Promise<Organization>;
-  
+
   /**
    * Updates an existing organization's information.
    *
@@ -213,7 +213,7 @@ export interface IStorage {
     _id: string,
     _updates: Partial<Organization>
   ): Promise<Organization | undefined>;
-  
+
   /**
    * Retrieves all buildings belonging to a specific organization.
    *
@@ -229,7 +229,7 @@ export interface IStorage {
    * @returns {Promise<Building[]>} Array of all building records.
    */
   getBuildings(): Promise<Building[]>;
-  
+
   /**
    * Retrieves a specific building by its unique identifier.
    *
@@ -237,7 +237,7 @@ export interface IStorage {
    * @returns {Promise<Building | undefined>} Building record or undefined if not found.
    */
   getBuilding(_id: string): Promise<Building | undefined>;
-  
+
   /**
    * Creates a new building in the storage system.
    *
@@ -245,7 +245,7 @@ export interface IStorage {
    * @returns {Promise<Building>} The created building record with generated ID.
    */
   createBuilding(_building: InsertBuilding): Promise<Building>;
-  
+
   /**
    * Updates an existing building's information.
    *
@@ -254,7 +254,7 @@ export interface IStorage {
    * @returns {Promise<Building | undefined>} Updated building record or undefined if not found.
    */
   updateBuilding(_id: string, _updates: Partial<Building>): Promise<Building | undefined>;
-  
+
   /**
    * Deletes a building from storage.
    *
@@ -270,7 +270,7 @@ export interface IStorage {
    * @returns {Promise<Residence[]>} Array of all residence records.
    */
   getResidences(): Promise<Residence[]>;
-  
+
   /**
    * Retrieves a specific residence by its unique identifier.
    *
@@ -278,7 +278,7 @@ export interface IStorage {
    * @returns {Promise<Residence | undefined>} Residence record or undefined if not found.
    */
   getResidence(_id: string): Promise<Residence | undefined>;
-  
+
   /**
    * Retrieves all residences within a specific building.
    *
@@ -286,7 +286,7 @@ export interface IStorage {
    * @returns {Promise<Residence[]>} Array of residences in the specified building.
    */
   getResidencesByBuilding(_buildingId: string): Promise<Residence[]>;
-  
+
   /**
    * Creates a new residence in the storage system.
    *
@@ -294,7 +294,7 @@ export interface IStorage {
    * @returns {Promise<Residence>} The created residence record with generated ID.
    */
   createResidence(_residence: InsertResidence): Promise<Residence>;
-  
+
   /**
    * Updates an existing residence's information.
    *
@@ -303,7 +303,7 @@ export interface IStorage {
    * @returns {Promise<Residence | undefined>} Updated residence record or undefined if not found.
    */
   updateResidence(_id: string, _updates: Partial<Residence>): Promise<Residence | undefined>;
-  
+
   /**
    * Deletes a residence from storage.
    *
@@ -319,7 +319,7 @@ export interface IStorage {
    * @returns {Promise<Contact[]>} Array of all contact records.
    */
   getContacts(): Promise<Contact[]>;
-  
+
   /**
    * Retrieves contacts for a specific entity.
    *
@@ -327,8 +327,11 @@ export interface IStorage {
    * @param {'organization' | 'building' | 'residence'} _entity - The entity type.
    * @returns {Promise<Contact[]>} Array of contacts for the specified entity.
    */
-  getContactsByEntity(_entityId: string, _entity: 'organization' | 'building' | 'residence'): Promise<Contact[]>;
-  
+  getContactsByEntity(
+    _entityId: string,
+    _entity: 'organization' | 'building' | 'residence'
+  ): Promise<Contact[]>;
+
   /**
    * Retrieves contacts for a specific residence with user details.
    *
@@ -336,7 +339,7 @@ export interface IStorage {
    * @returns {Promise<Array<Contact & { user: User }>>} Array of contacts with user information.
    */
   getContactsForResidence(_residenceId: string): Promise<Array<Contact & { user: User }>>;
-  
+
   /**
    * Creates a new contact in the storage system.
    *
@@ -344,7 +347,7 @@ export interface IStorage {
    * @returns {Promise<Contact>} The created contact record with generated ID.
    */
   createContact(_contact: InsertContact): Promise<Contact>;
-  
+
   /**
    * Updates an existing contact's information.
    *
@@ -353,7 +356,7 @@ export interface IStorage {
    * @returns {Promise<Contact | undefined>} Updated contact record or undefined if not found.
    */
   updateContact(_id: string, _updates: Partial<Contact>): Promise<Contact | undefined>;
-  
+
   /**
    * Deletes a contact from storage.
    *
@@ -369,7 +372,7 @@ export interface IStorage {
    * @returns {Promise<DevelopmentPillar[]>} Array of all development pillar records.
    */
   getPillars(): Promise<DevelopmentPillar[]>;
-  
+
   /**
    * Retrieves a specific development pillar by its unique identifier.
    *
@@ -377,7 +380,7 @@ export interface IStorage {
    * @returns {Promise<DevelopmentPillar | undefined>} Pillar record or undefined if not found.
    */
   getPillar(_id: string): Promise<DevelopmentPillar | undefined>;
-  
+
   /**
    * Creates a new development pillar in the storage system.
    *
@@ -385,7 +388,7 @@ export interface IStorage {
    * @returns {Promise<DevelopmentPillar>} The created pillar record with generated ID.
    */
   createPillar(_pillar: InsertPillar): Promise<DevelopmentPillar>;
-  
+
   /**
    * Updates an existing development pillar's information.
    *
@@ -405,7 +408,7 @@ export interface IStorage {
    * @returns {Promise<WorkspaceStatus[]>} Array of all workspace status records.
    */
   getWorkspaceStatuses(): Promise<WorkspaceStatus[]>;
-  
+
   /**
    * Retrieves the status of a specific workspace component.
    *
@@ -413,7 +416,7 @@ export interface IStorage {
    * @returns {Promise<WorkspaceStatus | undefined>} Status record or undefined if not found.
    */
   getWorkspaceStatus(_component: string): Promise<WorkspaceStatus | undefined>;
-  
+
   /**
    * Creates a new workspace status record.
    *
@@ -421,7 +424,7 @@ export interface IStorage {
    * @returns {Promise<WorkspaceStatus>} The created status record.
    */
   createWorkspaceStatus(_status: InsertWorkspaceStatus): Promise<WorkspaceStatus>;
-  
+
   /**
    * Updates the status of a specific workspace component.
    *
@@ -438,7 +441,7 @@ export interface IStorage {
    * @returns {Promise<QualityMetric[]>} Array of all quality metric records.
    */
   getQualityMetrics(): Promise<QualityMetric[]>;
-  
+
   /**
    * Creates a new quality metric record.
    *
@@ -454,7 +457,7 @@ export interface IStorage {
    * @returns {Promise<FrameworkConfiguration[]>} Array of all configuration records.
    */
   getFrameworkConfigs(): Promise<FrameworkConfiguration[]>;
-  
+
   /**
    * Retrieves a specific framework configuration by its key.
    *
@@ -462,7 +465,7 @@ export interface IStorage {
    * @returns {Promise<FrameworkConfiguration | undefined>} Configuration record or undefined if not found.
    */
   getFrameworkConfig(_key: string): Promise<FrameworkConfiguration | undefined>;
-  
+
   /**
    * Sets or updates a framework configuration.
    *
@@ -478,7 +481,7 @@ export interface IStorage {
    * @returns {Promise<ImprovementSuggestion[]>} Array of all improvement suggestion records.
    */
   getImprovementSuggestions(): Promise<ImprovementSuggestion[]>;
-  
+
   /**
    * Retrieves the top improvement suggestions by priority and creation date.
    *
@@ -486,7 +489,7 @@ export interface IStorage {
    * @returns {Promise<ImprovementSuggestion[]>} Array of top improvement suggestions.
    */
   getTopImprovementSuggestions(_limit: number): Promise<ImprovementSuggestion[]>;
-  
+
   /**
    * Creates a new improvement suggestion in the storage system.
    *
@@ -496,14 +499,14 @@ export interface IStorage {
   createImprovementSuggestion(
     _suggestion: InsertImprovementSuggestion
   ): Promise<ImprovementSuggestion>;
-  
+
   /**
    * Clears all suggestions with 'New' status by marking them as acknowledged.
    *
    * @returns {Promise<void>} Promise that resolves when operation is complete.
    */
   clearNewSuggestions(): Promise<void>;
-  
+
   /**
    * Updates the status of a specific improvement suggestion.
    *
@@ -523,7 +526,7 @@ export interface IStorage {
    * @returns {Promise<Feature[]>} Array of all feature records.
    */
   getFeatures(): Promise<Feature[]>;
-  
+
   /**
    * Retrieves features filtered by their development status.
    *
@@ -533,7 +536,7 @@ export interface IStorage {
   getFeaturesByStatus(
     _status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'
   ): Promise<Feature[]>;
-  
+
   /**
    * Retrieves features filtered by their category.
    *
@@ -541,14 +544,14 @@ export interface IStorage {
    * @returns {Promise<Feature[]>} Array of features in the specified category.
    */
   getFeaturesByCategory(_category: string): Promise<Feature[]>;
-  
+
   /**
    * Retrieves features that are visible on the public roadmap.
    *
    * @returns {Promise<Feature[]>} Array of public roadmap features.
    */
   getPublicRoadmapFeatures(): Promise<Feature[]>;
-  
+
   /**
    * Creates a new feature in the storage system.
    *
@@ -556,7 +559,7 @@ export interface IStorage {
    * @returns {Promise<Feature>} The created feature record with generated ID.
    */
   createFeature(_feature: InsertFeature): Promise<Feature>;
-  
+
   /**
    * Updates an existing feature's information.
    *
@@ -565,7 +568,7 @@ export interface IStorage {
    * @returns {Promise<Feature | undefined>} Updated feature record or undefined if not found.
    */
   updateFeature(_id: string, _updates: Partial<InsertFeature>): Promise<Feature | undefined>;
-  
+
   /**
    * Deletes a feature from storage.
    *
@@ -582,7 +585,7 @@ export interface IStorage {
    * @returns {Promise<ActionableItem[]>} Array of actionable items for the feature.
    */
   getActionableItemsByFeature(_featureId: string): Promise<ActionableItem[]>;
-  
+
   /**
    * Retrieves a specific actionable item by its unique identifier.
    *
@@ -590,7 +593,7 @@ export interface IStorage {
    * @returns {Promise<ActionableItem | undefined>} Actionable item record or undefined if not found.
    */
   getActionableItem(_id: string): Promise<ActionableItem | undefined>;
-  
+
   /**
    * Creates a new actionable item in the storage system.
    *
@@ -598,7 +601,7 @@ export interface IStorage {
    * @returns {Promise<ActionableItem>} The created actionable item record with generated ID.
    */
   createActionableItem(_item: InsertActionableItem): Promise<ActionableItem>;
-  
+
   /**
    * Creates multiple actionable items in a single operation.
    *
@@ -606,7 +609,7 @@ export interface IStorage {
    * @returns {Promise<ActionableItem[]>} Array of created actionable item records.
    */
   createActionableItems(_items: InsertActionableItem[]): Promise<ActionableItem[]>;
-  
+
   /**
    * Updates an existing actionable item's information.
    *
@@ -614,8 +617,11 @@ export interface IStorage {
    * @param {Partial<ActionableItem>} _updates - Partial item data containing fields to update.
    * @returns {Promise<ActionableItem | undefined>} Updated item record or undefined if not found.
    */
-  updateActionableItem(_id: string, _updates: Partial<ActionableItem>): Promise<ActionableItem | undefined>;
-  
+  updateActionableItem(
+    _id: string,
+    _updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined>;
+
   /**
    * Deletes an actionable item from storage.
    *
@@ -623,7 +629,7 @@ export interface IStorage {
    * @returns {Promise<boolean>} True if deletion was successful, false otherwise.
    */
   deleteActionableItem(_id: string): Promise<boolean>;
-  
+
   /**
    * Deletes all actionable items associated with a specific feature.
    *
@@ -870,7 +876,7 @@ export interface IStorage {
    * @returns {Promise<Invitation[]>} Array of all invitation records.
    */
   getInvitations(): Promise<Invitation[]>;
-  
+
   /**
    * Retrieves a specific invitation by its unique identifier.
    *
@@ -878,7 +884,7 @@ export interface IStorage {
    * @returns {Promise<Invitation | undefined>} Invitation record or undefined if not found.
    */
   getInvitation(_id: string): Promise<Invitation | undefined>;
-  
+
   /**
    * Retrieves an invitation by its secure token.
    *
@@ -886,7 +892,7 @@ export interface IStorage {
    * @returns {Promise<Invitation | undefined>} Invitation record or undefined if not found.
    */
   getInvitationByToken(_token: string): Promise<Invitation | undefined>;
-  
+
   /**
    * Retrieves all invitations for a specific email address.
    *
@@ -894,7 +900,7 @@ export interface IStorage {
    * @returns {Promise<Invitation[]>} Array of invitations for the email.
    */
   getInvitationsByEmail(_email: string): Promise<Invitation[]>;
-  
+
   /**
    * Retrieves all invitations sent by a specific user.
    *
@@ -902,15 +908,17 @@ export interface IStorage {
    * @returns {Promise<Invitation[]>} Array of invitations sent by the user.
    */
   getInvitationsByInviter(_userId: string): Promise<Invitation[]>;
-  
+
   /**
    * Retrieves all invitations filtered by their status.
    *
    * @param {'pending' | 'accepted' | 'expired' | 'cancelled'} _status - The status to filter by.
    * @returns {Promise<Invitation[]>} Array of invitations with the specified status.
    */
-  getInvitationsByStatus(_status: 'pending' | 'accepted' | 'expired' | 'cancelled'): Promise<Invitation[]>;
-  
+  getInvitationsByStatus(
+    _status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+  ): Promise<Invitation[]>;
+
   /**
    * Creates a new invitation with secure token generation.
    *
@@ -918,7 +926,7 @@ export interface IStorage {
    * @returns {Promise<Invitation>} The created invitation record with generated token and security data.
    */
   createInvitation(_invitation: InsertInvitation): Promise<Invitation>;
-  
+
   /**
    * Updates an existing invitation's information.
    *
@@ -927,7 +935,7 @@ export interface IStorage {
    * @returns {Promise<Invitation | undefined>} Updated invitation record or undefined if not found.
    */
   updateInvitation(_id: string, _updates: Partial<Invitation>): Promise<Invitation | undefined>;
-  
+
   /**
    * Accepts an invitation by its token and creates a new user account.
    *
@@ -943,7 +951,7 @@ export interface IStorage {
     _ipAddress?: string,
     _userAgent?: string
   ): Promise<{ user: User; invitation: Invitation } | null>;
-  
+
   /**
    * Cancels an invitation by setting its status to cancelled.
    *
@@ -952,14 +960,14 @@ export interface IStorage {
    * @returns {Promise<Invitation | undefined>} Updated invitation record or undefined if not found.
    */
   cancelInvitation(_id: string, _cancelledBy: string): Promise<Invitation | undefined>;
-  
+
   /**
    * Expires all invitations that have passed their expiry date.
    *
    * @returns {Promise<number>} Number of invitations that were expired.
    */
   expireInvitations(): Promise<number>;
-  
+
   /**
    * Deletes an invitation from storage.
    *
@@ -976,7 +984,7 @@ export interface IStorage {
    * @returns {Promise<InvitationAuditLog[]>} Array of audit log entries for the invitation.
    */
   getInvitationAuditLogs(_invitationId: string): Promise<InvitationAuditLog[]>;
-  
+
   /**
    * Creates a new invitation audit log entry.
    *
@@ -992,14 +1000,14 @@ export interface IStorage {
    * @returns {Promise<Permission[]>} Array of all permission records.
    */
   getPermissions(): Promise<Permission[]>;
-  
+
   /**
    * Retrieves all role-permission associations from storage.
    *
    * @returns {Promise<RolePermission[]>} Array of all role-permission records.
    */
   getRolePermissions(): Promise<RolePermission[]>;
-  
+
   /**
    * Retrieves all user-specific permission overrides from storage.
    *
@@ -1018,12 +1026,12 @@ export interface IStorage {
    * @returns {Promise<Document[]>} Array of documents the user can access.
    */
   getDocumentsForUser(
-    _userId: string, 
-    _userRole: string, 
-    _organizationId?: string, 
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
     _residenceIds?: string[]
   ): Promise<Document[]>;
-  
+
   /**
    * Retrieves a specific document by its unique identifier with permission check.
    *
@@ -1035,13 +1043,13 @@ export interface IStorage {
    * @returns {Promise<Document | undefined>} Document record or undefined if not found/accessible.
    */
   getDocument(
-    _id: string, 
-    _userId: string, 
-    _userRole: string, 
-    _organizationId?: string, 
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string,
     _residenceIds?: string[]
   ): Promise<Document | undefined>;
-  
+
   /**
    * Creates a new document in the storage system.
    *
@@ -1049,7 +1057,7 @@ export interface IStorage {
    * @returns {Promise<Document>} The created document record with generated ID.
    */
   createDocument(_document: InsertDocument): Promise<Document>;
-  
+
   /**
    * Updates an existing document's information.
    *
@@ -1061,13 +1069,13 @@ export interface IStorage {
    * @returns {Promise<Document | undefined>} Updated document record or undefined if not found/accessible.
    */
   updateDocument(
-    _id: string, 
-    _updates: Partial<InsertDocument>, 
-    _userId: string, 
-    _userRole: string, 
+    _id: string,
+    _updates: Partial<InsertDocument>,
+    _userId: string,
+    _userRole: string,
     _organizationId?: string
   ): Promise<Document | undefined>;
-  
+
   /**
    * Deletes a document from the storage system.
    *
@@ -1078,9 +1086,9 @@ export interface IStorage {
    * @returns {Promise<boolean>} True if document was deleted, false if not found/accessible.
    */
   deleteDocument(
-    _id: string, 
-    _userId: string, 
-    _userRole: string, 
+    _id: string,
+    _userId: string,
+    _userRole: string,
     _organizationId?: string
   ): Promise<boolean>;
 
@@ -1214,11 +1222,7 @@ export interface IStorage {
    * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
    * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
    */
-  deleteDemandComment(
-    _id: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<boolean>;
+  deleteDemandComment(_id: string, _userId: string, _userRole: string): Promise<boolean>;
 
   // Bug operations
   /**
@@ -1232,11 +1236,7 @@ export interface IStorage {
    * @param {string} [_organizationId] - The user's organization ID (optional).
    * @returns {Promise<Bug[]>} Array of bugs the user can access.
    */
-  getBugsForUser(
-    _userId: string,
-    _userRole: string,
-    _organizationId?: string
-  ): Promise<Bug[]>;
+  getBugsForUser(_userId: string, _userRole: string, _organizationId?: string): Promise<Bug[]>;
 
   /**
    * Retrieves a specific bug with permission check.
@@ -1288,11 +1288,7 @@ export interface IStorage {
    * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
    * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
    */
-  deleteBug(
-    _id: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<boolean>;
+  deleteBug(_id: string, _userId: string, _userRole: string): Promise<boolean>;
 
   // Feature Request operations
   /**
@@ -1359,28 +1355,29 @@ export interface IStorage {
    * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
    * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
    */
-  deleteFeatureRequest(
-    _id: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<boolean>;
+  deleteFeatureRequest(_id: string, _userId: string, _userRole: string): Promise<boolean>;
 
   /**
    * Upvotes a feature request.
-   * 
+   *
    * @param {InsertFeatureRequestUpvote} _upvote - Upvote data for creation.
    * @returns {Promise<{success: boolean; message: string; data?: any}>} Result object with success status and data.
    */
-  upvoteFeatureRequest(_upvote: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}>;
+  upvoteFeatureRequest(
+    _upvote: InsertFeatureRequestUpvote
+  ): Promise<{ success: boolean; message: string; data?: any }>;
 
   /**
    * Removes an upvote from a feature request.
-   * 
+   *
    * @param {string} _featureRequestId - The unique feature request identifier.
    * @param {string} _userId - The unique user identifier.
    * @returns {Promise<{success: boolean; message: string; data?: any}>} Result object with success status and data.
    */
-  removeFeatureRequestUpvote(_featureRequestId: string, _userId: string): Promise<{success: boolean; message: string; data?: any}>;
+  removeFeatureRequestUpvote(
+    _featureRequestId: string,
+    _userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }>;
 }
 
 /**
@@ -1462,25 +1459,26 @@ export class MemStorage implements IStorage {
    */
   async getRolePermissions(): Promise<RolePermission[]> {
     try {
-      const result = await this.db.select({
-        id: rolePermissions.id,
-        role: rolePermissions.role,
-        permissionId: rolePermissions.permissionId,
-        createdAt: rolePermissions.createdAt,
-        permission: {
-          id: permissions.id,
-          name: permissions.name,
-          displayName: permissions.displayName,
-          description: permissions.description,
-          resourceType: permissions.resourceType,
-          action: permissions.action,
-          isActive: permissions.isActive,
-          createdAt: permissions.createdAt
-        }
-      })
-      .from(rolePermissions)
-      .leftJoin(permissions, eq(rolePermissions.permissionId, permissions.id));
-      
+      const result = await this.db
+        .select({
+          id: rolePermissions.id,
+          role: rolePermissions.role,
+          permissionId: rolePermissions.permissionId,
+          createdAt: rolePermissions.createdAt,
+          permission: {
+            id: permissions.id,
+            name: permissions.name,
+            displayName: permissions.displayName,
+            description: permissions.description,
+            resourceType: permissions.resourceType,
+            action: permissions.action,
+            isActive: permissions.isActive,
+            createdAt: permissions.createdAt,
+          },
+        })
+        .from(rolePermissions)
+        .leftJoin(permissions, eq(rolePermissions.permissionId, permissions.id));
+
       return result;
     } catch (error) {
       console.error('Error fetching role permissions:', error);
@@ -1493,29 +1491,30 @@ export class MemStorage implements IStorage {
    */
   async getUserPermissions(): Promise<UserPermission[]> {
     try {
-      const result = await this.db.select({
-        id: userPermissions.id,
-        userId: userPermissions.userId,
-        permissionId: userPermissions.permissionId,
-        granted: userPermissions.granted,
-        grantedBy: userPermissions.grantedBy,
-        reason: userPermissions.reason,
-        grantedAt: userPermissions.grantedAt,
-        createdAt: userPermissions.createdAt,
-        permission: {
-          id: permissions.id,
-          name: permissions.name,
-          displayName: permissions.displayName,
-          description: permissions.description,
-          resourceType: permissions.resourceType,
-          action: permissions.action,
-          isActive: permissions.isActive,
-          createdAt: permissions.createdAt
-        }
-      })
-      .from(userPermissions)
-      .leftJoin(permissions, eq(userPermissions.permissionId, permissions.id));
-      
+      const result = await this.db
+        .select({
+          id: userPermissions.id,
+          userId: userPermissions.userId,
+          permissionId: userPermissions.permissionId,
+          granted: userPermissions.granted,
+          grantedBy: userPermissions.grantedBy,
+          reason: userPermissions.reason,
+          grantedAt: userPermissions.grantedAt,
+          createdAt: userPermissions.createdAt,
+          permission: {
+            id: permissions.id,
+            name: permissions.name,
+            displayName: permissions.displayName,
+            description: permissions.description,
+            resourceType: permissions.resourceType,
+            action: permissions.action,
+            isActive: permissions.isActive,
+            createdAt: permissions.createdAt,
+          },
+        })
+        .from(userPermissions)
+        .leftJoin(permissions, eq(userPermissions.permissionId, permissions.id));
+
       return result;
     } catch (error) {
       console.error('Error fetching user permissions:', error);
@@ -1616,7 +1615,7 @@ export class MemStorage implements IStorage {
    * @param {string} userId - The unique user identifier.
    * @returns {Promise<Array<{organizationId: string}>>} Array of organization IDs the user belongs to.
    */
-  async getUserOrganizations(userId: string): Promise<Array<{organizationId: string}>> {
+  async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
     const user = this.users.get(userId);
     if (!user) {
       return [];
@@ -1632,7 +1631,7 @@ export class MemStorage implements IStorage {
    * @param {string} userId - The unique user identifier.
    * @returns {Promise<Array<{residenceId: string}>>} Array of residence IDs the user is associated with.
    */
-  async getUserResidences(userId: string): Promise<Array<{residenceId: string}>> {
+  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
     const user = this.users.get(userId);
     if (!user) {
       return [];
@@ -1845,7 +1844,7 @@ export class MemStorage implements IStorage {
       city: insertBuilding.city,
       province: insertBuilding.province || 'QC',
       postalCode: insertBuilding.postalCode,
-      buildingType: insertBuilding.buildingType ?? null as 'condo' | 'rental' | null,
+      buildingType: insertBuilding.buildingType ?? (null as 'condo' | 'rental' | null),
       yearBuilt: insertBuilding.yearBuilt ?? null,
       totalUnits: insertBuilding.totalUnits ?? null,
       totalFloors: insertBuilding.totalFloors ?? null,
@@ -2006,8 +2005,8 @@ export class MemStorage implements IStorage {
       bedrooms: insertResidence.bedrooms ?? null,
       bathrooms: insertResidence.bathrooms ?? null,
       balcony: insertResidence.balcony ?? null,
-      parkingSpaceNumbers: insertResidence.parkingSpaceNumbers ?? null as string[] | null,
-      storageSpaceNumbers: insertResidence.storageSpaceNumbers ?? null as string[] | null,
+      parkingSpaceNumbers: insertResidence.parkingSpaceNumbers ?? (null as string[] | null),
+      storageSpaceNumbers: insertResidence.storageSpaceNumbers ?? (null as string[] | null),
       ownershipPercentage: insertResidence.ownershipPercentage ?? null,
       monthlyFees: insertResidence.monthlyFees ?? null,
       isActive: true,
@@ -2502,7 +2501,13 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const feature: Feature = {
       ...insertFeature,
-      status: (insertFeature.status || 'planned') as 'submitted' | 'planned' | 'in-progress' | 'ai-analyzed' | 'completed' | 'cancelled',
+      status: (insertFeature.status || 'planned') as
+        | 'submitted'
+        | 'planned'
+        | 'in-progress'
+        | 'ai-analyzed'
+        | 'completed'
+        | 'cancelled',
       priority: (insertFeature.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
       isPublicRoadmap: insertFeature.isPublicRoadmap ?? true,
       requestedBy: insertFeature.requestedBy || null,
@@ -2594,7 +2599,7 @@ export class MemStorage implements IStorage {
    */
   async getActionableItemsByFeature(featureId: string): Promise<ActionableItem[]> {
     return Array.from(this.actionableItems.values())
-      .filter(item => item.featureId === featureId)
+      .filter((item) => item.featureId === featureId)
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }
 
@@ -2686,10 +2691,15 @@ export class MemStorage implements IStorage {
    * });
    * ```
    */
-  async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
+  async updateActionableItem(
+    id: string,
+    updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined> {
     const existing = this.actionableItems.get(id);
-    if (!existing) {return undefined;}
-    
+    if (!existing) {
+      return undefined;
+    }
+
     const updated = {
       ...existing,
       ...updates,
@@ -2740,7 +2750,7 @@ export class MemStorage implements IStorage {
   }
 
   // Invitation operations
-  
+
   /**
    * Retrieves all invitations.
    */
@@ -2761,8 +2771,7 @@ export class MemStorage implements IStorage {
    * @param token
    */
   async getInvitationByToken(token: string): Promise<Invitation | undefined> {
-    return Array.from(this.invitations.values())
-      .find(invitation => invitation.token === token);
+    return Array.from(this.invitations.values()).find((invitation) => invitation.token === token);
   }
 
   /**
@@ -2770,8 +2779,7 @@ export class MemStorage implements IStorage {
    * @param email
    */
   async getInvitationsByEmail(email: string): Promise<Invitation[]> {
-    return Array.from(this.invitations.values())
-      .filter(invitation => invitation.email === email);
+    return Array.from(this.invitations.values()).filter((invitation) => invitation.email === email);
   }
 
   /**
@@ -2779,17 +2787,21 @@ export class MemStorage implements IStorage {
    * @param userId
    */
   async getInvitationsByInviter(userId: string): Promise<Invitation[]> {
-    return Array.from(this.invitations.values())
-      .filter(invitation => invitation.invitedByUserId === userId);
+    return Array.from(this.invitations.values()).filter(
+      (invitation) => invitation.invitedByUserId === userId
+    );
   }
 
   /**
    * Retrieves invitations by status.
    * @param status
    */
-  async getInvitationsByStatus(status: 'pending' | 'accepted' | 'expired' | 'cancelled'): Promise<Invitation[]> {
-    return Array.from(this.invitations.values())
-      .filter(invitation => invitation.status === status);
+  async getInvitationsByStatus(
+    status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+  ): Promise<Invitation[]> {
+    return Array.from(this.invitations.values()).filter(
+      (invitation) => invitation.status === status
+    );
   }
 
   /**
@@ -2824,10 +2836,15 @@ export class MemStorage implements IStorage {
    * @param id
    * @param updates
    */
-  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
+  async updateInvitation(
+    id: string,
+    updates: Partial<Invitation>
+  ): Promise<Invitation | undefined> {
     const existing = this.invitations.get(id);
-    if (!existing) {return undefined;}
-    
+    if (!existing) {
+      return undefined;
+    }
+
     const updated = {
       ...existing,
       ...updates,
@@ -2894,16 +2911,14 @@ export class MemStorage implements IStorage {
    */
   async expireInvitations(): Promise<number> {
     const now = new Date();
-    const expiredInvitations = Array.from(this.invitations.values())
-      .filter(invitation => 
-        invitation.status === 'pending' && 
-        invitation.expiresAt <= now
-      );
-    
+    const expiredInvitations = Array.from(this.invitations.values()).filter(
+      (invitation) => invitation.status === 'pending' && invitation.expiresAt <= now
+    );
+
     for (const invitation of expiredInvitations) {
       await this.updateInvitation(invitation.id, { status: 'expired' });
     }
-    
+
     return expiredInvitations.length;
   }
 
@@ -2916,14 +2931,14 @@ export class MemStorage implements IStorage {
   }
 
   // Invitation Audit Log operations
-  
+
   /**
    * Gets invitation audit logs.
    * @param invitationId
    */
   async getInvitationAuditLogs(invitationId: string): Promise<InvitationAuditLog[]> {
     return Array.from(this.invitationAuditLogs.values())
-      .filter(log => log.invitationId === invitationId)
+      .filter((log) => log.invitationId === invitationId)
       .sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
   }
 
@@ -2943,53 +2958,62 @@ export class MemStorage implements IStorage {
   }
 
   // Document operations - Memory storage implementation
-  
+
   /**
    * Retrieves documents with role-based filtering.
    */
   async getDocumentsForUser(
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<Document[]> {
     const allDocuments = Array.from(this.documents.values());
-    
-    return allDocuments.filter(doc => {
+
+    return allDocuments.filter((doc) => {
       // Admin and Manager can see all documents
-      if (userRole === 'admin' || userRole === 'manager') {return true;}
-      
+      if (userRole === 'admin' || userRole === 'manager') {
+        return true;
+      }
+
       // Resident can see building and residence documents
       if (userRole === 'resident') {
         return doc.buildings || doc.residence;
       }
-      
+
       // Tenant can only see documents marked as visible to tenants
       if (userRole === 'tenant') {
         return doc.tenant;
       }
-      
+
       return false;
     });
   }
-  
+
   /**
    * Retrieves a specific document with permission check.
    */
   async getDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
-    organizationId?: string, 
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string,
     residenceIds?: string[]
   ): Promise<Document | undefined> {
     const document = this.documents.get(id);
-    if (!document) {return undefined;}
-    
-    const accessibleDocs = await this.getDocumentsForUser(userId, userRole, organizationId, residenceIds);
-    return accessibleDocs.find(doc => doc.id === id);
+    if (!document) {
+      return undefined;
+    }
+
+    const accessibleDocs = await this.getDocumentsForUser(
+      userId,
+      userRole,
+      organizationId,
+      residenceIds
+    );
+    return accessibleDocs.find((doc) => doc.id === id);
   }
-  
+
   /**
    * Creates a new document.
    */
@@ -3008,20 +3032,22 @@ export class MemStorage implements IStorage {
     this.documents.set(id, newDocument);
     return newDocument;
   }
-  
+
   /**
    * Updates an existing document with permission check.
    */
   async updateDocument(
-    id: string, 
-    updates: Partial<InsertDocument>, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    updates: Partial<InsertDocument>,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<Document | undefined> {
     const document = this.documents.get(id);
-    if (!document) {return undefined;}
-    
+    if (!document) {
+      return undefined;
+    }
+
     // Admin and Manager can edit any document
     if (userRole === 'admin' || userRole === 'manager') {
       // Allow editing
@@ -3029,7 +3055,7 @@ export class MemStorage implements IStorage {
       // Resident and Tenant cannot edit documents in simplified model
       return undefined;
     }
-    
+
     const updatedDocument = {
       ...document,
       ...updates,
@@ -3037,19 +3063,21 @@ export class MemStorage implements IStorage {
     this.documents.set(id, updatedDocument);
     return updatedDocument;
   }
-  
+
   /**
    * Deletes a document with permission check.
    */
   async deleteDocument(
-    id: string, 
-    userId: string, 
-    userRole: string, 
+    id: string,
+    userId: string,
+    userRole: string,
     organizationId?: string
   ): Promise<boolean> {
     const document = this.documents.get(id);
-    if (!document) {return false;}
-    
+    if (!document) {
+      return false;
+    }
+
     // Admin and Manager can delete any document
     if (userRole === 'admin' || userRole === 'manager') {
       return this.documents.delete(id);
@@ -3076,13 +3104,14 @@ export class MemStorage implements IStorage {
   }
 
   async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
-    return Array.from(this.passwordResetTokens.values())
-      .find(t => t.token === token);
+    return Array.from(this.passwordResetTokens.values()).find((t) => t.token === token);
   }
 
   async markPasswordResetTokenAsUsed(tokenId: string): Promise<PasswordResetToken | undefined> {
     const token = this.passwordResetTokens.get(tokenId);
-    if (!token) {return undefined;}
+    if (!token) {
+      return undefined;
+    }
 
     const updatedToken = {
       ...token,
@@ -3095,13 +3124,14 @@ export class MemStorage implements IStorage {
 
   async cleanupExpiredPasswordResetTokens(): Promise<number> {
     const now = new Date();
-    const expiredTokens = Array.from(this.passwordResetTokens.entries())
-      .filter(([_, token]) => token.expiresAt <= now);
-    
+    const expiredTokens = Array.from(this.passwordResetTokens.entries()).filter(
+      ([_, token]) => token.expiresAt <= now
+    );
+
     expiredTokens.forEach(([id, _]) => {
       this.passwordResetTokens.delete(id);
     });
-    
+
     return expiredTokens.length;
   }
 
@@ -3138,7 +3168,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Demand;
-    
+
     return demand;
   }
 
@@ -3181,7 +3211,7 @@ export class MemStorage implements IStorage {
       ..._comment,
       createdAt: new Date(),
     } as DemandComment;
-    
+
     return comment;
   }
 
@@ -3195,39 +3225,30 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
-  async deleteDemandComment(
-    _id: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<boolean> {
+  async deleteDemandComment(_id: string, _userId: string, _userRole: string): Promise<boolean> {
     // Return false for now
     return false;
   }
 
   // Bug operations implementation
-  async getBugsForUser(
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<Bug[]> {
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
     const allBugs = Array.from(this.bugs.values());
-    
+
     if (userRole === 'admin') {
       return allBugs;
     }
-    
+
     if (userRole === 'manager' && organizationId) {
       // For managers, return bugs from users in their organization
-      const orgUsers = Array.from(this.users.values())
-        .filter(user => {
-          // Assuming users have organizationId - might need to be adjusted based on schema
-          return true; // For now, return all bugs for managers
-        });
+      const orgUsers = Array.from(this.users.values()).filter((user) => {
+        // Assuming users have organizationId - might need to be adjusted based on schema
+        return true; // For now, return all bugs for managers
+      });
       return allBugs;
     }
-    
+
     // For residents and tenants, return only their own bugs
-    return allBugs.filter(bug => bug.createdBy === userId);
+    return allBugs.filter((bug) => bug.createdBy === userId);
   }
 
   async getBug(
@@ -3237,16 +3258,18 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<Bug | undefined> {
     const bug = this.bugs.get(id);
-    if (!bug) {return undefined;}
-    
+    if (!bug) {
+      return undefined;
+    }
+
     if (userRole === 'admin') {
       return bug;
     }
-    
+
     if (userRole === 'manager') {
       return bug; // Managers can see all bugs for now
     }
-    
+
     // Residents and tenants can only see their own bugs
     return bug.createdBy === userId ? bug : undefined;
   }
@@ -3254,7 +3277,7 @@ export class MemStorage implements IStorage {
   async createBug(bugData: InsertBug): Promise<Bug> {
     const id = randomUUID();
     const now = new Date();
-    
+
     const bug: Bug = {
       id,
       ...bugData,
@@ -3266,7 +3289,7 @@ export class MemStorage implements IStorage {
       createdAt: now,
       updatedAt: now,
     };
-    
+
     this.bugs.set(id, bug);
     return bug;
   }
@@ -3278,36 +3301,36 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<Bug | undefined> {
     const bug = this.bugs.get(id);
-    if (!bug) {return undefined;}
-    
+    if (!bug) {
+      return undefined;
+    }
+
     // Only admins and managers can update bugs
     if (userRole !== 'admin' && userRole !== 'manager') {
       return undefined;
     }
-    
+
     const updatedBug: Bug = {
       ...bug,
       ...updates,
       updatedAt: new Date(),
     };
-    
+
     this.bugs.set(id, updatedBug);
     return updatedBug;
   }
 
-  async deleteBug(
-    id: string,
-    userId: string,
-    userRole: string
-  ): Promise<boolean> {
+  async deleteBug(id: string, userId: string, userRole: string): Promise<boolean> {
     const bug = this.bugs.get(id);
-    if (!bug) {return false;}
-    
+    if (!bug) {
+      return false;
+    }
+
     // Only admins can delete bugs
     if (userRole !== 'admin') {
       return false;
     }
-    
+
     this.bugs.delete(id);
     return true;
   }
@@ -3319,16 +3342,16 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<FeatureRequest[]> {
     const allFeatureRequests = Array.from(this.featureRequests.values());
-    
+
     // All users can see all feature requests, but admin role determines if they can see who submitted
     if (userRole === 'admin') {
       return allFeatureRequests;
     }
-    
+
     // For non-admin users, hide the createdBy field by setting it to null in the returned data
-    return allFeatureRequests.map(request => ({
+    return allFeatureRequests.map((request) => ({
       ...request,
-      createdBy: userRole === 'admin' ? request.createdBy : null as any
+      createdBy: userRole === 'admin' ? request.createdBy : (null as any),
     }));
   }
 
@@ -3339,24 +3362,26 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<FeatureRequest | undefined> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) {return undefined;}
-    
+    if (!featureRequest) {
+      return undefined;
+    }
+
     // All users can see any feature request
     if (userRole === 'admin') {
       return featureRequest;
     }
-    
+
     // For non-admin users, hide the createdBy field
     return {
       ...featureRequest,
-      createdBy: null as any
+      createdBy: null as any,
     };
   }
 
   async createFeatureRequest(featureRequestData: InsertFeatureRequest): Promise<FeatureRequest> {
     const id = randomUUID();
     const now = new Date();
-    
+
     const featureRequest: FeatureRequest = {
       id,
       ...featureRequestData,
@@ -3370,7 +3395,7 @@ export class MemStorage implements IStorage {
       createdAt: now,
       updatedAt: now,
     };
-    
+
     this.featureRequests.set(id, featureRequest);
     return featureRequest;
   }
@@ -3382,72 +3407,75 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<FeatureRequest | undefined> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) {return undefined;}
-    
+    if (!featureRequest) {
+      return undefined;
+    }
+
     // Only admins can update feature requests
     if (userRole !== 'admin') {
       return undefined;
     }
-    
+
     const updatedFeatureRequest: FeatureRequest = {
       ...featureRequest,
       ...updates,
       updatedAt: new Date(),
     };
-    
+
     this.featureRequests.set(id, updatedFeatureRequest);
     return updatedFeatureRequest;
   }
 
-  async deleteFeatureRequest(
-    id: string,
-    userId: string,
-    userRole: string
-  ): Promise<boolean> {
+  async deleteFeatureRequest(id: string, userId: string, userRole: string): Promise<boolean> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) {return false;}
-    
+    if (!featureRequest) {
+      return false;
+    }
+
     // Only admins can delete feature requests
     if (userRole !== 'admin') {
       return false;
     }
-    
+
     // Also delete all upvotes for this feature request
     const upvotesToDelete = Array.from(this.featureRequestUpvotes.entries())
       .filter(([_, upvote]) => upvote.featureRequestId === id)
       .map(([upvoteId, _]) => upvoteId);
-    
-    upvotesToDelete.forEach(upvoteId => {
+
+    upvotesToDelete.forEach((upvoteId) => {
       this.featureRequestUpvotes.delete(upvoteId);
     });
-    
+
     this.featureRequests.delete(id);
     return true;
   }
 
-  async upvoteFeatureRequest(upvoteData: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}> {
+  async upvoteFeatureRequest(
+    upvoteData: InsertFeatureRequestUpvote
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     const { featureRequestId, userId } = upvoteData;
-    
+
     // Check if feature request exists
     const featureRequest = this.featureRequests.get(featureRequestId);
     if (!featureRequest) {
       return {
         success: false,
-        message: 'Feature request not found'
+        message: 'Feature request not found',
       };
     }
-    
+
     // Check if user has already upvoted this feature request
-    const existingUpvote = Array.from(this.featureRequestUpvotes.values())
-      .find(upvote => upvote.featureRequestId === featureRequestId && upvote.userId === userId);
-    
+    const existingUpvote = Array.from(this.featureRequestUpvotes.values()).find(
+      (upvote) => upvote.featureRequestId === featureRequestId && upvote.userId === userId
+    );
+
     if (existingUpvote) {
       return {
         success: false,
-        message: 'You have already upvoted this feature request'
+        message: 'You have already upvoted this feature request',
       };
     }
-    
+
     // Create the upvote
     const upvoteId = randomUUID();
     const upvote: FeatureRequestUpvote = {
@@ -3455,69 +3483,73 @@ export class MemStorage implements IStorage {
       ...upvoteData,
       createdAt: new Date(),
     };
-    
+
     this.featureRequestUpvotes.set(upvoteId, upvote);
-    
+
     // Update the upvote count on the feature request
     const updatedFeatureRequest: FeatureRequest = {
       ...featureRequest,
       upvoteCount: featureRequest.upvoteCount + 1,
       updatedAt: new Date(),
     };
-    
+
     this.featureRequests.set(featureRequestId, updatedFeatureRequest);
-    
+
     return {
       success: true,
       message: 'Feature request upvoted successfully',
       data: {
         upvote,
-        featureRequest: updatedFeatureRequest
-      }
+        featureRequest: updatedFeatureRequest,
+      },
     };
   }
 
-  async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{success: boolean; message: string; data?: any}> {
+  async removeFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     // Check if feature request exists
     const featureRequest = this.featureRequests.get(featureRequestId);
     if (!featureRequest) {
       return {
         success: false,
-        message: 'Feature request not found'
+        message: 'Feature request not found',
       };
     }
-    
+
     // Find the upvote to remove
-    const upvoteEntry = Array.from(this.featureRequestUpvotes.entries())
-      .find(([_, upvote]) => upvote.featureRequestId === featureRequestId && upvote.userId === userId);
-    
+    const upvoteEntry = Array.from(this.featureRequestUpvotes.entries()).find(
+      ([_, upvote]) => upvote.featureRequestId === featureRequestId && upvote.userId === userId
+    );
+
     if (!upvoteEntry) {
       return {
         success: false,
-        message: 'You have not upvoted this feature request'
+        message: 'You have not upvoted this feature request',
       };
     }
-    
+
     const [upvoteId, upvote] = upvoteEntry;
-    
+
     // Remove the upvote
     this.featureRequestUpvotes.delete(upvoteId);
-    
+
     // Update the upvote count on the feature request
     const updatedFeatureRequest: FeatureRequest = {
       ...featureRequest,
       upvoteCount: Math.max(0, featureRequest.upvoteCount - 1),
       updatedAt: new Date(),
     };
-    
+
     this.featureRequests.set(featureRequestId, updatedFeatureRequest);
-    
+
     return {
       success: true,
       message: 'Upvote removed successfully',
       data: {
-        featureRequest: updatedFeatureRequest
-      }
+        featureRequest: updatedFeatureRequest,
+      },
     };
   }
 }
@@ -3526,6 +3558,4 @@ export class MemStorage implements IStorage {
 import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
 // Use OptimizedDatabaseStorage for persistent storage with performance enhancements
-export const storage = process.env.DATABASE_URL
-  ? new OptimizedDatabaseStorage()
-  : new MemStorage();
+export const storage = process.env.DATABASE_URL ? new OptimizedDatabaseStorage() : new MemStorage();

@@ -1,16 +1,15 @@
-import {
-  LogOut,
-  ChevronDown,
-  ChevronRight,
-  X,
-} from 'lucide-react';
+import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import koveoLogo from '@/assets/koveo-logo.jpg';
-import { getFilteredNavigation, type NavigationSection, type NavigationItem } from '@/config/navigation';
+import {
+  getFilteredNavigation,
+  type NavigationSection,
+  type NavigationItem,
+} from '@/config/navigation';
 
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
 
@@ -73,17 +72,17 @@ export function Sidebar() {
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section._key);
-    
+
     // Translation mapping for section names
     const getTranslatedSectionName = (name: string) => {
       const translations: Record<string, { fr: string; en: string }> = {
-        'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
-        'Residents': { fr: 'Résidents', en: 'Residents' },
-        'Manager': { fr: 'Gestionnaire', en: 'Manager' },
-        'Admin': { fr: 'Administration', en: 'Admin' },
-        'Settings': { fr: 'Paramètres', en: 'Settings' },
+        Dashboard: { fr: 'Tableau de bord', en: 'Dashboard' },
+        Residents: { fr: 'Résidents', en: 'Residents' },
+        Manager: { fr: 'Gestionnaire', en: 'Manager' },
+        Admin: { fr: 'Administration', en: 'Admin' },
+        Settings: { fr: 'Paramètres', en: 'Settings' },
       };
-      
+
       const translation = translations[name];
       return translation ? translation[language] : name;
     };
@@ -92,8 +91,8 @@ export function Sidebar() {
       <button
         onClick={() => toggleMenu(section._key)}
         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
-          isExpanded 
-            ? 'bg-koveo-light text-koveo-navy shadow-sm' 
+          isExpanded
+            ? 'bg-koveo-light text-koveo-navy shadow-sm'
             : 'text-gray-600 hover:bg-gray-100'
         }`}
       >
@@ -109,37 +108,37 @@ export function Sidebar() {
   const renderMenuItem = (item: NavigationItem) => {
     const ItemIcon = item.icon;
     const isActive = location === item.href;
-    
+
     // Translation mapping for navigation items
     const getTranslatedName = (name: string) => {
       const translations: Record<string, { fr: string; en: string }> = {
-        'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
+        Dashboard: { fr: 'Tableau de bord', en: 'Dashboard' },
         'Quick Actions': { fr: 'Actions Rapides', en: 'Quick Actions' },
-        'Calendar': { fr: 'Calendrier', en: 'Calendar' },
+        Calendar: { fr: 'Calendrier', en: 'Calendar' },
         'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
         'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
         'My Demands': { fr: 'Mes demandes', en: 'My Demands' },
-        'Buildings': { fr: 'Bâtiments', en: 'Buildings' },
-        'Residences': { fr: 'Résidences', en: 'Residences' },
-        'Budget': { fr: 'Budget', en: 'Budget' },
-        'Bills': { fr: 'Factures', en: 'Bills' },
-        'Demands': { fr: 'Demandes', en: 'Demands' },
+        Buildings: { fr: 'Bâtiments', en: 'Buildings' },
+        Residences: { fr: 'Résidences', en: 'Residences' },
+        Budget: { fr: 'Budget', en: 'Budget' },
+        Bills: { fr: 'Factures', en: 'Bills' },
+        Demands: { fr: 'Demandes', en: 'Demands' },
         'User Management': { fr: 'Gestion des utilisateurs', en: 'User Management' },
-        'Organizations': { fr: 'Organisations', en: 'Organizations' },
-        'Documentation': { fr: 'Documentation', en: 'Documentation' },
-        'Pillars': { fr: 'Piliers', en: 'Pillars' },
-        'Roadmap': { fr: 'Feuille de route', en: 'Roadmap' },
+        Organizations: { fr: 'Organisations', en: 'Organizations' },
+        Documentation: { fr: 'Documentation', en: 'Documentation' },
+        Pillars: { fr: 'Piliers', en: 'Pillars' },
+        Roadmap: { fr: 'Feuille de route', en: 'Roadmap' },
         'Quality Assurance': { fr: 'Assurance qualité', en: 'Quality Assurance' },
         'Law 25 Compliance': { fr: 'Conformité Loi 25', en: 'Law 25 Compliance' },
-        'Suggestions': { fr: 'Suggestions', en: 'Suggestions' },
+        Suggestions: { fr: 'Suggestions', en: 'Suggestions' },
         'RBAC Permissions': { fr: 'Permissions RBAC', en: 'RBAC Permissions' },
-        'Settings': { fr: 'Paramètres', en: 'Settings' },
+        Settings: { fr: 'Paramètres', en: 'Settings' },
         'Bug Reports': { fr: 'Rapports de bogues', en: 'Bug Reports' },
         'Idea Box': { fr: 'Boîte à idées', en: 'Idea Box' },
         'Common Spaces': { fr: 'Espaces Communs', en: 'Common Spaces' },
         'Manage Common Spaces': { fr: 'Gestion Espaces Communs', en: 'Manage Common Spaces' },
       };
-      
+
       const translation = translations[name];
       return translation ? translation[language] : name;
     };
@@ -161,7 +160,6 @@ export function Sidebar() {
     );
   };
 
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -179,41 +177,39 @@ export function Sidebar() {
     <>
       {/* Mobile backdrop */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        <div
+          className='fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden'
           onClick={closeMobileMenu}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside className={`
+      <aside
+        className={`
         fixed md:static inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out
         md:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      `}
+      >
         {/* Logo Header */}
         <div className='p-6 border-b border-gray-200'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center space-x-3'>
-              <Link href="/dashboard/quick-actions" onClick={handleNavItemClick}>
-                <div className="h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src={koveoLogo} 
-                    alt="Koveo Gestion" 
-                    className="h-10 w-auto object-contain"
-                  />
+              <Link href='/dashboard/quick-actions' onClick={handleNavItemClick}>
+                <div className='h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity'>
+                  <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-auto object-contain' />
                 </div>
               </Link>
             </div>
             {/* Mobile close button */}
             <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
+              variant='ghost'
+              size='sm'
+              className='md:hidden'
               onClick={closeMobileMenu}
-              aria-label="Close navigation menu"
+              aria-label='Close navigation menu'
             >
-              <X className="h-6 w-6" />
+              <X className='h-6 w-6' />
             </Button>
           </div>
         </div>
@@ -221,16 +217,18 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className='flex-1 px-6 py-4'>
           {/* Navigation sections */}
-          <div className='space-y-1'>{menuSections.map((section) => (
-            <div key={section._key}>
-              {renderMenuButton(section)}
-              {expandedMenus.includes(section._key) && (
-                <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
-                  {section.items.map((item) => renderMenuItem(item))}
-                </div>
-              )}
-            </div>
-          ))}</div>
+          <div className='space-y-1'>
+            {menuSections.map((section) => (
+              <div key={section._key}>
+                {renderMenuButton(section)}
+                {expandedMenus.includes(section._key) && (
+                  <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
+                    {section.items.map((item) => renderMenuItem(item))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* Logout Button */}
           <div className='mt-6 pt-4 border-t border-gray-200'>
@@ -248,17 +246,16 @@ export function Sidebar() {
         <div className='p-6 border-t border-gray-200'>
           <div className='flex items-center space-x-3'>
             <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
-              <span className="text-white text-sm font-medium">
-                {user?.firstName?.charAt(0).toUpperCase()}{user?.lastName?.charAt(0).toUpperCase()}
+              <span className='text-white text-sm font-medium'>
+                {user?.firstName?.charAt(0).toUpperCase()}
+                {user?.lastName?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
               <p className='text-sm font-medium text-gray-900'>
                 {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
               </p>
-              <p className='text-xs text-gray-500'>
-                {user?.role || 'User'}
-              </p>
+              <p className='text-xs text-gray-500'>{user?.role || 'User'}</p>
             </div>
           </div>
         </div>

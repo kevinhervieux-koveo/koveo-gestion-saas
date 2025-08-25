@@ -69,14 +69,14 @@ interface DocumentationData {
  * Owner documentation center page for generating and managing project documentation.
  * Provides comprehensive documentation generation, export capabilities for Google Suite,
  * LLM-optimized documentation, and automatic refresh functionality for development environments.
- * 
+ *
  * Features:
  * - Real-time documentation generation
  * - Google Suite export (DOCX, XLSX formats)
  * - LLM-optimized documentation for AI processing
  * - Auto-refresh in Replit environment
  * - Manual refresh capabilities.
- * 
+ *
  * @returns {JSX.Element} Rendered documentation center with export and generation tools.
  */
 export default function OwnerDocumentation() {
@@ -332,7 +332,7 @@ export default function OwnerDocumentation() {
     try {
       // Generate comprehensive LLM documentation
       const llmDoc = generateComprehensiveLLMDocumentation(docData);
-      
+
       // Create and download the text file
       const blob = new Blob([llmDoc], { type: 'text/plain;charset=utf-8' });
       const filename = `koveo-gestion-llm-documentation-${new Date().toISOString().split('T')[0]}.txt`;
@@ -340,7 +340,8 @@ export default function OwnerDocumentation() {
 
       toast({
         title: 'LLM Documentation Exported',
-        description: 'Comprehensive documentation for AI processing has been downloaded as a text file.',
+        description:
+          'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
     } catch (_error) {
       toast({
@@ -1189,7 +1190,6 @@ ACCESSIBILITY_COMPLIANCE: WCAG 2.1 AA Certified`;
     URL.revokeObjectURL(url);
   };
 
-
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
@@ -1203,7 +1203,9 @@ ACCESSIBILITY_COMPLIANCE: WCAG 2.1 AA Certified`;
           <div className='flex items-center gap-2 text-sm text-gray-600'>
             <Terminal className='h-4 w-4' />
             <span className='font-medium'>Refresh Command:</span>
-            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>npm run docs:generate</code>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              npm run docs:generate
+            </code>
           </div>
         </div>
       </div>
@@ -1214,7 +1216,10 @@ ACCESSIBILITY_COMPLIANCE: WCAG 2.1 AA Certified`;
           <div className='flex items-center gap-4 text-gray-600'>
             <div className='flex items-center gap-2'>
               <Clock className='h-4 w-4' />
-              <span>Last updated: {lastRefresh.toLocaleDateString()} at {lastRefresh.toLocaleTimeString()}</span>
+              <span>
+                Last updated: {lastRefresh.toLocaleDateString()} at{' '}
+                {lastRefresh.toLocaleTimeString()}
+              </span>
             </div>
             {isAutoRefreshing && (
               <div className='flex items-center gap-2 text-blue-600'>
@@ -1405,7 +1410,6 @@ ACCESSIBILITY_COMPLIANCE: WCAG 2.1 AA Certified`;
               </CardContent>
             </Card>
           </div>
-
 
           {isLoading && (
             <Card>

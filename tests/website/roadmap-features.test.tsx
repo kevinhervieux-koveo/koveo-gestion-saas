@@ -6,7 +6,7 @@ import HomePage from '@/pages/home';
 
 /**
  * Roadmap Features Presentation Tests.
- * 
+ *
  * Ensures that completed features from the roadmap are properly presented
  * on the website and accurately represent the platform capabilities.
  */
@@ -16,9 +16,15 @@ import HomePage from '@/pages/home';
  * @param root0
  * @param root0.children
  * @param root0.initialLocation
-  * @returns Function result.
-*/
-function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
+ * @returns Function result.
+ */
+function TestProviders({
+  children,
+  initialLocation = '/',
+}: {
+  children: React.ReactNode;
+  initialLocation?: string;
+}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -28,9 +34,7 @@ function TestProviders({ children, initialLocation = '/' }: { children: React.Re
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialLocation]}>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter initialEntries={[initialLocation]}>{children}</MemoryRouter>
     </QueryClientProvider>
   );
 }
@@ -82,7 +86,9 @@ describe('Roadmap Features Presentation Tests', () => {
       );
 
       expect(screen.getByText(/Building Management/i)).toBeInTheDocument();
-      expect(screen.getByText(/building oversight.*maintenance.*resident.*compliance/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/building oversight.*maintenance.*resident.*compliance/i)
+      ).toBeInTheDocument();
     });
 
     it('should showcase resident portal features', () => {
@@ -93,7 +99,9 @@ describe('Roadmap Features Presentation Tests', () => {
       );
 
       expect(screen.getByText(/Resident Portal/i)).toBeInTheDocument();
-      expect(screen.getByText(/self.*service.*portal.*bills.*requests.*communicate/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/self.*service.*portal.*bills.*requests.*communicate/i)
+      ).toBeInTheDocument();
     });
 
     it('should highlight financial reporting capabilities', () => {
@@ -104,7 +112,9 @@ describe('Roadmap Features Presentation Tests', () => {
       );
 
       expect(screen.getByText(/Financial Reporting/i)).toBeInTheDocument();
-      expect(screen.getByText(/financial.*analytics.*budget.*Quebec.*compliant.*reporting/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/financial.*analytics.*budget.*Quebec.*compliant.*reporting/i)
+      ).toBeInTheDocument();
     });
 
     it('should emphasize Quebec compliance features', () => {
@@ -115,7 +125,9 @@ describe('Roadmap Features Presentation Tests', () => {
       );
 
       expect(screen.getByText(/Quebec Compliance/i)).toBeInTheDocument();
-      expect(screen.getByText(/Quebec Law 25.*property.*management.*regulations.*data.*protection/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Quebec Law 25.*property.*management.*regulations.*data.*protection/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -123,31 +135,31 @@ describe('Roadmap Features Presentation Tests', () => {
     const expectedBenefits = [
       {
         title: /Quebec Law 25 Compliant/i,
-        description: /privacy.*data.*protection.*regulations/i
+        description: /privacy.*data.*protection.*regulations/i,
       },
       {
         title: /Bilingual Support/i,
-        description: /French.*English.*language.*support/i
+        description: /French.*English.*language.*support/i,
       },
       {
         title: /Role.*Based Access/i,
-        description: /access.*controls.*owners.*managers.*residents/i
+        description: /access.*controls.*owners.*managers.*residents/i,
       },
       {
         title: /Cloud.*Based Security/i,
-        description: /Enterprise.*grade.*security.*automatic.*backups.*updates/i
+        description: /Enterprise.*grade.*security.*automatic.*backups.*updates/i,
       },
       {
         title: /Mobile Responsive/i,
-        description: /Access.*property.*management.*tools.*device.*anywhere/i
+        description: /Access.*property.*management.*tools.*device.*anywhere/i,
       },
       {
         title: /Expert Support/i,
-        description: /support.*team.*Quebec.*property.*management.*expertise/i
-      }
+        description: /support.*team.*Quebec.*property.*management.*expertise/i,
+      },
     ];
 
-    expectedBenefits.forEach(benefit => {
+    expectedBenefits.forEach((benefit) => {
       it(`should display ${benefit.title.source} benefit`, () => {
         render(
           <TestProviders>
@@ -170,7 +182,7 @@ describe('Roadmap Features Presentation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should mention key technology aspects without overselling
       expect(pageContent).toMatch(/comprehensive.*property.*management/i);
       expect(pageContent).toMatch(/secure.*platform/i);
@@ -201,7 +213,7 @@ describe('Roadmap Features Presentation Tests', () => {
 
       // Features should be presented as integrated, not standalone
       expect(screen.getByText(/Everything You Need to Manage Properties/i)).toBeInTheDocument();
-      
+
       const pageContent = document.body.textContent || '';
       expect(pageContent).toMatch(/built.*for.*property.*owners.*managers.*residents/i);
     });
@@ -230,8 +242,10 @@ describe('Roadmap Features Presentation Tests', () => {
       // Must prominently display Law 25 compliance
       const law25Elements = screen.getAllByText(/Quebec Law 25/i);
       expect(law25Elements.length).toBeGreaterThan(1); // Should appear in multiple places
-      
-      expect(screen.getByText(/Full compliance.*Quebec.*privacy.*data protection/i)).toBeInTheDocument();
+
+      expect(
+        screen.getByText(/Full compliance.*Quebec.*privacy.*data protection/i)
+      ).toBeInTheDocument();
     });
 
     it('should show data protection guarantees', () => {
@@ -302,26 +316,26 @@ describe('Roadmap Features Presentation Tests', () => {
 export const IMPLEMENTED_FEATURES = {
   // Phase 1: Pillar Automation Engine (Complete)
   validation: 'Quality Assurance',
-  antiWorkaround: 'Best Practices', 
+  antiWorkaround: 'Best Practices',
   documentation: 'Knowledge Transfer',
   roadmap: 'Work Breakdown',
   continuousImprovement: 'Continuous Improvement',
-  
+
   // Core Features (Implemented)
   buildingManagement: 'Building Management',
-  residentPortal: 'Resident Portal', 
+  residentPortal: 'Resident Portal',
   financialReporting: 'Financial Reporting',
   quebecCompliance: 'Quebec Compliance',
-  
+
   // User Experience
   bilingualSupport: 'Bilingual Support',
   roleBasedAccess: 'Role-Based Access',
   mobileResponsive: 'Mobile Responsive',
-  
+
   // Security & Compliance
   enterpriseSecurity: 'Enterprise-grade security',
   law25Compliance: 'Quebec Law 25 compliance',
-  dataProtection: 'Data protection guaranteed'
+  dataProtection: 'Data protection guaranteed',
 };
 
 /**
@@ -331,7 +345,7 @@ export const IMPLEMENTED_FEATURES = {
  */
 export function validateFeaturePresentation(featureName: string, element: HTMLElement): boolean {
   const content = element.textContent || '';
-  return Object.values(IMPLEMENTED_FEATURES).some(feature => 
+  return Object.values(IMPLEMENTED_FEATURES).some((feature) =>
     content.toLowerCase().includes(feature.toLowerCase())
   );
 }

@@ -47,7 +47,7 @@ describe('Buildings Management Unit Tests', () => {
   describe('Building Data Validation', () => {
     it('should validate required building fields', () => {
       const validBuilding = mockBuildings[0];
-      
+
       expect(validBuilding.name).toBeDefined();
       expect(validBuilding.name.length).toBeGreaterThan(0);
       expect(validBuilding.organizationId).toBeDefined();
@@ -56,7 +56,7 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should handle optional numeric fields correctly', () => {
       const buildingWithZeros = mockBuildings[1];
-      
+
       expect(buildingWithZeros.parkingSpaces).toBe(0);
       expect(buildingWithZeros.storageSpaces).toBe(0);
       expect(typeof buildingWithZeros.parkingSpaces).toBe('number');
@@ -65,8 +65,8 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should validate Quebec postal codes', () => {
       const quebecPostalCodePattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
-      
-      mockBuildings.forEach(building => {
+
+      mockBuildings.forEach((building) => {
         if (building.postalCode) {
           expect(building.postalCode).toMatch(quebecPostalCodePattern);
         }
@@ -75,34 +75,34 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should validate building types', () => {
       const validTypes = ['condo', 'rental'];
-      
-      mockBuildings.forEach(building => {
+
+      mockBuildings.forEach((building) => {
         expect(validTypes).toContain(building.buildingType);
       });
     });
 
     it('should validate numeric field ranges', () => {
-      mockBuildings.forEach(building => {
+      mockBuildings.forEach((building) => {
         if (building.yearBuilt) {
           expect(building.yearBuilt).toBeGreaterThanOrEqual(1800);
           expect(building.yearBuilt).toBeLessThanOrEqual(new Date().getFullYear() + 5);
         }
-        
+
         if (building.totalUnits) {
           expect(building.totalUnits).toBeGreaterThanOrEqual(0);
           expect(building.totalUnits).toBeLessThanOrEqual(10000);
         }
-        
+
         if (building.totalFloors) {
           expect(building.totalFloors).toBeGreaterThanOrEqual(1);
           expect(building.totalFloors).toBeLessThanOrEqual(200);
         }
-        
+
         if (building.parkingSpaces !== undefined) {
           expect(building.parkingSpaces).toBeGreaterThanOrEqual(0);
           expect(building.parkingSpaces).toBeLessThanOrEqual(50000);
         }
-        
+
         if (building.storageSpaces !== undefined) {
           expect(building.storageSpaces).toBeGreaterThanOrEqual(0);
           expect(building.storageSpaces).toBeLessThanOrEqual(50000);
@@ -114,11 +114,12 @@ describe('Buildings Management Unit Tests', () => {
   describe('Building Search Functionality', () => {
     const searchBuildings = (buildings: typeof mockBuildings, searchTerm: string) => {
       const term = searchTerm.toLowerCase();
-      return buildings.filter(building => 
-        building.name.toLowerCase().includes(term) ||
-        building.address.toLowerCase().includes(term) ||
-        building.city.toLowerCase().includes(term) ||
-        building.organizationName.toLowerCase().includes(term)
+      return buildings.filter(
+        (building) =>
+          building.name.toLowerCase().includes(term) ||
+          building.address.toLowerCase().includes(term) ||
+          building.city.toLowerCase().includes(term) ||
+          building.organizationName.toLowerCase().includes(term)
       );
     };
 
@@ -211,39 +212,63 @@ describe('Buildings Management Unit Tests', () => {
   describe('Building Form Validation', () => {
     const validateBuildingForm = (formData: any) => {
       const errors: string[] = [];
-      
+
       if (!formData || !formData.name || formData.name.trim().length === 0) {
         errors.push('Building name is required');
       }
-      
+
       if (!formData || !formData.organizationId || formData.organizationId.trim().length === 0) {
         errors.push('Organization is required');
       }
-      
-      if (formData && formData.postalCode && !/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/.test(formData.postalCode)) {
+
+      if (
+        formData &&
+        formData.postalCode &&
+        !/^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/.test(formData.postalCode)
+      ) {
         errors.push('Invalid postal code format');
       }
-      
-      if (formData && formData.yearBuilt !== undefined && (formData.yearBuilt < 1800 || formData.yearBuilt > new Date().getFullYear() + 5)) {
+
+      if (
+        formData &&
+        formData.yearBuilt !== undefined &&
+        (formData.yearBuilt < 1800 || formData.yearBuilt > new Date().getFullYear() + 5)
+      ) {
         errors.push('Invalid year built');
       }
-      
-      if (formData && formData.totalUnits !== undefined && (formData.totalUnits < 0 || formData.totalUnits > 10000)) {
+
+      if (
+        formData &&
+        formData.totalUnits !== undefined &&
+        (formData.totalUnits < 0 || formData.totalUnits > 10000)
+      ) {
         errors.push('Invalid total units');
       }
-      
-      if (formData && formData.totalFloors !== undefined && (formData.totalFloors < 1 || formData.totalFloors > 200)) {
+
+      if (
+        formData &&
+        formData.totalFloors !== undefined &&
+        (formData.totalFloors < 1 || formData.totalFloors > 200)
+      ) {
         errors.push('Invalid total floors');
       }
-      
-      if (formData && formData.parkingSpaces !== undefined && (formData.parkingSpaces < 0 || formData.parkingSpaces > 50000)) {
+
+      if (
+        formData &&
+        formData.parkingSpaces !== undefined &&
+        (formData.parkingSpaces < 0 || formData.parkingSpaces > 50000)
+      ) {
         errors.push('Invalid parking spaces');
       }
-      
-      if (formData && formData.storageSpaces !== undefined && (formData.storageSpaces < 0 || formData.storageSpaces > 50000)) {
+
+      if (
+        formData &&
+        formData.storageSpaces !== undefined &&
+        (formData.storageSpaces < 0 || formData.storageSpaces > 50000)
+      ) {
         errors.push('Invalid storage spaces');
       }
-      
+
       return { isValid: errors.length === 0, errors };
     };
 
@@ -262,7 +287,7 @@ describe('Buildings Management Unit Tests', () => {
         parkingSpaces: 30,
         storageSpaces: 25,
       };
-      
+
       const result = validateBuildingForm(validForm);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -273,7 +298,7 @@ describe('Buildings Management Unit Tests', () => {
         address: '123 Test Street',
         city: 'Montreal',
       };
-      
+
       const result = validateBuildingForm(invalidForm);
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Building name is required');
@@ -287,7 +312,7 @@ describe('Buildings Management Unit Tests', () => {
         parkingSpaces: 0,
         storageSpaces: 0,
       };
-      
+
       const result = validateBuildingForm(formWithZeros);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -295,14 +320,14 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should reject invalid postal codes', () => {
       const invalidPostalCodes = ['12345', 'ABC123', 'H3A1A', 'H3A 1A12'];
-      
-      invalidPostalCodes.forEach(postalCode => {
+
+      invalidPostalCodes.forEach((postalCode) => {
         const form = {
           name: 'Test Building',
           organizationId: 'org-123',
           postalCode,
         };
-        
+
         const result = validateBuildingForm(form);
         expect(result.isValid).toBe(false);
         expect(result.errors).toContain('Invalid postal code format');
@@ -322,14 +347,14 @@ describe('Buildings Management Unit Tests', () => {
         { field: 'storageSpaces', _value: -1, _error: 'Invalid storage spaces' },
         { field: 'storageSpaces', _value: 50001, _error: 'Invalid storage spaces' },
       ];
-      
+
       invalidData.forEach(({ field, value, error }) => {
         const form = {
           name: 'Test Building',
           organizationId: 'org-123',
           [field]: value,
         };
-        
+
         const result = validateBuildingForm(form);
         expect(result.isValid).toBe(false);
         expect(result.errors).toContain(_error);
@@ -346,7 +371,7 @@ describe('Buildings Management Unit Tests', () => {
         province: 'QC',
         organizationName: 'Gestion Immobilière Québécoise',
       };
-      
+
       expect(frenchBuilding.name).toContain('Résidence');
       expect(frenchBuilding.address).toContain('Cathédrale');
       expect(frenchBuilding.city).toBe('Québec');
@@ -356,8 +381,8 @@ describe('Buildings Management Unit Tests', () => {
     it('should validate Quebec postal code pattern', () => {
       const quebecPostalCodes = ['H3A 1A1', 'G1R 2B5', 'J5A 1B2', 'K1A 0A6'];
       const quebecPattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
-      
-      quebecPostalCodes.forEach(postalCode => {
+
+      quebecPostalCodes.forEach((postalCode) => {
         expect(postalCode).toMatch(quebecPattern);
       });
     });
@@ -369,8 +394,8 @@ describe('Buildings Management Unit Tests', () => {
         'Boulevard René-Lévesque',
         'Chemin de la Côte-Sainte-Catherine',
       ];
-      
-      quebecAddresses.forEach(address => {
+
+      quebecAddresses.forEach((address) => {
         expect(address).toBeDefined();
         expect(address.length).toBeGreaterThan(0);
         // Should contain French characters or hyphens
@@ -380,7 +405,7 @@ describe('Buildings Management Unit Tests', () => {
   });
 
   describe('Data Transformation and Display', () => {
-    const formatBuildingDisplay = (building: typeof mockBuildings[0]) => {
+    const formatBuildingDisplay = (building: (typeof mockBuildings)[0]) => {
       return {
         title: building.name,
         subtitle: `${building.address}, ${building.city}`,
@@ -397,7 +422,7 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should format building display correctly', () => {
       const formatted = formatBuildingDisplay(mockBuildings[0]);
-      
+
       expect(formatted.title).toBe('Maple Heights');
       expect(formatted.subtitle).toBe('123 Rue Sainte-Catherine, Montreal');
       expect(formatted.details).toContain('Condominium');
@@ -410,7 +435,7 @@ describe('Buildings Management Unit Tests', () => {
 
     it('should handle buildings with zero parking and storage', () => {
       const formatted = formatBuildingDisplay(mockBuildings[1]);
-      
+
       expect(formatted.hasParking).toBe(false);
       expect(formatted.hasStorage).toBe(false);
     });
@@ -423,9 +448,9 @@ describe('Buildings Management Unit Tests', () => {
         parkingSpaces: undefined,
         storageSpaces: undefined,
       };
-      
+
       const formatted = formatBuildingDisplay(minimalBuilding as any);
-      
+
       expect(formatted.details).toContain('Units: N/A');
       expect(formatted.details).toContain('Year: N/A');
       expect(formatted.hasParking).toBe(false);
@@ -441,12 +466,12 @@ describe('Buildings Management Unit Tests', () => {
         yearBuilt: 'invalid',
         totalUnits: 'not a number',
       };
-      
+
       // Mock validation function for testing
       const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
-        
+
         if (!typedData.name) {
           errors.push('Building name is required');
         }
@@ -459,10 +484,10 @@ describe('Buildings Management Unit Tests', () => {
         if (typedData.totalUnits && typeof typedData.totalUnits !== 'number') {
           errors.push('Invalid units');
         }
-        
+
         return { isValid: errors.length === 0, errors };
       };
-      
+
       const validation = validateBuildingForm(malformedData);
       expect(validation.isValid).toBe(false);
       expect(validation.errors.length).toBeGreaterThan(0);
@@ -475,22 +500,28 @@ describe('Buildings Management Unit Tests', () => {
         address: '',
         city: '',
       };
-      
+
       // Mock validation function for testing
       const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
-        
-        if (!typedData.name || (typeof typedData.name === 'string' && typedData.name.trim() === '')) {
+
+        if (
+          !typedData.name ||
+          (typeof typedData.name === 'string' && typedData.name.trim() === '')
+        ) {
           errors.push('Building name is required');
         }
-        if (!typedData.organizationId || (typeof typedData.organizationId === 'string' && typedData.organizationId.trim() === '')) {
+        if (
+          !typedData.organizationId ||
+          (typeof typedData.organizationId === 'string' && typedData.organizationId.trim() === '')
+        ) {
           errors.push('Organization is required');
         }
-        
+
         return { isValid: errors.length === 0, errors };
       };
-      
+
       const validation = validateBuildingForm(emptyData);
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('Building name is required');
@@ -505,23 +536,31 @@ describe('Buildings Management Unit Tests', () => {
         totalUnits: Number.MAX_SAFE_INTEGER,
         totalFloors: Number.MAX_SAFE_INTEGER,
       };
-      
+
       // Mock validation function for testing
       const validateBuildingForm = (_data: unknown) => {
         const errors: string[] = [];
         const typedData = data as Record<string, unknown>;
         const currentYear = new Date().getFullYear();
-        
-        if (typedData.yearBuilt && typeof typedData.yearBuilt === 'number' && typedData.yearBuilt > currentYear + 5) {
+
+        if (
+          typedData.yearBuilt &&
+          typeof typedData.yearBuilt === 'number' &&
+          typedData.yearBuilt > currentYear + 5
+        ) {
           errors.push('Year built is too far in the future');
         }
-        if (typedData.totalUnits && typeof typedData.totalUnits === 'number' && typedData.totalUnits > 10000) {
+        if (
+          typedData.totalUnits &&
+          typeof typedData.totalUnits === 'number' &&
+          typedData.totalUnits > 10000
+        ) {
           errors.push('Total units exceeds maximum');
         }
-        
+
         return { isValid: errors.length === 0, errors };
       };
-      
+
       const validation = validateBuildingForm(extremeData);
       expect(validation.isValid).toBe(false);
     });

@@ -18,7 +18,7 @@ export function formatDateForQuebec(date: Date): string {
     timeZone: QUEBEC_TIMEZONE,
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
 }
 

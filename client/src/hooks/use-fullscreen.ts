@@ -11,75 +11,76 @@ import { useState, useEffect, useCallback } from 'react';
  * Use fullscreen function.
  */
 export function /**
-   * Use fullscreen function.
-   */ /**
-   * Use fullscreen function.
-   */
+ * Use fullscreen function.
+ */ /**
+ * Use fullscreen function.
+ */
 
- useFullscreen() {
+useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = useCallback(async () => {
-    try { /**
-   * If function.
-   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-   */
-  /**
-   * If function.
-   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-   */ /**
-   * If function.
-   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-   */
+    try {
+      /**
+       * If function.
+       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+       */
+      /**
+       * If function.
+       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+       */ /**
+       * If function.
+       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+       */
 
-  /**
-   * If function.
-   * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-   */
+      /**
+       * If function.
+       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
+       */
 
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
-    } /**
-   * Catch function.
-   * @param error - Error object.
-   */
-  /**
-   * Catch function.
-   * @param error - Error object.
-   */
-  /**
-   * Catch function.
-   * @param error - Error object.
-   */ /**
-   * Catch function.
-   * @param error - Error object.
-   */
+    } catch (_error) {
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */ /**
+       * Catch function.
+       * @param error - Error object.
+       */
 
-  /**
-   * Catch function.
-   * @param error - Error object.
-   */
-  /**
-   * Catch function.
-   * @param error - Error object.
-   */
- catch (_error) {
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */
       console.error('Error toggling fullscreen:', _error);
     }
   }, []);
 
   const exitFullscreen = useCallback(async () => {
-    try { /**
-   * If function.
-   * @param document.fullscreenElement - Document.fullscreenElement parameter.
-   */ /**
-   * If function.
-   * @param document.fullscreenElement - Document.fullscreenElement parameter.
-   */
-
+    try {
+      /**
+       * If function.
+       * @param document.fullscreenElement - Document.fullscreenElement parameter.
+       */ /**
+       * If function.
+       * @param document.fullscreenElement - Document.fullscreenElement parameter.
+       */
 
       if (document.fullscreenElement) {
         await document.exitFullscreen();
@@ -121,6 +122,6 @@ export function /**
     isFullscreen,
     toggleFullscreen,
     enterFullscreen,
-    exitFullscreen
+    exitFullscreen,
   };
 }

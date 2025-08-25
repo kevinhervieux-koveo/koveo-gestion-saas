@@ -35,11 +35,7 @@ async function throwIfResNotOk(res: Response) {
  * @returns Fetch API Response object.
  * @throws Error if response status is not ok.
  */
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown
-): Promise<Response> {
+export async function apiRequest(method: string, url: string, data?: unknown): Promise<Response> {
   const res = await fetch(url, {
     method,
     headers: data ? { 'Content-Type': 'application/json' } : {},
@@ -77,14 +73,16 @@ export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => Query
     }
 
     await throwIfResNotOk(res);
-    
+
     // Check if response is JSON before parsing
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await res.text();
-      throw new Error(`Expected JSON response but received ${contentType || 'unknown content type'}. Response: ${text.substring(0, 100)}...`);
+      throw new Error(
+        `Expected JSON response but received ${contentType || 'unknown content type'}. Response: ${text.substring(0, 100)}...`
+      );
     }
-    
+
     return await res.json();
   };
 
@@ -105,14 +103,18 @@ export const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
         // Retry authentication and common timing errors
-        if ((error?.message?.includes('401') || 
-             error?.message?.includes('404') ||
-             error?.message?.includes('Authentication required')) && 
-            failureCount < 2) {
+        if (
+          (error?.message?.includes('401') ||
+            error?.message?.includes('404') ||
+            error?.message?.includes('Authentication required')) &&
+          failureCount < 2
+        ) {
           return true;
         }
         // Don't retry other client errors (4xx)
-        if (error?.message?.includes('4')) {return false;}
+        if (error?.message?.includes('4')) {
+          return false;
+        }
         return failureCount < 2;
       },
     },
@@ -128,13 +130,15 @@ export const queryClient = new QueryClient({
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
         // Skip logging authentication timing errors and common API errors to reduce console noise
-        if (error.message.includes('401') || 
-            error.message.includes('Authentication required') ||
-            error.message.includes('404') ||
-            error.message.includes('API endpoint not found')) {
+        if (
+          error.message.includes('401') ||
+          error.message.includes('Authentication required') ||
+          error.message.includes('404') ||
+          error.message.includes('API endpoint not found')
+        ) {
           return; // Authentication timing issues and 404s will be retried automatically
         }
-        
+
         // Provide more helpful error messages for common issues
         if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
           console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);

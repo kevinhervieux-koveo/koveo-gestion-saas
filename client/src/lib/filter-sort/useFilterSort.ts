@@ -11,7 +11,7 @@ import { applyFilterSort } from './utils';
 /**
  * Configuration options for the useFilterSort hook.
  * Defines the data, configuration, and initial state for filter/sort functionality.
- * 
+ *
  * @template T - The type of data items being filtered and sorted.
  */
 interface UseFilterSortOptions<T> {
@@ -23,7 +23,7 @@ interface UseFilterSortOptions<T> {
 /**
  * Return type for the useFilterSort hook.
  * Provides filtered data, state management, and control functions for filter/sort operations.
- * 
+ *
  * @template T - The type of data items being filtered and sorted.
  */
 interface UseFilterSortReturn<T> {
@@ -103,19 +103,8 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
 
   // Load initial state from localStorage if persistence is enabled
   const getInitialState = (): FilterSortState => {
-
-
-
-
-
-
-
-
     if (config.persistState && config.storageKey) {
       const stored = localStorage.getItem(STORAGE_PREFIX + config.storageKey);
-
-
-
 
       if (stored) {
         try {
@@ -151,10 +140,6 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
   const addFilter = useCallback(
     (filter: FilterValue) => {
       setState((prev) => {
-
-
-
-
         if (!config.allowMultipleFilters) {
           // Replace existing filter for the same field
           const otherFilters = prev.filters.filter((f) => f.field !== filter.field);
@@ -192,15 +177,8 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
   const toggleSort = useCallback(
     (field: string) => {
       setState((prev) => {
-
-
-
-
         if (prev.sort?.field === field) {
           // Toggle direction or clear
-
-
-
 
           if (prev.sort.direction === 'asc') {
             return { ...prev, sort: { field, direction: 'desc' } };

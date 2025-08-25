@@ -3,43 +3,43 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 // Mock all dependencies
 jest.mock('../../server/services/ssl_service', () => ({
   createSSLService: jest.fn().mockReturnValue({
-    renewCertificate: jest.fn().mockResolvedValue({ success: true })
+    renewCertificate: jest.fn().mockResolvedValue({ success: true }),
   }),
   getCertificateStatus: jest.fn().mockResolvedValue({
     isValid: true,
-    expiresAt: new Date(Date.now() + 86400000)
-  })
+    expiresAt: new Date(Date.now() + 86400000),
+  }),
 }));
 
 jest.mock('../../server/services/notification_service', () => ({
   notificationService: {
     sendSSLExpiryAlert: jest.fn().mockResolvedValue(true),
     sendSSLRenewalFailureAlert: jest.fn().mockResolvedValue(true),
-    sendSSLRenewalSuccessAlert: jest.fn().mockResolvedValue(true)
-  }
+    sendSSLRenewalSuccessAlert: jest.fn().mockResolvedValue(true),
+  },
 }));
 
 jest.mock('../../server/db', () => ({
   db: {
     select: jest.fn(() => ({
       from: jest.fn(() => ({
-        where: jest.fn().mockResolvedValue([])
-      }))
+        where: jest.fn().mockResolvedValue([]),
+      })),
     })),
     insert: jest.fn(() => ({
-      values: jest.fn().mockResolvedValue([])
+      values: jest.fn().mockResolvedValue([]),
     })),
     update: jest.fn(() => ({
       set: jest.fn(() => ({
-        where: jest.fn().mockResolvedValue([])
-      }))
-    }))
-  }
+        where: jest.fn().mockResolvedValue([]),
+      })),
+    })),
+  },
 }));
 
 jest.mock('node-cron', () => ({
   schedule: jest.fn(),
-  validate: jest.fn().mockReturnValue(true)
+  validate: jest.fn().mockReturnValue(true),
 }));
 
 describe('SSL Renewal Job', () => {

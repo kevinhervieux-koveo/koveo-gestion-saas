@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { SSLService, createSSLService, getCertificateStatus } from '../../server/services/ssl_service';
+import {
+  SSLService,
+  createSSLService,
+  getCertificateStatus,
+} from '../../server/services/ssl_service';
 
 // Mock dependencies
 jest.mock('acme-client');
@@ -8,14 +12,14 @@ jest.mock('path');
 
 describe('SSL Service', () => {
   let _sslService: SSLService;
-  let mockOptions: {email: string; staging: boolean; keySize: number; storageDir: string};
+  let mockOptions: { email: string; staging: boolean; keySize: number; storageDir: string };
 
   beforeEach(() => {
     mockOptions = {
       email: 'test@example.com',
       staging: true,
       keySize: 2048,
-      storageDir: './test-ssl'
+      storageDir: './test-ssl',
     };
   });
 
@@ -31,12 +35,16 @@ describe('SSL Service', () => {
 
     it('should throw error with invalid email', async () => {
       mockOptions.email = 'invalid-email';
-      await expect(createSSLService(mockOptions)).rejects.toThrow('Valid email address is required');
+      await expect(createSSLService(mockOptions)).rejects.toThrow(
+        'Valid email address is required'
+      );
     });
 
     it('should throw error with invalid key size', async () => {
       mockOptions.keySize = 1024; // Too small
-      await expect(createSSLService(mockOptions)).rejects.toThrow('Key size must be at least 2048 bits');
+      await expect(createSSLService(mockOptions)).rejects.toThrow(
+        'Key size must be at least 2048 bits'
+      );
     });
   });
 
@@ -44,19 +52,19 @@ describe('SSL Service', () => {
     it('should return valid status for active certificate', () => {
       const validFrom = new Date();
       validFrom.setDate(validFrom.getDate() - 30); // 30 days ago
-      
+
       const validTo = new Date();
       validTo.setDate(validTo.getDate() + 60); // 60 days from now
-      
+
       const certificateData = {
         certificate: 'mock-cert-data',
         privateKey: 'mock-private-key',
-        issuer: 'Let\'s Encrypt Authority',
+        issuer: "Let's Encrypt Authority",
         subject: 'CN=example.com',
         validFrom,
         validTo,
         serialNumber: '12345678901234567890',
-        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
+        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
       };
 
       const status = getCertificateStatus(certificateData);
@@ -70,19 +78,19 @@ describe('SSL Service', () => {
     it('should return expiring status for certificate expiring soon', () => {
       const validFrom = new Date();
       validFrom.setDate(validFrom.getDate() - 60); // 60 days ago
-      
+
       const validTo = new Date();
       validTo.setDate(validTo.getDate() + 5); // 5 days from now
-      
+
       const certificateData = {
         certificate: 'mock-cert-data',
         privateKey: 'mock-private-key',
-        issuer: 'Let\'s Encrypt Authority',
+        issuer: "Let's Encrypt Authority",
         subject: 'CN=example.com',
         validFrom,
         validTo,
         serialNumber: '12345678901234567890',
-        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
+        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
       };
 
       const status = getCertificateStatus(certificateData);
@@ -96,19 +104,19 @@ describe('SSL Service', () => {
     it('should return expired status for expired certificate', () => {
       const validFrom = new Date();
       validFrom.setDate(validFrom.getDate() - 120); // 120 days ago
-      
+
       const validTo = new Date();
       validTo.setDate(validTo.getDate() - 10); // 10 days ago
-      
+
       const certificateData = {
         certificate: 'mock-cert-data',
         privateKey: 'mock-private-key',
-        issuer: 'Let\'s Encrypt Authority',
+        issuer: "Let's Encrypt Authority",
         subject: 'CN=example.com',
         validFrom,
         validTo,
         serialNumber: '12345678901234567890',
-        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
+        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
       };
 
       const status = getCertificateStatus(certificateData);
@@ -122,19 +130,19 @@ describe('SSL Service', () => {
     it('should return not_yet_valid status for future certificate', () => {
       const validFrom = new Date();
       validFrom.setDate(validFrom.getDate() + 10); // 10 days from now
-      
+
       const validTo = new Date();
       validTo.setDate(validTo.getDate() + 100); // 100 days from now
-      
+
       const certificateData = {
         certificate: 'mock-cert-data',
         privateKey: 'mock-private-key',
-        issuer: 'Let\'s Encrypt Authority',
+        issuer: "Let's Encrypt Authority",
         subject: 'CN=example.com',
         validFrom,
         validTo,
         serialNumber: '12345678901234567890',
-        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD'
+        fingerprint: 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD',
       };
 
       const status = getCertificateStatus(certificateData);
@@ -152,14 +160,18 @@ describe('SSL Service', () => {
         'subdomain.example.com',
         'test.subdomain.example.com',
         'example-site.com',
-        'test123.example.org'
+        'test123.example.org',
       ];
 
       for (const domain of validDomains) {
         // This would be tested through the service method
         expect(() => {
           // Domain validation logic
-          if (!/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(domain)) {
+          if (
+            !/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(
+              domain
+            )
+          ) {
             throw new Error('Invalid domain');
           }
         }).not.toThrow();
@@ -174,12 +186,16 @@ describe('SSL Service', () => {
         '-domain.com',
         'domain-.com',
         'domain.c',
-        'toolongdomainnamethatshouldnotbeacceptedbecauseitexceedsthemaximumlength.com'
+        'toolongdomainnamethatshouldnotbeacceptedbecauseitexceedsthemaximumlength.com',
       ];
 
       for (const domain of invalidDomains) {
         expect(() => {
-          if (!/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(domain)) {
+          if (
+            !/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(
+              domain
+            )
+          ) {
             throw new Error('Invalid domain');
           }
         }).toThrow();

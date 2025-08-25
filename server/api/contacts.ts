@@ -7,7 +7,7 @@ import { insertContactSchema } from '../../shared/schemas/property';
 
 /**
  * Register contact routes for managing entity contacts.
- * 
+ *
  * @param app - Express application instance.
  */
 /**
@@ -31,11 +31,13 @@ export function registerContactRoutes(app: Express) {
       const entityContacts = await db
         .select()
         .from(contacts)
-        .where(and(
-          eq(contacts.entity, entity as any),
-          eq(contacts.entityId, entityId),
-          eq(contacts.isActive, true)
-        ));
+        .where(
+          and(
+            eq(contacts.entity, entity as any),
+            eq(contacts.entityId, entityId),
+            eq(contacts.isActive, true)
+          )
+        );
 
       res.json(entityContacts);
     } catch (_error) {
@@ -57,10 +59,7 @@ export function registerContactRoutes(app: Express) {
           .from(residences)
           .innerJoin(buildings, eq(residences.buildingId, buildings.id))
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(and(
-            eq(residences.id, residenceId),
-            eq(residences.isActive, true)
-          ));
+          .where(and(eq(residences.id, residenceId), eq(residences.isActive, true)));
 
         if (hasAccess.length === 0) {
           return res.status(403).json({ message: 'Access denied' });
@@ -71,11 +70,13 @@ export function registerContactRoutes(app: Express) {
       const residenceContacts = await db
         .select()
         .from(contacts)
-        .where(and(
-          eq(contacts.entity, 'residence'),
-          eq(contacts.entityId, residenceId),
-          eq(contacts.isActive, true)
-        ));
+        .where(
+          and(
+            eq(contacts.entity, 'residence'),
+            eq(contacts.entityId, residenceId),
+            eq(contacts.isActive, true)
+          )
+        );
 
       res.json(residenceContacts);
     } catch (_error) {
@@ -102,10 +103,7 @@ export function registerContactRoutes(app: Express) {
           .select()
           .from(buildings)
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(and(
-            eq(buildings.id, entityId),
-            eq(buildings.isActive, true)
-          ));
+          .where(and(eq(buildings.id, entityId), eq(buildings.isActive, true)));
 
         if (hasAccess.length === 0) {
           return res.status(404).json({ message: 'Building not found' });
@@ -116,11 +114,13 @@ export function registerContactRoutes(app: Express) {
       const entityContacts = await db
         .select()
         .from(contacts)
-        .where(and(
-          eq(contacts.entity, entity as 'building' | 'residence' | 'organization'),
-          eq(contacts.entityId, entityId),
-          eq(contacts.isActive, true)
-        ));
+        .where(
+          and(
+            eq(contacts.entity, entity as 'building' | 'residence' | 'organization'),
+            eq(contacts.entityId, entityId),
+            eq(contacts.isActive, true)
+          )
+        );
 
       res.json(entityContacts);
     } catch (_error) {
@@ -140,7 +140,9 @@ export function registerContactRoutes(app: Express) {
 
       // Only managers and admins can add building contacts
       if (entity === 'building' && user.role !== 'admin' && user.role !== 'manager') {
-        return res.status(403).json({ message: 'Only managers and admins can add building contacts' });
+        return res
+          .status(403)
+          .json({ message: 'Only managers and admins can add building contacts' });
       }
 
       // Verify entity exists based on type
@@ -150,7 +152,7 @@ export function registerContactRoutes(app: Express) {
           .from(residences)
           .where(eq(residences.id, entityId))
           .limit(1);
-        
+
         if (residence.length === 0) {
           return res.status(400).json({ message: 'Residence not found' });
         }
@@ -160,7 +162,7 @@ export function registerContactRoutes(app: Express) {
           .from(buildings)
           .where(eq(buildings.id, entityId))
           .limit(1);
-        
+
         if (building.length === 0) {
           return res.status(400).json({ message: 'Building not found' });
         }
@@ -169,11 +171,18 @@ export function registerContactRoutes(app: Express) {
       // Create the contact
       const [newContact] = await db
         .insert(contacts)
-        .values([{
-          ...validatedData,
-          entity: validatedData.entity as 'organization' | 'building' | 'residence',
-          contactCategory: validatedData.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'other'
-        }])
+        .values([
+          {
+            ...validatedData,
+            entity: validatedData.entity as 'organization' | 'building' | 'residence',
+            contactCategory: validatedData.contactCategory as
+              | 'resident'
+              | 'manager'
+              | 'tenant'
+              | 'maintenance'
+              | 'other',
+          },
+        ])
         .returning();
 
       res.status(201).json(newContact);
@@ -191,11 +200,7 @@ export function registerContactRoutes(app: Express) {
       const updates = req.body;
 
       // Get the existing contact
-      const existing = await db
-        .select()
-        .from(contacts)
-        .where(eq(contacts.id, id))
-        .limit(1);
+      const existing = await db.select().from(contacts).where(eq(contacts.id, id)).limit(1);
 
       if (existing.length === 0) {
         return res.status(404).json({ message: 'Contact not found' });
@@ -232,11 +237,7 @@ export function registerContactRoutes(app: Express) {
       const user = req.user;
 
       // Get the existing contact
-      const existing = await db
-        .select()
-        .from(contacts)
-        .where(eq(contacts.id, id))
-        .limit(1);
+      const existing = await db.select().from(contacts).where(eq(contacts.id, id)).limit(1);
 
       if (existing.length === 0) {
         return res.status(404).json({ message: 'Contact not found' });

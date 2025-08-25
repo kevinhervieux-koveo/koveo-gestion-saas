@@ -6,28 +6,28 @@ import {
   requireInvitationPermission,
   createEnhancedInvitationAuditLog,
   withPermissionInheritance,
-  SecurityAlertLevel
+  SecurityAlertLevel,
 } from '../../../server/auth/invitation-rbac';
 
 // Mock database
 jest.mock('@neondatabase/serverless', () => ({
   Pool: jest.fn(),
-  neonConfig: { webSocketConstructor: null }
+  neonConfig: { webSocketConstructor: null },
 }));
 
 jest.mock('drizzle-orm/neon-serverless', () => ({
   drizzle: jest.fn(() => ({
     insert: jest.fn(() => ({
-      values: jest.fn(() => Promise.resolve())
+      values: jest.fn(() => Promise.resolve()),
     })),
     select: jest.fn(() => ({
       from: jest.fn(() => ({
         where: jest.fn(() => ({
-          limit: jest.fn(() => Promise.resolve([{ count: 0 }]))
-        }))
-      }))
-    }))
-  }))
+          limit: jest.fn(() => Promise.resolve([{ count: 0 }])),
+        })),
+      })),
+    })),
+  })),
 }));
 
 describe('Invitation RBAC System Integration', () => {
@@ -41,12 +41,16 @@ describe('Invitation RBAC System Integration', () => {
         id: 'user-123',
         role: 'manager',
         email: 'test@example.com',
-        isActive: true
+        isActive: true,
       } as any,
       ip: '127.0.0.1',
       get: jest.fn((header) => {
-        if (header === 'User-Agent') {return 'test-agent';}
-        if (header === 'Referer') {return 'https://example.com';}
+        if (header === 'User-Agent') {
+          return 'test-agent';
+        }
+        if (header === 'Referer') {
+          return 'https://example.com';
+        }
         return null;
       }),
       sessionID: 'test-session-id',
@@ -54,12 +58,12 @@ describe('Invitation RBAC System Integration', () => {
       method: 'POST',
       body: {},
       _params: {},
-      connection: { remoteAddress: '127.0.0.1' }
+      connection: { remoteAddress: '127.0.0.1' },
     } as any;
 
     mockRes = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
 
     mockNext = jest.fn();
@@ -135,12 +139,12 @@ describe('Invitation RBAC System Integration', () => {
     test('should validate bulk invitation permissions', async () => {
       const validInvitations = [
         { role: 'owner', organizationId: 'org-1' },
-        { role: 'tenant', organizationId: 'org-1' }
+        { role: 'tenant', organizationId: 'org-1' },
       ];
 
       const invalidInvitations = [
         { role: 'owner', organizationId: 'org-1' },
-        { role: 'admin', organizationId: 'org-1' } // Invalid for manager
+        { role: 'admin', organizationId: 'org-1' }, // Invalid for manager
       ];
 
       // Manager with valid invitations
@@ -187,7 +191,7 @@ describe('Invitation RBAC System Integration', () => {
         level: SecurityAlertLevel.HIGH,
         type: 'test_alert',
         description: 'Test security alert',
-        userId: 'user-123'
+        userId: 'user-123',
       };
 
       await InvitationSecurityMonitor.triggerAlert(testAlert);
@@ -221,7 +225,7 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Rate limit exceeded',
-          code: 'RATE_LIMIT_EXCEEDED'
+          code: 'RATE_LIMIT_EXCEEDED',
         })
       );
       expect(mockNext).not.toHaveBeenCalled();
@@ -238,18 +242,18 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
+        code: 'AUTH_REQUIRED',
       });
     });
 
     test('should validate context-aware permissions for invitation creation', async () => {
       mockReq.body = {
         role: 'admin', // Manager cannot invite admin
-        organizationId: 'org-1'
+        organizationId: 'org-1',
       };
 
       const middleware = requireInvitationPermission('create:invitation', {
-        validateContext: true
+        validateContext: true,
       });
 
       await middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -257,7 +261,7 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'CONTEXT_PERMISSION_DENIED'
+          code: 'CONTEXT_PERMISSION_DENIED',
         })
       );
     });
@@ -265,7 +269,7 @@ describe('Invitation RBAC System Integration', () => {
     test('should validate ownership for invitation management', async () => {
       mockReq.params = { id: 'invitation-123' };
       const middleware = requireInvitationPermission('update:invitation', {
-        requireOwnership: true
+        requireOwnership: true,
       });
 
       // Mock that user doesn't own the invitation
@@ -274,7 +278,7 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'OWNERSHIP_REQUIRED'
+          code: 'OWNERSHIP_REQUIRED',
         })
       );
     });
@@ -285,7 +289,7 @@ describe('Invitation RBAC System Integration', () => {
       mockReq.user!.role = 'admin';
       mockReq.body = {
         organizationId: 'org-1',
-        role: 'tenant'
+        role: 'tenant',
       };
 
       const middleware = withPermissionInheritance('create:invitation');
@@ -299,7 +303,7 @@ describe('Invitation RBAC System Integration', () => {
       mockReq.user!.role = 'tenant';
       mockReq.body = {
         organizationId: 'org-1',
-        role: 'owner'
+        role: 'owner',
       };
 
       const middleware = withPermissionInheritance('create:invitation');
@@ -308,7 +312,7 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'PERMISSION_DENIED'
+          code: 'PERMISSION_DENIED',
         })
       );
     });
@@ -317,12 +321,12 @@ describe('Invitation RBAC System Integration', () => {
   describe('Enhanced Audit Logging', () => {
     test('should create comprehensive audit logs', async () => {
       const mockInsert = jest.fn(() => ({
-        values: jest.fn(() => Promise.resolve())
+        values: jest.fn(() => Promise.resolve()),
       }));
 
       // Mock the database insert
       require('drizzle-orm/neon-serverless').drizzle.mockReturnValue({
-        insert: mockInsert
+        insert: mockInsert,
       });
 
       await createEnhancedInvitationAuditLog(
@@ -340,11 +344,11 @@ describe('Invitation RBAC System Integration', () => {
 
     test('should handle audit log failures gracefully', async () => {
       const mockInsert = jest.fn(() => ({
-        values: jest.fn(() => Promise.reject(new Error('Database error')))
+        values: jest.fn(() => Promise.reject(new Error('Database error'))),
       }));
 
       require('drizzle-orm/neon-serverless').drizzle.mockReturnValue({
-        insert: mockInsert
+        insert: mockInsert,
       });
 
       // Should not throw
@@ -368,7 +372,7 @@ describe('Invitation RBAC System Integration', () => {
       Object.defineProperty(mockReq, 'user', {
         get: () => {
           throw new Error('User access error');
-        }
+        },
       });
 
       await middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -376,7 +380,7 @@ describe('Invitation RBAC System Integration', () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Permission validation failed',
-        code: 'RBAC_ERROR'
+        code: 'RBAC_ERROR',
       });
     });
 
@@ -404,7 +408,7 @@ describe('Invitation RBAC System Integration', () => {
         {
           consentTypes: ['data_collection', 'marketing'],
           ipAddress: '127.0.0.1',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }
       );
 

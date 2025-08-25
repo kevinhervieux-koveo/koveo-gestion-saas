@@ -12,19 +12,19 @@ const createMockApp = (): Express => {
   const express = require('express');
   const app = express();
   app.use(express.json());
-  
+
   // Mock session middleware
   app.use((req: any, res: any, next: any) => {
     req.session = {
       user: {
         id: 'test-admin-id',
         role: 'admin',
-        email: 'admin@test.com'
-      }
+        email: 'admin@test.com',
+      },
     };
     next();
   });
-  
+
   return app;
 };
 
@@ -46,7 +46,7 @@ describe('Backend API Endpoints - Data Modification', () => {
         province: 'QC',
         postalCode: 'H1H 1H1',
         phone: '514-555-0123',
-        email: 'test@test.com'
+        email: 'test@test.com',
       };
 
       // This test would require your actual routes to be imported
@@ -57,25 +57,25 @@ describe('Backend API Endpoints - Data Modification', () => {
         address: expect.any(String),
         city: expect.any(String),
         province: expect.any(String),
-        postalCode: expect.any(String)
+        postalCode: expect.any(String),
       });
     });
 
     it('PUT /api/organizations/:id - Should update existing organization', async () => {
       const updateData = {
         name: 'Updated Organization Name',
-        phone: '514-555-9999'
+        phone: '514-555-9999',
       };
 
       expect(updateData).toMatchObject({
         name: 'Updated Organization Name',
-        phone: '514-555-9999'
+        phone: '514-555-9999',
       });
     });
 
     it('DELETE /api/organizations/:id - Should delete organization with cascade', async () => {
       const organizationId = 'test-org-id';
-      
+
       // Test should verify cascade deletion logic
       expect(organizationId).toBe('test-org-id');
     });
@@ -88,14 +88,14 @@ describe('Backend API Endpoints - Data Modification', () => {
         firstName: 'New',
         lastName: 'User',
         role: 'resident',
-        organizationId: 'test-org-id'
+        organizationId: 'test-org-id',
       };
 
       expect(userData).toMatchObject({
         email: expect.stringMatching(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
         firstName: expect.any(String),
         lastName: expect.any(String),
-        role: expect.stringMatching(/^(admin|manager|resident|tenant)$/)
+        role: expect.stringMatching(/^(admin|manager|resident|tenant)$/),
       });
     });
 
@@ -103,7 +103,7 @@ describe('Backend API Endpoints - Data Modification', () => {
       const updateData = {
         firstName: 'Updated',
         lastName: 'Name',
-        phone: '514-555-0000'
+        phone: '514-555-0000',
       };
 
       expect(updateData).toBeDefined();
@@ -120,21 +120,21 @@ describe('Backend API Endpoints - Data Modification', () => {
         postalCode: 'H2H 2H2',
         buildingType: 'apartment',
         totalUnits: 50,
-        organizationId: 'test-org-id'
+        organizationId: 'test-org-id',
       };
 
       expect(buildingData).toMatchObject({
         name: expect.any(String),
         address: expect.any(String),
         totalUnits: expect.any(Number),
-        organizationId: expect.any(String)
+        organizationId: expect.any(String),
       });
     });
 
     it('PUT /api/admin/buildings/:id - Should update building', async () => {
       const updateData = {
         name: 'Updated Building Name',
-        totalUnits: 75
+        totalUnits: 75,
       };
 
       expect(updateData.totalUnits).toBeGreaterThan(0);
@@ -145,24 +145,26 @@ describe('Backend API Endpoints - Data Modification', () => {
     it('POST /api/bills - Should create new bill', async () => {
       const billData = {
         billNumber: 'BILL-TEST-001',
-        amount: 1500.00,
+        amount: 1500.0,
         dueDate: new Date('2025-12-31'),
         type: 'monthly_fee',
-        residenceId: 'test-residence-id'
+        residenceId: 'test-residence-id',
       };
 
       expect(billData).toMatchObject({
         billNumber: expect.any(String),
         amount: expect.any(Number),
-        type: expect.stringMatching(/^(monthly_fee|special_assessment|utilities|parking|storage|other)$/)
+        type: expect.stringMatching(
+          /^(monthly_fee|special_assessment|utilities|parking|storage|other)$/
+        ),
       });
       expect(billData.amount).toBeGreaterThan(0);
     });
 
     it('PUT /api/bills/:id - Should update bill', async () => {
       const updateData = {
-        amount: 1750.00,
-        status: 'paid'
+        amount: 1750.0,
+        status: 'paid',
       };
 
       expect(updateData.amount).toBeGreaterThan(0);
@@ -176,13 +178,13 @@ describe('Backend API Endpoints - Data Modification', () => {
         name: 'Test Document.pdf',
         category: 'financial',
         description: 'Test document for upload',
-        buildingId: 'test-building-id'
+        buildingId: 'test-building-id',
       };
 
       expect(documentData).toMatchObject({
         name: expect.stringMatching(/\.(pdf|doc|docx|jpg|png)$/i),
         category: expect.any(String),
-        description: expect.any(String)
+        description: expect.any(String),
       });
     });
 
@@ -190,7 +192,7 @@ describe('Backend API Endpoints - Data Modification', () => {
       const updateData = {
         name: 'Updated Document Name.pdf',
         description: 'Updated description',
-        category: 'legal'
+        category: 'legal',
       };
 
       expect(updateData.category).toBeDefined();
@@ -204,7 +206,7 @@ describe('Backend API Endpoints - Data Modification', () => {
         floor: 1,
         squareFootage: 850,
         parkingSpots: ['P-001', 'P-002'],
-        storageSpaces: ['S-001']
+        storageSpaces: ['S-001'],
       };
 
       expect(updateData).toMatchObject({
@@ -212,7 +214,7 @@ describe('Backend API Endpoints - Data Modification', () => {
         floor: expect.any(Number),
         squareFootage: expect.any(Number),
         parkingSpots: expect.arrayContaining([expect.any(String)]),
-        storageSpaces: expect.arrayContaining([expect.any(String)])
+        storageSpaces: expect.arrayContaining([expect.any(String)]),
       });
     });
   });
@@ -224,14 +226,14 @@ describe('Backend API Endpoints - Data Modification', () => {
         description: 'Test description for maintenance',
         priority: 'medium',
         category: 'plumbing',
-        residenceId: 'test-residence-id'
+        residenceId: 'test-residence-id',
       };
 
       expect(demandData).toMatchObject({
         title: expect.any(String),
         description: expect.any(String),
         priority: expect.stringMatching(/^(low|medium|high|urgent)$/),
-        category: expect.any(String)
+        category: expect.any(String),
       });
     });
 
@@ -239,10 +241,12 @@ describe('Backend API Endpoints - Data Modification', () => {
       const updateData = {
         status: 'in_progress',
         scheduledDate: new Date('2025-09-15'),
-        assignedTo: 'test-manager-id'
+        assignedTo: 'test-manager-id',
       };
 
-      expect(['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled']).toContain(updateData.status);
+      expect(['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled']).toContain(
+        updateData.status
+      );
     });
   });
 
@@ -250,18 +254,18 @@ describe('Backend API Endpoints - Data Modification', () => {
     it('POST /api/auth/login - Should authenticate user', async () => {
       const loginData = {
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       };
 
       expect(loginData).toMatchObject({
         email: expect.stringMatching(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
-        password: expect.any(String)
+        password: expect.any(String),
       });
     });
 
     it('POST /api/auth/forgot-password - Should send reset email', async () => {
       const resetData = {
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
 
       expect(resetData.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -270,12 +274,12 @@ describe('Backend API Endpoints - Data Modification', () => {
     it('POST /api/auth/reset-password - Should reset password', async () => {
       const resetData = {
         token: 'reset-token-123',
-        password: 'newPassword123'
+        password: 'newPassword123',
       };
 
       expect(resetData).toMatchObject({
         token: expect.any(String),
-        password: expect.any(String)
+        password: expect.any(String),
       });
       expect(resetData.password.length).toBeGreaterThanOrEqual(8);
     });
@@ -288,14 +292,14 @@ describe('Backend API Endpoints - Data Modification', () => {
         firstName: 'New',
         lastName: 'User',
         role: 'resident',
-        organizationId: 'test-org-id'
+        organizationId: 'test-org-id',
       };
 
       expect(invitationData).toMatchObject({
         email: expect.stringMatching(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
         firstName: expect.any(String),
         lastName: expect.any(String),
-        role: expect.stringMatching(/^(admin|manager|resident|tenant)$/)
+        role: expect.stringMatching(/^(admin|manager|resident|tenant)$/),
       });
     });
   });
@@ -307,7 +311,7 @@ describe('Backend API Endpoints - Data Modification', () => {
         type: 'management_company',
         address: '',
         city: '',
-        postalCode: ''
+        postalCode: '',
       };
 
       // Test required field validation
@@ -321,18 +325,18 @@ describe('Backend API Endpoints - Data Modification', () => {
       const invalidEmails = ['invalid-email', '@invalid.com', 'test@', 'test@.com'];
       const validEmails = ['test@example.com', 'user@domain.org', 'name@company.ca'];
 
-      invalidEmails.forEach(email => {
+      invalidEmails.forEach((email) => {
         expect(email).not.toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
 
-      validEmails.forEach(email => {
+      validEmails.forEach((email) => {
         expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
     });
 
     it('Should validate numeric fields', () => {
       const billAmount = -100; // Invalid negative amount
-      const validAmount = 1500.00;
+      const validAmount = 1500.0;
 
       expect(billAmount).toBeLessThan(0); // Should be caught by validation
       expect(validAmount).toBeGreaterThan(0);
@@ -351,7 +355,7 @@ describe('Backend API Endpoints - Data Modification', () => {
     it('Should handle unauthorized access', () => {
       const unauthorizedRequest = {
         headers: {},
-        session: null
+        session: null,
       };
 
       expect(unauthorizedRequest.session).toBeNull();
@@ -359,7 +363,7 @@ describe('Backend API Endpoints - Data Modification', () => {
 
     it('Should handle insufficient permissions', () => {
       const residentUser = {
-        role: 'resident'
+        role: 'resident',
       };
 
       // Resident trying to delete organization should be denied
@@ -368,7 +372,7 @@ describe('Backend API Endpoints - Data Modification', () => {
 
     it('Should handle database constraints', () => {
       const duplicateEmail = 'existing@example.com';
-      
+
       // Should handle unique constraint violations
       expect(duplicateEmail).toBeDefined();
     });

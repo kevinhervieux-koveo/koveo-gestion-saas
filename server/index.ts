@@ -1,11 +1,19 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
-import { initializeDatabaseOptimizations, startPerformanceMonitoring } from './init-database-optimizations';
+import {
+  initializeDatabaseOptimizations,
+  startPerformanceMonitoring,
+} from './init-database-optimizations';
 import { startJobs } from './jobs';
 import { emailService } from './services/email-service';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
-import { configureSecurityMiddleware, securityHealthCheck, addLaw25Headers, rateLimitConfig } from './middleware/security-middleware';
+import {
+  configureSecurityMiddleware,
+  securityHealthCheck,
+  addLaw25Headers,
+  rateLimitConfig,
+} from './middleware/security-middleware';
 import { memoryOptimization, startMemoryMonitoring } from './middleware/memory-optimization';
 import { devSecurityMiddleware, devCorsMiddleware } from './middleware/dev-security';
 import rateLimit from 'express-rate-limit';
@@ -49,7 +57,7 @@ app.get('/', (req, res, next) => {
   // For deployment platform health checks, always return OK immediately
   // Check various patterns used by health check systems
   const userAgent = req.get('User-Agent') || '';
-  const isHealthCheck = 
+  const isHealthCheck =
     userAgent.includes('GoogleHC') ||
     userAgent.includes('uptime') ||
     userAgent.includes('health') ||
@@ -60,13 +68,13 @@ app.get('/', (req, res, next) => {
     userAgent.includes('StatusCake') ||
     req.headers['x-health-check'] === 'true' ||
     req.query.health === 'true';
-  
+
   // Always respond to root health checks immediately
   if (req.path === '/' && (isHealthCheck || !userAgent || userAgent === '')) {
     res.status(200).send('OK');
     return;
   }
-  
+
   // For regular browser requests, continue to static file serving
   next();
 });
@@ -130,25 +138,25 @@ startMemoryMonitoring();
 
 // Detailed API health endpoints (after middleware)
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     message: 'Koveo Gestion API is running',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    port: port
+    port: port,
   });
 });
 
 app.get('/api/health/detailed', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+  res.status(200).json({
+    status: 'healthy',
     uptime: process.uptime(),
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString(),
     pid: process.pid,
     nodeVersion: process.version,
     port: port,
-    env: process.env.NODE_ENV || 'development'
+    env: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -216,29 +224,34 @@ app.use((req, res, next) => {
 });
 
 // Setup static file serving for production immediately
-const isProductionBuild = process.env.NODE_ENV === 'production' || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'development');
+const isProductionBuild =
+  process.env.NODE_ENV === 'production' ||
+  !process.env.NODE_ENV ||
+  process.env.NODE_ENV !== 'development';
 
 if (isProductionBuild) {
   log('🏗️ Setting up production static file serving immediately');
   const distPath = path.resolve(__dirname, 'public');
-  
+
   log(`📁 Looking for build files in: ${distPath}`);
   log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
-  
+
   if (fs.existsSync(distPath)) {
     const indexPath = path.resolve(distPath, 'index.html');
     log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
-    
+
     // Serve static files with proper cache headers
-    app.use(express.static(distPath, {
-      maxAge: '1d',
-      setHeaders: (res, path) => {
-        if (path.endsWith('.html')) {
-          res.setHeader('Cache-Control', 'no-cache');
-        }
-      }
-    }));
-    
+    app.use(
+      express.static(distPath, {
+        maxAge: '1d',
+        setHeaders: (res, path) => {
+          if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
+      })
+    );
+
     // Add specific root route handler AFTER static middleware
     app.get('/', (_req: Request, res: Response) => {
       const indexPath = path.resolve(distPath, 'index.html');
@@ -249,14 +262,19 @@ if (isProductionBuild) {
         res.status(404).send(`Application not found. Index path: ${indexPath}`);
       }
     });
-    
+
     // SPA fallback for other routes
     app.get('*', (_req: Request, res: Response, next) => {
       // Skip API routes and health checks
-      if (_req.path.startsWith('/api') || _req.path === '/health' || _req.path === '/healthz' || _req.path === '/ready') {
+      if (
+        _req.path.startsWith('/api') ||
+        _req.path === '/health' ||
+        _req.path === '/healthz' ||
+        _req.path === '/ready'
+      ) {
         return next();
       }
-      
+
       const indexPath = path.resolve(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
@@ -264,11 +282,11 @@ if (isProductionBuild) {
         res.status(404).send(`Application not found. Index path: ${indexPath}`);
       }
     });
-    
+
     log('✅ Static files and SPA routing configured immediately');
   } else {
     log(`⚠️ Build directory not found: ${distPath}`, 'error');
-    
+
     // List what's actually in the directory
     const parentDir = path.dirname(distPath);
     if (fs.existsSync(parentDir)) {
@@ -284,10 +302,10 @@ app.get('/api/features', async (req, res) => {
     const { Pool, neonConfig } = await import('@neondatabase/serverless');
     const ws = await import('ws');
     neonConfig.webSocketConstructor = ws.default;
-    
+
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const { roadmap } = req.query;
-    
+
     if (roadmap === 'true') {
       const rawFeatures = await pool.query(`
         SELECT id, name, description, category, status, priority, 
@@ -297,8 +315,8 @@ app.get('/api/features', async (req, res) => {
         WHERE is_public_roadmap = true 
         ORDER BY created_at DESC
       `);
-      
-      const features = rawFeatures.rows.map(row => ({
+
+      const features = rawFeatures.rows.map((row) => ({
         ...row,
         isPublicRoadmap: row.is_public_roadmap,
         isStrategicPath: row.is_strategic_path,
@@ -306,9 +324,9 @@ app.get('/api/features', async (req, res) => {
         targetUsers: row.target_users,
         successMetrics: row.success_metrics,
         createdAt: row.created_at,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       }));
-      
+
       res.setHeader('Content-Type', 'application/json');
       res.json(features);
     } else {
@@ -330,13 +348,20 @@ app.post('/api/features/:id/update-status', async (req, res) => {
     const { Pool, neonConfig } = await import('@neondatabase/serverless');
     const ws = await import('ws');
     neonConfig.webSocketConstructor = ws.default;
-    
+
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const { status } = req.body;
     const featureId = req.params.id;
-    
-    const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
-    
+
+    const validStatuses = [
+      'submitted',
+      'planned',
+      'in-progress',
+      'ai-analyzed',
+      'completed',
+      'cancelled',
+    ];
+
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
@@ -347,13 +372,13 @@ app.post('/api/features/:id/update-status', async (req, res) => {
       WHERE id = $2 
       RETURNING *
     `;
-    
+
     const result = await pool.query(updateQuery, [status, featureId]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Feature not found' });
     }
-    
+
     const feature = {
       ...result.rows[0],
       isPublicRoadmap: result.rows[0].is_public_roadmap,
@@ -362,9 +387,9 @@ app.post('/api/features/:id/update-status', async (req, res) => {
       targetUsers: result.rows[0].target_users,
       successMetrics: result.rows[0].success_metrics,
       createdAt: result.rows[0].created_at,
-      updatedAt: result.rows[0].updated_at
+      updatedAt: result.rows[0].updated_at,
     };
-    
+
     res.setHeader('Content-Type', 'application/json');
     res.json(feature);
   } catch (_error) {
@@ -392,11 +417,11 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         log(`   - http://0.0.0.0:${port}/health`);
         log(`   - http://0.0.0.0:${port}/healthz`);
         log(`   - http://0.0.0.0:${port}/ready`);
-        
+
         // Initialize application in background after server is listening
         // This ensures health checks work immediately while app initializes
         setTimeout(() => {
-          initializeApplication().catch(error => {
+          initializeApplication().catch((error) => {
             log(`Application initialization failed: ${error}`, 'error');
             // Don't crash - health checks still work
           });
@@ -417,7 +442,6 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         }
       }
     });
-
   } catch (_error) {
     log(`Failed to start server: ${_error}`, 'error');
     // Don't exit in production to maintain uptime
@@ -442,7 +466,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
-    
+
     // Object Storage routes (must come before other routes for proper file serving)
     try {
       const { ObjectStorageService, ObjectNotFoundError } = await import('./objectStorage');
@@ -487,7 +511,7 @@ async function initializeApplication() {
     try {
       await registerRoutes(app);
       log('✅ Routes registered successfully');
-      
+
       // Add the user organizations route AFTER session middleware is set up
       const { requireAuth } = await import('./auth');
       app.get('/api/users/me/organizations', requireAuth, async (req: any, res: any) => {
@@ -498,24 +522,28 @@ async function initializeApplication() {
           const { inArray } = await import('drizzle-orm');
           const schema = await import('../shared/schema');
           const ws = await import('ws');
-          
+
           neonConfig.webSocketConstructor = ws.default;
           const pool = new Pool({ connectionString: process.env.DATABASE_URL });
           const db = drizzle({ client: pool, schema });
-          
+
           const userId = req.user!.id;
           console.warn('Getting accessible organizations for user:', userId);
-          
+
           const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
           console.warn('Accessible org IDs:', accessibleOrgIds);
-          
+
           const organizations = await db.query.organizations.findMany({
             where: inArray(schema.organizations.id, accessibleOrgIds),
-            orderBy: [schema.organizations.name]
+            orderBy: [schema.organizations.name],
           });
-          
-          console.warn('Organizations found:', organizations.length, organizations.map(o => ({ id: o.id, name: o.name })));
-          
+
+          console.warn(
+            'Organizations found:',
+            organizations.length,
+            organizations.map((o) => ({ id: o.id, name: o.name }))
+          );
+
           res.json(organizations);
         } catch (_error) {
           console.error('Error fetching user organizations:', _error);
@@ -523,12 +551,11 @@ async function initializeApplication() {
         }
       });
       log('✅ User organizations route registered');
-      
+
       // Add error handling middleware for API routes only
       app.use('/api', notFoundHandler);
       app.use(errorHandler);
       log('✅ Error handling middleware configured');
-      
     } catch (_error) {
       log(`❌ Route registration failed: ${_error}`, 'error');
       // Skip route registration but continue with Vite setup
@@ -537,7 +564,7 @@ async function initializeApplication() {
     // Setup static file serving AFTER API routes to avoid conflicts
     // Check if we should use development mode
     const isDevelopment = process.env.NODE_ENV === 'development';
-    
+
     if (isDevelopment) {
       log('🔧 Running in development mode with Vite');
       try {
@@ -546,11 +573,11 @@ async function initializeApplication() {
       } catch (_error) {
         log(`❌ Vite setup failed: ${_error}`, 'error');
         log('⚠️ Falling back to React build serving', 'error');
-        
+
         // Try to serve the built React app if available
         const clientBuildPath = path.resolve(__dirname, '..', 'dist');
         const clientIndexPath = path.resolve(clientBuildPath, 'index.html');
-        
+
         if (fs.existsSync(clientIndexPath)) {
           log('📁 Serving built React application');
           app.use(express.static(clientBuildPath));
@@ -631,7 +658,7 @@ async function initializeApplication() {
     </script>
 </body>
 </html>`;
-          
+
           app.get('/', (req, res) => res.send(devHTML));
           app.get('*', (req, res) => {
             if (req.path.startsWith('/api')) {
@@ -644,24 +671,26 @@ async function initializeApplication() {
     } else {
       log('🏗️ Setting up production static file serving');
       const distPath = path.resolve(__dirname, 'public');
-      
+
       log(`📁 Looking for build files in: ${distPath}`);
       log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
-      
+
       if (fs.existsSync(distPath)) {
         const indexPath = path.resolve(distPath, 'index.html');
         log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
-        
+
         // Serve static files with proper cache headers
-        app.use(express.static(distPath, {
-          maxAge: '1d',
-          setHeaders: (res, path) => {
-            if (path.endsWith('.html')) {
-              res.setHeader('Cache-Control', 'no-cache');
-            }
-          }
-        }));
-        
+        app.use(
+          express.static(distPath, {
+            maxAge: '1d',
+            setHeaders: (res, path) => {
+              if (path.endsWith('.html')) {
+                res.setHeader('Cache-Control', 'no-cache');
+              }
+            },
+          })
+        );
+
         // Add SPA fallback routing AFTER static files (with priority for root route)
         app.get('/', (_req: Request, res: Response) => {
           const indexPath = path.resolve(distPath, 'index.html');
@@ -672,13 +701,18 @@ async function initializeApplication() {
             res.status(404).send(`Application not found. Index path: ${indexPath}`);
           }
         });
-        
+
         app.get('*', (_req: Request, res: Response, next) => {
           // Skip API routes and health checks - let them fall through to API handlers
-          if (_req.path.startsWith('/api') || _req.path === '/health' || _req.path === '/healthz' || _req.path === '/ready') {
+          if (
+            _req.path.startsWith('/api') ||
+            _req.path === '/health' ||
+            _req.path === '/healthz' ||
+            _req.path === '/ready'
+          ) {
             return next();
           }
-          
+
           const indexPath = path.resolve(distPath, 'index.html');
           if (fs.existsSync(indexPath)) {
             res.sendFile(indexPath);
@@ -686,11 +720,11 @@ async function initializeApplication() {
             res.status(404).send(`Application not found. Index path: ${indexPath}`);
           }
         });
-        
+
         log('✅ Static files and SPA routing configured');
       } else {
         log(`⚠️ Build directory not found: ${distPath}`, 'error');
-        
+
         // List what's actually in the directory
         const parentDir = path.dirname(distPath);
         if (fs.existsSync(parentDir)) {
@@ -711,16 +745,15 @@ async function initializeApplication() {
         throw err;
       }
     });
-    
+
     log(`✅ Core application initialized on port ${port}`);
-    
+
     // Start all database and background operations after core app is ready
     setTimeout(() => {
       initializeEmailServiceInBackground();
       initializeDatabaseOptimizationsInBackground();
       initializeBackgroundJobsInBackground();
     }, 100);
-    
   } catch (_error) {
     log(`⚠️ Application initialization failed: ${_error}`, 'error');
     // Don't crash - health checks will still work
@@ -747,52 +780,52 @@ async function initializeEmailServiceInBackground(): Promise<void> {
 /**
  * Runs database optimizations in background with timeout handling.
  */
-  /**
-   * InitializeDatabaseOptimizationsInBackground function.
-   * @returns Function result.
-   */
-  async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
-    try {
-      log('🚀 Starting database optimizations in background...');
-      
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database optimization timeout after 30 seconds')), 30000);
-      });
-      
-      const optimizationPromise = (async () => {
-        await initializeDatabaseOptimizations();
-        startPerformanceMonitoring();
-      })();
-      
-      await Promise.race([optimizationPromise, timeoutPromise]);
-      log('🚀 Database optimizations initialized successfully');
-    } catch (_error) {
-      log('⚠️ Database optimization initialization failed:', String(_error));
-      // Continue running - don't crash the server
-    }
+/**
+ * InitializeDatabaseOptimizationsInBackground function.
+ * @returns Function result.
+ */
+async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
+  try {
+    log('🚀 Starting database optimizations in background...');
+
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database optimization timeout after 30 seconds')), 30000);
+    });
+
+    const optimizationPromise = (async () => {
+      await initializeDatabaseOptimizations();
+      startPerformanceMonitoring();
+    })();
+
+    await Promise.race([optimizationPromise, timeoutPromise]);
+    log('🚀 Database optimizations initialized successfully');
+  } catch (_error) {
+    log('⚠️ Database optimization initialization failed:', String(_error));
+    // Continue running - don't crash the server
   }
-  
-  /**
-   * Runs background jobs initialization with timeout handling.
-   */
-  /**
-   * InitializeBackgroundJobsInBackground function.
-   * @returns Function result.
-   */
-  async function initializeBackgroundJobsInBackground(): Promise<void> {
-    try {
-      log('🔄 Starting background jobs in background...');
-      
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Background jobs timeout after 20 seconds')), 20000);
-      });
-      
-      await Promise.race([startJobs(), timeoutPromise]);
-      log('🔄 Background jobs initialized successfully');
-    } catch (_error) {
-      log('⚠️ Background job initialization failed:', String(_error));
-      // Continue running - don't crash the server
-    }
+}
+
+/**
+ * Runs background jobs initialization with timeout handling.
+ */
+/**
+ * InitializeBackgroundJobsInBackground function.
+ * @returns Function result.
+ */
+async function initializeBackgroundJobsInBackground(): Promise<void> {
+  try {
+    log('🔄 Starting background jobs in background...');
+
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Background jobs timeout after 20 seconds')), 20000);
+    });
+
+    await Promise.race([startJobs(), timeoutPromise]);
+    log('🔄 Background jobs initialized successfully');
+  } catch (_error) {
+    log('⚠️ Background job initialization failed:', String(_error));
+    // Continue running - don't crash the server
   }
+}

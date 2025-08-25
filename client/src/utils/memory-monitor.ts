@@ -49,7 +49,7 @@ export function getMemoryUsage(): MemoryUsage | null {
     const used = Math.round(memory.usedJSHeapSize / 1024 / 1024);
     const total = Math.round(memory.totalJSHeapSize / 1024 / 1024);
     const percentage = Math.round((used / total) * 100);
-    
+
     return { used, total, percentage };
   }
   return null;
@@ -75,7 +75,9 @@ export class MemoryOptimizer {
    * Starts automatic memory monitoring and cleanup.
    */
   start(): void {
-    if (this.cleanupInterval) {return;}
+    if (this.cleanupInterval) {
+      return;
+    }
 
     this.cleanupInterval = window.setInterval(() => {
       this.checkAndCleanup();
@@ -129,7 +131,7 @@ export class MemoryOptimizer {
       const client = (window as any).queryClient;
       const cache = client.getQueryCache();
       const queries = cache.getAll();
-      
+
       // Remove stale queries to free memory
       queries.forEach((query: any) => {
         if (query.isStale() && !query.getObserversCount()) {
@@ -149,7 +151,9 @@ export class MemoryOptimizer {
    */
   private checkAndCleanup(): void {
     const usage = getMemoryUsage();
-    if (!usage) {return;}
+    if (!usage) {
+      return;
+    }
 
     if (usage.used >= this.config.warningThreshold) {
       console.warn(`Memory usage high: ${usage.used}MB (${usage.percentage}%)`);
@@ -180,7 +184,7 @@ export function useMemoryCleanup(cleanupFn: () => void): void {
   // Register cleanup on mount and unregister on unmount
   useEffect(() => {
     memoryOptimizer.registerCleanup(cleanupFn);
-    
+
     return () => {
       memoryOptimizer.unregisterCleanup(cleanupFn);
     };
@@ -215,15 +219,19 @@ export function loadImageOptimized(
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    
+
     // Set loading attributes for better performance
     img.loading = 'lazy';
     img.decoding = 'async';
-    
+
     // Apply size constraints if provided
-    if (_options.width) {img.width = _options.width;}
-    if (_options.height) {img.height = _options.height;}
-    
+    if (_options.width) {
+      img.width = _options.width;
+    }
+    if (_options.height) {
+      img.height = _options.height;
+    }
+
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
@@ -247,7 +255,7 @@ export function debounce<T extends (...args: unknown[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: number;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = window.setTimeout(() => func(...args), delay);
@@ -271,7 +279,7 @@ export function throttle<T extends (...args: unknown[]) => any>(
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
-  
+
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);

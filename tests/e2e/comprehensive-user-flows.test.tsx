@@ -8,25 +8,25 @@ import { useLanguage } from '@/hooks/use-language';
 // Mock pages
 jest.mock('@/pages/dashboard', () => {
   return function MockDashboard() {
-    return <div data-testid="dashboard">Dashboard Page</div>;
+    return <div data-testid='dashboard'>Dashboard Page</div>;
   };
 });
 
 jest.mock('@/pages/manager/budget', () => {
   return function MockBudget() {
-    return <div data-testid="budget">Budget Page</div>;
+    return <div data-testid='budget'>Budget Page</div>;
   };
 });
 
 jest.mock('@/pages/manager/buildings', () => {
   return function MockBuildings() {
-    return <div data-testid="buildings">Buildings Page</div>;
+    return <div data-testid='buildings'>Buildings Page</div>;
   };
 });
 
 jest.mock('@/pages/residents/dashboard', () => {
   return function MockResidentsDashboard() {
-    return <div data-testid="residents-dashboard">Residents Dashboard</div>;
+    return <div data-testid='residents-dashboard'>Residents Dashboard</div>;
   };
 });
 
@@ -52,13 +52,15 @@ const mockNavigate = jest.fn();
 jest.mock('wouter', () => ({
   useLocation: () => [mockLocation, mockNavigate],
   Link: ({ children, href, onClick, ...props }: any) => (
-    <a 
-      href={href} 
+    <a
+      href={href}
       onClick={(e) => {
         e.preventDefault();
         mockLocation = href;
         mockNavigate(href);
-        if (onClick) {onClick(e);}
+        if (onClick) {
+          onClick(e);
+        }
       }}
       {...props}
     >
@@ -123,10 +125,12 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard Page</div>}
-              {mockLocation === '/manager/budget' && <div data-testid="budget">Budget Page</div>}
-              {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings Page</div>}
+            <div data-testid='app'>
+              {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard Page</div>}
+              {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget Page</div>}
+              {mockLocation === '/manager/buildings' && (
+                <div data-testid='buildings'>Buildings Page</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -140,10 +144,12 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard Page</div>}
-              {mockLocation === '/manager/budget' && <div data-testid="budget">Budget Page</div>}
-              {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings Page</div>}
+            <div data-testid='app'>
+              {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard Page</div>}
+              {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget Page</div>}
+              {mockLocation === '/manager/buildings' && (
+                <div data-testid='buildings'>Buildings Page</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -156,10 +162,12 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard Page</div>}
-              {mockLocation === '/manager/budget' && <div data-testid="budget">Budget Page</div>}
-              {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings Page</div>}
+            <div data-testid='app'>
+              {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard Page</div>}
+              {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget Page</div>}
+              {mockLocation === '/manager/buildings' && (
+                <div data-testid='buildings'>Buildings Page</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -172,10 +180,12 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard Page</div>}
-              {mockLocation === '/manager/budget' && <div data-testid="budget">Budget Page</div>}
-              {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings Page</div>}
+            <div data-testid='app'>
+              {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard Page</div>}
+              {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget Page</div>}
+              {mockLocation === '/manager/buildings' && (
+                <div data-testid='buildings'>Buildings Page</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -221,7 +231,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">Admin Dashboard</div>
+            <div data-testid='app'>Admin Dashboard</div>
           </TestProviders>
         </QueryClientProvider>
       );
@@ -235,7 +245,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">Budget Page</div>
+            <div data-testid='app'>Budget Page</div>
           </TestProviders>
         </QueryClientProvider>
       );
@@ -268,10 +278,10 @@ describe('Comprehensive User Flows E2E Tests', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="manager-app">
+            <div data-testid='manager-app'>
               Manager Dashboard
-              <div data-testid="budget-access">Budget Management Available</div>
-              <div data-testid="buildings-access">Buildings Management Available</div>
+              <div data-testid='budget-access'>Budget Management Available</div>
+              <div data-testid='buildings-access'>Buildings Management Available</div>
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -285,7 +295,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="manager-app">
+            <div data-testid='manager-app'>
               Manager Dashboard
               {/* Admin features should not be rendered for managers */}
             </div>
@@ -323,10 +333,16 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/residents/dashboard' && <div data-testid="residents-dashboard">Residents Dashboard</div>}
-              {mockLocation === '/residents/residence' && <div data-testid="residence">My Residence</div>}
-              {mockLocation === '/residents/building' && <div data-testid="building">My Building</div>}
+            <div data-testid='app'>
+              {mockLocation === '/residents/dashboard' && (
+                <div data-testid='residents-dashboard'>Residents Dashboard</div>
+              )}
+              {mockLocation === '/residents/residence' && (
+                <div data-testid='residence'>My Residence</div>
+              )}
+              {mockLocation === '/residents/building' && (
+                <div data-testid='building'>My Building</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -337,10 +353,16 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/residents/dashboard' && <div data-testid="residents-dashboard">Residents Dashboard</div>}
-              {mockLocation === '/residents/residence' && <div data-testid="residence">My Residence</div>}
-              {mockLocation === '/residents/building' && <div data-testid="building">My Building</div>}
+            <div data-testid='app'>
+              {mockLocation === '/residents/dashboard' && (
+                <div data-testid='residents-dashboard'>Residents Dashboard</div>
+              )}
+              {mockLocation === '/residents/residence' && (
+                <div data-testid='residence'>My Residence</div>
+              )}
+              {mockLocation === '/residents/building' && (
+                <div data-testid='building'>My Building</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -353,10 +375,16 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/residents/dashboard' && <div data-testid="residents-dashboard">Residents Dashboard</div>}
-              {mockLocation === '/residents/residence' && <div data-testid="residence">My Residence</div>}
-              {mockLocation === '/residents/building' && <div data-testid="building">My Building</div>}
+            <div data-testid='app'>
+              {mockLocation === '/residents/dashboard' && (
+                <div data-testid='residents-dashboard'>Residents Dashboard</div>
+              )}
+              {mockLocation === '/residents/residence' && (
+                <div data-testid='residence'>My Residence</div>
+              )}
+              {mockLocation === '/residents/building' && (
+                <div data-testid='building'>My Building</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -369,10 +397,16 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/residents/dashboard' && <div data-testid="residents-dashboard">Residents Dashboard</div>}
-              {mockLocation === '/residents/residence' && <div data-testid="residence">My Residence</div>}
-              {mockLocation === '/residents/building' && <div data-testid="building">My Building</div>}
+            <div data-testid='app'>
+              {mockLocation === '/residents/dashboard' && (
+                <div data-testid='residents-dashboard'>Residents Dashboard</div>
+              )}
+              {mockLocation === '/residents/residence' && (
+                <div data-testid='residence'>My Residence</div>
+              )}
+              {mockLocation === '/residents/building' && (
+                <div data-testid='building'>My Building</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -385,10 +419,10 @@ describe('Comprehensive User Flows E2E Tests', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="resident-app">
+            <div data-testid='resident-app'>
               Resident Dashboard
-              <div data-testid="residence-access">My Residence Available</div>
-              <div data-testid="building-access">My Building Available</div>
+              <div data-testid='residence-access'>My Residence Available</div>
+              <div data-testid='building-access'>My Building Available</div>
               {/* Management features should not be available */}
             </div>
           </TestProviders>
@@ -439,9 +473,9 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              <div data-testid="welcome-message">Welcome</div>
-              <div data-testid="navigation">Dashboard, Budget, Buildings</div>
+            <div data-testid='app'>
+              <div data-testid='welcome-message'>Welcome</div>
+              <div data-testid='navigation'>Dashboard, Budget, Buildings</div>
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -460,9 +494,9 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              <div data-testid="welcome-message">Bienvenue</div>
-              <div data-testid="navigation">Tableau de bord, Budget, Bâtiments</div>
+            <div data-testid='app'>
+              <div data-testid='welcome-message'>Bienvenue</div>
+              <div data-testid='navigation'>Tableau de bord, Budget, Bâtiments</div>
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -482,8 +516,8 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              <div data-testid="dashboard-fr">Tableau de bord</div>
+            <div data-testid='app'>
+              <div data-testid='dashboard-fr'>Tableau de bord</div>
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -496,8 +530,8 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              <div data-testid="budget-fr">Gestion budgétaire</div>
+            <div data-testid='app'>
+              <div data-testid='budget-fr'>Gestion budgétaire</div>
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -521,11 +555,11 @@ describe('Comprehensive User Flows E2E Tests', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
+            <div data-testid='app'>
               {mockUseAuth().isAuthenticated ? (
-                <div data-testid="authenticated">User Dashboard</div>
+                <div data-testid='authenticated'>User Dashboard</div>
               ) : (
-                <div data-testid="unauthenticated">Please Login</div>
+                <div data-testid='unauthenticated'>Please Login</div>
               )}
             </div>
           </TestProviders>
@@ -549,11 +583,11 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
+            <div data-testid='app'>
               {mockUseAuth().isLoading ? (
-                <div data-testid="loading">Loading...</div>
+                <div data-testid='loading'>Loading...</div>
               ) : (
-                <div data-testid="loaded">Loaded</div>
+                <div data-testid='loaded'>Loaded</div>
               )}
             </div>
           </TestProviders>
@@ -582,11 +616,11 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
+            <div data-testid='app'>
               {mockUseAuth().isLoading ? (
-                <div data-testid="loading">Loading...</div>
+                <div data-testid='loading'>Loading...</div>
               ) : (
-                <div data-testid="loaded">Loaded</div>
+                <div data-testid='loaded'>Loaded</div>
               )}
             </div>
           </TestProviders>
@@ -618,10 +652,12 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">
-              {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard</div>}
-              {mockLocation === '/manager/budget' && <div data-testid="budget">Budget</div>}
-              {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings</div>}
+            <div data-testid='app'>
+              {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard</div>}
+              {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget</div>}
+              {mockLocation === '/manager/buildings' && (
+                <div data-testid='buildings'>Buildings</div>
+              )}
             </div>
           </TestProviders>
         </QueryClientProvider>
@@ -631,16 +667,18 @@ describe('Comprehensive User Flows E2E Tests', () => {
 
       // Rapidly navigate between pages
       const pages = ['/dashboard', '/manager/budget', '/manager/buildings'];
-      
+
       for (let i = 0; i < 10; i++) {
         mockLocation = pages[i % pages.length];
         rerender(
           <QueryClientProvider client={queryClient}>
             <TestProviders>
-              <div data-testid="app">
-                {mockLocation === '/dashboard' && <div data-testid="dashboard">Dashboard</div>}
-                {mockLocation === '/manager/budget' && <div data-testid="budget">Budget</div>}
-                {mockLocation === '/manager/buildings' && <div data-testid="buildings">Buildings</div>}
+              <div data-testid='app'>
+                {mockLocation === '/dashboard' && <div data-testid='dashboard'>Dashboard</div>}
+                {mockLocation === '/manager/budget' && <div data-testid='budget'>Budget</div>}
+                {mockLocation === '/manager/buildings' && (
+                  <div data-testid='buildings'>Buildings</div>
+                )}
               </div>
             </TestProviders>
           </QueryClientProvider>
@@ -656,7 +694,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
 
     it('efficiently manages query client state across routes', () => {
       const queriesCount = queryClient.getQueryCache().getAll().length;
-      
+
       mockUseAuth.mockReturnValue({
         user: {
           id: '1',
@@ -676,7 +714,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
       const { rerender } = render(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">Dashboard</div>
+            <div data-testid='app'>Dashboard</div>
           </TestProviders>
         </QueryClientProvider>
       );
@@ -685,7 +723,7 @@ describe('Comprehensive User Flows E2E Tests', () => {
       rerender(
         <QueryClientProvider client={queryClient}>
           <TestProviders>
-            <div data-testid="app">Budget</div>
+            <div data-testid='app'>Budget</div>
           </TestProviders>
         </QueryClientProvider>
       );

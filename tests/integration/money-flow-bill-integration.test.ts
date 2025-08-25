@@ -8,8 +8,8 @@ import { moneyFlowJob } from '../../server/jobs/money_flow_job';
 jest.mock('../../server/jobs/money_flow_job', () => ({
   moneyFlowJob: {
     generateForBill: jest.fn(),
-    generateForResidence: jest.fn()
-  }
+    generateForResidence: jest.fn(),
+  },
 }));
 
 // Mock the database
@@ -17,22 +17,22 @@ const mockDb = {
   select: jest.fn(),
   insert: jest.fn(),
   update: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 };
 
 const mockQueryBuilder = {
   from: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
-  orderBy: jest.fn().mockReturnThis()
+  orderBy: jest.fn().mockReturnThis(),
 };
 
-Object.keys(mockQueryBuilder).forEach(method => {
+Object.keys(mockQueryBuilder).forEach((method) => {
   mockDb[method] = jest.fn().mockReturnValue(mockQueryBuilder);
 });
 
 jest.mock('../../server/db', () => ({
-  db: mockDb
+  db: mockDb,
 }));
 
 // Mock auth middleware
@@ -42,13 +42,13 @@ const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
     email: 'admin@test.com',
     role: 'admin',
     canAccessAllOrganizations: true,
-    organizations: ['org-1']
+    organizations: ['org-1'],
   };
   next();
 };
 
 jest.mock('../../server/auth', () => ({
-  requireAuth: mockRequireAuth
+  requireAuth: mockRequireAuth,
 }));
 
 describe('Money Flow Bill Integration Tests', () => {
@@ -61,10 +61,12 @@ describe('Money Flow Bill Integration Tests', () => {
     jest.clearAllMocks();
 
     // Default mock for building access check
-    mockQueryBuilder.limit.mockResolvedValue([{
-      id: 'building-1',
-      organizationId: 'org-1'
-    }]);
+    mockQueryBuilder.limit.mockResolvedValue([
+      {
+        id: 'building-1',
+        organizationId: 'org-1',
+      },
+    ]);
   });
 
   afterEach(() => {
@@ -83,20 +85,17 @@ describe('Money Flow Bill Integration Tests', () => {
         costs: [1000],
         totalAmount: 1000,
         startDate: '2024-01-01',
-        status: 'draft'
+        status: 'draft',
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockResolvedValue(24); // 2 years of monthly entries
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       expect(response.body).toMatchObject({
         title: 'Monthly Maintenance',
         paymentType: 'recurrent',
-        schedulePayment: 'monthly'
+        schedulePayment: 'monthly',
       });
 
       // Note: In current implementation, money flow generation is commented out
@@ -114,16 +113,13 @@ describe('Money Flow Bill Integration Tests', () => {
         costs: [5000],
         totalAmount: 5000,
         startDate: '2024-01-01',
-        status: 'draft'
+        status: 'draft',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       expect(response.body.paymentType).toBe('unique');
-      
+
       // For unique bills, money flow generation should not be triggered
       expect(moneyFlowJob.generateForBill).not.toHaveBeenCalled();
     });
@@ -137,19 +133,16 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'quarterly',
         costs: [2500],
         totalAmount: 2500,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       // Bill creation should succeed even if money flow generation fails
       expect(response.body.title).toBe('Quarterly Service');
-      
+
       // Money flow generation should have been attempted (if implemented)
       // expect(moneyFlowJob.generateForBill).toHaveBeenCalled();
     });
@@ -160,18 +153,15 @@ describe('Money Flow Bill Integration Tests', () => {
       const billId = '1'; // Using mock bill ID from the existing mock data
       const updateData = {
         schedulePayment: 'quarterly', // Changed from monthly
-        costs: [1500] // Changed amount
+        costs: [1500], // Changed amount
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockResolvedValue(8); // 2 years of quarterly entries
 
-      const response = await request(app)
-        .put(`/api/bills/${billId}`)
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put(`/api/bills/${billId}`).send(updateData).expect(200);
 
       expect(response.body).toMatchObject(updateData);
-      
+
       // Note: In current implementation, money flow regeneration is commented out
       // When real database implementation is added, this would be:
       // expect(moneyFlowJob.generateForBill).toHaveBeenCalledWith(billId);
@@ -181,15 +171,12 @@ describe('Money Flow Bill Integration Tests', () => {
       const billId = '2';
       const updateData = {
         costs: [2000], // Increased from 1200
-        totalAmount: 2000
+        totalAmount: 2000,
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockResolvedValue(24);
 
-      const response = await request(app)
-        .put(`/api/bills/${billId}`)
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put(`/api/bills/${billId}`).send(updateData).expect(200);
 
       expect(response.body.costs).toEqual(['2000']);
     });
@@ -197,15 +184,12 @@ describe('Money Flow Bill Integration Tests', () => {
     it('should regenerate money flow when bill end date changes', async () => {
       const billId = '1';
       const updateData = {
-        endDate: '2025-12-31' // Set end date
+        endDate: '2025-12-31', // Set end date
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockResolvedValue(12); // 1 year instead of ongoing
 
-      const response = await request(app)
-        .put(`/api/bills/${billId}`)
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put(`/api/bills/${billId}`).send(updateData).expect(200);
 
       expect(response.body.endDate).toBe('2025-12-31');
     });
@@ -214,17 +198,14 @@ describe('Money Flow Bill Integration Tests', () => {
       const billId = '1';
       const updateData = {
         paymentType: 'unique',
-        schedulePayment: null // Remove schedule for unique payment
+        schedulePayment: null, // Remove schedule for unique payment
       };
 
       // Changing to unique should not trigger generation
-      const response = await request(app)
-        .put(`/api/bills/${billId}`)
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put(`/api/bills/${billId}`).send(updateData).expect(200);
 
       expect(response.body.paymentType).toBe('unique');
-      
+
       // Should cleanup existing money flow entries when changed to unique
       // (This would be implemented in the real database version)
     });
@@ -240,13 +221,10 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'quarterly',
         costs: [2000, 2500, 3000, 2200], // Different costs per quarter
         totalAmount: 9700,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       expect(response.body.costs).toEqual(['2000', '2500', '3000', '2200']);
       expect(response.body.totalAmount).toBe('9700');
@@ -262,15 +240,17 @@ describe('Money Flow Bill Integration Tests', () => {
         scheduleCustom: ['2024-03-15', '2024-06-15', '2024-09-15', '2024-12-15'],
         costs: [1500],
         totalAmount: 1500,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
-      expect(response.body.scheduleCustom).toEqual(['2024-03-15', '2024-06-15', '2024-09-15', '2024-12-15']);
+      expect(response.body.scheduleCustom).toEqual([
+        '2024-03-15',
+        '2024-06-15',
+        '2024-09-15',
+        '2024-12-15',
+      ]);
     });
 
     it('should handle bills with future start dates', async () => {
@@ -286,13 +266,10 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'monthly',
         costs: [800],
         totalAmount: 800,
-        startDate: futureDateStr
+        startDate: futureDateStr,
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       expect(response.body.startDate).toBe(futureDateStr);
     });
@@ -309,29 +286,26 @@ describe('Money Flow Bill Integration Tests', () => {
         costs: [5000],
         totalAmount: 5000,
         startDate: '2024-01-01',
-        endDate: '2024-12-31'
+        endDate: '2024-12-31',
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockImplementation((billId) => {
         // Simulate money flow calculation
         const startDate = new Date('2024-01-01');
         const endDate = new Date('2024-12-31');
-        
+
         let count = 0;
         const currentDate = new Date(startDate);
-        
+
         while (currentDate <= endDate) {
           count++;
           currentDate.setMonth(currentDate.getMonth() + 1);
         }
-        
+
         return Promise.resolve(count);
       });
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       // Should generate 12 monthly entries for 2024
       // (When real implementation is active)
@@ -347,29 +321,26 @@ describe('Money Flow Bill Integration Tests', () => {
         costs: [300],
         totalAmount: 300,
         startDate: '2024-01-01',
-        endDate: '2024-01-31'
+        endDate: '2024-01-31',
       };
 
       (moneyFlowJob.generateForBill as jest.Mock).mockImplementation(() => {
         // Simulate weekly calculation for January 2024
         const startDate = new Date('2024-01-01');
         const endDate = new Date('2024-01-31');
-        
+
         let count = 0;
         const currentDate = new Date(startDate);
-        
+
         while (currentDate <= endDate) {
           count++;
           currentDate.setDate(currentDate.getDate() + 7);
         }
-        
+
         return Promise.resolve(count);
       });
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       // Should generate 5 weekly entries for January 2024
     });
@@ -383,7 +354,7 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'yearly',
         costs: [12000],
         totalAmount: 12000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
         // No end date = ongoing
       };
 
@@ -392,10 +363,7 @@ describe('Money Flow Bill Integration Tests', () => {
         return Promise.resolve(25);
       });
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
 
       // Should generate 25 yearly entries for 25-year projection
     });
@@ -413,23 +381,22 @@ describe('Money Flow Bill Integration Tests', () => {
         paymentType: 'unique',
         costs: [1000],
         totalAmount: 1000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(404);
+      const response = await request(app).post('/api/bills').send(billData).expect(404);
 
       expect(response.body.message).toBe('Building not found');
     });
 
     it('should handle insufficient permissions', async () => {
       // Mock user without access to building's organization
-      mockQueryBuilder.limit.mockResolvedValueOnce([{
-        id: 'building-1',
-        organizationId: 'other-org' // Different org
-      }]);
+      mockQueryBuilder.limit.mockResolvedValueOnce([
+        {
+          id: 'building-1',
+          organizationId: 'other-org', // Different org
+        },
+      ]);
 
       const billData = {
         buildingId: 'building-1',
@@ -438,17 +405,14 @@ describe('Money Flow Bill Integration Tests', () => {
         paymentType: 'unique',
         costs: [1000],
         totalAmount: 1000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(403);
+      const response = await request(app).post('/api/bills').send(billData).expect(403);
 
       expect(response.body).toMatchObject({
         message: 'Access denied to create bills for this building',
-        code: 'INSUFFICIENT_PERMISSIONS'
+        code: 'INSUFFICIENT_PERMISSIONS',
       });
     });
 
@@ -458,13 +422,10 @@ describe('Money Flow Bill Integration Tests', () => {
         // Missing required fields
         category: 'maintenance',
         costs: [],
-        totalAmount: 0
+        totalAmount: 0,
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(invalidBillData)
-        .expect(400);
+      const response = await request(app).post('/api/bills').send(invalidBillData).expect(400);
 
       expect(response.body.message).toContain('Invalid bill data');
     });
@@ -478,13 +439,10 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'monthly',
         costs: [], // Empty costs array
         totalAmount: 1000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(400);
+      const response = await request(app).post('/api/bills').send(billData).expect(400);
 
       expect(response.body.message).toContain('Invalid bill data');
     });
@@ -498,13 +456,11 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'monthly', // But has schedule (invalid)
         costs: [1000],
         totalAmount: 1000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       // This should either be corrected or rejected
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData);
+      const response = await request(app).post('/api/bills').send(billData);
 
       // The response will depend on validation logic
       expect([201, 400]).toContain(response.status);
@@ -521,19 +477,16 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'monthly',
         costs: [1000],
         totalAmount: 1000,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       };
 
       // Mock slow money flow generation
-      (moneyFlowJob.generateForBill as jest.Mock).mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve(300), 100))
+      (moneyFlowJob.generateForBill as jest.Mock).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve(300), 100))
       );
 
       const startTime = Date.now();
-      const response = await request(app)
-        .post('/api/bills')
-        .send(billData)
-        .expect(201);
+      const response = await request(app).post('/api/bills').send(billData).expect(201);
       const endTime = Date.now();
 
       // Bill creation should be fast even if money flow generation is slow
@@ -550,16 +503,14 @@ describe('Money Flow Bill Integration Tests', () => {
         schedulePayment: 'monthly',
         costs: [100 + i * 10],
         totalAmount: 100 + i * 10,
-        startDate: '2024-01-01'
+        startDate: '2024-01-01',
       }));
 
-      const promises = bills.map(billData => 
-        request(app).post('/api/bills').send(billData)
-      );
+      const promises = bills.map((billData) => request(app).post('/api/bills').send(billData));
 
       const responses = await Promise.all(promises);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBe(201);
       });
     });

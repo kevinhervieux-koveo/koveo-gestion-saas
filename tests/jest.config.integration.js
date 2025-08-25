@@ -13,10 +13,13 @@ export default {
     '^@assets/(.*)$': '<rootDir>/attached_assets/$1',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
-      tsconfig: 'tsconfig.json',
-    }],
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        useESM: true,
+        tsconfig: 'tsconfig.json',
+      },
+    ],
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|@testing-library|msw|@bundled-es-modules))',

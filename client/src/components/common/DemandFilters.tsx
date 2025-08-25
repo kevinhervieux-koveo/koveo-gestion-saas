@@ -1,6 +1,12 @@
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Building } from './DemandCard';
 
 // Filter state interface
@@ -85,7 +91,7 @@ export function DemandFilters({
   userRole = 'resident',
   buildings = [],
   searchPlaceholder = 'Search demands...',
-  className = ''
+  className = '',
 }: DemandFiltersProps) {
   const statusOptions = userRole === 'manager' ? MANAGER_STATUS_OPTIONS : STATUS_OPTIONS;
   const showBuildingFilter = userRole === 'manager' && handlers.onBuildingChange;
@@ -93,21 +99,21 @@ export function DemandFilters({
   return (
     <div className={`flex items-center gap-4 flex-wrap ${className}`}>
       {/* Search Input */}
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <div className='relative flex-1 max-w-sm'>
+        <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
         <Input
           placeholder={searchPlaceholder}
           value={filters.searchTerm}
           onChange={(e) => handlers.onSearchChange(e.target.value)}
-          className="pl-10"
-          data-testid="search-demands"
+          className='pl-10'
+          data-testid='search-demands'
         />
       </div>
 
       {/* Status Filter */}
       <Select value={filters.statusFilter} onValueChange={handlers.onStatusChange}>
-        <SelectTrigger className="w-40" data-testid="filter-status">
-          <SelectValue placeholder="Status" />
+        <SelectTrigger className='w-40' data-testid='filter-status'>
+          <SelectValue placeholder='Status' />
         </SelectTrigger>
         <SelectContent>
           {statusOptions.map((option) => (
@@ -120,8 +126,8 @@ export function DemandFilters({
 
       {/* Type Filter */}
       <Select value={filters.typeFilter} onValueChange={handlers.onTypeChange}>
-        <SelectTrigger className="w-40" data-testid="filter-type">
-          <SelectValue placeholder="Type" />
+        <SelectTrigger className='w-40' data-testid='filter-type'>
+          <SelectValue placeholder='Type' />
         </SelectTrigger>
         <SelectContent>
           {TYPE_OPTIONS.map((option) => (
@@ -134,15 +140,12 @@ export function DemandFilters({
 
       {/* Building Filter (Manager only) */}
       {showBuildingFilter && (
-        <Select 
-          value={filters.buildingFilter || 'all'} 
-          onValueChange={handlers.onBuildingChange}
-        >
-          <SelectTrigger className="w-40" data-testid="filter-building">
-            <SelectValue placeholder="Building" />
+        <Select value={filters.buildingFilter || 'all'} onValueChange={handlers.onBuildingChange}>
+          <SelectTrigger className='w-40' data-testid='filter-building'>
+            <SelectValue placeholder='Building' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
+            <SelectItem value='all'>All Buildings</SelectItem>
             {buildings.map((building) => (
               <SelectItem key={building.id} value={building.id}>
                 {building.name}
@@ -161,28 +164,26 @@ export function DemandFilters({
  * @param demands
  * @param filters
  */
-export function filterDemands<T extends { 
-  description: string; 
-  type: string; 
-  status: string; 
-  buildingId?: string;
-  submitter?: { firstName: string; lastName: string; email: string };
-}>(
-  demands: T[], 
-  filters: FilterState
-): T[] {
+export function filterDemands<
+  T extends {
+    description: string;
+    type: string;
+    status: string;
+    buildingId?: string;
+    submitter?: { firstName: string; lastName: string; email: string };
+  },
+>(demands: T[], filters: FilterState): T[] {
   return demands.filter((demand) => {
     // Search filter
     const searchLower = filters.searchTerm.toLowerCase();
-    const matchesSearch = !filters.searchTerm || (
+    const matchesSearch =
+      !filters.searchTerm ||
       demand.description.toLowerCase().includes(searchLower) ||
       demand.type.toLowerCase().includes(searchLower) ||
-      (demand.submitter && (
-        demand.submitter.firstName.toLowerCase().includes(searchLower) ||
-        demand.submitter.lastName.toLowerCase().includes(searchLower) ||
-        demand.submitter.email.toLowerCase().includes(searchLower)
-      ))
-    );
+      (demand.submitter &&
+        (demand.submitter.firstName.toLowerCase().includes(searchLower) ||
+          demand.submitter.lastName.toLowerCase().includes(searchLower) ||
+          demand.submitter.email.toLowerCase().includes(searchLower)));
 
     // Status filter
     const matchesStatus = filters.statusFilter === 'all' || demand.status === filters.statusFilter;
@@ -191,8 +192,9 @@ export function filterDemands<T extends {
     const matchesType = filters.typeFilter === 'all' || demand.type === filters.typeFilter;
 
     // Building filter (optional)
-    const matchesBuilding = !filters.buildingFilter || 
-      filters.buildingFilter === 'all' || 
+    const matchesBuilding =
+      !filters.buildingFilter ||
+      filters.buildingFilter === 'all' ||
       demand.buildingId === filters.buildingFilter;
 
     return matchesSearch && matchesStatus && matchesType && matchesBuilding;

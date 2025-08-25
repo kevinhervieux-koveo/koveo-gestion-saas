@@ -113,24 +113,26 @@ async function getQualityMetrics() {
       const i18nPath = join(process.cwd(), 'client', 'src', 'lib', 'i18n.ts');
       if (existsSync(i18nPath)) {
         const i18nContent = readFileSync(i18nPath, 'utf-8') as string;
-        
+
         // Extract translation objects using regex
-        const translationsMatch = i18nContent.match(/const translations: Record<Language, Translations> = \{([\s\S]*?)\};/);
+        const translationsMatch = i18nContent.match(
+          /const translations: Record<Language, Translations> = \{([\s\S]*?)\};/
+        );
         if (translationsMatch) {
           const translationsContent = translationsMatch[1];
-          
+
           // Count English keys
           const enMatch = translationsContent.match(/en: \{([\s\S]*?)\},\s*fr:/m);
           const frMatch = translationsContent.match(/fr: \{([\s\S]*?)\}\s*$/m);
-          
+
           if (enMatch && frMatch) {
             const enContent = enMatch[1];
             const frContent = frMatch[1];
-            
+
             // Count keys by counting colons that aren't in quotes
             const enKeys = (enContent.match(/^\s*[a-zA-Z][a-zA-Z0-9_]*:/gm) || []).length;
             const frKeys = (frContent.match(/^\s*[a-zA-Z][a-zA-Z0-9_]*:/gm) || []).length;
-            
+
             // Calculate coverage as percentage of matched keys
             const coverage = Math.min(enKeys, frKeys) / Math.max(enKeys, frKeys, 1);
             translationCoverage = `${Math.round(coverage * 100)}%`;
@@ -221,7 +223,7 @@ class QualityMetricValidator {
       missedIssues,
       accuracy,
       projectPhase,
-      issueDetails
+      issueDetails,
     } as MetricEffectivenessData & { projectPhase?: string; issueDetails?: any });
   }
 
@@ -231,10 +233,13 @@ class QualityMetricValidator {
    * @returns Effectiveness statistics.
    */
   static getMetricEffectiveness(metric: string) {
-    const metricData = this.metricsHistory.filter(m => m.metric === metric);
-    if (metricData.length === 0) {return null;}
+    const metricData = this.metricsHistory.filter((m) => m.metric === metric);
+    if (metricData.length === 0) {
+      return null;
+    }
 
-    const avgAccuracy = metricData.reduce((sum, _data) => sum + _data.accuracy, 0) / metricData.length;
+    const avgAccuracy =
+      metricData.reduce((sum, _data) => sum + _data.accuracy, 0) / metricData.length;
     const totalRealIssues = metricData.reduce((sum, _data) => sum + _data.realIssuesFound, 0);
     const totalFalsePositives = metricData.reduce((sum, _data) => sum + _data.falsePositives, 0);
     const totalMissedIssues = metricData.reduce((sum, _data) => sum + _data.missedIssues, 0);
@@ -242,8 +247,8 @@ class QualityMetricValidator {
     // Calculate accuracy trend (positive means improving)
     let accuracyTrend = 0;
     if (metricData.length >= 2) {
-      const recent = metricData.slice(-3).map(d => d.accuracy);
-      const early = metricData.slice(0, 3).map(d => d.accuracy);
+      const recent = metricData.slice(-3).map((d) => d.accuracy);
+      const early = metricData.slice(0, 3).map((d) => d.accuracy);
       const recentAvg = recent.reduce((sum, acc) => sum + acc, 0) / recent.length;
       const earlyAvg = early.reduce((sum, acc) => sum + acc, 0) / early.length;
       accuracyTrend = recentAvg - earlyAvg;
@@ -261,8 +266,8 @@ class QualityMetricValidator {
       issueSeverityDistribution: {
         critical: 5, // Mock data for tests
         moderate: 3,
-        minor: 2
-      }
+        minor: 2,
+      },
     };
   }
 
@@ -272,7 +277,10 @@ class QualityMetricValidator {
    * @param threshold - Minimum accuracy threshold (default: 80%).
    * @returns Validation result with details.
    */
-  static validateMetricQuality(metric: string, threshold: number = 80): {
+  static validateMetricQuality(
+    metric: string,
+    threshold: number = 80
+  ): {
     isValid: boolean;
     reasons: string[];
     recommendations: string[];
@@ -282,12 +290,13 @@ class QualityMetricValidator {
       return {
         isValid: false,
         reasons: ['No effectiveness data available'],
-        recommendations: ['Collect more metric data']
+        recommendations: ['Collect more metric data'],
       };
     }
 
-    const isValid = effectiveness.averageAccuracy >= threshold && 
-                   effectiveness.totalRealIssuesFound > effectiveness.totalFalsePositives;
+    const isValid =
+      effectiveness.averageAccuracy >= threshold &&
+      effectiveness.totalRealIssuesFound > effectiveness.totalFalsePositives;
 
     const reasons: string[] = [];
     const recommendations: string[] = [];
@@ -305,7 +314,7 @@ class QualityMetricValidator {
     return {
       isValid,
       reasons,
-      recommendations
+      recommendations,
     };
   }
 }
@@ -324,8 +333,8 @@ describe('Quality Metrics Calculation Tests', () => {
           statements: { pct: 85.6 },
           branches: { pct: 78.2 },
           functions: { pct: 92.1 },
-          lines: { pct: 84.3 }
-        }
+          lines: { pct: 84.3 },
+        },
       };
 
       mockedExistsSync.mockReturnValue(true);
@@ -333,7 +342,7 @@ describe('Quality Metrics Calculation Tests', () => {
 
       const metrics = await getQualityMetrics();
       expect(metrics.coverage).toBe('86%');
-      
+
       // Record effectiveness - this would be populated by actual usage data
       QualityMetricValidator.recordMetricEffectiveness(
         'coverage',
@@ -347,9 +356,11 @@ describe('Quality Metrics Calculation Tests', () => {
     it('should handle missing coverage file by running coverage check', async () => {
       mockedExistsSync.mockReturnValueOnce(false).mockReturnValueOnce(true);
       mockedExecSync.mockReturnValueOnce('');
-      mockedReadFileSync.mockReturnValue(JSON.stringify({
-        total: { statements: { pct: 72 } }
-      }));
+      mockedReadFileSync.mockReturnValue(
+        JSON.stringify({
+          total: { statements: { pct: 72 } },
+        })
+      );
 
       const metrics = await getQualityMetrics();
       expect(metrics.coverage).toBe('72%');
@@ -362,7 +373,7 @@ describe('Quality Metrics Calculation Tests', () => {
     it('should validate coverage metric finds real issues', () => {
       // Clear previous data
       QualityMetricValidator.metricsHistory = [];
-      
+
       // Simulate tracking coverage effectiveness over time
       QualityMetricValidator.recordMetricEffectiveness('coverage', '75%', 8, 1, 0);
       QualityMetricValidator.recordMetricEffectiveness('coverage', '82%', 5, 0, 1);
@@ -373,7 +384,7 @@ describe('Quality Metrics Calculation Tests', () => {
       expect(effectiveness!.totalRealIssuesFound).toBe(28);
       expect(effectiveness!.totalFalsePositives).toBe(3);
       expect(effectiveness!.totalMissedIssues).toBe(2);
-      
+
       const validation = QualityMetricValidator.validateMetricQuality('coverage');
       expect(validation.isValid).toBe(true);
     });
@@ -381,7 +392,7 @@ describe('Quality Metrics Calculation Tests', () => {
     it('should fail validation for ineffective coverage tracking', () => {
       // Simulate a metric that produces many false positives
       QualityMetricValidator.recordMetricEffectiveness('badCoverage', '90%', 2, 15, 8);
-      
+
       const validation = QualityMetricValidator.validateMetricQuality('badCoverage');
       expect(validation.isValid).toBe(false);
     });
@@ -439,7 +450,7 @@ describe('Quality Metrics Calculation Tests', () => {
 
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('codeQuality');
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(85);
-      
+
       const validation = QualityMetricValidator.validateMetricQuality('codeQuality', 85);
       expect(validation.isValid).toBe(true);
     });
@@ -453,9 +464,9 @@ describe('Quality Metrics Calculation Tests', () => {
             total: 5,
             high: 2,
             moderate: 2,
-            low: 1
-          }
-        }
+            low: 1,
+          },
+        },
       };
       mockedExecSync.mockReturnValue(JSON.stringify(mockAuditData));
 
@@ -490,7 +501,7 @@ describe('Quality Metrics Calculation Tests', () => {
     it('should validate security metric finds real vulnerabilities', () => {
       // Clear previous data for clean test
       QualityMetricValidator.metricsHistory = [];
-      
+
       // Test with known security findings - ensure high accuracy and low false positives
       QualityMetricValidator.recordMetricEffectiveness('securityIssues', '3', 3, 0, 0);
       QualityMetricValidator.recordMetricEffectiveness('securityIssues', '5', 5, 0, 0);
@@ -499,7 +510,7 @@ describe('Quality Metrics Calculation Tests', () => {
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('securityIssues');
       expect(effectiveness!.totalRealIssuesFound).toBe(15);
       expect(effectiveness!.totalFalsePositives).toBe(0);
-      
+
       const validation = QualityMetricValidator.validateMetricQuality('securityIssues', 75);
       expect(validation.isValid).toBe(true);
     });
@@ -611,7 +622,7 @@ const translations: Record<Language, Translations> = {
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('translationCoverage');
       expect(effectiveness!.totalRealIssuesFound).toBe(7);
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(90);
-      
+
       const validation = QualityMetricValidator.validateMetricQuality('translationCoverage');
       expect(validation.isValid).toBe(true);
     });
@@ -621,10 +632,12 @@ const translations: Record<Language, Translations> = {
     it('should provide comprehensive quality assessment', async () => {
       // Mock all systems for a comprehensive test
       mockedExistsSync.mockReturnValue(true);
-      mockedReadFileSync.mockReturnValueOnce(JSON.stringify({
-        total: { statements: { pct: 85 } }
-      }));
-      
+      mockedReadFileSync.mockReturnValueOnce(
+        JSON.stringify({
+          total: { statements: { pct: 85 } },
+        })
+      );
+
       mockedExecSync
         .mockReturnValueOnce('✓ 2 warnings found') // lint check
         .mockReturnValueOnce('{}') // security audit
@@ -638,7 +651,7 @@ const translations: Record<Language, Translations> = {
       mockedReadFileSync.mockReturnValueOnce(mockI18nContent);
 
       const metrics = await getQualityMetrics();
-      
+
       expect(metrics.coverage).toBe('85%');
       expect(metrics.codeQuality).toBe('A+');
       expect(metrics.securityIssues).toBe('0');
@@ -658,7 +671,7 @@ const translations: Record<Language, Translations> = {
         new Date('2024-01-01'),
         new Date('2024-01-15'),
         new Date('2024-02-01'),
-        new Date('2024-02-15')
+        new Date('2024-02-15'),
       ];
 
       // Coverage improving over time
@@ -668,7 +681,7 @@ const translations: Record<Language, Translations> = {
       QualityMetricValidator.recordMetricEffectiveness('coverage', '92%', 2, 0, 0);
 
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('coverage');
-      
+
       // Should show improvement trend
       expect(effectiveness!.totalMeasurements).toBe(4);
       expect(effectiveness!.totalRealIssuesFound).toBe(32); // Total issues found over time
@@ -687,7 +700,9 @@ const translations: Record<Language, Translations> = {
       expect(validation.isValid).toBe(false);
 
       const effectiveness = QualityMetricValidator.getMetricEffectiveness('fakeMetric');
-      expect(effectiveness!.totalFalsePositives).toBeGreaterThan(effectiveness!.totalRealIssuesFound);
+      expect(effectiveness!.totalFalsePositives).toBeGreaterThan(
+        effectiveness!.totalRealIssuesFound
+      );
     });
   });
 });

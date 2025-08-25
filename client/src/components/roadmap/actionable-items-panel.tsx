@@ -14,15 +14,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { ActionableItem, Feature } from '@shared/schema';
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  AlertCircle,
-  Copy,
-  ChevronRight,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle2, Circle, Clock, AlertCircle, Copy, ChevronRight, Zap } from 'lucide-react';
 
 /**
  * Props for the ActionableItemsPanel component.
@@ -63,7 +55,9 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!response.ok) {throw new Error('Failed to update item');}
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -77,7 +71,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
   });
 
   const getStatusIcon = (status: string, onClick?: () => void) => {
-    const iconClass = "w-5 h-5 cursor-pointer hover:scale-110 transition-transform";
+    const iconClass = 'w-5 h-5 cursor-pointer hover:scale-110 transition-transform';
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation(); // Prevent accordion toggle
       onClick?.();
@@ -91,20 +85,25 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
       case 'blocked':
         return <AlertCircle className={`${iconClass} text-red-600`} onClick={handleClick} />;
       default:
-        return <Circle className={`${iconClass} text-gray-400 hover:text-green-600`} onClick={handleClick} />;
+        return (
+          <Circle
+            className={`${iconClass} text-gray-400 hover:text-green-600`}
+            onClick={handleClick}
+          />
+        );
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+        return <Badge className='bg-green-100 text-green-800'>Completed</Badge>;
       case 'in-progress':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
+        return <Badge className='bg-blue-100 text-blue-800'>In Progress</Badge>;
       case 'blocked':
-        return <Badge className="bg-red-100 text-red-800">Blocked</Badge>;
+        return <Badge className='bg-red-100 text-red-800'>Blocked</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
+        return <Badge className='bg-gray-100 text-gray-800'>Pending</Badge>;
     }
   };
 
@@ -129,7 +128,8 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
       await navigator.clipboard.writeText(prompt);
       toast({
         title: '🤖 AI Prompt Copied!',
-        description: 'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
+        description:
+          'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
     } catch (_error) {
       // Fallback to creating a text area and selecting the text
@@ -147,7 +147,8 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
       } catch (___fallbackError) {
         toast({
           title: 'Copy Failed',
-          description: 'Failed to copy prompt to clipboard. Please manually select and copy the text.',
+          description:
+            'Failed to copy prompt to clipboard. Please manually select and copy the text.',
           variant: 'destructive',
         });
       }
@@ -168,10 +169,10 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           <CardTitle>Loading Actionable Items...</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
+          <div className='animate-pulse space-y-4'>
+            <div className='h-4 bg-gray-200 rounded'></div>
+            <div className='h-4 bg-gray-200 rounded'></div>
+            <div className='h-4 bg-gray-200 rounded'></div>
           </div>
         </CardContent>
       </Card>
@@ -179,80 +180,80 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
   }
 
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className='w-full max-w-4xl'>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
+            <CardTitle className='flex items-center gap-2'>
+              <Zap className='w-5 h-5' />
               Actionable Items for {feature.name}
             </CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className='text-sm text-gray-600 mt-1'>
               {completedCount} of {items.length} items completed
             </p>
           </div>
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant='ghost' size='sm' onClick={onClose}>
               Close
             </Button>
           )}
         </div>
-        <div className="mt-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
+        <div className='mt-4'>
+          <div className='flex justify-between text-sm text-gray-600 mb-1'>
             <span>Progress</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className='w-full bg-gray-200 rounded-full h-2'>
             <div
-              className="bg-green-600 h-2 rounded-full transition-all duration-300"
+              className='bg-green-600 h-2 rounded-full transition-all duration-300'
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[500px] pr-4">
+        <ScrollArea className='h-[500px] pr-4'>
           <Accordion
-            type="multiple"
+            type='multiple'
             value={expandedItems}
             onValueChange={setExpandedItems}
-            className="space-y-4"
+            className='space-y-4'
           >
             {items.map((item, _index) => (
               <AccordionItem
                 key={item.id}
                 value={item.id}
-                className="border rounded-lg overflow-hidden"
+                className='border rounded-lg overflow-hidden'
               >
-                <AccordionTrigger className="px-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-3">
+                <AccordionTrigger className='px-4 hover:bg-gray-50'>
+                  <div className='flex items-center justify-between w-full'>
+                    <div className='flex items-center gap-3'>
                       {getStatusIcon(item.status, () => handleCircleClick(item))}
-                      <div className="text-left">
-                        <div className="font-medium">{item.title}</div>
-                        <div className="text-sm text-gray-600">
+                      <div className='text-left'>
+                        <div className='font-medium'>{item.title}</div>
+                        <div className='text-sm text-gray-600'>
                           Item {index + 1} of {items.length}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mr-2">
+                    <div className='flex items-center gap-2 mr-2'>
                       {getStatusBadge(item.status)}
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-4">
+                <AccordionContent className='px-4 pb-4'>
+                  <div className='space-y-4'>
                     {/* Description */}
                     <div>
-                      <h4 className="font-semibold mb-1">Description</h4>
-                      <p className="text-sm text-gray-700">{item.description}</p>
+                      <h4 className='font-semibold mb-1'>Description</h4>
+                      <p className='text-sm text-gray-700'>{item.description}</p>
                     </div>
 
                     {/* Technical Details */}
                     {item.implementation_notes && (
                       <div>
-                        <h4 className="font-semibold mb-1">Implementation Notes</h4>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                        <h4 className='font-semibold mb-1'>Implementation Notes</h4>
+                        <p className='text-sm text-gray-700 whitespace-pre-wrap'>
                           {item.implementation_notes}
                         </p>
                       </div>
@@ -261,34 +262,37 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
                     {/* Acceptance Criteria */}
                     {item.acceptanceCriteria && (
                       <div>
-                        <h4 className="font-semibold mb-1">Acceptance Criteria</h4>
-                        <p className="text-sm text-gray-700">{String(item.acceptanceCriteria)}</p>
+                        <h4 className='font-semibold mb-1'>Acceptance Criteria</h4>
+                        <p className='text-sm text-gray-700'>{String(item.acceptanceCriteria)}</p>
                       </div>
                     )}
 
                     {/* Implementation Prompt - Always show, even if empty */}
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-blue-600 flex items-center gap-2">
-                          <Zap className="w-4 h-4" />
+                    <div className='mt-4'>
+                      <div className='flex items-center justify-between mb-2'>
+                        <h4 className='font-semibold text-blue-600 flex items-center gap-2'>
+                          <Zap className='w-4 h-4' />
                           AI Implementation Prompt
                         </h4>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyImplementationPrompt(
-                            item.implementation_notes || 
-                            `Implement: ${item.title}\n\nDescription: ${item.description}\n\nImplementation Notes: ${item.implementation_notes || 'No specific implementation notes provided'}\n\nEstimated Hours: ${item.estimatedHours || 'Unknown'}`
-                          )}
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          variant='outline'
+                          size='sm'
+                          onClick={() =>
+                            copyImplementationPrompt(
+                              item.implementation_notes ||
+                                `Implement: ${item.title}\n\nDescription: ${item.description}\n\nImplementation Notes: ${item.implementation_notes || 'No specific implementation notes provided'}\n\nEstimated Hours: ${item.estimatedHours || 'Unknown'}`
+                            )
+                          }
+                          className='text-blue-600 border-blue-200 hover:bg-blue-50'
                         >
-                          <Copy className="w-4 h-4 mr-1" />
+                          <Copy className='w-4 h-4 mr-1' />
                           Copy AI Prompt
                         </Button>
                       </div>
-                      <div className="bg-slate-900 text-green-400 p-4 rounded-lg border border-slate-700 shadow-inner">
-                        <pre className="whitespace-pre-wrap text-sm leading-relaxed">
-{item.implementation_notes || `Implement: ${item.title}
+                      <div className='bg-slate-900 text-green-400 p-4 rounded-lg border border-slate-700 shadow-inner'>
+                        <pre className='whitespace-pre-wrap text-sm leading-relaxed'>
+                          {item.implementation_notes ||
+                            `Implement: ${item.title}
 
 Description: ${item.description}
 
@@ -302,44 +306,46 @@ Please implement this feature following best practices and ensuring proper error
                     </div>
 
                     {/* Dependencies */}
-                    {item.dependencies && Array.isArray(item.dependencies) && (item.dependencies as string[]).length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-1">Dependencies</h4>
-                        <ul className="text-sm text-gray-700 list-disc list-inside">
-                          {(item.dependencies as string[]).map((dep, i) => (
-                            <li key={i}>{dep}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {item.dependencies &&
+                      Array.isArray(item.dependencies) &&
+                      (item.dependencies as string[]).length > 0 && (
+                        <div>
+                          <h4 className='font-semibold mb-1'>Dependencies</h4>
+                          <ul className='text-sm text-gray-700 list-disc list-inside'>
+                            {(item.dependencies as string[]).map((dep, i) => (
+                              <li key={i}>{dep}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
                     {/* Status Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t">
-                      <span className="text-sm font-medium">Status:</span>
-                      <div className="flex gap-2">
+                    <div className='flex items-center gap-2 pt-2 border-t'>
+                      <span className='text-sm font-medium'>Status:</span>
+                      <div className='flex gap-2'>
                         <Button
-                          size="sm"
+                          size='sm'
                           variant={item.status === 'pending' ? 'default' : 'outline'}
                           onClick={() => handleStatusChange(item.id, 'pending')}
                         >
                           Pending
                         </Button>
                         <Button
-                          size="sm"
+                          size='sm'
                           variant={item.status === 'in-progress' ? 'default' : 'outline'}
                           onClick={() => handleStatusChange(item.id, 'in-progress')}
                         >
                           In Progress
                         </Button>
                         <Button
-                          size="sm"
+                          size='sm'
                           variant={item.status === 'completed' ? 'default' : 'outline'}
                           onClick={() => handleStatusChange(item.id, 'completed')}
                         >
                           Completed
                         </Button>
                         <Button
-                          size="sm"
+                          size='sm'
                           variant={item.status === 'blocked' ? 'destructive' : 'outline'}
                           onClick={() => handleStatusChange(item.id, 'blocked')}
                         >
@@ -355,22 +361,23 @@ Please implement this feature following best practices and ensuring proper error
         </ScrollArea>
 
         {feature.aiAnalysisResult && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold mb-2">AI Analysis Summary</h4>
-            <p className="text-sm text-gray-700">
+          <div className='mt-6 p-4 bg-blue-50 rounded-lg'>
+            <h4 className='font-semibold mb-2'>AI Analysis Summary</h4>
+            <p className='text-sm text-gray-700'>
               {String((feature.aiAnalysisResult as any)?.summary || '')}
             </p>
             {(feature.aiAnalysisResult as any)?.recommendations && (
-              <div className="mt-3">
-                <h5 className="font-medium text-sm mb-1">Recommendations:</h5>
-                <ul className="text-sm text-gray-600 list-disc list-inside">
-                  {Array.isArray((feature.aiAnalysisResult as any).recommendations) && (feature.aiAnalysisResult as any).recommendations.map((rec: string, i: number) => (
-                    <li key={i}>{String(rec)}</li>
-                  ))}
+              <div className='mt-3'>
+                <h5 className='font-medium text-sm mb-1'>Recommendations:</h5>
+                <ul className='text-sm text-gray-600 list-disc list-inside'>
+                  {Array.isArray((feature.aiAnalysisResult as any).recommendations) &&
+                    (feature.aiAnalysisResult as any).recommendations.map(
+                      (rec: string, i: number) => <li key={i}>{String(rec)}</li>
+                    )}
                 </ul>
               </div>
             )}
-            <div className="mt-3 text-sm text-gray-600">
+            <div className='mt-3 text-sm text-gray-600'>
               <strong>Total Estimated Effort:</strong>{' '}
               {String((feature.aiAnalysisResult as any)?.estimatedTotalEffort || '')}
             </div>

@@ -14,17 +14,21 @@ import express, { Express, Request, Response, NextFunction } from 'express';
  * @param isDevelopment
  */
 const getCSPConfig = (isDevelopment: boolean) => {
-  const devSources = isDevelopment ? [
-    "'unsafe-eval'", // Required for Vite HMR in development
-    "'unsafe-inline'", // Required for dev CSS injection
-    'ws:', 'wss:', // WebSocket for HMR
-    'localhost:*',
-    '127.0.0.1:*',
-    '*.replit.com',
-    '*.replit.co',
-    '*.replit.dev',
-    'http:', 'https:' // Allow all HTTP/HTTPS in development
-  ] : [];
+  const devSources = isDevelopment
+    ? [
+        "'unsafe-eval'", // Required for Vite HMR in development
+        "'unsafe-inline'", // Required for dev CSS injection
+        'ws:',
+        'wss:', // WebSocket for HMR
+        'localhost:*',
+        '127.0.0.1:*',
+        '*.replit.com',
+        '*.replit.co',
+        '*.replit.dev',
+        'http:',
+        'https:', // Allow all HTTP/HTTPS in development
+      ]
+    : [];
 
   return {
     directives: {
@@ -33,53 +37,43 @@ const getCSPConfig = (isDevelopment: boolean) => {
         "'self'",
         "'strict-dynamic'",
         // Quebec government trusted domains for integration
-        "*.quebec.ca",
-        "*.gouv.qc.ca",
+        '*.quebec.ca',
+        '*.gouv.qc.ca',
         // Essential CDNs with SRI
-        "https://cdn.jsdelivr.net",
-        "https://unpkg.com",
-        ...devSources
+        'https://cdn.jsdelivr.net',
+        'https://unpkg.com',
+        ...devSources,
       ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'", // Required for CSS-in-JS and styled components
-        "https://fonts.googleapis.com",
-        ...devSources
+        'https://fonts.googleapis.com',
+        ...devSources,
       ],
-      fontSrc: [
-        "'self'",
-        "https://fonts.gstatic.com",
-        "data:",
-        ...devSources
-      ],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:', ...devSources],
       imgSrc: [
         "'self'",
-        "data:",
-        "blob:",
-        "https:", // Allow HTTPS images for property photos
-        ...devSources
+        'data:',
+        'blob:',
+        'https:', // Allow HTTPS images for property photos
+        ...devSources,
       ],
-      mediaSrc: [
-        "'self'",
-        "blob:",
-        "data:",
-        ...devSources
-      ],
+      mediaSrc: ["'self'", 'blob:', 'data:', ...devSources],
       connectSrc: [
         "'self'",
         // Quebec government APIs for compliance
-        "*.quebec.ca",
-        "*.gouv.qc.ca",
+        '*.quebec.ca',
+        '*.gouv.qc.ca',
         // Essential services
-        "https://api.koveo.com",
-        ...devSources
+        'https://api.koveo.com',
+        ...devSources,
       ],
       frameSrc: [
         "'self'",
         // Quebec government integration frames
-        "*.quebec.ca",
-        "*.gouv.qc.ca",
-        ...devSources
+        '*.quebec.ca',
+        '*.gouv.qc.ca',
+        ...devSources,
       ],
       frameAncestors: ["'none'"], // Prevent clickjacking
       objectSrc: ["'none'"], // Block plugins
@@ -89,7 +83,7 @@ const getCSPConfig = (isDevelopment: boolean) => {
       blockAllMixedContent: [], // Block mixed content
     },
     reportOnly: isDevelopment, // Only report in development, enforce in production
-    reportUri: isDevelopment ? undefined : '/api/security/csp-report'
+    reportUri: isDevelopment ? undefined : '/api/security/csp-report',
   };
 };
 
@@ -121,12 +115,17 @@ const getCorsConfig = (isDevelopment: boolean) => {
   }
 
   return {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => {
       // Allow requests with no origin (mobile apps, etc.)
-      if (!origin) {return callback(null, true);}
-      
+      if (!origin) {
+        return callback(null, true);
+      }
+
       // Check against allowed origins
-      const isAllowed = allowedOrigins.some(allowed => {
+      const isAllowed = allowedOrigins.some((allowed) => {
         if (typeof allowed === 'string') {
           return origin === allowed;
         }
@@ -135,7 +134,7 @@ const getCorsConfig = (isDevelopment: boolean) => {
         }
         return false;
       });
-      
+
       if (isAllowed) {
         callback(null, true);
       } else {
@@ -153,15 +152,15 @@ const getCorsConfig = (isDevelopment: boolean) => {
       'Authorization',
       'Cache-Control',
       'X-CSRF-Token',
-      'X-Language' // For Quebec bilingual support
+      'X-Language', // For Quebec bilingual support
     ],
     exposedHeaders: [
       'X-Total-Count', // For pagination
       'X-RateLimit-Limit',
       'X-RateLimit-Remaining',
-      'X-Language' // For Quebec bilingual responses
+      'X-Language', // For Quebec bilingual responses
     ],
-    maxAge: 86400 // 24 hours preflight cache
+    maxAge: 86400, // 24 hours preflight cache
   };
 };
 
@@ -176,7 +175,7 @@ export const rateLimitConfig = {
     message: {
       error: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
       error_en: 'Too many login attempts. Please try again in 15 minutes.',
-      code: 'RATE_LIMIT_AUTH'
+      code: 'RATE_LIMIT_AUTH',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -185,12 +184,13 @@ export const rateLimitConfig = {
       // Use a combination of IP and User-Agent for better accuracy
       const forwarded = req.headers['x-forwarded-for'] as string;
       const realIp = req.headers['x-real-ip'] as string;
-      const clientIp = forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
+      const clientIp =
+        forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
       const userAgent = req.headers['user-agent'] || 'unknown';
       return `${clientIp}:${userAgent.substring(0, 50)}`;
     },
   },
-  
+
   // General API endpoints
   api: {
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -198,12 +198,12 @@ export const rateLimitConfig = {
     message: {
       error: 'Trop de requêtes. Veuillez réessayer plus tard.',
       error_en: 'Too many requests. Please try again later.',
-      code: 'RATE_LIMIT_API'
+      code: 'RATE_LIMIT_API',
     },
     standardHeaders: true,
     legacyHeaders: false,
   },
-  
+
   // Password reset endpoints - more lenient than login
   passwordReset: {
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -211,7 +211,7 @@ export const rateLimitConfig = {
     message: {
       error: 'Trop de demandes de réinitialisation. Veuillez réessayer dans 15 minutes.',
       error_en: 'Too many password reset requests. Please try again in 15 minutes.',
-      code: 'RATE_LIMIT_PASSWORD_RESET'
+      code: 'RATE_LIMIT_PASSWORD_RESET',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -219,12 +219,13 @@ export const rateLimitConfig = {
       // Use a combination of IP and User-Agent for better accuracy
       const forwarded = req.headers['x-forwarded-for'] as string;
       const realIp = req.headers['x-real-ip'] as string;
-      const clientIp = forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
+      const clientIp =
+        forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
       const userAgent = req.headers['user-agent'] || 'unknown';
       return `${clientIp}:${userAgent.substring(0, 50)}`;
     },
   },
-  
+
   // File upload endpoints
   upload: {
     windowMs: 60 * 60 * 1000, // 1 hour
@@ -232,11 +233,11 @@ export const rateLimitConfig = {
     message: {
       error: 'Limite de téléchargement atteinte. Veuillez réessayer dans 1 heure.',
       error_en: 'Upload limit reached. Please try again in 1 hour.',
-      code: 'RATE_LIMIT_UPLOAD'
+      code: 'RATE_LIMIT_UPLOAD',
     },
     standardHeaders: true,
     legacyHeaders: false,
-  }
+  },
 };
 
 /**
@@ -246,75 +247,83 @@ export const rateLimitConfig = {
  */
 export function configureSecurityMiddleware(app: Express): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  console.log(`🛡️  Configuring security middleware (${isDevelopment ? 'development' : 'production'} mode)`);
+
+  console.log(
+    `🛡️  Configuring security middleware (${isDevelopment ? 'development' : 'production'} mode)`
+  );
 
   // CORS Configuration
   app.use(cors(getCorsConfig(isDevelopment)));
 
   // Helmet Security Headers
-  app.use(helmet({
-    // Content Security Policy - Disabled in development for React HMR
-    contentSecurityPolicy: isDevelopment ? false : getCSPConfig(isDevelopment),
-    
-    // Cross-Origin Embedder Policy - Relaxed in development
-    crossOriginEmbedderPolicy: isDevelopment ? false : {
-      policy: "require-corp"
-    },
-    
-    // Cross-Origin Opener Policy - Relaxed in development
-    crossOriginOpenerPolicy: isDevelopment ? false : {
-      policy: "same-origin"
-    },
-    
-    // Cross-Origin Resource Policy
-    crossOriginResourcePolicy: {
-      policy: "cross-origin" // Allow Quebec government integrations
-    },
-    
-    // DNS Prefetch Control
-    dnsPrefetchControl: {
-      allow: false
-    },
-    
-    // Note: expectCt has been removed from helmet v5+
-    // Certificate Transparency is now handled by browsers automatically
-    
-    // Note: permissionsPolicy has been replaced with individual policy headers in helmet v5+
-    // These are now handled by individual middleware or manual headers
-    
-    // Frame Options
-    frameguard: {
-      action: 'deny' // Prevent embedding in frames (clickjacking protection)
-    },
-    
-    // Hide Powered-By
-    hidePoweredBy: true,
-    
-    // HSTS (HTTP Strict Transport Security)
-    hsts: {
-      maxAge: 31536000, // 1 year
-      includeSubDomains: true,
-      preload: true
-    },
-    
-    // IE No Open
-    ieNoOpen: true,
-    
-    // No Sniff
-    noSniff: true,
-    
-    // Origin Agent Cluster
-    originAgentCluster: true,
-    
-    // Referrer Policy
-    referrerPolicy: {
-      policy: "strict-origin-when-cross-origin"
-    },
-    
-    // X-Download-Options
-    xssFilter: true
-  }));
+  app.use(
+    helmet({
+      // Content Security Policy - Disabled in development for React HMR
+      contentSecurityPolicy: isDevelopment ? false : getCSPConfig(isDevelopment),
+
+      // Cross-Origin Embedder Policy - Relaxed in development
+      crossOriginEmbedderPolicy: isDevelopment
+        ? false
+        : {
+            policy: 'require-corp',
+          },
+
+      // Cross-Origin Opener Policy - Relaxed in development
+      crossOriginOpenerPolicy: isDevelopment
+        ? false
+        : {
+            policy: 'same-origin',
+          },
+
+      // Cross-Origin Resource Policy
+      crossOriginResourcePolicy: {
+        policy: 'cross-origin', // Allow Quebec government integrations
+      },
+
+      // DNS Prefetch Control
+      dnsPrefetchControl: {
+        allow: false,
+      },
+
+      // Note: expectCt has been removed from helmet v5+
+      // Certificate Transparency is now handled by browsers automatically
+
+      // Note: permissionsPolicy has been replaced with individual policy headers in helmet v5+
+      // These are now handled by individual middleware or manual headers
+
+      // Frame Options
+      frameguard: {
+        action: 'deny', // Prevent embedding in frames (clickjacking protection)
+      },
+
+      // Hide Powered-By
+      hidePoweredBy: true,
+
+      // HSTS (HTTP Strict Transport Security)
+      hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true,
+      },
+
+      // IE No Open
+      ieNoOpen: true,
+
+      // No Sniff
+      noSniff: true,
+
+      // Origin Agent Cluster
+      originAgentCluster: true,
+
+      // Referrer Policy
+      referrerPolicy: {
+        policy: 'strict-origin-when-cross-origin',
+      },
+
+      // X-Download-Options
+      xssFilter: true,
+    })
+  );
 
   // Additional custom security headers for Law 25 compliance
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -322,39 +331,43 @@ export function configureSecurityMiddleware(app: Express): void {
     res.setHeader('X-Privacy-Policy', '/privacy-policy');
     res.setHeader('X-Data-Retention', '7-years'); // Quebec property records retention
     res.setHeader('X-Content-Language', 'fr-CA,en-CA'); // Bilingual support
-    
+
     // Security headers
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Download-Options', 'noopen');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-    
+
     // Server information hiding
     res.removeHeader('X-Powered-By');
     res.removeHeader('Server');
-    
+
     // Cache control for sensitive data
     if (req.path.includes('/api/') && !req.path.includes('/api/public/')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
     }
-    
+
     next();
   });
 
   // CSP Report Endpoint (for monitoring CSP violations)
-  app.post('/api/security/csp-report', express.json({ type: 'application/csp-report' }), (req: Request, res: Response) => {
-    const report = req.body;
-    console.warn('CSP Violation Report:', {
-      userAgent: req.get('User-Agent'),
-      ip: req.ip,
-      timestamp: new Date().toISOString(),
-      report: report
-    });
-    res.status(204).end();
-  });
+  app.post(
+    '/api/security/csp-report',
+    express.json({ type: 'application/csp-report' }),
+    (req: Request, res: Response) => {
+      const report = req.body;
+      console.warn('CSP Violation Report:', {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+        report: report,
+      });
+      res.status(204).end();
+    }
+  );
 
   // Certificate Transparency Report Endpoint (for legacy support)
   app.post('/api/security/ct-report', express.json(), (req: Request, res: Response) => {
@@ -363,7 +376,7 @@ export function configureSecurityMiddleware(app: Express): void {
       userAgent: req.get('User-Agent'),
       ip: req.ip,
       timestamp: new Date().toISOString(),
-      report: report
+      report: report,
     });
     res.status(204).end();
   });
@@ -380,16 +393,19 @@ export function configureSecurityMiddleware(app: Express): void {
  */
 export function securityHealthCheck(req: Request, res: Response, next: NextFunction): void {
   // Check if running in secure context (HTTPS in production)
-  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'development';
-  
+  const isSecure =
+    req.secure ||
+    req.headers['x-forwarded-proto'] === 'https' ||
+    process.env.NODE_ENV === 'development';
+
   if (!isSecure && process.env.NODE_ENV === 'production') {
     console.warn('Insecure request detected in production:', {
       url: req.url,
       ip: req.ip,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
     });
   }
-  
+
   next();
 }
 
@@ -405,12 +421,12 @@ export function addLaw25Headers(req: Request, res: Response, next: NextFunction)
   res.setHeader('X-Data-Controller', 'Koveo Gestion Inc.');
   res.setHeader('X-Privacy-Officer', 'privacy@koveogestion.com');
   res.setHeader('X-Data-Processing-Lawful-Basis', 'legitimate-interest,contract');
-  
+
   // Language preference for Quebec users
   const acceptLanguage = req.headers['accept-language'] || '';
   const prefersFrench = acceptLanguage.includes('fr');
   res.setHeader('X-Content-Language-Preference', prefersFrench ? 'fr-CA' : 'en-CA');
-  
+
   next();
 }
 
@@ -418,5 +434,5 @@ export default {
   configureSecurityMiddleware,
   securityHealthCheck,
   addLaw25Headers,
-  rateLimitConfig
+  rateLimitConfig,
 };

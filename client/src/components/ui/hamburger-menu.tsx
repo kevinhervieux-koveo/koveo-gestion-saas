@@ -3,7 +3,24 @@ import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
-import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings, Globe, UserPlus, DollarSign } from 'lucide-react';
+import {
+  X,
+  Menu,
+  Home,
+  Wrench,
+  Shield,
+  BookOpen,
+  FileText,
+  Scale,
+  Building2,
+  Users,
+  LogOut,
+  User,
+  Settings,
+  Globe,
+  UserPlus,
+  DollarSign,
+} from 'lucide-react';
 
 interface HamburgerMenuProps {
   className?: string;
@@ -67,26 +84,22 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
     <div className={`relative ${className}`}>
       {/* Hamburger Button */}
       <Button
-        variant="ghost"
-        size="icon"
+        variant='ghost'
+        size='icon'
         onClick={toggleMenu}
-        className="relative z-50"
-        data-testid="hamburger-button"
+        className='relative z-50'
+        data-testid='hamburger-button'
         aria-label={isOpen ? t('closeMenu') : t('openMenu')}
       >
-        {isOpen ? (
-          <X className="h-6 w-6" />
-        ) : (
-          <Menu className="h-6 w-6" />
-        )}
+        {isOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
       </Button>
 
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className='fixed inset-0 bg-black/50 z-40'
           onClick={closeMenu}
-          data-testid="menu-overlay"
+          data-testid='menu-overlay'
         />
       )}
 
@@ -99,39 +112,48 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           backgroundColor: '#f9fafb',
           borderLeft: '1px solid #e5e7eb',
           zIndex: '1000',
-          position: 'fixed'
+          position: 'fixed',
         }}
-        data-testid="menu-panel"
+        data-testid='menu-panel'
       >
-        <div className="p-6 h-full flex flex-col bg-gray-50" style={{ backgroundColor: '#f9fafb !important', width: '100%', height: '100vh', position: 'relative', zIndex: '1001' }}>
+        <div
+          className='p-6 h-full flex flex-col bg-gray-50'
+          style={{
+            backgroundColor: '#f9fafb !important',
+            width: '100%',
+            height: '100vh',
+            position: 'relative',
+            zIndex: '1001',
+          }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-semibold">Menu</h2>
+          <div className='flex items-center justify-between mb-8'>
+            <h2 className='text-xl font-semibold'>Menu</h2>
             <Button
-              variant="ghost"
-              size="icon"
+              variant='ghost'
+              size='icon'
               onClick={closeMenu}
-              className="h-8 w-8"
-              data-testid="menu-close-button"
+              className='h-8 w-8'
+              data-testid='menu-close-button'
             >
-              <X className="h-4 w-4" />
+              <X className='h-4 w-4' />
             </Button>
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1 bg-gray-50" style={{ backgroundColor: '#f9fafb !important' }}>
-            <ul className="space-y-2">
+          <nav className='flex-1 bg-gray-50' style={{ backgroundColor: '#f9fafb !important' }}>
+            <ul className='space-y-2'>
               {publicNavItems.map((item) => {
                 const IconComponent = item.icon;
                 return (
                   <li key={item.path}>
                     <Button
-                      variant="ghost"
-                      className="w-full justify-start h-12 bg-transparent hover:bg-gray-100"
+                      variant='ghost'
+                      className='w-full justify-start h-12 bg-transparent hover:bg-gray-100'
                       onClick={() => handleNavigation(item.path)}
                       data-testid={item.testId}
                     >
-                      <IconComponent className="mr-3 h-5 w-5" />
+                      <IconComponent className='mr-3 h-5 w-5' />
                       {item.label}
                     </Button>
                   </li>
@@ -142,76 +164,81 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
           {/* Language and Auth Section */}
           {!user && (
-            <div className="mt-auto border-t border-gray-300 pt-4 space-y-3 bg-gray-50" style={{ backgroundColor: '#f9fafb !important' }}>
+            <div
+              className='mt-auto border-t border-gray-300 pt-4 space-y-3 bg-gray-50'
+              style={{ backgroundColor: '#f9fafb !important' }}
+            >
               {/* Language Switcher */}
-              <div className="flex items-center justify-center space-x-2">
-                <Globe className="h-4 w-4 text-gray-500" />
+              <div className='flex items-center justify-center space-x-2'>
+                <Globe className='h-4 w-4 text-gray-500' />
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm"
+                  variant='ghost'
+                  size='sm'
+                  className='text-sm'
                   onClick={() => {
                     toggleLanguage();
                     closeMenu();
                   }}
-                  data-testid="language-toggle"
+                  data-testid='language-toggle'
                 >
                   {language === 'en' ? 'Français' : 'English'}
                 </Button>
               </div>
-              
+
               {/* Authentication Buttons */}
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Button
-                  variant="default"
-                  className="w-full"
+                  variant='default'
+                  className='w-full'
                   onClick={() => handleNavigation('/login')}
-                  data-testid="nav-login"
+                  data-testid='nav-login'
                 >
-                  <UserPlus className="mr-2 h-4 w-4" />
+                  <UserPlus className='mr-2 h-4 w-4' />
                   {t('signIn')}
                 </Button>
               </div>
             </div>
           )}
-          
+
           {/* User Section */}
           {user && (
-            <div className="mt-auto border-t pt-4">
-              <div className="flex items-center mb-4 p-3 bg-gray-100 rounded-lg">
-                <User className="h-8 w-8 text-gray-500 mr-3" />
+            <div className='mt-auto border-t pt-4'>
+              <div className='flex items-center mb-4 p-3 bg-gray-100 rounded-lg'>
+                <User className='h-8 w-8 text-gray-500 mr-3' />
                 <div>
-                  <p className="font-medium text-sm">{user.first_name} {user.last_name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className='font-medium text-sm'>
+                    {user.first_name} {user.last_name}
+                  </p>
+                  <p className='text-xs text-gray-500'>{user.email}</p>
                 </div>
               </div>
-              
-              <div className="space-y-1">
+
+              <div className='space-y-1'>
                 <Button
-                  variant="ghost"
-                  className="w-full justify-start h-10"
+                  variant='ghost'
+                  className='w-full justify-start h-10'
                   onClick={() => handleNavigation('/settings/settings')}
-                  data-testid="nav-profile"
+                  data-testid='nav-profile'
                 >
-                  <Settings className="mr-3 h-4 w-4" />
+                  <Settings className='mr-3 h-4 w-4' />
                   Profile Settings
                 </Button>
-                
+
                 <Button
-                  variant="ghost"
-                  className="w-full justify-start h-10 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  variant='ghost'
+                  className='w-full justify-start h-10 text-red-600 hover:text-red-700 hover:bg-red-50'
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  data-testid="nav-logout"
+                  data-testid='nav-logout'
                 >
                   {isLoggingOut ? (
                     <>
-                      <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      <div className='mr-3 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
                       Logging out...
                     </>
                   ) : (
                     <>
-                      <LogOut className="mr-3 h-4 w-4" />
+                      <LogOut className='mr-3 h-4 w-4' />
                       Logout
                     </>
                   )}

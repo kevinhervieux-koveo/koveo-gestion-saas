@@ -138,7 +138,9 @@ describe('DatabaseStorage', () => {
         returning: jest.fn().mockResolvedValue([mockCreatedUser]),
       });
 
-      const result = await dbStorage.createUser(userData as Parameters<typeof dbStorage.createUser>[0]);
+      const result = await dbStorage.createUser(
+        userData as Parameters<typeof dbStorage.createUser>[0]
+      );
       expect(_result).toEqual(mockCreatedUser);
     });
 

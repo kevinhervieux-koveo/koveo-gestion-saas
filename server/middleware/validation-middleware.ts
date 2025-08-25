@@ -19,10 +19,10 @@ export function validateBody(schema: ZodSchema) {
       req.body = schema.parse(req.body);
       next();
     } catch (____error) {
-      res.status(400).json({ 
-        message: 'Validation error', 
+      res.status(400).json({
+        message: 'Validation error',
         code: 'VALIDATION_ERROR',
-        details: _error
+        details: _error,
       });
     }
   };
@@ -43,10 +43,10 @@ export function validateQuery(schema: ZodSchema) {
       req.query = schema.parse(req.query) as any;
       next();
     } catch (____error) {
-      res.status(400).json({ 
-        message: 'Query validation error', 
+      res.status(400).json({
+        message: 'Query validation error',
         code: 'QUERY_VALIDATION_ERROR',
-        details: _error
+        details: _error,
       });
     }
   };

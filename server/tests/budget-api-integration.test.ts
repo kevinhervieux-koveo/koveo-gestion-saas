@@ -2,31 +2,38 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import supertest from 'supertest';
 import { Express } from 'express';
 import { db } from '../db';
-import { buildings, residences, bills, monthlyBudgets, moneyFlow, users } from '../../shared/schema';
+import {
+  buildings,
+  residences,
+  bills,
+  monthlyBudgets,
+  moneyFlow,
+  users,
+} from '../../shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 // Mock Express app for testing
 const createTestApp = async (): Promise<Express> => {
   const express = await import('express');
   const app = express.default();
-  
+
   app.use(express.json());
-  
+
   // Mock authentication middleware
   app.use((req: any, res, next) => {
     req.user = {
       id: 'test-user-id',
       role: 'admin',
       canAccessAllOrganizations: true,
-      email: 'test@example.com'
+      email: 'test@example.com',
     };
     next();
   });
-  
+
   // Import and register delayed update routes
   const { registerDelayedUpdateRoutes } = await import('../api/delayed-updates');
   registerDelayedUpdateRoutes(app);
-  
+
   return app;
 };
 
@@ -53,7 +60,7 @@ describe('Budget API Integration Tests', () => {
         totalUnits: 8,
         totalFloors: 2,
         buildingType: 'residential',
-        isActive: true
+        isActive: true,
       })
       .returning();
 
@@ -65,8 +72,8 @@ describe('Budget API Integration Tests', () => {
         buildingId: testBuildingId,
         unitNumber: '301',
         floor: 3,
-        monthlyFee: 1800.00,
-        isActive: true
+        monthlyFee: 1800.0,
+        isActive: true,
       })
       .returning();
 
@@ -77,11 +84,11 @@ describe('Budget API Integration Tests', () => {
       .values({
         residenceId: testResidenceId,
         billNumber: 'API-TEST-001',
-        amount: 1800.00,
+        amount: 1800.0,
         dueDate: new Date('2024-03-01'),
         type: 'monthly_fee',
         status: 'sent',
-        isActive: true
+        isActive: true,
       })
       .returning();
 
@@ -105,15 +112,13 @@ describe('Budget API Integration Tests', () => {
 
   describe('GET /api/delayed-updates/status', () => {
     it('should return delayed update status', async () => {
-      const response = await request
-        .get('/api/delayed-updates/status')
-        .expect(200);
+      const response = await request.get('/api/delayed-updates/status').expect(200);
 
       expect(response.body).toHaveProperty('status');
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('lastChecked');
       expect(response.body).toHaveProperty('info');
-      
+
       expect(response.body.status).toHaveProperty('delayMinutes', 15);
       expect(response.body.status).toHaveProperty('pendingBillUpdates');
       expect(response.body.status).toHaveProperty('pendingResidenceUpdates');
@@ -121,9 +126,7 @@ describe('Budget API Integration Tests', () => {
     });
 
     it('should include operational info', async () => {
-      const response = await request
-        .get('/api/delayed-updates/status')
-        .expect(200);
+      const response = await request.get('/api/delayed-updates/status').expect(200);
 
       expect(response.body.info).toHaveProperty('description');
       expect(response.body.info).toHaveProperty('triggers');
@@ -133,9 +136,7 @@ describe('Budget API Integration Tests', () => {
 
   describe('GET /api/delayed-updates/health', () => {
     it('should return detailed health check', async () => {
-      const response = await request
-        .get('/api/delayed-updates/health')
-        .expect(200);
+      const response = await request.get('/api/delayed-updates/health').expect(200);
 
       expect(response.body).toHaveProperty('status', 'healthy');
       expect(response.body).toHaveProperty('delayMinutes', 15);
@@ -185,10 +186,7 @@ describe('Budget API Integration Tests', () => {
     });
 
     it('should return error for missing billId', async () => {
-      const response = await request
-        .post('/api/delayed-updates/force-bill')
-        .send({})
-        .expect(400);
+      const response = await request.post('/api/delayed-updates/force-bill').send({}).expect(400);
 
       expect(response.body).toHaveProperty('message', 'billId is required');
     });
@@ -251,7 +249,7 @@ describe('Budget API Integration Tests', () => {
           id: 'regular-user-id',
           role: 'user',
           canAccessAllOrganizations: false,
-          email: 'user@example.com'
+          email: 'user@example.com',
         };
         next();
       });
@@ -265,18 +263,19 @@ describe('Budget API Integration Tests', () => {
           id: 'regular-user-id',
           role: 'user',
           canAccessAllOrganizations: false,
-          email: 'user@example.com'
+          email: 'user@example.com',
         };
         next();
       });
 
       const nonAdminRequest = supertest(nonAdminApp);
 
-      const response = await nonAdminRequest
-        .get('/api/delayed-updates/status')
-        .expect(403);
+      const response = await nonAdminRequest.get('/api/delayed-updates/status').expect(403);
 
-      expect(response.body).toHaveProperty('message', 'Access denied. Admin or Manager privileges required.');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Access denied. Admin or Manager privileges required.'
+      );
       expect(response.body).toHaveProperty('code', 'INSUFFICIENT_PERMISSIONS');
     });
 
@@ -287,7 +286,7 @@ describe('Budget API Integration Tests', () => {
           id: 'regular-user-id',
           role: 'user',
           canAccessAllOrganizations: false,
-          email: 'user@example.com'
+          email: 'user@example.com',
         };
         next();
       });
@@ -319,7 +318,7 @@ describe('Budget API Integration Tests', () => {
         .where(eq(monthlyBudgets.buildingId, testBuildingId))
         .limit(5);
 
-      budgets.forEach(budget => {
+      budgets.forEach((budget) => {
         // Validate required fields
         expect(budget.buildingId).toBe(testBuildingId);
         expect(budget.budgetMonth).toBeInstanceOf(Date);
@@ -341,7 +340,7 @@ describe('Budget API Integration Tests', () => {
         // Validate financial calculations
         const incomeSum = budget.incomeAmounts.reduce((sum, amount) => sum + amount, 0);
         const spendingSum = budget.spendingAmounts.reduce((sum, amount) => sum + amount, 0);
-        
+
         expect(budget.totalIncome).toBeCloseTo(incomeSum, 2);
         expect(budget.totalSpending).toBeCloseTo(spendingSum, 2);
         expect(budget.netIncome).toBeCloseTo(incomeSum - spendingSum, 2);
@@ -370,7 +369,7 @@ describe('Budget API Integration Tests', () => {
       // Verify 3-year span
       const firstBudget = budgets[0];
       const lastBudget = budgets[budgets.length - 1];
-      
+
       expect(firstBudget.budgetMonth.getFullYear()).toBe(2022);
       expect(lastBudget.budgetMonth.getFullYear()).toBe(2024);
     });
@@ -393,12 +392,12 @@ describe('Budget API Integration Tests', () => {
         buildingId: testBuildingId,
         residenceId: testResidenceId,
         flowDate: new Date('2022-01-15'),
-        amount: 300.00,
+        amount: 300.0,
         flowType: 'spending',
         category: 'Maintenance',
         description: 'Test maintenance cost',
         isRecurring: false,
-        isActive: true
+        isActive: true,
       });
 
       // Force update again

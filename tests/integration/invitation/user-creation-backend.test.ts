@@ -19,12 +19,12 @@ describe('Backend User Creation Integration', () => {
   beforeEach(() => {
     // Mock request object
     mockReq = {
-      params: { 
-        token: 'e38ddf5e720e8708dd2034539199e33a35e7cff5cb7867eb525c77c01cb7b771' 
+      params: {
+        token: 'e38ddf5e720e8708dd2034539199e33a35e7cff5cb7867eb525c77c01cb7b771',
       },
       body: {
         firstName: 'Kevin',
-        lastName: 'Hervieux', 
+        lastName: 'Hervieux',
         password: 'StrongPassword123!',
         phone: '514-712-8441',
         language: 'fr',
@@ -34,11 +34,11 @@ describe('Backend User Creation Integration', () => {
           analyticsConsent: true,
           thirdPartyConsent: false,
           acknowledgedRights: true,
-          consentDate: new Date().toISOString()
-        }
+          consentDate: new Date().toISOString(),
+        },
       },
       ip: '127.0.0.1',
-      get: jest.fn().mockReturnValue('test-user-agent')
+      get: jest.fn().mockReturnValue('test-user-agent'),
     };
 
     // Mock response object
@@ -46,7 +46,7 @@ describe('Backend User Creation Integration', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
       cookie: jest.fn(),
-      clearCookie: jest.fn()
+      clearCookie: jest.fn(),
     };
 
     // Mock invitation data
@@ -60,7 +60,7 @@ describe('Backend User Creation Integration', () => {
       status: 'pending' as const,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       invitedByUserId: 'manager-user-id',
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     // Mock created user data
@@ -76,7 +76,7 @@ describe('Backend User Creation Integration', () => {
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      lastLoginAt: new Date()
+      lastLoginAt: new Date(),
     };
 
     jest.clearAllMocks();
@@ -98,7 +98,7 @@ describe('Backend User Creation Integration', () => {
       const expiredInvitation = {
         ...mockInvitation,
         expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        status: 'expired' as const
+        status: 'expired' as const,
       };
 
       (storage.getInvitationByToken as jest.Mock).mockResolvedValue(expiredInvitation);
@@ -120,7 +120,7 @@ describe('Backend User Creation Integration', () => {
         username: mockInvitation.email, // Add required username field
         role: mockInvitation.role,
         phone: mockReq.body?.phone,
-        language: mockReq.body?.language
+        language: mockReq.body?.language,
       };
 
       (storage.createUser as jest.Mock).mockResolvedValue({
@@ -147,7 +147,7 @@ describe('Backend User Creation Integration', () => {
         password: mockReq.body?.password,
         username: mockInvitation.email,
         role: mockInvitation.role,
-        phone: mockReq.body?.phone
+        phone: mockReq.body?.phone,
       };
 
       (storage.createUser as jest.Mock).mockImplementation((data) => {
@@ -205,7 +205,7 @@ describe('Backend User Creation Integration', () => {
         details: JSON.stringify({ email: mockInvitation.email }),
         previousStatus: 'pending' as const,
         newStatus: undefined,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       (storage.createInvitationAuditLog as jest.Mock).mockResolvedValue(auditData);
@@ -226,11 +226,11 @@ describe('Backend User Creation Integration', () => {
         userAgent: (mockReq.get as jest.Mock)?.('User-Agent'),
         details: JSON.stringify({
           email: mockInvitation.email,
-          userId: mockCreatedUser.id
+          userId: mockCreatedUser.id,
         }),
         previousStatus: 'pending' as const,
         newStatus: 'accepted' as const,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       (storage.createInvitationAuditLog as jest.Mock).mockResolvedValue(auditData);
@@ -251,9 +251,9 @@ describe('Backend User Creation Integration', () => {
           consentTypes: ['dataCollectionConsent', 'analyticsConsent', 'acknowledgedRights'],
           law25Compliance: true,
           consentTimestamp: new Date().toISOString(),
-          ipAddress: mockReq.ip
+          ipAddress: mockReq.ip,
         }),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       (storage.createInvitationAuditLog as jest.Mock).mockResolvedValue(privacyAuditData);
@@ -275,23 +275,23 @@ describe('Backend User Creation Integration', () => {
           inviterRole: 'admin',
           inviteeRole: 'manager',
           shouldSucceed: true,
-          description: 'Admin can invite manager'
+          description: 'Admin can invite manager',
         },
         {
           inviterRole: 'manager',
           inviteeRole: 'tenant',
           shouldSucceed: true,
-          description: 'Manager can invite tenant'
+          description: 'Manager can invite tenant',
         },
         {
           inviterRole: 'tenant',
           inviteeRole: 'admin',
           shouldSucceed: false,
-          description: 'Tenant cannot invite admin'
-        }
+          description: 'Tenant cannot invite admin',
+        },
       ];
 
-      roleScenarios.forEach(scenario => {
+      roleScenarios.forEach((scenario) => {
         expect(scenario.inviterRole).toBeDefined();
         expect(scenario.inviteeRole).toBeDefined();
         expect(typeof scenario.shouldSucceed).toBe('boolean');
@@ -305,12 +305,14 @@ describe('Backend User Creation Integration', () => {
         // Remove organizationId and buildingId as they don't exist on user type
         accessibleOrganizations: [
           'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6', // Demo organization
-          '72263718-6559-4216-bd93-524f7acdcbbc' // User's organization
-        ]
+          '72263718-6559-4216-bd93-524f7acdcbbc', // User's organization
+        ],
       };
 
       expect(userOrgAccess.accessibleOrganizations).toHaveLength(2);
-      expect(userOrgAccess.accessibleOrganizations).toContain('e98cc553-c2d7-4854-877a-7cc9eeb8c6b6');
+      expect(userOrgAccess.accessibleOrganizations).toContain(
+        'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6'
+      );
     });
 
     test('should validate building access for user creation', async () => {
@@ -319,7 +321,7 @@ describe('Backend User Creation Integration', () => {
         userId: mockCreatedUser.id,
         role: mockCreatedUser.role,
         // Remove buildingId as it doesn't exist on user type
-        accessibleBuildings: ['005b0e63-6a0a-44c9-bf01-2b779b316bba']
+        accessibleBuildings: ['005b0e63-6a0a-44c9-bf01-2b779b316bba'],
       };
 
       expect(userBuildingAccess.accessibleBuildings).toHaveLength(1);
@@ -334,10 +336,12 @@ describe('Backend User Creation Integration', () => {
         userCreationTime: 177.84, // ms from actual logs
         averageQueryTime: 181.66,
         slowQueryThreshold: 100,
-        recommendation: 'Add database indexes for user creation queries'
+        recommendation: 'Add database indexes for user creation queries',
       };
 
-      expect(performanceMetrics.userCreationTime).toBeGreaterThan(performanceMetrics.slowQueryThreshold);
+      expect(performanceMetrics.userCreationTime).toBeGreaterThan(
+        performanceMetrics.slowQueryThreshold
+      );
       expect(performanceMetrics.averageQueryTime).toBeGreaterThan(150);
     });
 
@@ -346,21 +350,21 @@ describe('Backend User Creation Integration', () => {
         {
           scenario: 'duplicate_email',
           error: 'Email already exists',
-          shouldRetry: false
+          shouldRetry: false,
         },
         {
           scenario: 'expired_invitation',
           error: 'Invitation has expired',
-          shouldRetry: false
+          shouldRetry: false,
         },
         {
           scenario: 'database_timeout',
           error: 'Database connection timeout',
-          shouldRetry: true
-        }
+          shouldRetry: true,
+        },
       ];
 
-      errorScenarios.forEach(scenario => {
+      errorScenarios.forEach((scenario) => {
         expect(scenario.error).toBeDefined();
         expect(typeof scenario.shouldRetry).toBe('boolean');
       });

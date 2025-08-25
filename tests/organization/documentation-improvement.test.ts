@@ -35,14 +35,16 @@ describe('Documentation Continuous Improvement', () => {
    * @returns Function result.
    */
   function calculateReadability(text: string): number {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+    const words = text.split(/\s+/).filter((w) => w.length > 0);
     const syllables = words.reduce((count, word) => {
       // Simplified syllable counting
       return count + Math.max(1, word.replace(/[^aeiouAEIOU]/g, '').length);
     }, 0);
 
-    if (sentences.length === 0 || words.length === 0) {return 0;}
+    if (sentences.length === 0 || words.length === 0) {
+      return 0;
+    }
 
     const avgWordsPerSentence = words.length / sentences.length;
     const avgSyllablesPerWord = syllables / words.length;
@@ -64,17 +66,17 @@ describe('Documentation Continuous Improvement', () => {
   function analyzeDocumentation(filePath: string): DocumentationMetrics {
     const content = fs.readFileSync(filePath, 'utf-8');
     const stats = fs.statSync(filePath);
-    
+
     const metrics: DocumentationMetrics = {
       file: path.relative(rootDir, filePath),
-      wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
+      wordCount: content.split(/\s+/).filter((w) => w.length > 0).length,
       lastModified: stats.mtime,
       readabilityScore: calculateReadability(content),
       hasTableOfContents: /table of contents|## contents|## toc/i.test(content),
       hasExamples: /## example|```/i.test(content),
       hasChangelog: /## changelog|## recent changes|## updates/i.test(content),
       missingTopics: [],
-      improvementSuggestions: []
+      improvementSuggestions: [],
     };
 
     // Check for missing topics
@@ -84,10 +86,10 @@ describe('Documentation Continuous Improvement', () => {
       'usage',
       'api',
       'troubleshooting',
-      'contributing'
+      'contributing',
     ];
 
-    importantTopics.forEach(topic => {
+    importantTopics.forEach((topic) => {
       if (!content.toLowerCase().includes(topic)) {
         metrics.missingTopics.push(topic);
       }
@@ -112,7 +114,7 @@ describe('Documentation Continuous Improvement', () => {
 
     const daysSinceModified = (Date.now() - metrics.lastModified.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSinceModified > 90) {
-      metrics.improvementSuggestions.push('Document hasn\'t been updated in over 90 days');
+      metrics.improvementSuggestions.push("Document hasn't been updated in over 90 days");
     }
 
     return metrics;
@@ -122,12 +124,12 @@ describe('Documentation Continuous Improvement', () => {
     test('should analyze all documentation files', async () => {
       const mdFiles = await glob('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const allMetrics: DocumentationMetrics[] = [];
-      
-      mdFiles.forEach(file => {
+
+      mdFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const metrics = analyzeDocumentation(filePath);
         allMetrics.push(metrics);
@@ -135,28 +137,29 @@ describe('Documentation Continuous Improvement', () => {
 
       // Generate report
       console.warn('\n=== Documentation Quality Report ===\n');
-      
+
       // Summary statistics
-      const avgReadability = allMetrics.reduce((sum, m) => sum + m.readabilityScore, 0) / allMetrics.length;
+      const avgReadability =
+        allMetrics.reduce((sum, m) => sum + m.readabilityScore, 0) / allMetrics.length;
       const totalWords = allMetrics.reduce((sum, m) => sum + m.wordCount, 0);
-      const docsWithTOC = allMetrics.filter(m => m.hasTableOfContents).length;
-      const docsWithExamples = allMetrics.filter(m => m.hasExamples).length;
-      
+      const docsWithTOC = allMetrics.filter((m) => m.hasTableOfContents).length;
+      const docsWithExamples = allMetrics.filter((m) => m.hasExamples).length;
+
       console.warn('Summary:');
       console.warn(`- Total documentation files: ${allMetrics.length}`);
       console.warn(`- Total word count: ${totalWords}`);
       console.warn(`- Average readability score: ${avgReadability.toFixed(1)}/100`);
       console.warn(`- Docs with Table of Contents: ${docsWithTOC}/${allMetrics.length}`);
       console.warn(`- Docs with examples: ${docsWithExamples}/${allMetrics.length}`);
-      
+
       // Files needing improvement
-      const filesNeedingImprovement = allMetrics.filter(m => m.improvementSuggestions.length > 0);
-      
+      const filesNeedingImprovement = allMetrics.filter((m) => m.improvementSuggestions.length > 0);
+
       if (filesNeedingImprovement.length > 0) {
         console.warn('\nFiles needing improvement:');
-        filesNeedingImprovement.forEach(metrics => {
+        filesNeedingImprovement.forEach((metrics) => {
           console.warn(`\n${metrics.file}:`);
-          metrics.improvementSuggestions.forEach(suggestion => {
+          metrics.improvementSuggestions.forEach((suggestion) => {
             console.warn(`  - ${suggestion}`);
           });
         });
@@ -171,14 +174,14 @@ describe('Documentation Continuous Improvement', () => {
   describe('Documentation Coverage', () => {
     test('should have documentation for all public APIs', async () => {
       const apiRoutes = new Set<string>();
-      
+
       // Extract API routes from server/routes.ts
       const routesPath = path.join(rootDir, 'server', 'routes.ts');
       if (fs.existsSync(routesPath)) {
         const content = fs.readFileSync(routesPath, 'utf-8');
         const routeRegex = /app\.(get|post|put|delete|patch)\(['"`]([^'"`]+)/g;
         let match;
-        
+
         while ((match = routeRegex.exec(content)) !== null) {
           apiRoutes.add(match[2]);
         }
@@ -187,14 +190,14 @@ describe('Documentation Continuous Improvement', () => {
       // Check if routes are documented
       const allDocs = glob.sync('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const documentedRoutes = new Set<string>();
-      
-      allDocs.forEach(doc => {
+
+      allDocs.forEach((doc) => {
         const content = fs.readFileSync(path.join(rootDir, doc), 'utf-8');
-        apiRoutes.forEach(route => {
+        apiRoutes.forEach((route) => {
           if (content.includes(route)) {
             documentedRoutes.add(route);
           }
@@ -202,12 +205,12 @@ describe('Documentation Continuous Improvement', () => {
       });
 
       const undocumentedRoutes = Array.from(apiRoutes).filter(
-        route => !documentedRoutes.has(route) && !route.includes(':id')
+        (route) => !documentedRoutes.has(route) && !route.includes(':id')
       );
 
       if (undocumentedRoutes.length > 0) {
         console.warn('\nUndocumented API routes:');
-        undocumentedRoutes.forEach(route => {
+        undocumentedRoutes.forEach((route) => {
           console.warn(`  - ${route}`);
         });
       }
@@ -219,15 +222,15 @@ describe('Documentation Continuous Improvement', () => {
     test('should have documentation for all components', async () => {
       const componentFiles = await glob('client/src/components/**/*.tsx', {
         cwd: rootDir,
-        ignore: ['**/*.test.*', '**/*.spec.*', '**/index.tsx']
+        ignore: ['**/*.test.*', '**/*.spec.*', '**/index.tsx'],
       });
 
       const undocumentedComponents: string[] = [];
 
-      componentFiles.forEach(file => {
+      componentFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Check for JSDoc comments
         if (!content.includes('/**') && !content.includes('//')) {
           undocumentedComponents.push(path.basename(file, '.tsx'));
@@ -236,7 +239,7 @@ describe('Documentation Continuous Improvement', () => {
 
       if (undocumentedComponents.length > 0) {
         console.warn('\nComponents without documentation:');
-        undocumentedComponents.forEach(comp => {
+        undocumentedComponents.forEach((comp) => {
           console.warn(`  - ${comp}`);
         });
       }
@@ -307,22 +310,22 @@ describe('Documentation Continuous Improvement', () => {
     test('should track documentation TODOs', async () => {
       const mdFiles = await glob('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const todos: Array<{ file: string; line: number; todo: string }> = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const lines = content.split('\n');
-        
+
         lines.forEach((line, _index) => {
           if (line.includes('TODO') || line.includes('FIXME') || line.includes('XXX')) {
             todos.push({
               file: path.relative(rootDir, filePath),
               line: index + 1,
-              todo: line.trim()
+              todo: line.trim(),
             });
           }
         });
@@ -330,7 +333,7 @@ describe('Documentation Continuous Improvement', () => {
 
       if (todos.length > 0) {
         console.warn('\nDocumentation TODOs:');
-        todos.forEach(todo => {
+        todos.forEach((todo) => {
           console.warn(`  ${todo.file}:${todo.line}: ${todo.todo}`);
         });
       }
@@ -344,16 +347,16 @@ describe('Documentation Continuous Improvement', () => {
     test('should follow documentation standards', async () => {
       const mdFiles = await glob('**/*.md', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
       const violations: string[] = [];
 
-      mdFiles.forEach(file => {
+      mdFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const lines = content.split('\n');
-        
+
         // Check for proper heading hierarchy
         let lastHeadingLevel = 0;
         lines.forEach((line, _index) => {
@@ -386,7 +389,7 @@ describe('Documentation Continuous Improvement', () => {
 
       if (violations.length > 0) {
         console.warn('\nDocumentation standard violations:');
-        violations.forEach(v => console.warn(`  - ${v}`));
+        violations.forEach((v) => console.warn(`  - ${v}`));
       }
 
       // Allow some violations (calibrated to current documentation state)
@@ -395,17 +398,20 @@ describe('Documentation Continuous Improvement', () => {
 
     test('should have consistent documentation structure', async () => {
       const mainDocs = await glob('docs/*.md', {
-        cwd: rootDir
+        cwd: rootDir,
       });
 
       const structures: Map<string, string[]> = new Map();
 
-      mainDocs.forEach(file => {
+      mainDocs.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         const headings = content.match(/^##?\s+.+$/gm) || [];
-        
-        structures.set(file, headings.map(h => h.replace(/^#+\s+/, '')));
+
+        structures.set(
+          file,
+          headings.map((h) => h.replace(/^#+\s+/, ''))
+        );
       });
 
       // Check for common sections
@@ -413,8 +419,8 @@ describe('Documentation Continuous Improvement', () => {
       const missingSections: string[] = [];
 
       structures.forEach((sections, file) => {
-        commonSections.forEach(section => {
-          if (!sections.some(s => s.toLowerCase().includes(section.toLowerCase()))) {
+        commonSections.forEach((section) => {
+          if (!sections.some((s) => s.toLowerCase().includes(section.toLowerCase()))) {
             missingSections.push(`${file}: Missing "${section}" section`);
           }
         });
@@ -422,7 +428,7 @@ describe('Documentation Continuous Improvement', () => {
 
       if (missingSections.length > 0) {
         console.warn('\nMissing common sections:');
-        missingSections.forEach(m => console.warn(`  - ${m}`));
+        missingSections.forEach((m) => console.warn(`  - ${m}`));
       }
 
       // Some docs might not need all sections (calibrated for diverse doc types)
@@ -434,7 +440,7 @@ describe('Documentation Continuous Improvement', () => {
     test('should create improvement report', () => {
       const reportPath = path.join(rootDir, 'docs', 'IMPROVEMENT_REPORT.md');
       const date = new Date().toISOString().split('T')[0];
-      
+
       const report = `# Documentation Improvement Report
 Generated: ${date}
 
@@ -465,7 +471,7 @@ Track improvements over time here.
 
       // Create or update report
       fs.writeFileSync(reportPath, report);
-      
+
       expect(fs.existsSync(reportPath)).toBe(true);
     });
   });

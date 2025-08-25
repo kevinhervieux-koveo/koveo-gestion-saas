@@ -19,34 +19,34 @@ interface CacheConfig {
 const CACHE_CONFIGS: Record<string, CacheConfig> = {
   // User data - frequently accessed, moderate changes
   users: { maxSize: 1000, ttl: 5 * 60 * 1000 }, // 5 minutes
-  
+
   // Organization data - stable, infrequent changes
   organizations: { maxSize: 100, ttl: 30 * 60 * 1000 }, // 30 minutes
-  
+
   // Building data - relatively stable
   buildings: { maxSize: 500, ttl: 15 * 60 * 1000 }, // 15 minutes
-  
+
   // Residence data - stable structure, occasional updates
   residences: { maxSize: 2000, ttl: 10 * 60 * 1000 }, // 10 minutes
-  
+
   // Bills - time-sensitive, frequent updates
   bills: { maxSize: 1000, ttl: 2 * 60 * 1000 }, // 2 minutes
-  
+
   // Maintenance requests - dynamic, frequent status changes
   maintenance: { maxSize: 500, ttl: 1 * 60 * 1000 }, // 1 minute
-  
+
   // Notifications - real-time, short cache
   notifications: { maxSize: 500, ttl: 30 * 1000 }, // 30 seconds
-  
+
   // Quality metrics - stable for periods
   metrics: { maxSize: 200, ttl: 5 * 60 * 1000 }, // 5 minutes
-  
+
   // Features and roadmap - moderately stable
   features: { maxSize: 300, ttl: 3 * 60 * 1000 }, // 3 minutes
-  
+
   // Framework configuration - very stable
   config: { maxSize: 100, ttl: 60 * 60 * 1000 }, // 1 hour
-  
+
   // Bug reports - moderate changes, user-specific
   bugs: { maxSize: 500, ttl: 2 * 60 * 1000 }, // 2 minutes
 };
@@ -65,12 +65,15 @@ class QueryCacheManager {
   constructor() {
     // Initialize caches for each data type
     Object.entries(CACHE_CONFIGS).forEach(([type, config]) => {
-      this.caches.set(type, new LRUCache({
-        max: config.maxSize,
-        ttl: config.ttl,
-        updateAgeOnGet: true,
-        updateAgeOnHas: true,
-      }));
+      this.caches.set(
+        type,
+        new LRUCache({
+          max: config.maxSize,
+          ttl: config.ttl,
+          updateAgeOnGet: true,
+          updateAgeOnHas: true,
+        })
+      );
       this.hitCounts.set(type, 0);
       this.missCounts.set(type, 0);
     });
@@ -85,7 +88,9 @@ class QueryCacheManager {
    */
   get<T>(cacheType: string, _key: string): T | undefined {
     const cache = this.caches.get(cacheType);
-    if (!cache) {return undefined;}
+    if (!cache) {
+      return undefined;
+    }
 
     const result = cache.get(_key);
     if (result !== undefined) {
@@ -109,7 +114,9 @@ class QueryCacheManager {
    */
   set<T>(cacheType: string, _key: string, _data: T): void {
     const cache = this.caches.get(cacheType);
-    if (!cache) {return;}
+    if (!cache) {
+      return;
+    }
 
     cache.set(_key, _data);
     console.warn(`Cached: ${cacheType}:${_key}`);
@@ -122,7 +129,9 @@ class QueryCacheManager {
    */
   invalidate(cacheType: string, pattern?: string): void {
     const cache = this.caches.get(cacheType);
-    if (!cache) {return;}
+    if (!cache) {
+      return;
+    }
 
     if (pattern) {
       // Remove entries matching pattern
@@ -144,23 +153,23 @@ class QueryCacheManager {
    */
   getStats(): Record<string, any> {
     const stats: Record<string, any> = {};
-    
+
     for (const [_type, cache] of this.caches) {
       const hits = this.hitCounts.get(_type) || 0;
       const misses = this.missCounts.get(_type) || 0;
       const total = hits + misses;
       const hitRate = total > 0 ? ((hits / total) * 100).toFixed(2) : '0.00';
-      
+
       stats[_type] = {
         size: cache.size,
         maxSize: cache.max,
         hits,
         misses,
         hitRate: `${hitRate}%`,
-        memoryUsage: this.estimateMemoryUsage(cache)
+        memoryUsage: this.estimateMemoryUsage(cache),
       };
     }
-    
+
     return stats;
   }
 
@@ -235,10 +244,10 @@ export function withCache<T>(
 
       // Execute operation
       const result = await operation();
-      
+
       // Cache the result
       queryCache.set(cacheType, cacheKey, result);
-      
+
       resolve(result);
     } catch (error) {
       reject(error);
@@ -250,7 +259,6 @@ export function withCache<T>(
  * Cache invalidation utilities for specific operations.
  */
 export class CacheInvalidator {
-  
   /**
    * Invalidates user-related caches when user data changes.
    * @param userId
@@ -293,7 +301,6 @@ export class CacheInvalidator {
  * Performance monitoring for cache effectiveness.
  */
 export class CacheMonitor {
-  
   /**
    * Logs cache performance statistics.
    */
@@ -312,13 +319,17 @@ export class CacheMonitor {
 
     Object.entries(stats).forEach(([cacheType, stat]) => {
       const hitRate = parseFloat(stat.hitRate.replace('%', ''));
-      
+
       if (hitRate < 50) {
-        suggestions.push(`Low hit rate for ${cacheType} cache (${stat.hitRate}). Consider increasing TTL or cache size.`);
+        suggestions.push(
+          `Low hit rate for ${cacheType} cache (${stat.hitRate}). Consider increasing TTL or cache size.`
+        );
       }
-      
+
       if (stat.size === stat.maxSize) {
-        suggestions.push(`${cacheType} cache is at maximum capacity. Consider increasing max size.`);
+        suggestions.push(
+          `${cacheType} cache is at maximum capacity. Consider increasing max size.`
+        );
       }
     });
 
@@ -331,11 +342,11 @@ export class CacheMonitor {
   static getMemoryUsage(): string {
     const stats = queryCache.getStats();
     let totalMemory = 0;
-    
+
     Object.values(stats).forEach((stat: any) => {
       totalMemory += parseFloat(stat.memoryUsage.replace(' KB', ''));
     });
-    
+
     return `${totalMemory.toFixed(2)} KB`;
   }
 }
@@ -344,13 +355,12 @@ export class CacheMonitor {
  * Automatic cache warming for frequently accessed data.
  */
 export class CacheWarmer {
-  
   /**
    * Warms up caches with frequently accessed data.
    */
   static async warmCaches(): Promise<void> {
     console.warn('Warming up caches...');
-    
+
     try {
       // This would be implemented with actual database calls
       // Example: Pre-load active users, organizations, etc.
@@ -364,8 +374,4 @@ export class CacheWarmer {
 /**
  * Export cache utilities for easy access.
  */
-export {
-  queryCache as default,
-  QueryCacheManager,
-  CACHE_CONFIGS
-};
+export { queryCache as default, QueryCacheManager, CACHE_CONFIGS };

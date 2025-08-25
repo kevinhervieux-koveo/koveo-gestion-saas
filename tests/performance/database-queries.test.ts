@@ -6,15 +6,15 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { performance } from 'perf_hooks';
 import { db } from '../../server/db';
-import { 
-  users, 
-  organizations, 
-  buildings, 
-  residences, 
+import {
+  users,
+  organizations,
+  buildings,
+  residences,
   demands,
   demandComments,
   userOrganizations,
-  userResidences
+  userResidences,
 } from '../../shared/schema';
 import { eq, and, or, inArray, desc, like, count, avg, sum, gt } from 'drizzle-orm';
 
@@ -23,7 +23,7 @@ const QUERY_THRESHOLDS = {
   FAST: 50, // < 50ms - excellent
   MEDIUM: 200, // < 200ms - acceptable
   SLOW: 500, // < 500ms - needs optimization
-  TIMEOUT: 2000 // > 2000ms - unacceptable
+  TIMEOUT: 2000, // > 2000ms - unacceptable
 };
 
 /**
@@ -62,20 +62,23 @@ describe('Database Query Performance Tests', () => {
    */
   async function setupLargeTestDataset() {
     const startTime = performance.now();
-    
+
     // Create organizations
     const organizations = [];
     for (let i = 0; i < 10; i++) {
-      const [org] = await db.insert(organizations).values({
-        name: `Performance Test Org ${i + 1}`,
-        type: 'management_company',
-        address: `${100 + i} Performance St`,
-        city: 'Montreal',
-        province: 'QC',
-        postalCode: `H${i + 1}P ${i + 1}P${i + 1}`,
-        phone: `514-555-${String(i).padStart(4, '0')}`,
-        email: `perf${i + 1}@test.com`
-      }).returning();
+      const [org] = await db
+        .insert(organizations)
+        .values({
+          name: `Performance Test Org ${i + 1}`,
+          type: 'management_company',
+          address: `${100 + i} Performance St`,
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: `H${i + 1}P ${i + 1}P${i + 1}`,
+          phone: `514-555-${String(i).padStart(4, '0')}`,
+          email: `perf${i + 1}@test.com`,
+        })
+        .returning();
       organizations.push(org);
     }
 
@@ -83,17 +86,20 @@ describe('Database Query Performance Tests', () => {
     const buildings = [];
     for (let i = 0; i < 50; i++) {
       const orgIndex = i % organizations.length;
-      const [building] = await db.insert(buildings).values({
-        organizationId: organizations[orgIndex].id,
-        name: `Performance Building ${i + 1}`,
-        address: `${200 + i} Building Ave`,
-        city: 'Montreal',
-        province: 'QC',
-        postalCode: `H${Math.floor(i / 10) + 1}B ${Math.floor(i / 10) + 1}B${i % 10}`,
-        buildingType: i % 2 === 0 ? 'Apartment' : 'Condo',
-        totalUnits: 20 + (i % 30),
-        yearBuilt: 1990 + (i % 35)
-      }).returning();
+      const [building] = await db
+        .insert(buildings)
+        .values({
+          organizationId: organizations[orgIndex].id,
+          name: `Performance Building ${i + 1}`,
+          address: `${200 + i} Building Ave`,
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: `H${Math.floor(i / 10) + 1}B ${Math.floor(i / 10) + 1}B${i % 10}`,
+          buildingType: i % 2 === 0 ? 'Apartment' : 'Condo',
+          totalUnits: 20 + (i % 30),
+          yearBuilt: 1990 + (i % 35),
+        })
+        .returning();
       buildings.push(building);
     }
 
@@ -102,15 +108,18 @@ describe('Database Query Performance Tests', () => {
     for (let i = 0; i < 1000; i++) {
       const buildingIndex = i % buildings.length;
       const unitNumber = Math.floor(i / buildings.length) * 100 + (i % 100) + 1;
-      
-      const [residence] = await db.insert(residences).values({
-        buildingId: buildings[buildingIndex].id,
-        unitNumber: String(unitNumber),
-        floor: Math.floor(unitNumber / 100) + 1,
-        squareFootage: 600 + (i % 800),
-        bedrooms: 1 + (i % 4),
-        bathrooms: 1 + (i % 3)
-      }).returning();
+
+      const [residence] = await db
+        .insert(residences)
+        .values({
+          buildingId: buildings[buildingIndex].id,
+          unitNumber: String(unitNumber),
+          floor: Math.floor(unitNumber / 100) + 1,
+          squareFootage: 600 + (i % 800),
+          bedrooms: 1 + (i % 4),
+          bathrooms: 1 + (i % 3),
+        })
+        .returning();
       residences.push(residence);
     }
 
@@ -118,14 +127,17 @@ describe('Database Query Performance Tests', () => {
     const users = [];
     const roles = ['admin', 'manager', 'resident', 'tenant'] as const;
     for (let i = 0; i < 500; i++) {
-      const [user] = await db.insert(users).values({
-        username: `perfuser${i + 1}`,
-        email: `perfuser${i + 1}@test.com`,
-        password: 'hashed_password',
-        firstName: `User${i + 1}`,
-        lastName: `Performance`,
-        role: roles[i % roles.length]
-      }).returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          username: `perfuser${i + 1}`,
+          email: `perfuser${i + 1}@test.com`,
+          password: 'hashed_password',
+          firstName: `User${i + 1}`,
+          lastName: `Performance`,
+          role: roles[i % roles.length],
+        })
+        .returning();
       users.push(user);
 
       // Link user to organization
@@ -133,7 +145,7 @@ describe('Database Query Performance Tests', () => {
       await db.insert(userOrganizations).values({
         userId: user.id,
         organizationId: organizations[orgIndex].id,
-        organizationRole: user.role
+        organizationRole: user.role,
       });
 
       // Link some users to residences
@@ -141,7 +153,7 @@ describe('Database Query Performance Tests', () => {
         await db.insert(userResidences).values({
           userId: user.id,
           residenceId: residences[i].id,
-          residenceRole: user.role === 'tenant' ? 'tenant' : 'owner'
+          residenceRole: user.role === 'tenant' ? 'tenant' : 'owner',
         });
       }
     }
@@ -149,21 +161,31 @@ describe('Database Query Performance Tests', () => {
     // Create demands (2000 demands)
     const demands = [];
     const demandTypes = ['maintenance', 'complaint', 'information', 'other'] as const;
-    const statuses = ['submitted', 'under_review', 'approved', 'in_progress', 'completed', 'rejected'] as const;
-    
+    const statuses = [
+      'submitted',
+      'under_review',
+      'approved',
+      'in_progress',
+      'completed',
+      'rejected',
+    ] as const;
+
     for (let i = 0; i < 2000; i++) {
       const userIndex = i % users.length;
       const residenceIndex = i % residences.length;
-      
-      const [demand] = await db.insert(demands).values({
-        submitterId: users[userIndex].id,
-        type: demandTypes[i % demandTypes.length],
-        description: `Performance test demand #${i + 1}. This is a longer description to test text search performance. It contains various keywords like urgent, repair, maintenance, complaint, and investigation.`,
-        residenceId: residences[residenceIndex].id,
-        buildingId: residences[residenceIndex].buildingId,
-        status: statuses[i % statuses.length],
-        createdAt: new Date(2024, 0, 1 + (i % 365)) // Spread across the year
-      }).returning();
+
+      const [demand] = await db
+        .insert(demands)
+        .values({
+          submitterId: users[userIndex].id,
+          type: demandTypes[i % demandTypes.length],
+          description: `Performance test demand #${i + 1}. This is a longer description to test text search performance. It contains various keywords like urgent, repair, maintenance, complaint, and investigation.`,
+          residenceId: residences[residenceIndex].id,
+          buildingId: residences[residenceIndex].buildingId,
+          status: statuses[i % statuses.length],
+          createdAt: new Date(2024, 0, 1 + (i % 365)), // Spread across the year
+        })
+        .returning();
       demands.push(demand);
     }
 
@@ -172,13 +194,16 @@ describe('Database Query Performance Tests', () => {
     for (let i = 0; i < 5000; i++) {
       const demandIndex = i % demands.length;
       const userIndex = i % users.length;
-      
-      const [comment] = await db.insert(demandComments).values({
-        demandId: demands[demandIndex].id,
-        authorId: users[userIndex].id,
-        content: `Performance test comment #${i + 1}. This comment provides additional context and details for testing purposes.`,
-        isInternal: i % 5 === 0 // 20% internal comments
-      }).returning();
+
+      const [comment] = await db
+        .insert(demandComments)
+        .values({
+          demandId: demands[demandIndex].id,
+          authorId: users[userIndex].id,
+          content: `Performance test comment #${i + 1}. This comment provides additional context and details for testing purposes.`,
+          isInternal: i % 5 === 0, // 20% internal comments
+        })
+        .returning();
       comments.push(comment);
     }
 
@@ -188,7 +213,7 @@ describe('Database Query Performance Tests', () => {
       residences,
       users,
       demands,
-      comments
+      comments,
     };
 
     const setupTime = performance.now() - startTime;
@@ -233,14 +258,14 @@ describe('Database Query Performance Tests', () => {
     const startTime = performance.now();
     const result = await queryFn();
     const endTime = performance.now();
-    
+
     const duration = endTime - startTime;
     const rowCount = Array.isArray(_result) ? result.length : 1;
-    
+
     return {
       duration,
       rowCount,
-      queryName
+      queryName,
     };
   }
 
@@ -264,7 +289,7 @@ describe('Database Query Performance Tests', () => {
   describe('Basic Query Performance', () => {
     it('should fetch single user by ID quickly', async () => {
       const userId = testData.users[0].id;
-      
+
       const result = await measureQuery('Single user by ID', async () => {
         return await db.select().from(users).where(eq(users.id, userId)).limit(1);
       });
@@ -274,12 +299,12 @@ describe('Database Query Performance Tests', () => {
 
     it('should fetch single building by ID with organization quickly', async () => {
       const buildingId = testData.buildings[0].id;
-      
+
       const result = await measureQuery('Building with organization', async () => {
         return await db
           .select({
             building: buildings,
-            organization: organizations
+            organization: organizations,
           })
           .from(buildings)
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
@@ -308,17 +333,17 @@ describe('Database Query Performance Tests', () => {
             submitter: {
               id: users.id,
               firstName: users.firstName,
-              lastName: users.lastName
+              lastName: users.lastName,
             },
             residence: {
               id: residences.id,
-              unitNumber: residences.unitNumber
+              unitNumber: residences.unitNumber,
             },
             building: {
               id: buildings.id,
               name: buildings.name,
-              address: buildings.address
-            }
+              address: buildings.address,
+            },
           })
           .from(demands)
           .innerJoin(users, eq(demands.submitterId, users.id))
@@ -338,7 +363,7 @@ describe('Database Query Performance Tests', () => {
             buildingName: buildings.name,
             totalDemands: count(),
             completedDemands: count(demands.status).filterWhere(eq(demands.status, 'completed')),
-            avgCreationTime: avg(demands.createdAt)
+            avgCreationTime: avg(demands.createdAt),
           })
           .from(demands)
           .innerJoin(buildings, eq(demands.buildingId, buildings.id))
@@ -351,7 +376,7 @@ describe('Database Query Performance Tests', () => {
 
     it('should handle complex filters efficiently', async () => {
       const recentDate = new Date(2024, 6, 1); // July 1, 2024
-      
+
       const result = await measureQuery('Complex demand filtering', async () => {
         return await db
           .select()
@@ -360,16 +385,10 @@ describe('Database Query Performance Tests', () => {
           .innerJoin(residences, eq(demands.residenceId, residences.id))
           .where(
             and(
-              or(
-                eq(demands.type, 'maintenance'),
-                eq(demands.type, 'complaint')
-              ),
+              or(eq(demands.type, 'maintenance'), eq(demands.type, 'complaint')),
               inArray(demands.status, ['submitted', 'under_review', 'approved']),
               // gte(demands.createdAt, recentDate),
-              or(
-                like(demands.description, '%urgent%'),
-                like(demands.description, '%emergency%')
-              )
+              or(like(demands.description, '%urgent%'), like(demands.description, '%emergency%'))
             )
           )
           .orderBy(desc(demands.createdAt))
@@ -405,7 +424,7 @@ describe('Database Query Performance Tests', () => {
           .select({
             demand: demands,
             building: buildings,
-            user: users
+            user: users,
           })
           .from(demands)
           .innerJoin(buildings, eq(demands.buildingId, buildings.id))
@@ -441,7 +460,7 @@ describe('Database Query Performance Tests', () => {
 
     it('should handle cursor-based pagination efficiently', async () => {
       const cursorDate = testData.demands[500].createdAt;
-      
+
       const result = await measureQuery('Cursor-based pagination', async () => {
         return await db
           .select()
@@ -463,7 +482,7 @@ describe('Database Query Performance Tests', () => {
         description: `Batch insert test demand ${i + 1}`,
         residenceId: testData.residences[i % testData.residences.length].id,
         buildingId: testData.residences[i % testData.residences.length].buildingId,
-        status: 'submitted' as const
+        status: 'submitted' as const,
       }));
 
       const result = await measureQuery('Batch insert 100 demands', async () => {
@@ -473,12 +492,21 @@ describe('Database Query Performance Tests', () => {
       assertQueryPerformance(result, QUERY_THRESHOLDS.MEDIUM);
 
       // Cleanup batch inserted demands
-      const insertedIds = result.rowCount > 0 ? 
-        await db.select({ id: demands.id }).from(demands).where(like(demands.description, 'Batch insert test%')) : 
-        [];
-      
+      const insertedIds =
+        result.rowCount > 0
+          ? await db
+              .select({ id: demands.id })
+              .from(demands)
+              .where(like(demands.description, 'Batch insert test%'))
+          : [];
+
       if (insertedIds.length > 0) {
-        await db.delete(demands).where(inArray(demands.id, insertedIds.map(d => d.id)));
+        await db.delete(demands).where(
+          inArray(
+            demands.id,
+            insertedIds.map((d) => d.id)
+          )
+        );
       }
     });
 
@@ -490,15 +518,15 @@ describe('Database Query Performance Tests', () => {
         .where(eq(demands.status, 'submitted'))
         .limit(100);
 
-      const demandIds = demandsToUpdate.map(d => d.id);
-      
+      const demandIds = demandsToUpdate.map((d) => d.id);
+
       if (demandIds.length > 0) {
         const result = await measureQuery('Batch update demand status', async () => {
           return await db
             .update(demands)
-            .set({ 
+            .set({
               status: 'under_review',
-              updatedAt: new Date()
+              updatedAt: new Date(),
             })
             .where(inArray(demands.id, demandIds))
             .returning({ id: demands.id });
@@ -507,18 +535,15 @@ describe('Database Query Performance Tests', () => {
         assertQueryPerformance(result, QUERY_THRESHOLDS.MEDIUM);
 
         // Restore original status
-        await db
-          .update(demands)
-          .set({ status: 'submitted' })
-          .where(inArray(demands.id, demandIds));
+        await db.update(demands).set({ status: 'submitted' }).where(inArray(demands.id, demandIds));
       }
     });
   });
 
   describe('Index Utilization Performance', () => {
     it('should utilize primary key index efficiently', async () => {
-      const randomIds = testData.users.slice(0, 10).map(u => u.id);
-      
+      const randomIds = testData.users.slice(0, 10).map((u) => u.id);
+
       const result = await measureQuery('Multiple users by IDs', async () => {
         return await db.select().from(users).where(inArray(users.id, randomIds));
       });
@@ -528,12 +553,9 @@ describe('Database Query Performance Tests', () => {
 
     it('should utilize foreign key indexes efficiently', async () => {
       const buildingId = testData.buildings[0].id;
-      
+
       const result = await measureQuery('Residences by building ID', async () => {
-        return await db
-          .select()
-          .from(residences)
-          .where(eq(residences.buildingId, buildingId));
+        return await db.select().from(residences).where(eq(residences.buildingId, buildingId));
       });
 
       assertQueryPerformance(result, QUERY_THRESHOLDS.FAST);
@@ -566,7 +588,7 @@ describe('Database Query Performance Tests', () => {
       );
 
       const results = await Promise.all(concurrentQueries);
-      
+
       results.forEach((result, _index) => {
         console.warn(`Concurrent query ${index + 1}: ${result.duration.toFixed(2)}ms`);
         expect(result.duration).toBeLessThan(QUERY_THRESHOLDS.SLOW);
@@ -576,25 +598,32 @@ describe('Database Query Performance Tests', () => {
     it('should maintain performance under mixed read/write load', async () => {
       const readQueries = Array.from({ length: 5 }, (_, i) =>
         measureQuery(`Mixed load read ${i + 1}`, async () => {
-          return await db.select().from(users).limit(20).offset(i * 20);
+          return await db
+            .select()
+            .from(users)
+            .limit(20)
+            .offset(i * 20);
         })
       );
 
       const writeQueries = Array.from({ length: 2 }, (_, i) =>
         measureQuery(`Mixed load write ${i + 1}`, async () => {
-          return await db.insert(demandComments).values({
-            demandId: testData.demands[i].id,
-            authorId: testData.users[i].id,
-            content: `Concurrent write test comment ${i + 1}`,
-            isInternal: false
-          }).returning({ id: demandComments.id });
+          return await db
+            .insert(demandComments)
+            .values({
+              demandId: testData.demands[i].id,
+              authorId: testData.users[i].id,
+              content: `Concurrent write test comment ${i + 1}`,
+              isInternal: false,
+            })
+            .returning({ id: demandComments.id });
         })
       );
 
       const allQueries = [...readQueries, ...writeQueries];
       const results = await Promise.all(allQueries);
-      
-      results.forEach(result => {
+
+      results.forEach((result) => {
         expect(result.duration).toBeLessThan(QUERY_THRESHOLDS.SLOW);
       });
 
@@ -612,7 +641,7 @@ describe('Database Query Performance Tests', () => {
             id: demands.id,
             type: demands.type,
             status: demands.status,
-            createdAt: demands.createdAt
+            createdAt: demands.createdAt,
           })
           .from(demands)
           .orderBy(desc(demands.createdAt))
@@ -626,9 +655,9 @@ describe('Database Query Performance Tests', () => {
     it('should use appropriate query patterns for count operations', async () => {
       const result = await measureQuery('Efficient count with conditions', async () => {
         return await db
-          .select({ 
+          .select({
             total: count(),
-            buildingId: demands.buildingId
+            buildingId: demands.buildingId,
           })
           .from(demands)
           .where(eq(demands.type, 'maintenance'))

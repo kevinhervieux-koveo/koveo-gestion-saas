@@ -8,17 +8,17 @@ const mockDb = {
   select: jest.fn(),
   insert: jest.fn(),
   update: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 } as unknown;
 
 jest.mock('../../server/db', () => ({
-  db: mockDb
+  db: mockDb,
 }));
 
 jest.mock('../../server/auth', () => ({
   requireAuth: (req: Request, res: Response, next: () => void) => {
-    (req as Request & { user: unknown }).user = { 
-      id: 'test-user-id', 
+    (req as Request & { user: unknown }).user = {
+      id: 'test-user-id',
       role: 'manager',
       email: 'test@example.com',
       firstName: 'Test',
@@ -31,10 +31,10 @@ jest.mock('../../server/auth', () => ({
       profileImage: '',
       language: 'en',
       lastLoginAt: new Date(),
-      password: 'hashed'
+      password: 'hashed',
     };
     next();
-  }
+  },
 }));
 
 describe('Bills API', () => {
@@ -55,7 +55,7 @@ describe('Bills API', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
-      
+
       // Verify bill structure
       const bill = response.body[0];
       expect(bill).toHaveProperty('id');
@@ -67,12 +67,10 @@ describe('Bills API', () => {
     });
 
     it('should filter bills by category', async () => {
-      const response = await request(app)
-        .get('/api/bills')
-        .query({ 
-          buildingId: '123e4567-e89b-12d3-a456-426614174000',
-          category: 'insurance'
-        });
+      const response = await request(app).get('/api/bills').query({
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
+        category: 'insurance',
+      });
 
       expect(response.status).toBe(200);
       response.body.forEach((bill: unknown) => {
@@ -81,12 +79,10 @@ describe('Bills API', () => {
     });
 
     it('should filter bills by status', async () => {
-      const response = await request(app)
-        .get('/api/bills')
-        .query({ 
-          buildingId: '123e4567-e89b-12d3-a456-426614174000',
-          status: 'paid'
-        });
+      const response = await request(app).get('/api/bills').query({
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
+        status: 'paid',
+      });
 
       expect(response.status).toBe(200);
       response.body.forEach((bill: unknown) => {
@@ -95,12 +91,10 @@ describe('Bills API', () => {
     });
 
     it('should filter bills by year', async () => {
-      const response = await request(app)
-        .get('/api/bills')
-        .query({ 
-          buildingId: '123e4567-e89b-12d3-a456-426614174000',
-          year: '2024'
-        });
+      const response = await request(app).get('/api/bills').query({
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
+        year: '2024',
+      });
 
       expect(response.status).toBe(200);
       response.body.forEach((bill: unknown) => {
@@ -109,9 +103,7 @@ describe('Bills API', () => {
     });
 
     it('should return 400 for invalid buildingId', async () => {
-      const response = await request(app)
-        .get('/api/bills')
-        .query({ buildingId: 'invalid-uuid' });
+      const response = await request(app).get('/api/bills').query({ buildingId: 'invalid-uuid' });
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -152,16 +144,14 @@ describe('Bills API', () => {
       category: 'maintenance',
       vendor: 'Test Vendor',
       paymentType: 'unique',
-      costs: [100.50],
-      totalAmount: 100.50,
+      costs: [100.5],
+      totalAmount: 100.5,
       startDate: '2024-01-01',
-      status: 'draft'
+      status: 'draft',
     };
 
     it('should create a new bill with valid data', async () => {
-      const response = await request(app)
-        .post('/api/bills')
-        .send(validBillData);
+      const response = await request(app).post('/api/bills').send(validBillData);
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
@@ -172,10 +162,8 @@ describe('Bills API', () => {
 
     it('should return 400 for invalid buildingId', async () => {
       const invalidData = { ...validBillData, buildingId: 'invalid-uuid' };
-      
-      const response = await request(app)
-        .post('/api/bills')
-        .send(invalidData);
+
+      const response = await request(app).post('/api/bills').send(invalidData);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -183,10 +171,8 @@ describe('Bills API', () => {
 
     it('should return 400 for missing required fields', async () => {
       const invalidData = { buildingId: validBillData.buildingId };
-      
-      const response = await request(app)
-        .post('/api/bills')
-        .send(invalidData);
+
+      const response = await request(app).post('/api/bills').send(invalidData);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -194,10 +180,8 @@ describe('Bills API', () => {
 
     it('should return 400 for invalid category', async () => {
       const invalidData = { ...validBillData, category: 'invalid-category' };
-      
-      const response = await request(app)
-        .post('/api/bills')
-        .send(invalidData);
+
+      const response = await request(app).post('/api/bills').send(invalidData);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -205,10 +189,8 @@ describe('Bills API', () => {
 
     it('should return 400 for negative costs', async () => {
       const invalidData = { ...validBillData, costs: [-100], totalAmount: -100 };
-      
-      const response = await request(app)
-        .post('/api/bills')
-        .send(invalidData);
+
+      const response = await request(app).post('/api/bills').send(invalidData);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -218,13 +200,11 @@ describe('Bills API', () => {
   describe('PUT /api/bills/:id', () => {
     const updateData = {
       title: 'Updated Bill Title',
-      status: 'paid'
+      status: 'paid',
     };
 
     it('should update an existing bill', async () => {
-      const response = await request(app)
-        .put('/api/bills/1')
-        .send(updateData);
+      const response = await request(app).put('/api/bills/1').send(updateData);
 
       expect(response.status).toBe(200);
       expect(response.body.title).toBe(updateData.title);
@@ -232,9 +212,7 @@ describe('Bills API', () => {
     });
 
     it('should return 404 for non-existent bill', async () => {
-      const response = await request(app)
-        .put('/api/bills/999')
-        .send(updateData);
+      const response = await request(app).put('/api/bills/999').send(updateData);
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('message', 'Bill not found');
@@ -242,10 +220,8 @@ describe('Bills API', () => {
 
     it('should return 400 for invalid update data', async () => {
       const invalidData = { category: 'invalid-category' };
-      
-      const response = await request(app)
-        .put('/api/bills/1')
-        .send(invalidData);
+
+      const response = await request(app).put('/api/bills/1').send(invalidData);
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -275,12 +251,12 @@ describe('Bills API', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
-      
+
       // Verify category structure
       const category = response.body[0];
       expect(category).toHaveProperty('value');
       expect(category).toHaveProperty('label');
-      
+
       // Verify expected categories are present
       const categoryValues = response.body.map((cat: unknown) => cat._value);
       expect(categoryValues).toContain('insurance');
@@ -293,7 +269,7 @@ describe('Bills API', () => {
     it('should return 501 for money flows endpoints (not implemented yet)', async () => {
       const getResponse = await request(app).get('/api/money-flows');
       expect(getResponse.status).toBe(501);
-      
+
       const postResponse = await request(app).post('/api/money-flows').send({});
       expect(postResponse.status).toBe(501);
     });

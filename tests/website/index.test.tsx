@@ -1,9 +1,9 @@
 /**
  * Comprehensive Website Test Suite Index.
- * 
+ *
  * This file imports and runs all website tests to ensure comprehensive coverage
  * of the Koveo Gestion Quebec property management platform website.
- * 
+ *
  * Test Categories:
  * 1. Translation validation (English/French Quebec compliance)
  * 2. Roadmap features presentation
@@ -41,7 +41,7 @@ describe('Koveo Gestion Website Comprehensive Test Suite', () => {
         'Translation (English/French Quebec)',
         'Roadmap Features Presentation',
         'Terminology Validation',
-        'False Representation Prevention', 
+        'False Representation Prevention',
         'Button Functionality',
         'Routing Consistency',
         'Continuous Improvement',
@@ -51,8 +51,8 @@ describe('Koveo Gestion Website Comprehensive Test Suite', () => {
 
       // All areas should be covered by the test suites
       expect(requiredTestAreas.length).toBe(9);
-      
-      requiredTestAreas.forEach(area => {
+
+      requiredTestAreas.forEach((area) => {
         expect(typeof area).toBe('string');
         expect(area.length).toBeGreaterThan(0);
       });
@@ -67,7 +67,7 @@ describe('Koveo Gestion Website Comprehensive Test Suite', () => {
         'Quebec bilingual support validation',
       ];
 
-      quebecComplianceAreas.forEach(area => {
+      quebecComplianceAreas.forEach((area) => {
         expect(typeof area).toBe('string');
         expect(area.toLowerCase()).toContain('quebec');
       });
@@ -82,7 +82,7 @@ export const WEBSITE_TEST_CONFIG = {
   // Test environment settings
   timeout: 10000,
   retries: 2,
-  
+
   // Quebec-specific testing requirements
   quebecCompliance: {
     law25Required: true,
@@ -90,13 +90,13 @@ export const WEBSITE_TEST_CONFIG = {
     quebecTerminology: true,
     propertyManagementFocus: true,
   },
-  
+
   // User roles for testing
   userRoles: ['admin', 'manager', 'resident'],
-  
+
   // Supported languages
   supportedLanguages: ['en', 'fr'],
-  
+
   // Critical page paths to test
   criticalPaths: [
     '/',
@@ -118,14 +118,14 @@ export const TEST_CATEGORIES = {
     'Button functionality',
     'Routing consistency',
   ],
-  
+
   important: [
     'Roadmap features presentation',
     'Terminology validation',
     'False representation prevention',
     'Platform trial forms',
   ],
-  
+
   quality: [
     'UI consistency',
     'Continuous improvement',
@@ -144,7 +144,7 @@ export const QUEBEC_TEST_REQUIREMENTS = {
     privacyPolicyRequired: false, // Would be required in production
     consentMechanisms: true,
   },
-  
+
   // Language requirements
   bilingual: {
     englishSupport: true,
@@ -152,7 +152,7 @@ export const QUEBEC_TEST_REQUIREMENTS = {
     languageSwitching: true,
     terminologyCompliance: true,
   },
-  
+
   // Industry requirements
   propertyManagement: {
     quebecRegulations: true,
@@ -164,8 +164,8 @@ export const QUEBEC_TEST_REQUIREMENTS = {
 
 /**
  * Test Execution Summary Helper.
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 export function getTestExecutionSummary(): {
   totalSuites: number;
   criticalTests: string[];

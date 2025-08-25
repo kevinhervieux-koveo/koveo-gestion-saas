@@ -36,22 +36,20 @@ const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
  */
 
-function  /**
-   * Use carousel function.
-   */  /**
-   * Use carousel function.
-   */
+function /**
+ * Use carousel function.
+ */ /**
+ * Use carousel function.
+ */
 
- useCarousel() {
-  const context = React.useContext(CarouselContext);  /**
+useCarousel() {
+  const context = React.useContext(CarouselContext); /**
    * If function.
    * @param !context - !context parameter.
-   */  /**
+   */ /**
    * If function.
    * @param !context - !context parameter.
    */
-
-
 
   if (!_context) {
     throw new Error('useCarousel must be used within a <Carousel />');
@@ -74,22 +72,23 @@ const Carousel = React.forwardRef<
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = React.useCallback((api: CarouselApi) => {  /**
-   * If function.
-   * @param !api - !api parameter.
-   */
-  /**
-   * If function.
-   * @param !api - !api parameter.
-   */  /**
-   * If function.
-   * @param !api - !api parameter.
-   */
+  const onSelect = React.useCallback((api: CarouselApi) => {
+    /**
+     * If function.
+     * @param !api - !api parameter.
+     */
+    /**
+     * If function.
+     * @param !api - !api parameter.
+     */ /**
+     * If function.
+     * @param !api - !api parameter.
+     */
 
-  /**
-   * If function.
-   * @param !api - !api parameter.
-   */
+    /**
+     * If function.
+     * @param !api - !api parameter.
+     */
 
     if (!api) {
       return;
@@ -108,27 +107,27 @@ const Carousel = React.forwardRef<
   }, [api]);
 
   const handleKeyDown = React.useCallback(
-    (_event: React.KeyboardEvent<HTMLDivElement>) => {  /**
-   * If function.
-   * @param event.key === 'ArrowLeft' - event.key === 'ArrowLeft' parameter.
-   */  /**
-   * If function.
-   * @param event.key === 'ArrowLeft' - event.key === 'ArrowLeft' parameter.
-   */
-
+    (_event: React.KeyboardEvent<HTMLDivElement>) => {
+      /**
+       * If function.
+       * @param event.key === 'ArrowLeft' - event.key === 'ArrowLeft' parameter.
+       */ /**
+       * If function.
+       * @param event.key === 'ArrowLeft' - event.key === 'ArrowLeft' parameter.
+       */
 
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
         scrollPrev();
-      } else  /**
-   * If function.
-   * @param event.key === 'ArrowRight' - event.key === 'ArrowRight' parameter.
-   */  /**
-   * If function.
-   * @param event.key === 'ArrowRight' - event.key === 'ArrowRight' parameter.
-   */
+      } else if (event.key === 'ArrowRight') {
+        /**
+         * If function.
+         * @param event.key === 'ArrowRight' - event.key === 'ArrowRight' parameter.
+         */ /**
+         * If function.
+         * @param event.key === 'ArrowRight' - event.key === 'ArrowRight' parameter.
+         */
 
- if (event.key === 'ArrowRight') {
         event.preventDefault();
         scrollNext();
       }
@@ -136,14 +135,14 @@ const Carousel = React.forwardRef<
     [scrollPrev, scrollNext]
   );
 
-  React.useEffect(() => {  /**
-   * If function.
-   * @param !api || !setApi - !api || !setApi parameter.
-   */  /**
-   * If function.
-   * @param !api || !setApi - !api || !setApi parameter.
-   */
-
+  React.useEffect(() => {
+    /**
+     * If function.
+     * @param !api || !setApi - !api || !setApi parameter.
+     */ /**
+     * If function.
+     * @param !api || !setApi - !api || !setApi parameter.
+     */
 
     if (!api || !setApi) {
       return;

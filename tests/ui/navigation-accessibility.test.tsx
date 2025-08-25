@@ -1,6 +1,6 @@
 /**
  * Navigation Accessibility Tests.
- * 
+ *
  * Tests to ensure navigation components are accessible and work correctly
  * across different user roles and authentication states.
  */
@@ -19,9 +19,9 @@ import Sidebar from '../../client/src/components/layout/sidebar';
 import LanguageSwitcher from '../../client/src/components/ui/language-switcher';
 
 // Test wrapper
-const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({ 
-  children, 
-  route = '/' 
+const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
+  children,
+  route = '/',
 }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -36,9 +36,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router hook={() => [location, navigate]}>
-        {children}
-      </Router>
+      <Router hook={() => [location, navigate]}>{children}</Router>
     </QueryClientProvider>
   );
 };
@@ -63,7 +61,7 @@ jest.mock('../../client/src/lib/queryClient', () => ({
 
 describe('Navigation Accessibility Tests', () => {
   const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -161,7 +159,7 @@ describe('Navigation Accessibility Tests', () => {
 
       // Press Escape
       fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
-      
+
       expect(screen.queryByTestId('hamburger-menu-content')).not.toBeInTheDocument();
     });
   });
@@ -269,7 +267,7 @@ describe('Navigation Accessibility Tests', () => {
 
       // Test Enter key opens options
       fireEvent.keyDown(languageSwitcher, { key: 'Enter', code: 'Enter' });
-      
+
       await waitFor(() => {
         expect(screen.getByText('Français')).toBeInTheDocument();
       });
@@ -326,14 +324,14 @@ describe('Navigation Accessibility Tests', () => {
       );
 
       const menuButton = screen.getByTestId('hamburger-menu-button');
-      
+
       // Open menu
       fireEvent.click(menuButton);
       expect(screen.getByTestId('hamburger-menu-content')).toBeInTheDocument();
 
       // Close menu with Escape
       fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
-      
+
       await waitFor(() => {
         expect(screen.queryByTestId('hamburger-menu-content')).not.toBeInTheDocument();
         expect(menuButton).toHaveFocus();
@@ -394,7 +392,7 @@ describe('Navigation Accessibility Tests', () => {
       });
 
       render(
-        <TestWrapper route="/dashboard">
+        <TestWrapper route='/dashboard'>
           <Sidebar />
         </TestWrapper>
       );
@@ -447,7 +445,7 @@ describe('Navigation Accessibility Tests', () => {
       );
 
       const menuButton = screen.getByTestId('hamburger-menu-button');
-      
+
       // Test touch interaction
       fireEvent.touchStart(menuButton);
       fireEvent.touchEnd(menuButton);
@@ -460,7 +458,7 @@ describe('Navigation Accessibility Tests', () => {
       // Mock prefers-reduced-motion
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(query => ({
+        value: jest.fn().mockImplementation((query) => ({
           matches: query === '(prefers-reduced-motion: reduce)',
           media: query,
           onchange: null,

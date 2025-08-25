@@ -33,7 +33,22 @@ import { FileText, Upload, Sparkles } from 'lucide-react';
 interface AiAnalysisResult {
   title: string;
   vendor?: string;
-  category: 'insurance' | 'maintenance' | 'salary' | 'utilities' | 'cleaning' | 'security' | 'landscaping' | 'professional_services' | 'administration' | 'repairs' | 'supplies' | 'taxes' | 'technology' | 'reserves' | 'other';
+  category:
+    | 'insurance'
+    | 'maintenance'
+    | 'salary'
+    | 'utilities'
+    | 'cleaning'
+    | 'security'
+    | 'landscaping'
+    | 'professional_services'
+    | 'administration'
+    | 'repairs'
+    | 'supplies'
+    | 'taxes'
+    | 'technology'
+    | 'reserves'
+    | 'other';
   totalAmount: string;
   description?: string;
   issueDate?: string;
@@ -47,7 +62,7 @@ const billCreateSchema = z.object({
   description: z.string().optional(),
   category: z.enum([
     'insurance',
-    'maintenance', 
+    'maintenance',
     'salary',
     'utilities',
     'cleaning',
@@ -60,7 +75,7 @@ const billCreateSchema = z.object({
     'taxes',
     'technology',
     'reserves',
-    'other'
+    'other',
   ]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
@@ -79,12 +94,12 @@ const billCreateSchema = z.object({
  * @param props.onSuccess - Callback function called when bill is successfully created.
  * @returns JSX element for bill creation form.
  */
-export function BillCreateForm({ 
-  buildingId, 
-  onSuccess 
-}: { 
-  buildingId: string; 
-  onSuccess: () => void; 
+export function BillCreateForm({
+  buildingId,
+  onSuccess,
+}: {
+  buildingId: string;
+  onSuccess: () => void;
 }) {
   const [activeTab, setActiveTab] = useState('manual');
   const [_uploadedFile, setUploadedFile] = useState<globalThis.File | null>(null);
@@ -105,7 +120,7 @@ export function BillCreateForm({
       endDate: '',
       status: 'draft',
       notes: '',
-    }
+    },
   });
 
   const queryClient = useQueryClient();
@@ -121,28 +136,26 @@ export function BillCreateForm({
         body: JSON.stringify({
           buildingId,
           ...billData,
-          costs: [parseFloat(billData.totalAmount)]
-        })
+          costs: [parseFloat(billData.totalAmount)],
+        }),
       });
 
-
-      
       if (!response.ok) {
         throw new Error('Failed to create bill');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       onSuccess();
-    }
+    },
   });
 
   const uploadAndAnalyzeMutation = useMutation({
     mutationFn: async (file: globalThis.File) => {
       setIsAnalyzing(true);
-      
+
       // First create a draft bill
       const createResponse = await fetch('/api/bills', {
         method: 'POST',
@@ -159,34 +172,30 @@ export function BillCreateForm({
           costs: [0],
           startDate: new Date().toISOString().split('T')[0],
           status: 'draft',
-          notes: 'Draft bill created for AI analysis'
-        })
+          notes: 'Draft bill created for AI analysis',
+        }),
       });
 
-
-      
       if (!createResponse.ok) {
         throw new Error('Failed to create draft bill');
       }
-      
+
       const draftBill = await createResponse.json();
-      
+
       // Upload and analyze the document
       const formData = new globalThis.FormData();
       formData.append('document', file);
-      
+
       const uploadResponse = await fetch(`/api/bills/${draftBill.bill.id}/upload-document`, {
         method: 'POST',
         credentials: 'include',
-        body: formData
+        body: formData,
       });
 
-
-      
       if (!uploadResponse.ok) {
         throw new Error('Failed to upload and analyze document');
       }
-      
+
       const result = await uploadResponse.json();
       return { ...result, billId: draftBill.bill.id };
     },
@@ -197,18 +206,17 @@ export function BillCreateForm({
     },
     onError: () => {
       setIsAnalyzing(false);
-    }
+    },
   });
 
   const handleFileUpload = (_event: React.ChangeEvent<HTMLInputElement>) => {
     const file = _event.target.files?.[0]; /**
-   * If function.
-   * @param file - File parameter.
-   */ /**
-   * If function.
-   * @param file - File parameter.
-   */
-
+     * If function.
+     * @param file - File parameter.
+     */ /**
+     * If function.
+     * @param file - File parameter.
+     */
 
     if (file) {
       setUploadedFile(file);
@@ -216,14 +224,14 @@ export function BillCreateForm({
     }
   };
 
-  const applyAiAnalysis = () => { /**
-   * If function.
-   * @param aiAnalysisData - AiAnalysisData parameter.
-   */ /**
-   * If function.
-   * @param aiAnalysisData - AiAnalysisData parameter.
-   */
-
+  const applyAiAnalysis = () => {
+    /**
+     * If function.
+     * @param aiAnalysisData - AiAnalysisData parameter.
+     */ /**
+     * If function.
+     * @param aiAnalysisData - AiAnalysisData parameter.
+     */
 
     if (aiAnalysisData) {
       form.setValue('title', aiAnalysisData.title);
@@ -231,19 +239,17 @@ export function BillCreateForm({
       form.setValue('category', aiAnalysisData.category);
       form.setValue('totalAmount', aiAnalysisData.totalAmount);
       form.setValue('description', aiAnalysisData.description || ''); /**
-   * If function.
-   * @param aiAnalysisData.issueDate - AiAnalysisData.issueDate parameter.
-   */ /**
-   * If function.
-   * @param aiAnalysisData.issueDate - AiAnalysisData.issueDate parameter.
-   */
+       * If function.
+       * @param aiAnalysisData.issueDate - AiAnalysisData.issueDate parameter.
+       */ /**
+       * If function.
+       * @param aiAnalysisData.issueDate - AiAnalysisData.issueDate parameter.
+       */
 
-
-      
       if (aiAnalysisData.issueDate) {
         form.setValue('startDate', aiAnalysisData.issueDate);
       }
-      
+
       const notes = `AI-analyzed document. Original bill number: ${aiAnalysisData.billNumber || 'N/A'}. Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%.`;
       form.setValue('notes', notes);
     }
@@ -266,13 +272,15 @@ export function BillCreateForm({
             Upload & Analyze
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value='upload' className='space-y-4'>
           <div className='p-6 text-center border-2 border-dashed border-gray-200 rounded-lg'>
             <Upload className='w-12 h-12 mx-auto text-gray-400 mb-4' />
             <h3 className='text-lg font-semibold mb-2'>Upload Bill Document</h3>
-            <p className='text-gray-600 mb-4'>Upload an image or PDF of your bill for AI analysis</p>
-            
+            <p className='text-gray-600 mb-4'>
+              Upload an image or PDF of your bill for AI analysis
+            </p>
+
             <Input
               type='file'
               accept='image/*,.pdf'
@@ -280,14 +288,14 @@ export function BillCreateForm({
               disabled={isAnalyzing}
               className='max-w-sm mx-auto'
             />
-            
+
             {isAnalyzing && (
               <div className='mt-4 flex items-center justify-center gap-2'>
                 <div className='animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full'></div>
                 <span className='text-sm text-gray-600'>Analyzing document with AI...</span>
               </div>
             )}
-            
+
             {aiAnalysisData && (
               <div className='mt-4 p-4 bg-blue-50 rounded-lg'>
                 <div className='flex items-center gap-2 mb-2'>
@@ -298,23 +306,27 @@ export function BillCreateForm({
                   </Badge>
                 </div>
                 <div className='text-sm text-blue-700 space-y-1'>
-                  <p><strong>Title:</strong> {aiAnalysisData.title}</p>
-                  <p><strong>Vendor:</strong> {aiAnalysisData.vendor}</p>
-                  <p><strong>Amount:</strong> ${aiAnalysisData.totalAmount}</p>
-                  <p><strong>Category:</strong> {aiAnalysisData.category}</p>
+                  <p>
+                    <strong>Title:</strong> {aiAnalysisData.title}
+                  </p>
+                  <p>
+                    <strong>Vendor:</strong> {aiAnalysisData.vendor}
+                  </p>
+                  <p>
+                    <strong>Amount:</strong> ${aiAnalysisData.totalAmount}
+                  </p>
+                  <p>
+                    <strong>Category:</strong> {aiAnalysisData.category}
+                  </p>
                 </div>
-                <Button 
-                  onClick={applyAiAnalysis}
-                  className='mt-3 w-full'
-                  size='sm'
-                >
+                <Button onClick={applyAiAnalysis} className='mt-3 w-full' size='sm'>
                   Apply to Form
                 </Button>
               </div>
             )}
           </div>
         </TabsContent>
-        
+
         <TabsContent value='manual' className='space-y-4'>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
@@ -370,7 +382,9 @@ export function BillCreateForm({
                           <SelectItem value='cleaning'>Cleaning</SelectItem>
                           <SelectItem value='security'>Security</SelectItem>
                           <SelectItem value='landscaping'>Landscaping</SelectItem>
-                          <SelectItem value='professional_services'>Professional Services</SelectItem>
+                          <SelectItem value='professional_services'>
+                            Professional Services
+                          </SelectItem>
                           <SelectItem value='administration'>Administration</SelectItem>
                           <SelectItem value='repairs'>Repairs</SelectItem>
                           <SelectItem value='supplies'>Supplies</SelectItem>
@@ -559,8 +573,8 @@ export function BillCreateForm({
 
               {/* Form Actions */}
               <div className='flex justify-end gap-2 pt-4 border-t'>
-                <Button 
-                  type='submit' 
+                <Button
+                  type='submit'
                   disabled={createBillMutation.isPending}
                   className='min-w-[120px]'
                 >

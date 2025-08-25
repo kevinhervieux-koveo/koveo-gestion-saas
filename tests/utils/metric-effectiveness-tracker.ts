@@ -1,6 +1,6 @@
 /**
  * Metric Effectiveness Tracker for Quality System Tests.
- * 
+ *
  * This utility tracks the real-world effectiveness of quality metrics
  * to ensure they are finding actual issues, not just reporting numbers.
  */
@@ -116,8 +116,10 @@ export class MetricEffectivenessTracker {
    * @returns Effectiveness result or null if no data available.
    */
   static getMetricEffectiveness(metric: string): EffectivenessResult | null {
-    const metricData = this.measurements.filter(m => m.metric === metric);
-    if (metricData.length === 0) {return null;}
+    const metricData = this.measurements.filter((m) => m.metric === metric);
+    if (metricData.length === 0) {
+      return null;
+    }
 
     const totalRealIssues = metricData.reduce((sum, m) => sum + m.realIssuesFound, 0);
     const totalFalsePositives = metricData.reduce((sum, m) => sum + m.falsePositives, 0);
@@ -127,8 +129,8 @@ export class MetricEffectivenessTracker {
     // Calculate accuracy trend (positive means improving)
     let accuracyTrend = 0;
     if (metricData.length >= 2) {
-      const recent = metricData.slice(-3).map(m => m.accuracy);
-      const early = metricData.slice(0, 3).map(m => m.accuracy);
+      const recent = metricData.slice(-3).map((m) => m.accuracy);
+      const early = metricData.slice(0, 3).map((m) => m.accuracy);
       const recentAvg = recent.reduce((sum, acc) => sum + acc, 0) / recent.length;
       const earlyAvg = early.reduce((sum, acc) => sum + acc, 0) / early.length;
       accuracyTrend = recentAvg - earlyAvg;
@@ -175,12 +177,17 @@ export class MetricEffectivenessTracker {
 
     // Check accuracy
     if (effectiveness.averageAccuracy < threshold) {
-      reasons.push(`Average accuracy (${effectiveness.averageAccuracy.toFixed(1)}%) below threshold (${threshold}%)`);
+      reasons.push(
+        `Average accuracy (${effectiveness.averageAccuracy.toFixed(1)}%) below threshold (${threshold}%)`
+      );
       recommendations.push('Review metric implementation for accuracy');
     }
 
     // Check false positive rate
-    const falsePositiveRate = effectiveness.totalFalsePositives / (effectiveness.totalRealIssuesFound + effectiveness.totalFalsePositives) * 100;
+    const falsePositiveRate =
+      (effectiveness.totalFalsePositives /
+        (effectiveness.totalRealIssuesFound + effectiveness.totalFalsePositives)) *
+      100;
     if (falsePositiveRate > 30) {
       reasons.push(`High false positive rate (${falsePositiveRate.toFixed(1)}%)`);
       recommendations.push('Review metric implementation to reduce false positives');
@@ -207,13 +214,19 @@ export class MetricEffectivenessTracker {
    * @param currentAccuracy - The current accuracy percentage.
    * @returns Improvement suggestion with priority and recommendations.
    */
-  static generateImprovementSuggestion(metric: string, currentAccuracy: number): ImprovementSuggestion {
+  static generateImprovementSuggestion(
+    metric: string,
+    currentAccuracy: number
+  ): ImprovementSuggestion {
     const targetAccuracy = Math.min(95, currentAccuracy + 15);
     const gap = targetAccuracy - currentAccuracy;
 
     let priority: 'high' | 'medium' | 'low' = 'medium';
-    if (currentAccuracy < 60) {priority = 'high';}
-    else if (currentAccuracy > 85) {priority = 'low';}
+    if (currentAccuracy < 60) {
+      priority = 'high';
+    } else if (currentAccuracy > 85) {
+      priority = 'low';
+    }
 
     const suggestions: string[] = [];
 
@@ -252,7 +265,7 @@ export class MetricEffectivenessTracker {
    */
   static getMeasurements(metric?: string): MetricEffectivenessData[] {
     if (metric) {
-      return this.measurements.filter(m => m.metric === metric);
+      return this.measurements.filter((m) => m.metric === metric);
     }
     return [...this.measurements];
   }
@@ -269,13 +282,13 @@ export class MetricEffectivenessTracker {
     criticalIssues: number;
     recommendations: string[];
   } {
-    const uniqueMetrics = [...new Set(this.measurements.map(m => m.metric))];
+    const uniqueMetrics = [...new Set(this.measurements.map((m) => m.metric))];
     let effectiveCount = 0;
     let totalAccuracy = 0;
     let totalCritical = 0;
     const recommendations: string[] = [];
 
-    uniqueMetrics.forEach(metric => {
+    uniqueMetrics.forEach((metric) => {
       const effectiveness = this.getMetricEffectiveness(metric);
       if (effectiveness) {
         totalAccuracy += effectiveness.averageAccuracy;
@@ -296,7 +309,7 @@ export class MetricEffectivenessTracker {
       ineffectiveMetrics: uniqueMetrics.length - effectiveCount,
       averageSystemAccuracy: uniqueMetrics.length > 0 ? totalAccuracy / uniqueMetrics.length : 0,
       criticalIssues: totalCritical,
-      recommendations: [...new Set(recommendations)]
+      recommendations: [...new Set(recommendations)],
     };
   }
 
@@ -307,12 +320,16 @@ export class MetricEffectivenessTracker {
   static exportEffectivenessData(): string {
     const systemHealth = this.getSystemHealth();
     const allMeasurements = this.getMeasurements();
-    
-    return JSON.stringify({
-      systemHealth,
-      measurements: allMeasurements,
-      exportedAt: new Date().toISOString(),
-      version: '1.0'
-    }, null, 2);
+
+    return JSON.stringify(
+      {
+        systemHealth,
+        measurements: allMeasurements,
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+      },
+      null,
+      2
+    );
   }
 }

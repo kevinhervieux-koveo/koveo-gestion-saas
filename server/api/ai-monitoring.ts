@@ -13,7 +13,7 @@ type InsertAIInteraction = any;
 /**
  *
  */
-type InsertAIInsight = any; 
+type InsertAIInsight = any;
 /**
  *
  */
@@ -55,7 +55,7 @@ export async function getAIMetrics(req: Request, res: Response) {
     // Get today's date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Get or create today's metrics
     let [metrics] = await db
       .select()
@@ -70,26 +70,25 @@ export async function getAIMetrics(req: Request, res: Response) {
         .from(aiInteractions)
         .where(gte(aiInteractions.timestamp, today));
 
-      const insights = await db
-        .select()
-        .from(aiInsights);
+      const insights = await db.select().from(aiInsights);
 
       const totalInteractions = interactions.length;
-      const successfulInteractions = interactions.filter(i => i.status === 'success').length;
-      const successRate = totalInteractions > 0 ? (successfulInteractions / totalInteractions) * 100 : 0;
-      const avgResponseTime = totalInteractions > 0 
-        ? interactions.reduce((sum, i) => sum + i.duration, 0) / totalInteractions 
-        : 0;
+      const successfulInteractions = interactions.filter((i) => i.status === 'success').length;
+      const successRate =
+        totalInteractions > 0 ? (successfulInteractions / totalInteractions) * 100 : 0;
+      const avgResponseTime =
+        totalInteractions > 0
+          ? interactions.reduce((sum, i) => sum + i.duration, 0) / totalInteractions
+          : 0;
 
-      const categories = [...new Set(interactions.map(i => i.category))];
-      const improvementsSuggested = insights.filter(i => i.status === 'new').length;
-      const improvementsImplemented = insights.filter(i => i.status === 'completed').length;
-      
+      const categories = [...new Set(interactions.map((i) => i.category))];
+      const improvementsSuggested = insights.filter((i) => i.status === 'new').length;
+      const improvementsImplemented = insights.filter((i) => i.status === 'completed').length;
+
       // Calculate AI efficiency based on success rate and implementation rate
-      const implementationRate = improvementsSuggested > 0 
-        ? (improvementsImplemented / improvementsSuggested) * 100 
-        : 0;
-      const aiEfficiency = (successRate * 0.6 + implementationRate * 0.4);
+      const implementationRate =
+        improvementsSuggested > 0 ? (improvementsImplemented / improvementsSuggested) * 100 : 0;
+      const aiEfficiency = successRate * 0.6 + implementationRate * 0.4;
 
       // Create new metrics record
       const newMetrics: InsertAIMetrics = {
@@ -104,10 +103,7 @@ export async function getAIMetrics(req: Request, res: Response) {
         aiEfficiency: aiEfficiency.toFixed(2),
       };
 
-      [metrics] = await db
-        .insert(aiMetrics)
-        .values(newMetrics)
-        .returning();
+      [metrics] = await db.insert(aiMetrics).values(newMetrics).returning();
     }
 
     res.json({
@@ -268,24 +264,30 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       {
         type: 'performance',
         title: 'Optimize Database Queries',
-        description: 'Several database queries are running without proper indexing, causing slow response times.',
-        recommendation: 'Add indexes to frequently queried columns and implement query result caching for common requests.',
+        description:
+          'Several database queries are running without proper indexing, causing slow response times.',
+        recommendation:
+          'Add indexes to frequently queried columns and implement query result caching for common requests.',
         priority: 'high',
         status: 'new',
       },
       {
         type: 'quality',
         title: 'Increase Test Coverage',
-        description: 'Current test coverage is below recommended threshold. Critical business logic lacks comprehensive testing.',
-        recommendation: 'Add unit tests for authentication flows and business logic components to reach 80% coverage.',
+        description:
+          'Current test coverage is below recommended threshold. Critical business logic lacks comprehensive testing.',
+        recommendation:
+          'Add unit tests for authentication flows and business logic components to reach 80% coverage.',
         priority: 'medium',
         status: 'new',
       },
       {
         type: 'security',
         title: 'Implement Rate Limiting',
-        description: 'API endpoints lack rate limiting, exposing the application to potential abuse.',
-        recommendation: 'Implement rate limiting middleware with appropriate thresholds for each endpoint category.',
+        description:
+          'API endpoints lack rate limiting, exposing the application to potential abuse.',
+        recommendation:
+          'Implement rate limiting middleware with appropriate thresholds for each endpoint category.',
         priority: 'high',
         status: 'new',
       },
@@ -293,14 +295,16 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
         type: 'ux',
         title: 'Improve Mobile Responsiveness',
         description: 'Several dashboard components do not render optimally on mobile devices.',
-        recommendation: 'Implement responsive design patterns for tables and complex dashboard widgets.',
+        recommendation:
+          'Implement responsive design patterns for tables and complex dashboard widgets.',
         priority: 'medium',
         status: 'new',
       },
       {
         type: 'efficiency',
         title: 'Bundle Size Optimization',
-        description: 'Frontend bundle size exceeds recommended limits, affecting initial load performance.',
+        description:
+          'Frontend bundle size exceeds recommended limits, affecting initial load performance.',
         recommendation: 'Implement code splitting and lazy loading for non-critical components.',
         priority: 'low',
         status: 'new',
@@ -318,9 +322,9 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
     // Update metrics
     await updateAIMetrics();
 
-    res.json({ 
+    res.json({
       message: 'AI analysis triggered successfully',
-      insightsGenerated: numberOfInsights 
+      insightsGenerated: numberOfInsights,
     });
   } catch (____error) {
     console.error('Error triggering AI analysis:', _error);
@@ -396,9 +400,9 @@ export async function applyAISuggestion(req: Request, res: Response) {
     // Update metrics
     await updateAIMetrics();
 
-    res.json({ 
+    res.json({
       message: 'Suggestion applied successfully',
-      insight: updatedInsight 
+      insight: updatedInsight,
     });
   } catch (____error) {
     console.error('Error applying AI suggestion:', _error);
@@ -436,25 +440,24 @@ async function updateAIMetrics() {
     .where(gte(aiInteractions.timestamp, today));
 
   // Get all insights
-  const insights = await db
-    .select()
-    .from(aiInsights);
+  const insights = await db.select().from(aiInsights);
 
   const totalInteractions = interactions.length;
-  const successfulInteractions = interactions.filter(i => i.status === 'success').length;
-  const successRate = totalInteractions > 0 ? (successfulInteractions / totalInteractions) * 100 : 0;
-  const avgResponseTime = totalInteractions > 0 
-    ? interactions.reduce((sum, i) => sum + i.duration, 0) / totalInteractions 
-    : 0;
+  const successfulInteractions = interactions.filter((i) => i.status === 'success').length;
+  const successRate =
+    totalInteractions > 0 ? (successfulInteractions / totalInteractions) * 100 : 0;
+  const avgResponseTime =
+    totalInteractions > 0
+      ? interactions.reduce((sum, i) => sum + i.duration, 0) / totalInteractions
+      : 0;
 
-  const categories = [...new Set(interactions.map(i => i.category))];
+  const categories = [...new Set(interactions.map((i) => i.category))];
   const improvementsSuggested = insights.length;
-  const improvementsImplemented = insights.filter(i => i.status === 'completed').length;
-  
-  const implementationRate = improvementsSuggested > 0 
-    ? (improvementsImplemented / improvementsSuggested) * 100 
-    : 0;
-  const aiEfficiency = (successRate * 0.6 + implementationRate * 0.4);
+  const improvementsImplemented = insights.filter((i) => i.status === 'completed').length;
+
+  const implementationRate =
+    improvementsSuggested > 0 ? (improvementsImplemented / improvementsSuggested) * 100 : 0;
+  const aiEfficiency = successRate * 0.6 + implementationRate * 0.4;
 
   // Update or insert metrics
   await db
@@ -521,11 +524,8 @@ async function updateAIMetrics() {
 export async function recordAIInteraction(req: Request, res: Response) {
   try {
     const interaction: InsertAIInteraction = req.body;
-    
-    const [newInteraction] = await db
-      .insert(aiInteractions)
-      .values(interaction)
-      .returning();
+
+    const [newInteraction] = await db.insert(aiInteractions).values(interaction).returning();
 
     // Update metrics after recording interaction
     await updateAIMetrics();
@@ -542,58 +542,55 @@ export async function recordAIInteraction(req: Request, res: Response) {
  * @param app Express application.
  */
 export function registerAIMonitoringRoutes(app: Express): void {
-  
   // Get AI metrics
   app.get('/api/ai/metrics', requireAuth, getAIMetrics);
-  
+
   // Trigger AI analysis
   app.post('/api/ai/analyze', requireAuth, async (req: any, res) => {
     try {
       // Mock AI analysis trigger
       const insightsGenerated = Math.floor(Math.random() * 5) + 1;
-      
-      res.json({ 
+
+      res.json({
         message: 'AI analysis triggered successfully',
-        insightsGenerated 
+        insightsGenerated,
       });
-      
     } catch (error) {
       console.error('AI analysis trigger error:', error);
       res.status(500).json({ _error: 'Failed to trigger AI analysis' });
     }
   });
-  
+
   // Apply AI suggestion
   app.post('/api/ai/insights/:id/apply', requireAuth, async (req: any, res) => {
     try {
       const insightId = req.params.id;
-      
+
       // Find the insight
       const [insight] = await db
         .select()
         .from(aiInsights)
         .where(eq(aiInsights.id, insightId))
         .limit(1);
-      
+
       if (!insight) {
         return res.status(404).json({ _error: 'Insight not found' });
       }
-      
+
       // Update insight status to completed
       const [updatedInsight] = await db
         .update(aiInsights)
-        .set({ 
+        .set({
           status: 'completed',
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(aiInsights.id, insightId))
         .returning();
-      
-      res.json({ 
+
+      res.json({
         message: 'Suggestion applied successfully',
-        insight: updatedInsight 
+        insight: updatedInsight,
       });
-      
     } catch (error) {
       console.error('Apply AI insight error:', error);
       res.status(500).json({ message: 'Internal server error' });
@@ -601,7 +598,4 @@ export function registerAIMonitoringRoutes(app: Express): void {
   });
 }
 
-export { 
-  addAIInteraction, 
-  generateAIInsight 
-};
+export { addAIInteraction, generateAIInsight };

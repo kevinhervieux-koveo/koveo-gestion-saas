@@ -4,7 +4,7 @@ import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Workspace Status Component.
- * 
+ *
  * Displays the current status of workspace setup and configuration tasks.
  * Shows completion status for environment, dependencies, and framework setup.
  * @returns JSX element for the workspace status display.

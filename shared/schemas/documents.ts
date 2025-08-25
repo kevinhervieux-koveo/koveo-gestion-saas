@@ -1,11 +1,5 @@
 import { sql } from 'drizzle-orm';
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  boolean,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
@@ -22,7 +16,9 @@ export const documentsBuildings = pgTable('documents_buildings', {
   uploadDate: timestamp('upload_date').defaultNow().notNull(),
   dateReference: timestamp('date_reference'),
   type: text('type').notNull(),
-  buildingId: uuid('building_id').references(() => buildings.id).notNull(),
+  buildingId: uuid('building_id')
+    .references(() => buildings.id)
+    .notNull(),
   fileUrl: text('file_url'),
   fileName: text('file_name'),
   fileSize: text('file_size'),
@@ -44,7 +40,9 @@ export const documentsResidents = pgTable('documents_residents', {
   uploadDate: timestamp('upload_date').defaultNow().notNull(),
   dateReference: timestamp('date_reference'),
   type: text('type').notNull(),
-  residenceId: uuid('residence_id').references(() => residences.id).notNull(),
+  residenceId: uuid('residence_id')
+    .references(() => residences.id)
+    .notNull(),
   fileUrl: text('file_url'),
   fileName: text('file_name'),
   fileSize: text('file_size'),
@@ -58,27 +56,33 @@ export const documentsResidents = pgTable('documents_residents', {
 // Insert schemas
 export const insertDocumentBuildingSchema = z.object({
   name: z.string(),
-  dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  dateReference: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
   type: z.string(),
   buildingId: z.string().uuid(),
   fileUrl: z.string().optional(),
   fileName: z.string().optional(),
   fileSize: z.string().optional(),
   mimeType: z.string().optional(),
-  uploadedBy: z.string().min(1, "Uploaded by user ID is required"),
+  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
   isVisibleToTenants: z.boolean().default(false),
 });
 
 export const insertDocumentResidentSchema = z.object({
   name: z.string(),
-  dateReference: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  dateReference: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
   type: z.string(),
   residenceId: z.string().uuid(),
   fileUrl: z.string().optional(),
   fileName: z.string().optional(),
   fileSize: z.string().optional(),
   mimeType: z.string().optional(),
-  uploadedBy: z.string().min(1, "Uploaded by user ID is required"),
+  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
   isVisibleToTenants: z.boolean().default(false),
 });
 

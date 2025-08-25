@@ -10,7 +10,7 @@ export const handlers = [
       lastName: 'User',
       role: 'admin',
       isActive: true,
-      language: 'en'
+      language: 'en',
     });
   }),
 
@@ -25,8 +25,8 @@ export const handlers = [
         lastName: 'User',
         role: 'admin',
         isActive: true,
-        language: 'en'
-      }
+        language: 'en',
+      },
     });
   }),
 
@@ -44,12 +44,12 @@ export const handlers = [
         lastName: 'User',
         role: 'admin',
         isActive: true,
-        language: 'en'
-      }
+        language: 'en',
+      },
     ]);
   }),
 
-  // Organizations endpoints  
+  // Organizations endpoints
   http.get('/api/organizations', () => {
     return HttpResponse.json([]);
   }),
@@ -63,8 +63,8 @@ export const handlers = [
         address: '123 Test St',
         city: 'Test City',
         organizationId: 'org-1',
-        isActive: true
-      }
+        isActive: true,
+      },
     ]);
   }),
 
@@ -79,7 +79,7 @@ export const handlers = [
       income: [],
       expenses: [],
       bankAccount: null,
-      minimumBalances: {}
+      minimumBalances: {},
     });
   }),
 
@@ -88,7 +88,7 @@ export const handlers = [
       totalIncome: 0,
       totalExpenses: 0,
       netCashFlow: 0,
-      specialContributions: []
+      specialContributions: [],
     });
   }),
 
@@ -96,7 +96,7 @@ export const handlers = [
     return HttpResponse.json({
       accountNumber: '9876543210',
       bankName: 'Test Bank',
-      balance: 50000
+      balance: 50000,
     });
   }),
 
@@ -148,7 +148,7 @@ export const handlers = [
         isReservable: false,
         capacity: 10,
         openingHours: [],
-      }
+      },
     ]);
   }),
 
@@ -163,22 +163,25 @@ export const handlers = [
         startTime: new Date('2024-01-15T10:00:00Z').toISOString(),
         endTime: new Date('2024-01-15T11:00:00Z').toISOString(),
         status: 'confirmed',
-      }
+      },
     ]);
   }),
 
   http.post('/api/common-spaces/:spaceId/bookings', () => {
-    return HttpResponse.json({
-      message: 'Booking created successfully',
-      booking: {
-        id: 'new-booking-1',
-        commonSpaceId: 'space-1',
-        userId: '1',
-        startTime: new Date('2024-01-20T09:00:00Z').toISOString(),
-        endTime: new Date('2024-01-20T10:00:00Z').toISOString(),
-        status: 'confirmed',
-      }
-    }, { status: 201 });
+    return HttpResponse.json(
+      {
+        message: 'Booking created successfully',
+        booking: {
+          id: 'new-booking-1',
+          commonSpaceId: 'space-1',
+          userId: '1',
+          startTime: new Date('2024-01-20T09:00:00Z').toISOString(),
+          endTime: new Date('2024-01-20T10:00:00Z').toISOString(),
+          status: 'confirmed',
+        },
+      },
+      { status: 201 }
+    );
   }),
 
   http.get('/api/common-spaces/my-bookings', () => {
@@ -191,7 +194,7 @@ export const handlers = [
         startTime: new Date('2024-01-20T14:00:00Z').toISOString(),
         endTime: new Date('2024-01-20T15:00:00Z').toISOString(),
         status: 'confirmed',
-      }
+      },
     ]);
   }),
 
@@ -204,8 +207,8 @@ export const handlers = [
           address: '123 Test St',
           city: 'Test City',
           organizationId: 'org-1',
-        }
-      ]
+        },
+      ],
     });
   }),
 
@@ -232,14 +235,14 @@ export const handlers = [
           userEmail: 'jane@example.com',
           totalHours: 8.0,
           totalBookings: 5,
-        }
-      ]
+        },
+      ],
     });
   }),
 
   http.post('/api/common-spaces/users/:userId/restrictions', () => {
     return HttpResponse.json({
-      message: 'User blocked from booking this space'
+      message: 'User blocked from booking this space',
     });
   }),
 

@@ -5,13 +5,13 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { 
+import {
   getUserAccessibleOrganizations,
-  canUserAccessOrganization, 
+  canUserAccessOrganization,
   canUserAccessBuilding,
   canUserAccessResidence,
   canUserPerformWriteOperation,
-  isOpenDemoUser
+  isOpenDemoUser,
 } from '../../../server/rbac';
 import { db } from '../../../server/db';
 
@@ -55,7 +55,7 @@ const testUsers = {
     canAccessAllOrganizations: true,
   },
   manager: {
-    id: 'manager-user-id', 
+    id: 'manager-user-id',
     username: 'manager@property.qc.ca',
     email: 'manager@property.qc.ca',
     firstName: 'Gestionnaire',
@@ -65,7 +65,7 @@ const testUsers = {
   },
   tenant: {
     id: 'tenant-user-id',
-    username: 'locataire@email.com', 
+    username: 'locataire@email.com',
     email: 'locataire@email.com',
     firstName: 'Jean',
     lastName: 'Locataire',
@@ -75,7 +75,7 @@ const testUsers = {
   demoUser: {
     id: 'demo-user-id',
     username: 'demo@openplatform.com',
-    email: 'demo@openplatform.com', 
+    email: 'demo@openplatform.com',
     firstName: 'Demo',
     lastName: 'Utilisateur',
     role: 'resident' as const,
@@ -89,7 +89,7 @@ const testUsers = {
     lastName: 'Employee',
     role: 'admin' as const,
     isActive: true,
-  }
+  },
 };
 
 const testOrganizations = {
@@ -102,26 +102,26 @@ const testOrganizations = {
 };
 
 const testBuildings = {
-  demo: { 
-    id: 'demo-building-id', 
+  demo: {
+    id: 'demo-building-id',
     organizationId: testOrganizations.demo.id,
     name: 'Demo Building - Test Facility',
     address: '123 Rue Demo, Montreal, QC',
-    isActive: true 
+    isActive: true,
   },
-  montreal: { 
-    id: 'montreal-building-id', 
+  montreal: {
+    id: 'montreal-building-id',
     organizationId: testOrganizations.montreal.id,
     name: 'Tour Résidentielle Montréal',
     address: '456 Rue Sherbrooke, Montreal, QC',
-    isActive: true 
+    isActive: true,
   },
-  quebec: { 
-    id: 'quebec-building-id', 
+  quebec: {
+    id: 'quebec-building-id',
     organizationId: testOrganizations.quebec.id,
     name: 'Complexe Résidentiel Québec',
     address: '789 Boulevard René-Lévesque, Quebec, QC',
-    isActive: true 
+    isActive: true,
   },
 };
 
@@ -134,7 +134,7 @@ const testResidences = {
     isActive: true,
   },
   montreal: {
-    id: 'montreal-residence-id', 
+    id: 'montreal-residence-id',
     buildingId: testBuildings.montreal.id,
     unitNumber: '2A',
     floor: 2,
@@ -165,12 +165,12 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
     it('should always include Demo organization for any user (Quebec business rule)', async () => {
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.tenant.id);
-      
+
       expect(result).toContain(testOrganizations.demo.id);
       expect(mockDb.query.organizations.findFirst).toHaveBeenCalledWith({
-        where: expect.objectContaining({})
+        where: expect.objectContaining({}),
       });
     });
 
@@ -180,18 +180,18 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.koveo.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.koveo
-        }
+          organization: testOrganizations.koveo,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce([
         testOrganizations.demo,
         testOrganizations.koveo,
         testOrganizations.montreal,
-        testOrganizations.quebec
+        testOrganizations.quebec,
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.koveoUser.id);
-      
+
       expect(result).toHaveLength(4);
       expect(result).toContain(testOrganizations.koveo.id);
       expect(result).toContain(testOrganizations.montreal.id);
@@ -204,12 +204,12 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.manager.id);
-      
+
       expect(result).toHaveLength(2);
       expect(result).toContain(testOrganizations.demo.id);
       expect(result).toContain(testOrganizations.montreal.id);
@@ -222,28 +222,28 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.regular.id,
           canAccessAllOrganizations: true,
-          organization: testOrganizations.regular
-        }
+          organization: testOrganizations.regular,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce([
         testOrganizations.demo,
         testOrganizations.koveo,
         testOrganizations.montreal,
         testOrganizations.quebec,
-        testOrganizations.regular
+        testOrganizations.regular,
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.admin.id);
-      
+
       expect(result).toHaveLength(5);
     });
 
     it('should handle database errors gracefully', async () => {
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockRejectedValueOnce(new Error('Connection failed'));
-      
+
       const result = await getUserAccessibleOrganizations('invalid-user-id');
-      
+
       expect(result).toEqual([]);
     });
 
@@ -253,12 +253,12 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.manager.id);
-      
+
       expect(result).toHaveLength(1);
       expect(result).toContain(testOrganizations.montreal.id);
     });
@@ -271,15 +271,15 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const hasAccess = await canUserAccessOrganization(
         testUsers.manager.id,
         testOrganizations.montreal.id
       );
-      
+
       expect(hasAccess).toBe(true);
     });
 
@@ -289,15 +289,15 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const hasAccess = await canUserAccessOrganization(
         testUsers.tenant.id,
         testOrganizations.quebec.id
       );
-      
+
       expect(hasAccess).toBe(false);
     });
   });
@@ -310,37 +310,37 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const hasAccess = await canUserAccessBuilding(
         testUsers.manager.id,
         testBuildings.montreal.id
       );
-      
+
       expect(hasAccess).toBe(true);
     });
 
     it('should deny access to non-existent buildings', async () => {
       mockDb.query.buildings.findFirst.mockResolvedValueOnce(null);
-      
+
       const hasAccess = await canUserAccessBuilding(
         testUsers.manager.id,
         'non-existent-building-id'
       );
-      
+
       expect(hasAccess).toBe(false);
     });
 
     it('should handle database errors in building lookup', async () => {
       mockDb.query.buildings.findFirst.mockRejectedValueOnce(new Error('Building query failed'));
-      
+
       const hasAccess = await canUserAccessBuilding(
         testUsers.manager.id,
         testBuildings.montreal.id
       );
-      
+
       expect(hasAccess).toBe(false);
     });
   });
@@ -350,26 +350,26 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(testUsers.admin);
       mockDb.query.residences.findFirst.mockResolvedValueOnce({
         ...testResidences.montreal,
-        building: testBuildings.montreal
+        building: testBuildings.montreal,
       });
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: true,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce([
         testOrganizations.demo,
-        testOrganizations.montreal
+        testOrganizations.montreal,
       ]);
-      
+
       const hasAccess = await canUserAccessResidence(
         testUsers.admin.id,
         testResidences.montreal.id
       );
-      
+
       expect(hasAccess).toBe(true);
     });
 
@@ -377,22 +377,22 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(testUsers.manager);
       mockDb.query.residences.findFirst.mockResolvedValueOnce({
         ...testResidences.montreal,
-        building: testBuildings.montreal
+        building: testBuildings.montreal,
       });
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const hasAccess = await canUserAccessResidence(
         testUsers.manager.id,
         testResidences.montreal.id
       );
-      
+
       expect(hasAccess).toBe(true);
     });
 
@@ -403,50 +403,41 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
           userId: testUsers.tenant.id,
           residenceId: testResidences.demo.id,
           isActive: true,
-          relationshipType: 'tenant'
-        }
+          relationshipType: 'tenant',
+        },
       ]);
-      
-      const hasAccess = await canUserAccessResidence(
-        testUsers.tenant.id,
-        testResidences.demo.id
-      );
-      
+
+      const hasAccess = await canUserAccessResidence(testUsers.tenant.id, testResidences.demo.id);
+
       expect(hasAccess).toBe(true);
     });
 
     it('should deny tenant access to non-assigned residences', async () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(testUsers.tenant);
       mockDb.query.userResidences.findMany.mockResolvedValueOnce([]);
-      
+
       const hasAccess = await canUserAccessResidence(
         testUsers.tenant.id,
         testResidences.montreal.id
       );
-      
+
       expect(hasAccess).toBe(false);
     });
 
     it('should handle non-existent users gracefully', async () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(null);
-      
-      const hasAccess = await canUserAccessResidence(
-        'non-existent-user',
-        testResidences.demo.id
-      );
-      
+
+      const hasAccess = await canUserAccessResidence('non-existent-user', testResidences.demo.id);
+
       expect(hasAccess).toBe(false);
     });
 
     it('should handle non-existent residences gracefully', async () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(testUsers.admin);
       mockDb.query.residences.findFirst.mockResolvedValueOnce(null);
-      
-      const hasAccess = await canUserAccessResidence(
-        testUsers.admin.id,
-        'non-existent-residence'
-      );
-      
+
+      const hasAccess = await canUserAccessResidence(testUsers.admin.id, 'non-existent-residence');
+
       expect(hasAccess).toBe(false);
     });
   });
@@ -456,12 +447,23 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.montreal.id,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
-      const writeOperations = ['create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore'] as const;
-      
+
+      const writeOperations = [
+        'create',
+        'update',
+        'delete',
+        'manage',
+        'approve',
+        'assign',
+        'share',
+        'export',
+        'backup',
+        'restore',
+      ] as const;
+
       for (const operation of writeOperations) {
         const canWrite = await canUserPerformWriteOperation(testUsers.manager.id, operation);
         expect(canWrite).toBe(true);
@@ -472,12 +474,23 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.openDemo.id,
-          organization: testOrganizations.openDemo
-        }
+          organization: testOrganizations.openDemo,
+        },
       ]);
-      
-      const writeOperations = ['create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore'] as const;
-      
+
+      const writeOperations = [
+        'create',
+        'update',
+        'delete',
+        'manage',
+        'approve',
+        'assign',
+        'share',
+        'export',
+        'backup',
+        'restore',
+      ] as const;
+
       for (const operation of writeOperations) {
         const canWrite = await canUserPerformWriteOperation(testUsers.demoUser.id, operation);
         expect(canWrite).toBe(false);
@@ -485,10 +498,12 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
     });
 
     it('should handle database errors in write permission checks', async () => {
-      mockDb.query.userOrganizations.findMany.mockRejectedValueOnce(new Error('Permission check failed'));
-      
+      mockDb.query.userOrganizations.findMany.mockRejectedValueOnce(
+        new Error('Permission check failed')
+      );
+
       const canWrite = await canUserPerformWriteOperation(testUsers.manager.id, 'create');
-      
+
       expect(canWrite).toBe(false);
     });
   });
@@ -498,12 +513,12 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.openDemo.id,
-          organization: testOrganizations.openDemo
-        }
+          organization: testOrganizations.openDemo,
+        },
       ]);
-      
+
       const isDemo = await isOpenDemoUser(testUsers.demoUser.id);
-      
+
       expect(isDemo).toBe(true);
     });
 
@@ -511,28 +526,30 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.montreal.id,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const isDemo = await isOpenDemoUser(testUsers.manager.id);
-      
+
       expect(isDemo).toBe(false);
     });
 
     it('should handle users with no organization memberships', async () => {
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([]);
-      
+
       const isDemo = await isOpenDemoUser(testUsers.tenant.id);
-      
+
       expect(isDemo).toBe(false);
     });
 
     it('should handle database errors gracefully', async () => {
-      mockDb.query.userOrganizations.findMany.mockRejectedValueOnce(new Error('User lookup failed'));
-      
+      mockDb.query.userOrganizations.findMany.mockRejectedValueOnce(
+        new Error('User lookup failed')
+      );
+
       const isDemo = await isOpenDemoUser('error-user-id');
-      
+
       expect(isDemo).toBe(false);
     });
   });
@@ -540,11 +557,11 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
   describe('Edge Cases and Security Testing', () => {
     it('should handle malformed user IDs safely', async () => {
       const malformedIds = ['', null, undefined, 'invalid-uuid', '123', 'DROP TABLE users'];
-      
+
       for (const id of malformedIds) {
         mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
         mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([]);
-        
+
         const result = await getUserAccessibleOrganizations(id as string);
         expect(Array.isArray(result)).toBe(true);
       }
@@ -554,20 +571,20 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       const maliciousOrg = {
         id: 'malicious-org-id',
         name: "'; DROP TABLE organizations; --",
-        isActive: true
+        isActive: true,
       };
-      
+
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: maliciousOrg.id,
           canAccessAllOrganizations: false,
-          organization: maliciousOrg
-        }
+          organization: maliciousOrg,
+        },
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.manager.id);
-      
+
       expect(Array.isArray(result)).toBe(true);
       expect(result).toContain(testOrganizations.demo.id);
     });
@@ -578,19 +595,19 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       // Simulate concurrent access attempts
       const promises = [
         canUserAccessOrganization(testUsers.tenant.id, testOrganizations.montreal.id),
         canUserAccessOrganization(testUsers.tenant.id, testOrganizations.quebec.id),
-        canUserAccessOrganization(testUsers.tenant.id, testOrganizations.koveo.id)
+        canUserAccessOrganization(testUsers.tenant.id, testOrganizations.koveo.id),
       ];
-      
+
       const results = await Promise.all(promises);
-      
+
       expect(results[0]).toBe(true); // Should have access to Montreal
       expect(results[1]).toBe(false); // Should not have access to Quebec
       expect(results[2]).toBe(false); // Should not have access to Koveo
@@ -603,13 +620,13 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       // Get accessible organizations
       const accessibleOrgs = await getUserAccessibleOrganizations(testUsers.manager.id);
-      
+
       // Verify consistent access for each accessible org
       for (const orgId of accessibleOrgs) {
         const hasAccess = await canUserAccessOrganization(testUsers.manager.id, orgId);
@@ -623,23 +640,23 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       const largeOrgSet = Array.from({ length: 500 }, (_, i) => ({
         id: `org-${i}`,
         name: `Organization ${i}`,
-        isActive: true
+        isActive: true,
       }));
-      
+
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.koveo.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.koveo
-        }
+          organization: testOrganizations.koveo,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce(largeOrgSet);
-      
+
       const startTime = Date.now();
       const result = await getUserAccessibleOrganizations(testUsers.koveoUser.id);
       const endTime = Date.now();
-      
+
       expect(result.length).toBe(500);
       expect(endTime - startTime).toBeLessThan(500); // Should complete within 500ms
     });
@@ -650,21 +667,21 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         {
           organizationId: testOrganizations.montreal.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.montreal
-        }
+          organization: testOrganizations.montreal,
+        },
       ]);
-      
+
       const startTime = Date.now();
-      
+
       // Perform 50 rapid access checks
-      const promises = Array.from({ length: 50 }, () => 
+      const promises = Array.from({ length: 50 }, () =>
         canUserAccessOrganization(testUsers.manager.id, testOrganizations.montreal.id)
       );
-      
+
       const results = await Promise.all(promises);
       const endTime = Date.now();
-      
-      expect(results.every(result => result === true)).toBe(true);
+
+      expect(results.every((result) => result === true)).toBe(true);
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
     });
   });
@@ -674,20 +691,20 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
       const quebecOrgs = [
         { id: 'org-fr-1', name: 'Gestion Immobilière Québec', isActive: true },
         { id: 'org-fr-2', name: 'Propriétés Résidentielles MTL', isActive: true },
-        { id: 'org-en-1', name: 'Quebec Property Management', isActive: true }
+        { id: 'org-en-1', name: 'Quebec Property Management', isActive: true },
       ];
-      
+
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: 'org-fr-1',
           canAccessAllOrganizations: false,
-          organization: quebecOrgs[0]
-        }
+          organization: quebecOrgs[0],
+        },
       ]);
-      
+
       const result = await getUserAccessibleOrganizations(testUsers.manager.id);
-      
+
       expect(result).toContain(testOrganizations.demo.id);
       expect(result).toContain('org-fr-1');
     });
@@ -702,15 +719,15 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
           isActive: true,
           relationshipType: 'tenant',
           startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-12-31')
-        }
+          endDate: new Date('2024-12-31'),
+        },
       ]);
-      
+
       const hasResidenceAccess = await canUserAccessResidence(
         testUsers.tenant.id,
         testResidences.montreal.id
       );
-      
+
       expect(hasResidenceAccess).toBe(true);
     });
 
@@ -725,15 +742,15 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
           isActive: true,
           relationshipType: 'tenant',
           startDate: new Date('2024-01-01'),
-          endDate: null // Ongoing tenancy
-        }
+          endDate: null, // Ongoing tenancy
+        },
       ]);
-      
+
       const hasAccess = await canUserAccessResidence(
         testUsers.tenant.id,
         testResidences.montreal.id
       );
-      
+
       expect(hasAccess).toBe(true);
     });
   });
@@ -752,31 +769,31 @@ describe('RBAC Integration Scenarios', () => {
       // Scenario: Property manager moves from one company to another
       const oldOrg = testOrganizations.montreal;
       const newOrg = testOrganizations.quebec;
-      
+
       // First, user has access to old organization
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: oldOrg.id,
           canAccessAllOrganizations: false,
-          organization: oldOrg
-        }
+          organization: oldOrg,
+        },
       ]);
-      
+
       let accessibleOrgs = await getUserAccessibleOrganizations(testUsers.manager.id);
       expect(accessibleOrgs).toContain(oldOrg.id);
       expect(accessibleOrgs).not.toContain(newOrg.id);
-      
+
       // After organization change
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: newOrg.id,
           canAccessAllOrganizations: false,
-          organization: newOrg
-        }
+          organization: newOrg,
+        },
       ]);
-      
+
       accessibleOrgs = await getUserAccessibleOrganizations(testUsers.manager.id);
       expect(accessibleOrgs).toContain(newOrg.id);
       expect(accessibleOrgs).not.toContain(oldOrg.id);
@@ -786,7 +803,7 @@ describe('RBAC Integration Scenarios', () => {
       // Scenario: Tenant moves from one residence to another
       const oldResidence = testResidences.montreal;
       const newResidence = testResidences.quebec;
-      
+
       // Initially tenant has access to old residence
       mockDb.query.users.findFirst.mockResolvedValue(testUsers.tenant);
       mockDb.query.userResidences.findMany.mockResolvedValueOnce([
@@ -794,26 +811,26 @@ describe('RBAC Integration Scenarios', () => {
           userId: testUsers.tenant.id,
           residenceId: oldResidence.id,
           isActive: true,
-          relationshipType: 'tenant'
-        }
+          relationshipType: 'tenant',
+        },
       ]);
-      
+
       let hasAccess = await canUserAccessResidence(testUsers.tenant.id, oldResidence.id);
       expect(hasAccess).toBe(true);
-      
+
       hasAccess = await canUserAccessResidence(testUsers.tenant.id, newResidence.id);
       expect(hasAccess).toBe(false);
-      
+
       // After moving to new residence
       mockDb.query.userResidences.findMany.mockResolvedValueOnce([
         {
           userId: testUsers.tenant.id,
           residenceId: newResidence.id,
           isActive: true,
-          relationshipType: 'tenant'
-        }
+          relationshipType: 'tenant',
+        },
       ]);
-      
+
       hasAccess = await canUserAccessResidence(testUsers.tenant.id, newResidence.id);
       expect(hasAccess).toBe(true);
     });
@@ -822,54 +839,54 @@ describe('RBAC Integration Scenarios', () => {
       // Scenario: Regular Koveo employee gets promoted to admin
       const koveoEmployee = {
         ...testUsers.koveoUser,
-        role: 'manager' as const
+        role: 'manager' as const,
       };
-      
+
       // Before promotion - limited to Koveo organization access
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.koveo.id,
           canAccessAllOrganizations: false,
-          organization: testOrganizations.koveo
-        }
+          organization: testOrganizations.koveo,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce([
         testOrganizations.demo,
         testOrganizations.koveo,
         testOrganizations.montreal,
-        testOrganizations.quebec
+        testOrganizations.quebec,
       ]);
-      
+
       const accessibleOrgs = await getUserAccessibleOrganizations(koveoEmployee.id);
       expect(accessibleOrgs.length).toBeGreaterThanOrEqual(4); // Koveo gets global access
-      
+
       // After promotion - should still have global access as admin
       const adminUser = {
         ...koveoEmployee,
-        role: 'admin' as const
+        role: 'admin' as const,
       };
-      
+
       mockDb.query.users.findFirst.mockResolvedValueOnce(adminUser);
       mockDb.query.residences.findFirst.mockResolvedValueOnce({
         ...testResidences.montreal,
-        building: testBuildings.montreal
+        building: testBuildings.montreal,
       });
       mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.koveo.id,
           canAccessAllOrganizations: true,
-          organization: testOrganizations.koveo
-        }
+          organization: testOrganizations.koveo,
+        },
       ]);
       mockDb.query.organizations.findMany.mockResolvedValueOnce([
         testOrganizations.demo,
         testOrganizations.koveo,
         testOrganizations.montreal,
-        testOrganizations.quebec
+        testOrganizations.quebec,
       ]);
-      
+
       const hasResidenceAccess = await canUserAccessResidence(
         adminUser.id,
         testResidences.montreal.id

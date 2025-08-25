@@ -5,15 +5,15 @@ import { requireAuth, requireRole } from '../auth';
 import { z } from 'zod';
 import * as schema from '@shared/schema';
 
-const { 
-  commonSpaces, 
-  bookings, 
-  userBookingRestrictions, 
+const {
+  commonSpaces,
+  bookings,
+  userBookingRestrictions,
   userTimeLimits,
-  buildings, 
-  users, 
+  buildings,
+  users,
   userResidences,
-  userOrganizations 
+  userOrganizations,
 } = schema;
 
 // Validation schemas
@@ -54,10 +54,12 @@ const createCommonSpaceSchema = z.object({
   building_id: z.string().uuid('Building ID must be a valid UUID'),
   is_reservable: z.boolean().default(true),
   capacity: z.number().int().min(1).max(200).optional(),
-  opening_hours: z.object({
-    start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
-    end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format')
-  }).optional(),
+  opening_hours: z
+    .object({
+      start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+      end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+    })
+    .optional(),
 });
 
 const setTimeLimitSchema = z.object({
@@ -90,7 +92,7 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
       .select({ id: buildings.id })
       .from(buildings)
       .where(eq(buildings.isActive, true));
-    return allBuildings.map(b => b.id);
+    return allBuildings.map((b) => b.id);
   }
 
   if (['admin', 'manager'].includes(user.role)) {
@@ -103,12 +105,9 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
       .select({ id: buildings.id })
       .from(buildings)
       .where(
-        and(
-          eq(buildings.isActive, true),
-          inArray(buildings.organizationId, user.organizations)
-        )
+        and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
       );
-    return orgBuildings.map(b => b.id);
+    return orgBuildings.map((b) => b.id);
   }
 
   if (['resident', 'tenant'].includes(user.role)) {
@@ -117,13 +116,8 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
       .select({ buildingId: schema.residences.buildingId })
       .from(userResidences)
       .innerJoin(schema.residences, eq(userResidences.residenceId, schema.residences.id))
-      .where(
-        and(
-          eq(userResidences.userId, user.id),
-          eq(userResidences.isActive, true)
-        )
-      );
-    return userBuildingIds.map(b => b.buildingId);
+      .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+    return userBuildingIds.map((b) => b.buildingId);
   }
 
   return []; // No access by default
@@ -136,13 +130,13 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
  * @param limitType
  */
 async function getUserBookingHours(
-  userId: string, 
-  commonSpaceId: string | null, 
+  userId: string,
+  commonSpaceId: string | null,
   limitType: 'monthly' | 'yearly'
 ): Promise<number> {
   const now = new Date();
   let startDate: Date;
-  
+
   if (limitType === 'monthly') {
     startDate = new Date(now.getFullYear(), now.getMonth(), 1);
   } else {
@@ -152,7 +146,7 @@ async function getUserBookingHours(
   const conditions = [
     eq(bookings.userId, userId),
     eq(bookings.status, 'confirmed'),
-    gte(bookings.startTime, startDate)
+    gte(bookings.startTime, startDate),
   ];
 
   if (commonSpaceId) {
@@ -161,7 +155,7 @@ async function getUserBookingHours(
 
   const userBookings = await db
     .select({
-      totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`
+      totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
     })
     .from(bookings)
     .where(and(...conditions));
@@ -202,11 +196,11 @@ async function checkUserTimeLimit(
   // Use the most specific limit (space-specific over global)
   const activeLimit = timeLimits[0];
   const currentHours = await getUserBookingHours(
-    userId, 
-    activeLimit.commonSpaceId, 
+    userId,
+    activeLimit.commonSpaceId,
     activeLimit.limitType as 'monthly' | 'yearly'
   );
-  
+
   const totalAfterBooking = currentHours + newBookingHours;
   const remainingHours = Math.max(0, activeLimit.limitHours - currentHours);
 
@@ -215,7 +209,7 @@ async function checkUserTimeLimit(
     return {
       withinLimit: false,
       message: `Limite de temps dépassée. Vous avez utilisé ${Math.round(currentHours)}h sur ${activeLimit.limitHours}h autorisées pour ${limitPeriod}. Il vous reste ${Math.round(remainingHours)}h disponibles.`,
-      remainingHours
+      remainingHours,
     };
   }
 
@@ -230,9 +224,9 @@ async function checkUserTimeLimit(
  * @param excludeBookingId
  */
 async function hasOverlappingBookings(
-  commonSpaceId: string, 
-  startTime: Date, 
-  endTime: Date, 
+  commonSpaceId: string,
+  startTime: Date,
+  endTime: Date,
   excludeBookingId?: string
 ): Promise<boolean> {
   const conditions = [
@@ -247,7 +241,7 @@ async function hasOverlappingBookings(
       and(lte(bookings.startTime, startTime), gte(bookings.endTime, endTime)),
       // Existing booking completely contains new booking
       and(gte(bookings.startTime, startTime), lte(bookings.endTime, endTime))
-    )
+    ),
   ];
 
   if (excludeBookingId) {
@@ -296,13 +290,13 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
 
   const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long' });
   const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long' });
-  
+
   // For simplicity, require booking to be within same day
   if (startDay !== endDay) {
     return false;
   }
 
-  const dayHours = openingHours.find(oh => oh.day === startDay);
+  const dayHours = openingHours.find((oh) => oh.day === startDay);
   if (!dayHours) {
     return false; // No hours defined for this day
   }
@@ -327,7 +321,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!user) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -336,29 +330,29 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!queryValidation.success) {
         return res.status(400).json({
           message: 'Invalid query parameters',
-          errors: queryValidation.error.issues
+          errors: queryValidation.error.issues,
         });
       }
 
       const { building_id } = queryValidation.data;
-      
+
       console.warn(`📊 Fetching common spaces for user ${user.id} with role ${user.role}`);
 
       // Get accessible building IDs
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-      
+
       if (accessibleBuildingIds.length === 0) {
         return res.json([]);
       }
 
       // Build conditions
       const conditions = [eq(buildings.isActive, true)];
-      
+
       if (building_id) {
         if (!accessibleBuildingIds.includes(building_id)) {
           return res.status(403).json({
             message: 'Access denied to this building',
-            code: 'INSUFFICIENT_PERMISSIONS'
+            code: 'INSUFFICIENT_PERMISSIONS',
           });
         }
         conditions.push(eq(commonSpaces.buildingId, building_id));
@@ -380,7 +374,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           openingHours: commonSpaces.openingHours,
           bookingRules: commonSpaces.bookingRules,
           createdAt: commonSpaces.createdAt,
-          updatedAt: commonSpaces.updatedAt
+          updatedAt: commonSpaces.updatedAt,
         })
         .from(commonSpaces)
         .innerJoin(buildings, eq(commonSpaces.buildingId, buildings.id))
@@ -390,12 +384,11 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       console.warn(`✅ Found ${spaces.length} common spaces for user ${user.id}`);
       res.json(spaces);
-
     } catch (error) {
       console.error('Error fetching common spaces:', error);
       res.status(500).json({
         message: 'Failed to fetch common spaces',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -409,7 +402,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!user) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -418,7 +411,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.issues
+          errors: paramValidation.error.issues,
         });
       }
 
@@ -426,7 +419,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!queryValidation.success) {
         return res.status(400).json({
           message: 'Invalid query parameters',
-          errors: queryValidation.error.issues
+          errors: queryValidation.error.issues,
         });
       }
 
@@ -435,9 +428,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       // Check if user has access to this space
       const space = await db
-        .select({ 
-          id: commonSpaces.id, 
-          buildingId: commonSpaces.buildingId 
+        .select({
+          id: commonSpaces.id,
+          buildingId: commonSpaces.buildingId,
         })
         .from(commonSpaces)
         .where(eq(commonSpaces.id, spaceId))
@@ -446,7 +439,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (space.length === 0) {
         return res.status(404).json({
           message: 'Common space not found',
-          code: 'NOT_FOUND'
+          code: 'NOT_FOUND',
         });
       }
 
@@ -454,17 +447,17 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!accessibleBuildingIds.includes(space[0].buildingId)) {
         return res.status(403).json({
           message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
       // Build query conditions
       const conditions = [eq(bookings.commonSpaceId, spaceId)];
-      
+
       if (start_date) {
         conditions.push(gte(bookings.startTime, new Date(start_date)));
       }
-      
+
       if (end_date) {
         conditions.push(lte(bookings.endTime, new Date(end_date)));
       }
@@ -480,7 +473,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           endTime: bookings.endTime,
           status: bookings.status,
           createdAt: bookings.createdAt,
-          updatedAt: bookings.updatedAt
+          updatedAt: bookings.updatedAt,
         })
         .from(bookings)
         .innerJoin(users, eq(bookings.userId, users.id))
@@ -488,12 +481,11 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(bookings.startTime);
 
       res.json(spaceBookings);
-
     } catch (error) {
       console.error('Error fetching bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch bookings',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -507,7 +499,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!user) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -516,7 +508,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.issues
+          errors: paramValidation.error.issues,
         });
       }
 
@@ -524,7 +516,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!bodyValidation.success) {
         return res.status(400).json({
           message: 'Invalid booking data',
-          errors: bodyValidation.error.issues
+          errors: bodyValidation.error.issues,
         });
       }
 
@@ -538,18 +530,18 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (startTime >= endTime) {
         return res.status(400).json({
           message: 'Start time must be before end time',
-          code: 'INVALID_TIME_RANGE'
+          code: 'INVALID_TIME_RANGE',
         });
       }
 
       // Allow bookings for today and future dates (with 5-minute buffer for current time)
       const now = new Date();
       const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-      
+
       if (startTime < fiveMinutesAgo) {
         return res.status(400).json({
           message: 'Cannot book in the past',
-          code: 'INVALID_TIME_RANGE'
+          code: 'INVALID_TIME_RANGE',
         });
       }
 
@@ -560,7 +552,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           name: commonSpaces.name,
           buildingId: commonSpaces.buildingId,
           isReservable: commonSpaces.isReservable,
-          openingHours: commonSpaces.openingHours
+          openingHours: commonSpaces.openingHours,
         })
         .from(commonSpaces)
         .where(eq(commonSpaces.id, spaceId))
@@ -569,7 +561,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (space.length === 0) {
         return res.status(404).json({
           message: 'Common space not found',
-          code: 'NOT_FOUND'
+          code: 'NOT_FOUND',
         });
       }
 
@@ -579,7 +571,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!commonSpace.isReservable) {
         return res.status(400).json({
           message: 'This common space is not reservable',
-          code: 'NOT_RESERVABLE'
+          code: 'NOT_RESERVABLE',
         });
       }
 
@@ -588,7 +580,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
         return res.status(403).json({
           message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -597,15 +589,18 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (blocked) {
         return res.status(403).json({
           message: 'You are blocked from booking this space',
-          code: 'USER_BLOCKED'
+          code: 'USER_BLOCKED',
         });
       }
 
       // Check opening hours
-      if (commonSpace.openingHours && !isWithinOpeningHours(startTime, endTime, commonSpace.openingHours as any[])) {
+      if (
+        commonSpace.openingHours &&
+        !isWithinOpeningHours(startTime, endTime, commonSpace.openingHours as any[])
+      ) {
         return res.status(400).json({
           message: 'Booking time is outside opening hours',
-          code: 'OUTSIDE_OPENING_HOURS'
+          code: 'OUTSIDE_OPENING_HOURS',
         });
       }
 
@@ -614,19 +609,19 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (hasOverlap) {
         return res.status(409).json({
           message: 'Time slot is already booked',
-          code: 'TIME_CONFLICT'
+          code: 'TIME_CONFLICT',
         });
       }
 
       // Check user's time limits
       const bookingDurationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
       const timeLimitCheck = await checkUserTimeLimit(user.id, spaceId, bookingDurationHours);
-      
+
       if (!timeLimitCheck.withinLimit) {
         return res.status(403).json({
           message: timeLimitCheck.message,
           code: 'TIME_LIMIT_EXCEEDED',
-          remainingHours: timeLimitCheck.remainingHours
+          remainingHours: timeLimitCheck.remainingHours,
         });
       }
 
@@ -638,20 +633,19 @@ export function registerCommonSpacesRoutes(app: Express): void {
           userId: user.id,
           startTime,
           endTime,
-          status: 'confirmed'
+          status: 'confirmed',
         })
         .returning();
 
       res.status(201).json({
         message: 'Booking created successfully',
-        booking: newBooking[0]
+        booking: newBooking[0],
       });
-
     } catch (error) {
       console.error('Error creating booking:', error);
       res.status(500).json({
         message: 'Failed to create booking',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -665,7 +659,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!user) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -674,7 +668,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid space ID',
-          errors: paramValidation.error.issues
+          errors: paramValidation.error.issues,
         });
       }
 
@@ -682,7 +676,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!queryValidation.success) {
         return res.status(400).json({
           message: 'Invalid query parameters',
-          errors: queryValidation.error.issues
+          errors: queryValidation.error.issues,
         });
       }
 
@@ -697,7 +691,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           buildingId: commonSpaces.buildingId,
           isReservable: commonSpaces.isReservable,
           openingHours: commonSpaces.openingHours,
-          capacity: commonSpaces.capacity
+          capacity: commonSpaces.capacity,
         })
         .from(commonSpaces)
         .where(eq(commonSpaces.id, spaceId))
@@ -706,7 +700,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (space.length === 0) {
         return res.status(404).json({
           message: 'Common space not found',
-          code: 'NOT_FOUND'
+          code: 'NOT_FOUND',
         });
       }
 
@@ -717,7 +711,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
         return res.status(403).json({
           message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS'
+          code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
@@ -726,7 +720,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         eq(bookings.commonSpaceId, spaceId),
         eq(bookings.status, 'confirmed'),
         gte(bookings.startTime, new Date(start_date)),
-        lte(bookings.endTime, new Date(end_date))
+        lte(bookings.endTime, new Date(end_date)),
       ];
 
       const spaceBookings = await db
@@ -738,7 +732,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           userId: bookings.userId,
           userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
           userEmail: users.email,
-          userRole: users.role
+          userRole: users.role,
         })
         .from(bookings)
         .innerJoin(users, eq(bookings.userId, users.id))
@@ -749,7 +743,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       const canViewDetails = ['admin', 'manager'].includes(user.role);
 
       // Transform bookings to calendar events
-      const events = spaceBookings.map(booking => ({
+      const events = spaceBookings.map((booking) => ({
         id: booking.id,
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
@@ -760,16 +754,18 @@ export function registerCommonSpacesRoutes(app: Express): void {
         isOwnBooking: booking.userId === user.id,
         spaceId: spaceId,
         spaceName: commonSpace.name,
-        userRole: booking.userRole
+        userRole: booking.userRole,
       }));
 
       // Calculate summary statistics
       const totalBookings = events.length;
       const totalHours = events.reduce((sum, event) => {
-        const duration = (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60 * 60);
+        const duration =
+          (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) /
+          (1000 * 60 * 60);
         return sum + duration;
       }, 0);
-      const uniqueUsers = new Set(events.map(e => e.userId)).size;
+      const uniqueUsers = new Set(events.map((e) => e.userId)).size;
 
       // Build calendar response
       const calendarData = {
@@ -777,32 +773,31 @@ export function registerCommonSpacesRoutes(app: Express): void {
           id: commonSpace.id,
           name: commonSpace.name,
           isReservable: commonSpace.isReservable,
-          openingHours: commonSpace.openingHours
+          openingHours: commonSpace.openingHours,
         },
         calendar: {
           view,
           startDate: start_date,
           endDate: end_date,
-          events
+          events,
         },
         permissions: {
           canViewDetails,
-          canCreateBookings: commonSpace.isReservable && !await isUserBlocked(user.id, spaceId)
+          canCreateBookings: commonSpace.isReservable && !(await isUserBlocked(user.id, spaceId)),
         },
         summary: {
           totalBookings,
           totalHours: Math.round(totalHours * 10) / 10,
-          uniqueUsers
-        }
+          uniqueUsers,
+        },
       };
 
       res.json(calendarData);
-
     } catch (error) {
       console.error('Error fetching calendar data:', error);
       res.status(500).json({
         message: 'Failed to fetch calendar data',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -813,7 +808,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.get('/api/common-spaces/my-bookings', requireAuth, async (req: any, res: Response) => {
     try {
       const user = req.user;
-      
+
       // Get all user's confirmed bookings with space and building info
       const userBookings = await db
         .select({
@@ -825,17 +820,12 @@ export function registerCommonSpacesRoutes(app: Express): void {
           createdAt: bookings.createdAt,
           commonSpaceName: commonSpaces.name,
           buildingName: buildings.name,
-          buildingAddress: buildings.address
+          buildingAddress: buildings.address,
         })
         .from(bookings)
         .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
         .innerJoin(buildings, eq(commonSpaces.buildingId, buildings.id))
-        .where(
-          and(
-            eq(bookings.userId, user.id),
-            eq(bookings.status, 'confirmed')
-          )
-        )
+        .where(and(eq(bookings.userId, user.id), eq(bookings.status, 'confirmed')))
         .orderBy(desc(bookings.startTime));
 
       res.json(userBookings);
@@ -843,7 +833,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('Error fetching user bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch user bookings',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -851,499 +841,136 @@ export function registerCommonSpacesRoutes(app: Express): void {
   /**
    * DELETE /api/common-spaces/bookings/:bookingId - Cancel a booking.
    */
-  app.delete('/api/common-spaces/bookings/:bookingId', requireAuth, async (req: any, res: Response) => {
-    try {
-      const user = req.user || req.session?.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+  app.delete(
+    '/api/common-spaces/bookings/:bookingId',
+    requireAuth,
+    async (req: any, res: Response) => {
+      try {
+        const user = req.user || req.session?.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate parameters
+        const paramValidation = bookingIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid booking ID',
+            errors: paramValidation.error.issues,
+          });
+        }
+
+        const { bookingId } = paramValidation.data;
+
+        // Get booking details
+        const booking = await db
+          .select({
+            id: bookings.id,
+            userId: bookings.userId,
+            commonSpaceId: bookings.commonSpaceId,
+            buildingId: commonSpaces.buildingId,
+            status: bookings.status,
+          })
+          .from(bookings)
+          .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
+          .where(eq(bookings.id, bookingId))
+          .limit(1);
+
+        if (booking.length === 0) {
+          return res.status(404).json({
+            message: 'Booking not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        const bookingDetails = booking[0];
+
+        // Check permissions: users can cancel their own bookings, managers can cancel any in their buildings
+        let canCancel = false;
+
+        if (bookingDetails.userId === user.id) {
+          canCancel = true; // Users can always cancel their own bookings
+        } else if (['admin', 'manager'].includes(user.role)) {
+          // Managers can cancel bookings in buildings they have access to
+          const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+          canCancel = accessibleBuildingIds.includes(bookingDetails.buildingId);
+        }
+
+        if (!canCancel) {
+          return res.status(403).json({
+            message: 'Can only cancel your own bookings',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Update booking status to cancelled
+        await db
+          .update(bookings)
+          .set({
+            status: 'cancelled',
+            updatedAt: new Date(),
+          })
+          .where(eq(bookings.id, bookingId));
+
+        res.json({
+          message: 'Booking cancelled successfully',
+        });
+      } catch (error) {
+        console.error('Error cancelling booking:', error);
+        res.status(500).json({
+          message: 'Failed to cancel booking',
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
-
-      // Validate parameters
-      const paramValidation = bookingIdSchema.safeParse(req.params);
-      if (!paramValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid booking ID',
-          errors: paramValidation.error.issues
-        });
-      }
-
-      const { bookingId } = paramValidation.data;
-
-      // Get booking details
-      const booking = await db
-        .select({
-          id: bookings.id,
-          userId: bookings.userId,
-          commonSpaceId: bookings.commonSpaceId,
-          buildingId: commonSpaces.buildingId,
-          status: bookings.status
-        })
-        .from(bookings)
-        .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
-        .where(eq(bookings.id, bookingId))
-        .limit(1);
-
-      if (booking.length === 0) {
-        return res.status(404).json({
-          message: 'Booking not found',
-          code: 'NOT_FOUND'
-        });
-      }
-
-      const bookingDetails = booking[0];
-
-      // Check permissions: users can cancel their own bookings, managers can cancel any in their buildings
-      let canCancel = false;
-      
-      if (bookingDetails.userId === user.id) {
-        canCancel = true; // Users can always cancel their own bookings
-      } else if (['admin', 'manager'].includes(user.role)) {
-        // Managers can cancel bookings in buildings they have access to
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        canCancel = accessibleBuildingIds.includes(bookingDetails.buildingId);
-      }
-
-      if (!canCancel) {
-        return res.status(403).json({
-          message: 'Can only cancel your own bookings',
-          code: 'INSUFFICIENT_PERMISSIONS'
-        });
-      }
-
-      // Update booking status to cancelled
-      await db
-        .update(bookings)
-        .set({
-          status: 'cancelled',
-          updatedAt: new Date()
-        })
-        .where(eq(bookings.id, bookingId));
-
-      res.json({
-        message: 'Booking cancelled successfully'
-      });
-
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-      res.status(500).json({
-        message: 'Failed to cancel booking',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
     }
-  });
+  );
 
   /**
    * GET /api/common-spaces/:spaceId/stats - Get usage statistics (Manager/Admin only).
    */
-  app.get('/api/common-spaces/:spaceId/stats', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
-    try {
-      const user = req.user || req.session?.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
-        });
-      }
-
-      // Validate parameters
-      const paramValidation = spaceIdSchema.safeParse(req.params);
-      if (!paramValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid space ID',
-          errors: paramValidation.error.issues
-        });
-      }
-
-      const { spaceId } = paramValidation.data;
-
-      // Check access to space
-      const space = await db
-        .select({ 
-          id: commonSpaces.id, 
-          buildingId: commonSpaces.buildingId,
-          name: commonSpaces.name
-        })
-        .from(commonSpaces)
-        .where(eq(commonSpaces.id, spaceId))
-        .limit(1);
-
-      if (space.length === 0) {
-        return res.status(404).json({
-          message: 'Common space not found',
-          code: 'NOT_FOUND'
-        });
-      }
-
-      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-      if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS'
-        });
-      }
-
-      // Calculate stats for last year
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-      const stats = await db
-        .select({
-          userId: bookings.userId,
-          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
-          userEmail: users.email,
-          totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
-          totalBookings: sql<number>`COUNT(${bookings.id})`
-        })
-        .from(bookings)
-        .innerJoin(users, eq(bookings.userId, users.id))
-        .where(
-          and(
-            eq(bookings.commonSpaceId, spaceId),
-            eq(bookings.status, 'confirmed'),
-            gte(bookings.startTime, oneYearAgo)
-          )
-        )
-        .groupBy(bookings.userId, users.firstName, users.lastName, users.email)
-        .orderBy(desc(sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`));
-
-      const totalStats = await db
-        .select({
-          totalBookings: sql<number>`COUNT(${bookings.id})`,
-          totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
-          uniqueUsers: sql<number>`COUNT(DISTINCT ${bookings.userId})`
-        })
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.commonSpaceId, spaceId),
-            eq(bookings.status, 'confirmed'),
-            gte(bookings.startTime, oneYearAgo)
-          )
-        );
-
-      res.json({
-        spaceName: space[0].name,
-        period: 'Last 12 months',
-        summary: totalStats[0],
-        userStats: stats
-      });
-
-    } catch (error) {
-      console.error('Error fetching space stats:', error);
-      res.status(500).json({
-        message: 'Failed to fetch space statistics',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  /**
-   * POST /api/common-spaces/users/:userId/restrictions - Block/unblock user (Manager/Admin only).
-   */
-  app.post('/api/common-spaces/users/:userId/restrictions', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
-    try {
-      const user = req.user || req.session?.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
-        });
-      }
-
-      // Validate parameters and body
-      const paramValidation = userIdSchema.safeParse(req.params);
-      if (!paramValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid user ID',
-          errors: paramValidation.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const bodyValidation = createRestrictionSchema.safeParse(req.body);
-      if (!bodyValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid restriction data',
-          errors: bodyValidation.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const { userId } = paramValidation.data;
-      const { common_space_id, is_blocked, reason } = bodyValidation.data;
-
-      // Check if target user exists
-      const targetUser = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (targetUser.length === 0) {
-        return res.status(404).json({
-          message: 'User not found',
-          code: 'NOT_FOUND'
-        });
-      }
-
-      // Check if common space exists and user has access
-      const space = await db
-        .select({ 
-          id: commonSpaces.id, 
-          buildingId: commonSpaces.buildingId 
-        })
-        .from(commonSpaces)
-        .where(eq(commonSpaces.id, common_space_id))
-        .limit(1);
-
-      if (space.length === 0) {
-        return res.status(404).json({
-          message: 'Common space not found',
-          code: 'NOT_FOUND'
-        });
-      }
-
-      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-      if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS'
-        });
-      }
-
-      // Check if restriction already exists
-      const existingRestriction = await db
-        .select({ id: userBookingRestrictions.id })
-        .from(userBookingRestrictions)
-        .where(
-          and(
-            eq(userBookingRestrictions.userId, userId),
-            eq(userBookingRestrictions.commonSpaceId, common_space_id)
-          )
-        )
-        .limit(1);
-
-      if (existingRestriction.length > 0) {
-        // Update existing restriction
-        await db
-          .update(userBookingRestrictions)
-          .set({
-            isBlocked: is_blocked,
-            reason,
-            updatedAt: new Date()
-          })
-          .where(eq(userBookingRestrictions.id, existingRestriction[0].id));
-      } else {
-        // Create new restriction
-        await db
-          .insert(userBookingRestrictions)
-          .values({
-            userId,
-            commonSpaceId: common_space_id,
-            isBlocked: is_blocked,
-            reason
+  app.get(
+    '/api/common-spaces/:spaceId/stats',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: any, res: Response) => {
+      try {
+        const user = req.user || req.session?.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
           });
-      }
-
-      res.json({
-        message: `User ${is_blocked ? 'blocked from' : 'unblocked from'} booking this space`
-      });
-
-    } catch (error) {
-      console.error('Error managing user restriction:', error);
-      res.status(500).json({
-        message: 'Failed to manage user restriction',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  /**
-   * POST /api/common-spaces - Create a new common space (Manager/Admin only).
-   */
-  app.post('/api/common-spaces', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
-        });
-      }
-
-      // Validate request body
-      const validationResult = createCommonSpaceSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({
-          message: 'Invalid request data',
-          errors: validationResult.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const { name, description, building_id, is_reservable, capacity, opening_hours } = validationResult.data;
-
-      // Check if user has access to this building
-      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-      if (!accessibleBuildingIds.includes(building_id)) {
-        return res.status(403).json({
-          message: 'Access denied. You can only create spaces in buildings you manage.',
-          code: 'INSUFFICIENT_PERMISSIONS'
-        });
-      }
-
-      // Verify building exists and is active
-      const building = await db
-        .select({ id: buildings.id, name: buildings.name })
-        .from(buildings)
-        .where(
-          and(
-            eq(buildings.id, building_id),
-            eq(buildings.isActive, true)
-          )
-        )
-        .limit(1);
-
-      if (building.length === 0) {
-        return res.status(404).json({
-          message: 'Building not found or inactive',
-          code: 'BUILDING_NOT_FOUND'
-        });
-      }
-
-      // Check if a space with the same name already exists in this building
-      const existingSpace = await db
-        .select({ id: commonSpaces.id })
-        .from(commonSpaces)
-        .where(
-          and(
-            eq(commonSpaces.name, name),
-            eq(commonSpaces.buildingId, building_id)
-          )
-        )
-        .limit(1);
-
-      if (existingSpace.length > 0) {
-        return res.status(409).json({
-          message: 'A common space with this name already exists in this building',
-          code: 'DUPLICATE_NAME'
-        });
-      }
-
-      // Create the new common space
-      const newSpace = await db
-        .insert(commonSpaces)
-        .values({
-          name,
-          description: description || null,
-          buildingId: building_id,
-          isReservable: is_reservable,
-          capacity: capacity || null,
-          openingHours: opening_hours ? `${opening_hours.start}-${opening_hours.end}` : null,
-        })
-        .returning();
-
-      console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
-
-      res.status(201).json({
-        message: 'Common space created successfully',
-        space: {
-          id: newSpace[0].id,
-          name: newSpace[0].name,
-          description: newSpace[0].description,
-          buildingId: newSpace[0].buildingId,
-          buildingName: building[0].name,
-          isReservable: newSpace[0].isReservable,
-          capacity: newSpace[0].capacity,
-          openingHours: newSpace[0].openingHours,
-          createdAt: newSpace[0].createdAt
         }
-      });
 
-    } catch (error) {
-      console.error('Error creating common space:', error);
-      res.status(500).json({
-        message: 'Failed to create common space',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
+        // Validate parameters
+        const paramValidation = spaceIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid space ID',
+            errors: paramValidation.error.issues,
+          });
+        }
 
-  /**
-   * POST /api/common-spaces/users/:userId/time-limits - Set user time limits (Manager/Admin only).
-   */
-  app.post('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
-        });
-      }
+        const { spaceId } = paramValidation.data;
 
-      // Validate parameters
-      const paramValidation = userIdSchema.safeParse(req.params);
-      if (!paramValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid user ID',
-          errors: paramValidation.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      // Validate request body
-      const validationResult = setTimeLimitSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({
-          message: 'Invalid time limit data',
-          errors: validationResult.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const { userId } = paramValidation.data;
-      const { user_id, common_space_id, limit_type, limit_hours } = validationResult.data;
-
-      // Verify user exists
-      const targetUser = await db
-        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (targetUser.length === 0) {
-        return res.status(404).json({
-          message: 'User not found',
-          code: 'USER_NOT_FOUND'
-        });
-      }
-
-      // If common_space_id is provided, verify space exists and user has access
-      if (common_space_id) {
+        // Check access to space
         const space = await db
-          .select({ id: commonSpaces.id, name: commonSpaces.name, buildingId: commonSpaces.buildingId })
+          .select({
+            id: commonSpaces.id,
+            buildingId: commonSpaces.buildingId,
+            name: commonSpaces.name,
+          })
           .from(commonSpaces)
-          .where(eq(commonSpaces.id, common_space_id))
+          .where(eq(commonSpaces.id, spaceId))
           .limit(1);
 
         if (space.length === 0) {
           return res.status(404).json({
             message: 'Common space not found',
-            code: 'SPACE_NOT_FOUND'
+            code: 'NOT_FOUND',
           });
         }
 
@@ -1351,131 +978,513 @@ export function registerCommonSpacesRoutes(app: Express): void {
         if (!accessibleBuildingIds.includes(space[0].buildingId)) {
           return res.status(403).json({
             message: 'Access denied to this common space',
-            code: 'INSUFFICIENT_PERMISSIONS'
+            code: 'INSUFFICIENT_PERMISSIONS',
           });
         }
-      }
 
-      // Check if a time limit already exists
-      const existingLimit = await db
-        .select({ id: userTimeLimits.id })
-        .from(userTimeLimits)
-        .where(
-          and(
-            eq(userTimeLimits.userId, userId),
-            common_space_id 
-              ? eq(userTimeLimits.commonSpaceId, common_space_id)
-              : sql`${userTimeLimits.commonSpaceId} IS NULL`,
-            eq(userTimeLimits.limitType, limit_type)
-          )
-        )
-        .limit(1);
+        // Calculate stats for last year
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-      if (existingLimit.length > 0) {
-        // Update existing limit
-        await db
-          .update(userTimeLimits)
-          .set({
-            limitHours: limit_hours,
-            updatedAt: new Date()
+        const stats = await db
+          .select({
+            userId: bookings.userId,
+            userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+            userEmail: users.email,
+            totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
+            totalBookings: sql<number>`COUNT(${bookings.id})`,
           })
-          .where(eq(userTimeLimits.id, existingLimit[0].id));
-      } else {
-        // Create new limit
-        await db
-          .insert(userTimeLimits)
+          .from(bookings)
+          .innerJoin(users, eq(bookings.userId, users.id))
+          .where(
+            and(
+              eq(bookings.commonSpaceId, spaceId),
+              eq(bookings.status, 'confirmed'),
+              gte(bookings.startTime, oneYearAgo)
+            )
+          )
+          .groupBy(bookings.userId, users.firstName, users.lastName, users.email)
+          .orderBy(
+            desc(
+              sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`
+            )
+          );
+
+        const totalStats = await db
+          .select({
+            totalBookings: sql<number>`COUNT(${bookings.id})`,
+            totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
+            uniqueUsers: sql<number>`COUNT(DISTINCT ${bookings.userId})`,
+          })
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.commonSpaceId, spaceId),
+              eq(bookings.status, 'confirmed'),
+              gte(bookings.startTime, oneYearAgo)
+            )
+          );
+
+        res.json({
+          spaceName: space[0].name,
+          period: 'Last 12 months',
+          summary: totalStats[0],
+          userStats: stats,
+        });
+      } catch (error) {
+        console.error('Error fetching space stats:', error);
+        res.status(500).json({
+          message: 'Failed to fetch space statistics',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/common-spaces/users/:userId/restrictions - Block/unblock user (Manager/Admin only).
+   */
+  app.post(
+    '/api/common-spaces/users/:userId/restrictions',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: any, res: Response) => {
+      try {
+        const user = req.user || req.session?.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate parameters and body
+        const paramValidation = userIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid user ID',
+            errors: paramValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const bodyValidation = createRestrictionSchema.safeParse(req.body);
+        if (!bodyValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid restriction data',
+            errors: bodyValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { userId } = paramValidation.data;
+        const { common_space_id, is_blocked, reason } = bodyValidation.data;
+
+        // Check if target user exists
+        const targetUser = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+
+        if (targetUser.length === 0) {
+          return res.status(404).json({
+            message: 'User not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        // Check if common space exists and user has access
+        const space = await db
+          .select({
+            id: commonSpaces.id,
+            buildingId: commonSpaces.buildingId,
+          })
+          .from(commonSpaces)
+          .where(eq(commonSpaces.id, common_space_id))
+          .limit(1);
+
+        if (space.length === 0) {
+          return res.status(404).json({
+            message: 'Common space not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied to this common space',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Check if restriction already exists
+        const existingRestriction = await db
+          .select({ id: userBookingRestrictions.id })
+          .from(userBookingRestrictions)
+          .where(
+            and(
+              eq(userBookingRestrictions.userId, userId),
+              eq(userBookingRestrictions.commonSpaceId, common_space_id)
+            )
+          )
+          .limit(1);
+
+        if (existingRestriction.length > 0) {
+          // Update existing restriction
+          await db
+            .update(userBookingRestrictions)
+            .set({
+              isBlocked: is_blocked,
+              reason,
+              updatedAt: new Date(),
+            })
+            .where(eq(userBookingRestrictions.id, existingRestriction[0].id));
+        } else {
+          // Create new restriction
+          await db.insert(userBookingRestrictions).values({
+            userId,
+            commonSpaceId: common_space_id,
+            isBlocked: is_blocked,
+            reason,
+          });
+        }
+
+        res.json({
+          message: `User ${is_blocked ? 'blocked from' : 'unblocked from'} booking this space`,
+        });
+      } catch (error) {
+        console.error('Error managing user restriction:', error);
+        res.status(500).json({
+          message: 'Failed to manage user restriction',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/common-spaces - Create a new common space (Manager/Admin only).
+   */
+  app.post(
+    '/api/common-spaces',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate request body
+        const validationResult = createCommonSpaceSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          return res.status(400).json({
+            message: 'Invalid request data',
+            errors: validationResult.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { name, description, building_id, is_reservable, capacity, opening_hours } =
+          validationResult.data;
+
+        // Check if user has access to this building
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(building_id)) {
+          return res.status(403).json({
+            message: 'Access denied. You can only create spaces in buildings you manage.',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Verify building exists and is active
+        const building = await db
+          .select({ id: buildings.id, name: buildings.name })
+          .from(buildings)
+          .where(and(eq(buildings.id, building_id), eq(buildings.isActive, true)))
+          .limit(1);
+
+        if (building.length === 0) {
+          return res.status(404).json({
+            message: 'Building not found or inactive',
+            code: 'BUILDING_NOT_FOUND',
+          });
+        }
+
+        // Check if a space with the same name already exists in this building
+        const existingSpace = await db
+          .select({ id: commonSpaces.id })
+          .from(commonSpaces)
+          .where(and(eq(commonSpaces.name, name), eq(commonSpaces.buildingId, building_id)))
+          .limit(1);
+
+        if (existingSpace.length > 0) {
+          return res.status(409).json({
+            message: 'A common space with this name already exists in this building',
+            code: 'DUPLICATE_NAME',
+          });
+        }
+
+        // Create the new common space
+        const newSpace = await db
+          .insert(commonSpaces)
           .values({
+            name,
+            description: description || null,
+            buildingId: building_id,
+            isReservable: is_reservable,
+            capacity: capacity || null,
+            openingHours: opening_hours ? `${opening_hours.start}-${opening_hours.end}` : null,
+          })
+          .returning();
+
+        console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
+
+        res.status(201).json({
+          message: 'Common space created successfully',
+          space: {
+            id: newSpace[0].id,
+            name: newSpace[0].name,
+            description: newSpace[0].description,
+            buildingId: newSpace[0].buildingId,
+            buildingName: building[0].name,
+            isReservable: newSpace[0].isReservable,
+            capacity: newSpace[0].capacity,
+            openingHours: newSpace[0].openingHours,
+            createdAt: newSpace[0].createdAt,
+          },
+        });
+      } catch (error) {
+        console.error('Error creating common space:', error);
+        res.status(500).json({
+          message: 'Failed to create common space',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/common-spaces/users/:userId/time-limits - Set user time limits (Manager/Admin only).
+   */
+  app.post(
+    '/api/common-spaces/users/:userId/time-limits',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate parameters
+        const paramValidation = userIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid user ID',
+            errors: paramValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        // Validate request body
+        const validationResult = setTimeLimitSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          return res.status(400).json({
+            message: 'Invalid time limit data',
+            errors: validationResult.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { userId } = paramValidation.data;
+        const { user_id, common_space_id, limit_type, limit_hours } = validationResult.data;
+
+        // Verify user exists
+        const targetUser = await db
+          .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+
+        if (targetUser.length === 0) {
+          return res.status(404).json({
+            message: 'User not found',
+            code: 'USER_NOT_FOUND',
+          });
+        }
+
+        // If common_space_id is provided, verify space exists and user has access
+        if (common_space_id) {
+          const space = await db
+            .select({
+              id: commonSpaces.id,
+              name: commonSpaces.name,
+              buildingId: commonSpaces.buildingId,
+            })
+            .from(commonSpaces)
+            .where(eq(commonSpaces.id, common_space_id))
+            .limit(1);
+
+          if (space.length === 0) {
+            return res.status(404).json({
+              message: 'Common space not found',
+              code: 'SPACE_NOT_FOUND',
+            });
+          }
+
+          const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+          if (!accessibleBuildingIds.includes(space[0].buildingId)) {
+            return res.status(403).json({
+              message: 'Access denied to this common space',
+              code: 'INSUFFICIENT_PERMISSIONS',
+            });
+          }
+        }
+
+        // Check if a time limit already exists
+        const existingLimit = await db
+          .select({ id: userTimeLimits.id })
+          .from(userTimeLimits)
+          .where(
+            and(
+              eq(userTimeLimits.userId, userId),
+              common_space_id
+                ? eq(userTimeLimits.commonSpaceId, common_space_id)
+                : sql`${userTimeLimits.commonSpaceId} IS NULL`,
+              eq(userTimeLimits.limitType, limit_type)
+            )
+          )
+          .limit(1);
+
+        if (existingLimit.length > 0) {
+          // Update existing limit
+          await db
+            .update(userTimeLimits)
+            .set({
+              limitHours: limit_hours,
+              updatedAt: new Date(),
+            })
+            .where(eq(userTimeLimits.id, existingLimit[0].id));
+        } else {
+          // Create new limit
+          await db.insert(userTimeLimits).values({
             userId,
             commonSpaceId: common_space_id || null,
             limitType: limit_type,
             limitHours: limit_hours,
           });
-      }
-
-      console.log(`✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`);
-
-      res.json({
-        message: 'Time limit set successfully',
-        user: {
-          id: targetUser[0].id,
-          name: `${targetUser[0].firstName} ${targetUser[0].lastName}`,
-          limitType: limit_type,
-          limitHours: limit_hours,
-          spaceId: common_space_id
         }
-      });
 
-    } catch (error) {
-      console.error('Error setting time limit:', error);
-      res.status(500).json({
-        message: 'Failed to set time limit',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+        console.log(
+          `✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`
+        );
+
+        res.json({
+          message: 'Time limit set successfully',
+          user: {
+            id: targetUser[0].id,
+            name: `${targetUser[0].firstName} ${targetUser[0].lastName}`,
+            limitType: limit_type,
+            limitHours: limit_hours,
+            spaceId: common_space_id,
+          },
+        });
+      } catch (error) {
+        console.error('Error setting time limit:', error);
+        res.status(500).json({
+          message: 'Failed to set time limit',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
-  });
+  );
 
   /**
    * GET /api/common-spaces/users/:userId/time-limits - Get user time limits.
    */
-  app.get('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+  app.get(
+    '/api/common-spaces/users/:userId/time-limits',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        const { userId } = req.params;
+
+        // Get user's time limits
+        const limits = await db
+          .select({
+            id: userTimeLimits.id,
+            userId: userTimeLimits.userId,
+            commonSpaceId: userTimeLimits.commonSpaceId,
+            spaceName: commonSpaces.name,
+            limitType: userTimeLimits.limitType,
+            limitHours: userTimeLimits.limitHours,
+            createdAt: userTimeLimits.createdAt,
+            updatedAt: userTimeLimits.updatedAt,
+          })
+          .from(userTimeLimits)
+          .leftJoin(commonSpaces, eq(userTimeLimits.commonSpaceId, commonSpaces.id))
+          .where(eq(userTimeLimits.userId, userId))
+          .orderBy(userTimeLimits.limitType, userTimeLimits.commonSpaceId);
+
+        // Calculate current usage for each limit
+        const limitsWithUsage = await Promise.all(
+          limits.map(async (limit) => {
+            const currentHours = await getUserBookingHours(
+              userId,
+              limit.commonSpaceId,
+              limit.limitType as 'monthly' | 'yearly'
+            );
+
+            return {
+              ...limit,
+              currentHours: Math.round(currentHours * 100) / 100,
+              remainingHours: Math.max(0, limit.limitHours - currentHours),
+            };
+          })
+        );
+
+        res.json({
+          limits: limitsWithUsage,
+        });
+      } catch (error) {
+        console.error('Error fetching time limits:', error);
+        res.status(500).json({
+          message: 'Failed to fetch time limits',
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
-
-      const { userId } = req.params;
-
-      // Get user's time limits
-      const limits = await db
-        .select({
-          id: userTimeLimits.id,
-          userId: userTimeLimits.userId,
-          commonSpaceId: userTimeLimits.commonSpaceId,
-          spaceName: commonSpaces.name,
-          limitType: userTimeLimits.limitType,
-          limitHours: userTimeLimits.limitHours,
-          createdAt: userTimeLimits.createdAt,
-          updatedAt: userTimeLimits.updatedAt
-        })
-        .from(userTimeLimits)
-        .leftJoin(commonSpaces, eq(userTimeLimits.commonSpaceId, commonSpaces.id))
-        .where(eq(userTimeLimits.userId, userId))
-        .orderBy(userTimeLimits.limitType, userTimeLimits.commonSpaceId);
-
-      // Calculate current usage for each limit
-      const limitsWithUsage = await Promise.all(
-        limits.map(async (limit) => {
-          const currentHours = await getUserBookingHours(
-            userId,
-            limit.commonSpaceId,
-            limit.limitType as 'monthly' | 'yearly'
-          );
-          
-          return {
-            ...limit,
-            currentHours: Math.round(currentHours * 100) / 100,
-            remainingHours: Math.max(0, limit.limitHours - currentHours)
-          };
-        })
-      );
-
-      res.json({
-        limits: limitsWithUsage
-      });
-
-    } catch (error) {
-      console.error('Error fetching time limits:', error);
-      res.status(500).json({
-        message: 'Failed to fetch time limits',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
     }
-  });
-
+  );
 
   /**
    * GET /api/common-spaces/user-calendar - Get user's personal calendar
@@ -1487,7 +1496,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!user) {
         return res.status(401).json({
           message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
       }
 
@@ -1495,10 +1504,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!queryValidation.success) {
         return res.status(400).json({
           message: 'Invalid calendar query parameters',
-          errors: queryValidation.error.issues.map(issue => ({
+          errors: queryValidation.error.issues.map((issue) => ({
             field: issue.path.join('.'),
-            message: issue.message
-          }))
+            message: issue.message,
+          })),
         });
       }
 
@@ -1514,7 +1523,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           spaceName: commonSpaces.name,
           spaceId: commonSpaces.id,
           buildingName: buildings.name,
-          buildingId: buildings.id
+          buildingId: buildings.id,
         })
         .from(bookings)
         .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
@@ -1533,28 +1542,29 @@ export function registerCommonSpacesRoutes(app: Express): void {
         user: {
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
-          role: user.role
+          role: user.role,
         },
         calendar: {
           view,
           startDate: start_date,
           endDate: end_date,
-          bookings: userBookings
+          bookings: userBookings,
         },
         summary: {
           totalBookings: userBookings.length,
           totalHours: userBookings.reduce((total, booking) => {
-            const duration = (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
+            const duration =
+              (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) /
+              (1000 * 60 * 60);
             return total + duration;
-          }, 0)
-        }
+          }, 0),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching user calendar:', error);
       res.status(500).json({
         message: 'Failed to fetch user calendar',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -1563,146 +1573,152 @@ export function registerCommonSpacesRoutes(app: Express): void {
    * GET /api/common-spaces/calendar/building/:buildingId - Get building-wide calendar (Manager/Admin only)
    * Shows all bookings across all spaces in a building with full details.
    */
-  app.get('/api/common-spaces/calendar/building/:buildingId', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
-    try {
-      const user = req.user || req.session?.user;
-      if (!user) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED'
-        });
-      }
-
-      const paramValidation = z.object({ buildingId: z.string().uuid() }).safeParse(req.params);
-      if (!paramValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid building ID',
-          errors: paramValidation.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const queryValidation = calendarQuerySchema.safeParse(req.query);
-      if (!queryValidation.success) {
-        return res.status(400).json({
-          message: 'Invalid calendar query parameters',
-          errors: queryValidation.error.issues.map(issue => ({
-            field: issue.path.join('.'),
-            message: issue.message
-          }))
-        });
-      }
-
-      const { buildingId } = paramValidation.data;
-      const { start_date, end_date, view } = queryValidation.data;
-
-      // Check building access
-      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-      if (!accessibleBuildingIds.includes(buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this building',
-          code: 'INSUFFICIENT_PERMISSIONS'
-        });
-      }
-
-      // Get building details
-      const building = await db
-        .select({
-          id: buildings.id,
-          name: buildings.name,
-          address: buildings.address
-        })
-        .from(buildings)
-        .where(eq(buildings.id, buildingId))
-        .limit(1);
-
-      if (building.length === 0) {
-        return res.status(404).json({
-          message: 'Building not found',
-          code: 'NOT_FOUND'
-        });
-      }
-
-      // Get all bookings for spaces in this building within date range
-      const buildingBookings = await db
-        .select({
-          id: bookings.id,
-          startTime: bookings.startTime,
-          endTime: bookings.endTime,
-          status: bookings.status,
-          spaceName: commonSpaces.name,
-          spaceId: commonSpaces.id,
-          userId: bookings.userId,
-          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
-          userEmail: users.email,
-          userRole: users.role
-        })
-        .from(bookings)
-        .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
-        .innerJoin(users, eq(bookings.userId, users.id))
-        .where(
-          and(
-            eq(commonSpaces.buildingId, buildingId),
-            eq(bookings.status, 'confirmed'),
-            gte(bookings.startTime, new Date(start_date)),
-            lte(bookings.endTime, new Date(end_date))
-          )
-        )
-        .orderBy(bookings.startTime);
-
-      // Get all common spaces in this building
-      const buildingSpaces = await db
-        .select({
-          id: commonSpaces.id,
-          name: commonSpaces.name,
-          isReservable: commonSpaces.isReservable,
-          capacity: commonSpaces.capacity
-        })
-        .from(commonSpaces)
-        .where(eq(commonSpaces.buildingId, buildingId))
-        .orderBy(commonSpaces.name);
-
-      // Generate usage statistics
-      const spaceUsage = buildingSpaces.map(space => {
-        const spaceBookings = buildingBookings.filter(booking => booking.spaceId === space.id);
-        const totalHours = spaceBookings.reduce((total, booking) => {
-          const duration = (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
-          return total + duration;
-        }, 0);
-
-        return {
-          ...space,
-          bookingCount: spaceBookings.length,
-          totalHours: Math.round(totalHours * 10) / 10,
-          uniqueUsers: [...new Set(spaceBookings.map(b => b.userId))].length
-        };
-      });
-
-      res.json({
-        building: building[0],
-        calendar: {
-          view,
-          startDate: start_date,
-          endDate: end_date,
-          events: buildingBookings
-        },
-        spaces: spaceUsage,
-        summary: {
-          totalBookings: buildingBookings.length,
-          totalSpaces: buildingSpaces.length,
-          activeSpaces: buildingSpaces.filter(s => s.isReservable).length,
-          uniqueUsers: [...new Set(buildingBookings.map(b => b.userId))].length
+  app.get(
+    '/api/common-spaces/calendar/building/:buildingId',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: any, res: Response) => {
+      try {
+        const user = req.user || req.session?.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
         }
-      });
 
-    } catch (error) {
-      console.error('Error fetching building calendar:', error);
-      res.status(500).json({
-        message: 'Failed to fetch building calendar',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+        const paramValidation = z.object({ buildingId: z.string().uuid() }).safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid building ID',
+            errors: paramValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const queryValidation = calendarQuerySchema.safeParse(req.query);
+        if (!queryValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid calendar query parameters',
+            errors: queryValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { buildingId } = paramValidation.data;
+        const { start_date, end_date, view } = queryValidation.data;
+
+        // Check building access
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied to this building',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Get building details
+        const building = await db
+          .select({
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+          })
+          .from(buildings)
+          .where(eq(buildings.id, buildingId))
+          .limit(1);
+
+        if (building.length === 0) {
+          return res.status(404).json({
+            message: 'Building not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        // Get all bookings for spaces in this building within date range
+        const buildingBookings = await db
+          .select({
+            id: bookings.id,
+            startTime: bookings.startTime,
+            endTime: bookings.endTime,
+            status: bookings.status,
+            spaceName: commonSpaces.name,
+            spaceId: commonSpaces.id,
+            userId: bookings.userId,
+            userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+            userEmail: users.email,
+            userRole: users.role,
+          })
+          .from(bookings)
+          .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
+          .innerJoin(users, eq(bookings.userId, users.id))
+          .where(
+            and(
+              eq(commonSpaces.buildingId, buildingId),
+              eq(bookings.status, 'confirmed'),
+              gte(bookings.startTime, new Date(start_date)),
+              lte(bookings.endTime, new Date(end_date))
+            )
+          )
+          .orderBy(bookings.startTime);
+
+        // Get all common spaces in this building
+        const buildingSpaces = await db
+          .select({
+            id: commonSpaces.id,
+            name: commonSpaces.name,
+            isReservable: commonSpaces.isReservable,
+            capacity: commonSpaces.capacity,
+          })
+          .from(commonSpaces)
+          .where(eq(commonSpaces.buildingId, buildingId))
+          .orderBy(commonSpaces.name);
+
+        // Generate usage statistics
+        const spaceUsage = buildingSpaces.map((space) => {
+          const spaceBookings = buildingBookings.filter((booking) => booking.spaceId === space.id);
+          const totalHours = spaceBookings.reduce((total, booking) => {
+            const duration =
+              (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) /
+              (1000 * 60 * 60);
+            return total + duration;
+          }, 0);
+
+          return {
+            ...space,
+            bookingCount: spaceBookings.length,
+            totalHours: Math.round(totalHours * 10) / 10,
+            uniqueUsers: [...new Set(spaceBookings.map((b) => b.userId))].length,
+          };
+        });
+
+        res.json({
+          building: building[0],
+          calendar: {
+            view,
+            startDate: start_date,
+            endDate: end_date,
+            events: buildingBookings,
+          },
+          spaces: spaceUsage,
+          summary: {
+            totalBookings: buildingBookings.length,
+            totalSpaces: buildingSpaces.length,
+            activeSpaces: buildingSpaces.filter((s) => s.isReservable).length,
+            uniqueUsers: [...new Set(buildingBookings.map((b) => b.userId))].length,
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching building calendar:', error);
+        res.status(500).json({
+          message: 'Failed to fetch building calendar',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
-  });
+  );
 }

@@ -20,12 +20,7 @@ import { relations } from 'drizzle-orm';
  * Enum defining user roles in the Quebec property management system.
  * Determines user permissions and access levels across the application.
  */
-export const userRoleEnum = pgEnum('user_role', [
-  'admin',
-  'manager', 
-  'tenant',
-  'resident',
-]);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident']);
 
 /**
  * Enum defining invitation status values for user invitation system.
@@ -122,8 +117,7 @@ export const invitations = pgTable('invitations', {
   token: text('token').notNull().unique(),
   role: userRoleEnum('role').notNull(),
   status: invitationStatusEnum('status').notNull().default('pending'),
-  invitedByUserId: text('invited_by_user_id')
-    .notNull(),
+  invitedByUserId: text('invited_by_user_id').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   tokenHash: text('token_hash').notNull(),
   usageCount: integer('usage_count').notNull().default(0),
@@ -170,11 +164,9 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  invitationId: text('invitation_id')
-    .references(() => invitations.id, { onDelete: 'cascade' }),
+  invitationId: text('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
   action: text('action').notNull(),
-  performedBy: uuid('performed_by')
-    .references(() => users.id),
+  performedBy: uuid('performed_by').references(() => users.id),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   details: json('details'),
@@ -186,7 +178,7 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
   'user',
-  'organization', 
+  'organization',
   'building',
   'residence',
   'bill',
@@ -199,12 +191,12 @@ export const resourceTypeEnum = pgEnum('resource_type', [
   'quality_metric',
   'feature',
   'actionable_item',
-  'improvement_suggestion'
+  'improvement_suggestion',
 ]);
 
 export const actionEnum = pgEnum('action', [
   'read',
-  'create', 
+  'create',
   'update',
   'delete',
   'manage',
@@ -213,7 +205,7 @@ export const actionEnum = pgEnum('action', [
   'share',
   'export',
   'backup',
-  'restore'
+  'restore',
 ]);
 
 // Permissions tables
@@ -299,8 +291,11 @@ export const insertInvitationSchema = z.object({
   invitedByUserId: z.string().uuid(),
   expiresAt: z.union([
     z.date(),
-    z.string().datetime().transform((str) => new Date(str))
-  ])
+    z
+      .string()
+      .datetime()
+      .transform((str) => new Date(str)),
+  ]),
 });
 
 export const insertPasswordResetTokenSchema = z.object({

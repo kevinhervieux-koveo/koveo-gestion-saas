@@ -3,7 +3,7 @@ import {
   getPasswordCriteria,
   getPasswordStrengthLabel,
   getPasswordStrengthColor,
-  getPasswordStrengthBarColor
+  getPasswordStrengthBarColor,
 } from '../../../client/src/utils/password-validation';
 
 describe('Password Validation System', () => {
@@ -19,7 +19,7 @@ describe('Password Validation System', () => {
       const withUppercase = validatePasswordStrength('Password123!');
       const noUppercaseCriteria = getPasswordCriteria('password123!');
       const withUppercaseCriteria = getPasswordCriteria('Password123!');
-      
+
       expect(noUppercaseCriteria.hasUpperCase).toBe(false);
       expect(withUppercaseCriteria.hasUpperCase).toBe(true);
       expect(withUppercase.score).toBeGreaterThanOrEqual(noUppercase.score);
@@ -30,7 +30,7 @@ describe('Password Validation System', () => {
       const withLowercase = validatePasswordStrength('Password123!');
       const noLowercaseCriteria = getPasswordCriteria('PASSWORD123!');
       const withLowercaseCriteria = getPasswordCriteria('Password123!');
-      
+
       expect(noLowercaseCriteria.hasLowerCase).toBe(false);
       expect(withLowercaseCriteria.hasLowerCase).toBe(true);
       expect(withLowercase.score).toBeGreaterThanOrEqual(noLowercase.score);
@@ -41,7 +41,7 @@ describe('Password Validation System', () => {
       const withNumbers = validatePasswordStrength('Password123!');
       const noNumbersCriteria = getPasswordCriteria('Password!@#');
       const withNumbersCriteria = getPasswordCriteria('Password123!');
-      
+
       expect(noNumbersCriteria.hasNumbers).toBe(false);
       expect(withNumbersCriteria.hasNumbers).toBe(true);
       expect(withNumbers.score).toBeGreaterThan(noNumbers.score);
@@ -52,7 +52,7 @@ describe('Password Validation System', () => {
       const withSpecial = validatePasswordStrength('Password123!');
       const noSpecialCriteria = getPasswordCriteria('Password123');
       const withSpecialCriteria = getPasswordCriteria('Password123!');
-      
+
       expect(noSpecialCriteria.hasSymbols).toBe(false);
       expect(withSpecialCriteria.hasSymbols).toBe(true);
       expect(withSpecial.score).toBeGreaterThan(noSpecial.score);
@@ -63,7 +63,7 @@ describe('Password Validation System', () => {
       const medium = validatePasswordStrength('Password123');
       const strong = validatePasswordStrength('Password123!');
       const veryStrong = validatePasswordStrength('MyStrongP@ssw0rd2024');
-      
+
       expect(weak.score).toBeGreaterThanOrEqual(1); // Even weak passwords get some points
       expect(medium.score).toBeGreaterThanOrEqual(2);
       expect(strong.score).toBeGreaterThanOrEqual(3);
@@ -74,7 +74,7 @@ describe('Password Validation System', () => {
       expect(() => validatePasswordStrength('')).not.toThrow();
       expect(() => validatePasswordStrength('   ')).not.toThrow();
       expect(() => validatePasswordStrength('🔐🌟💪')).not.toThrow();
-      
+
       const empty = validatePasswordStrength('');
       const emptyCriteria = getPasswordCriteria('');
       expect(empty.score).toBeGreaterThanOrEqual(0); // Empty password gets minimum score
@@ -90,14 +90,14 @@ describe('Password Validation System', () => {
   describe('Password Criteria Helper', () => {
     test('should return correct criteria object', () => {
       const criteria = getPasswordCriteria('Password123!');
-      
+
       expect(criteria).toHaveProperty('minLength');
       expect(criteria).toHaveProperty('hasUpperCase');
       expect(criteria).toHaveProperty('hasLowerCase');
       expect(criteria).toHaveProperty('hasNumbers');
       expect(criteria).toHaveProperty('hasSymbols');
       expect(criteria).toHaveProperty('noCommonPatterns');
-      
+
       expect(typeof criteria.minLength).toBe('boolean');
       expect(typeof criteria.hasUpperCase).toBe('boolean');
       expect(typeof criteria.hasLowerCase).toBe('boolean');
@@ -108,7 +108,7 @@ describe('Password Validation System', () => {
 
     test('should evaluate criteria correctly for strong password', () => {
       const criteria = getPasswordCriteria('MySecureAuth123!');
-      
+
       expect(criteria.minLength).toBe(true);
       expect(criteria.hasUpperCase).toBe(true);
       expect(criteria.hasLowerCase).toBe(true);
@@ -152,10 +152,10 @@ describe('Password Validation System', () => {
       // Quebec privacy law requires strong password protection
       const weakPassword = validatePasswordStrength('password');
       const compliantPassword = validatePasswordStrength('MonMotDePasse2024!');
-      
+
       expect(weakPassword.score).toBeLessThan(3);
       expect(compliantPassword.score).toBeGreaterThanOrEqual(3);
-      
+
       // Strong passwords should meet all criteria for law compliance
       const strongCriteria = getPasswordCriteria('MonMotDePasse2024!');
       expect(strongCriteria.minLength).toBe(true);
@@ -171,10 +171,10 @@ describe('Password Validation System', () => {
         'Admin123!',
         'GestionPropriete2024@',
         'Montreal$yndic123',
-        'QuebecCondo#456'
+        'QuebecCondo#456',
       ];
 
-      passwords.forEach(password => {
+      passwords.forEach((password) => {
         const result = validatePasswordStrength(password);
         const criteria = getPasswordCriteria(password);
         expect(result.score).toBeGreaterThanOrEqual(3);
@@ -186,30 +186,31 @@ describe('Password Validation System', () => {
 
   describe('Performance Tests', () => {
     test('should validate passwords quickly under load', () => {
-      const passwords = Array.from({ length: 1000 }, (_, i) => 
-        `TestPassword${i}!@#${Math.random()}`
+      const passwords = Array.from(
+        { length: 1000 },
+        (_, i) => `TestPassword${i}!@#${Math.random()}`
       );
 
       const startTime = Date.now();
-      
-      passwords.forEach(password => {
+
+      passwords.forEach((password) => {
         validatePasswordStrength(password);
       });
 
       const endTime = Date.now();
       const duration = endTime - startTime;
-      
+
       // Should validate 1000 passwords in under 100ms
       expect(duration).toBeLessThan(100);
     });
 
     test('should handle very long passwords efficiently', () => {
       const longPassword = 'A'.repeat(10000) + '1' + '!';
-      
+
       const startTime = Date.now();
       const result = validatePasswordStrength(longPassword);
       const endTime = Date.now();
-      
+
       expect(endTime - startTime).toBeLessThan(10);
       expect(result.score).toBeGreaterThan(0);
     });

@@ -20,8 +20,8 @@ jest.mock('../../server/services/bill-generation-service', () => ({
     markBillAsPaid: jest.fn(),
     getGeneratedBillsStats: jest.fn(),
     updateGeneratedBillsFromParent: jest.fn(),
-    deleteGeneratedBills: jest.fn()
-  }
+    deleteGeneratedBills: jest.fn(),
+  },
 }));
 
 // Mock database
@@ -29,7 +29,7 @@ const mockDb = {
   select: jest.fn().mockReturnThis(),
   from: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnValue([{ organizationId: 'test-org-123' }])
+  limit: jest.fn().mockReturnValue([{ organizationId: 'test-org-123' }]),
 };
 
 jest.mock('../../server/db', () => ({ db: mockDb }));
@@ -37,14 +37,14 @@ jest.mock('../../server/db', () => ({ db: mockDb }));
 // Mock auth middleware
 jest.mock('../../server/auth', () => ({
   requireAuth: (req: unknown, res: unknown, next: unknown) => {
-    req.user = { 
-      id: 'test-user-123', 
+    req.user = {
+      id: 'test-user-123',
       role: 'admin',
       canAccessAllOrganizations: true,
-      organizations: ['test-org-123']
+      organizations: ['test-org-123'],
     };
     next();
-  }
+  },
 }));
 
 // Import and setup the API routes
@@ -52,7 +52,9 @@ import { registerBillRoutes } from '../../server/api/bills';
 
 describe('Advanced Bill API Endpoints', () => {
   let app: express.Application;
-  const mockBillGenerationService = billGenerationService as jest.Mocked<typeof billGenerationService>;
+  const mockBillGenerationService = billGenerationService as jest.Mocked<
+    typeof billGenerationService
+  >;
 
   beforeEach(() => {
     app = express();
@@ -73,7 +75,7 @@ describe('Advanced Bill API Endpoints', () => {
       paymentType: 'recurrent',
       schedulePayment: 'monthly',
       costs: ['1000.00'],
-      totalAmount: '1000.00'
+      totalAmount: '1000.00',
     };
 
     beforeEach(() => {
@@ -84,12 +86,10 @@ describe('Advanced Bill API Endpoints', () => {
     it('should generate future bills for a recurrent bill', async () => {
       mockBillGenerationService.generateFutureBillInstances.mockResolvedValue({
         billsCreated: 300,
-        generatedUntil: '2049-01-01'
+        generatedUntil: '2049-01-01',
       });
 
-      const response = await request(app)
-        .post('/api/bills/bill-123/generate-future')
-        .expect(200);
+      const response = await request(app).post('/api/bills/bill-123/generate-future').expect(200);
 
       expect(response.body).toEqual({
         message: 'Future bills generated successfully',
@@ -99,8 +99,8 @@ describe('Advanced Bill API Endpoints', () => {
           id: 'bill-123',
           title: 'Test Recurrent Bill',
           paymentType: 'recurrent',
-          schedulePayment: 'monthly'
-        }
+          schedulePayment: 'monthly',
+        },
       });
 
       expect(mockBillGenerationService.generateFutureBillInstances).toHaveBeenCalledWith(mockBill);
@@ -110,9 +110,7 @@ describe('Advanced Bill API Endpoints', () => {
       const uniqueBill = { ...mockBill, paymentType: 'unique' };
       global.mockBills = [uniqueBill];
 
-      const response = await request(app)
-        .post('/api/bills/bill-123/generate-future')
-        .expect(400);
+      const response = await request(app).post('/api/bills/bill-123/generate-future').expect(400);
 
       expect(response.body.message).toBe('Only recurrent bills can generate future instances');
       expect(mockBillGenerationService.generateFutureBillInstances).not.toHaveBeenCalled();
@@ -132,19 +130,17 @@ describe('Advanced Bill API Endpoints', () => {
       // Mock user with insufficient permissions
       jest.doMock('../../server/auth', () => ({
         requireAuth: (req: unknown, res: unknown, next: unknown) => {
-          req.user = { 
-            id: 'resident-user', 
+          req.user = {
+            id: 'resident-user',
             role: 'resident',
             canAccessAllOrganizations: false,
-            organizations: ['other-org']
+            organizations: ['other-org'],
           };
           next();
-        }
+        },
       }));
 
-      const response = await request(app)
-        .post('/api/bills/bill-123/generate-future')
-        .expect(403);
+      const response = await request(app).post('/api/bills/bill-123/generate-future').expect(403);
 
       expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
     });
@@ -154,9 +150,7 @@ describe('Advanced Bill API Endpoints', () => {
         new Error('Database connection failed')
       );
 
-      const response = await request(app)
-        .post('/api/bills/bill-123/generate-future')
-        .expect(500);
+      const response = await request(app).post('/api/bills/bill-123/generate-future').expect(500);
 
       expect(response.body.message).toBe('Failed to generate future bills');
       expect(response.body._error).toBe('Database connection failed');
@@ -167,21 +161,21 @@ describe('Advanced Bill API Endpoints', () => {
         ...mockBill,
         costs: ['6000.00', '4000.00'], // Split payment
         totalAmount: '10000.00',
-        schedulePayment: 'yearly'
+        schedulePayment: 'yearly',
       };
       global.mockBills = [complexBill];
 
       mockBillGenerationService.generateFutureBillInstances.mockResolvedValue({
         billsCreated: 50, // 25 years * 2 payments per year
-        generatedUntil: '2049-01-01'
+        generatedUntil: '2049-01-01',
       });
 
-      const response = await request(app)
-        .post('/api/bills/bill-123/generate-future')
-        .expect(200);
+      const response = await request(app).post('/api/bills/bill-123/generate-future').expect(200);
 
       expect(response.body.billsCreated).toBe(50);
-      expect(mockBillGenerationService.generateFutureBillInstances).toHaveBeenCalledWith(complexBill);
+      expect(mockBillGenerationService.generateFutureBillInstances).toHaveBeenCalledWith(
+        complexBill
+      );
     });
   });
 
@@ -191,7 +185,7 @@ describe('Advanced Bill API Endpoints', () => {
       buildingId: 'building-123',
       title: 'Test Bill to Pay',
       status: 'sent',
-      totalAmount: '500.00'
+      totalAmount: '500.00',
     };
 
     beforeEach(() => {
@@ -203,7 +197,7 @@ describe('Advanced Bill API Endpoints', () => {
 
       const paymentData = {
         paymentDate: '2024-02-15',
-        notes: 'Paid via bank transfer'
+        notes: 'Paid via bank transfer',
       };
 
       const response = await request(app)
@@ -215,7 +209,7 @@ describe('Advanced Bill API Endpoints', () => {
         message: 'Bill marked as paid successfully',
         billId: 'bill-456',
         paymentDate: '2024-02-15',
-        status: 'paid'
+        status: 'paid',
       });
 
       expect(mockBillGenerationService.markBillAsPaid).toHaveBeenCalledWith(
@@ -237,10 +231,7 @@ describe('Advanced Bill API Endpoints', () => {
       expect(response.body.status).toBe('paid');
       expect(response.body.paymentDate).toBeDefined();
 
-      expect(mockBillGenerationService.markBillAsPaid).toHaveBeenCalledWith(
-        'bill-456',
-        undefined
-      );
+      expect(mockBillGenerationService.markBillAsPaid).toHaveBeenCalledWith('bill-456', undefined);
     });
 
     it('should update mock bill status for immediate feedback', async () => {
@@ -274,14 +265,14 @@ describe('Advanced Bill API Endpoints', () => {
       // Test with different role permissions
       jest.doMock('../../server/auth', () => ({
         requireAuth: (req: unknown, res: unknown, next: unknown) => {
-          req.user = { 
-            id: 'tenant-user', 
+          req.user = {
+            id: 'tenant-user',
             role: 'tenant',
             canAccessAllOrganizations: false,
-            organizations: []
+            organizations: [],
           };
           next();
-        }
+        },
       }));
 
       const response = await request(app)
@@ -300,7 +291,7 @@ describe('Advanced Bill API Endpoints', () => {
       title: 'Parent Bill',
       paymentType: 'recurrent',
       schedulePayment: 'monthly',
-      totalAmount: '1000.00'
+      totalAmount: '1000.00',
     };
 
     beforeEach(() => {
@@ -314,7 +305,7 @@ describe('Advanced Bill API Endpoints', () => {
         pendingBills: 12,
         futureBills: 5,
         totalAmount: 25000,
-        paidAmount: 8000
+        paidAmount: 8000,
       };
 
       mockBillGenerationService.getGeneratedBillsStats.mockResolvedValue(mockStats);
@@ -329,12 +320,14 @@ describe('Advanced Bill API Endpoints', () => {
           title: 'Parent Bill',
           paymentType: 'recurrent',
           schedulePayment: 'monthly',
-          totalAmount: '1000.00'
+          totalAmount: '1000.00',
         },
-        generatedBills: mockStats
+        generatedBills: mockStats,
       });
 
-      expect(mockBillGenerationService.getGeneratedBillsStats).toHaveBeenCalledWith('parent-bill-789');
+      expect(mockBillGenerationService.getGeneratedBillsStats).toHaveBeenCalledWith(
+        'parent-bill-789'
+      );
     });
 
     it('should handle stats for bills with no generated instances', async () => {
@@ -344,7 +337,7 @@ describe('Advanced Bill API Endpoints', () => {
         pendingBills: 0,
         futureBills: 0,
         totalAmount: 0,
-        paidAmount: 0
+        paidAmount: 0,
       };
 
       mockBillGenerationService.getGeneratedBillsStats.mockResolvedValue(emptyStats);
@@ -375,14 +368,14 @@ describe('Advanced Bill API Endpoints', () => {
 
       jest.doMock('../../server/auth', () => ({
         requireAuth: (req: unknown, res: unknown, next: unknown) => {
-          req.user = { 
-            id: 'limited-user', 
+          req.user = {
+            id: 'limited-user',
             role: 'manager',
             canAccessAllOrganizations: false,
-            organizations: ['other-org']
+            organizations: ['other-org'],
           };
           next();
-        }
+        },
       }));
 
       const response = await request(app)
@@ -397,7 +390,7 @@ describe('Advanced Bill API Endpoints', () => {
     const mockParentBill = {
       id: 'parent-update-123',
       buildingId: 'building-123',
-      title: 'Original Title'
+      title: 'Original Title',
     };
 
     beforeEach(() => {
@@ -408,11 +401,11 @@ describe('Advanced Bill API Endpoints', () => {
       const updates = {
         title: 'Updated Title',
         category: 'utilities',
-        vendor: 'New Vendor Corp'
+        vendor: 'New Vendor Corp',
       };
 
       mockBillGenerationService.updateGeneratedBillsFromParent.mockResolvedValue({
-        billsUpdated: 15
+        billsUpdated: 15,
       });
 
       const response = await request(app)
@@ -424,7 +417,7 @@ describe('Advanced Bill API Endpoints', () => {
         message: 'Generated bills updated successfully',
         billsUpdated: 15,
         parentBill: 'Original Title',
-        updatedFields: ['title', 'category', 'vendor']
+        updatedFields: ['title', 'category', 'vendor'],
       });
 
       expect(mockBillGenerationService.updateGeneratedBillsFromParent).toHaveBeenCalledWith(
@@ -437,7 +430,7 @@ describe('Advanced Bill API Endpoints', () => {
       const partialUpdates = { notes: 'Updated notes only' };
 
       mockBillGenerationService.updateGeneratedBillsFromParent.mockResolvedValue({
-        billsUpdated: 3
+        billsUpdated: 3,
       });
 
       const response = await request(app)
@@ -451,7 +444,7 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should handle empty updates gracefully', async () => {
       mockBillGenerationService.updateGeneratedBillsFromParent.mockResolvedValue({
-        billsUpdated: 0
+        billsUpdated: 0,
       });
 
       const response = await request(app)
@@ -482,7 +475,7 @@ describe('Advanced Bill API Endpoints', () => {
     const mockParentBill = {
       id: 'parent-delete-456',
       buildingId: 'building-123',
-      title: 'Bill to Delete Generated'
+      title: 'Bill to Delete Generated',
     };
 
     beforeEach(() => {
@@ -491,7 +484,7 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should delete only unpaid bills by default', async () => {
       mockBillGenerationService.deleteGeneratedBills.mockResolvedValue({
-        billsDeleted: 8
+        billsDeleted: 8,
       });
 
       const response = await request(app)
@@ -502,7 +495,7 @@ describe('Advanced Bill API Endpoints', () => {
         message: 'Generated bills deleted successfully',
         billsDeleted: 8,
         parentBill: 'Bill to Delete Generated',
-        deleteAllFuture: false
+        deleteAllFuture: false,
       });
 
       expect(mockBillGenerationService.deleteGeneratedBills).toHaveBeenCalledWith(
@@ -513,7 +506,7 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should delete all future bills when deleteAllFuture=true', async () => {
       mockBillGenerationService.deleteGeneratedBills.mockResolvedValue({
-        billsDeleted: 25
+        billsDeleted: 25,
       });
 
       const response = await request(app)
@@ -546,14 +539,14 @@ describe('Advanced Bill API Endpoints', () => {
     it('should enforce admin/manager permissions for deletion', async () => {
       jest.doMock('../../server/auth', () => ({
         requireAuth: (req: unknown, res: unknown, next: unknown) => {
-          req.user = { 
-            id: 'resident-user', 
+          req.user = {
+            id: 'resident-user',
             role: 'resident',
             canAccessAllOrganizations: false,
-            organizations: ['test-org-123']
+            organizations: ['test-org-123'],
           };
           next();
-        }
+        },
       }));
 
       const response = await request(app)
@@ -565,7 +558,7 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should handle no bills to delete scenario', async () => {
       mockBillGenerationService.deleteGeneratedBills.mockResolvedValue({
-        billsDeleted: 0
+        billsDeleted: 0,
       });
 
       const response = await request(app)
@@ -579,11 +572,13 @@ describe('Advanced Bill API Endpoints', () => {
 
   describe('Error Handling and Edge Cases', () => {
     it('should handle missing building for bill', async () => {
-      global.mockBills = [{
-        id: 'orphaned-bill',
-        buildingId: 'non-existent-building',
-        title: 'Orphaned Bill'
-      }];
+      global.mockBills = [
+        {
+          id: 'orphaned-bill',
+          buildingId: 'non-existent-building',
+          title: 'Orphaned Bill',
+        },
+      ];
 
       mockDb.limit.mockReturnValue([]); // No building found
 
@@ -596,12 +591,10 @@ describe('Advanced Bill API Endpoints', () => {
 
     it('should handle database connection errors', async () => {
       global.mockBills = [{ id: 'test-bill', buildingId: 'building-123' }];
-      
+
       mockDb.limit.mockRejectedValue(new Error('Database unavailable'));
 
-      const response = await request(app)
-        .get('/api/bills/test-bill/generated-stats')
-        .expect(500);
+      const response = await request(app).get('/api/bills/test-bill/generated-stats').expect(500);
 
       expect(response.body.message).toBe('Failed to get generated bills statistics');
     });
@@ -615,21 +608,23 @@ describe('Advanced Bill API Endpoints', () => {
     });
 
     it('should handle concurrent requests gracefully', async () => {
-      global.mockBills = [{
-        id: 'concurrent-bill',
-        buildingId: 'building-123',
-        paymentType: 'recurrent'
-      }];
+      global.mockBills = [
+        {
+          id: 'concurrent-bill',
+          buildingId: 'building-123',
+          paymentType: 'recurrent',
+        },
+      ];
 
       mockBillGenerationService.generateFutureBillInstances.mockResolvedValue({
         billsCreated: 100,
-        generatedUntil: '2049-01-01'
+        generatedUntil: '2049-01-01',
       });
 
       // Make concurrent requests
       const [response1, response2] = await Promise.all([
         request(app).post('/api/bills/concurrent-bill/generate-future'),
-        request(app).post('/api/bills/concurrent-bill/generate-future')
+        request(app).post('/api/bills/concurrent-bill/generate-future'),
       ]);
 
       expect(response1.status).toBe(200);
@@ -644,16 +639,18 @@ describe('Advanced Bill API Endpoints', () => {
         pendingBills: 5000,
         futureBills: 2000,
         totalAmount: 10000000,
-        paidAmount: 3000000
+        paidAmount: 3000000,
       };
 
       mockBillGenerationService.getGeneratedBillsStats.mockResolvedValue(largeStats);
 
-      global.mockBills = [{
-        id: 'large-data-bill',
-        buildingId: 'building-123',
-        title: 'Large Dataset Bill'
-      }];
+      global.mockBills = [
+        {
+          id: 'large-data-bill',
+          buildingId: 'building-123',
+          title: 'Large Dataset Bill',
+        },
+      ];
 
       const response = await request(app)
         .get('/api/bills/large-data-bill/generated-stats')
@@ -667,25 +664,26 @@ describe('Advanced Bill API Endpoints', () => {
   describe('Performance and Scalability', () => {
     it('should handle bills with large number of generated instances', async () => {
       mockBillGenerationService.generateFutureBillInstances.mockImplementation(
-        () => new Promise(resolve => {
-          // Simulate processing time for large dataset
-          setTimeout(() => {
-            resolve({ billsCreated: 5000, generatedUntil: '2049-01-01' });
-          }, 10);
-        })
+        () =>
+          new Promise((resolve) => {
+            // Simulate processing time for large dataset
+            setTimeout(() => {
+              resolve({ billsCreated: 5000, generatedUntil: '2049-01-01' });
+            }, 10);
+          })
       );
 
-      global.mockBills = [{
-        id: 'large-bill',
-        buildingId: 'building-123',
-        paymentType: 'recurrent',
-        schedulePayment: 'weekly'
-      }];
+      global.mockBills = [
+        {
+          id: 'large-bill',
+          buildingId: 'building-123',
+          paymentType: 'recurrent',
+          schedulePayment: 'weekly',
+        },
+      ];
 
       const start = Date.now();
-      const response = await request(app)
-        .post('/api/bills/large-bill/generate-future')
-        .expect(200);
+      const response = await request(app).post('/api/bills/large-bill/generate-future').expect(200);
       const duration = Date.now() - start;
 
       expect(response.body.billsCreated).toBe(5000);
@@ -696,14 +694,16 @@ describe('Advanced Bill API Endpoints', () => {
       const initialMemory = process.memoryUsage().heapUsed;
 
       mockBillGenerationService.updateGeneratedBillsFromParent.mockResolvedValue({
-        billsUpdated: 1000
+        billsUpdated: 1000,
       });
 
-      global.mockBills = [{
-        id: 'bulk-update-bill',
-        buildingId: 'building-123',
-        title: 'Bulk Update Test'
-      }];
+      global.mockBills = [
+        {
+          id: 'bulk-update-bill',
+          buildingId: 'building-123',
+          title: 'Bulk Update Test',
+        },
+      ];
 
       await request(app)
         .put('/api/bills/bulk-update-bill/update-generated')

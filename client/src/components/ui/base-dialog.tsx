@@ -34,10 +34,10 @@ interface BaseDialogProps {
 
 /**
  * Base Dialog Component
- * 
+ *
  * Provides standardized dialog structure with consistent styling,
  * loading states, and action handling across the application.
- * 
+ *
  * @param props - Dialog configuration and content
  * @returns Standardized dialog component
  */
@@ -60,16 +60,16 @@ export function BaseDialog({
   maxWidth = 'md',
   showFooter = true,
   footerContent,
-  className = ''
+  className = '',
 }: BaseDialogProps) {
   const { t } = useLanguage();
 
   const maxWidthClasses = {
     sm: 'sm:max-w-sm',
     md: 'sm:max-w-md',
-    lg: 'sm:max-w-lg', 
+    lg: 'sm:max-w-lg',
     xl: 'sm:max-w-xl',
-    '2xl': 'max-w-2xl'
+    '2xl': 'max-w-2xl',
   };
 
   const handleCancel = () => {
@@ -82,40 +82,29 @@ export function BaseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-y-auto ${className}`}>
+      <DialogContent
+        className={`${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-y-auto ${className}`}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <div className="py-4">
-          {children}
-        </div>
+        <div className='py-4'>{children}</div>
 
         {showFooter && (
-          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          <DialogFooter className='flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2'>
             {footerContent || (
               <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isLoading}
-                >
+                <Button type='button' variant='outline' onClick={handleCancel} disabled={isLoading}>
                   {cancelText || t('cancel')}
                 </Button>
-                
+
                 {onConfirm && (
-                  <Button
-                    type="button"
-                    onClick={onConfirm}
-                    disabled={confirmDisabled || isLoading}
-                  >
+                  <Button type='button' onClick={onConfirm} disabled={confirmDisabled || isLoading}>
                     {isLoading ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
                         {t('processing')}
                       </>
                     ) : (

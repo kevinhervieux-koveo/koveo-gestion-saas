@@ -9,15 +9,15 @@ import express, { Express } from 'express';
 import request from 'supertest';
 import { db } from '../../../server/db';
 import { registerDemandRoutes } from '../../../server/api/demands';
-import { 
-  demands, 
-  demandComments, 
-  users, 
-  organizations, 
-  buildings, 
-  residences, 
+import {
+  demands,
+  demandComments,
+  users,
+  organizations,
+  buildings,
+  residences,
   userOrganizations,
-  userResidences 
+  userResidences,
 } from '../../../shared/schema';
 import { eq, like } from 'drizzle-orm';
 
@@ -25,15 +25,17 @@ import { eq, like } from 'drizzle-orm';
 jest.mock('../../../server/auth/index', () => ({
   requireAuth: jest.fn((req: express.Request, res: express.Response, next: () => void) => {
     // Add test user to request
-    (req as express.Request & { user?: unknown; testUser?: unknown }).user = (req as express.Request & { testUser?: unknown }).testUser || {
+    (req as express.Request & { user?: unknown; testUser?: unknown }).user = (
+      req as express.Request & { testUser?: unknown }
+    ).testUser || {
       id: 'test-user-id',
       role: 'resident',
       organizationIds: ['test-org-1'],
       buildingIds: ['test-building-1'],
-      residenceIds: ['test-residence-1']
+      residenceIds: ['test-residence-1'],
     };
     next();
-  })
+  }),
 }));
 
 describe('Demands API Unit Tests', () => {
@@ -76,19 +78,22 @@ describe('Demands API Unit Tests', () => {
     try {
       // Clean up existing test data first
       await cleanupTestData();
-      
+
       // Create test organizations
-      const [org1] = await db.insert(organizations).values({
-        id: 'test-org-1',
-        name: 'Test Organization 1',
-        type: 'management_company',
-        address: '123 Test St',
-        city: 'Montreal',
-        province: 'QC',
-        postalCode: 'H1A 1A1',
-        phone: '514-555-0001',
-        email: 'org1@test.com'
-      }).returning();
+      const [org1] = await db
+        .insert(organizations)
+        .values({
+          id: 'test-org-1',
+          name: 'Test Organization 1',
+          type: 'management_company',
+          address: '123 Test St',
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: 'H1A 1A1',
+          phone: '514-555-0001',
+          email: 'org1@test.com',
+        })
+        .returning();
       testOrganizations.push(org1);
 
       // Create test users with different roles
@@ -100,7 +105,7 @@ describe('Demands API Unit Tests', () => {
           password: 'hashed_password',
           firstName: 'Admin',
           lastName: 'User',
-          role: 'admin' as const
+          role: 'admin' as const,
         },
         {
           id: 'manager-user',
@@ -109,7 +114,7 @@ describe('Demands API Unit Tests', () => {
           password: 'hashed_password',
           firstName: 'Manager',
           lastName: 'User',
-          role: 'manager' as const
+          role: 'manager' as const,
         },
         {
           id: 'resident-user',
@@ -118,7 +123,7 @@ describe('Demands API Unit Tests', () => {
           password: 'hashed_password',
           firstName: 'Resident',
           lastName: 'User',
-          role: 'resident' as const
+          role: 'resident' as const,
         },
         {
           id: 'tenant-user',
@@ -127,8 +132,8 @@ describe('Demands API Unit Tests', () => {
           password: 'hashed_password',
           firstName: 'Tenant',
           lastName: 'User',
-          role: 'tenant' as const
-        }
+          role: 'tenant' as const,
+        },
       ];
 
       for (const userData of usersData) {
@@ -139,25 +144,28 @@ describe('Demands API Unit Tests', () => {
         await db.insert(userOrganizations).values({
           userId: user.id,
           organizationId: org1.id,
-          organizationRole: userData.role
+          organizationRole: userData.role,
         });
       }
 
       // Create test buildings
-      const [building1] = await db.insert(buildings).values({
-        id: 'test-building-1',
-        organizationId: org1.id,
-        name: 'Test Building 1',
-        address: '456 Building St',
-        city: 'Montreal',
-        province: 'QC',
-        postalCode: 'H1B 1B1',
-        buildingType: 'apartment',
-        totalUnits: 10,
-        yearBuilt: 2020,
-        parkingSpaces: 2,
-        storageSpaces: 2
-      }).returning();
+      const [building1] = await db
+        .insert(buildings)
+        .values({
+          id: 'test-building-1',
+          organizationId: org1.id,
+          name: 'Test Building 1',
+          address: '456 Building St',
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: 'H1B 1B1',
+          buildingType: 'apartment',
+          totalUnits: 10,
+          yearBuilt: 2020,
+          parkingSpaces: 2,
+          storageSpaces: 2,
+        })
+        .returning();
       testBuildings.push(building1);
 
       // Create test residences
@@ -171,7 +179,7 @@ describe('Demands API Unit Tests', () => {
           bedrooms: 2,
           bathrooms: '1.0',
           parkingSpaceNumbers: ['P1'],
-          storageSpaceNumbers: ['S1']
+          storageSpaceNumbers: ['S1'],
         },
         {
           id: 'test-residence-2',
@@ -182,8 +190,8 @@ describe('Demands API Unit Tests', () => {
           bedrooms: 2,
           bathrooms: '1.0',
           parkingSpaceNumbers: ['P2'],
-          storageSpaceNumbers: ['S2']
-        }
+          storageSpaceNumbers: ['S2'],
+        },
       ];
 
       for (const residenceData of residencesData) {
@@ -197,14 +205,14 @@ describe('Demands API Unit Tests', () => {
           userId: testUsers[2].id as string,
           residenceId: testResidences[0].id as string,
           relationshipType: 'owner' as const,
-          startDate: '2024-01-01'
+          startDate: '2024-01-01',
         },
         {
           userId: testUsers[3].id as string,
           residenceId: testResidences[1].id as string,
           relationshipType: 'tenant' as const,
-          startDate: '2024-01-01'
-        }
+          startDate: '2024-01-01',
+        },
       ];
       await db.insert(userResidences).values(userResidenceData);
 
@@ -217,7 +225,7 @@ describe('Demands API Unit Tests', () => {
           description: 'Faucet is leaking in kitchen',
           residenceId: testResidences[0].id as string,
           buildingId: building1.id as string,
-          status: 'submitted' as const
+          status: 'submitted' as const,
         },
         {
           id: 'test-demand-2',
@@ -226,7 +234,7 @@ describe('Demands API Unit Tests', () => {
           description: 'Noise from upstairs neighbor',
           residenceId: testResidences[1].id as string,
           buildingId: building1.id as string,
-          status: 'approved' as const
+          status: 'approved' as const,
         },
         {
           id: 'test-demand-3',
@@ -238,15 +246,14 @@ describe('Demands API Unit Tests', () => {
           status: 'completed' as const,
           reviewedBy: testUsers[1].id as string, // manager
           reviewedAt: new Date(),
-          reviewNotes: 'Information provided via email'
-        }
+          reviewNotes: 'Information provided via email',
+        },
       ];
 
       for (const demandData of demandsData) {
         const [demand] = await db.insert(demands).values([demandData]).returning();
         testDemands.push(demand);
       }
-
     } catch (_error) {
       console.error('Failed to setup test _data:', _error);
       throw _error;
@@ -263,38 +270,37 @@ describe('Demands API Unit Tests', () => {
   async function cleanupTestData() {
     try {
       // Delete test-specific data only, in reverse order to respect foreign key constraints
-      
+
       // Clean up demand comments
       await db.delete(demandComments).where(like(demandComments.id, 'test-%'));
-      
+
       // Clean up demands
       await db.delete(demands).where(like(demands.id, 'test-%'));
-      
+
       // Clean up user-residence relationships
       await db.delete(userResidences).where(like(userResidences.userId, 'test-%'));
-      
+
       // Clean up residences
       await db.delete(residences).where(like(residences.id, 'test-%'));
-      
+
       // Clean up buildings
       await db.delete(buildings).where(like(buildings.id, 'test-%'));
-      
+
       // Clean up user-organization relationships
       await db.delete(userOrganizations).where(like(userOrganizations.userId, 'test-%'));
-      
+
       // Clean up users
       await db.delete(users).where(like(users.id, 'test-%'));
-      
+
       // Clean up organizations
       await db.delete(organizations).where(like(organizations.id, 'test-%'));
-      
+
       // Clear test arrays
       testUsers.length = 0;
       testOrganizations.length = 0;
       testBuildings.length = 0;
       testResidences.length = 0;
       testDemands.length = 0;
-      
     } catch (_error) {
       console.error('Failed to cleanup test _data:', _error);
     }
@@ -304,10 +310,13 @@ describe('Demands API Unit Tests', () => {
     it('should return demands for admin user (all demands)', async () => {
       const response = await request(app)
         .get('/api/demands')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -324,15 +333,18 @@ describe('Demands API Unit Tests', () => {
     it('should return demands for manager user (organization demands)', async () => {
       const response = await request(app)
         .get('/api/demands')
-        .set('test-user', JSON.stringify({
-          id: testUsers[1].id,
-          role: 'manager'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[1].id,
+            role: 'manager',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
-      
+
       // Verify manager can see demands from their organization
       response.body.forEach((demand: Record<string, unknown>) => {
         expect((demand as any).building.id).toBe(testBuildings[0].id);
@@ -342,19 +354,22 @@ describe('Demands API Unit Tests', () => {
     it('should return demands for resident user (own demands and building demands)', async () => {
       const response = await request(app)
         .get('/api/demands')
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Verify resident can see relevant demands
       response.body.forEach((demand: Record<string, unknown>) => {
         expect(
-          demand.submitterId === testUsers[2].id || 
-          demand.buildingId === testResidences[0].buildingId
+          demand.submitterId === testUsers[2].id ||
+            demand.buildingId === testResidences[0].buildingId
         ).toBe(true);
       });
     });
@@ -362,14 +377,17 @@ describe('Demands API Unit Tests', () => {
     it('should return limited demands for tenant user (view only their own)', async () => {
       const response = await request(app)
         .get('/api/demands')
-        .set('test-user', JSON.stringify({
-          id: testUsers[3].id,
-          role: 'tenant'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[3].id,
+            role: 'tenant',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Verify tenant can only see their own demands
       response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.submitterId).toBe(testUsers[3].id);
@@ -379,14 +397,17 @@ describe('Demands API Unit Tests', () => {
     it('should filter demands by type', async () => {
       const response = await request(app)
         .get('/api/demands?type=maintenance')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.type).toBe('maintenance');
       });
@@ -395,14 +416,17 @@ describe('Demands API Unit Tests', () => {
     it('should filter demands by status', async () => {
       const response = await request(app)
         .get('/api/demands?status=pending')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.status).toBe('pending');
       });
@@ -411,14 +435,17 @@ describe('Demands API Unit Tests', () => {
     it('should filter demands by building', async () => {
       const response = await request(app)
         .get(`/api/demands?buildingId=${testBuildings[0].id}`)
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       response.body.forEach((demand: Record<string, unknown>) => {
         expect(demand.buildingId).toBe(testBuildings[0].id);
       });
@@ -427,17 +454,20 @@ describe('Demands API Unit Tests', () => {
     it('should search demands by description', async () => {
       const response = await request(app)
         .get('/api/demands?search=faucet')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
-      
+
       // Verify search results contain the search term
-      const foundMatch = response.body.some((demand: any) => 
+      const foundMatch = response.body.some((demand: any) =>
         demand.description.toLowerCase().includes('faucet')
       );
       expect(foundMatch).toBe(true);
@@ -450,16 +480,19 @@ describe('Demands API Unit Tests', () => {
         type: 'maintenance',
         description: 'Broken light fixture in living room',
         residenceId: testResidences[0].id,
-        buildingId: testBuildings[0].id
+        buildingId: testBuildings[0].id,
       };
 
       const response = await request(app)
         .post('/api/demands')
         .send(newDemand)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
@@ -477,16 +510,19 @@ describe('Demands API Unit Tests', () => {
         type: 'maintenance',
         description: 'Test demand from tenant',
         residenceId: testResidences[1].id,
-        buildingId: testBuildings[0].id
+        buildingId: testBuildings[0].id,
       };
 
       const response = await request(app)
         .post('/api/demands')
         .send(newDemand)
-        .set('test-user', JSON.stringify({
-          id: testUsers[3].id,
-          role: 'tenant'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[3].id,
+            role: 'tenant',
+          })
+        );
 
       expect(response.status).toBe(403);
       expect(response.body).toHaveProperty('message');
@@ -495,17 +531,20 @@ describe('Demands API Unit Tests', () => {
 
     it('should validate required fields', async () => {
       const invalidDemand = {
-        type: 'maintenance'
+        type: 'maintenance',
         // Missing required fields
       };
 
       const response = await request(app)
         .post('/api/demands')
         .send(invalidDemand)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -517,16 +556,19 @@ describe('Demands API Unit Tests', () => {
         type: 'invalid_type',
         description: 'Test demand with invalid type',
         residenceId: testResidences[0].id,
-        buildingId: testBuildings[0].id
+        buildingId: testBuildings[0].id,
       };
 
       const response = await request(app)
         .post('/api/demands')
         .send(invalidDemand)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -539,16 +581,19 @@ describe('Demands API Unit Tests', () => {
       const demandId = testDemands[0].id;
       const statusUpdate = {
         status: 'approved',
-        reviewNotes: 'Approved for maintenance work'
+        reviewNotes: 'Approved for maintenance work',
       };
 
       const response = await request(app)
         .patch(`/api/demands/${demandId}/status`)
         .send(statusUpdate)
-        .set('test-user', JSON.stringify({
-          id: testUsers[1].id,
-          role: 'manager'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[1].id,
+            role: 'manager',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('approved');
@@ -561,16 +606,19 @@ describe('Demands API Unit Tests', () => {
       const demandId = testDemands[0].id;
       const statusUpdate = {
         status: 'completed',
-        reviewNotes: 'Work completed successfully'
+        reviewNotes: 'Work completed successfully',
       };
 
       const response = await request(app)
         .patch(`/api/demands/${demandId}/status`)
         .send(statusUpdate)
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('completed');
@@ -579,16 +627,19 @@ describe('Demands API Unit Tests', () => {
     it('should prevent residents from updating demand status', async () => {
       const demandId = testDemands[0].id;
       const statusUpdate = {
-        status: 'completed'
+        status: 'completed',
       };
 
       const response = await request(app)
         .patch(`/api/demands/${demandId}/status`)
         .send(statusUpdate)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(403);
       expect(response.body).toHaveProperty('message');
@@ -599,21 +650,27 @@ describe('Demands API Unit Tests', () => {
   describe('DELETE /api/demands/:id', () => {
     it('should allow resident to delete their own demand', async () => {
       // Create a demand to delete
-      const [demandToDelete] = await db.insert(demands).values({
-        submitterId: testUsers[2].id,
-        type: 'information',
-        description: 'Test demand to delete',
-        residenceId: testResidences[0].id,
-        buildingId: testBuildings[0].id,
-        status: 'submitted'
-      }).returning();
+      const [demandToDelete] = await db
+        .insert(demands)
+        .values({
+          submitterId: testUsers[2].id,
+          type: 'information',
+          description: 'Test demand to delete',
+          residenceId: testResidences[0].id,
+          buildingId: testBuildings[0].id,
+          status: 'submitted',
+        })
+        .returning();
 
       const response = await request(app)
         .delete(`/api/demands/${demandToDelete.id}`)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message');
@@ -624,7 +681,7 @@ describe('Demands API Unit Tests', () => {
         .select()
         .from(demands)
         .where(eq(demands.id, demandToDelete.id));
-      
+
       expect(deletedDemand.length).toBe(0);
     });
 
@@ -633,10 +690,13 @@ describe('Demands API Unit Tests', () => {
 
       const response = await request(app)
         .delete(`/api/demands/${demandId}`)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id, // resident user
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id, // resident user
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(403);
       expect(response.body).toHaveProperty('message');
@@ -645,21 +705,27 @@ describe('Demands API Unit Tests', () => {
 
     it('should allow admin to delete any demand', async () => {
       // Create a demand to delete
-      const [demandToDelete] = await db.insert(demands).values({
-        submitterId: testUsers[3].id,
-        type: 'other',
-        description: 'Admin deletion test',
-        residenceId: testResidences[1].id,
-        buildingId: testBuildings[0].id,
-        status: 'submitted'
-      }).returning();
+      const [demandToDelete] = await db
+        .insert(demands)
+        .values({
+          submitterId: testUsers[3].id,
+          type: 'other',
+          description: 'Admin deletion test',
+          residenceId: testResidences[1].id,
+          buildingId: testBuildings[0].id,
+          status: 'submitted',
+        })
+        .returning();
 
       const response = await request(app)
         .delete(`/api/demands/${demandToDelete.id}`)
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(200);
 
@@ -668,7 +734,7 @@ describe('Demands API Unit Tests', () => {
         .select()
         .from(demands)
         .where(eq(demands.id, demandToDelete.id));
-      
+
       expect(deletedDemand.length).toBe(0);
     });
   });
@@ -676,19 +742,25 @@ describe('Demands API Unit Tests', () => {
   describe('GET /api/demands/:id/comments', () => {
     it('should return comments for a demand', async () => {
       // First create a comment
-      const [comment] = await db.insert(demandComments).values({
-        demandId: testDemands[0].id,
-        createdBy: testUsers[1].id,
-        comment: 'This needs immediate attention',
-        orderIndex: '1.0'
-      }).returning();
+      const [comment] = await db
+        .insert(demandComments)
+        .values({
+          demandId: testDemands[0].id,
+          createdBy: testUsers[1].id,
+          comment: 'This needs immediate attention',
+          orderIndex: '1.0',
+        })
+        .returning();
 
       const response = await request(app)
         .get(`/api/demands/${testDemands[0].id}/comments`)
-        .set('test-user', JSON.stringify({
-          id: testUsers[2].id,
-          role: 'resident'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[2].id,
+            role: 'resident',
+          })
+        );
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -706,16 +778,19 @@ describe('Demands API Unit Tests', () => {
     it('should create a comment on a demand', async () => {
       const newComment = {
         content: 'I can schedule this for next week',
-        isInternal: false
+        isInternal: false,
       };
 
       const response = await request(app)
         .post(`/api/demands/${testDemands[0].id}/comments`)
         .send(newComment)
-        .set('test-user', JSON.stringify({
-          id: testUsers[1].id,
-          role: 'manager'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[1].id,
+            role: 'manager',
+          })
+        );
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
@@ -730,16 +805,19 @@ describe('Demands API Unit Tests', () => {
     it('should validate comment content', async () => {
       const invalidComment = {
         content: '', // Empty content
-        isInternal: false
+        isInternal: false,
       };
 
       const response = await request(app)
         .post(`/api/demands/${testDemands[0].id}/comments`)
         .send(invalidComment)
-        .set('test-user', JSON.stringify({
-          id: testUsers[1].id,
-          role: 'manager'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[1].id,
+            role: 'manager',
+          })
+        );
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -750,10 +828,13 @@ describe('Demands API Unit Tests', () => {
     it('should handle non-existent demand ID', async () => {
       const response = await request(app)
         .get('/api/demands/non-existent-id/comments')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('message');
@@ -763,10 +844,13 @@ describe('Demands API Unit Tests', () => {
       const response = await request(app)
         .patch('/api/demands/invalid-id/status')
         .send({ status: 'approved' })
-        .set('test-user', JSON.stringify({
-          id: testUsers[1].id,
-          role: 'manager'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[1].id,
+            role: 'manager',
+          })
+        );
 
       expect(response.status).toBe(400);
     });
@@ -780,10 +864,13 @@ describe('Demands API Unit Tests', () => {
 
       const response = await request(app)
         .get('/api/demands')
-        .set('test-user', JSON.stringify({
-          id: testUsers[0].id,
-          role: 'admin'
-        }));
+        .set(
+          'test-user',
+          JSON.stringify({
+            id: testUsers[0].id,
+            role: 'admin',
+          })
+        );
 
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');

@@ -30,23 +30,20 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     hasAnyRole: () => false,
   };
 
-  return (
-    <MockAuthContext.Provider value={mockAuthValue}>
-      {children}
-    </MockAuthContext.Provider>
-  );
+  return <MockAuthContext.Provider value={mockAuthValue}>{children}</MockAuthContext.Provider>;
 };
 
-export const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+export const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
     },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+  });
 
 /**
  *
@@ -70,23 +67,19 @@ const MockMobileMenuProvider: React.FC<{ children: React.ReactNode }> = ({ child
     closeMobileMenu: () => {},
   };
   return (
-    <MockMobileMenuContext.Provider value={mockValue}>
-      {children}
-    </MockMobileMenuContext.Provider>
+    <MockMobileMenuContext.Provider value={mockValue}>{children}</MockMobileMenuContext.Provider>
   );
 };
 
-export const TestProviders: React.FC<TestProvidersProps> = ({ 
-  children, 
-  queryClient = createTestQueryClient() 
+export const TestProviders: React.FC<TestProvidersProps> = ({
+  children,
+  queryClient = createTestQueryClient(),
 }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <MockAuthProvider>
-          <MockMobileMenuProvider>
-            {children}
-          </MockMobileMenuProvider>
+          <MockMobileMenuProvider>{children}</MockMobileMenuProvider>
         </MockAuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
@@ -95,11 +88,6 @@ export const TestProviders: React.FC<TestProvidersProps> = ({
 
 export const renderWithProviders = (ui: React.ReactElement, options = {}) => {
   const { render } = require('@testing-library/react');
-  
-  return render(
-    <TestProviders>
-      {ui}
-    </TestProviders>,
-    options
-  );
+
+  return render(<TestProviders>{ui}</TestProviders>, options);
 };

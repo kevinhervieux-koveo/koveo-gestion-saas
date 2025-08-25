@@ -29,29 +29,29 @@ jest.mock('wouter', () => ({
 }));
 
 jest.mock('lucide-react', () => ({
-  Target: () => <div data-testid="target-icon">Target</div>,
-  Home: () => <div data-testid="home-icon">Home</div>,
-  Building: () => <div data-testid="building-icon">Building</div>,
-  Users: () => <div data-testid="users-icon">Users</div>,
-  DollarSign: () => <div data-testid="dollar-icon">Dollar</div>,
-  Wrench: () => <div data-testid="wrench-icon">Wrench</div>,
-  FileText: () => <div data-testid="file-icon">File</div>,
-  Bell: () => <div data-testid="bell-icon">Bell</div>,
-  Bot: () => <div data-testid="bot-icon">Bot</div>,
-  Shield: () => <div data-testid="shield-icon">Shield</div>,
-  BarChart3: () => <div data-testid="chart-icon">Chart</div>,
-  Database: () => <div data-testid="database-icon">Database</div>,
-  Cloud: () => <div data-testid="cloud-icon">Cloud</div>,
-  Globe: () => <div data-testid="globe-icon">Globe</div>,
-  CheckCircle2: () => <div data-testid="check-icon">Check</div>,
-  Circle: () => <div data-testid="circle-icon">Circle</div>,
-  Clock: () => <div data-testid="clock-icon">Clock</div>,
-  Plus: () => <div data-testid="plus-icon">Plus</div>,
-  MessageCircle: () => <div data-testid="message-icon">Message</div>,
-  Terminal: () => <div data-testid="terminal-icon">Terminal</div>,
-  ChevronDown: () => <div data-testid="chevron-down-icon">Down</div>,
-  ChevronRight: () => <div data-testid="chevron-right-icon">Right</div>,
-  ListTodo: () => <div data-testid="todo-icon">Todo</div>,
+  Target: () => <div data-testid='target-icon'>Target</div>,
+  Home: () => <div data-testid='home-icon'>Home</div>,
+  Building: () => <div data-testid='building-icon'>Building</div>,
+  Users: () => <div data-testid='users-icon'>Users</div>,
+  DollarSign: () => <div data-testid='dollar-icon'>Dollar</div>,
+  Wrench: () => <div data-testid='wrench-icon'>Wrench</div>,
+  FileText: () => <div data-testid='file-icon'>File</div>,
+  Bell: () => <div data-testid='bell-icon'>Bell</div>,
+  Bot: () => <div data-testid='bot-icon'>Bot</div>,
+  Shield: () => <div data-testid='shield-icon'>Shield</div>,
+  BarChart3: () => <div data-testid='chart-icon'>Chart</div>,
+  Database: () => <div data-testid='database-icon'>Database</div>,
+  Cloud: () => <div data-testid='cloud-icon'>Cloud</div>,
+  Globe: () => <div data-testid='globe-icon'>Globe</div>,
+  CheckCircle2: () => <div data-testid='check-icon'>Check</div>,
+  Circle: () => <div data-testid='circle-icon'>Circle</div>,
+  Clock: () => <div data-testid='clock-icon'>Clock</div>,
+  Plus: () => <div data-testid='plus-icon'>Plus</div>,
+  MessageCircle: () => <div data-testid='message-icon'>Message</div>,
+  Terminal: () => <div data-testid='terminal-icon'>Terminal</div>,
+  ChevronDown: () => <div data-testid='chevron-down-icon'>Down</div>,
+  ChevronRight: () => <div data-testid='chevron-right-icon'>Right</div>,
+  ListTodo: () => <div data-testid='todo-icon'>Todo</div>,
 }));
 
 // Mock API responses
@@ -107,7 +107,8 @@ describe('Roadmap Component Tests', () => {
 
   beforeEach(() => {
     // Mock fetch for API calls
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockFeatures,
@@ -124,7 +125,9 @@ describe('Roadmap Component Tests', () => {
     render(<Roadmap />, { wrapper: createWrapper() });
 
     expect(screen.getByText('Product Roadmap')).toBeInTheDocument();
-    expect(screen.getByText('Complete feature list and development progress (Live Data)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Complete feature list and development progress (Live Data)')
+    ).toBeInTheDocument();
   });
 
   it('should display strategic path section', async () => {
@@ -134,7 +137,9 @@ describe('Roadmap Component Tests', () => {
       expect(screen.getByText('Strategic Path')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('High-level strategic initiatives and business objectives')).toBeInTheDocument();
+    expect(
+      screen.getByText('High-level strategic initiatives and business objectives')
+    ).toBeInTheDocument();
   });
 
   it('should show features in correct sections', async () => {
@@ -222,7 +227,8 @@ describe('Roadmap Component Tests', () => {
   });
 
   it('should handle feature status change', async () => {
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockFeatures,
@@ -250,7 +256,8 @@ describe('Roadmap Component Tests', () => {
   });
 
   it('should handle strategic path toggle', async () => {
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockFeatures,
@@ -289,7 +296,12 @@ describe('Roadmap Component Tests', () => {
   });
 
   it('should handle loading state', () => {
-    global.fetch = jest.fn().mockImplementation(() => new Promise(() => { /* Mock loading state */ }));
+    global.fetch = jest.fn().mockImplementation(
+      () =>
+        new Promise(() => {
+          /* Mock loading state */
+        })
+    );
 
     render(<Roadmap />, { wrapper: createWrapper() });
 

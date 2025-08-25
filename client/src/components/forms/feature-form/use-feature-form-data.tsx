@@ -65,7 +65,7 @@ const getInitialFormData = (): FeatureFormData => ({
     admin: { read: true, write: true, organizationalLimitation: '' },
     manager: { read: true, write: true, organizationalLimitation: '' },
     owner: { read: true, write: false, organizationalLimitation: '' },
-    tenant: { read: false, write: false, organizationalLimitation: '' }
+    tenant: { read: false, write: false, organizationalLimitation: '' },
   },
 });
 
@@ -103,12 +103,12 @@ export function useFeatureFormData(feature: Feature | null) {
       const draftData = {
         formData,
         timestamp: new Date().toISOString(),
-        featureId: feature?.id || null
+        featureId: feature?.id || null,
       };
       window.localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
       setLastSaved(new Date());
       setIsDirty(false);
-      
+
       toast({
         title: 'Draft Saved',
         description: 'Your progress has been automatically saved.',
@@ -128,12 +128,12 @@ export function useFeatureFormData(feature: Feature | null) {
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         const formData = draftData.formData;
-        
+
         // Fix invalid category if it exists
         if (formData.featureCategory === 'Strategic Path') {
           formData.featureCategory = 'Compliance & Security';
         }
-        
+
         setFormData(formData);
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
@@ -152,7 +152,7 @@ export function useFeatureFormData(feature: Feature | null) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
-      
+
       toast({
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
@@ -167,7 +167,7 @@ export function useFeatureFormData(feature: Feature | null) {
    * @returns Void.
    */
   const updateFormData = useCallback((field: string, _value: string | boolean | unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   }, []);
 
@@ -176,15 +176,15 @@ export function useFeatureFormData(feature: Feature | null) {
    * @returns Void.
    */
   const updateRBACRole = useCallback((role: string, field: string, _value: boolean | string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       rbacRoles: {
         ...prev.rbacRoles,
         [role]: {
           ...prev.rbacRoles[role as keyof typeof prev.rbacRoles],
-          [field]: value
-        }
-      }
+          [field]: value,
+        },
+      },
     }));
     setIsDirty(true);
   }, []);

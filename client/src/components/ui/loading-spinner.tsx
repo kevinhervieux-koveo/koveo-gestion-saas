@@ -3,17 +3,17 @@ import { Loader2 } from 'lucide-react';
 /**
  * Loading spinner component with centered layout and animation.
  * Displays a spinning icon with loading text for async operations.
- * 
+ *
  * @returns {JSX.Element} Centered loading spinner with animation and text.
  * @example
  * ```typescript
  * function DataTable() {
  *   const { isLoading } = useQuery();
- *   
+ *
  *   if (isLoading) {
  *     return <LoadingSpinner />;
  *   }
- *   
+ *
  *   return <TableComponent />;
  * }
  * ```
@@ -25,13 +25,13 @@ import { Loader2 } from 'lucide-react';
 /**
  * Loading spinner function.
  */
-export function  /**
-   * Loading spinner function.
-   */  /**
-   * Loading spinner function.
-   */
+export function /**
+ * Loading spinner function.
+ */ /**
+ * Loading spinner function.
+ */
 
- LoadingSpinner() {
+LoadingSpinner() {
   return (
     <div className='flex-1 flex items-center justify-center bg-gray-50'>
       <div className='flex items-center space-x-2'>

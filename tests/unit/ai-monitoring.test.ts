@@ -69,9 +69,7 @@ describe('AI Monitoring API Tests', () => {
       // Mock database response
       require('../../server/db').db.select.mockResolvedValueOnce([mockMetrics]);
 
-      const response = await request(app)
-        .get('/api/ai/metrics')
-        .expect(200);
+      const response = await request(app).get('/api/ai/metrics').expect(200);
 
       expect(response.body).toMatchObject({
         totalInteractions: expect.any(Number),
@@ -84,9 +82,7 @@ describe('AI Monitoring API Tests', () => {
       // Mock empty database response
       require('../../server/db').db.select.mockResolvedValueOnce([]);
 
-      const response = await request(app)
-        .get('/api/ai/metrics')
-        .expect(200);
+      const response = await request(app).get('/api/ai/metrics').expect(200);
 
       expect(response.body.totalInteractions).toBe(0);
       expect(response.body.successRate).toBe(0);
@@ -110,9 +106,7 @@ describe('AI Monitoring API Tests', () => {
 
       require('../../server/db').db.select.mockResolvedValueOnce(mockInteractions);
 
-      const response = await request(app)
-        .get('/api/ai/interactions')
-        .expect(200);
+      const response = await request(app).get('/api/ai/interactions').expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body).toHaveLength(1);
@@ -129,9 +123,7 @@ describe('AI Monitoring API Tests', () => {
       // Mock database operations
       require('../../server/db').db.insert.mockResolvedValueOnce([{}]);
 
-      const response = await request(app)
-        .post('/api/ai/analyze')
-        .expect(200);
+      const response = await request(app).post('/api/ai/analyze').expect(200);
 
       expect(response.body).toMatchObject({
         message: 'AI analysis triggered successfully',
@@ -143,9 +135,7 @@ describe('AI Monitoring API Tests', () => {
       // Mock database error
       require('../../server/db').db.insert.mockRejectedValueOnce(new Error('Database error'));
 
-      const response = await request(app)
-        .post('/api/ai/analyze')
-        .expect(500);
+      const response = await request(app).post('/api/ai/analyze').expect(500);
 
       expect(response.body._error).toBe('Failed to trigger AI analysis');
     });
@@ -173,9 +163,7 @@ describe('AI Monitoring API Tests', () => {
     it('should handle missing insight', async () => {
       require('../../server/db').db.update.mockResolvedValueOnce([]);
 
-      const response = await request(app)
-        .post('/api/ai/insights/nonexistent/apply')
-        .expect(404);
+      const response = await request(app).post('/api/ai/insights/nonexistent/apply').expect(404);
 
       expect(response.body._error).toBe('Insight not found');
     });

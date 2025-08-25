@@ -5,7 +5,7 @@ import { registerRoutes } from '../../server/routes-minimal';
 
 /**
  * Complete Quality Metrics System Integration Test.
- * 
+ *
  * This test validates the entire quality metrics system working together:
  * 1. API endpoints return valid data
  * 2. Metrics calculations are accurate
@@ -32,9 +32,7 @@ describe('Complete Quality Metrics System Integration', () => {
   describe('End-to-End Quality Metrics Workflow', () => {
     it('should provide comprehensive quality assessment with effectiveness tracking', async () => {
       // Step 1: Fetch current quality metrics from API
-      const response = await request(app)
-        .get('/api/quality-metrics')
-        .expect(200);
+      const response = await request(app).get('/api/quality-metrics').expect(200);
 
       const metrics = response.body;
 
@@ -47,7 +45,7 @@ describe('Complete Quality Metrics System Integration', () => {
 
       // Step 2: Simulate tracking effectiveness for each metric
       // (In production, this data would come from real usage)
-      
+
       // Coverage metric effectiveness
       MetricEffectivenessTracker.recordMetricEffectiveness({
         metric: 'coverage',
@@ -60,8 +58,9 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 4,
           moderateIssues: 3,
           minorIssues: 1,
-          description: 'Found uncovered error handling in authentication, payment processing, and file validation'
-        }
+          description:
+            'Found uncovered error handling in authentication, payment processing, and file validation',
+        },
       });
 
       // Code quality metric effectiveness
@@ -76,8 +75,9 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 2, // High complexity functions
           moderateIssues: 3, // Duplicated code, inconsistent patterns
           minorIssues: 1, // Minor style inconsistencies
-          description: 'Found complex authentication logic, duplicated validation code, and inconsistent error handling patterns'
-        }
+          description:
+            'Found complex authentication logic, duplicated validation code, and inconsistent error handling patterns',
+        },
       });
 
       // Security issues metric effectiveness
@@ -92,8 +92,9 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: Math.min(parseInt(metrics.securityIssues), 2),
           moderateIssues: Math.max(0, parseInt(metrics.securityIssues) - 2),
           minorIssues: 0,
-          description: 'Found real security vulnerabilities in dependencies and potential injection points'
-        }
+          description:
+            'Found real security vulnerabilities in dependencies and potential injection points',
+        },
       });
 
       // Translation coverage metric effectiveness
@@ -108,15 +109,20 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 100 - parseInt(metrics.translationCoverage) > 10 ? 2 : 0,
           moderateIssues: 100 - parseInt(metrics.translationCoverage) > 5 ? 2 : 0,
           minorIssues: 100 - parseInt(metrics.translationCoverage) > 0 ? 1 : 0,
-          description: 'Missing translations affecting French user experience in forms and error messages'
-        }
+          description:
+            'Missing translations affecting French user experience in forms and error messages',
+        },
       });
 
       // Build time metric effectiveness
       MetricEffectivenessTracker.recordMetricEffectiveness({
         metric: 'buildTime',
         calculatedValue: metrics.buildTime,
-        realIssuesFound: metrics.buildTime.includes('Error') ? 1 : (parseFloat(metrics.buildTime) > 5 ? 1 : 0),
+        realIssuesFound: metrics.buildTime.includes('Error')
+          ? 1
+          : parseFloat(metrics.buildTime) > 5
+            ? 1
+            : 0,
         falsePositives: 0,
         missedIssues: 0,
         projectPhase: 'development',
@@ -124,24 +130,25 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 0,
           moderateIssues: metrics.buildTime.includes('Error') ? 1 : 0,
           minorIssues: parseFloat(metrics.buildTime) > 5 ? 1 : 0,
-          description: 'Build performance affecting development workflow'
-        }
+          description: 'Build performance affecting development workflow',
+        },
       });
 
       // Step 3: Validate system effectiveness
       const systemHealth = MetricEffectivenessTracker.getSystemHealth();
-      
+
       expect(systemHealth).toBeTruthy();
       expect(systemHealth.totalMetrics).toBe(5);
       expect(systemHealth.averageSystemAccuracy).toBeGreaterThan(50); // Should find real issues
 
       // Step 4: Validate individual metric effectiveness
       const coverageEffectiveness = MetricEffectivenessTracker.getMetricEffectiveness('coverage');
-      const codeQualityEffectiveness = MetricEffectivenessTracker.getMetricEffectiveness('codeQuality');
-      
+      const codeQualityEffectiveness =
+        MetricEffectivenessTracker.getMetricEffectiveness('codeQuality');
+
       expect(coverageEffectiveness).toBeTruthy();
       expect(coverageEffectiveness!.totalRealIssuesFound).toBeGreaterThan(0);
-      
+
       expect(codeQualityEffectiveness).toBeTruthy();
       expect(codeQualityEffectiveness!.totalRealIssuesFound).toBeGreaterThan(0);
 
@@ -151,11 +158,19 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(coverageValidation.recommendations).toBeInstanceOf(Array);
 
       console.warn('\n📊 Quality Metrics System Validation Results:');
-      console.warn(`   System Health: ${systemHealth.effectiveMetrics > systemHealth.ineffectiveMetrics ? 'Good' : 'Poor'}`);
+      console.warn(
+        `   System Health: ${systemHealth.effectiveMetrics > systemHealth.ineffectiveMetrics ? 'Good' : 'Poor'}`
+      );
       console.warn(`   Average Accuracy: ${systemHealth.averageSystemAccuracy.toFixed(1)}%`);
-      console.warn(`   Valid Metrics: ${systemHealth.effectiveMetrics}/${systemHealth.totalMetrics}`);
-      console.warn(`   Coverage Effectiveness: ${coverageEffectiveness!.averageAccuracy.toFixed(1)}%`);
-      console.warn(`   Code Quality Effectiveness: ${codeQualityEffectiveness!.averageAccuracy.toFixed(1)}%`);
+      console.warn(
+        `   Valid Metrics: ${systemHealth.effectiveMetrics}/${systemHealth.totalMetrics}`
+      );
+      console.warn(
+        `   Coverage Effectiveness: ${coverageEffectiveness!.averageAccuracy.toFixed(1)}%`
+      );
+      console.warn(
+        `   Code Quality Effectiveness: ${codeQualityEffectiveness!.averageAccuracy.toFixed(1)}%`
+      );
     });
 
     it('should detect and report metric improvement over time', () => {
@@ -180,8 +195,8 @@ describe('Complete Quality Metrics System Integration', () => {
             criticalIssues: Math.ceil(iteration.realIssues / 3),
             moderateIssues: Math.ceil(iteration.realIssues / 3),
             minorIssues: iteration.realIssues - Math.ceil(iteration.realIssues / 3) * 2,
-            description: `Iteration ${index + 1}: Continuous improvement in test coverage`
-          }
+            description: `Iteration ${index + 1}: Continuous improvement in test coverage`,
+          },
         });
       });
 
@@ -190,7 +205,9 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(effectiveness!.totalMeasurements).toBe(5);
       expect(effectiveness!.totalRealIssuesFound).toBe(31); // Sum of all real issues found
 
-      console.warn(`   Improvement Trend: +${effectiveness!.accuracyTrend.toFixed(1)}% accuracy over time`);
+      console.warn(
+        `   Improvement Trend: +${effectiveness!.accuracyTrend.toFixed(1)}% accuracy over time`
+      );
     });
 
     it('should identify problematic metrics that need attention', () => {
@@ -206,17 +223,20 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 0,
           moderateIssues: 1,
           minorIssues: 1,
-          description: 'Metric reporting many non-issues as problems'
-        }
+          description: 'Metric reporting many non-issues as problems',
+        },
       });
 
       const validation = MetricEffectivenessTracker.validateMetricQuality('problematicMetric');
-      
-      expect(validation.isValid).toBe(false);
-      expect(validation.reasons.some(reason => reason.includes('false positive'))).toBe(true);
-      expect(validation.recommendations.some(rec => rec.includes('review'))).toBe(true);
 
-      const suggestion = MetricEffectivenessTracker.generateImprovementSuggestion('problematicMetric', 20);
+      expect(validation.isValid).toBe(false);
+      expect(validation.reasons.some((reason) => reason.includes('false positive'))).toBe(true);
+      expect(validation.recommendations.some((rec) => rec.includes('review'))).toBe(true);
+
+      const suggestion = MetricEffectivenessTracker.generateImprovementSuggestion(
+        'problematicMetric',
+        20
+      );
       expect(suggestion.priority).toBe('critical');
       expect(suggestion.suggestions.length).toBeGreaterThan(0);
 
@@ -238,17 +258,19 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(csvData).toContain('timestamp,metric,calculatedValue');
       expect(csvData.split('\n').length).toBeGreaterThan(1);
 
-      console.warn(`   Export capabilities: JSON (${parsedData.length} records), CSV format available`);
+      console.warn(
+        `   Export capabilities: JSON (${parsedData.length} records), CSV format available`
+      );
     });
 
     it('should provide actionable system recommendations', () => {
       const systemHealth = MetricEffectivenessTracker.getSystemHealth();
-      
+
       expect(systemHealth.recommendations).toBeInstanceOf(Array);
-      
+
       if (systemHealth.recommendations.length > 0) {
         console.warn('   System Recommendations:');
-        systemHealth.recommendations.forEach(rec => {
+        systemHealth.recommendations.forEach((rec) => {
           console.warn(`     • ${rec}`);
         });
       } else {
@@ -274,8 +296,8 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 4,
           moderateIssues: 4,
           minorIssues: 2,
-          description: 'Development phase: Finding and fixing issues as code evolves'
-        }
+          description: 'Development phase: Finding and fixing issues as code evolves',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('developmentPhase');
@@ -295,8 +317,8 @@ describe('Complete Quality Metrics System Integration', () => {
           criticalIssues: 2,
           moderateIssues: 0,
           minorIssues: 0,
-          description: 'Production phase: Critical issues affecting live users'
-        }
+          description: 'Production phase: Critical issues affecting live users',
+        },
       });
 
       const effectiveness = MetricEffectivenessTracker.getMetricEffectiveness('productionPhase');
@@ -319,8 +341,8 @@ describe('Complete Quality Metrics System Integration', () => {
             criticalIssues: Math.floor(Math.random() * 3),
             moderateIssues: Math.floor(Math.random() * 4),
             minorIssues: Math.floor(Math.random() * 3),
-            description: `Scalability test iteration ${i}`
-          }
+            description: `Scalability test iteration ${i}`,
+          },
         });
       }
 
@@ -328,15 +350,21 @@ describe('Complete Quality Metrics System Integration', () => {
       expect(effectiveness!.totalMeasurements).toBe(100);
       expect(effectiveness!.averageAccuracy).toBeGreaterThan(0);
 
-      console.warn(`   Scalability Test: Successfully processed ${effectiveness!.totalMeasurements} measurements`);
+      console.warn(
+        `   Scalability Test: Successfully processed ${effectiveness!.totalMeasurements} measurements`
+      );
     });
 
     it('should provide time-range filtered analysis', () => {
       // Test time-range filtering
-      const recentEffectiveness = MetricEffectivenessTracker.getMetricEffectiveness('scalabilityTest');
-      const allTimeEffectiveness = MetricEffectivenessTracker.getMetricEffectiveness('scalabilityTest');
+      const recentEffectiveness =
+        MetricEffectivenessTracker.getMetricEffectiveness('scalabilityTest');
+      const allTimeEffectiveness =
+        MetricEffectivenessTracker.getMetricEffectiveness('scalabilityTest');
 
-      expect(recentEffectiveness!.totalMeasurements).toBeLessThanOrEqual(allTimeEffectiveness!.totalMeasurements);
+      expect(recentEffectiveness!.totalMeasurements).toBeLessThanOrEqual(
+        allTimeEffectiveness!.totalMeasurements
+      );
     });
   });
 });

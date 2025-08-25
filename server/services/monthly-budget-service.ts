@@ -1,18 +1,9 @@
 import { db } from '../db';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import type { 
-  InsertMonthlyBudget, 
-  Building,
-  MoneyFlow
-} from '@shared/schema';
+import type { InsertMonthlyBudget, Building, MoneyFlow } from '@shared/schema';
 import * as schema from '@shared/schema';
 
-const { 
-  monthlyBudgets,
-  moneyFlow, 
-  buildings,
-  users 
-} = schema;
+const { monthlyBudgets, moneyFlow, buildings, users } = schema;
 
 /**
  * Service for populating and managing monthly budget entries.
@@ -31,16 +22,13 @@ export class MonthlyBudgetService {
     buildingsProcessed: number;
   }> {
     console.warn('🔄 Starting monthly budget population...');
-    
+
     let budgetsCreated = 0;
     let buildingsProcessed = 0;
 
     try {
       // Get all active buildings
-      const activeBuildings = await db
-        .select()
-        .from(buildings)
-        .where(eq(buildings.isActive, true));
+      const activeBuildings = await db.select().from(buildings).where(eq(buildings.isActive, true));
 
       console.warn(`🏢 Found ${activeBuildings.length} active buildings`);
 
@@ -49,7 +37,9 @@ export class MonthlyBudgetService {
           const buildingBudgets = await this.populateBudgetsForBuilding(building);
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
-          console.warn(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
+          console.warn(
+            `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
+          );
         } catch (_error) {
           console.error(`❌ Error processing building ${building.name}:`, _error);
           // Continue with other buildings
@@ -62,9 +52,8 @@ export class MonthlyBudgetService {
 
       return {
         budgetsCreated,
-        buildingsProcessed
+        buildingsProcessed,
       };
-
     } catch (_error) {
       console.error('❌ Error populating monthly budgets:', _error);
       throw error;
@@ -88,12 +77,18 @@ export class MonthlyBudgetService {
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
-    console.warn(`📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0,10)} to ${endDate.toISOString().slice(0,10)}`);
+    console.warn(
+      `📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`
+    );
 
     // Get distinct income and expense categories for this building
-    const { incomeCategories, expenseCategories } = await this.getCategoriesForBuilding(building.id);
-    
-    console.warn(`📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`);
+    const { incomeCategories, expenseCategories } = await this.getCategoriesForBuilding(
+      building.id
+    );
+
+    console.warn(
+      `📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`
+    );
 
     // Remove existing budget entries for this building to avoid duplicates
     await this.cleanupExistingBudgets(building.id);
@@ -101,19 +96,19 @@ export class MonthlyBudgetService {
     // Generate monthly entries
     const budgetEntries: InsertMonthlyBudget[] = [];
     const systemUser = await this.getSystemUser();
-    
+
     const currentDate = new Date(constructionDate);
-    
+
     while (currentDate <= endDate) {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1; // 1-12
 
       // Get aggregated amounts for this month/year
       const { incomes, spendings } = await this.getAggregatedAmountsForMonth(
-        building.id, 
-        year, 
-        month, 
-        incomeCategories, 
+        building.id,
+        year,
+        month,
+        incomeCategories,
         expenseCategories
       );
 
@@ -122,12 +117,12 @@ export class MonthlyBudgetService {
         year,
         month,
         incomeTypes: incomeCategories,
-        incomes: incomes.map(amount => amount.toString()), // Convert to string for decimal array
+        incomes: incomes.map((amount) => amount.toString()), // Convert to string for decimal array
         spendingTypes: expenseCategories,
-        spendings: spendings.map(amount => amount.toString()), // Convert to string for decimal array
+        spendings: spendings.map((amount) => amount.toString()), // Convert to string for decimal array
         approved: false,
         approvedBy: undefined,
-        originalBudgetId: undefined
+        originalBudgetId: undefined,
       });
 
       // Move to next month
@@ -160,41 +155,40 @@ export class MonthlyBudgetService {
     const incomeResult = await db
       .selectDistinct({ category: moneyFlow.category })
       .from(moneyFlow)
-      .where(
-        and(
-          eq(moneyFlow.buildingId, buildingId),
-          eq(moneyFlow.type, 'income')
-        )
-      );
+      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'income')));
 
     // Get distinct expense categories
     const expenseResult = await db
       .selectDistinct({ category: moneyFlow.category })
       .from(moneyFlow)
-      .where(
-        and(
-          eq(moneyFlow.buildingId, buildingId),
-          eq(moneyFlow.type, 'expense')
-        )
-      );
+      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'expense')));
 
-    const incomeCategories = incomeResult.map(r => r.category);
-    const expenseCategories = expenseResult.map(r => r.category);
+    const incomeCategories = incomeResult.map((r) => r.category);
+    const expenseCategories = expenseResult.map((r) => r.category);
 
     // If no categories exist, provide defaults based on the enum definitions
     const defaultIncomeCategories = [
-      'monthly_fees', 'special_assessment', 'late_fees', 
-      'parking_fees', 'utility_reimbursement', 'insurance_claim', 'other_income'
+      'monthly_fees',
+      'special_assessment',
+      'late_fees',
+      'parking_fees',
+      'utility_reimbursement',
+      'insurance_claim',
+      'other_income',
     ];
-    
+
     const defaultExpenseCategories = [
-      'bill_payment', 'maintenance_expense', 'administrative_expense', 
-      'professional_services', 'other_expense'
+      'bill_payment',
+      'maintenance_expense',
+      'administrative_expense',
+      'professional_services',
+      'other_expense',
     ];
 
     return {
       incomeCategories: incomeCategories.length > 0 ? incomeCategories : defaultIncomeCategories,
-      expenseCategories: expenseCategories.length > 0 ? expenseCategories : defaultExpenseCategories
+      expenseCategories:
+        expenseCategories.length > 0 ? expenseCategories : defaultExpenseCategories,
     };
   }
 
@@ -218,7 +212,7 @@ export class MonthlyBudgetService {
   }> {
     const startDate = new Date(year, month - 1, 1); // First day of month
     const endDate = new Date(year, month, 0); // Last day of month
-    
+
     const startDateStr = startDate.toISOString().split('T')[0];
     const endDateStr = endDate.toISOString().split('T')[0];
 
@@ -227,7 +221,7 @@ export class MonthlyBudgetService {
     for (const category of incomeCategories) {
       const result = await db
         .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`
+          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
         })
         .from(moneyFlow)
         .where(
@@ -239,7 +233,7 @@ export class MonthlyBudgetService {
             lte(moneyFlow.transactionDate, endDateStr)
           )
         );
-      
+
       incomes.push(parseFloat(result[0]?.total || '0'));
     }
 
@@ -248,7 +242,7 @@ export class MonthlyBudgetService {
     for (const category of expenseCategories) {
       const result = await db
         .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`
+          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
         })
         .from(moneyFlow)
         .where(
@@ -260,7 +254,7 @@ export class MonthlyBudgetService {
             lte(moneyFlow.transactionDate, endDateStr)
           )
         );
-      
+
       spendings.push(parseFloat(result[0]?.total || '0'));
     }
 
@@ -272,10 +266,8 @@ export class MonthlyBudgetService {
    * @param buildingId
    */
   private async cleanupExistingBudgets(buildingId: string): Promise<void> {
-    await db
-      .delete(monthlyBudgets)
-      .where(eq(monthlyBudgets.buildingId, buildingId));
-    
+    await db.delete(monthlyBudgets).where(eq(monthlyBudgets.buildingId, buildingId));
+
     console.warn(`🧹 Cleaned up existing budget entries for building ${buildingId}`);
   }
 
@@ -284,7 +276,10 @@ export class MonthlyBudgetService {
    * @param entries
    * @param batchSize
    */
-  private async insertBudgetEntriesInBatches(entries: InsertMonthlyBudget[], batchSize = 100): Promise<void> {
+  private async insertBudgetEntriesInBatches(
+    entries: InsertMonthlyBudget[],
+    batchSize = 100
+  ): Promise<void> {
     for (let i = 0; i < entries.length; i += batchSize) {
       const batch = entries.slice(i, i + batchSize);
       try {
@@ -351,11 +346,7 @@ export class MonthlyBudgetService {
   async repopulateBudgetsForBuilding(buildingId: string): Promise<number> {
     console.warn(`🔄 Repopulating budgets for building ${buildingId}`);
 
-    const building = await db
-      .select()
-      .from(buildings)
-      .where(eq(buildings.id, buildingId))
-      .limit(1);
+    const building = await db.select().from(buildings).where(eq(buildings.id, buildingId)).limit(1);
 
     if (building.length === 0) {
       throw new Error(`Building ${buildingId} not found`);
@@ -363,7 +354,9 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
-    console.warn(`✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`);
+    console.warn(
+      `✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`
+    );
     return budgetsCreated;
   }
 
@@ -385,31 +378,35 @@ export class MonthlyBudgetService {
       .from(monthlyBudgets);
 
     const [oldestResult] = await db
-      .select({ 
+      .select({
         year: monthlyBudgets.year,
-        month: monthlyBudgets.month 
+        month: monthlyBudgets.month,
       })
       .from(monthlyBudgets)
       .orderBy(monthlyBudgets.year, monthlyBudgets.month)
       .limit(1);
 
     const [newestResult] = await db
-      .select({ 
+      .select({
         year: monthlyBudgets.year,
-        month: monthlyBudgets.month 
+        month: monthlyBudgets.month,
       })
       .from(monthlyBudgets)
       .orderBy(sql`${monthlyBudgets.year} DESC, ${monthlyBudgets.month} DESC`)
       .limit(1);
 
-    const oldestDate = oldestResult ? `${oldestResult.year}-${String(oldestResult.month).padStart(2, '0')}` : null;
-    const newestDate = newestResult ? `${newestResult.year}-${String(newestResult.month).padStart(2, '0')}` : null;
+    const oldestDate = oldestResult
+      ? `${oldestResult.year}-${String(oldestResult.month).padStart(2, '0')}`
+      : null;
+    const newestDate = newestResult
+      ? `${newestResult.year}-${String(newestResult.month).padStart(2, '0')}`
+      : null;
 
     return {
       totalBudgetEntries: totalResult.count,
       buildingsWithBudgets: buildingsResult.count,
       oldestBudgetDate: oldestDate,
-      newestBudgetDate: newestDate
+      newestBudgetDate: newestDate,
     };
   }
 }

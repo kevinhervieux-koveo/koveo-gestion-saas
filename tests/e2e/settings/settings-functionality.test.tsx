@@ -51,13 +51,10 @@ const server = setupServer(
   // Password change endpoint
   rest.post('/api/users/me/change-password', async (req, res, ctx) => {
     const body = await req.json();
-    
+
     // Simulate current password validation
     if (body.currentPassword !== 'currentPassword123') {
-      return res(
-        ctx.status(400),
-        ctx.json({ message: 'Current password is incorrect' })
-      );
+      return res(ctx.status(400), ctx.json({ message: 'Current password is incorrect' }));
     }
 
     return res(ctx.json({ message: 'Password changed successfully' }));
@@ -74,13 +71,16 @@ const server = setupServer(
       notifications: [],
       maintenanceRequests: [],
       exportDate: new Date().toISOString(),
-      note: 'This export contains all personal data we have on file for you in compliance with Quebec Law 25.'
+      note: 'This export contains all personal data we have on file for you in compliance with Quebec Law 25.',
     };
 
     // Return as blob for download
     return res(
       ctx.set('Content-Type', 'application/json'),
-      ctx.set('Content-Disposition', `attachment; filename="user-data-export-${demoUser.id}-${new Date().toISOString().split('T')[0]}.json"`),
+      ctx.set(
+        'Content-Disposition',
+        `attachment; filename="user-data-export-${demoUser.id}-${new Date().toISOString().split('T')[0]}.json"`
+      ),
       ctx.json(exportData)
     );
   }),
@@ -88,19 +88,17 @@ const server = setupServer(
   // Account deletion endpoint
   rest.post('/api/users/me/delete-account', async (req, res, ctx) => {
     const body = await req.json();
-    
+
     // Validate email confirmation
     if (body.confirmEmail !== demoUser.email) {
-      return res(
-        ctx.status(400),
-        ctx.json({ message: 'Email confirmation does not match' })
-      );
+      return res(ctx.status(400), ctx.json({ message: 'Email confirmation does not match' }));
     }
 
     return res(
       ctx.json({
-        message: 'Account successfully deleted. All personal data has been permanently removed from our systems.',
-        deletionDate: new Date().toISOString()
+        message:
+          'Account successfully deleted. All personal data has been permanently removed from our systems.',
+        deletionDate: new Date().toISOString(),
       })
     );
   })
@@ -124,9 +122,7 @@ const renderWithProviders = (component: React.ReactElement) => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <LanguageProvider>
-          <AuthProvider>
-            {component}
-          </AuthProvider>
+          <AuthProvider>{component}</AuthProvider>
         </LanguageProvider>
       </Router>
     </QueryClientProvider>
@@ -138,12 +134,12 @@ describe('Settings Page - Complete Functionality', () => {
     // Mock window.URL.createObjectURL for data export tests
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
     global.URL.revokeObjectURL = jest.fn();
-    
+
     // Mock document methods for download simulation
     const mockClick = jest.fn();
     const mockAppendChild = jest.fn();
     const mockRemoveChild = jest.fn();
-    
+
     jest.spyOn(document, 'createElement').mockImplementation((tag) => {
       if (tag === 'a') {
         return {
@@ -154,12 +150,12 @@ describe('Settings Page - Complete Functionality', () => {
       }
       return document.createElement(tag);
     });
-    
+
     Object.defineProperty(document.body, 'appendChild', {
       value: mockAppendChild,
       writable: true,
     });
-    
+
     Object.defineProperty(document.body, 'removeChild', {
       value: mockRemoveChild,
       writable: true,
@@ -226,7 +222,7 @@ describe('Settings Page - Complete Functionality', () => {
       // Update profile data
       await user.clear(screen.getByTestId('input-first-name'));
       await user.type(screen.getByTestId('input-first-name'), 'Sophie');
-      
+
       await user.clear(screen.getByTestId('input-last-name'));
       await user.type(screen.getByTestId('input-last-name'), 'Laval');
 
@@ -245,10 +241,7 @@ describe('Settings Page - Complete Functionality', () => {
       // Mock API error
       server.use(
         rest.put('/api/users/me', (req, res, ctx) => {
-          return res(
-            ctx.status(400),
-            ctx.json({ message: 'Invalid email address' })
-          );
+          return res(ctx.status(400), ctx.json({ message: 'Invalid email address' }));
         })
       );
 
@@ -390,10 +383,7 @@ describe('Settings Page - Complete Functionality', () => {
       // Mock API error
       server.use(
         rest.get('/api/users/me/data-export', (req, res, ctx) => {
-          return res(
-            ctx.status(500),
-            ctx.json({ message: 'Export failed' })
-          );
+          return res(ctx.status(500), ctx.json({ message: 'Export failed' }));
         })
       );
 

@@ -11,8 +11,8 @@ jest.mock('../../server/jobs/money_flow_job', () => ({
     getStatistics: jest.fn(),
     triggerFullRegeneration: jest.fn(),
     generateForBill: jest.fn(),
-    generateForResidence: jest.fn()
-  }
+    generateForResidence: jest.fn(),
+  },
 }));
 
 // Mock auth middleware
@@ -21,13 +21,13 @@ const mockRequireAuth = (req: unknown, res: unknown, next: unknown) => {
     id: 'user-123',
     email: 'admin@test.com',
     role: 'admin',
-    canAccessAllOrganizations: true
+    canAccessAllOrganizations: true,
   };
   next();
 };
 
 jest.mock('../../server/auth', () => ({
-  requireAuth: mockRequireAuth
+  requireAuth: mockRequireAuth,
 }));
 
 describe('Money Flow API Integration Tests', () => {
@@ -55,8 +55,8 @@ describe('Money Flow API Integration Tests', () => {
           enabled: true,
           logLevel: 'info',
           retryAttempts: 3,
-          retryDelay: 5000
-        }
+          retryDelay: 5000,
+        },
       };
 
       const mockStatistics = {
@@ -65,20 +65,18 @@ describe('Money Flow API Integration Tests', () => {
         residenceEntries: 400,
         futureEntries: 800,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
       (moneyFlowJob.getStatus as jest.Mock).mockReturnValue(mockJobStatus);
       (moneyFlowJob.getStatistics as jest.Mock).mockResolvedValue(mockStatistics);
 
-      const response = await request(app)
-        .get('/api/money-flow/status')
-        .expect(200);
+      const response = await request(app).get('/api/money-flow/status').expect(200);
 
       expect(response.body).toEqual({
         job: mockJobStatus,
         statistics: mockStatistics,
-        lastUpdated: expect.any(String)
+        lastUpdated: expect.any(String),
       });
     });
 
@@ -91,19 +89,17 @@ describe('Money Flow API Integration Tests', () => {
           id: 'user-456',
           email: 'manager@test.com',
           role: 'manager',
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         };
         next();
       });
       registerMoneyFlowRoutes(app);
 
-      const response = await request(app)
-        .get('/api/money-flow/status')
-        .expect(403);
+      const response = await request(app).get('/api/money-flow/status').expect(403);
 
       expect(response.body).toEqual({
         message: 'Access denied. Admin privileges required.',
-        code: 'INSUFFICIENT_PERMISSIONS'
+        code: 'INSUFFICIENT_PERMISSIONS',
       });
     });
 
@@ -111,17 +107,15 @@ describe('Money Flow API Integration Tests', () => {
       (moneyFlowJob.getStatus as jest.Mock).mockReturnValue({
         enabled: true,
         running: false,
-        schedule: '0 3 * * *'
+        schedule: '0 3 * * *',
       });
       (moneyFlowJob.getStatistics as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      const response = await request(app)
-        .get('/api/money-flow/status')
-        .expect(500);
+      const response = await request(app).get('/api/money-flow/status').expect(500);
 
       expect(response.body).toEqual({
         message: 'Failed to get money flow status',
-        _error: 'Database error'
+        _error: 'Database error',
       });
     });
   });
@@ -131,20 +125,18 @@ describe('Money Flow API Integration Tests', () => {
       const mockResult = {
         billEntriesCreated: 500,
         residenceEntriesCreated: 250,
-        totalEntriesCreated: 750
+        totalEntriesCreated: 750,
       };
 
       (moneyFlowJob.triggerFullRegeneration as jest.Mock).mockResolvedValue(mockResult);
 
-      const response = await request(app)
-        .post('/api/money-flow/regenerate')
-        .expect(200);
+      const response = await request(app).post('/api/money-flow/regenerate').expect(200);
 
       expect(response.body).toEqual({
         message: 'Money flow regeneration completed successfully',
         _result: mockResult,
         triggeredBy: 'admin@test.com',
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
 
       expect(moneyFlowJob.triggerFullRegeneration).toHaveBeenCalledTimes(1);
@@ -158,33 +150,30 @@ describe('Money Flow API Integration Tests', () => {
           id: 'user-789',
           email: 'user@test.com',
           role: 'user',
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         };
         next();
       });
       registerMoneyFlowRoutes(app);
 
-      const response = await request(app)
-        .post('/api/money-flow/regenerate')
-        .expect(403);
+      const response = await request(app).post('/api/money-flow/regenerate').expect(403);
 
       expect(response.body).toEqual({
         message: 'Access denied. Admin privileges required.',
-        code: 'INSUFFICIENT_PERMISSIONS'
+        code: 'INSUFFICIENT_PERMISSIONS',
       });
     });
 
     it('should handle regeneration errors', async () => {
-      (moneyFlowJob.triggerFullRegeneration as jest.Mock)
-        .mockRejectedValue(new Error('Job is already running'));
+      (moneyFlowJob.triggerFullRegeneration as jest.Mock).mockRejectedValue(
+        new Error('Job is already running')
+      );
 
-      const response = await request(app)
-        .post('/api/money-flow/regenerate')
-        .expect(500);
+      const response = await request(app).post('/api/money-flow/regenerate').expect(500);
 
       expect(response.body).toEqual({
         message: 'Failed to trigger money flow regeneration',
-        _error: 'Job is already running'
+        _error: 'Job is already running',
       });
     });
   });
@@ -206,7 +195,7 @@ describe('Money Flow API Integration Tests', () => {
         billId,
         entriesCreated,
         triggeredBy: 'admin@test.com',
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
 
       expect(moneyFlowJob.generateForBill).toHaveBeenCalledWith(billId);
@@ -229,7 +218,7 @@ describe('Money Flow API Integration Tests', () => {
           id: 'manager-123',
           email: 'manager@test.com',
           role: 'manager',
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         };
         next();
       });
@@ -254,7 +243,7 @@ describe('Money Flow API Integration Tests', () => {
           id: 'user-123',
           email: 'user@test.com',
           role: 'user',
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         };
         next();
       });
@@ -267,7 +256,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Access denied. Admin or Manager privileges required.',
-        code: 'INSUFFICIENT_PERMISSIONS'
+        code: 'INSUFFICIENT_PERMISSIONS',
       });
     });
   });
@@ -289,7 +278,7 @@ describe('Money Flow API Integration Tests', () => {
         residenceId,
         entriesCreated,
         triggeredBy: 'admin@test.com',
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
 
       expect(moneyFlowJob.generateForResidence).toHaveBeenCalledWith(residenceId);
@@ -306,8 +295,9 @@ describe('Money Flow API Integration Tests', () => {
 
     it('should handle generation errors', async () => {
       const residenceId = 'residence-789';
-      (moneyFlowJob.generateForResidence as jest.Mock)
-        .mockRejectedValue(new Error('Residence not found'));
+      (moneyFlowJob.generateForResidence as jest.Mock).mockRejectedValue(
+        new Error('Residence not found')
+      );
 
       const response = await request(app)
         .post('/api/money-flow/generate-residence')
@@ -316,7 +306,7 @@ describe('Money Flow API Integration Tests', () => {
 
       expect(response.body).toEqual({
         message: 'Failed to generate money flow for residence',
-        _error: 'Residence not found'
+        _error: 'Residence not found',
       });
     });
   });
@@ -329,14 +319,12 @@ describe('Money Flow API Integration Tests', () => {
         residenceEntries: 2000,
         futureEntries: 4500,
         oldestEntry: '2024-01-01',
-        newestEntry: '2049-12-31'
+        newestEntry: '2049-12-31',
       };
 
       (moneyFlowJob.getStatistics as jest.Mock).mockResolvedValue(mockStatistics);
 
-      const response = await request(app)
-        .get('/api/money-flow/statistics')
-        .expect(200);
+      const response = await request(app).get('/api/money-flow/statistics').expect(200);
 
       expect(response.body).toEqual({
         statistics: mockStatistics,
@@ -346,8 +334,8 @@ describe('Money Flow API Integration Tests', () => {
           billEntries: 'Entries generated from bills (expenses)',
           residenceEntries: 'Entries generated from residence monthly fees (income)',
           futureEntries: 'Entries with transaction dates in the future',
-          dateRange: 'Range from oldest to newest entry'
-        }
+          dateRange: 'Range from oldest to newest entry',
+        },
       });
     });
 
@@ -359,7 +347,7 @@ describe('Money Flow API Integration Tests', () => {
           id: 'manager-456',
           email: 'manager@test.com',
           role: 'manager',
-          canAccessAllOrganizations: false
+          canAccessAllOrganizations: false,
         };
         next();
       });
@@ -371,14 +359,12 @@ describe('Money Flow API Integration Tests', () => {
         residenceEntries: 40,
         futureEntries: 90,
         oldestEntry: '2024-01-01',
-        newestEntry: '2025-12-31'
+        newestEntry: '2025-12-31',
       };
 
       (moneyFlowJob.getStatistics as jest.Mock).mockResolvedValue(mockStatistics);
 
-      const response = await request(app)
-        .get('/api/money-flow/statistics')
-        .expect(200);
+      const response = await request(app).get('/api/money-flow/statistics').expect(200);
 
       expect(response.body.statistics).toEqual(mockStatistics);
     });
@@ -390,14 +376,12 @@ describe('Money Flow API Integration Tests', () => {
         enabled: true,
         running: false,
         schedule: '0 3 * * *',
-        config: {}
+        config: {},
       };
 
       (moneyFlowJob.getStatus as jest.Mock).mockReturnValue(mockJobStatus);
 
-      const response = await request(app)
-        .get('/api/money-flow/health')
-        .expect(200);
+      const response = await request(app).get('/api/money-flow/health').expect(200);
 
       expect(response.body).toEqual({
         status: 'healthy',
@@ -409,9 +393,9 @@ describe('Money Flow API Integration Tests', () => {
           nodeVersion: expect.any(String),
           platform: expect.any(String),
           uptime: expect.any(Number),
-          memoryUsage: expect.any(Object)
+          memoryUsage: expect.any(Object),
         },
-        message: 'Money flow automation system is operational'
+        message: 'Money flow automation system is operational',
       });
     });
 
@@ -420,14 +404,12 @@ describe('Money Flow API Integration Tests', () => {
         throw new Error('Job configuration error');
       });
 
-      const response = await request(app)
-        .get('/api/money-flow/health')
-        .expect(500);
+      const response = await request(app).get('/api/money-flow/health').expect(500);
 
       expect(response.body).toEqual({
         status: 'unhealthy',
         _error: 'Job configuration error',
-        message: 'Money flow automation system encountered an error'
+        message: 'Money flow automation system encountered an error',
       });
     });
   });
@@ -441,12 +423,12 @@ describe('Money Flow API Integration Tests', () => {
         // No user set - simulates unauthenticated request
         next();
       });
-      
+
       // Mock the auth middleware to throw
       jest.doMock('../../server/auth', () => ({
         requireAuth: (req: unknown, res: unknown, next: unknown) => {
           res.status(401).json({ message: 'Authentication required' });
-        }
+        },
       }));
 
       const endpoints = [
@@ -455,7 +437,7 @@ describe('Money Flow API Integration Tests', () => {
         { method: 'post', path: '/api/money-flow/generate-bill' },
         { method: 'post', path: '/api/money-flow/generate-residence' },
         { method: 'get', path: '/api/money-flow/statistics' },
-        { method: 'get', path: '/api/money-flow/health' }
+        { method: 'get', path: '/api/money-flow/health' },
       ];
 
       for (const endpoint of endpoints) {
@@ -470,18 +452,18 @@ describe('Money Flow API Integration Tests', () => {
         {
           role: 'admin',
           canAccessAllOrganizations: true,
-          shouldHaveAccess: true
+          shouldHaveAccess: true,
         },
         {
           role: 'manager',
           canAccessAllOrganizations: false,
-          shouldHaveAccess: true // For some endpoints
+          shouldHaveAccess: true, // For some endpoints
         },
         {
           role: 'user',
           canAccessAllOrganizations: false,
-          shouldHaveAccess: false
-        }
+          shouldHaveAccess: false,
+        },
       ];
 
       for (const testCase of testCases) {
@@ -492,14 +474,14 @@ describe('Money Flow API Integration Tests', () => {
             id: 'test-user',
             email: 'test@test.com',
             role: testCase.role,
-            canAccessAllOrganizations: testCase.canAccessAllOrganizations
+            canAccessAllOrganizations: testCase.canAccessAllOrganizations,
           };
           next();
         });
         registerMoneyFlowRoutes(testApp);
 
         const response = await request(testApp).get('/api/money-flow/health');
-        
+
         if (testCase.role === 'admin' || testCase.canAccessAllOrganizations) {
           expect([200, 500]).toContain(response.status); // 500 is OK for mocked errors
         } else {
@@ -511,47 +493,33 @@ describe('Money Flow API Integration Tests', () => {
 
   describe('Request validation', () => {
     it('should validate UUID format for bill ID', async () => {
-      const invalidIds = [
-        'not-a-uuid',
-        '123',
-        '',
-        'bill-123-invalid'
-      ];
+      const invalidIds = ['not-a-uuid', '123', '', 'bill-123-invalid'];
 
       for (const invalidId of invalidIds) {
         const response = await request(app)
           .post('/api/money-flow/generate-bill')
           .send({ billId: invalidId });
-        
+
         expect(response.status).toBe(500); // Should fail validation
       }
     });
 
     it('should validate UUID format for residence ID', async () => {
-      const invalidIds = [
-        'not-a-uuid',
-        '456',
-        '',
-        'residence-456-invalid'
-      ];
+      const invalidIds = ['not-a-uuid', '456', '', 'residence-456-invalid'];
 
       for (const invalidId of invalidIds) {
         const response = await request(app)
           .post('/api/money-flow/generate-residence')
           .send({ residenceId: invalidId });
-        
+
         expect(response.status).toBe(500); // Should fail validation
       }
     });
 
     it('should handle missing request body fields', async () => {
-      const response1 = await request(app)
-        .post('/api/money-flow/generate-bill')
-        .send({}); // Missing billId
+      const response1 = await request(app).post('/api/money-flow/generate-bill').send({}); // Missing billId
 
-      const response2 = await request(app)
-        .post('/api/money-flow/generate-residence')
-        .send({}); // Missing residenceId
+      const response2 = await request(app).post('/api/money-flow/generate-residence').send({}); // Missing residenceId
 
       expect(response1.status).toBe(500);
       expect(response2.status).toBe(500);

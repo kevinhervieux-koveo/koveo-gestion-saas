@@ -20,10 +20,10 @@ describe('Project Structure Validation', () => {
         'tests',
         'config',
         'migrations',
-        'attached_assets'
+        'attached_assets',
       ];
 
-      requiredDirs.forEach(dir => {
+      requiredDirs.forEach((dir) => {
         const dirPath = path.join(rootDir, dir);
         expect(fs.existsSync(dirPath)).toBe(true);
         expect(fs.statSync(dirPath).isDirectory()).toBe(true);
@@ -39,10 +39,10 @@ describe('Project Structure Validation', () => {
         'client/src/lib',
         'client/src/components/ui',
         'client/src/components/forms',
-        'client/src/components/layout'
+        'client/src/components/layout',
       ];
 
-      clientDirs.forEach(dir => {
+      clientDirs.forEach((dir) => {
         const dirPath = path.join(rootDir, dir);
         expect(fs.existsSync(dirPath)).toBe(true);
         expect(fs.statSync(dirPath).isDirectory()).toBe(true);
@@ -57,10 +57,10 @@ describe('Project Structure Validation', () => {
         'server/services',
         'server/middleware',
         'server/utils',
-        'server/controllers'
+        'server/controllers',
       ];
 
-      serverDirs.forEach(dir => {
+      serverDirs.forEach((dir) => {
         const dirPath = path.join(rootDir, dir);
         expect(fs.existsSync(dirPath)).toBe(true);
         expect(fs.statSync(dirPath).isDirectory()).toBe(true);
@@ -78,10 +78,10 @@ describe('Project Structure Validation', () => {
         'drizzle.config.ts',
         'postcss.config.js',
         'jest.config.js',
-        'components.json'
+        'components.json',
       ];
 
-      configFiles.forEach(file => {
+      configFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         expect(fs.existsSync(filePath)).toBe(true);
         expect(fs.statSync(filePath).isFile()).toBe(true);
@@ -93,10 +93,10 @@ describe('Project Structure Validation', () => {
         'package.json',
         'tsconfig.json',
         'components.json',
-        'config/permissions.json'
+        'config/permissions.json',
       ];
 
-      jsonFiles.forEach(file => {
+      jsonFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
         expect(() => JSON.parse(content)).not.toThrow();
@@ -112,10 +112,10 @@ describe('Project Structure Validation', () => {
         'ROADMAP.md',
         'RBAC_IMPLEMENTATION.md',
         'SYSTEM_PROMPT_GUIDELINES.md',
-        'DEPLOYMENT_FIXES.md'
+        'DEPLOYMENT_FIXES.md',
       ];
 
-      docFiles.forEach(file => {
+      docFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         expect(fs.existsSync(filePath)).toBe(true);
       });
@@ -129,10 +129,10 @@ describe('Project Structure Validation', () => {
         'docs/PAGE_ROUTING_GUIDE.md',
         'docs/QUALITY_SYSTEM_OVERVIEW.md',
         'docs/RBAC_SYSTEM.md',
-        'docs/ROUTING_CHECKLIST.md'
+        'docs/ROUTING_CHECKLIST.md',
       ];
 
-      docsFiles.forEach(file => {
+      docsFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         expect(fs.existsSync(filePath)).toBe(true);
       });
@@ -143,12 +143,12 @@ describe('Project Structure Validation', () => {
     test('should not have duplicate component files', async () => {
       const componentFiles = await glob('**/components/**/*.{tsx,ts}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
       const componentNames = new Map<string, string[]>();
-      
-      componentFiles.forEach(file => {
+
+      componentFiles.forEach((file) => {
         const basename = path.basename(file, path.extname(file));
         if (!componentNames.has(basename)) {
           componentNames.set(basename, []);
@@ -169,18 +169,20 @@ describe('Project Structure Validation', () => {
     test('should follow consistent file naming conventions', async () => {
       const sourceFiles = await glob('**/*.{ts,tsx}', {
         cwd: rootDir,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**', '*.config.ts', '*.config.js']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**', '*.config.ts', '*.config.js'],
       });
 
       const invalidNames: string[] = [];
-      
-      sourceFiles.forEach(file => {
+
+      sourceFiles.forEach((file) => {
         const basename = path.basename(file, path.extname(file));
         // Allow index, test files, and config files
-        if (basename === 'index' || 
-            basename.includes('.test') || 
-            basename.includes('.spec') ||
-            basename.includes('.config')) {
+        if (
+          basename === 'index' ||
+          basename.includes('.test') ||
+          basename.includes('.spec') ||
+          basename.includes('.config')
+        ) {
           return;
         }
 
@@ -191,9 +193,16 @@ describe('Project Structure Validation', () => {
         const isSnakeCase = /^[a-z]+(_[a-z]+)*$/.test(basename);
         const isHookName = basename.startsWith('use-') && /^use-[a-z]+(-[a-z]+)*$/.test(basename);
         const isI18n = basename === 'i18n'; // Special case for internationalization
-        
+
         // Allow multiple naming conventions based on file type and location
-        if (!isKebabCase && !isPascalCase && !isCamelCase && !isSnakeCase && !isHookName && !isI18n) {
+        if (
+          !isKebabCase &&
+          !isPascalCase &&
+          !isCamelCase &&
+          !isSnakeCase &&
+          !isHookName &&
+          !isI18n
+        ) {
           invalidNames.push(file);
         }
       });
@@ -209,15 +218,15 @@ describe('Project Structure Validation', () => {
     test('should use path aliases consistently', async () => {
       const tsFiles = await glob('**/*.{ts,tsx}', {
         cwd: path.join(rootDir, 'client', 'src'),
-        ignore: ['**/*.test.ts', '**/*.test.tsx']
+        ignore: ['**/*.test.ts', '**/*.test.tsx'],
       });
 
       const filesWithRelativeImports: string[] = [];
 
-      tsFiles.forEach(file => {
+      tsFiles.forEach((file) => {
         const filePath = path.join(rootDir, 'client', 'src', file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Check for relative imports that could use aliases
         const relativeImports = content.match(/from ['"]\.\.\/\.\.\//g);
         if (relativeImports) {
@@ -236,10 +245,10 @@ describe('Project Structure Validation', () => {
         'tests/unit/auth/rbac.test.ts',
         'tests/unit/db/query-scoping.test.ts',
         'tests/unit/utils.test.ts',
-        'tests/unit/language.test.tsx'
+        'tests/unit/language.test.tsx',
       ];
 
-      criticalModules.forEach(module => {
+      criticalModules.forEach((module) => {
         const modulePath = path.join(rootDir, module);
         expect(fs.existsSync(modulePath)).toBe(true);
       });
@@ -247,14 +256,20 @@ describe('Project Structure Validation', () => {
 
     test('should have consistent test file naming', async () => {
       const testFiles = await glob('tests/**/*.{test,spec}.{ts,tsx}', {
-        cwd: rootDir
+        cwd: rootDir,
       });
 
-      testFiles.forEach(file => {
-        const fullExt = file.substring(file.lastIndexOf('.test.') !== -1 ? file.lastIndexOf('.test.') : file.lastIndexOf('.spec.'));
-        expect(['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx'].some(validExt => 
-          file.endsWith(validExt)
-        )).toBe(true);
+      testFiles.forEach((file) => {
+        const fullExt = file.substring(
+          file.lastIndexOf('.test.') !== -1
+            ? file.lastIndexOf('.test.')
+            : file.lastIndexOf('.spec.')
+        );
+        expect(
+          ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx'].some((validExt) =>
+            file.endsWith(validExt)
+          )
+        ).toBe(true);
       });
     });
   });
@@ -268,9 +283,8 @@ describe('Project Structure Validation', () => {
     test('should have migrations directory', () => {
       const migrationsPath = path.join(rootDir, 'migrations');
       expect(fs.existsSync(migrationsPath)).toBe(true);
-      
-      const migrations = fs.readdirSync(migrationsPath)
-        .filter(f => f.endsWith('.sql'));
+
+      const migrations = fs.readdirSync(migrationsPath).filter((f) => f.endsWith('.sql'));
       expect(migrations.length).toBeGreaterThan(0);
     });
   });
@@ -278,7 +292,7 @@ describe('Project Structure Validation', () => {
   describe('Build Output Organization', () => {
     test('should have proper build output structure', () => {
       const distPath = path.join(rootDir, 'dist');
-      
+
       if (fs.existsSync(distPath)) {
         expect(fs.existsSync(path.join(distPath, 'index.js'))).toBe(true);
         expect(fs.existsSync(path.join(distPath, 'public'))).toBe(true);
@@ -293,10 +307,10 @@ describe('Project Structure Validation', () => {
         '.env.local',
         '.env.production',
         'secrets.json',
-        'credentials.json'
+        'credentials.json',
       ];
 
-      sensitiveFiles.forEach(file => {
+      sensitiveFiles.forEach((file) => {
         const filePath = path.join(rootDir, file);
         expect(fs.existsSync(filePath)).toBe(false);
       });

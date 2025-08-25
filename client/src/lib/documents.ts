@@ -64,57 +64,56 @@ export const GENERAL_DOCUMENT_CATEGORIES = [
  * @returns String result.
  */
 export function /**
-   * Get displayable file url.
-   * @param fileUrl - FileUrl parameter.
-   * @returns String result.
-   */ /**
-   * Get displayable file url.
-   * @param fileUrl - FileUrl parameter.
-   * @returns String result.
-   */
+ * Get displayable file url.
+ * @param fileUrl - FileUrl parameter.
+ * @returns String result.
+ */ /**
+ * Get displayable file url.
+ * @param fileUrl - FileUrl parameter.
+ * @returns String result.
+ */
 
- getDisplayableFileUrl(fileUrl: string): string { /**
+getDisplayableFileUrl(fileUrl: string): string {
+  /**
    * If function.
    * @param !fileUrl - !fileUrl parameter.
    */ /**
    * If function.
    * @param !fileUrl - !fileUrl parameter.
    */
-
 
   if (!fileUrl) {
     return '';
   }
-  
+
   // If it's already a proper server route, return as-is
   if (fileUrl.startsWith('/objects/') || fileUrl.startsWith('/public-objects/')) {
     return fileUrl;
   }
-  
+
   // If it's a Google Cloud Storage URL, convert to objects route
   if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
     // Extract the path part after the bucket name
     const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => part.includes('googleapis.com')); /**
-   * If function.
-   * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-   */ /**
-   * If function.
-   * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-   */
-
+    const bucketIndex = urlParts.findIndex((part) => part.includes('googleapis.com')); /**
+     * If function.
+     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
+     */ /**
+     * If function.
+     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
+     */
 
     if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
       const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
       return `/objects/${pathAfterBucket}`;
     }
   }
-  
+
   // If it starts with /objects/, use as-is
   if (fileUrl.startsWith('/objects/')) {
     return fileUrl;
   }
-  
+
   // For other formats, try to use as objects route
   return `/objects/${fileUrl.replace(/^\/+/, '')}`;
 }
@@ -177,38 +176,38 @@ export function createUploadHandler(
   onError?: (_error: Error) => void
 ) {
   return (_result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    try { /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */ /**
-   * If function.
-   * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
-   */
-
+    try {
+      /**
+       * If function.
+       * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+       */ /**
+       * If function.
+       * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
+       */
 
       if (result.successful && result.successful.length > 0) {
         onSuccess?.();
-      } else /**
-   * If function.
-   * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
-   */ /**
-   * If function.
-   * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
-   */
+      } else if (result.failed && result.failed.length > 0) {
+        /**
+         * If function.
+         * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
+         */ /**
+         * If function.
+         * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
+         */
 
- if (result.failed && result.failed.length > 0) {
         const error = new Error(`Upload failed: ${result.failed[0].error}`);
         onError?.(_error);
       }
-    } /**
-   * Catch function.
-   * @param error - Error object.
-   */ /**
-   * Catch function.
-   * @param error - Error object.
-   */
+    } catch (_error) {
+      /**
+       * Catch function.
+       * @param error - Error object.
+       */ /**
+       * Catch function.
+       * @param error - Error object.
+       */
 
- catch (_error) {
       onError?.(error as Error);
     }
   };
@@ -228,20 +227,17 @@ export function createUploadHandler(
  * @returns String result.
  */
 export function /**
-   * Get category label.
-   * @param categories - Categories parameter.
-   * @param value - Value to process.
-   * @returns String result.
-   */ /**
-   * Get category label.
-   * @param categories - Categories parameter.
-   * @param value - Value to process.
-   * @returns String result.
-   */
+ * Get category label.
+ * @param categories - Categories parameter.
+ * @param value - Value to process.
+ * @returns String result.
+ */ /**
+ * Get category label.
+ * @param categories - Categories parameter.
+ * @param value - Value to process.
+ * @returns String result.
+ */
 
- getCategoryLabel(
-  categories: readonly { _value: string; label: string }[],
-  _value: string
-): string {
-  return categories.find(cat => cat.value === _value)?.label || value;
+getCategoryLabel(categories: readonly { _value: string; label: string }[], _value: string): string {
+  return categories.find((cat) => cat.value === _value)?.label || value;
 }

@@ -160,7 +160,9 @@ describe('Budget Business Logic Integration Tests', () => {
       });
 
       // Should show positive cash flow message instead of special contribution
-      expect(screen.getByText('No special contribution required - positive cash flow')).toBeInTheDocument();
+      expect(
+        screen.getByText('No special contribution required - positive cash flow')
+      ).toBeInTheDocument();
     });
 
     it('calculates negative cash flow and special contributions correctly', async () => {

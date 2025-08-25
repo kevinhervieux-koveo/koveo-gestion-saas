@@ -7,7 +7,7 @@ import { validateQuebecTerminology, QUEBEC_TERMINOLOGY_MAP } from './website-tra
 
 /**
  * Terminology Validation Tests.
- * 
+ *
  * Tests to ensure inappropriate terms are not used on the website
  * (equivalent to "terme à éviter" document validation).
  */
@@ -16,8 +16,8 @@ import { validateQuebecTerminology, QUEBEC_TERMINOLOGY_MAP } from './website-tra
  *
  * @param root0
  * @param root0.children
-  * @returns Function result.
-*/
+ * @returns Function result.
+ */
 function TestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -28,9 +28,7 @@ function TestProviders({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter>{children}</MemoryRouter>
     </QueryClientProvider>
   );
 }
@@ -40,7 +38,7 @@ const TERMS_TO_AVOID = {
   // Generic English terms when Quebec French is required
   propertyManagement: [
     'property manager', // Should be: gestionnaire immobilier
-    'tenant', // Should be: locataire  
+    'tenant', // Should be: locataire
     'lease', // Should be: bail
     'condo fees', // Should be: charges de copropriété
     'strata', // Should be: copropriété
@@ -100,7 +98,7 @@ const TERMS_TO_AVOID = {
     'meeting', // Should be: réunion
     'feedback', // Should be: rétroaction
     'upgrade', // Should be: mise à niveau
-  ]
+  ],
 };
 
 describe('Terminology Validation Tests', () => {
@@ -113,8 +111,8 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
-      TERMS_TO_AVOID.propertyManagement.forEach(term => {
+
+      TERMS_TO_AVOID.propertyManagement.forEach((term) => {
         const regex = new RegExp(`\\b${term}\\b`, 'gi');
         expect(pageContent).not.toMatch(regex);
       });
@@ -128,7 +126,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should use appropriate terms
       expect(pageContent).toMatch(/property.*management|gestion.*immobilière/i);
       expect(pageContent).toMatch(/building.*management|gestion.*bâtiments/i);
@@ -145,16 +143,16 @@ describe('Terminology Validation Tests', () => {
       // Check meta descriptions, titles, etc.
       const metaDescription = document.querySelector('meta[name="description"]');
       const title = document.title;
-      
+
       if (metaDescription) {
         const content = metaDescription.getAttribute('content') || '';
-        TERMS_TO_AVOID.propertyManagement.slice(0, 5).forEach(term => {
+        TERMS_TO_AVOID.propertyManagement.slice(0, 5).forEach((term) => {
           expect(content.toLowerCase()).not.toContain(term.toLowerCase());
         });
       }
 
       if (title) {
-        TERMS_TO_AVOID.propertyManagement.slice(0, 3).forEach(term => {
+        TERMS_TO_AVOID.propertyManagement.slice(0, 3).forEach((term) => {
           expect(title.toLowerCase()).not.toContain(term.toLowerCase());
         });
       }
@@ -170,8 +168,8 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
-      TERMS_TO_AVOID.marketing.forEach(term => {
+
+      TERMS_TO_AVOID.marketing.forEach((term) => {
         const regex = new RegExp(`\\b${term}\\b`, 'gi');
         expect(pageContent).not.toMatch(regex);
       });
@@ -185,7 +183,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should use professional terms instead
       expect(pageContent).toMatch(/comprehensive|complete|professional/i);
       expect(pageContent).toMatch(/designed.*specifically/i);
@@ -200,7 +198,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not make unverifiable claims
       expect(pageContent).not.toMatch(/#1|number.*one|first.*choice/i);
       expect(pageContent).not.toMatch(/thousands.*of.*customers/i);
@@ -217,8 +215,8 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
-      TERMS_TO_AVOID.technical.forEach(term => {
+
+      TERMS_TO_AVOID.technical.forEach((term) => {
         const regex = new RegExp(`\\b${term}\\b`, 'gi');
         expect(pageContent).not.toMatch(regex);
       });
@@ -232,7 +230,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should use understandable terms
       expect(pageContent).toMatch(/secure.*platform/i);
       expect(pageContent).toMatch(/cloud.*based/i);
@@ -249,7 +247,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should mention Quebec Law 25, not other jurisdictions
       expect(pageContent).toMatch(/Quebec Law 25/i);
       expect(pageContent).not.toMatch(/GDPR|CCPA|HIPAA|SOX/i);
@@ -263,7 +261,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should be specific about compliance
       expect(pageContent).toMatch(/compliant|compliance/i);
       expect(pageContent).toMatch(/data.*protection/i);
@@ -275,16 +273,18 @@ describe('Terminology Validation Tests', () => {
     it('should not use common anglicisms in French content', () => {
       // This would test French content when language is set to French
       const frenchAnglicisms = TERMS_TO_AVOID.anglicisms;
-      
-      frenchAnglicisms.forEach(anglicism => {
-        expect(QUEBEC_TERMINOLOGY_MAP[anglicism as keyof typeof QUEBEC_TERMINOLOGY_MAP]).toBeDefined();
+
+      frenchAnglicisms.forEach((anglicism) => {
+        expect(
+          QUEBEC_TERMINOLOGY_MAP[anglicism as keyof typeof QUEBEC_TERMINOLOGY_MAP]
+        ).toBeDefined();
       });
     });
 
     it('should use proper Quebec French terminology', () => {
       const quebecTerms = Object.values(QUEBEC_TERMINOLOGY_MAP);
-      
-      quebecTerms.forEach(term => {
+
+      quebecTerms.forEach((term) => {
         expect(typeof term).toBe('string');
         expect(term.length).toBeGreaterThan(0);
         expect(term).not.toMatch(/[A-Z]{2,}/); // No acronyms in French terms
@@ -301,7 +301,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should use property management context
       expect(pageContent).toMatch(/property.*management/i);
       expect(pageContent).toMatch(/building.*management/i);
@@ -317,7 +317,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should not use terms from other domains
       expect(pageContent).not.toMatch(/patient|client.*portal|customer.*service/i);
       expect(pageContent).not.toMatch(/inventory.*management|supply.*chain/i);
@@ -334,7 +334,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should use inclusive terms
       expect(pageContent).not.toMatch(/guys|dudes|mankind/i);
       expect(pageContent).not.toMatch(/grandfathered|whitelist|blacklist/i);
@@ -348,7 +348,7 @@ describe('Terminology Validation Tests', () => {
       );
 
       const pageContent = document.body.textContent || '';
-      
+
       // Should be clear and direct
       expect(pageContent).toMatch(/comprehensive|complete|professional/i);
       expect(pageContent).not.toMatch(/utilize|leverage|synergize/i); // Prefer simpler words
@@ -372,13 +372,13 @@ export function validateContentTerminology(content: string): Array<{
   }> = [];
 
   Object.entries(TERMS_TO_AVOID).forEach(([category, terms]) => {
-    terms.forEach(term => {
+    terms.forEach((term) => {
       const regex = new RegExp(`\\b${term}\\b`, 'gi');
       if (regex.test(content)) {
         violations.push({
           term,
           category: category as keyof typeof TERMS_TO_AVOID,
-          suggestion: QUEBEC_TERMINOLOGY_MAP[term as keyof typeof QUEBEC_TERMINOLOGY_MAP]
+          suggestion: QUEBEC_TERMINOLOGY_MAP[term as keyof typeof QUEBEC_TERMINOLOGY_MAP],
         });
       }
     });
@@ -408,7 +408,7 @@ export function validateQuebecFrenchGuidelines(content: string): Array<{
 
   // Check for anglicisms
   const anglicisms = ['email', 'weekend', 'parking', 'meeting'];
-  anglicisms.forEach(anglicism => {
+  anglicisms.forEach((anglicism) => {
     if (content.toLowerCase().includes(anglicism)) {
       const suggestion = QUEBEC_TERMINOLOGY_MAP[anglicism as keyof typeof QUEBEC_TERMINOLOGY_MAP];
       if (suggestion) {

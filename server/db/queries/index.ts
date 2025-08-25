@@ -1,19 +1,19 @@
 /**
  * Database Queries with Role-Based Access Control.
- * 
+ *
  * This module provides a comprehensive set of database query functions that
  * automatically apply role-based data scoping for the Quebec property management system.
- * 
+ *
  * All queries use the `scopeQuery` function to ensure users only access data
  * they have permission to see based on their role and entity associations.
- * 
+ *
  * @example
  * ```typescript
  * import { getBillsForUser, buildUserContext } from '@/server/db/queries';
- * 
+ *
  * // Build user context from session
  * const userContext = await buildUserContext(userId, userRole);
- * 
+ *
  * // Get scoped bills for the user
  * const bills = await getBillsForUser(userContext);
  * ```
@@ -27,7 +27,7 @@ export {
   getUserAccessibleBuildingIds,
   type UserContext,
   type ScopedQuery,
-  SCOPE_CONFIG
+  SCOPE_CONFIG,
 } from './scope-query';
 
 // Export bill-related queries
@@ -38,7 +38,7 @@ export {
   getBillsByStatus,
   getBillsByDateRange,
   getBillById,
-  getBillSummary
+  getBillSummary,
 } from './bills-queries';
 
 // Export maintenance request queries
@@ -50,7 +50,7 @@ export {
   getMaintenanceRequestsAssignedTo,
   searchMaintenanceRequests,
   getMaintenanceRequestById,
-  getMaintenanceRequestSummary
+  getMaintenanceRequestSummary,
 } from './maintenance-queries';
 
 // Export building-related queries
@@ -62,7 +62,7 @@ export {
   getBuildingStatistics,
   getBuildingsWithOccupancy,
   getBuildingsByType,
-  getBuildingSummary
+  getBuildingSummary,
 } from './building-queries';
 
 // Export user-related queries
@@ -74,7 +74,7 @@ export {
   getUsersForResidence,
   getUsersForBuilding,
   getCurrentUserProfile,
-  getUserSummary
+  getUserSummary,
 } from './user-queries';
 
 /**
@@ -91,7 +91,7 @@ export const QUERY_CATEGORIES = {
 
 /**
  * Helper function to validate user context before running queries.
- * 
+ *
  * @param userContext - User context to validate.
  * @returns Boolean indicating if the context is valid.
  */
@@ -100,7 +100,9 @@ export const QUERY_CATEGORIES = {
  * @param userContext
  * @returns Function result.
  */
-export function isValidUserContext(userContext: unknown): userContext is import('./scope-query').UserContext {
+export function isValidUserContext(
+  userContext: unknown
+): userContext is import('./scope-query').UserContext {
   return (
     userContext &&
     typeof userContext.userId === 'string' &&

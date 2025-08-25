@@ -41,10 +41,10 @@ describe('Demo Organizations System', () => {
     try {
       // Delete demo organizations and all related data
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       if (demoOrg) {
@@ -63,10 +63,10 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       expect(demoOrg).toBeDefined();
@@ -84,22 +84,22 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const buildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
 
       expect(buildings.length).toBeGreaterThan(0);
-      
+
       // Verify different building types exist
-      const buildingTypes = buildings.map(b => b.buildingType);
+      const buildingTypes = buildings.map((b) => b.buildingType);
       expect(buildingTypes).toContain('condo');
       expect(buildingTypes).toContain('rental');
 
       // Verify buildings have required fields
-      buildings.forEach(building => {
+      buildings.forEach((building) => {
         expect(building.name).toBeDefined();
         expect(building.address).toBeDefined();
         expect(building.city).toBe('Montreal');
@@ -113,24 +113,24 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const buildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
 
       expect(buildings.length).toBeGreaterThan(0);
 
       for (const building of buildings) {
         const residences = await db.query.residences.findMany({
-          where: eq(schema.residences.buildingId, building.id)
+          where: eq(schema.residences.buildingId, building.id),
         });
 
         expect(residences.length).toBeGreaterThanOrEqual(building.totalUnits);
 
         // Verify residence data
-        residences.forEach(residence => {
+        residences.forEach((residence) => {
           expect(residence.unitNumber).toBeDefined();
           expect(residence.bedrooms).toBeGreaterThan(0);
           expect(residence.bathrooms).toBeGreaterThan(0);
@@ -143,24 +143,24 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const userOrganizations = await db.query.userOrganizations.findMany({
         where: eq(schema.userOrganizations.organizationId, demoOrg!.id),
-        with: { user: true }
+        with: { user: true },
       });
 
       expect(userOrganizations.length).toBeGreaterThan(10);
 
-      const roles = userOrganizations.map(uo => uo.user.role);
+      const roles = userOrganizations.map((uo) => uo.user.role);
       expect(roles).toContain('admin');
       expect(roles).toContain('manager');
       expect(roles).toContain('tenant');
       expect(roles).toContain('resident');
 
       // Verify admin user exists
-      const adminUser = userOrganizations.find(uo => uo.user.role === 'admin');
+      const adminUser = userOrganizations.find((uo) => uo.user.role === 'admin');
       expect(adminUser).toBeDefined();
       if (adminUser) {
         expect(adminUser.user.firstName).toBe('Admin');
@@ -172,35 +172,35 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const buildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
 
       for (const building of buildings) {
         // Check bills
         const bills = await db.query.bills.findMany({
-          where: eq(schema.bills.buildingId, building.id)
+          where: eq(schema.bills.buildingId, building.id),
         });
         expect(bills.length).toBeGreaterThan(0);
 
         // Check budgets
         const budgets = await db.query.budgets.findMany({
-          where: eq(schema.budgets.buildingId, building.id)
+          where: eq(schema.budgets.buildingId, building.id),
         });
         expect(budgets.length).toBeGreaterThan(0);
 
         // Check monthly budgets
         const monthlyBudgets = await db.query.monthlyBudgets.findMany({
-          where: eq(schema.monthlyBudgets.buildingId, building.id)
+          where: eq(schema.monthlyBudgets.buildingId, building.id),
         });
         expect(monthlyBudgets.length).toBeGreaterThan(0);
 
         // Check money flow
         const moneyFlow = await db.query.moneyFlow.findMany({
-          where: eq(schema.moneyFlow.buildingId, building.id)
+          where: eq(schema.moneyFlow.buildingId, building.id),
         });
         expect(moneyFlow.length).toBeGreaterThan(0);
       }
@@ -210,37 +210,37 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const buildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
 
       const residences = await db.query.residences.findMany({
-        where: eq(schema.residences.buildingId, buildings[0].id)
+        where: eq(schema.residences.buildingId, buildings[0].id),
       });
 
       // Check maintenance requests
       const maintenanceRequests = await db.query.maintenanceRequests.findMany({
-        where: eq(schema.maintenanceRequests.residenceId, residences[0].id)
+        where: eq(schema.maintenanceRequests.residenceId, residences[0].id),
       });
       expect(maintenanceRequests.length).toBeGreaterThanOrEqual(0);
 
       // Check demands
       const demands = await db.query.demands.findMany({
-        where: eq(schema.demands.buildingId, buildings[0].id)
+        where: eq(schema.demands.buildingId, buildings[0].id),
       });
       expect(demands.length).toBeGreaterThanOrEqual(0);
 
       // Check notifications
       const userOrgs = await db.query.userOrganizations.findMany({
-        where: eq(schema.userOrganizations.organizationId, demoOrg!.id)
+        where: eq(schema.userOrganizations.organizationId, demoOrg!.id),
       });
 
       if (userOrgs.length > 0) {
         const notifications = await db.query.notifications.findMany({
-          where: eq(schema.notifications.userId, userOrgs[0].userId)
+          where: eq(schema.notifications.userId, userOrgs[0].userId),
         });
         expect(notifications.length).toBeGreaterThanOrEqual(0);
       }
@@ -250,11 +250,11 @@ describe('Demo Organizations System', () => {
       await createComprehensiveDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const userOrgs = await db.query.userOrganizations.findMany({
-        where: eq(schema.userOrganizations.organizationId, demoOrg!.id)
+        where: eq(schema.userOrganizations.organizationId, demoOrg!.id),
       });
 
       if (userOrgs.length > 0) {
@@ -262,13 +262,13 @@ describe('Demo Organizations System', () => {
 
         // Check bugs
         const bugs = await db.query.bugs.findMany({
-          where: eq(schema.bugs.createdBy, userId)
+          where: eq(schema.bugs.createdBy, userId),
         });
         expect(bugs.length).toBeGreaterThanOrEqual(0);
 
         // Check feature requests
         const featureRequests = await db.query.featureRequests.findMany({
-          where: eq(schema.featureRequests.createdBy, userId)
+          where: eq(schema.featureRequests.createdBy, userId),
         });
         expect(featureRequests.length).toBeGreaterThanOrEqual(0);
       }
@@ -285,10 +285,10 @@ describe('Demo Organizations System', () => {
       await duplicateDemoToOpenDemo();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       expect(demoOrg).toBeDefined();
@@ -296,10 +296,10 @@ describe('Demo Organizations System', () => {
 
       // Get building counts
       const demoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
       const openDemoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, openDemoOrg!.id)
+        where: eq(schema.buildings.organizationId, openDemoOrg!.id),
       });
 
       expect(openDemoBuildings.length).toBe(demoBuildings.length);
@@ -307,8 +307,8 @@ describe('Demo Organizations System', () => {
       // Verify building data is duplicated correctly
       for (let i = 0; i < demoBuildings.length; i++) {
         const demoBuilding = demoBuildings[i];
-        const openDemoBuilding = openDemoBuildings.find(b => b.name === demoBuilding.name);
-        
+        const openDemoBuilding = openDemoBuildings.find((b) => b.name === demoBuilding.name);
+
         expect(openDemoBuilding).toBeDefined();
         expect(openDemoBuilding?.address).toBe(demoBuilding.address);
         expect(openDemoBuilding?.buildingType).toBe(demoBuilding.buildingType);
@@ -320,18 +320,18 @@ describe('Demo Organizations System', () => {
       await duplicateDemoToOpenDemo();
 
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       const openDemoUserOrgs = await db.query.userOrganizations.findMany({
         where: eq(schema.userOrganizations.organizationId, openDemoOrg!.id),
-        with: { user: true }
+        with: { user: true },
       });
 
       expect(openDemoUserOrgs.length).toBeGreaterThan(0);
 
       // Verify email domains are changed
-      openDemoUserOrgs.forEach(userOrg => {
+      openDemoUserOrgs.forEach((userOrg) => {
         if (userOrg.user?.email) {
           expect(userOrg.user.email).toContain('@opendemo.com');
           expect(userOrg.user.email).not.toContain('@demo.com');
@@ -343,11 +343,11 @@ describe('Demo Organizations System', () => {
       await duplicateDemoToOpenDemo();
 
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       const openDemoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, openDemoOrg!.id)
+        where: eq(schema.buildings.organizationId, openDemoOrg!.id),
       });
 
       expect(openDemoBuildings.length).toBeGreaterThan(0);
@@ -355,7 +355,7 @@ describe('Demo Organizations System', () => {
       // Check that residences are properly linked to buildings
       for (const building of openDemoBuildings) {
         const residences = await db.query.residences.findMany({
-          where: eq(schema.residences.buildingId, building.id)
+          where: eq(schema.residences.buildingId, building.id),
         });
         expect(residences.length).toBe(building.totalUnits);
       }
@@ -371,10 +371,10 @@ describe('Demo Organizations System', () => {
       await ComprehensiveDemoSyncService.runFullSync();
 
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       expect(demoOrg).toBeDefined();
@@ -382,10 +382,10 @@ describe('Demo Organizations System', () => {
 
       // Verify data was synchronized
       const demoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
       const openDemoBuildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, openDemoOrg!.id)
+        where: eq(schema.buildings.organizationId, openDemoOrg!.id),
       });
 
       expect(openDemoBuildings.length).toBe(demoBuildings.length);
@@ -395,7 +395,7 @@ describe('Demo Organizations System', () => {
   describe('Demo Management Service', () => {
     it('should check demo health when no orgs exist', async () => {
       const health = await DemoManagementService.checkDemoHealth();
-      
+
       expect(health.healthy).toBe(false);
       expect(health.status).toBeDefined();
       expect(health.message).toContain('need attention');
@@ -404,17 +404,17 @@ describe('Demo Organizations System', () => {
 
     it('should ensure demo organizations exist', async () => {
       const result = await DemoManagementService.ensureDemoOrganizations();
-      
+
       expect(result.success).toBe(true);
       expect(result.demoOrgId).toBeDefined();
       expect(result.openDemoOrgId).toBeDefined();
 
       // Verify organizations were created
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
       const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Open Demo')
+        where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       expect(demoOrg).toBeDefined();
@@ -453,30 +453,30 @@ describe('Demo Organizations System', () => {
 
     it('should maintain referential integrity between tables', async () => {
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const buildings = await db.query.buildings.findMany({
-        where: eq(schema.buildings.organizationId, demoOrg!.id)
+        where: eq(schema.buildings.organizationId, demoOrg!.id),
       });
 
       for (const building of buildings) {
         // Check residences reference valid buildings
         const residences = await db.query.residences.findMany({
-          where: eq(schema.residences.buildingId, building.id)
+          where: eq(schema.residences.buildingId, building.id),
         });
 
         expect(residences.length).toBeGreaterThan(0);
 
         // Check bills reference valid buildings
         const bills = await db.query.bills.findMany({
-          where: eq(schema.bills.buildingId, building.id)
+          where: eq(schema.bills.buildingId, building.id),
         });
 
         // All bills should have valid created_by references
         for (const bill of bills) {
           const creator = await db.query.users.findFirst({
-            where: eq(schema.users.id, bill.createdBy)
+            where: eq(schema.users.id, bill.createdBy),
           });
           expect(creator).toBeDefined();
         }
@@ -485,7 +485,7 @@ describe('Demo Organizations System', () => {
 
     it('should have consistent user-residence relationships', async () => {
       const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo')
+        where: eq(schema.organizations.name, 'Demo'),
       });
 
       const userResidences = await db.query.userResidences.findMany();
@@ -493,13 +493,13 @@ describe('Demo Organizations System', () => {
       for (const userRes of userResidences) {
         // Verify user exists
         const user = await db.query.users.findFirst({
-          where: eq(schema.users.id, userRes.userId)
+          where: eq(schema.users.id, userRes.userId),
         });
         expect(user).toBeDefined();
 
         // Verify residence exists
         const residence = await db.query.residences.findFirst({
-          where: eq(schema.residences.id, userRes.residenceId)
+          where: eq(schema.residences.id, userRes.residenceId),
         });
         expect(residence).toBeDefined();
 

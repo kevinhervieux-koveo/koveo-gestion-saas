@@ -52,10 +52,7 @@ export const billCategoryEnum = pgEnum('bill_category', [
   'other',
 ]);
 
-export const paymentTypeEnum = pgEnum('payment_type', [
-  'unique',
-  'recurrent',
-]);
+export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent']);
 
 export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'weekly',
@@ -65,10 +62,7 @@ export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'custom',
 ]);
 
-export const moneyFlowTypeEnum = pgEnum('money_flow_type', [
-  'income',
-  'expense',
-]);
+export const moneyFlowTypeEnum = pgEnum('money_flow_type', ['income', 'expense']);
 
 export const moneyFlowCategoryEnum = pgEnum('money_flow_category', [
   'monthly_fees',

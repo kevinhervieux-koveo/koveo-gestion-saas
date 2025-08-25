@@ -1,7 +1,7 @@
 /**
  * Database Orphan Detection Tests.
- * 
- * This test suite detects orphaned records in the database where foreign key 
+ *
+ * This test suite detects orphaned records in the database where foreign key
  * relationships have been broken. These tests should be run regularly to ensure
  * data integrity after any database operations.
  */
@@ -11,7 +11,6 @@ import { db } from '../../db';
 import { sql } from 'drizzle-orm';
 
 describe('Database Orphan Detection', () => {
-
   describe('Orphaned Residences', () => {
     it('should not have residences without valid buildings', async () => {
       const orphanedResidences = await db.execute(sql`
@@ -26,7 +25,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedResidences.rows.length).toBe(0);
-      
+
       if (orphanedResidences.rows.length > 0) {
         console.error('Orphaned residences found:', orphanedResidences.rows);
       }
@@ -48,7 +47,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedUserResidences.rows.length).toBe(0);
-      
+
       if (orphanedUserResidences.rows.length > 0) {
         console.error('Orphaned user-residence assignments found:', orphanedUserResidences.rows);
       }
@@ -69,7 +68,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedBuildings.rows.length).toBe(0);
-      
+
       if (orphanedBuildings.rows.length > 0) {
         console.error('Orphaned buildings found:', orphanedBuildings.rows);
       }
@@ -96,7 +95,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedDemands.rows.length).toBe(0);
-      
+
       if (orphanedDemands.rows.length > 0) {
         console.error('Orphaned demands found:', orphanedDemands.rows);
       }
@@ -127,7 +126,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedContacts.rows.length).toBe(0);
-      
+
       if (orphanedContacts.rows.length > 0) {
         console.error('Orphaned contacts found:', orphanedContacts.rows);
       }
@@ -150,9 +149,12 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedDocumentBuildings.rows.length).toBe(0);
-      
+
       if (orphanedDocumentBuildings.rows.length > 0) {
-        console.error('Orphaned document-building relationships found:', orphanedDocumentBuildings.rows);
+        console.error(
+          'Orphaned document-building relationships found:',
+          orphanedDocumentBuildings.rows
+        );
       }
 
       // Check document_residents for orphaned references
@@ -169,9 +171,12 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedDocumentResidents.rows.length).toBe(0);
-      
+
       if (orphanedDocumentResidents.rows.length > 0) {
-        console.error('Orphaned document-resident relationships found:', orphanedDocumentResidents.rows);
+        console.error(
+          'Orphaned document-resident relationships found:',
+          orphanedDocumentResidents.rows
+        );
       }
     });
   });
@@ -190,7 +195,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedBills.rows.length).toBe(0);
-      
+
       if (orphanedBills.rows.length > 0) {
         console.error('Orphaned bills found:', orphanedBills.rows);
       }
@@ -214,7 +219,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(orphanedMaintenance.rows.length).toBe(0);
-      
+
       if (orphanedMaintenance.rows.length > 0) {
         console.error('Orphaned maintenance requests found:', orphanedMaintenance.rows);
       }
@@ -263,7 +268,7 @@ describe('Database Orphan Detection', () => {
       `);
 
       expect(integrityReport.rows.length).toBe(0);
-      
+
       if (integrityReport.rows.length > 0) {
         console.error('Database integrity issues found:', integrityReport.rows);
         integrityReport.rows.forEach((row: any) => {

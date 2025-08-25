@@ -7,10 +7,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { LanguageProvider } from '@/hooks/use-language';
 
 // Create a custom render function that includes providers
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => {
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -28,9 +25,7 @@ const customRender = (
       <QueryClientProvider client={queryClient}>
         <Router>
           <LanguageProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <AuthProvider>{children}</AuthProvider>
           </LanguageProvider>
         </Router>
       </QueryClientProvider>
@@ -45,7 +40,7 @@ export const waitFor = (callback: () => void, options?: Parameters<typeof origin
   return originalWaitFor(callback, {
     timeout: 12000,
     interval: 100,
-    ...options
+    ...options,
   });
 };
 
@@ -59,7 +54,11 @@ export const findByTextWithTimeout = async (text: string, timeout = 10000) => {
   return await screen.findByText(text, {}, { timeout });
 };
 
-export const findByRoleWithTimeout = async (role: any, _options: Parameters<typeof screen.findByRole>[1] = {}, timeout = 10000) => {
+export const findByRoleWithTimeout = async (
+  role: any,
+  _options: Parameters<typeof screen.findByRole>[1] = {},
+  timeout = 10000
+) => {
   return await screen.findByRole(role, options, { timeout });
 };
 
@@ -70,9 +69,9 @@ export const waitForElementToBeStable = async (elementSelector: () => HTMLElemen
     element = elementSelector();
     expect(element).toBeInTheDocument();
   });
-  
+
   // Additional wait to ensure element is stable
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, 200));
   return element;
 };
 

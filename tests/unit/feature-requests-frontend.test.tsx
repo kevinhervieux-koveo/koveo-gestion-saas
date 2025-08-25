@@ -9,31 +9,33 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { AuthProvider } from '@/hooks/use-auth';
 
 // Mock components for testing
-const MemoryRouter = ({ children }: { children: React.ReactNode; initialEntries?: string[] }) => <div>{children}</div>;
+const MemoryRouter = ({ children }: { children: React.ReactNode; initialEntries?: string[] }) => (
+  <div>{children}</div>
+);
 const IdeaBox = () => (
-  <div data-testid="idea-box">
+  <div data-testid='idea-box'>
     <h1>Idea Box</h1>
     <p>Submit and vote on feature suggestions</p>
-    <button data-testid="button-create-feature-request">Submit Idea</button>
-    <input data-testid="input-search-features" placeholder="Search features..." />
-    <select data-testid="select-status-filter">
+    <button data-testid='button-create-feature-request'>Submit Idea</button>
+    <input data-testid='input-search-features' placeholder='Search features...' />
+    <select data-testid='select-status-filter'>
       <option>All</option>
     </select>
-    <select data-testid="select-category-filter">
+    <select data-testid='select-category-filter'>
       <option>All Categories</option>
     </select>
-    <select data-testid="select-sort-by">
+    <select data-testid='select-sort-by'>
       <option>Latest</option>
     </select>
-    <div data-testid="loading-indicator">Loading feature requests...</div>
-    <div data-testid="empty-state">
+    <div data-testid='loading-indicator'>Loading feature requests...</div>
+    <div data-testid='empty-state'>
       <p>No feature requests found</p>
       <p>Be the first to submit a feature request!</p>
     </div>
-    <div data-testid="badge-status-feature-1">New</div>
-    <div data-testid="badge-status-feature-2">In Progress</div>
-    <div data-testid="text-feature-description-feature-1">Feature description</div>
-    <div data-testid="text-feature-need-feature-1">Business need</div>
+    <div data-testid='badge-status-feature-1'>New</div>
+    <div data-testid='badge-status-feature-2'>In Progress</div>
+    <div data-testid='text-feature-description-feature-1'>Feature description</div>
+    <div data-testid='text-feature-need-feature-1'>Business need</div>
   </div>
 );
 const LanguageProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
@@ -55,10 +57,10 @@ const mockAdminAuth = {
       lastName: 'Admin',
       email: 'admin@test.com',
       role: 'admin',
-      language: 'fr'
-    }
+      language: 'fr',
+    },
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 };
 
 // Mock authentication hook for regular user
@@ -72,10 +74,10 @@ const mockRegularAuth = {
       lastName: 'User',
       email: 'user@test.com',
       role: 'tenant',
-      language: 'fr'
-    }
+      language: 'fr',
+    },
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 };
 
 // Sample feature requests for testing
@@ -96,7 +98,7 @@ const mockFeatureRequests = [
     adminNotes: null,
     mergedIntoId: null,
     createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
+    updatedAt: '2024-01-15T10:00:00Z',
   },
   {
     id: 'feature-2',
@@ -114,8 +116,8 @@ const mockFeatureRequests = [
     adminNotes: 'Starting development next sprint',
     mergedIntoId: null,
     createdAt: '2024-01-10T08:30:00Z',
-    updatedAt: '2024-01-16T14:30:00Z'
-  }
+    updatedAt: '2024-01-16T14:30:00Z',
+  },
 ];
 
 // Mock API calls
@@ -123,14 +125,14 @@ const mockQueryResult = {
   data: mockFeatureRequests,
   isLoading: false,
   error: null,
-  refetch: jest.fn()
+  refetch: jest.fn(),
 };
 
 const mockMutationResult = {
   mutate: jest.fn(),
   isPending: false,
   isError: false,
-  error: null
+  error: null,
 };
 
 jest.mock('@tanstack/react-query', () => ({
@@ -138,8 +140,8 @@ jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(() => mockQueryResult),
   useMutation: jest.fn(() => mockMutationResult),
   useQueryClient: jest.fn(() => ({
-    invalidateQueries: jest.fn()
-  }))
+    invalidateQueries: jest.fn(),
+  })),
 }));
 
 /**
@@ -149,30 +151,28 @@ jest.mock('@tanstack/react-query', () => ({
  * @param root0.isAdmin - Whether user has admin privileges.
  * @returns JSX element with necessary providers.
  */
-function TestWrapper({ 
-  children, 
-  isAdmin = true 
-}: { 
+function TestWrapper({
+  children,
+  isAdmin = true,
+}: {
   children: React.ReactNode;
   isAdmin?: boolean;
 }) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   // Mock auth based on isAdmin parameter
-  jest.doMock('@/hooks/use-auth', () => isAdmin ? mockAdminAuth : mockRegularAuth);
+  jest.doMock('@/hooks/use-auth', () => (isAdmin ? mockAdminAuth : mockRegularAuth));
 
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/settings/idea-box']}>
         <LanguageProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -187,7 +187,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Page Rendering and Initial State', () => {
     test('renders idea-box page with correct title and components', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -202,7 +202,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('displays filter controls correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -216,7 +216,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('displays feature requests when data is available', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -237,7 +237,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('opens create dialog when Submit Idea button is clicked', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -260,7 +260,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('validates required fields in create form', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -287,7 +287,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('submits feature request with valid data', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper>
           <IdeaBox />
@@ -304,8 +304,14 @@ describe('Feature Requests Frontend Tests', () => {
 
       // Fill form
       await _user.type(screen.getByTestId('input-feature-title'), 'Test Feature');
-      await _user.type(screen.getByTestId('textarea-feature-description'), 'This is a test feature request with detailed description.');
-      await _user.type(screen.getByTestId('textarea-feature-need'), 'This addresses the need for testing.');
+      await _user.type(
+        screen.getByTestId('textarea-feature-description'),
+        'This is a test feature request with detailed description.'
+      );
+      await _user.type(
+        screen.getByTestId('textarea-feature-need'),
+        'This addresses the need for testing.'
+      );
       await _user.type(screen.getByTestId('input-feature-page'), 'Test Page');
 
       // Submit form
@@ -319,7 +325,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Admin Functionality', () => {
     test('shows edit menu for admin users', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      
+
       render(
         <TestWrapper isAdmin={true}>
           <IdeaBox />
@@ -335,7 +341,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('makes feature request cards clickable for admin', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={true}>
           <IdeaBox />
@@ -351,7 +357,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('opens edit dialog when admin clicks on feature request card', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={true}>
           <IdeaBox />
@@ -375,7 +381,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('edit dialog includes status and admin fields', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={true}>
           <IdeaBox />
@@ -401,7 +407,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Regular User Functionality', () => {
     test('hides admin controls for regular users', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -419,7 +425,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('makes feature request cards non-clickable for regular users', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -436,7 +442,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Upvoting Functionality', () => {
     test('displays upvote buttons for all users', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -451,7 +457,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('shows correct upvote counts', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -461,7 +467,7 @@ describe('Feature Requests Frontend Tests', () => {
       await waitFor(() => {
         const upvoteButton1 = screen.getByTestId('button-upvote-feature-1');
         const upvoteButton2 = screen.getByTestId('button-upvote-feature-2');
-        
+
         expect(upvoteButton1).toHaveTextContent('5');
         expect(upvoteButton2).toHaveTextContent('12');
       });
@@ -470,7 +476,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('triggers upvote mutation when clicked', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -492,7 +498,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('search input filters feature requests', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -513,7 +519,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('status filter works correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -537,7 +543,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('category filter works correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -561,7 +567,7 @@ describe('Feature Requests Frontend Tests', () => {
     test('sort options work correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
       const _user = userEvent.setup();
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -586,7 +592,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Status Badges and Visual Elements', () => {
     test('displays correct status badges', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -607,7 +613,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('displays feature descriptions and needs correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -622,7 +628,9 @@ describe('Feature Requests Frontend Tests', () => {
       const description = screen.getByTestId('text-feature-description-feature-1');
       const need = screen.getByTestId('text-feature-need-feature-1');
 
-      expect(description).toHaveTextContent('Add more detailed analytics and reporting capabilities');
+      expect(description).toHaveTextContent(
+        'Add more detailed analytics and reporting capabilities'
+      );
       expect(need).toHaveTextContent('Users need better insights into their property performance');
     });
   });
@@ -633,19 +641,19 @@ describe('Feature Requests Frontend Tests', () => {
       const loadingQueryResult = {
         ...mockQueryResult,
         isLoading: true,
-        data: undefined
+        data: undefined,
       };
-      
+
       jest.doMock('@tanstack/react-query', () => ({
         ...jest.requireActual('@tanstack/react-query'),
         useQuery: jest.fn(() => loadingQueryResult),
         useMutation: jest.fn(() => mockMutationResult),
         useQueryClient: jest.fn(() => ({
-          invalidateQueries: jest.fn()
-        }))
+          invalidateQueries: jest.fn(),
+        })),
       }));
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />
@@ -659,19 +667,19 @@ describe('Feature Requests Frontend Tests', () => {
       // Mock empty state
       const emptyQueryResult = {
         ...mockQueryResult,
-        data: []
+        data: [],
       };
-      
+
       jest.doMock('@tanstack/react-query', () => ({
         ...jest.requireActual('@tanstack/react-query'),
         useQuery: jest.fn(() => emptyQueryResult),
         useMutation: jest.fn(() => mockMutationResult),
         useQueryClient: jest.fn(() => ({
-          invalidateQueries: jest.fn()
-        }))
+          invalidateQueries: jest.fn(),
+        })),
       }));
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      
+
       render(
         <TestWrapper isAdmin={false}>
           <IdeaBox />

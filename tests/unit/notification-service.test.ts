@@ -6,18 +6,18 @@ jest.mock('../../server/db', () => ({
   db: {
     select: jest.fn(() => ({
       from: jest.fn(() => ({
-        where: jest.fn().mockResolvedValue([])
-      }))
+        where: jest.fn().mockResolvedValue([]),
+      })),
     })),
     insert: jest.fn(() => ({
-      values: jest.fn().mockResolvedValue([])
-    }))
-  }
+      values: jest.fn().mockResolvedValue([]),
+    })),
+  },
 }));
 
 jest.mock('@sendgrid/mail', () => ({
   setApiKey: jest.fn(),
-  send: jest.fn().mockResolvedValue([{ statusCode: 202 }])
+  send: jest.fn().mockResolvedValue([{ statusCode: 202 }]),
 }));
 
 describe('NotificationService', () => {
@@ -34,11 +34,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle SSL expiry alerts', async () => {
-      const _result = await notificationService.sendSSLExpiryAlert(
-        'test.com',
-        new Date(),
-        7
-      );
+      const _result = await notificationService.sendSSLExpiryAlert('test.com', new Date(), 7);
       expect(_result).toBeDefined();
     });
 
@@ -53,10 +49,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle SSL renewal success alerts', async () => {
-      const _result = await notificationService.sendSSLRenewalSuccessAlert(
-        'test.com',
-        new Date()
-      );
+      const _result = await notificationService.sendSSLRenewalSuccessAlert('test.com', new Date());
       expect(_result).toBeDefined();
     });
   });

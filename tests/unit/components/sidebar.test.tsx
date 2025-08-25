@@ -29,7 +29,7 @@ describe('Sidebar Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockUseMobileMenu.mockReturnValue({
       isMobileMenuOpen: false,
       closeMobileMenu: mockCloseMobileMenu,
@@ -172,7 +172,7 @@ describe('Sidebar Component', () => {
       );
 
       const adminSection = screen.getByText('Admin');
-      
+
       // Expand
       fireEvent.click(adminSection);
       await waitFor(() => {
@@ -318,9 +318,9 @@ describe('Sidebar Component', () => {
 
       const adminSection = screen.getByText('Admin');
       adminSection.focus();
-      
+
       fireEvent.keyDown(adminSection, { _key: 'Enter' });
-      
+
       expect(screen.getByText('Organizations')).toBeInTheDocument();
     });
 

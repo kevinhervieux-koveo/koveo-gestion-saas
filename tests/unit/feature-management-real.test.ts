@@ -28,32 +28,35 @@ describe('Feature Management API Tests (Real Data)', () => {
     registerFeatureManagementRoutes(app);
 
     // Create test features for testing
-    const testFeatures = await db.insert(features).values([
-      {
-        name: 'Test Feature Status Update',
-        description: 'Test feature for status updates',
-        category: 'Property Management',
-        status: 'submitted',
-        isPublicRoadmap: false,
-        isStrategicPath: false,
-        businessObjective: 'Test API functionality',
-        targetUsers: 'Development team',
-        successMetrics: 'All tests passing',
-      },
-      {
-        name: 'Test Feature Strategic Path',
-        description: 'Test feature for strategic path testing',
-        category: 'Property Management', 
-        status: 'in-progress',
-        isPublicRoadmap: false,
-        isStrategicPath: false,
-        businessObjective: 'Test strategic path functionality',
-        targetUsers: 'Development team',
-        successMetrics: 'Strategic path toggles correctly',
-      },
-    ]).returning({ id: features.id });
+    const testFeatures = await db
+      .insert(features)
+      .values([
+        {
+          name: 'Test Feature Status Update',
+          description: 'Test feature for status updates',
+          category: 'Property Management',
+          status: 'submitted',
+          isPublicRoadmap: false,
+          isStrategicPath: false,
+          businessObjective: 'Test API functionality',
+          targetUsers: 'Development team',
+          successMetrics: 'All tests passing',
+        },
+        {
+          name: 'Test Feature Strategic Path',
+          description: 'Test feature for strategic path testing',
+          category: 'Property Management',
+          status: 'in-progress',
+          isPublicRoadmap: false,
+          isStrategicPath: false,
+          businessObjective: 'Test strategic path functionality',
+          targetUsers: 'Development team',
+          successMetrics: 'Strategic path toggles correctly',
+        },
+      ])
+      .returning({ id: features.id });
 
-    testFeatureIds = testFeatures.map(f => f.id);
+    testFeatureIds = testFeatures.map((f) => f.id);
   });
 
   afterAll(async () => {
@@ -104,8 +107,15 @@ describe('Feature Management API Tests (Real Data)', () => {
 
     it('should accept all valid status values', async () => {
       const featureId = testFeatureIds[0];
-      const validStatuses = ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'];
-      
+      const validStatuses = [
+        'submitted',
+        'planned',
+        'in-progress',
+        'ai-analyzed',
+        'completed',
+        'cancelled',
+      ];
+
       for (const status of validStatuses) {
         await request(app)
           .post(`/api/features/${featureId}/update-status`)
@@ -183,9 +193,7 @@ describe('Feature Management API Tests (Real Data)', () => {
         .send({ status: 'in-progress' })
         .expect(200);
 
-      const response = await request(app)
-        .post(`/api/features/${featureId}/analyze`)
-        .expect(200);
+      const response = await request(app).post(`/api/features/${featureId}/analyze`).expect(200);
 
       expect(response.body.message).toBe('Analysis completed successfully');
       expect(response.body.feature.status).toBe('ai-analyzed');
@@ -204,9 +212,7 @@ describe('Feature Management API Tests (Real Data)', () => {
         .send({ status: 'submitted' })
         .expect(200);
 
-      const response = await request(app)
-        .post(`/api/features/${featureId}/analyze`)
-        .expect(400);
+      const response = await request(app).post(`/api/features/${featureId}/analyze`).expect(400);
 
       expect(response.body.message).toContain('must be in "in-progress" status');
     });

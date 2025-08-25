@@ -23,7 +23,7 @@ const billFilterSchema = z.object({
   category: z.string().optional(),
   year: z.string().optional(),
   status: z.enum(['all', 'draft', 'sent', 'overdue', 'paid', 'cancelled']).optional(),
-  months: z.string().optional() // Comma-separated month numbers (e.g., "1,3,6,12")
+  months: z.string().optional(), // Comma-separated month numbers (e.g., "1,3,6,12")
 });
 
 const createBillSchema = z.object({
@@ -32,7 +32,7 @@ const createBillSchema = z.object({
   description: z.string().optional(),
   category: z.enum([
     'insurance',
-    'maintenance', 
+    'maintenance',
     'salary',
     'utilities',
     'cleaning',
@@ -45,7 +45,7 @@ const createBillSchema = z.object({
     'taxes',
     'technology',
     'reserves',
-    'other'
+    'other',
   ]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
@@ -56,7 +56,7 @@ const createBillSchema = z.object({
   startDate: z.string(),
   endDate: z.string().optional(),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 });
 
 const updateBillSchema = createBillSchema.partial();
@@ -73,8 +73,8 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
 });
 
 /**
@@ -97,27 +97,27 @@ export function registerBillRoutes(app: Express) {
 
       // Build the WHERE conditions
       const conditions = [];
-      
+
       if (buildingId && buildingId !== 'all') {
         conditions.push(eq(bills.buildingId, buildingId));
       }
-      
+
       if (category && category !== 'all') {
         conditions.push(eq(bills.category, category));
       }
-      
+
       if (year) {
         conditions.push(sql`EXTRACT(YEAR FROM ${bills.startDate}) = ${year}`);
       }
-      
+
       if (status && status !== 'all') {
         conditions.push(eq(bills.status, status));
       }
-      
+
       if (months) {
         const monthNumbers = months.split(',').map((m: string) => parseInt(m.trim()));
-        const monthConditions = monthNumbers.map((month: number) => 
-          sql`EXTRACT(MONTH FROM ${bills.startDate}) = ${month}`
+        const monthConditions = monthNumbers.map(
+          (month: number) => sql`EXTRACT(MONTH FROM ${bills.startDate}) = ${month}`
         );
         conditions.push(sql`(${sql.join(monthConditions, sql` OR `)})`);
       }
@@ -141,7 +141,7 @@ export function registerBillRoutes(app: Express) {
           notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
-          updatedAt: bills.updatedAt
+          updatedAt: bills.updatedAt,
         })
         .from(bills)
         .where(whereClause)
@@ -150,9 +150,9 @@ export function registerBillRoutes(app: Express) {
       res.json(billsList);
     } catch (_error) {
       console.error('Error fetching bills:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to fetch bills',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -182,24 +182,24 @@ export function registerBillRoutes(app: Express) {
           notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
-          updatedAt: bills.updatedAt
+          updatedAt: bills.updatedAt,
         })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
 
       if (bill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
       res.json(bill[0]);
     } catch (_error) {
       console.error('Error fetching bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to fetch bill',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -211,16 +211,16 @@ export function registerBillRoutes(app: Express) {
   app.post('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
       const validation = createBillSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid bill data',
-          errors: validation.error.issues
+          errors: validation.error.issues,
         });
       }
 
       const billData = validation.data;
-      
+
       const newBill = await db
         .insert(bills)
         .values({
@@ -233,13 +233,13 @@ export function registerBillRoutes(app: Express) {
           paymentType: billData.paymentType,
           schedulePayment: billData.schedulePayment,
           scheduleCustom: billData.scheduleCustom,
-          costs: billData.costs.map(cost => parseFloat(cost)),
+          costs: billData.costs.map((cost) => parseFloat(cost)),
           totalAmount: parseFloat(billData.totalAmount),
           startDate: billData.startDate,
           endDate: billData.endDate,
           status: billData.status,
           notes: billData.notes,
-          createdBy: req.user.id
+          createdBy: req.user.id,
         })
         .returning();
 
@@ -255,9 +255,9 @@ export function registerBillRoutes(app: Express) {
       res.status(201).json(newBill[0]);
     } catch (_error) {
       console.error('Error creating bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to create bill',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -270,28 +270,50 @@ export function registerBillRoutes(app: Express) {
     try {
       const { id } = req.params;
       const validation = updateBillSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid bill data',
-          errors: validation.error.issues
+          errors: validation.error.issues,
         });
       }
 
       const billData = validation.data;
-      
+
       const updateData: unknown = {};
-      if (billData.title) {updateData.title = billData.title;}
-      if (billData.description) {updateData.description = billData.description;}
-      if (billData.category) {updateData.category = billData.category;}
-      if (billData.vendor) {updateData.vendor = billData.vendor;}
-      if (billData.paymentType) {updateData.paymentType = billData.paymentType;}
-      if (billData.costs) {updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));}
-      if (billData.totalAmount) {updateData.totalAmount = parseFloat(billData.totalAmount);}
-      if (billData.startDate) {updateData.startDate = billData.startDate;}
-      if (billData.endDate) {updateData.endDate = billData.endDate;}
-      if (billData.status) {updateData.status = billData.status;}
-      if (billData.notes) {updateData.notes = billData.notes;}
+      if (billData.title) {
+        updateData.title = billData.title;
+      }
+      if (billData.description) {
+        updateData.description = billData.description;
+      }
+      if (billData.category) {
+        updateData.category = billData.category;
+      }
+      if (billData.vendor) {
+        updateData.vendor = billData.vendor;
+      }
+      if (billData.paymentType) {
+        updateData.paymentType = billData.paymentType;
+      }
+      if (billData.costs) {
+        updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
+      }
+      if (billData.totalAmount) {
+        updateData.totalAmount = parseFloat(billData.totalAmount);
+      }
+      if (billData.startDate) {
+        updateData.startDate = billData.startDate;
+      }
+      if (billData.endDate) {
+        updateData.endDate = billData.endDate;
+      }
+      if (billData.status) {
+        updateData.status = billData.status;
+      }
+      if (billData.notes) {
+        updateData.notes = billData.notes;
+      }
       updateData.updatedAt = new Date();
 
       const updatedBill = await db
@@ -301,17 +323,17 @@ export function registerBillRoutes(app: Express) {
         .returning();
 
       if (updatedBill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
       res.json(updatedBill[0]);
     } catch (_error) {
       console.error('Error updating bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -324,27 +346,47 @@ export function registerBillRoutes(app: Express) {
     try {
       const { id } = req.params;
       const validation = updateBillSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid bill data',
-          errors: validation.error.issues
+          errors: validation.error.issues,
         });
       }
 
       const billData = validation.data;
-      
+
       const updateData: unknown = {};
-      if (billData.title) {updateData.title = billData.title;}
-      if (billData.description) {updateData.description = billData.description;}
-      if (billData.category) {updateData.category = billData.category;}
-      if (billData.vendor) {updateData.vendor = billData.vendor;}
-      if (billData.paymentType) {updateData.paymentType = billData.paymentType;}
-      if (billData.costs) {updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));}
-      if (billData.totalAmount) {updateData.totalAmount = parseFloat(billData.totalAmount);}
-      if (billData.startDate) {updateData.startDate = billData.startDate;}
-      if (billData.status) {updateData.status = billData.status;}
-      if (billData.notes) {updateData.notes = billData.notes;}
+      if (billData.title) {
+        updateData.title = billData.title;
+      }
+      if (billData.description) {
+        updateData.description = billData.description;
+      }
+      if (billData.category) {
+        updateData.category = billData.category;
+      }
+      if (billData.vendor) {
+        updateData.vendor = billData.vendor;
+      }
+      if (billData.paymentType) {
+        updateData.paymentType = billData.paymentType;
+      }
+      if (billData.costs) {
+        updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
+      }
+      if (billData.totalAmount) {
+        updateData.totalAmount = parseFloat(billData.totalAmount);
+      }
+      if (billData.startDate) {
+        updateData.startDate = billData.startDate;
+      }
+      if (billData.status) {
+        updateData.status = billData.status;
+      }
+      if (billData.notes) {
+        updateData.notes = billData.notes;
+      }
       updateData.updatedAt = new Date();
 
       const updatedBill = await db
@@ -354,8 +396,8 @@ export function registerBillRoutes(app: Express) {
         .returning();
 
       if (updatedBill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
@@ -371,9 +413,9 @@ export function registerBillRoutes(app: Express) {
       res.json(updatedBill[0]);
     } catch (_error) {
       console.error('Error updating bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -386,26 +428,23 @@ export function registerBillRoutes(app: Express) {
     try {
       const { id } = req.params;
 
-      const deletedBill = await db
-        .delete(bills)
-        .where(eq(bills.id, id))
-        .returning();
+      const deletedBill = await db.delete(bills).where(eq(bills.id, id)).returning();
 
       if (deletedBill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
-      res.json({ 
+      res.json({
         message: 'Bill deleted successfully',
-        bill: deletedBill[0]
+        bill: deletedBill[0],
       });
     } catch (_error) {
       console.error('Error deleting bill:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to delete bill',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -414,91 +453,95 @@ export function registerBillRoutes(app: Express) {
    * Upload and analyze bill document with Gemini AI
    * POST /api/bills/:id/upload-document.
    */
-  app.post('/api/bills/:id/upload-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
-    try {
-      const { id } = req.params;
-      
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
+  app.post(
+    '/api/bills/:id/upload-document',
+    requireAuth,
+    upload.single('document'),
+    async (req: any, res: any) => {
+      try {
+        const { id } = req.params;
 
-      // Upload to object storage
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      
-      // Read the uploaded file
-      const fileBuffer = fs.readFileSync(req.file.path);
-      
-      // Upload to object storage
-      const uploadResponse = await fetch(uploadURL, {
-        method: 'PUT',
-        body: fileBuffer.buffer,
-        headers: {
-          'Content-Type': req.file.mimetype,
+        if (!req.file) {
+          return res.status(400).json({ message: 'No file uploaded' });
         }
-      });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to object storage');
-      }
+        // Upload to object storage
+        const objectStorageService = new ObjectStorageService();
+        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
 
-      // Get the object path
-      const documentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+        // Read the uploaded file
+        const fileBuffer = fs.readFileSync(req.file.path);
 
-      // Analyze document with Gemini AI (only for images)
-      let analysisResult = null;
-      if (req.file.mimetype.startsWith('image/')) {
-        try {
-          analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
-          console.warn('🤖 Gemini analysis completed:', analysisResult);
-        } catch (_error) {
-          console.error('AI analysis failed:', _error);
-          // Continue without AI analysis
+        // Upload to object storage
+        const uploadResponse = await fetch(uploadURL, {
+          method: 'PUT',
+          body: fileBuffer.buffer,
+          headers: {
+            'Content-Type': req.file.mimetype,
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload file to object storage');
         }
-      }
 
-      // Update bill with document info and AI analysis
-      const updateData: unknown = {
-        documentPath,
-        documentName: req.file.originalname,
-        isAiAnalyzed: !!analysisResult,
-        aiAnalysisData: analysisResult,
-        updatedAt: new Date()
-      };
+        // Get the object path
+        const documentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
 
-      const updatedBill = await db
-        .update(bills)
-        .set(updateData)
-        .where(eq(bills.id, id))
-        .returning();
-
-      // Clean up temporary file
-      fs.unlinkSync(req.file.path);
-
-      res.json({
-        message: 'Document uploaded and analyzed successfully',
-        bill: updatedBill[0],
-        analysisResult
-      });
-
-    } catch (_error) {
-      console.error('Error uploading document:', _error);
-      
-      // Clean up temporary file if it exists
-      if (req.file?.path) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (___cleanupError) {
-          console.error('Error cleaning up temp file:', cleanupError);
+        // Analyze document with Gemini AI (only for images)
+        let analysisResult = null;
+        if (req.file.mimetype.startsWith('image/')) {
+          try {
+            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+            console.warn('🤖 Gemini analysis completed:', analysisResult);
+          } catch (_error) {
+            console.error('AI analysis failed:', _error);
+            // Continue without AI analysis
+          }
         }
+
+        // Update bill with document info and AI analysis
+        const updateData: unknown = {
+          documentPath,
+          documentName: req.file.originalname,
+          isAiAnalyzed: !!analysisResult,
+          aiAnalysisData: analysisResult,
+          updatedAt: new Date(),
+        };
+
+        const updatedBill = await db
+          .update(bills)
+          .set(updateData)
+          .where(eq(bills.id, id))
+          .returning();
+
+        // Clean up temporary file
+        fs.unlinkSync(req.file.path);
+
+        res.json({
+          message: 'Document uploaded and analyzed successfully',
+          bill: updatedBill[0],
+          analysisResult,
+        });
+      } catch (_error) {
+        console.error('Error uploading document:', _error);
+
+        // Clean up temporary file if it exists
+        if (req.file?.path) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (___cleanupError) {
+            console.error('Error cleaning up temp file:', cleanupError);
+          }
+        }
+
+        res.status(500).json({
+          message: 'Failed to upload document',
+          _error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
-      
-      res.status(500).json({ 
-        message: 'Failed to upload document',
-        _error: error instanceof Error ? error.message : 'Unknown error'
-      });
     }
-  });
+  );
 
   /**
    * Apply AI analysis to bill form data
@@ -507,29 +550,25 @@ export function registerBillRoutes(app: Express) {
   app.post('/api/bills/:id/apply-ai-analysis', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
-      
+
       // Get the bill with AI analysis data
-      const bill = await db
-        .select()
-        .from(bills)
-        .where(eq(bills.id, id))
-        .limit(1);
+      const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
-      
+
       if (!billData.isAiAnalyzed || !billData.aiAnalysisData) {
         return res.status(400).json({ message: 'No AI analysis data available for this bill' });
       }
 
       const analysis = billData.aiAnalysisData as any;
-      
+
       // Get payment schedule suggestion
       const scheduleSignestion = await geminiBillAnalyzer.suggestPaymentSchedule(
-        analysis.category, 
+        analysis.category,
         parseFloat(analysis.totalAmount)
       );
 
@@ -545,7 +584,7 @@ export function registerBillRoutes(app: Express) {
         costs: [parseFloat(analysis.totalAmount)],
         startDate: analysis.issueDate || analysis.dueDate || billData.startDate,
         notes: `AI-analyzed document. Original bill number: ${analysis.billNumber || 'N/A'}. Confidence: ${(analysis.confidence * 100).toFixed(1)}%. ${scheduleSignestion.reasoning}`,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const updatedBill = await db
@@ -558,14 +597,13 @@ export function registerBillRoutes(app: Express) {
         message: 'AI analysis applied successfully',
         bill: updatedBill[0],
         analysis,
-        scheduleSignestion
+        scheduleSignestion,
       });
-
     } catch (_error) {
       console.error('Error applying AI analysis:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to apply AI analysis',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -595,15 +633,15 @@ export function registerBillRoutes(app: Express) {
           notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
-          updatedAt: bills.updatedAt
+          updatedAt: bills.updatedAt,
         })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
 
       if (bill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
@@ -612,7 +650,7 @@ export function registerBillRoutes(app: Express) {
         .select({
           id: buildings.id,
           name: buildings.name,
-          organizationId: buildings.organizationId
+          organizationId: buildings.organizationId,
         })
         .from(buildings)
         .where(eq(buildings.id, bill[0].buildingId))
@@ -621,13 +659,13 @@ export function registerBillRoutes(app: Express) {
       if (building.length === 0) {
         return res.status(403).json({
           message: 'Access denied to generate future bills',
-          code: 'ACCESS_DENIED'
+          code: 'ACCESS_DENIED',
         });
       }
 
       if (bill[0].paymentType !== 'recurrent') {
         return res.status(400).json({
-          message: 'Only recurrent bills can generate future instances' 
+          message: 'Only recurrent bills can generate future instances',
         });
       }
 
@@ -641,9 +679,9 @@ export function registerBillRoutes(app: Express) {
       });
     } catch (_error) {
       console.error('Error generating future bills:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to generate future bills',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -656,7 +694,7 @@ export function registerBillRoutes(app: Express) {
     try {
       const categories = [
         'insurance',
-        'maintenance', 
+        'maintenance',
         'salary',
         'utilities',
         'cleaning',
@@ -669,15 +707,15 @@ export function registerBillRoutes(app: Express) {
         'taxes',
         'technology',
         'reserves',
-        'other'
+        'other',
       ];
 
       res.json(categories);
     } catch (_error) {
       console.error('Error fetching bill categories:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to fetch bill categories',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -707,15 +745,15 @@ export function registerBillRoutes(app: Express) {
           notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
-          updatedAt: bills.updatedAt
+          updatedAt: bills.updatedAt,
         })
         .from(bills)
         .where(eq(bills.id, id))
         .limit(1);
 
       if (bill.length === 0) {
-        return res.status(404).json({ 
-          message: 'Bill not found' 
+        return res.status(404).json({
+          message: 'Bill not found',
         });
       }
 
@@ -737,30 +775,30 @@ export function registerBillRoutes(app: Express) {
           notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
-          updatedAt: bills.updatedAt
+          updatedAt: bills.updatedAt,
         })
         .from(bills)
         .where(sql`bills.notes LIKE '%Auto-generated from:%'`)
         .orderBy(bills.startDate);
 
-      const stats = generatedBills.map(genBill => ({
+      const stats = generatedBills.map((genBill) => ({
         id: genBill.id,
         title: genBill.title,
         amount: genBill.totalAmount,
         startDate: genBill.startDate,
         status: genBill.status,
-        billNumber: genBill.billNumber
+        billNumber: genBill.billNumber,
       }));
 
       res.json({
         parentBill: bill[0],
-        generatedBills: stats
+        generatedBills: stats,
       });
     } catch (_error) {
       console.error('Error getting generated bills stats:', _error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to get generated bills statistics',
-        _error: error instanceof Error ? error.message : 'Unknown error'
+        _error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });

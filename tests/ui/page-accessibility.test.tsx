@@ -1,6 +1,6 @@
 /**
  * Page Accessibility Tests.
- * 
+ *
  * Comprehensive tests to ensure all pages are accessible, handle errors gracefully,
  * and provide proper loading states for users across different scenarios.
  */
@@ -28,9 +28,9 @@ import Features from '../../client/src/pages/features';
 import Security from '../../client/src/pages/security';
 
 // Mock components
-const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({ 
-  children, 
-  route = '/' 
+const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
+  children,
+  route = '/',
 }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -45,9 +45,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode; route?: string }> = ({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router hook={() => [location, navigate]}>
-        {children}
-      </Router>
+      <Router hook={() => [location, navigate]}>{children}</Router>
     </QueryClientProvider>
   );
 };
@@ -80,7 +78,7 @@ jest.mock('../../client/src/hooks/use-language', () => ({
 describe('Page Accessibility Tests', () => {
   const { apiRequest: mockApiRequest } = require('../../client/src/lib/queryClient');
   const { useAuth: mockUseAuth } = require('../../client/src/hooks/use-auth');
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockApiRequest.mockReset?.();
@@ -89,7 +87,7 @@ describe('Page Accessibility Tests', () => {
   describe('Public Pages Accessibility', () => {
     test('Home page renders without errors', async () => {
       render(
-        <TestWrapper route="/">
+        <TestWrapper route='/'>
           <Home />
         </TestWrapper>
       );
@@ -102,7 +100,7 @@ describe('Page Accessibility Tests', () => {
 
     test('Login page renders without errors', async () => {
       render(
-        <TestWrapper route="/login">
+        <TestWrapper route='/login'>
           <Login />
         </TestWrapper>
       );
@@ -114,7 +112,7 @@ describe('Page Accessibility Tests', () => {
 
     test('Story page renders without errors', async () => {
       render(
-        <TestWrapper route="/story">
+        <TestWrapper route='/story'>
           <Story />
         </TestWrapper>
       );
@@ -124,7 +122,7 @@ describe('Page Accessibility Tests', () => {
 
     test('Features page renders without errors', async () => {
       render(
-        <TestWrapper route="/features">
+        <TestWrapper route='/features'>
           <Features />
         </TestWrapper>
       );
@@ -134,7 +132,7 @@ describe('Page Accessibility Tests', () => {
 
     test('Security page renders without errors', async () => {
       render(
-        <TestWrapper route="/security">
+        <TestWrapper route='/security'>
           <Security />
         </TestWrapper>
       );
@@ -157,7 +155,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockResolvedValue({ metrics: {} });
 
       render(
-        <TestWrapper route="/dashboard">
+        <TestWrapper route='/dashboard'>
           <Dashboard />
         </TestWrapper>
       );
@@ -168,10 +166,10 @@ describe('Page Accessibility Tests', () => {
     });
 
     test('Residents Dashboard handles loading state', async () => {
-      mockApiRequest.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      mockApiRequest.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
       render(
-        <TestWrapper route="/residents/dashboard">
+        <TestWrapper route='/residents/dashboard'>
           <ResidentsDashboard />
         </TestWrapper>
       );
@@ -184,7 +182,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockRejectedValue(new Error('API Error'));
 
       render(
-        <TestWrapper route="/manager/budget">
+        <TestWrapper route='/manager/budget'>
           <Budget />
         </TestWrapper>
       );
@@ -210,7 +208,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockResolvedValue([]); // Empty array
 
       render(
-        <TestWrapper route="/residents/residence">
+        <TestWrapper route='/residents/residence'>
           <Residence />
         </TestWrapper>
       );
@@ -224,7 +222,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockResolvedValue({ error: 'Not found' }); // Not an array
 
       render(
-        <TestWrapper route="/residents/residence">
+        <TestWrapper route='/residents/residence'>
           <Residence />
         </TestWrapper>
       );
@@ -239,7 +237,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockRejectedValue(new Error('Network error'));
 
       render(
-        <TestWrapper route="/manager/user-management">
+        <TestWrapper route='/manager/user-management'>
           <UserManagement />
         </TestWrapper>
       );
@@ -254,10 +252,10 @@ describe('Page Accessibility Tests', () => {
   describe('Navigation Accessibility', () => {
     test('Navigation between public pages works', () => {
       const { rerender } = render(
-        <TestWrapper route="/">
+        <TestWrapper route='/'>
           <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/features" component={Features} />
+            <Route path='/' component={Home} />
+            <Route path='/features' component={Features} />
           </Switch>
         </TestWrapper>
       );
@@ -266,10 +264,10 @@ describe('Page Accessibility Tests', () => {
 
       // Test navigation to features
       rerender(
-        <TestWrapper route="/features">
+        <TestWrapper route='/features'>
           <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/features" component={Features} />
+            <Route path='/' component={Home} />
+            <Route path='/features' component={Features} />
           </Switch>
         </TestWrapper>
       );
@@ -286,7 +284,7 @@ describe('Page Accessibility Tests', () => {
       });
 
       render(
-        <TestWrapper route="/dashboard">
+        <TestWrapper route='/dashboard'>
           <Dashboard />
         </TestWrapper>
       );
@@ -308,7 +306,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockResolvedValue([]);
 
       render(
-        <TestWrapper route="/manager/buildings">
+        <TestWrapper route='/manager/buildings'>
           <Buildings />
         </TestWrapper>
       );
@@ -327,7 +325,7 @@ describe('Page Accessibility Tests', () => {
       });
 
       render(
-        <TestWrapper route="/manager/buildings">
+        <TestWrapper route='/manager/buildings'>
           <Buildings />
         </TestWrapper>
       );
@@ -346,7 +344,7 @@ describe('Page Accessibility Tests', () => {
       mockApiRequest.mockResolvedValue([]);
 
       render(
-        <TestWrapper route="/residents/dashboard">
+        <TestWrapper route='/residents/dashboard'>
           <ResidentsDashboard />
         </TestWrapper>
       );
@@ -389,11 +387,11 @@ describe('Page Accessibility Tests', () => {
       });
 
       mockApiRequest.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve([]), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
       );
 
       render(
-        <TestWrapper route="/manager/residences">
+        <TestWrapper route='/manager/residences'>
           <Residences />
         </TestWrapper>
       );
@@ -418,7 +416,7 @@ describe('Page Accessibility Tests', () => {
       });
 
       render(
-        <TestWrapper route="/">
+        <TestWrapper route='/'>
           <Home />
         </TestWrapper>
       );
@@ -435,7 +433,7 @@ describe('Page Accessibility Tests', () => {
       });
 
       render(
-        <TestWrapper route="/">
+        <TestWrapper route='/'>
           <Home />
         </TestWrapper>
       );

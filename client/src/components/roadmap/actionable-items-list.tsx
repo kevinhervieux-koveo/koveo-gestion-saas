@@ -30,11 +30,11 @@ interface ActionableItemsListProps {
  * @param root0.onFetchItems
  * @returns Function result.
  */
-export function ActionableItemsList({ 
-  featureId, 
-  items, 
-  onToggleStatus, 
-  onFetchItems 
+export function ActionableItemsList({
+  featureId,
+  items,
+  onToggleStatus,
+  onFetchItems,
 }: ActionableItemsListProps) {
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -46,11 +46,7 @@ export function ActionableItemsList({
   }, [featureId, items.length, hasLoaded, onFetchItems]);
 
   if (items.length === 0) {
-    return (
-      <div className='text-sm text-gray-500 italic ml-6'>
-        No actionable items yet
-      </div>
-    );
+    return <div className='text-sm text-gray-500 italic ml-6'>No actionable items yet</div>;
   }
 
   return (
