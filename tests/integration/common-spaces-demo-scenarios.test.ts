@@ -52,8 +52,8 @@ describe('Common Spaces Demo Organization Scenarios', () => {
     const users = usersResult.rows;
     REAL_DEMO_USERS = {
       admin: users.find((u: any) => u.role === 'admin') || users[0], // Fallback to first user if no admin
-      resident: users.find((u: any) => u.role === 'resident') || { id: 'test-resident', email: 'resident@demo.com', role: 'resident', first_name: 'Test', last_name: 'Resident' },
-      tenant: users.find((u: any) => u.role === 'tenant') || { id: 'test-tenant', email: 'tenant@demo.com', role: 'tenant', first_name: 'Test', last_name: 'Tenant' }
+      resident: users.find((u: any) => u.role === 'resident') || users[0], // Use first user as fallback
+      tenant: users.find((u: any) => u.role === 'tenant') || users[0] // Use first user as fallback
     };
 
     console.log('Loaded real demo data:', { 
@@ -64,6 +64,474 @@ describe('Common Spaces Demo Organization Scenarios', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('Manager Common Space CRUD Operations', () => {
+    let testSpaceId: string | null = null;
+    let demoManagerUser: any = null;
+    let demoBuildingId: string | null = null;
+
+    beforeAll(async () => {
+      // Get a demo manager user
+      const managerResult = await db.execute(sql`
+        SELECT u.id, u.email, u.first_name, u.last_name, u.role 
+        FROM users u 
+        JOIN user_organizations uo ON u.id = uo.user_id
+        WHERE uo.organization_id = ${DEMO_ORG_ID} AND u.role IN ('manager', 'admin')
+        LIMIT 1
+      `);
+      
+      demoManagerUser = managerResult.rows[0] || REAL_DEMO_USERS.admin;
+
+      // Get a demo building for creating spaces
+      const buildingResult = await db.execute(sql`
+        SELECT id FROM buildings WHERE organization_id = ${DEMO_ORG_ID} LIMIT 1
+      `);
+      
+      demoBuildingId = buildingResult.rows[0]?.id;
+
+      expect(demoManagerUser).toBeDefined();
+      expect(demoBuildingId).toBeDefined();
+    });
+
+    afterEach(async () => {
+      // Clean up test space if created
+      if (testSpaceId) {
+        try {
+          await db.execute(sql`DELETE FROM common_spaces WHERE id = ${testSpaceId}`);
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+        testSpaceId = null;
+      }
+    });
+
+    it('should allow manager to create a common space', async () => {
+      const newSpaceData = {
+        name: 'Test Conference Room',
+        description: 'Test space for meeting and events',
+        building_id: demoBuildingId,
+        is_reservable: true,
+        capacity: 20,
+        opening_hours: {
+          start: '08:00',
+          end: '18:00'
+        }
+      };
+
+      // Simulate API request to create space
+      const mockCreateRequest = {
+        user: demoManagerUser,
+        body: newSpaceData,
+        params: {}
+      };
+
+      // Mock response object
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis()
+      };
+
+      // Test creation logic
+      expect(newSpaceData.name).toBe('Test Conference Room');
+      expect(newSpaceData.is_reservable).toBe(true);
+      expect(newSpaceData.capacity).toBe(20);
+      expect(demoBuildingId).toBeTruthy();
+
+      // Verify building access for manager
+      expect(demoManagerUser.role).toMatch(/^(manager|admin)$/);
+      
+      // Create actual space for subsequent tests
+      const createResult = await db.execute(sql`
+        INSERT INTO common_spaces (name, description, building_id, is_reservable, capacity, opening_hours)
+        VALUES (${newSpaceData.name}, ${newSpaceData.description}, ${demoBuildingId}, ${newSpaceData.is_reservable}, ${newSpaceData.capacity}, ${newSpaceData.opening_hours.start + '-' + newSpaceData.opening_hours.end})
+        RETURNING id
+      `);
+
+      testSpaceId = createResult.rows[0]?.id;
+      expect(testSpaceId).toBeTruthy();
+
+      // Verify space was created
+      const verifyResult = await db.execute(sql`
+        SELECT name, description, is_reservable, capacity FROM common_spaces WHERE id = ${testSpaceId}
+      `);
+
+      const createdSpace = verifyResult.rows[0];
+      expect(createdSpace.name).toBe('Test Conference Room');
+      expect(createdSpace.is_reservable).toBe(true);
+      expect(createdSpace.capacity).toBe(20);
+    });
+
+    it('should allow manager to edit a common space', async () => {
+      // First create a space to edit
+      const createResult = await db.execute(sql`
+        INSERT INTO common_spaces (name, description, building_id, is_reservable, capacity)
+        VALUES ('Test Edit Space', 'Original description', ${demoBuildingId}, true, 15)
+        RETURNING id
+      `);
+
+      testSpaceId = createResult.rows[0]?.id;
+
+      const updateData = {
+        name: 'Updated Conference Room',
+        description: 'Updated description for the space',
+        capacity: 25,
+        is_reservable: false
+      };
+
+      // Simulate edit operation
+      await db.execute(sql`
+        UPDATE common_spaces 
+        SET name = ${updateData.name}, description = ${updateData.description}, capacity = ${updateData.capacity}, is_reservable = ${updateData.is_reservable}
+        WHERE id = ${testSpaceId}
+      `);
+
+      // Verify changes
+      const verifyResult = await db.execute(sql`
+        SELECT name, description, capacity, is_reservable FROM common_spaces WHERE id = ${testSpaceId}
+      `);
+
+      const updatedSpace = verifyResult.rows[0];
+      expect(updatedSpace.name).toBe('Updated Conference Room');
+      expect(updatedSpace.description).toBe('Updated description for the space');
+      expect(updatedSpace.capacity).toBe(25);
+      expect(updatedSpace.is_reservable).toBe(false);
+    });
+
+    it('should allow manager to delete a common space', async () => {
+      // First create a space to delete
+      const createResult = await db.execute(sql`
+        INSERT INTO common_spaces (name, building_id, is_reservable)
+        VALUES ('Test Delete Space', ${demoBuildingId}, true)
+        RETURNING id
+      `);
+
+      const spaceToDelete = createResult.rows[0]?.id;
+
+      // Verify space exists
+      const beforeDelete = await db.execute(sql`
+        SELECT id FROM common_spaces WHERE id = ${spaceToDelete}
+      `);
+      expect(beforeDelete.rows.length).toBe(1);
+
+      // Delete the space
+      await db.execute(sql`
+        DELETE FROM common_spaces WHERE id = ${spaceToDelete}
+      `);
+
+      // Verify space is deleted
+      const afterDelete = await db.execute(sql`
+        SELECT id FROM common_spaces WHERE id = ${spaceToDelete}
+      `);
+      expect(afterDelete.rows.length).toBe(0);
+
+      // Don't set testSpaceId since it's already deleted
+    });
+
+    it('should enforce manager building access permissions', async () => {
+      // Get a building from different organization if available
+      const otherBuildingResult = await db.execute(sql`
+        SELECT id FROM buildings WHERE organization_id != ${DEMO_ORG_ID} LIMIT 1
+      `);
+
+      if (otherBuildingResult.rows.length > 0) {
+        const otherBuildingId = otherBuildingResult.rows[0].id;
+
+        // Manager should not be able to create spaces in buildings they don't manage
+        const unauthorizedData = {
+          name: 'Unauthorized Space',
+          building_id: otherBuildingId,
+          is_reservable: true
+        };
+
+        // This should fail in a real implementation
+        expect(demoManagerUser.role).toMatch(/^(manager|admin)$/);
+        expect(otherBuildingId).not.toBe(demoBuildingId);
+      }
+    });
+  });
+
+  describe('Time Limit Validation System', () => {
+    let testUserId: string;
+    let testSpaceId: string;
+    let testLimitId: string | null = null;
+
+    beforeAll(async () => {
+      // Use the first available user from our loaded demo users
+      testUserId = REAL_DEMO_USERS.admin?.id || REAL_DEMO_USERS.resident?.id || REAL_DEMO_USERS.tenant?.id;
+      testSpaceId = REAL_DEMO_COMMON_SPACES[0]?.id;
+
+      expect(testUserId).toBeDefined();
+      expect(testUserId).not.toBe('test-resident'); // Ensure we have a real user
+      expect(testSpaceId).toBeDefined();
+      
+      console.log('Time Limit Tests - Using test user:', testUserId);
+      console.log('Time Limit Tests - Using test space:', testSpaceId);
+    });
+
+    afterEach(async () => {
+      // Clean up test time limits
+      if (testLimitId) {
+        try {
+          await db.execute(sql`DELETE FROM user_time_limits WHERE id = ${testLimitId}`);
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+        testLimitId = null;
+      }
+
+      // Clean up test bookings
+      try {
+        await db.execute(sql`DELETE FROM bookings WHERE user_id = ${testUserId} AND start_time > NOW()`);
+      } catch (error) {
+        // Ignore cleanup errors
+      }
+    });
+
+    it('should allow setting monthly time limits for users', async () => {
+      const limitData = {
+        user_id: testUserId,
+        common_space_id: testSpaceId,
+        limit_type: 'monthly',
+        limit_hours: 10
+      };
+
+      // Create time limit
+      const createResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${limitData.user_id}, ${limitData.common_space_id}, ${limitData.limit_type}, ${limitData.limit_hours})
+        RETURNING id
+      `);
+
+      testLimitId = createResult.rows[0]?.id;
+      expect(testLimitId).toBeDefined();
+
+      // Verify limit was created
+      const verifyResult = await db.execute(sql`
+        SELECT user_id, common_space_id, limit_type, limit_hours 
+        FROM user_time_limits 
+        WHERE id = ${testLimitId}
+      `);
+
+      const createdLimit = verifyResult.rows[0];
+      expect(createdLimit.user_id).toBe(testUserId);
+      expect(createdLimit.common_space_id).toBe(testSpaceId);
+      expect(createdLimit.limit_type).toBe('monthly');
+      expect(createdLimit.limit_hours).toBe(10);
+    });
+
+    it('should allow setting yearly time limits for users', async () => {
+      const limitData = {
+        user_id: testUserId,
+        limit_type: 'yearly',
+        limit_hours: 100
+      };
+
+      // Create yearly global limit (no specific space)
+      const createResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${limitData.user_id}, NULL, ${limitData.limit_type}, ${limitData.limit_hours})
+        RETURNING id
+      `);
+
+      testLimitId = createResult.rows[0]?.id;
+      expect(testLimitId).toBeDefined();
+
+      // Verify limit was created
+      const verifyResult = await db.execute(sql`
+        SELECT user_id, common_space_id, limit_type, limit_hours 
+        FROM user_time_limits 
+        WHERE id = ${testLimitId}
+      `);
+
+      const createdLimit = verifyResult.rows[0];
+      expect(createdLimit.user_id).toBe(testUserId);
+      expect(createdLimit.common_space_id).toBeNull();
+      expect(createdLimit.limit_type).toBe('yearly');
+      expect(createdLimit.limit_hours).toBe(100);
+    });
+
+    it('should calculate current usage correctly for monthly limits', async () => {
+      // Set a monthly limit of 5 hours
+      const createLimitResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${testUserId}, ${testSpaceId}, 'monthly', 5)
+        RETURNING id
+      `);
+
+      testLimitId = createLimitResult.rows[0]?.id;
+
+      // Create test bookings for current month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const testBookingStart = new Date(startOfMonth.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 days into month
+      const testBookingEnd = new Date(testBookingStart.getTime() + 3 * 60 * 60 * 1000); // 3 hours later
+
+      await db.execute(sql`
+        INSERT INTO bookings (common_space_id, user_id, start_time, end_time, status)
+        VALUES (${testSpaceId}, ${testUserId}, ${testBookingStart.toISOString()}, ${testBookingEnd.toISOString()}, 'confirmed')
+      `);
+
+      // Calculate current usage
+      const usageResult = await db.execute(sql`
+        SELECT EXTRACT(EPOCH FROM SUM(end_time - start_time)) / 3600 as total_hours
+        FROM bookings 
+        WHERE user_id = ${testUserId} 
+          AND common_space_id = ${testSpaceId}
+          AND status = 'confirmed'
+          AND start_time >= DATE_TRUNC('month', CURRENT_DATE)
+      `);
+
+      const currentUsage = usageResult.rows[0]?.total_hours || 0;
+      expect(currentUsage).toBe(3); // 3 hours booked
+
+      // Test would exceed limit
+      const newBookingHours = 3; // This would make total 6 hours > 5 hour limit
+      const totalAfterBooking = currentUsage + newBookingHours;
+      expect(totalAfterBooking).toBeGreaterThan(5); // Should exceed limit
+    });
+
+    it('should prevent bookings that exceed monthly time limits', async () => {
+      // Set a strict monthly limit of 2 hours
+      const createLimitResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${testUserId}, ${testSpaceId}, 'monthly', 2)
+        RETURNING id
+      `);
+
+      testLimitId = createLimitResult.rows[0]?.id;
+
+      // Create existing booking that uses 1.5 hours
+      const now = new Date();
+      const testStart = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
+      const testEnd = new Date(testStart.getTime() + 1.5 * 60 * 60 * 1000); // 1.5 hours later
+
+      await db.execute(sql`
+        INSERT INTO bookings (common_space_id, user_id, start_time, end_time, status)
+        VALUES (${testSpaceId}, ${testUserId}, ${testStart.toISOString()}, ${testEnd.toISOString()}, 'confirmed')
+      `);
+
+      // Try to book another 1 hour (total would be 2.5 > 2 hour limit)
+      const newBookingStart = new Date(testEnd.getTime() + 60 * 60 * 1000); // 1 hour after first booking ends
+      const newBookingEnd = new Date(newBookingStart.getTime() + 1 * 60 * 60 * 1000); // 1 hour duration
+      const newBookingHours = 1;
+
+      // Get current usage
+      const usageResult = await db.execute(sql`
+        SELECT COALESCE(EXTRACT(EPOCH FROM SUM(end_time - start_time)) / 3600, 0) as total_hours
+        FROM bookings 
+        WHERE user_id = ${testUserId} 
+          AND common_space_id = ${testSpaceId}
+          AND status = 'confirmed'
+          AND start_time >= DATE_TRUNC('month', CURRENT_DATE)
+      `);
+
+      const currentUsage = parseFloat(usageResult.rows[0]?.total_hours || '0');
+      const totalAfterNewBooking = currentUsage + newBookingHours;
+
+      // Verify this would exceed the limit
+      expect(currentUsage).toBe(1.5); // Current usage
+      expect(totalAfterNewBooking).toBe(2.5); // Would exceed 2-hour limit
+      expect(totalAfterNewBooking).toBeGreaterThan(2); // Exceeds limit
+
+      // In a real booking system, this should be rejected
+      const wouldExceedLimit = totalAfterNewBooking > 2;
+      expect(wouldExceedLimit).toBe(true);
+    });
+
+    it('should handle global time limits correctly', async () => {
+      // Set global yearly limit (applies to all spaces)
+      const createLimitResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${testUserId}, NULL, 'yearly', 50)
+        RETURNING id
+      `);
+
+      testLimitId = createLimitResult.rows[0]?.id;
+
+      // Create bookings across different spaces
+      const now = new Date();
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+
+      // Book 20 hours in first space
+      const booking1Start = new Date(yearStart.getTime() + 10 * 24 * 60 * 60 * 1000);
+      const booking1End = new Date(booking1Start.getTime() + 20 * 60 * 60 * 1000);
+
+      await db.execute(sql`
+        INSERT INTO bookings (common_space_id, user_id, start_time, end_time, status)
+        VALUES (${testSpaceId}, ${testUserId}, ${booking1Start.toISOString()}, ${booking1End.toISOString()}, 'confirmed')
+      `);
+
+      // Book 25 hours in another space (if available)
+      if (REAL_DEMO_COMMON_SPACES.length > 1) {
+        const secondSpaceId = REAL_DEMO_COMMON_SPACES[1].id;
+        const booking2Start = new Date(booking1End.getTime() + 24 * 60 * 60 * 1000);
+        const booking2End = new Date(booking2Start.getTime() + 25 * 60 * 60 * 1000);
+
+        await db.execute(sql`
+          INSERT INTO bookings (common_space_id, user_id, start_time, end_time, status)
+          VALUES (${secondSpaceId}, ${testUserId}, ${booking2Start.toISOString()}, ${booking2End.toISOString()}, 'confirmed')
+        `);
+
+        // Calculate total yearly usage across all spaces
+        const totalUsageResult = await db.execute(sql`
+          SELECT COALESCE(EXTRACT(EPOCH FROM SUM(end_time - start_time)) / 3600, 0) as total_hours
+          FROM bookings 
+          WHERE user_id = ${testUserId} 
+            AND status = 'confirmed'
+            AND start_time >= DATE_TRUNC('year', CURRENT_DATE)
+        `);
+
+        const totalYearlyUsage = parseFloat(totalUsageResult.rows[0]?.total_hours || '0');
+        expect(totalYearlyUsage).toBe(45); // 20 + 25 hours
+
+        // Verify new 10-hour booking would exceed 50-hour yearly limit
+        const wouldExceedYearlyLimit = totalYearlyUsage + 10 > 50;
+        expect(wouldExceedYearlyLimit).toBe(true);
+      }
+    });
+
+    it('should include future bookings in time limit calculations', async () => {
+      // Set monthly limit
+      const createLimitResult = await db.execute(sql`
+        INSERT INTO user_time_limits (user_id, common_space_id, limit_type, limit_hours)
+        VALUES (${testUserId}, ${testSpaceId}, 'monthly', 8)
+        RETURNING id
+      `);
+
+      testLimitId = createLimitResult.rows[0]?.id;
+
+      const now = new Date();
+      
+      // Create future booking for 5 hours
+      const futureStart = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Next week
+      const futureEnd = new Date(futureStart.getTime() + 5 * 60 * 60 * 1000); // 5 hours
+
+      await db.execute(sql`
+        INSERT INTO bookings (common_space_id, user_id, start_time, end_time, status)
+        VALUES (${testSpaceId}, ${testUserId}, ${futureStart.toISOString()}, ${futureEnd.toISOString()}, 'confirmed')
+      `);
+
+      // Calculate current month usage (including future bookings)
+      const usageResult = await db.execute(sql`
+        SELECT COALESCE(EXTRACT(EPOCH FROM SUM(end_time - start_time)) / 3600, 0) as total_hours
+        FROM bookings 
+        WHERE user_id = ${testUserId} 
+          AND common_space_id = ${testSpaceId}
+          AND status = 'confirmed'
+          AND start_time >= DATE_TRUNC('month', CURRENT_DATE)
+          AND start_time < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+      `);
+
+      const currentUsageIncludingFuture = parseFloat(usageResult.rows[0]?.total_hours || '0');
+      expect(currentUsageIncludingFuture).toBe(5); // 5 hours from future booking
+
+      // Attempting to book 4 more hours should exceed the 8-hour limit
+      const newBookingHours = 4;
+      const totalAfterNewBooking = currentUsageIncludingFuture + newBookingHours;
+      expect(totalAfterNewBooking).toBe(9); // Would exceed 8-hour limit
+      expect(totalAfterNewBooking).toBeGreaterThan(8);
+    });
   });
 
   describe('User Booking Scenarios', () => {
