@@ -508,7 +508,10 @@ export function setupAuthRoutes(app: any) {
       } as any);
 
       // Send password reset email
-      const frontendUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+      // Properly detect development vs production environment
+      const isDev = process.env.NODE_ENV === 'development' || req.get('host')?.includes('replit');
+      const frontendUrl = process.env.FRONTEND_URL || 
+        (isDev ? `${req.protocol}://${req.get('host')}` : `https://${req.get('host')}`);
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
       
