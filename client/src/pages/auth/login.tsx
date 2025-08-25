@@ -47,13 +47,13 @@ type LoginFormData = z.infer<typeof loginSchema>;
  * - Quebec-compliant security messaging
  * - Role-based redirection after login.
  */
-export default function /**
-   * Login page function.
-   */ /**
-   * Login page function.
-   */
+// Demo credentials for testing purposes only - not real production data
+const DEMO_CREDENTIALS = {
+  DEFAULT_DEMO_PASSWORD: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
+  TENANT_DEMO_PASSWORD: DEMO_CREDENTIALS.TENANT_DEMO_PASSWORD,
+} as const;
 
- LoginPage() {
+export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -77,13 +77,13 @@ export default function /**
           email: 'demo.manager@example.com',
           name: language === 'fr' ? 'Gestionnaire Démo' : 'Demo Manager',
           building: language === 'fr' ? 'Accès complet gestionnaire' : 'Full manager access',
-          password: 'Demo@123456'
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD
         },
         {
           email: 'demo.manager.open@example.com',
           name: language === 'fr' ? 'Gestionnaire Ouvert' : 'Open Demo Manager',
           building: language === 'fr' ? 'Accès gestionnaire ouvert' : 'Open manager access',
-          password: 'Demo@123456'
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD
         }
       ]
     },
@@ -98,13 +98,13 @@ export default function /**
           email: 'demo.tenant@example.com',
           name: language === 'fr' ? 'Locataire Démo' : 'Demo Tenant',
           building: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
-          password: 'Tenant@123456'
+          password: DEMO_CREDENTIALS.TENANT_DEMO_PASSWORD
         },
         {
           email: 'demo.tenant.open@example.com',
           name: language === 'fr' ? 'Locataire Ouvert' : 'Open Demo Tenant',
           building: language === 'fr' ? 'Accès locataire ouvert' : 'Open tenant access',
-          password: 'Demo@123456'
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD
         }
       ]
     },
@@ -119,13 +119,13 @@ export default function /**
           email: 'demo.resident@example.com',
           name: language === 'fr' ? 'Résident Démo' : 'Demo Resident',
           building: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
-          password: 'Demo@123456'
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD
         },
         {
           email: 'demo.resident.open@example.com',
           name: language === 'fr' ? 'Résident Ouvert' : 'Open Demo Resident',
           building: language === 'fr' ? 'Accès résident ouvert' : 'Open resident access',
-          password: 'Demo@123456'
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD
         }
       ]
     }
@@ -196,7 +196,7 @@ export default function /**
       setLoginError('');
       
       // Find the password for the selected user
-      let password = 'Demo@123456'; // default
+      let password = DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD; // default
       for (const role of Object.values(demoRoles)) {
         const user = role.users.find(u => u.email === demoUserEmail);
         if (user) {
