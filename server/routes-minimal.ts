@@ -12,6 +12,7 @@ import { registerContactRoutes } from './api/contacts';
 import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
 import { registerBugRoutes } from './api/bugs';
+import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
 import budgetRoutes from './api/budgets';
@@ -205,6 +206,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Bug routes registered');
   } catch (_error) {
     log(`❌ Bug routes failed: ${_error}`, 'error');
+  }
+
+  // Register feature request API routes
+  try {
+    registerFeatureRequestRoutes(app);
+    log('✅ Feature request routes registered');
+  } catch (_error) {
+    log(`❌ Feature request routes failed: ${_error}`, 'error');
   }
   
   // Register building API routes

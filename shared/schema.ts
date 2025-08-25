@@ -71,6 +71,10 @@ export type {
   InsertNotification,
   Bug,
   InsertBug,
+  FeatureRequest,
+  InsertFeatureRequest,
+  FeatureRequestUpvote,
+  InsertFeatureRequestUpvote,
 } from './schemas/operations';
 
 export type {
@@ -104,4 +108,4 @@ export type {
 } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
-export { bugs } from './schemas/operations';
+export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';

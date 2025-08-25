@@ -2468,4 +2468,323 @@ export class OptimizedDatabaseStorage implements IStorage {
     
     return false;
   }
+
+  // Feature Request operations with optimization
+
+  /**
+   * Retrieves feature requests for a user with role-based access control.
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async getFeatureRequestsForUser(
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<FeatureRequest[]> {
+    return this.withOptimizations(
+      'getFeatureRequestsForUser',
+      `feature_requests:${userRole}:${userId}`,
+      'feature_requests',
+      async () => {
+        const results = await db.select().from(schema.featureRequests).orderBy(desc(schema.featureRequests.createdAt));
+        
+        // All users can see all feature requests, but non-admins don't see who submitted
+        if (userRole === 'admin') {
+          return results;
+        }
+        
+        // For non-admin users, hide the createdBy field
+        return results.map(request => ({
+          ...request,
+          createdBy: null as any
+        }));
+      }
+    );
+  }
+
+  /**
+   * Retrieves a specific feature request by ID with role-based access control.
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
+  async getFeatureRequest(
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<FeatureRequest | undefined> {
+    return this.withOptimizations(
+      'getFeatureRequest',
+      `feature_request:${id}:${userRole}`,
+      'feature_requests',
+      async () => {
+        const result = await db
+          .select()
+          .from(schema.featureRequests)
+          .where(eq(schema.featureRequests.id, id));
+        
+        const featureRequest = result[0];
+        if (!featureRequest) return undefined;
+        
+        // All users can see any feature request
+        if (userRole === 'admin') {
+          return featureRequest;
+        }
+        
+        // For non-admin users, hide the createdBy field
+        return {
+          ...featureRequest,
+          createdBy: null as any
+        };
+      }
+    );
+  }
+
+  /**
+   * Creates a new feature request.
+   * @param featureRequestData
+   */
+  async createFeatureRequest(featureRequestData: InsertFeatureRequest): Promise<FeatureRequest> {
+    const result = await dbPerformanceMonitor.trackQuery('createFeatureRequest', async () => {
+      return db.insert(schema.featureRequests)
+        .values({
+          ...featureRequestData,
+          id: crypto.randomUUID(),
+          status: 'submitted',
+          upvoteCount: 0,
+          assignedTo: null,
+          reviewedBy: null,
+          reviewedAt: null,
+          adminNotes: null,
+          mergedIntoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+    });
+    
+    // Invalidate cache
+    queryCache.invalidate('feature_requests');
+    
+    return result[0];
+  }
+
+  /**
+   * Updates a feature request (admin only).
+   * @param id
+   * @param updates
+   * @param userId
+   * @param userRole
+   */
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>,
+    userId: string,
+    userRole: string
+  ): Promise<FeatureRequest | undefined> {
+    // Only admins can update feature requests
+    if (userRole !== 'admin') {
+      return undefined;
+    }
+    
+    const result = await dbPerformanceMonitor.trackQuery('updateFeatureRequest', async () => {
+      return db
+        .update(schema.featureRequests)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.featureRequests.id, id))
+        .returning();
+    });
+    
+    if (result[0]) {
+      // Invalidate related cache entries
+      queryCache.invalidate('feature_requests');
+    }
+    
+    return result[0];
+  }
+
+  /**
+   * Deletes a feature request (admin only).
+   * @param id
+   * @param userId
+   * @param userRole
+   */
+  async deleteFeatureRequest(
+    id: string,
+    userId: string,
+    userRole: string
+  ): Promise<boolean> {
+    // Only admins can delete feature requests
+    if (userRole !== 'admin') {
+      return false;
+    }
+    
+    // First delete all upvotes for this feature request
+    await db.delete(schema.featureRequestUpvotes)
+      .where(eq(schema.featureRequestUpvotes.featureRequestId, id));
+    
+    const result = await db.delete(schema.featureRequests)
+      .where(eq(schema.featureRequests.id, id))
+      .returning();
+    
+    if (result.length > 0) {
+      // Invalidate related cache entries
+      queryCache.invalidate('feature_requests');
+      queryCache.invalidate('feature_request_upvotes');
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Upvotes a feature request.
+   * @param upvoteData
+   */
+  async upvoteFeatureRequest(upvoteData: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}> {
+    const { featureRequestId, userId } = upvoteData;
+    
+    try {
+      // Check if feature request exists
+      const featureRequestResult = await db
+        .select()
+        .from(schema.featureRequests)
+        .where(eq(schema.featureRequests.id, featureRequestId));
+      
+      if (featureRequestResult.length === 0) {
+        return {
+          success: false,
+          message: 'Feature request not found'
+        };
+      }
+      
+      // Check if user has already upvoted this feature request
+      const existingUpvote = await db
+        .select()
+        .from(schema.featureRequestUpvotes)
+        .where(
+          and(
+            eq(schema.featureRequestUpvotes.featureRequestId, featureRequestId),
+            eq(schema.featureRequestUpvotes.userId, userId)
+          )
+        );
+      
+      if (existingUpvote.length > 0) {
+        return {
+          success: false,
+          message: 'You have already upvoted this feature request'
+        };
+      }
+      
+      // Create the upvote
+      const upvoteResult = await db.insert(schema.featureRequestUpvotes)
+        .values({
+          ...upvoteData,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+        })
+        .returning();
+      
+      // Update the upvote count on the feature request
+      const updatedFeatureRequest = await db
+        .update(schema.featureRequests)
+        .set({
+          upvoteCount: sql`${schema.featureRequests.upvoteCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.featureRequests.id, featureRequestId))
+        .returning();
+      
+      // Invalidate cache
+      queryCache.invalidate('feature_requests');
+      queryCache.invalidate('feature_request_upvotes');
+      
+      return {
+        success: true,
+        message: 'Feature request upvoted successfully',
+        data: {
+          upvote: upvoteResult[0],
+          featureRequest: updatedFeatureRequest[0]
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to upvote feature request'
+      };
+    }
+  }
+
+  /**
+   * Removes an upvote from a feature request.
+   * @param featureRequestId
+   * @param userId
+   */
+  async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{success: boolean; message: string; data?: any}> {
+    try {
+      // Check if feature request exists
+      const featureRequestResult = await db
+        .select()
+        .from(schema.featureRequests)
+        .where(eq(schema.featureRequests.id, featureRequestId));
+      
+      if (featureRequestResult.length === 0) {
+        return {
+          success: false,
+          message: 'Feature request not found'
+        };
+      }
+      
+      // Find and remove the upvote
+      const removedUpvote = await db
+        .delete(schema.featureRequestUpvotes)
+        .where(
+          and(
+            eq(schema.featureRequestUpvotes.featureRequestId, featureRequestId),
+            eq(schema.featureRequestUpvotes.userId, userId)
+          )
+        )
+        .returning();
+      
+      if (removedUpvote.length === 0) {
+        return {
+          success: false,
+          message: 'You have not upvoted this feature request'
+        };
+      }
+      
+      // Update the upvote count on the feature request
+      const updatedFeatureRequest = await db
+        .update(schema.featureRequests)
+        .set({
+          upvoteCount: sql`GREATEST(0, ${schema.featureRequests.upvoteCount} - 1)`,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.featureRequests.id, featureRequestId))
+        .returning();
+      
+      // Invalidate cache
+      queryCache.invalidate('feature_requests');
+      queryCache.invalidate('feature_request_upvotes');
+      
+      return {
+        success: true,
+        message: 'Upvote removed successfully',
+        data: {
+          featureRequest: updatedFeatureRequest[0]
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to remove upvote'
+      };
+    }
+  }
 }

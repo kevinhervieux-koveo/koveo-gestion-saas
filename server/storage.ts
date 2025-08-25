@@ -40,10 +40,16 @@ import {
   type InsertPasswordResetToken,
   type Bug,
   type InsertBug,
+  type FeatureRequest,
+  type InsertFeatureRequest,
+  type FeatureRequestUpvote,
+  type InsertFeatureRequestUpvote,
   permissions,
   rolePermissions,
   userPermissions,
   bugs,
+  featureRequests,
+  featureRequestUpvotes,
 } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
@@ -1287,6 +1293,94 @@ export interface IStorage {
     _userId: string,
     _userRole: string
   ): Promise<boolean>;
+
+  // Feature Request operations
+  /**
+   * Retrieves feature requests based on user role and organization access.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<FeatureRequest[]>} Array of feature requests the user can access.
+   */
+  getFeatureRequestsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<FeatureRequest[]>;
+
+  /**
+   * Retrieves a specific feature request with permission check.
+   *
+   * @param {string} _id - The unique feature request identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<FeatureRequest | undefined>} Feature request record or undefined if not found or access denied.
+   */
+  getFeatureRequest(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<FeatureRequest | undefined>;
+
+  /**
+   * Creates a new feature request.
+   *
+   * @param {InsertFeatureRequest} _featureRequest - Feature request data for creation.
+   * @returns {Promise<FeatureRequest>} The created feature request record with generated ID and timestamps.
+   */
+  createFeatureRequest(_featureRequest: InsertFeatureRequest): Promise<FeatureRequest>;
+
+  /**
+   * Updates an existing feature request with permission check.
+   * Only admins can update feature requests.
+   *
+   * @param {string} _id - The unique feature request identifier.
+   * @param {Partial<FeatureRequest>} _updates - Partial feature request data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<FeatureRequest | undefined>} Updated feature request record or undefined if not found or access denied.
+   */
+  updateFeatureRequest(
+    _id: string,
+    _updates: Partial<FeatureRequest>,
+    _userId: string,
+    _userRole: string
+  ): Promise<FeatureRequest | undefined>;
+
+  /**
+   * Deletes a feature request with permission check.
+   * Only admins can delete feature requests.
+   *
+   * @param {string} _id - The unique feature request identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteFeatureRequest(
+    _id: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<boolean>;
+
+  /**
+   * Upvotes a feature request.
+   * 
+   * @param {InsertFeatureRequestUpvote} _upvote - Upvote data for creation.
+   * @returns {Promise<{success: boolean; message: string; data?: any}>} Result object with success status and data.
+   */
+  upvoteFeatureRequest(_upvote: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}>;
+
+  /**
+   * Removes an upvote from a feature request.
+   * 
+   * @param {string} _featureRequestId - The unique feature request identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @returns {Promise<{success: boolean; message: string; data?: any}>} Result object with success status and data.
+   */
+  removeFeatureRequestUpvote(_featureRequestId: string, _userId: string): Promise<{success: boolean; message: string; data?: any}>;
 }
 
 /**
@@ -1320,6 +1414,8 @@ export class MemStorage implements IStorage {
   private residences: Map<string, Residence>;
   private documents: Map<string, Document>;
   private bugs: Map<string, Bug>;
+  private featureRequests: Map<string, FeatureRequest>;
+  private featureRequestUpvotes: Map<string, FeatureRequestUpvote>;
 
   /**
    * Creates a new MemStorage instance with empty storage maps.
@@ -1341,6 +1437,8 @@ export class MemStorage implements IStorage {
     this.residences = new Map();
     this.documents = new Map();
     this.bugs = new Map();
+    this.featureRequests = new Map();
+    this.featureRequestUpvotes = new Map();
 
     // Storage initialized empty - no mock data
   }
@@ -3212,6 +3310,215 @@ export class MemStorage implements IStorage {
     
     this.bugs.delete(id);
     return true;
+  }
+
+  // Feature Request operations implementation
+  async getFeatureRequestsForUser(
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<FeatureRequest[]> {
+    const allFeatureRequests = Array.from(this.featureRequests.values());
+    
+    // All users can see all feature requests, but admin role determines if they can see who submitted
+    if (userRole === 'admin') {
+      return allFeatureRequests;
+    }
+    
+    // For non-admin users, hide the createdBy field by setting it to null in the returned data
+    return allFeatureRequests.map(request => ({
+      ...request,
+      createdBy: userRole === 'admin' ? request.createdBy : null as any
+    }));
+  }
+
+  async getFeatureRequest(
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<FeatureRequest | undefined> {
+    const featureRequest = this.featureRequests.get(id);
+    if (!featureRequest) return undefined;
+    
+    // All users can see any feature request
+    if (userRole === 'admin') {
+      return featureRequest;
+    }
+    
+    // For non-admin users, hide the createdBy field
+    return {
+      ...featureRequest,
+      createdBy: null as any
+    };
+  }
+
+  async createFeatureRequest(featureRequestData: InsertFeatureRequest): Promise<FeatureRequest> {
+    const id = randomUUID();
+    const now = new Date();
+    
+    const featureRequest: FeatureRequest = {
+      id,
+      ...featureRequestData,
+      status: 'submitted',
+      upvoteCount: 0,
+      assignedTo: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      adminNotes: null,
+      mergedIntoId: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    this.featureRequests.set(id, featureRequest);
+    return featureRequest;
+  }
+
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>,
+    userId: string,
+    userRole: string
+  ): Promise<FeatureRequest | undefined> {
+    const featureRequest = this.featureRequests.get(id);
+    if (!featureRequest) return undefined;
+    
+    // Only admins can update feature requests
+    if (userRole !== 'admin') {
+      return undefined;
+    }
+    
+    const updatedFeatureRequest: FeatureRequest = {
+      ...featureRequest,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    this.featureRequests.set(id, updatedFeatureRequest);
+    return updatedFeatureRequest;
+  }
+
+  async deleteFeatureRequest(
+    id: string,
+    userId: string,
+    userRole: string
+  ): Promise<boolean> {
+    const featureRequest = this.featureRequests.get(id);
+    if (!featureRequest) return false;
+    
+    // Only admins can delete feature requests
+    if (userRole !== 'admin') {
+      return false;
+    }
+    
+    // Also delete all upvotes for this feature request
+    const upvotesToDelete = Array.from(this.featureRequestUpvotes.entries())
+      .filter(([_, upvote]) => upvote.featureRequestId === id)
+      .map(([upvoteId, _]) => upvoteId);
+    
+    upvotesToDelete.forEach(upvoteId => {
+      this.featureRequestUpvotes.delete(upvoteId);
+    });
+    
+    this.featureRequests.delete(id);
+    return true;
+  }
+
+  async upvoteFeatureRequest(upvoteData: InsertFeatureRequestUpvote): Promise<{success: boolean; message: string; data?: any}> {
+    const { featureRequestId, userId } = upvoteData;
+    
+    // Check if feature request exists
+    const featureRequest = this.featureRequests.get(featureRequestId);
+    if (!featureRequest) {
+      return {
+        success: false,
+        message: 'Feature request not found'
+      };
+    }
+    
+    // Check if user has already upvoted this feature request
+    const existingUpvote = Array.from(this.featureRequestUpvotes.values())
+      .find(upvote => upvote.featureRequestId === featureRequestId && upvote.userId === userId);
+    
+    if (existingUpvote) {
+      return {
+        success: false,
+        message: 'You have already upvoted this feature request'
+      };
+    }
+    
+    // Create the upvote
+    const upvoteId = randomUUID();
+    const upvote: FeatureRequestUpvote = {
+      id: upvoteId,
+      ...upvoteData,
+      createdAt: new Date(),
+    };
+    
+    this.featureRequestUpvotes.set(upvoteId, upvote);
+    
+    // Update the upvote count on the feature request
+    const updatedFeatureRequest: FeatureRequest = {
+      ...featureRequest,
+      upvoteCount: featureRequest.upvoteCount + 1,
+      updatedAt: new Date(),
+    };
+    
+    this.featureRequests.set(featureRequestId, updatedFeatureRequest);
+    
+    return {
+      success: true,
+      message: 'Feature request upvoted successfully',
+      data: {
+        upvote,
+        featureRequest: updatedFeatureRequest
+      }
+    };
+  }
+
+  async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{success: boolean; message: string; data?: any}> {
+    // Check if feature request exists
+    const featureRequest = this.featureRequests.get(featureRequestId);
+    if (!featureRequest) {
+      return {
+        success: false,
+        message: 'Feature request not found'
+      };
+    }
+    
+    // Find the upvote to remove
+    const upvoteEntry = Array.from(this.featureRequestUpvotes.entries())
+      .find(([_, upvote]) => upvote.featureRequestId === featureRequestId && upvote.userId === userId);
+    
+    if (!upvoteEntry) {
+      return {
+        success: false,
+        message: 'You have not upvoted this feature request'
+      };
+    }
+    
+    const [upvoteId, upvote] = upvoteEntry;
+    
+    // Remove the upvote
+    this.featureRequestUpvotes.delete(upvoteId);
+    
+    // Update the upvote count on the feature request
+    const updatedFeatureRequest: FeatureRequest = {
+      ...featureRequest,
+      upvoteCount: Math.max(0, featureRequest.upvoteCount - 1),
+      updatedAt: new Date(),
+    };
+    
+    this.featureRequests.set(featureRequestId, updatedFeatureRequest);
+    
+    return {
+      success: true,
+      message: 'Upvote removed successfully',
+      data: {
+        featureRequest: updatedFeatureRequest
+      }
+    };
   }
 }
 

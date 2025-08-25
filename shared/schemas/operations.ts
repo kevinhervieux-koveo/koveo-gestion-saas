@@ -8,6 +8,7 @@ import {
   pgEnum,
   boolean,
   decimal,
+  integer,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -80,6 +81,31 @@ export const bugCategoryEnum = pgEnum('bug_category', [
   'data',
   'security',
   'integration',
+  'other',
+]);
+
+export const featureRequestStatusEnum = pgEnum('feature_request_status', [
+  'submitted',
+  'under_review',
+  'planned',
+  'in_progress',
+  'completed',
+  'rejected',
+]);
+
+export const featureRequestCategoryEnum = pgEnum('feature_request_category', [
+  'dashboard',
+  'property_management',
+  'resident_management', 
+  'financial_management',
+  'maintenance',
+  'document_management',
+  'communication',
+  'reports',
+  'mobile_app',
+  'integrations',
+  'security',
+  'performance',
   'other',
 ]);
 
@@ -212,6 +238,51 @@ export const bugs = pgTable('bugs', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Feature requests table for collecting user suggestions and ideas.
+ * All users can submit feature requests with category and page assignments.
+ * Supports upvoting and merging similar requests.
+ */
+export const featureRequests = pgTable('feature_requests', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdBy: uuid('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  need: text('need').notNull(), // The specific need this feature addresses
+  category: featureRequestCategoryEnum('category').notNull(),
+  page: text('page').notNull(), // The page/section where this feature should be added
+  status: featureRequestStatusEnum('status').notNull().default('submitted'),
+  upvoteCount: integer('upvote_count').notNull().default(0),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  adminNotes: text('admin_notes'), // Internal notes for admins only
+  mergedIntoId: uuid('merged_into_id').references(() => featureRequests.id), // If merged into another request
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Feature request upvotes table for tracking user votes on feature requests.
+ * Each user can only upvote a feature request once.
+ */
+export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  featureRequestId: uuid('feature_request_id')
+    .notNull()
+    .references(() => featureRequests.id),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
@@ -266,6 +337,20 @@ export const insertBugSchema = z.object({
   environment: z.string().optional(),
 });
 
+export const insertFeatureRequestSchema = z.object({
+  createdBy: z.string().uuid(),
+  title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
+  need: z.string().min(5, "Need must be at least 5 characters").max(500, "Need must not exceed 500 characters"),
+  category: z.enum(['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other']),
+  page: z.string().min(1, "Page is required"),
+});
+
+export const insertFeatureRequestUpvoteSchema = z.object({
+  featureRequestId: z.string().uuid(),
+  userId: z.string().uuid(),
+});
+
 // Types
 /**
  *
@@ -311,6 +396,24 @@ export type InsertBug = z.infer<typeof insertBugSchema>;
  *
  */
 export type Bug = typeof bugs.$inferSelect;
+
+/**
+ *
+ */
+export type InsertFeatureRequest = z.infer<typeof insertFeatureRequestSchema>;
+/**
+ *
+ */
+export type FeatureRequest = typeof featureRequests.$inferSelect;
+
+/**
+ *
+ */
+export type InsertFeatureRequestUpvote = z.infer<typeof insertFeatureRequestUpvoteSchema>;
+/**
+ *
+ */
+export type FeatureRequestUpvote = typeof featureRequestUpvotes.$inferSelect;
 
 // Relations
 // Relations - temporarily commented out due to drizzle-orm version compatibility
