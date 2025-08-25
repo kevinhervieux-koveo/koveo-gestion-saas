@@ -2390,7 +2390,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       .returning();
     
     // Invalidate cache for this user
-    queryCache.invalidatePattern(`bugs:user:${bugData.createdBy}:`);
+    queryCache.invalidate('bugs');
     
     return result[0];
   }
@@ -2416,8 +2416,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     
     if (result[0]) {
       // Invalidate related cache entries
-      queryCache.invalidatePattern(`bug:${id}:`);
-      queryCache.invalidatePattern(`bugs:user:`);
+      queryCache.invalidate('bugs');
     }
     
     return result[0];
@@ -2439,8 +2438,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     
     if (result.length > 0) {
       // Invalidate related cache entries
-      queryCache.invalidatePattern(`bug:${id}:`);
-      queryCache.invalidatePattern(`bugs:user:`);
+      queryCache.invalidate('bugs');
       return true;
     }
     

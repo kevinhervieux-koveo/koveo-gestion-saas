@@ -46,6 +46,9 @@ const CACHE_CONFIGS: Record<string, CacheConfig> = {
   
   // Framework configuration - very stable
   config: { maxSize: 100, ttl: 60 * 60 * 1000 }, // 1 hour
+  
+  // Bug reports - moderate changes, user-specific
+  bugs: { maxSize: 500, ttl: 2 * 60 * 1000 }, // 2 minutes
 };
 
 /**
