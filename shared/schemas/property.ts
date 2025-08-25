@@ -11,6 +11,7 @@ import {
   decimal,
   numeric,
   date,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -37,6 +38,11 @@ export const contactCategoryEnum = pgEnum('contact_category', [
   'maintenance',
   'emergency',
   'other',
+]);
+
+export const bookingStatusEnum = pgEnum('booking_status', [
+  'confirmed',
+  'cancelled',
 ]);
 
 // Property tables
@@ -143,6 +149,70 @@ export const contacts = pgTable('contacts', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Common spaces table storing shared facilities within buildings.
+ * Represents spaces like gyms, lounges, meeting rooms that can be reserved by residents.
+ */
+export const commonSpaces = pgTable('common_spaces', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  buildingId: uuid('building_id')
+    .notNull()
+    .references(() => buildings.id, { onDelete: 'cascade' }),
+  isReservable: boolean('is_reservable').notNull().default(false),
+  capacity: integer('capacity'),
+  contactPersonId: uuid('contact_person_id')
+    .references(() => users.id, { onDelete: 'set null' }),
+  openingHours: jsonb('opening_hours'),
+  bookingRules: text('booking_rules'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Bookings table for common space reservations.
+ * Tracks user reservations for common spaces with time slots and status.
+ */
+export const bookings = pgTable('bookings', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  commonSpaceId: uuid('common_space_id')
+    .notNull()
+    .references(() => commonSpaces.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  startTime: timestamp('start_time', { withTimezone: true }).notNull(),
+  endTime: timestamp('end_time', { withTimezone: true }).notNull(),
+  status: bookingStatusEnum('status').notNull().default('confirmed'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * User booking restrictions table to manage blocked users.
+ * Allows administrators to block specific users from booking certain common spaces.
+ */
+export const userBookingRestrictions = pgTable('user_booking_restrictions', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  commonSpaceId: uuid('common_space_id')
+    .notNull()
+    .references(() => commonSpaces.id, { onDelete: 'cascade' }),
+  isBlocked: boolean('is_blocked').notNull().default(true),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertBuildingSchema = z.object({
   organizationId: z.string().uuid(),
@@ -197,6 +267,36 @@ export const insertContactSchema = z.object({
   contactCategory: z.string(),
 });
 
+export const insertCommonSpaceSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().optional(),
+  buildingId: z.string().uuid(),
+  isReservable: z.boolean().default(false),
+  capacity: z.number().int().optional(),
+  contactPersonId: z.string().uuid().optional(),
+  openingHours: z.array(z.object({
+    day: z.string(),
+    open: z.string(),
+    close: z.string(),
+  })).optional(),
+  bookingRules: z.string().optional(),
+});
+
+export const insertBookingSchema = z.object({
+  commonSpaceId: z.string().uuid(),
+  userId: z.string().uuid(),
+  startTime: z.date(),
+  endTime: z.date(),
+  status: z.enum(['confirmed', 'cancelled']).default('confirmed'),
+});
+
+export const insertUserBookingRestrictionSchema = z.object({
+  userId: z.string().uuid(),
+  commonSpaceId: z.string().uuid(),
+  isBlocked: z.boolean().default(true),
+  reason: z.string().optional(),
+});
+
 // Types
 /**
  *
@@ -233,6 +333,33 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
  *
  */
 export type Contact = typeof contacts.$inferSelect;
+
+/**
+ *
+ */
+export type InsertCommonSpace = z.infer<typeof insertCommonSpaceSchema>;
+/**
+ *
+ */
+export type CommonSpace = typeof commonSpaces.$inferSelect;
+
+/**
+ *
+ */
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+/**
+ *
+ */
+export type Booking = typeof bookings.$inferSelect;
+
+/**
+ *
+ */
+export type InsertUserBookingRestriction = z.infer<typeof insertUserBookingRestrictionSchema>;
+/**
+ *
+ */
+export type UserBookingRestriction = typeof userBookingRestrictions.$inferSelect;
 
 // Relations - Temporarily commented out due to drizzle-orm version compatibility
 /*

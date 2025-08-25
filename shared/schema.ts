@@ -53,6 +53,12 @@ export type {
   InsertUserResidence,
   Contact,
   InsertContact,
+  CommonSpace,
+  InsertCommonSpace,
+  Booking,
+  InsertBooking,
+  UserBookingRestriction,
+  InsertUserBookingRestriction,
 } from './schemas/property';
 
 export type {
