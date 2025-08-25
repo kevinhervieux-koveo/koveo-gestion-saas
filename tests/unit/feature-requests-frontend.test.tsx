@@ -144,9 +144,10 @@ jest.mock('@tanstack/react-query', () => ({
 
 /**
  * Test wrapper component with all necessary providers.
- * @param root0
- * @param root0.children
- * @param root0.isAdmin
+ * @param root0 - The props object.
+ * @param root0.children - Child components to render.
+ * @param root0.isAdmin - Whether user has admin privileges.
+ * @returns JSX element with necessary providers.
  */
 function TestWrapper({ 
   children, 

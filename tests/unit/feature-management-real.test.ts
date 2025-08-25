@@ -8,7 +8,7 @@ import express from 'express';
 import { registerFeatureManagementRoutes } from '../../server/api/feature-management';
 import { db } from '../../server/db';
 import { features } from '../../shared/schemas/development';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // Mock only auth middleware to use test user
 jest.mock('../../server/auth', () => ({
