@@ -110,10 +110,13 @@ app.use(memoryOptimization);
 // SECURITY: Configure rate limiting for different endpoint types
 const generalRateLimit = rateLimit(rateLimitConfig.api);
 const authRateLimit = rateLimit(rateLimitConfig.auth);
+const passwordResetRateLimit = rateLimit(rateLimitConfig.passwordReset);
 const uploadRateLimit = rateLimit(rateLimitConfig.upload);
 
-// Apply rate limiting to API routes
-app.use('/api/auth', authRateLimit);
+// Apply rate limiting to API routes - specific endpoints first, then general
+app.use('/api/auth/forgot-password', passwordResetRateLimit); // More lenient for password reset
+app.use('/api/auth/reset-password', passwordResetRateLimit); // More lenient for password reset
+app.use('/api/auth', authRateLimit); // Strict rate limit for other auth endpoints
 app.use('/api/upload', uploadRateLimit);
 app.use('/api/files', uploadRateLimit);
 app.use('/api', generalRateLimit);

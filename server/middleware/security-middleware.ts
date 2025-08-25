@@ -204,6 +204,27 @@ export const rateLimitConfig = {
     legacyHeaders: false,
   },
   
+  // Password reset endpoints - more lenient than login
+  passwordReset: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Allow more attempts for password reset
+    message: {
+      error: 'Trop de demandes de réinitialisation. Veuillez réessayer dans 15 minutes.',
+      error_en: 'Too many password reset requests. Please try again in 15 minutes.',
+      code: 'RATE_LIMIT_PASSWORD_RESET'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req, _res) => {
+      // Use a combination of IP and User-Agent for better accuracy
+      const forwarded = req.headers['x-forwarded-for'] as string;
+      const realIp = req.headers['x-real-ip'] as string;
+      const clientIp = forwarded?.split(',')[0]?.trim() || realIp || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      return `${clientIp}:${userAgent.substring(0, 50)}`;
+    },
+  },
+  
   // File upload endpoints
   upload: {
     windowMs: 60 * 60 * 1000, // 1 hour
