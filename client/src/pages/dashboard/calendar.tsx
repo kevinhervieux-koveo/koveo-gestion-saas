@@ -5,6 +5,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +19,8 @@ import {
   Filter,
   Eye,
   EyeOff,
-  MapPin
+  MapPin,
+  Check
 } from 'lucide-react';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
 
@@ -46,6 +48,10 @@ export default function DashboardCalendarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [visibleSpaces, setVisibleSpaces] = useState<Set<string>>(new Set());
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedCalendarType, setSelectedCalendarType] = useState<string | null>(null);
+  const [showProviderStep, setShowProviderStep] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
   // Fetch buildings accessible to the user
   const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{buildings: Building[]}>({
@@ -171,16 +177,347 @@ export default function DashboardCalendarPage() {
                 {language === 'fr' ? 'Filtres et Options' : 'Filters and Options'}
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLinkCalendar}
-                  className="flex items-center gap-2"
-                  data-testid="button-link-calendar"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
-                </Button>
+                <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      data-testid="button-link-calendar"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {!showProviderStep 
+                          ? (language === 'fr' 
+                            ? 'Que souhaitez-vous lier ?' 
+                            : 'What do you want to link?')
+                          : (language === 'fr' 
+                            ? 'Choisir le fournisseur de calendrier' 
+                            : 'Choose calendar provider')
+                        }
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      {!showProviderStep && (
+                        <>
+                          <div className="text-sm text-gray-600">
+                            {language === 'fr' 
+                              ? 'Sélectionnez quel type de calendrier vous souhaitez synchroniser:'
+                              : 'Select which type of calendar you want to sync:'
+                            }
+                          </div>
+                          
+                          {/* Link Everything Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedCalendarType === 'everything' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedCalendarType('everything')}
+                            data-testid="option-everything-calendar"
+                          >
+                            <div>
+                              <div className="font-medium">
+                                {language === 'fr' ? 'Tout lier' : 'Link everything'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {language === 'fr' 
+                                  ? `Synchroniser tous les espaces sélectionnés (${visibleSpaces.size} espaces)`
+                                  : `Sync all selected spaces (${visibleSpaces.size} spaces)`
+                                }
+                              </div>
+                            </div>
+                            {selectedCalendarType === 'everything' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {/* Individual Spaces Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedCalendarType === 'individual' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedCalendarType('individual')}
+                            data-testid="option-individual-spaces"
+                          >
+                            <div>
+                              <div className="font-medium">
+                                {language === 'fr' ? 'Espaces individuels' : 'Individual spaces'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {language === 'fr' 
+                                  ? 'Choisir des espaces spécifiques à synchroniser'
+                                  : 'Choose specific spaces to sync'
+                                }
+                              </div>
+                            </div>
+                            {selectedCalendarType === 'individual' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {selectedCalendarType === 'everything' && (
+                            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                              <div className="text-sm font-medium text-green-900 mb-2">
+                                {language === 'fr' 
+                                  ? 'Configuration complète'
+                                  : 'Complete configuration'
+                                }
+                              </div>
+                              <div className="text-sm text-green-700">
+                                {visibleSpaces.size > 0 
+                                  ? (language === 'fr' 
+                                    ? `Cette option synchronisera tous les ${visibleSpaces.size} espaces actuellement sélectionnés avec votre calendrier externe.`
+                                    : `This option will sync all ${visibleSpaces.size} currently selected spaces with your external calendar.`)
+                                  : (language === 'fr' 
+                                    ? 'Aucun espace sélectionné. Veuillez en sélectionner au moins un avant de continuer.'
+                                    : 'No spaces selected. Please select at least one before continuing.')
+                                }
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedCalendarType === 'individual' && (
+                            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-sm font-medium text-blue-900 mb-2">
+                                {language === 'fr' 
+                                  ? 'Configuration individuelle'
+                                  : 'Individual configuration'
+                                }
+                              </div>
+                              <div className="text-sm text-blue-700">
+                                {language === 'fr' 
+                                  ? 'Vous pourrez choisir précisément quels espaces synchroniser à l\'étape suivante.'
+                                  : 'You will be able to choose precisely which spaces to sync in the next step.'
+                                }
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex justify-end gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setIsLinkDialogOpen(false);
+                                setSelectedCalendarType(null);
+                                setShowProviderStep(false);
+                                setSelectedProvider(null);
+                              }}
+                              data-testid="button-cancel-link"
+                            >
+                              {language === 'fr' ? 'Annuler' : 'Cancel'}
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                if (selectedCalendarType === 'everything' && visibleSpaces.size === 0) {
+                                  return; // Don't proceed if no spaces selected
+                                }
+                                if (selectedCalendarType) {
+                                  setShowProviderStep(true);
+                                }
+                              }}
+                              disabled={!selectedCalendarType || (selectedCalendarType === 'everything' && visibleSpaces.size === 0)}
+                              data-testid="button-next-step"
+                            >
+                              {language === 'fr' ? 'Suivant' : 'Next'}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+
+                      {showProviderStep && (
+                        <>
+                          <div className="text-sm text-gray-600 mb-4">
+                            {language === 'fr' 
+                              ? 'Sélectionnez le fournisseur de calendrier où vous souhaitez synchroniser :'
+                              : 'Select the calendar provider where you want to sync:'
+                            }
+                          </div>
+
+                          {/* Google Calendar Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedProvider === 'google' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedProvider('google')}
+                            data-testid="option-google-calendar"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                                G
+                              </div>
+                              <div>
+                                <div className="font-medium">Google Calendar</div>
+                                <div className="text-sm text-gray-500">
+                                  {language === 'fr' ? 'Synchroniser avec Google Calendar' : 'Sync with Google Calendar'}
+                                </div>
+                              </div>
+                            </div>
+                            {selectedProvider === 'google' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {/* Outlook Calendar Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedProvider === 'outlook' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedProvider('outlook')}
+                            data-testid="option-outlook-calendar"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                                O
+                              </div>
+                              <div>
+                                <div className="font-medium">Outlook Calendar</div>
+                                <div className="text-sm text-gray-500">
+                                  {language === 'fr' ? 'Synchroniser avec Outlook Calendar' : 'Sync with Outlook Calendar'}
+                                </div>
+                              </div>
+                            </div>
+                            {selectedProvider === 'outlook' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {/* Apple Calendar Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedProvider === 'apple' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedProvider('apple')}
+                            data-testid="option-apple-calendar"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold">
+                                
+                              </div>
+                              <div>
+                                <div className="font-medium">Apple Calendar</div>
+                                <div className="text-sm text-gray-500">
+                                  {language === 'fr' ? 'Synchroniser avec Apple Calendar' : 'Sync with Apple Calendar'}
+                                </div>
+                              </div>
+                            </div>
+                            {selectedProvider === 'apple' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {/* Other Calendar Option */}
+                          <div 
+                            className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                              selectedProvider === 'other' 
+                                ? 'border-koveo-navy bg-koveo-navy/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedProvider('other')}
+                            data-testid="option-other-calendar"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold">
+                                ...
+                              </div>
+                              <div>
+                                <div className="font-medium">
+                                  {language === 'fr' ? 'Autre calendrier' : 'Other calendar'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {language === 'fr' ? 'Utiliser un fichier ICS ou autre' : 'Use ICS file or other'}
+                                </div>
+                              </div>
+                            </div>
+                            {selectedProvider === 'other' && (
+                              <Check className="w-5 h-5 text-koveo-navy" />
+                            )}
+                          </div>
+
+                          {selectedProvider && (
+                            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-sm font-medium text-blue-900 mb-2">
+                                {language === 'fr' ? 'Configuration finale' : 'Final configuration'}
+                              </div>
+                              <div className="text-sm text-blue-700">
+                                {language === 'fr' 
+                                  ? `Prêt à lier ${selectedCalendarType === 'everything' ? `tous les ${visibleSpaces.size} espaces sélectionnés` : 'les espaces individuels'} avec ${
+                                      selectedProvider === 'google' ? 'Google Calendar' :
+                                      selectedProvider === 'outlook' ? 'Outlook Calendar' :
+                                      selectedProvider === 'apple' ? 'Apple Calendar' :
+                                      'votre calendrier'
+                                    }.`
+                                  : `Ready to link ${selectedCalendarType === 'everything' ? `all ${visibleSpaces.size} selected spaces` : 'individual spaces'} with ${
+                                      selectedProvider === 'google' ? 'Google Calendar' :
+                                      selectedProvider === 'outlook' ? 'Outlook Calendar' :
+                                      selectedProvider === 'apple' ? 'Apple Calendar' :
+                                      'your calendar'
+                                    }.`
+                                }
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowProviderStep(false);
+                                setSelectedProvider(null);
+                              }}
+                              data-testid="button-back-step"
+                            >
+                              {language === 'fr' ? 'Retour' : 'Back'}
+                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setIsLinkDialogOpen(false);
+                                  setSelectedCalendarType(null);
+                                  setShowProviderStep(false);
+                                  setSelectedProvider(null);
+                                }}
+                                data-testid="button-cancel-provider"
+                              >
+                                {language === 'fr' ? 'Annuler' : 'Cancel'}
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Handle final calendar linking here
+                                  console.log(`Linking ${selectedCalendarType} to ${selectedProvider} for spaces:`, Array.from(visibleSpaces));
+                                  handleLinkCalendar();
+                                  setIsLinkDialogOpen(false);
+                                  setSelectedCalendarType(null);
+                                  setShowProviderStep(false);
+                                  setSelectedProvider(null);
+                                }}
+                                disabled={!selectedProvider}
+                                data-testid="button-confirm-final-link"
+                              >
+                                {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
+                              </Button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <Button
                   variant="outline"
                   size="sm"
