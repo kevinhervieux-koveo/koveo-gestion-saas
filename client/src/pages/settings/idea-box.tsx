@@ -536,7 +536,10 @@ export default function IdeaBox() {
                         <Button
                           variant='outline'
                           size='sm'
-                          onClick={() => handleUpvote(request.id)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent card click event
+                            handleUpvote(request.id);
+                          }}
                           className='flex items-center gap-1'
                           data-testid={`button-upvote-${request.id}`}
                         >
@@ -547,7 +550,12 @@ export default function IdeaBox() {
                         {canEditFeatureRequest() && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant='outline' size='sm' data-testid={`button-menu-${request.id}`}>
+                              <Button 
+                                variant='outline' 
+                                size='sm' 
+                                onClick={(e) => e.stopPropagation()} // Prevent card click event
+                                data-testid={`button-menu-${request.id}`}
+                              >
                                 <MoreHorizontal className='w-4 h-4' />
                               </Button>
                             </DropdownMenuTrigger>

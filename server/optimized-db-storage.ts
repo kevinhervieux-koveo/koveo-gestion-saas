@@ -2651,13 +2651,18 @@ export class OptimizedDatabaseStorage implements IStorage {
     const { featureRequestId, userId } = upvoteData;
     
     try {
+      console.log(`🔍 Attempting to upvote feature request ${featureRequestId} by user ${userId}`);
+      
       // Check if feature request exists
       const featureRequestResult = await db
         .select()
         .from(schema.featureRequests)
         .where(eq(schema.featureRequests.id, featureRequestId));
       
+      console.log(`🔍 Feature request check result: ${featureRequestResult.length} found`);
+      
       if (featureRequestResult.length === 0) {
+        console.log(`❌ Feature request ${featureRequestId} not found`);
         return {
           success: false,
           message: 'Feature request not found'
@@ -2675,7 +2680,10 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
         );
       
+      console.log(`🔍 Existing upvote check result: ${existingUpvote.length} found`);
+      
       if (existingUpvote.length > 0) {
+        console.log(`❌ User ${userId} has already upvoted feature request ${featureRequestId}`);
         return {
           success: false,
           message: 'You have already upvoted this feature request'
@@ -2714,6 +2722,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         }
       };
     } catch (error) {
+      console.error(`❌ Error in upvoteFeatureRequest for ${featureRequestId} by ${userId}:`, error);
       return {
         success: false,
         message: 'Failed to upvote feature request'
