@@ -15,10 +15,12 @@ import { registerBugRoutes } from './api/bugs';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
+import { registerDemoManagementRoutes } from './api/demo-management';
 import budgetRoutes from './api/budgets';
 import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
+import DemoManagementService from './services/demo-management-service';
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -214,6 +216,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Feature request routes registered');
   } catch (_error) {
     log(`❌ Feature request routes failed: ${_error}`, 'error');
+  }
+
+  // Register demo management API routes
+  try {
+    registerDemoManagementRoutes(app);
+    log('✅ Demo management routes registered');
+  } catch (_error) {
+    log(`❌ Demo management routes failed: ${_error}`, 'error');
   }
   
   // Register building API routes
@@ -1110,6 +1120,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Storage cleanup scheduler initialized');
   } catch (_error) {
     log(`❌ Cleanup scheduler failed: ${_error}`, 'error');
+  }
+
+  // Initialize demo organizations for production
+  try {
+    DemoManagementService.initializeDemoOrganizations();
+    log('✅ Demo organizations initialization started');
+  } catch (_error) {
+    log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
   }
 
   // Create and return HTTP server
