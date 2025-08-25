@@ -46,10 +46,13 @@ export default function ForgotPasswordPage() {
         description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
       });
     } catch (_error: unknown) {
-      console.error('Forgot password _error:', _error);
+      if (import.meta.env.DEV) {
+        console.error('Forgot password error:', _error);
+      }
+      const errorMessage = _error instanceof Error ? _error.message : 'Une erreur est survenue lors de l\'envoi de l\'e-mail.';
       toast({
         title: 'Erreur',
-        description: (_error as any).message || 'Une erreur est survenue lors de l\'envoi de l\'e-mail.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

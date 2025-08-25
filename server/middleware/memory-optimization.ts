@@ -38,29 +38,39 @@ export function memoryOptimization(req: Request, res: Response, next: NextFuncti
  * Global memory monitoring.
  */
 export function startMemoryMonitoring(): void {
-  const MEMORY_CHECK_INTERVAL = 30000; // 30 seconds
-  const MEMORY_THRESHOLD = 150 * 1024 * 1024; // 150MB
+  const MEMORY_CHECK_INTERVAL = 60000; // 1 minute (less frequent)
+  const MEMORY_THRESHOLD = 250 * 1024 * 1024; // 250MB (higher threshold for dev)
   
   setInterval(() => {
     const memUsage = process.memoryUsage();
     const totalMem = memUsage.heapUsed + memUsage.external;
     
     if (totalMem > MEMORY_THRESHOLD) {
-      console.warn(`⚠️  High memory usage: ${Math.round(totalMem / 1024 / 1024)}MB`);
+      // Only log memory warnings in development or when memory is critically high
+      const isProduction = process.env.NODE_ENV === 'production';
+      const isCritical = totalMem > 400 * 1024 * 1024; // 400MB
       
-      // Force garbage collection if available
-      if (global.gc) {
-        global.gc();
-        console.log('🧹 Forced garbage collection');
+      if (!isProduction || isCritical) {
+        console.warn(`⚠️  High memory usage: ${Math.round(totalMem / 1024 / 1024)}MB`);
+        
+        // Log memory breakdown only for critical situations
+        if (isCritical) {
+          console.log('Memory breakdown:', {
+            heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+            heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+            external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
+            rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`
+          });
+        }
       }
       
-      // Log memory breakdown
-      console.log('Memory breakdown:', {
-        heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-        heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-        external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
-        rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`
-      });
+      // Force garbage collection if available and memory is high
+      if (global.gc && totalMem > 300 * 1024 * 1024) {
+        global.gc();
+        if (!isProduction || isCritical) {
+          console.log('🧹 Forced garbage collection');
+        }
+      }
     }
   }, MEMORY_CHECK_INTERVAL);
 }

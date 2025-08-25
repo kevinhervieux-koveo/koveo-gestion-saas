@@ -110,7 +110,10 @@ export const queryClient = new QueryClient({
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
     onError: (error) => {
-      console.error('Query error:', error);
+      // Only log query errors in development
+      if (import.meta.env.DEV) {
+        console.error('Query error:', error);
+      }
     },
     onSuccess: () => {
       queryCount++;
@@ -123,7 +126,10 @@ export const queryClient = new QueryClient({
   // Limit mutation cache size
   mutationCache: new MutationCache({
     onError: (error) => {
-      console.error('Mutation error:', error);
+      // Only log mutation errors in development
+      if (import.meta.env.DEV) {
+        console.error('Mutation error:', error);
+      }
     },
   }),
 });

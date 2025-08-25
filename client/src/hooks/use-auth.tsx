@@ -26,35 +26,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 /**
  * Authentication provider component that wraps the application.
  * Manages user authentication state and provides authentication actions.
- * 
- * @param children.children
- * @param children - Child components to wrap with authentication context.
- */
-/**
- * AuthProvider function.
- * @param root0
- * @param root0.children
- * @returns Function result.
- */
-/**
- * AuthProvider component.
  * @param props - Component props.
- * @param props.children - React children elements.
- * @returns JSX element.
+ * @param props.children - Child components to wrap with authentication context.
+ * @returns JSX element providing authentication context.
  */
-/**
- * Auth provider function.
- * @param { children } - { children } parameter.
- */
-export function /**
-   * Auth provider function.
-   * @param { children } - { children } parameter.
-   */ /**
-   * Auth provider function.
-   * @param { children } - { children } parameter.
-   */
-
- AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
@@ -75,39 +51,22 @@ export function /**
       try {
         const response = await fetch('/api/auth/user', {
           credentials: 'include',
-        }); /**
-   * If function.
-   * @param response.status === 401 - response.status === 401 parameter.
-   */ /**
-   * If function.
-   * @param response.status === 401 - response.status === 401 parameter.
-   */
-
-
+        });
         
         if (response.status === 401) {
           return null; // Not authenticated
-        } /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
-
+        }
         
         if (!response.ok) {
           throw new Error(`${response.status}: ${response.statusText}`);
         }
         
         return await response.json() as User;
-      } /**
-   * Catch function.
-   * @param _error - _error parameter.
-   */
- catch (_error) {
-        console.warn('Auth check failed:', _error);
+      } catch (_error) {
+        // Silently handle auth failures on public pages
+        if (!isPublicPage) {
+          console.warn('Auth check failed:', _error);
+        }
         return null;
       }
     },
