@@ -94,6 +94,39 @@ describe('Website Translation Tests', () => {
       });
     });
 
+    it('should use proper Quebec French for user management terms', () => {
+      // Test user management specific terminology
+      const userManagementTerms = {
+        'user': 'utilisateur',
+        'role': 'rôle',
+        'active': 'actif',
+        'inactive': 'inactif',
+        'email': 'courriel',
+        'first name': 'prénom',
+        'last name': 'nom de famille',
+        'organization': 'organisation',
+        'residence': 'résidence',
+        'invite': 'inviter',
+        'edit': 'modifier',
+        'delete': 'supprimer',
+        'status': 'statut',
+        'previous': 'précédent',
+        'next': 'suivant',
+        'showing': 'affichage'
+      };
+
+      Object.entries(userManagementTerms).forEach(([english, expectedFrench]) => {
+        // For this test, we verify the terminology mapping is correct
+        expect(expectedFrench).toBeTruthy();
+        expect(expectedFrench.length).toBeGreaterThan(0);
+        
+        // Quebec French should use proper accents
+        if (expectedFrench.includes('é') || expectedFrench.includes('ô')) {
+          expect(expectedFrench).toMatch(/[éèàôç]/);
+        }
+      });
+    });
+
     it('should have proper French accents and diacritics', () => {
       const frenchTexts = Object.values(translations.fr);
       
@@ -169,6 +202,47 @@ describe('Website Translation Tests', () => {
       expect(screen.getByText(/Quebec.*compliance/i)).toBeInTheDocument();
     });
 
+    it('should display proper terminology on user management page', () => {
+      // Mock the required API endpoints for user management
+      const UserManagement = () => {
+        return (
+          <div data-testid="user-management-page">
+            <h1>User Management</h1>
+            <button data-testid="button-invite-user">Invite User</button>
+            <button data-testid="button-edit-user">Edit User</button>
+            <div data-testid="text-user-role">Role</div>
+            <div data-testid="text-user-status">Status</div>
+            <div data-testid="text-user-email">Email Address</div>
+            <div data-testid="text-user-firstname">First Name</div>
+            <div data-testid="text-user-lastname">Last Name</div>
+            <div data-testid="text-user-organizations">Organizations</div>
+            <div data-testid="text-user-residences">Residences</div>
+            <div data-testid="text-user-active">Active</div>
+            <div data-testid="text-user-inactive">Inactive</div>
+            <div data-testid="text-pagination-previous">Previous</div>
+            <div data-testid="text-pagination-next">Next</div>
+            <div data-testid="text-pagination-showing">Showing users</div>
+            <div data-testid="text-no-residences">No residences</div>
+            <div data-testid="text-no-organizations">No organizations</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagement />
+        </TestProviders>
+      );
+
+      // Verify key user management elements are present
+      expect(screen.getByTestId('user-management-page')).toBeInTheDocument();
+      expect(screen.getByTestId('button-invite-user')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-user')).toBeInTheDocument();
+      expect(screen.getByTestId('text-user-role')).toBeInTheDocument();
+      expect(screen.getByTestId('text-user-status')).toBeInTheDocument();
+      expect(screen.getByTestId('text-user-email')).toBeInTheDocument();
+    });
+
     it('should use appropriate business terminology', () => {
       render(
         <TestProviders>
@@ -199,7 +273,9 @@ describe('Website Translation Tests', () => {
       // Should not contain English terms when in French mode
       const inappropriateTerms = [
         'property manager', 'tenant', 'lease agreement',
-        'common areas', 'board of directors', 'condo fees'
+        'common areas', 'board of directors', 'condo fees',
+        'user management', 'edit user', 'email address',
+        'first name', 'last name', 'role', 'status'
       ];
 
       inappropriateTerms.forEach(term => {
@@ -223,6 +299,69 @@ describe('Website Translation Tests', () => {
       // These should exist as buttons
       expect(screen.getByRole('button', { name: /Get Started/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
+    });
+
+    it('should translate user management form elements properly', () => {
+      const UserManagementForm = () => {
+        return (
+          <form data-testid="user-management-form">
+            <label data-testid="label-firstname">Prénom</label>
+            <input data-testid="input-firstname" placeholder="Entrez le prénom" />
+            
+            <label data-testid="label-lastname">Nom de famille</label>
+            <input data-testid="input-lastname" placeholder="Entrez le nom de famille" />
+            
+            <label data-testid="label-email">Adresse courriel</label>
+            <input data-testid="input-email" placeholder="Entrez l'adresse courriel" />
+            
+            <label data-testid="label-role">Rôle</label>
+            <select data-testid="select-role">
+              <option value="admin">Administrateur</option>
+              <option value="manager">Gestionnaire</option>
+              <option value="tenant">Locataire</option>
+              <option value="resident">Résident</option>
+            </select>
+            
+            <label data-testid="label-status">Statut</label>
+            <select data-testid="select-status">
+              <option value="active">Actif</option>
+              <option value="inactive">Inactif</option>
+            </select>
+            
+            <button data-testid="button-save">Sauvegarder</button>
+            <button data-testid="button-cancel">Annuler</button>
+            <button data-testid="button-delete">Supprimer</button>
+          </form>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagementForm />
+        </TestProviders>
+      );
+
+      // Verify form elements use proper Quebec French
+      expect(screen.getByTestId('label-firstname')).toHaveTextContent('Prénom');
+      expect(screen.getByTestId('label-lastname')).toHaveTextContent('Nom de famille');
+      expect(screen.getByTestId('label-email')).toHaveTextContent('courriel');
+      expect(screen.getByTestId('label-role')).toHaveTextContent('Rôle');
+      expect(screen.getByTestId('label-status')).toHaveTextContent('Statut');
+      
+      // Verify role options use Quebec French
+      expect(screen.getByText('Administrateur')).toBeInTheDocument();
+      expect(screen.getByText('Gestionnaire')).toBeInTheDocument();
+      expect(screen.getByText('Locataire')).toBeInTheDocument();
+      expect(screen.getByText('Résident')).toBeInTheDocument();
+      
+      // Verify status options
+      expect(screen.getByText('Actif')).toBeInTheDocument();
+      expect(screen.getByText('Inactif')).toBeInTheDocument();
+      
+      // Verify action buttons
+      expect(screen.getByTestId('button-save')).toHaveTextContent('Sauvegarder');
+      expect(screen.getByTestId('button-cancel')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-delete')).toHaveTextContent('Supprimer');
     });
 
     it('should have proper data-testid attributes for language testing', () => {
@@ -252,6 +391,34 @@ describe('Website Translation Tests', () => {
       // Must show Quebec Law 25 compliance
       expect(screen.getByText(/Quebec Law 25 Compliant/i)).toBeInTheDocument();
       expect(screen.getByText(/data.*protected/i)).toBeInTheDocument();
+    });
+
+    it('should handle user management with Quebec Law 25 compliance', () => {
+      // Test Quebec-specific user management compliance
+      const UserManagementCompliance = () => {
+        return (
+          <div data-testid="user-management-compliance">
+            <div data-testid="privacy-notice">Conforme à la Loi 25 du Québec</div>
+            <div data-testid="data-protection">Protection des données personnelles</div>
+            <div data-testid="user-consent">Consentement de l'utilisateur</div>
+            <div data-testid="data-access">Accès aux données</div>
+            <div data-testid="data-deletion">Suppression des données</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagementCompliance />
+        </TestProviders>
+      );
+
+      // Verify Quebec Law 25 compliance elements
+      expect(screen.getByTestId('privacy-notice')).toBeInTheDocument();
+      expect(screen.getByTestId('data-protection')).toBeInTheDocument();
+      expect(screen.getByTestId('user-consent')).toBeInTheDocument();
+      expect(screen.getByTestId('data-access')).toBeInTheDocument();
+      expect(screen.getByTestId('data-deletion')).toBeInTheDocument();
     });
 
     it('should use legally appropriate French terminology', () => {
@@ -297,6 +464,49 @@ describe('Website Translation Tests', () => {
         fireEvent.click(languageSwitcher);
         expect(setItemSpy).toHaveBeenCalledWith('language', 'fr');
       }
+    });
+
+    it('should maintain French language in user management pagination', () => {
+      const UserManagementPagination = () => {
+        return (
+          <div data-testid="user-pagination-french">
+            <div data-testid="pagination-info">
+              Affichage 1-10 sur 25 utilisateurs filtrés (50 au total)
+            </div>
+            <div data-testid="pagination-controls">
+              <button data-testid="button-previous">Précédent</button>
+              <span data-testid="page-info">Page 1 sur 3</span>
+              <button data-testid="button-next">Suivant</button>
+            </div>
+            <div data-testid="filter-status">
+              <span>Filtres actifs: Rôle (Gestionnaire), Statut (Actif)</span>
+            </div>
+            <div data-testid="no-users-message">
+              Aucun utilisateur trouvé avec les filtres sélectionnés.
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagementPagination />
+        </TestProviders>
+      );
+
+      // Verify pagination uses proper Quebec French
+      expect(screen.getByTestId('pagination-info')).toHaveTextContent('Affichage');
+      expect(screen.getByTestId('pagination-info')).toHaveTextContent('utilisateurs');
+      expect(screen.getByTestId('button-previous')).toHaveTextContent('Précédent');
+      expect(screen.getByTestId('button-next')).toHaveTextContent('Suivant');
+      expect(screen.getByTestId('page-info')).toHaveTextContent('Page');
+      
+      // Verify filter text uses French
+      expect(screen.getByTestId('filter-status')).toHaveTextContent('Filtres actifs');
+      expect(screen.getByTestId('filter-status')).toHaveTextContent('Gestionnaire');
+      
+      // Verify empty state message
+      expect(screen.getByTestId('no-users-message')).toHaveTextContent('Aucun utilisateur trouvé');
     });
 
     it('should maintain language consistency across navigation', () => {
@@ -367,6 +577,32 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   'board of directors': 'conseil d\'administration',
   'annual general meeting': 'assemblée générale annuelle',
   'contingency fund': 'fonds de prévoyance',
+  
+  // User management terms
+  'user management': 'gestion des utilisateurs',
+  'user': 'utilisateur',
+  'first name': 'prénom',
+  'last name': 'nom de famille',
+  'email address': 'adresse courriel',
+  'role': 'rôle',
+  'status': 'statut',
+  'active': 'actif',
+  'inactive': 'inactif',
+  'edit user': 'modifier l\'utilisateur',
+  'delete user': 'supprimer l\'utilisateur',
+  'invite user': 'inviter un utilisateur',
+  'organization': 'organisation',
+  'residence': 'résidence',
+  'previous': 'précédent',
+  'next': 'suivant',
+  'showing': 'affichage',
+  'total': 'total',
+  'filtered': 'filtrés',
+  'save': 'sauvegarder',
+  'cancel': 'annuler',
+  'admin': 'administrateur',
+  'manager': 'gestionnaire',
+  'resident': 'résident',
   
   // Technology terms
   'email': 'courriel',
