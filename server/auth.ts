@@ -509,9 +509,20 @@ export function setupAuthRoutes(app: any) {
 
       // Send password reset email
       // Properly detect development vs production environment
-      const isDev = process.env.NODE_ENV === 'development' || req.get('host')?.includes('replit');
-      const frontendUrl = process.env.FRONTEND_URL || 
-        (isDev ? `${req.protocol}://${req.get('host')}` : `https://${req.get('host')}`);
+      const host = req.get('host') || '';
+      const isDev = process.env.NODE_ENV === 'development' || host.includes('replit.dev') || host.includes('replit.com') || host.includes('replit.co');
+      
+      let frontendUrl;
+      if (process.env.FRONTEND_URL) {
+        frontendUrl = process.env.FRONTEND_URL;
+      } else if (isDev) {
+        // Use the current development URL (Replit development environment)
+        frontendUrl = `${req.protocol}://${host}`;
+      } else {
+        // Production environment
+        frontendUrl = `https://${host}`;
+      }
+      
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
       
