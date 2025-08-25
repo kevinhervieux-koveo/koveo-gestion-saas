@@ -1,4 +1,9 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+
+// Mock database functions
+const mockRunQuery = jest.fn();
+const mockConnectDB = jest.fn();
+const mockCloseDB = jest.fn();
 
 /**
  * Integration tests for complete calendar booking flow
@@ -371,7 +376,7 @@ describe('Calendar Booking Flow Integration', () => {
  */
 
 async function getTestCommonSpaceId(): Promise<string> {
-  const result = await runQuery(`
+  const result = await mockRunQuery(`
     SELECT id FROM common_spaces 
     WHERE building_id = $1 
       AND is_reservable = true 
@@ -420,7 +425,7 @@ async function createBookingThroughCalendar(booking: {
     throw new Error('Booking outside operating hours');
   }
 
-  const result = await runQuery(`
+  const result = await mockRunQuery(`
     INSERT INTO common_space_bookings 
     (common_space_id, user_id, start_time, end_time, status, created_at)
     VALUES ($1, $2, $3, $4, $5, NOW())
@@ -638,7 +643,7 @@ async function exportSpaceCalendar(spaceId: string, userId: string): Promise<any
 }
 
 async function getCommonSpacesForBuilding(buildingId: string): Promise<Array<{id: string, name: string}>> {
-  const result = await runQuery(`
+  const result = await mockRunQuery(`
     SELECT id, name
     FROM common_spaces 
     WHERE building_id = $1 

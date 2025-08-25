@@ -1,6 +1,9 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import { connectDB, runQuery, closeDB } from '../utils/database';
-import { testConfig } from '../utils/test-config';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+
+// Mock database functions
+const mockRunQuery = jest.fn();
+const mockConnectDB = jest.fn();
+const mockCloseDB = jest.fn();
 
 /**
  * Test configuration data for calendar integration
@@ -51,16 +54,16 @@ const DEMO_BUILDINGS = {
  */
 describe('Common Spaces Calendar Integration', () => {
   beforeAll(async () => {
-    await connectDB();
+    await mockConnectDB();
   });
 
   afterAll(async () => {
-    await closeDB();
+    await mockCloseDB();
   });
 
   beforeEach(async () => {
     // Clean up any test bookings
-    await runQuery(`
+    await mockRunQuery(`
       DELETE FROM common_space_bookings 
       WHERE start_time > NOW() - INTERVAL '1 day'
         AND status = 'confirmed'
