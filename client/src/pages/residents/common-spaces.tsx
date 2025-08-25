@@ -27,14 +27,15 @@ import {
   X,
   FileText,
   User,
-  CalendarDays
+  CalendarDays,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /**
  * Common Space interface
@@ -151,7 +152,7 @@ export default function CommonSpacesPage() {
   const [selectedSpace, setSelectedSpace] = useState<CommonSpace | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'list' | 'calendar'>('list');
+  const [expandedSpaceId, setExpandedSpaceId] = useState<string | null>(null);
 
   // Form for booking creation
   const form = useForm<BookingFormData>({
@@ -306,6 +307,11 @@ export default function CommonSpacesPage() {
     createBookingMutation.mutate(data);
   };
 
+  const handleSpaceClick = (space: CommonSpace) => {
+    setSelectedSpace(space);
+    setExpandedSpaceId(expandedSpaceId === space.id ? null : space.id);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50" data-testid="common-spaces-page">
       <Header 
@@ -314,53 +320,38 @@ export default function CommonSpacesPage() {
       />
       
       <main className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'list' | 'calendar')} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="list" className="flex items-center gap-2" data-testid="tab-list">
-              <FileText className="h-4 w-4" />
-              {language === 'fr' ? 'Liste' : 'List'}
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
-              <CalendarDays className="h-4 w-4" />
-              {language === 'fr' ? 'Calendrier' : 'Calendar'}
-            </TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900" data-testid="spaces-list-title">
+              {language === 'fr' ? 'Espaces Disponibles' : 'Available Spaces'}
+            </h2>
+            <Button
+              onClick={exportMyBookings}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              data-testid="button-export-my-bookings"
+            >
+              <Download className="w-4 h-4" />
+              {language === 'fr' ? 'Exporter mes réservations (.ics)' : 'Export my bookings (.ics)'}
+            </Button>
+          </div>
 
-          <TabsContent value="list" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Common Spaces List */}
-              <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900" data-testid="spaces-list-title">
-                {language === 'fr' ? 'Espaces Disponibles' : 'Available Spaces'}
-              </h2>
-              <Button
-                onClick={exportMyBookings}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="button-export-my-bookings"
-              >
-                <Download className="w-4 h-4" />
-                {language === 'fr' ? 'Exporter mes réservations (.ics)' : 'Export my bookings (.ics)'}
-              </Button>
+          {spacesLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+              ))}
             </div>
-
-            {spacesLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4" data-testid="spaces-list">
-                {(commonSpaces as CommonSpace[]).map((space: CommonSpace) => (
+          ) : (
+            <div className="space-y-4" data-testid="spaces-list">
+              {(commonSpaces as CommonSpace[]).map((space: CommonSpace) => (
+                <div key={space.id}>
                   <Card 
-                    key={space.id}
                     className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      selectedSpace?.id === space.id ? 'ring-2 ring-koveo-navy bg-koveo-light/10' : ''
+                      expandedSpaceId === space.id ? 'ring-2 ring-koveo-navy bg-koveo-light/10' : ''
                     }`}
-                    onClick={() => setSelectedSpace(space)}
+                    onClick={() => handleSpaceClick(space)}
                     data-testid={`space-card-${space.id}`}
                   >
                     <CardHeader className="pb-3">
@@ -368,12 +359,19 @@ export default function CommonSpacesPage() {
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <Building2 className="w-5 h-5 text-koveo-navy" />
                           {space.name}
+                          {expandedSpaceId === space.id ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          )}
                         </CardTitle>
-                        {space.isReservable && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
-                            {language === 'fr' ? 'Réservable' : 'Bookable'}
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {space.isReservable && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              {language === 'fr' ? 'Réservable' : 'Bookable'}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     
@@ -425,323 +423,183 @@ export default function CommonSpacesPage() {
                       )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right Column - Calendar and Bookings */}
-          <div className="space-y-6">
-            {selectedSpace ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900" data-testid="calendar-title">
-                    {language === 'fr' ? 'Calendrier des réservations' : 'Booking Calendar'}
-                  </h2>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={exportAllBookings}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      data-testid="button-export-all-bookings"
-                    >
-                      <Download className="w-4 h-4" />
-                      {language === 'fr' ? 'Exporter tout l\'agenda (.ics)' : 'Export full calendar (.ics)'}
-                    </Button>
-                    {selectedSpace.isReservable && (
-                      <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            className="flex items-center gap-2"
-                            data-testid="button-new-booking"
-                          >
-                            <Plus className="w-4 h-4" />
-                            {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md" data-testid="booking-dialog">
-                          <DialogHeader>
-                            <DialogTitle>
-                              {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
-                            </DialogTitle>
-                            <DialogDescription>
-                              {language === 'fr' 
-                                ? `Réserver ${selectedSpace.name}`
-                                : `Book ${selectedSpace.name}`}
-                            </DialogDescription>
-                          </DialogHeader>
-                          
-                          <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                              <FormField
-                                control={form.control}
-                                name="date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>
-                                      {language === 'fr' ? 'Date' : 'Date'}
-                                    </FormLabel>
-                                    <FormControl>
-                                      <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        disabled={(date) => date < new Date()}
-                                        locale={language === 'fr' ? fr : undefined}
-                                        className="rounded-md border"
-                                        data-testid="booking-date-picker"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={form.control}
-                                  name="startTime"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        {language === 'fr' ? 'Heure de début' : 'Start Time'}
-                                      </FormLabel>
-                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                          <SelectTrigger data-testid="booking-start-time">
-                                            <SelectValue placeholder="09:00" />
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          {timeSlots.map((time) => (
-                                            <SelectItem 
-                                              key={time} 
-                                              value={time}
-                                              disabled={!isTimeSlotAvailable(time)}
-                                            >
-                                              {time}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                
-                                <FormField
-                                  control={form.control}
-                                  name="endTime"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        {language === 'fr' ? 'Heure de fin' : 'End Time'}
-                                      </FormLabel>
-                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                          <SelectTrigger data-testid="booking-end-time">
-                                            <SelectValue placeholder="10:00" />
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          {timeSlots.map((time) => (
-                                            <SelectItem key={time} value={time}>
-                                              {time}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                              
-                              <DialogFooter>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => setIsBookingDialogOpen(false)}
-                                  data-testid="button-cancel-booking"
-                                >
-                                  {language === 'fr' ? 'Annuler' : 'Cancel'}
-                                </Button>
-                                <Button
-                                  type="submit"
-                                  disabled={createBookingMutation.isPending}
-                                  data-testid="button-confirm-booking"
-                                >
-                                  {createBookingMutation.isPending
-                                    ? (language === 'fr' ? 'Réservation...' : 'Booking...')
-                                    : (language === 'fr' ? 'Réserver' : 'Book')}
-                                </Button>
-                              </DialogFooter>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="w-5 h-5" />
-                      {selectedSpace.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
-                      locale={language === 'fr' ? fr : undefined}
-                      className="rounded-md border mb-6"
-                      data-testid="main-calendar"
-                    />
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg" data-testid="bookings-for-date-title">
-                        {language === 'fr' ? 'Réservations pour le ' : 'Bookings for '}
-                        {format(selectedDate, 'PPP', { 
-                          locale: language === 'fr' ? fr : undefined 
-                        })}
-                      </h3>
-                      
-                      {bookingsLoading ? (
-                        <div className="space-y-2">
-                          {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse" />
-                          ))}
-                        </div>
-                      ) : bookingsForDate.length > 0 ? (
-                        <div className="space-y-2" data-testid="bookings-list">
-                          {bookingsForDate.map((booking: Booking) => (
-                            <div
-                              key={booking.id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                              data-testid={`booking-${booking.id}`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-koveo-navy rounded-full" />
-                                <div>
-                                  <p className="font-medium">
-                                    {format(parseISO(booking.startTime), 'HH:mm')} - {format(parseISO(booking.endTime), 'HH:mm')}
-                                  </p>
-                                  {booking.user && (
-                                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                                      <User className="w-3 h-3" />
-                                      {booking.user.firstName} {booking.user.lastName}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <Badge variant={booking.status === 'confirmed' ? 'secondary' : 'destructive'}>
-                                {booking.status === 'confirmed' 
-                                  ? (language === 'fr' ? 'Confirmée' : 'Confirmed')
-                                  : (language === 'fr' ? 'Annulée' : 'Cancelled')}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 text-center py-8" data-testid="no-bookings-message">
-                          {language === 'fr' 
-                            ? 'Aucune réservation pour cette date' 
-                            : 'No bookings for this date'}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card className="h-full">
-                <CardContent className="flex items-center justify-center h-64">
-                  <div className="text-center text-gray-500">
-                    <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p data-testid="select-space-message">
-                      {language === 'fr' 
-                        ? 'Sélectionnez un espace commun pour voir son calendrier'
-                        : 'Select a common space to view its calendar'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="calendar" className="space-y-6">
-            {!user ? (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center text-muted-foreground">
-                    {language === 'fr' ? 'Connexion requise' : 'Login required'}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 gap-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold" data-testid="calendar-view-title">
-                    {language === 'fr' ? 'Vue Calendrier' : 'Calendar View'}
-                  </h2>
                   
-                  <div className="flex items-center gap-4">
-                    {selectedSpace && (
-                      <div className="text-sm text-muted-foreground">
-                        {language === 'fr' ? 'Espace sélectionné:' : 'Selected space:'} 
-                        <span className="font-medium ml-1">{selectedSpace.name}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {selectedSpace ? (
-                  <CalendarView 
-                    mode="space"
-                    spaceId={selectedSpace.id}
-                    showControls={true}
-                    onEventClick={(event) => {
-                      // Handle calendar event clicks
-                      console.log('Event clicked:', event);
-                    }}
-                    data-testid="space-calendar-view"
-                  />
-                ) : (
-                  <Card>
-                    <CardContent className="p-12">
-                      <div className="text-center text-muted-foreground">
-                        <CalendarIcon className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                        <h3 className="text-lg font-medium mb-2">
-                          {language === 'fr' ? 'Sélectionnez un espace' : 'Select a space'}
+                  {/* Inline Calendar */}
+                  {expandedSpaceId === space.id && (
+                    <div className="mt-4 bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <CalendarIcon className="h-5 w-5 text-koveo-navy" />
+                          {language === 'fr' ? `Calendrier - ${space.name}` : `Calendar - ${space.name}`}
                         </h3>
-                        <p>
-                          {language === 'fr' 
-                            ? 'Choisissez un espace commun dans l\'onglet Liste pour voir son calendrier' 
-                            : 'Choose a common space from the List tab to view its calendar'
-                          }
-                        </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => setActiveTab('list')}
-                          className="mt-4"
-                          data-testid="go-to-list-btn"
-                        >
-                          {language === 'fr' ? 'Voir la Liste' : 'View List'}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              exportAllBookings();
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                            data-testid="button-export-space-calendar"
+                          >
+                            <Download className="w-4 h-4" />
+                            {language === 'fr' ? 'Exporter (.ics)' : 'Export (.ics)'}
+                          </Button>
+                          {space.isReservable && (
+                            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-2"
+                                  data-testid="button-new-booking-inline"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  {language === 'fr' ? 'Réserver' : 'Book'}
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-md" data-testid="booking-dialog">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
+                                  </DialogTitle>
+                                  <DialogDescription>
+                                    {language === 'fr' 
+                                      ? `Réserver ${space.name}`
+                                      : `Book ${space.name}`}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                
+                                <Form {...form}>
+                                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                    <FormField
+                                      control={form.control}
+                                      name="date"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>
+                                            {language === 'fr' ? 'Date' : 'Date'}
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Calendar
+                                              mode="single"
+                                              selected={field.value}
+                                              onSelect={field.onChange}
+                                              disabled={(date) => date < new Date()}
+                                              locale={language === 'fr' ? fr : undefined}
+                                              className="rounded-md border"
+                                              data-testid="booking-date-picker"
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <FormField
+                                        control={form.control}
+                                        name="startTime"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>
+                                              {language === 'fr' ? 'Heure de début' : 'Start Time'}
+                                            </FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                              <FormControl>
+                                                <SelectTrigger data-testid="booking-start-time">
+                                                  <SelectValue placeholder="09:00" />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                {timeSlots.map((time) => (
+                                                  <SelectItem 
+                                                    key={time} 
+                                                    value={time}
+                                                    disabled={!isTimeSlotAvailable(time)}
+                                                  >
+                                                    {time}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      
+                                      <FormField
+                                        control={form.control}
+                                        name="endTime"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>
+                                              {language === 'fr' ? 'Heure de fin' : 'End Time'}
+                                            </FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                              <FormControl>
+                                                <SelectTrigger data-testid="booking-end-time">
+                                                  <SelectValue placeholder="10:00" />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                {timeSlots.map((time) => (
+                                                  <SelectItem key={time} value={time}>
+                                                    {time}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    </div>
+                                    
+                                    <DialogFooter>
+                                      <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        onClick={() => setIsBookingDialogOpen(false)}
+                                        data-testid="button-cancel-booking"
+                                      >
+                                        {language === 'fr' ? 'Annuler' : 'Cancel'}
+                                      </Button>
+                                      <Button 
+                                        type="submit" 
+                                        disabled={createBookingMutation.isPending}
+                                        data-testid="button-confirm-booking"
+                                      >
+                                        {createBookingMutation.isPending 
+                                          ? (language === 'fr' ? 'Réservation...' : 'Booking...') 
+                                          : (language === 'fr' ? 'Réserver' : 'Book')
+                                        }
+                                      </Button>
+                                    </DialogFooter>
+                                  </form>
+                                </Form>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                      
+                      <CalendarView
+                        mode="space"
+                        spaceId={space.id}
+                        showControls={false}
+                        onEventClick={(event) => {
+                          console.log('Clicked event:', event);
+                        }}
+                        data-testid={`inline-calendar-${space.id}`}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
