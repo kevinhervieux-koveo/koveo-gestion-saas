@@ -383,9 +383,13 @@ export default function CommonSpacesPage() {
                           )}
                         </CardTitle>
                         <div className="flex items-center gap-2">
-                          {space.isReservable && (
+                          {space.isReservable ? (
                             <Badge variant="secondary" className="bg-green-100 text-green-800">
                               {language === 'fr' ? 'Réservable' : 'Bookable'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                              {language === 'fr' ? 'Non Réservable' : 'Non Bookable'}
                             </Badge>
                           )}
                         </div>
