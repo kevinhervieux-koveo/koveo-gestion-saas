@@ -104,8 +104,11 @@ export const queryClient = new QueryClient({
       // Cache data for 5 minutes before removal to prevent memory bloat
       gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
-        // Retry 401 errors once (authentication timing issues)
-        if (error?.message?.includes('401') && failureCount < 1) {
+        // Retry authentication and common timing errors
+        if ((error?.message?.includes('401') || 
+             error?.message?.includes('404') ||
+             error?.message?.includes('Authentication required')) && 
+            failureCount < 2) {
           return true;
         }
         // Don't retry other client errors (4xx)
@@ -124,9 +127,12 @@ export const queryClient = new QueryClient({
     onError: (error) => {
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
-        // Skip logging authentication timing errors to reduce console noise
-        if (error.message.includes('401') || error.message.includes('Authentication required')) {
-          return; // Authentication timing issues will be retried automatically
+        // Skip logging authentication timing errors and common API errors to reduce console noise
+        if (error.message.includes('401') || 
+            error.message.includes('Authentication required') ||
+            error.message.includes('404') ||
+            error.message.includes('API endpoint not found')) {
+          return; // Authentication timing issues and 404s will be retried automatically
         }
         
         // Provide more helpful error messages for common issues

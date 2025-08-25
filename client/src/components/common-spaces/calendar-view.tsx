@@ -129,15 +129,14 @@ export function CalendarView({
         const response = await apiRequest('GET', apiUrl);
         return await response.json();
       } catch (error: any) {
-        // Handle authentication errors specifically
+        // Handle authentication errors specifically - suppress for timing issues
         if (error.message?.includes('401')) {
-          console.warn('Calendar authentication required - user may need to log in');
           throw new Error('Authentication required for calendar access');
         }
         throw error;
       }
     },
-    enabled: !!apiUrl && !!user,
+    enabled: !!apiUrl && !!user && !!user.id,
     retry: (failureCount, error: any) => {
       // Don't retry on auth errors
       if (error?.message?.includes('Authentication required')) {
