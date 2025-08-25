@@ -49,8 +49,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
  */
 // Demo credentials for testing purposes only - not real production data
 const DEMO_CREDENTIALS = {
-  DEFAULT_DEMO_PASSWORD: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-  TENANT_DEMO_PASSWORD: DEMO_CREDENTIALS.TENANT_DEMO_PASSWORD,
+  DEFAULT_DEMO_PASSWORD: 'Demo123!',
+  TENANT_DEMO_PASSWORD: 'Tenant123!',
 } as const;
 
 export default function LoginPage() {
