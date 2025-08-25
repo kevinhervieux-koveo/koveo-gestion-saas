@@ -69,7 +69,7 @@ export function registerDemoManagementRoutes(app: Express): void {
    * Ensure demo organizations exist and are properly configured.
    * Requires admin role.
    */
-  app.post('/api/demo/ensure', requireAuth, requireRole('admin'), async (req: Request, res: Response) => {
+  app.post('/api/demo/ensure', requireAuth, requireRole(['admin']), async (req: Request, res: Response) => {
     try {
       const result = await DemoManagementService.ensureDemoOrganizations();
       
@@ -98,7 +98,7 @@ export function registerDemoManagementRoutes(app: Express): void {
    * Force recreation of demo organizations with fresh data.
    * Requires admin role. This is a destructive operation.
    */
-  app.post('/api/demo/recreate', requireAuth, requireRole('admin'), async (req: Request, res: Response) => {
+  app.post('/api/demo/recreate', requireAuth, requireRole(['admin']), async (req: Request, res: Response) => {
     try {
       const result = await DemoManagementService.recreateDemoOrganizations();
       
@@ -127,7 +127,7 @@ export function registerDemoManagementRoutes(app: Express): void {
    * Run scheduled maintenance on demo organizations.
    * Requires admin role.
    */
-  app.post('/api/demo/maintenance', requireAuth, requireRole('admin'), async (req: Request, res: Response) => {
+  app.post('/api/demo/maintenance', requireAuth, requireRole(['admin']), async (req: Request, res: Response) => {
     try {
       const result = await DemoManagementService.scheduledMaintenance();
       
