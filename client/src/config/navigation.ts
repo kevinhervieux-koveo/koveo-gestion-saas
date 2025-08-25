@@ -50,7 +50,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: LayoutDashboard,
     requiredRole: 'tenant',
     items: [
-      { name: 'Dashboard', href: '/dashboard/quick-actions', icon: LayoutDashboard },
+      { name: 'Quick Actions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
     ],
   },
   {

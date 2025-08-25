@@ -114,6 +114,7 @@ export function Sidebar() {
     const getTranslatedName = (name: string) => {
       const translations: Record<string, { fr: string; en: string }> = {
         'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
+        'Quick Actions': { fr: 'Actions Rapides', en: 'Quick Actions' },
         'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
         'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
         'My Demands': { fr: 'Mes demandes', en: 'My Demands' },
