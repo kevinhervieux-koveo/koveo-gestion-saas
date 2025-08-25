@@ -104,6 +104,12 @@ const ManagerDemands = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ManagerCommonSpacesStats = createOptimizedLoader(
+  () => import('@/pages/manager/common-spaces-stats'),
+  'manager-common-spaces-stats',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Residents pages
 const ResidentsResidence = createOptimizedLoader(
   () => import('@/pages/residents/residence'),
@@ -319,6 +325,7 @@ function Router() {
               <Route path='/manager/bills' component={ManagerBills} />
               <Route path='/manager/demands' component={ManagerDemands} />
               <Route path='/manager/user-management' component={ManagerUserManagement} />
+              <Route path='/manager/common-spaces-stats' component={ManagerCommonSpacesStats} />
 
               {/* Documents route */}
               <Route path='/documents' component={Documents} />
