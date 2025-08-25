@@ -50,7 +50,7 @@ export const mockTranslations = {
     'success.deleted': 'Successfully deleted',
     
     // Feature Requests/Idea Box
-    'ideaBox.title': 'Idea Box',
+    'idea_box.title': 'Idea Box',
     'ideaBox.subtitle': 'Submit and vote on feature suggestions',
     'ideaBox.submitIdea': 'Submit Idea',
     'ideaBox.searchPlaceholder': 'Search feature requests...',
@@ -125,6 +125,10 @@ export const mockTranslations = {
 
     // Translation keys validation
     'translation.keys.validation': 'Translation keys validation',
+    
+    // Additional missing translations
+    'featureRequest.create': 'Create Feature Request',
+    'idea_box.title': 'Idea Box',
   },
   fr: {
     // Common UI elements
@@ -150,7 +154,7 @@ export const mockTranslations = {
     'demands.status.cancelled': 'Annulé',
     
     // Feature Requests/Idea Box
-    'ideaBox.title': 'Boîte à idées',
+    'idea_box.title': 'Boîte à idées',
     'ideaBox.subtitle': 'Soumettez et votez sur les suggestions de fonctionnalités',
     'ideaBox.submitIdea': 'Soumettre une idée',
     'ideaBox.searchPlaceholder': 'Rechercher des demandes de fonctionnalités...',
@@ -250,6 +254,10 @@ export const mockTranslations = {
     
     // Translation keys validation
     'translation.keys.validation': 'Validation des clés de traduction',
+    
+    // Additional missing translations
+    'featureRequest.create': 'Créer une demande de fonctionnalité',
+    'idea_box.title': 'Boîte à idées',
   }
 };
 

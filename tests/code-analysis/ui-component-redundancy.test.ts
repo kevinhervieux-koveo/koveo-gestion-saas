@@ -110,7 +110,7 @@ const extractComponentInfo = (filePath: string, content: string): ComponentAnaly
   return {
     name: componentName,
     filePath,
-    props,
+    _props: props,
     hooks,
     patterns,
     complexity,
@@ -141,7 +141,7 @@ const findSimilarComponents = (components: ComponentAnalysis[]): ComponentAnalys
         // Same patterns
         component.patterns.some(pattern => other.patterns.includes(pattern)) ||
         // Similar props (>50% overlap)
-        (component.props.filter(prop => other.props.includes(prop)).length / Math.max(component.props.length, 1)) > 0.5 ||
+        (component._props.filter(prop => other._props.includes(prop)).length / Math.max(component._props.length, 1)) > 0.5 ||
         // Similar hooks
         component.hooks.filter(hook => other.hooks.includes(hook)).length >= 2
       )
@@ -184,11 +184,11 @@ const generateRedundancyReport = (components: ComponentAnalysis[]): RedundancyRe
 
 const generateRefactorSuggestion = (component: ComponentAnalysis): string => {
   if (component.patterns.includes('form-handling') && component.similarComponents.length > 2) {
-    return `Create reusable FormComponent with configurable fields: ${component.props.filter(p => p.includes('field') || p.includes('value') || p.includes('error')).join(', ')}`;
+    return `Create reusable FormComponent with configurable fields: ${component._props.filter(p => p.includes('field') || p.includes('value') || p.includes('error')).join(', ')}`;
   }
   
   if (component.patterns.includes('modal-dialog') && component.similarComponents.length > 1) {
-    return `Extract BaseModal component with common _props: ${component.props.filter(p => p.includes('open') || p.includes('close') || p.includes('title')).join(', ')}`;
+    return `Extract BaseModal component with common _props: ${component._props.filter(p => p.includes('open') || p.includes('close') || p.includes('title')).join(', ')}`;
   }
   
   if (component.patterns.includes('card-layout') && component.similarComponents.length > 2) {
@@ -196,7 +196,7 @@ const generateRefactorSuggestion = (component: ComponentAnalysis): string => {
   }
   
   if (component.patterns.includes('list-rendering') && component.similarComponents.length > 1) {
-    return `Extract DataList component with configurable rendering: ${component.props.filter(p => p.includes('data') || p.includes('item')).join(', ')}`;
+    return `Extract DataList component with configurable rendering: ${component._props.filter(p => p.includes('data') || p.includes('item')).join(', ')}`;
   }
   
   if (component.complexity > 15) {
@@ -370,7 +370,7 @@ describe('Enhanced UI Component Redundancy Detection', () => {
       // Show top redundancy candidates
       console.warn('\n🔥 TOP REDUNDANCY CANDIDATES:\n');
       redundancyResults.slice(0, 8).forEach((result, _index) => {
-        console.warn(`${index + 1}. ${result.componentName}`);
+        console.warn(`${_index + 1}. ${result.componentName}`);
         console.warn(`   Redundancy Score: ${result.redundancyScore}/100`);
         console.warn(`   Patterns: ${result.duplicatePatterns.join(', ')}`);
         console.warn(`   Opportunity: ${result.reusabilityOpportunity.toUpperCase()}`);

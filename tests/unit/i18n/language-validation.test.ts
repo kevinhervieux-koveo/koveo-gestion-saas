@@ -462,8 +462,8 @@ describe('Language Validation Tests', () => {
 
       requiredKeys.forEach(key => {
         expect(hasTranslation(key, 'fr')).toBe(true);
-        expect(translate(key, 'fr')).toBeTruthy();
-        expect(translate(key, 'fr')).not.toBe(key); // Should not return the key itself
+        expect(translate(key, {}, 'fr')).toBeTruthy();
+        expect(translate(key, {}, 'fr')).not.toBe(key); // Should not return the key itself
       });
     });
 
@@ -485,7 +485,7 @@ describe('Language Validation Tests', () => {
       };
 
       Object.entries(categoryTranslations).forEach(([key, expectedTranslation]) => {
-        expect(translate(key, 'fr')).toBe(expectedTranslation);
+        expect(translate(key, {}, 'fr')).toBe(expectedTranslation);
       });
     });
 
@@ -500,17 +500,17 @@ describe('Language Validation Tests', () => {
       };
 
       Object.entries(statusTranslations).forEach(([key, expectedTranslation]) => {
-        expect(translate(key, 'fr')).toBe(expectedTranslation);
+        expect(translate(key, {}, 'fr')).toBe(expectedTranslation);
       });
     });
 
     it('should validate French accents in feature request translations', () => {
       const textsToCheck = [
-        translate('featureRequest.create', 'fr'),
-        translate('featureRequest.category.propertyManagement', 'fr'),
-        translate('featureRequest.category.security', 'fr'),
-        translate('featureRequest.status.completed', 'fr'),
-        translate('ideaBox.title', 'fr')
+        translate('featureRequest.create', {}, 'fr'),
+        translate('featureRequest.category.propertyManagement', {}, 'fr'),
+        translate('featureRequest.category.security', {}, 'fr'),
+        translate('featureRequest.status.completed', {}, 'fr'),
+        translate('idea_box.title', {}, 'fr')
       ];
 
       textsToCheck.forEach(text => {
