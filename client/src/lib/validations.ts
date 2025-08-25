@@ -110,32 +110,37 @@ export const enumFields = {
 };
 
 // Complex field combinations
+// First define basic composites that don't depend on others
+const addressFields = {
+  address: commonFields.requiredString('Address', 500),
+  city: commonFields.requiredString('City', 100),
+  province: commonFields.requiredString('Province', 100),
+  postalCode: commonFields.requiredString('Postal code', 20),
+};
+
+const personNameFields = {
+  firstName: commonFields.requiredString('First name', 100),
+  lastName: commonFields.requiredString('Last name', 100),
+};
+
 export const compositeFields = {
   // Standard name fields
-  personName: {
-    firstName: commonFields.requiredString('First name', 100),
-    lastName: commonFields.requiredString('Last name', 100),
-  },
+  personName: personNameFields,
 
   // Standard address fields
-  address: {
-    address: commonFields.requiredString('Address', 500),
-    city: commonFields.requiredString('City', 100),
-    province: commonFields.requiredString('Province', 100),
-    postalCode: commonFields.requiredString('Postal code', 20),
-  },
+  address: addressFields,
 
   // Organization fields
   organizationBase: {
     name: commonFields.requiredString('Organization name', 200),
     type: commonFields.requiredString('Organization type'),
-    ...compositeFields.address,
+    ...addressFields,
   },
 
   // Building base fields
   buildingBase: {
     name: commonFields.requiredString('Building name', 255),
-    ...compositeFields.address,
+    ...addressFields,
     buildingType: enumFields.buildingType,
     organizationId: commonFields.requiredId('Organization'),
   },

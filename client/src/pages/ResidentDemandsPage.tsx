@@ -292,116 +292,108 @@ export default function /**
     );
   }
 
-  const headerActions = (
-    <DialogTrigger asChild>
-      <Button>
-        <Plus className="h-4 w-4 mr-2" />
-        New Demand
-      </Button>
-    </DialogTrigger>
-  );
-
   return (
     <PageLayout>
-      <PageHeader
-        title="My Demands"
-        description="Submit and track your requests"
-        actions={headerActions}
-      />
-      
       <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Demand
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Demand</DialogTitle>
-              <DialogDescription>
-                Submit a new request or complaint
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...newDemandForm}>
-              <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className="space-y-4">
-                <FormField
-                  control={newDemandForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value as string}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
-                          <SelectItem value="complaint">Complaint</SelectItem>
-                          <SelectItem value="information">Information</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newDemandForm.control}
-                  name="buildingId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Building</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value as string}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select building" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {buildings.map((building) => (
-                            <SelectItem key={building.id} value={building.id}>
-                              {building.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newDemandForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
+        <PageHeader
+          title="My Demands"
+          description="Submit and track your requests"
+          actions={
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Demand
+              </Button>
+            </DialogTrigger>
+          }
+        />
+        
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Demand</DialogTitle>
+            <DialogDescription>
+              Submit a new request or complaint
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...newDemandForm}>
+            <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className="space-y-4">
+              <FormField
+                control={newDemandForm.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
-                        <Textarea
-                          placeholder="Describe your request in detail..."
-                          className="min-h-[100px]"
-                          {...field}
-                          value={field.value as string}
-                        />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button 
-                    type="submit" 
-                    disabled={createDemandMutation.isPending}
-                  >
-                    {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                      <SelectContent>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                        <SelectItem value="complaint">Complaint</SelectItem>
+                        <SelectItem value="information">Information</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={newDemandForm.control}
+                name="buildingId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Building</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select building" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {buildings.map((building) => (
+                          <SelectItem key={building.id} value={building.id}>
+                            {building.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={newDemandForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your request in detail..."
+                        className="min-h-[100px]"
+                        {...field}
+                        value={field.value as string}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button 
+                  type="submit" 
+                  disabled={createDemandMutation.isPending}
+                >
+                  {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {/* Filters */}
       <DemandFilters
