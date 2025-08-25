@@ -7,7 +7,7 @@ const config = {
     customExportConditions: [''],
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts', '<rootDir>/tests/setup/jest-dom.ts'],
-  setupFiles: ['<rootDir>/tests/polyfills.js'],
+  setupFiles: ['<rootDir>/tests/polyfills.js', '<rootDir>/tests/mocks/importMetaMock.js'],
   moduleNameMapper: {
     // Asset mocks must come BEFORE general path mappings
     '^@/assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
@@ -24,7 +24,9 @@ const config = {
     '^wouter$': '<rootDir>/tests/mocks/wouter-mock.js',
     // Build tool mocks
     '^../vite$': '<rootDir>/tests/mocks/viteMock.js',
-    '^./vite$': '<rootDir>/tests/mocks/viteMock.js'
+    '^./vite$': '<rootDir>/tests/mocks/viteMock.js',
+    // Scripts that use import.meta
+    '^.*production-demo-sync.*$': '<rootDir>/tests/mocks/scriptMock.js'
   },
   testMatch: [
     '<rootDir>/tests/**/*.test.{ts,tsx}',
