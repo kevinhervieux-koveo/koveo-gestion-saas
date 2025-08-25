@@ -100,7 +100,7 @@ export default function /**
 
     setIsSubmitting(true);
     try {
-      await apiRequest('/api/auth/reset-password', 'POST', {
+      await apiRequest('POST', '/api/auth/reset-password', {
         token,
         password: _data.password,
       });
