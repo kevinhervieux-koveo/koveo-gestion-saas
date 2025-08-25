@@ -117,6 +117,12 @@ const ResidentsDemands = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ResidentsCommonSpaces = createOptimizedLoader(
+  () => import('@/pages/residents/common-spaces'),
+  'residents-common-spaces',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
   () => import('@/pages/settings/settings'),
@@ -323,6 +329,7 @@ function Router() {
               <Route path='/residents/building' component={ResidentsBuilding} />
               <Route path='/residents/building/documents' component={() => <ResidentsBuildingDocuments />} />
               <Route path='/residents/demands' component={ResidentsDemands} />
+              <Route path='/resident/common-spaces' component={ResidentsCommonSpaces} />
 
               {/* Settings routes */}
               <Route path='/settings/settings' component={SettingsSettings} />
