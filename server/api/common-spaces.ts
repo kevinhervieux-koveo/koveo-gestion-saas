@@ -36,6 +36,18 @@ const createRestrictionSchema = z.object({
   reason: z.string().optional(),
 });
 
+const createCommonSpaceSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  description: z.string().optional(),
+  building_id: z.string().uuid('Building ID must be a valid UUID'),
+  is_reservable: z.boolean().default(true),
+  capacity: z.number().int().min(1).max(200).optional(),
+  opening_hours: z.object({
+    start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+    end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format')
+  }).optional(),
+});
+
 const spaceIdSchema = z.object({
   spaceId: z.string().uuid(),
 });
@@ -658,7 +670,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           )
         )
         .groupBy(bookings.userId, users.firstName, users.lastName, users.email)
-        .orderBy(sql`totalHours DESC`);
+        .orderBy(desc(sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`));
 
       const totalStats = await db
         .select({
@@ -805,6 +817,119 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('Error managing user restriction:', error);
       res.status(500).json({
         message: 'Failed to manage user restriction',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * POST /api/common-spaces - Create a new common space (Manager/Admin only)
+   */
+  app.post('/api/common-spaces', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Validate request body
+      const validationResult = createCommonSpaceSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: 'Invalid request data',
+          errors: validationResult.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const { name, description, building_id, is_reservable, capacity, opening_hours } = validationResult.data;
+
+      // Check if user has access to this building
+      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      if (!accessibleBuildingIds.includes(building_id)) {
+        return res.status(403).json({
+          message: 'Access denied. You can only create spaces in buildings you manage.',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // Verify building exists and is active
+      const building = await db
+        .select({ id: buildings.id, name: buildings.name })
+        .from(buildings)
+        .where(
+          and(
+            eq(buildings.id, building_id),
+            eq(buildings.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (building.length === 0) {
+        return res.status(404).json({
+          message: 'Building not found or inactive',
+          code: 'BUILDING_NOT_FOUND'
+        });
+      }
+
+      // Check if a space with the same name already exists in this building
+      const existingSpace = await db
+        .select({ id: commonSpaces.id })
+        .from(commonSpaces)
+        .where(
+          and(
+            eq(commonSpaces.name, name),
+            eq(commonSpaces.buildingId, building_id)
+          )
+        )
+        .limit(1);
+
+      if (existingSpace.length > 0) {
+        return res.status(409).json({
+          message: 'A common space with this name already exists in this building',
+          code: 'DUPLICATE_NAME'
+        });
+      }
+
+      // Create the new common space
+      const newSpace = await db
+        .insert(commonSpaces)
+        .values({
+          name,
+          description: description || null,
+          buildingId: building_id,
+          isReservable: is_reservable,
+          capacity: capacity || null,
+          openingHours: opening_hours ? `${opening_hours.start}-${opening_hours.end}` : null,
+        })
+        .returning();
+
+      console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
+
+      res.status(201).json({
+        message: 'Common space created successfully',
+        space: {
+          id: newSpace[0].id,
+          name: newSpace[0].name,
+          description: newSpace[0].description,
+          buildingId: newSpace[0].buildingId,
+          buildingName: building[0].name,
+          isReservable: newSpace[0].isReservable,
+          capacity: newSpace[0].capacity,
+          openingHours: newSpace[0].openingHours,
+          createdAt: newSpace[0].createdAt
+        }
+      });
+
+    } catch (error) {
+      console.error('Error creating common space:', error);
+      res.status(500).json({
+        message: 'Failed to create common space',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

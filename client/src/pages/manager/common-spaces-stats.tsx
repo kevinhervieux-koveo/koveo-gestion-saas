@@ -9,6 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Building2, 
   Users, 
@@ -18,7 +22,8 @@ import {
   CheckCircle,
   User,
   TrendingUp,
-  Calendar
+  Calendar,
+  Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -132,6 +137,18 @@ function CommonSpacesStatsPage() {
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    description: '',
+    building_id: '',
+    is_reservable: true,
+    capacity: '',
+    opening_hours: {
+      start: '08:00',
+      end: '22:00'
+    }
+  });
 
   // Fetch buildings accessible to the manager
   const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{buildings: Building[]}>({
@@ -184,6 +201,80 @@ function CommonSpacesStatsPage() {
     },
   });
 
+  // Mutation to create a new common space
+  const createSpaceMutation = useMutation({
+    mutationFn: async (spaceData: {
+      name: string;
+      description?: string;
+      building_id: string;
+      is_reservable: boolean;
+      capacity?: number;
+      opening_hours?: { start: string; end: string };
+    }) => {
+      return apiRequest('/api/common-spaces', {
+        method: 'POST',
+        body: spaceData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? 'L\'espace commun a été créé avec succès.' 
+          : 'Common space created successfully.'
+      });
+      setCreateDialogOpen(false);
+      setCreateFormData({
+        name: '',
+        description: '',
+        building_id: '',
+        is_reservable: true,
+        capacity: '',
+        opening_hours: {
+          start: '08:00',
+          end: '22:00'
+        }
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating space:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr'
+          ? 'Impossible de créer l\'espace commun.'
+          : 'Failed to create common space.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleCreateSpace = () => {
+    if (!createFormData.name.trim() || !createFormData.building_id) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr'
+          ? 'Veuillez remplir tous les champs obligatoires.'
+          : 'Please fill in all required fields.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const spaceData = {
+      name: createFormData.name.trim(),
+      description: createFormData.description.trim() || undefined,
+      building_id: createFormData.building_id,
+      is_reservable: createFormData.is_reservable,
+      capacity: createFormData.capacity ? parseInt(createFormData.capacity) : undefined,
+      opening_hours: createFormData.opening_hours.start && createFormData.opening_hours.end 
+        ? createFormData.opening_hours 
+        : undefined
+    };
+
+    createSpaceMutation.mutate(spaceData);
+  };
+
   // Reset space selection when building changes
   useEffect(() => {
     setSelectedSpaceId('');
@@ -226,9 +317,159 @@ function CommonSpacesStatsPage() {
         {/* Filters Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              {language === 'fr' ? 'Sélection' : 'Selection'}
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                {language === 'fr' ? 'Sélection' : 'Selection'}
+              </div>
+              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="default" size="sm" className="flex items-center gap-2" data-testid="button-create-space">
+                    <Plus className="w-4 h-4" />
+                    {language === 'fr' ? 'Créer un espace' : 'Create Space'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {language === 'fr' ? 'Créer un nouvel espace commun' : 'Create New Common Space'}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {language === 'fr' 
+                        ? 'Ajoutez un nouvel espace partagé pour les résidents de ce bâtiment.'
+                        : 'Add a new shared space for residents in this building.'}
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="space-name">{language === 'fr' ? 'Nom de l\'espace' : 'Space Name'} *</Label>
+                      <Input
+                        id="space-name"
+                        type="text"
+                        placeholder={language === 'fr' ? 'ex: Salle de réunion' : 'e.g. Meeting Room'}
+                        value={createFormData.name}
+                        onChange={(e) => setCreateFormData({...createFormData, name: e.target.value})}
+                        data-testid="input-space-name"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="space-description">{language === 'fr' ? 'Description' : 'Description'}</Label>
+                      <Textarea
+                        id="space-description"
+                        placeholder={language === 'fr' ? 'Description optionnelle de l\'espace' : 'Optional description of the space'}
+                        value={createFormData.description}
+                        onChange={(e) => setCreateFormData({...createFormData, description: e.target.value})}
+                        data-testid="textarea-space-description"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="space-building">{language === 'fr' ? 'Bâtiment' : 'Building'} *</Label>
+                      <Select 
+                        value={createFormData.building_id} 
+                        onValueChange={(value) => setCreateFormData({...createFormData, building_id: value})}
+                      >
+                        <SelectTrigger data-testid="select-space-building">
+                          <SelectValue placeholder={language === 'fr' ? 'Sélectionnez un bâtiment' : 'Select a building'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {buildings.map((building) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {building.name} - {building.address}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="space-capacity">{language === 'fr' ? 'Capacité' : 'Capacity'}</Label>
+                        <Input
+                          id="space-capacity"
+                          type="number"
+                          placeholder="20"
+                          value={createFormData.capacity}
+                          onChange={(e) => setCreateFormData({...createFormData, capacity: e.target.value})}
+                          data-testid="input-space-capacity"
+                        />
+                      </div>
+
+                      <div className="space-y-2 flex items-end">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="space-reservable"
+                            checked={createFormData.is_reservable}
+                            onCheckedChange={(checked) => setCreateFormData({...createFormData, is_reservable: checked === true})}
+                            data-testid="checkbox-space-reservable"
+                          />
+                          <Label htmlFor="space-reservable" className="text-sm">
+                            {language === 'fr' ? 'Réservable' : 'Bookable'}
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>{language === 'fr' ? 'Heures d\'ouverture' : 'Opening Hours'}</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <Label htmlFor="opening-start" className="text-xs text-gray-500">
+                            {language === 'fr' ? 'Ouverture' : 'Start'}
+                          </Label>
+                          <Input
+                            id="opening-start"
+                            type="time"
+                            value={createFormData.opening_hours.start}
+                            onChange={(e) => setCreateFormData({
+                              ...createFormData,
+                              opening_hours: {...createFormData.opening_hours, start: e.target.value}
+                            })}
+                            data-testid="input-opening-start"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="opening-end" className="text-xs text-gray-500">
+                            {language === 'fr' ? 'Fermeture' : 'End'}
+                          </Label>
+                          <Input
+                            id="opening-end"
+                            type="time"
+                            value={createFormData.opening_hours.end}
+                            onChange={(e) => setCreateFormData({
+                              ...createFormData,
+                              opening_hours: {...createFormData.opening_hours, end: e.target.value}
+                            })}
+                            data-testid="input-opening-end"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setCreateDialogOpen(false)}
+                      data-testid="button-cancel-create"
+                    >
+                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                    </Button>
+                    <Button 
+                      onClick={handleCreateSpace}
+                      disabled={createSpaceMutation.isPending || !createFormData.name.trim() || !createFormData.building_id}
+                      data-testid="button-confirm-create"
+                    >
+                      {createSpaceMutation.isPending 
+                        ? (language === 'fr' ? 'Création...' : 'Creating...')
+                        : (language === 'fr' ? 'Créer l\'espace' : 'Create Space')
+                      }
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardTitle>
           </CardHeader>
           <CardContent>
