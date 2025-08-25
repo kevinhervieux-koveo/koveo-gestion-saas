@@ -672,13 +672,19 @@ export function registerCommonSpacesRoutes(app: Express): void {
       const bookingDetails = booking[0];
 
       // Check permissions: users can cancel their own bookings, managers can cancel any in their buildings
-      const canCancel = bookingDetails.userId === user.id || 
-        (['admin', 'manager'].includes(user.role) && 
-         (await getAccessibleBuildingIds(user)).includes(bookingDetails.buildingId));
+      let canCancel = false;
+      
+      if (bookingDetails.userId === user.id) {
+        canCancel = true; // Users can always cancel their own bookings
+      } else if (['admin', 'manager'].includes(user.role)) {
+        // Managers can cancel bookings in buildings they have access to
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        canCancel = accessibleBuildingIds.includes(bookingDetails.buildingId);
+      }
 
       if (!canCancel) {
         return res.status(403).json({
-          message: 'You can only cancel your own bookings',
+          message: 'Can only cancel your own bookings',
           code: 'INSUFFICIENT_PERMISSIONS'
         });
       }
@@ -828,7 +834,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!paramValidation.success) {
         return res.status(400).json({
           message: 'Invalid user ID',
-          errors: paramValidation.error.errors
+          errors: paramValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
         });
       }
 
@@ -836,7 +845,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
       if (!bodyValidation.success) {
         return res.status(400).json({
           message: 'Invalid restriction data',
-          errors: bodyValidation.error.errors
+          errors: bodyValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
         });
       }
 
