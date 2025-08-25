@@ -14,7 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';\nimport { toastUtils } from '@/lib/toastUtils';\nimport { PageLayout } from '@/components/common/PageLayout';\nimport { PageHeader } from '@/components/common/PageHeader';\nimport { LoadingState } from '@/components/common/LoadingState';
+import { useToast } from '@/hooks/use-toast';
+import { toastUtils } from '@/lib/toastUtils';
+import { PageLayout } from '@/components/common/PageLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { LoadingState } from '@/components/common/LoadingState';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
@@ -398,7 +402,6 @@ export default function /**
             </Form>
           </DialogContent>
         </Dialog>
-      </div>
 
       {/* Filters */}
       <DemandFilters
