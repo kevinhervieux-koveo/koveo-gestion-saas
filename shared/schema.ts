@@ -69,6 +69,8 @@ export type {
   InsertMaintenanceRequest,
   Notification,
   InsertNotification,
+  Bug,
+  InsertBug,
 } from './schemas/operations';
 
 export type {
@@ -100,3 +102,6 @@ export type {
   SslCertificate,
   InsertSslCertificate,
 } from './schemas/infrastructure';
+
+// Export tables for use in storage and API layers
+export { bugs } from './schemas/operations';

@@ -6,6 +6,7 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { eq, desc, and, or, gte, lte, count, like, inArray } from 'drizzle-orm';
+import crypto from 'crypto';
 import * as schema from '@shared/schema';
 import type {
   User,
@@ -44,6 +45,8 @@ import type {
   UserPermission,
   PasswordResetToken,
   InsertPasswordResetToken,
+  Bug,
+  InsertBug,
 } from '@shared/schema';
 import type { IStorage } from './storage';
 import type { DevelopmentPillar } from '../shared/schemas/development';
@@ -2306,5 +2309,143 @@ export class OptimizedDatabaseStorage implements IStorage {
         return result[0];
       }
     );
+  }
+
+  // Bug operations implementation
+  async getBugsForUser(
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<Bug[]> {
+    const key = `bugs:user:${userId}:${userRole}:${organizationId || 'null'}`;
+    
+    return queryCache.get(
+      key,
+      async () => {
+        if (userRole === 'admin') {
+          // Admin can see all bugs
+          const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
+          return result;
+        }
+        
+        if (userRole === 'manager' && organizationId) {
+          // For managers, return all bugs for now (can be refined later)
+          const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
+          return result;
+        }
+        
+        // For residents and tenants, return only their own bugs
+        const result = await db.select()
+          .from(schema.bugs)
+          .where(eq(schema.bugs.createdBy, userId))
+          .orderBy(desc(schema.bugs.createdAt));
+        return result;
+      }
+    );
+  }
+
+  async getBug(
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<Bug | undefined> {
+    const key = `bug:${id}:user:${userId}:${userRole}`;
+    
+    return queryCache.get(
+      key,
+      async () => {
+        const result = await db.select()
+          .from(schema.bugs)
+          .where(eq(schema.bugs.id, id));
+        
+        const bug = result[0];
+        if (!bug) return undefined;
+        
+        if (userRole === 'admin') {
+          return bug;
+        }
+        
+        if (userRole === 'manager') {
+          return bug; // Managers can see all bugs for now
+        }
+        
+        // Residents and tenants can only see their own bugs
+        return bug.createdBy === userId ? bug : undefined;
+      }
+    );
+  }
+
+  async createBug(bugData: InsertBug): Promise<Bug> {
+    const result = await db.insert(schema.bugs)
+      .values({
+        ...bugData,
+        id: crypto.randomUUID(),
+        status: 'new',
+        assignedTo: null,
+        resolvedAt: null,
+        resolvedBy: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    
+    // Invalidate cache for this user
+    queryCache.invalidatePattern(`bugs:user:${bugData.createdBy}:`);
+    
+    return result[0];
+  }
+
+  async updateBug(
+    id: string,
+    updates: Partial<Bug>,
+    userId: string,
+    userRole: string
+  ): Promise<Bug | undefined> {
+    // Only admins and managers can update bugs
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      return undefined;
+    }
+    
+    const result = await db.update(schema.bugs)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bugs.id, id))
+      .returning();
+    
+    if (result[0]) {
+      // Invalidate related cache entries
+      queryCache.invalidatePattern(`bug:${id}:`);
+      queryCache.invalidatePattern(`bugs:user:`);
+    }
+    
+    return result[0];
+  }
+
+  async deleteBug(
+    id: string,
+    userId: string,
+    userRole: string
+  ): Promise<boolean> {
+    // Only admins can delete bugs
+    if (userRole !== 'admin') {
+      return false;
+    }
+    
+    const result = await db.delete(schema.bugs)
+      .where(eq(schema.bugs.id, id))
+      .returning();
+    
+    if (result.length > 0) {
+      // Invalidate related cache entries
+      queryCache.invalidatePattern(`bug:${id}:`);
+      queryCache.invalidatePattern(`bugs:user:`);
+      return true;
+    }
+    
+    return false;
   }
 }

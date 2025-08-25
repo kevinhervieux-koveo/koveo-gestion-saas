@@ -58,6 +58,31 @@ export const demandStatusEnum = pgEnum('demand_status', [
   'cancelled',
 ]);
 
+export const bugStatusEnum = pgEnum('bug_status', [
+  'new',
+  'acknowledged',
+  'in_progress',
+  'resolved',
+  'closed',
+]);
+
+export const bugPriorityEnum = pgEnum('bug_priority', [
+  'low',
+  'medium',
+  'high',
+  'critical',
+]);
+
+export const bugCategoryEnum = pgEnum('bug_category', [
+  'ui_ux',
+  'functionality',
+  'performance',
+  'data',
+  'security',
+  'integration',
+  'other',
+]);
+
 // Operations tables
 /**
  * Maintenance requests table for tracking property maintenance and repairs.
@@ -160,6 +185,33 @@ export const demandComments = pgTable('demand_comments', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * Bugs table for tracking application issues and bug reports.
+ * All users can create bugs with category and page assignments.
+ */
+export const bugs = pgTable('bugs', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdBy: uuid('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  category: bugCategoryEnum('category').notNull(),
+  page: text('page').notNull(), // The page where the bug was found
+  priority: bugPriorityEnum('priority').notNull().default('medium'),
+  status: bugStatusEnum('status').notNull().default('new'),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  resolvedAt: timestamp('resolved_at'),
+  resolvedBy: uuid('resolved_by').references(() => users.id),
+  notes: text('notes'), // Internal notes for resolution
+  reproductionSteps: text('reproduction_steps'), // Steps to reproduce the bug
+  environment: text('environment'), // Browser, OS, device info
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
@@ -203,6 +255,17 @@ export const insertDemandCommentSchema = z.object({
   createdBy: z.string().uuid(),
 });
 
+export const insertBugSchema = z.object({
+  createdBy: z.string().uuid(),
+  title: z.string().min(1, "Title is required").max(200, "Title must not exceed 200 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters").max(2000, "Description must not exceed 2000 characters"),
+  category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
+  page: z.string().min(1, "Page is required"),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  reproductionSteps: z.string().optional(),
+  environment: z.string().optional(),
+});
+
 // Types
 /**
  *
@@ -239,6 +302,15 @@ export type InsertDemandComment = z.infer<typeof insertDemandCommentSchema>;
  *
  */
 export type DemandComment = typeof demandComments.$inferSelect;
+
+/**
+ *
+ */
+export type InsertBug = z.infer<typeof insertBugSchema>;
+/**
+ *
+ */
+export type Bug = typeof bugs.$inferSelect;
 
 // Relations
 // Relations - temporarily commented out due to drizzle-orm version compatibility

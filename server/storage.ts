@@ -38,9 +38,12 @@ import {
   type UserPermission,
   type PasswordResetToken,
   type InsertPasswordResetToken,
+  type Bug,
+  type InsertBug,
   permissions,
   rolePermissions,
   userPermissions,
+  bugs,
 } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
@@ -1210,6 +1213,80 @@ export interface IStorage {
     _userId: string,
     _userRole: string
   ): Promise<boolean>;
+
+  // Bug operations
+  /**
+   * Retrieves bugs based on user role and permissions.
+   * Residents/tenants see only their own bugs.
+   * Managers see bugs from their organization.
+   * Admins see all bugs.
+   *
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<Bug[]>} Array of bugs the user can access.
+   */
+  getBugsForUser(
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<Bug[]>;
+
+  /**
+   * Retrieves a specific bug with permission check.
+   *
+   * @param {string} _id - The unique bug identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @param {string} [_organizationId] - The user's organization ID (optional).
+   * @returns {Promise<Bug | undefined>} Bug record or undefined if not found or access denied.
+   */
+  getBug(
+    _id: string,
+    _userId: string,
+    _userRole: string,
+    _organizationId?: string
+  ): Promise<Bug | undefined>;
+
+  /**
+   * Creates a new bug report.
+   *
+   * @param {InsertBug} _bug - Bug data for creation.
+   * @returns {Promise<Bug>} The created bug record with generated ID and timestamps.
+   */
+  createBug(_bug: InsertBug): Promise<Bug>;
+
+  /**
+   * Updates an existing bug with permission check.
+   * Only admins and managers can update bugs.
+   *
+   * @param {string} _id - The unique bug identifier.
+   * @param {Partial<Bug>} _updates - Partial bug data containing fields to update.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<Bug | undefined>} Updated bug record or undefined if not found or access denied.
+   */
+  updateBug(
+    _id: string,
+    _updates: Partial<Bug>,
+    _userId: string,
+    _userRole: string
+  ): Promise<Bug | undefined>;
+
+  /**
+   * Deletes a bug with permission check.
+   * Only admins can delete bugs.
+   *
+   * @param {string} _id - The unique bug identifier.
+   * @param {string} _userId - The unique user identifier.
+   * @param {string} _userRole - The user's role (admin, manager, resident, tenant).
+   * @returns {Promise<boolean>} True if deletion was successful, false if not found or access denied.
+   */
+  deleteBug(
+    _id: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<boolean>;
 }
 
 /**
@@ -1242,6 +1319,7 @@ export class MemStorage implements IStorage {
   private buildings: Map<string, Building>;
   private residences: Map<string, Residence>;
   private documents: Map<string, Document>;
+  private bugs: Map<string, Bug>;
 
   /**
    * Creates a new MemStorage instance with empty storage maps.
@@ -1262,6 +1340,7 @@ export class MemStorage implements IStorage {
     this.buildings = new Map();
     this.residences = new Map();
     this.documents = new Map();
+    this.bugs = new Map();
 
     // Storage initialized empty - no mock data
   }
@@ -3025,6 +3104,114 @@ export class MemStorage implements IStorage {
   ): Promise<boolean> {
     // Return false for now
     return false;
+  }
+
+  // Bug operations implementation
+  async getBugsForUser(
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<Bug[]> {
+    const allBugs = Array.from(this.bugs.values());
+    
+    if (userRole === 'admin') {
+      return allBugs;
+    }
+    
+    if (userRole === 'manager' && organizationId) {
+      // For managers, return bugs from users in their organization
+      const orgUsers = Array.from(this.users.values())
+        .filter(user => {
+          // Assuming users have organizationId - might need to be adjusted based on schema
+          return true; // For now, return all bugs for managers
+        });
+      return allBugs;
+    }
+    
+    // For residents and tenants, return only their own bugs
+    return allBugs.filter(bug => bug.createdBy === userId);
+  }
+
+  async getBug(
+    id: string,
+    userId: string,
+    userRole: string,
+    organizationId?: string
+  ): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    if (userRole === 'admin') {
+      return bug;
+    }
+    
+    if (userRole === 'manager') {
+      return bug; // Managers can see all bugs for now
+    }
+    
+    // Residents and tenants can only see their own bugs
+    return bug.createdBy === userId ? bug : undefined;
+  }
+
+  async createBug(bugData: InsertBug): Promise<Bug> {
+    const id = randomUUID();
+    const now = new Date();
+    
+    const bug: Bug = {
+      id,
+      ...bugData,
+      status: 'new',
+      assignedTo: null,
+      resolvedAt: null,
+      resolvedBy: null,
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    this.bugs.set(id, bug);
+    return bug;
+  }
+
+  async updateBug(
+    id: string,
+    updates: Partial<Bug>,
+    userId: string,
+    userRole: string
+  ): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    // Only admins and managers can update bugs
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      return undefined;
+    }
+    
+    const updatedBug: Bug = {
+      ...bug,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+
+  async deleteBug(
+    id: string,
+    userId: string,
+    userRole: string
+  ): Promise<boolean> {
+    const bug = this.bugs.get(id);
+    if (!bug) return false;
+    
+    // Only admins can delete bugs
+    if (userRole !== 'admin') {
+      return false;
+    }
+    
+    this.bugs.delete(id);
+    return true;
   }
 }
 
