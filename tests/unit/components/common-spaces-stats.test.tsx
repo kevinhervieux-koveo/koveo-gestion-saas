@@ -1,6 +1,6 @@
 /**
  * @file Tests for Common Spaces Manager Statistics Page
- * Tests the manager statistics component with MSW mocks and user interactions
+ * Tests the manager statistics component with MSW mocks and user interactions.
  */
 
 import React from 'react';

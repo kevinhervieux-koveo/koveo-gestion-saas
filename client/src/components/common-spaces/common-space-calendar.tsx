@@ -6,6 +6,9 @@ import { CalendarIcon, Download, Plus, Link2, Check } from 'lucide-react';
 import { CalendarView } from './calendar-view';
 import { useLanguage } from '@/hooks/use-language';
 
+/**
+ *
+ */
 interface CommonSpaceCalendarProps {
   space: {
     id: string;
@@ -19,7 +22,12 @@ interface CommonSpaceCalendarProps {
 
 /**
  * Reusable Common Space Calendar Component
- * Used across all pages that need to display space calendars
+ * Used across all pages that need to display space calendars.
+ * @param root0
+ * @param root0.space
+ * @param root0.onExport
+ * @param root0.onNewBooking
+ * @param root0.className
  */
 export function CommonSpaceCalendar({
   space,

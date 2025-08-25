@@ -7,7 +7,7 @@ const mockCloseDB = jest.fn();
 
 /**
  * Integration tests for complete calendar booking flow
- * Tests the end-to-end process from calendar view to booking creation
+ * Tests the end-to-end process from calendar view to booking creation.
  */
 
 const DEMO_USERS = {
@@ -274,7 +274,7 @@ describe('Calendar Booking Flow Integration', () => {
       const endUTC = new Date(event.endTime);
       
       expect(startUTC.getUTCHours()).toBe(19); // 14:00 EST = 19:00 UTC
-      expect(endUTC.getUTCHours()).toBe(21);   // 16:00 EST = 21:00 UTC
+      expect(endUTC.getUTCHours()).toBe(21); // 16:00 EST = 21:00 UTC
       
       // Duration should be correct
       const durationHours = (endUTC.getTime() - startUTC.getTime()) / (60 * 60 * 1000);
@@ -372,9 +372,12 @@ describe('Calendar Booking Flow Integration', () => {
 });
 
 /**
- * Helper functions for calendar booking flow tests
+ * Helper functions for calendar booking flow tests.
  */
 
+/**
+ *
+ */
 async function getTestCommonSpaceId(): Promise<string> {
   const result = await mockRunQuery(`
     SELECT id FROM common_spaces 
@@ -390,6 +393,15 @@ async function getTestCommonSpaceId(): Promise<string> {
   return result.rows[0].id;
 }
 
+/**
+ *
+ * @param booking
+ * @param booking.commonSpaceId
+ * @param booking.userId
+ * @param booking.startTime
+ * @param booking.endTime
+ * @param booking.status
+ */
 async function createBookingThroughCalendar(booking: {
   commonSpaceId: string;
   userId: string;
@@ -435,6 +447,13 @@ async function createBookingThroughCalendar(booking: {
   return result.rows[0].id;
 }
 
+/**
+ *
+ * @param spaceId
+ * @param userId
+ * @param startDate
+ * @param endDate
+ */
 async function getSpaceCalendar(
   spaceId: string, 
   userId: string,
@@ -505,6 +524,10 @@ async function getSpaceCalendar(
   };
 }
 
+/**
+ *
+ * @param userId
+ */
 async function getUserCalendar(userId: string): Promise<any> {
   const user = await runQuery('SELECT first_name, last_name, role FROM users WHERE id = $1', [userId]);
   
@@ -544,6 +567,11 @@ async function getUserCalendar(userId: string): Promise<any> {
   };
 }
 
+/**
+ *
+ * @param buildingId
+ * @param userId
+ */
 async function getBuildingCalendar(buildingId: string, userId: string): Promise<any> {
   const building = await runQuery('SELECT name, address FROM buildings WHERE id = $1', [buildingId]);
   
@@ -608,12 +636,17 @@ async function getBuildingCalendar(buildingId: string, userId: string): Promise<
   };
 }
 
+/**
+ *
+ * @param spaceId
+ * @param userId
+ */
 async function exportSpaceCalendar(spaceId: string, userId: string): Promise<any> {
   const calendar = await getSpaceCalendar(spaceId, userId);
   const space = calendar.space;
   
   // Generate ICS content
-  let icsContent = [
+  const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Koveo Gestion//Calendar Export//FR',
@@ -642,6 +675,10 @@ async function exportSpaceCalendar(spaceId: string, userId: string): Promise<any
   };
 }
 
+/**
+ *
+ * @param buildingId
+ */
 async function getCommonSpacesForBuilding(buildingId: string): Promise<Array<{id: string, name: string}>> {
   const result = await mockRunQuery(`
     SELECT id, name
@@ -654,6 +691,9 @@ async function getCommonSpacesForBuilding(buildingId: string): Promise<Array<{id
 }
 
 // Utility date functions
+/**
+ *
+ */
 function getTomorrowAt14(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -661,6 +701,9 @@ function getTomorrowAt14(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getTomorrowAt15(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -668,6 +711,9 @@ function getTomorrowAt15(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getTomorrowAt16(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -675,6 +721,9 @@ function getTomorrowAt16(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getTomorrowAt17(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -682,6 +731,9 @@ function getTomorrowAt17(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getTomorrowAt23(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -689,6 +741,9 @@ function getTomorrowAt23(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getTomorrowAt24(): Date {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 2);
@@ -696,6 +751,9 @@ function getTomorrowAt24(): Date {
   return tomorrow;
 }
 
+/**
+ *
+ */
 function getNextWeekAt10(): Date {
   const nextWeek = new Date();
   nextWeek.setDate(nextWeek.getDate() + 7);
@@ -703,6 +761,9 @@ function getNextWeekAt10(): Date {
   return nextWeek;
 }
 
+/**
+ *
+ */
 function getNextWeekAt12(): Date {
   const nextWeek = new Date();
   nextWeek.setDate(nextWeek.getDate() + 7);
@@ -710,6 +771,10 @@ function getNextWeekAt12(): Date {
   return nextWeek;
 }
 
+/**
+ *
+ * @param date
+ */
 function getEndOfMonth(date: Date): Date {
   const endOfMonth = new Date(date);
   endOfMonth.setMonth(endOfMonth.getMonth() + 1, 0);
@@ -717,6 +782,10 @@ function getEndOfMonth(date: Date): Date {
   return endOfMonth;
 }
 
+/**
+ *
+ * @param date
+ */
 function formatICSDate(date: Date): string {
   return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }

@@ -4,8 +4,8 @@ import { db } from '../db';
 import { sql } from 'drizzle-orm';
 
 /**
- * Register feature management routes
- * @param app Express application
+ * Register feature management routes.
+ * @param app Express application.
  */
 export function registerFeatureManagementRoutes(app: Express): void {
   

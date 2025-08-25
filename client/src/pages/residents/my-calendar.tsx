@@ -2,6 +2,9 @@ import React from 'react';
 import { UserCalendar } from '@/components/common-spaces/user-calendar';
 import { useLanguage } from '@/hooks/use-language';
 
+/**
+ *
+ */
 export default function MyCalendarPage() {
   const { language } = useLanguage();
 

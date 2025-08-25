@@ -37,7 +37,7 @@ import { CalendarView } from '@/components/common-spaces/calendar-view';
 import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
 /**
- * Building interface
+ * Building interface.
  */
 interface Building {
   id: string;
@@ -48,7 +48,7 @@ interface Building {
 }
 
 /**
- * Common Space interface
+ * Common Space interface.
  */
 interface CommonSpace {
   id: string;
@@ -60,7 +60,7 @@ interface CommonSpace {
 }
 
 /**
- * User stats interface
+ * User stats interface.
  */
 interface UserStats {
   userId: string;
@@ -71,7 +71,7 @@ interface UserStats {
 }
 
 /**
- * Summary stats interface
+ * Summary stats interface.
  */
 interface SummaryStats {
   totalBookings: number;
@@ -80,7 +80,7 @@ interface SummaryStats {
 }
 
 /**
- * Space stats response interface
+ * Space stats response interface.
  */
 interface SpaceStatsResponse {
   spaceName: string;
@@ -90,7 +90,7 @@ interface SpaceStatsResponse {
 }
 
 /**
- * User restriction interface
+ * User restriction interface.
  */
 interface UserRestriction {
   userId: string;
@@ -100,7 +100,8 @@ interface UserRestriction {
 }
 
 /**
- * Role checking HOC component
+ * Role checking HOC component.
+ * @param Component
  */
 function withManagerAccess<P extends object>(Component: React.ComponentType<P>) {
   return function ManagerAccessComponent(props: P) {
@@ -132,7 +133,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
 }
 
 /**
- * Manager Common Spaces Statistics Page
+ * Manager Common Spaces Statistics Page.
  */
 function CommonSpacesStatsPage() {
   const { user } = useAuth();
@@ -374,7 +375,7 @@ function CommonSpacesStatsPage() {
 
   // Prepare chart data
   const chartData = useMemo(() => {
-    if (!spaceStats?.userStats) return [];
+    if (!spaceStats?.userStats) {return [];}
     
     return spaceStats.userStats.slice(0, 10).map(user => ({
       name: user.userName,

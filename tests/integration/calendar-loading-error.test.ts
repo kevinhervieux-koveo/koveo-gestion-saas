@@ -1,8 +1,8 @@
 /**
- * Integration test to reproduce and fix the "Error loading calendar" issue
+ * Integration test to reproduce and fix the "Error loading calendar" issue.
  * 
  * ROOT CAUSE IDENTIFIED: The calendar API returns 401 "Authentication required"
- * This causes the frontend CalendarView component to show "Error loading calendar"
+ * This causes the frontend CalendarView component to show "Error loading calendar".
  */
 
 import { describe, it, expect } from '@jest/globals';

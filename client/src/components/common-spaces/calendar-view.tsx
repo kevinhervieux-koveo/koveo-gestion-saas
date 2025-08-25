@@ -22,6 +22,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 
+/**
+ *
+ */
 interface CalendarEvent {
   id: string;
   startTime: string;
@@ -37,6 +40,9 @@ interface CalendarEvent {
   userRole?: string;
 }
 
+/**
+ *
+ */
 interface CalendarViewProps {
   spaceId?: string;
   buildingId?: string;
@@ -47,6 +53,9 @@ interface CalendarViewProps {
   className?: string;
 }
 
+/**
+ *
+ */
 interface CalendarData {
   space?: {
     id: string;
@@ -84,6 +93,17 @@ interface CalendarData {
   };
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.spaceId
+ * @param root0.buildingId
+ * @param root0.mode
+ * @param root0.onEventClick
+ * @param root0.onDateClick
+ * @param root0.showControls
+ * @param root0.className
+ */
 export function CalendarView({ 
   spaceId, 
   buildingId, 
@@ -123,7 +143,7 @@ export function CalendarView({
   const { data, isLoading, error } = useQuery<CalendarData>({
     queryKey: ['calendar', mode, spaceId, buildingId, startDate, endDate, viewMode],
     queryFn: async () => {
-      if (!apiUrl) return null;
+      if (!apiUrl) {return null;}
       
       try {
         const response = await apiRequest('GET', apiUrl);
@@ -153,7 +173,7 @@ export function CalendarView({
   }, [currentDate]);
 
   const getEventsForDay = (day: Date) => {
-    if (!data?.calendar) return [];
+    if (!data?.calendar) {return [];}
     
     const events = data.calendar.events || data.calendar.bookings || [];
     return events.filter(event => 

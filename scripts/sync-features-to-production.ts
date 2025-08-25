@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Automatic Features Table Sync to Production
+ * Automatic Features Table Sync to Production.
  * 
  * This script synchronizes the features table from development to production
  * during deployments. It ensures the production roadmap reflects the latest
@@ -12,12 +12,18 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { features } from '../shared/schemas/development.js';
 import { eq, ne } from 'drizzle-orm';
 
+/**
+ *
+ */
 interface FeatureSyncConfig {
   developmentDatabaseUrl: string;
   productionDatabaseUrl: string;
   dryRun?: boolean;
 }
 
+/**
+ *
+ */
 interface SyncResult {
   success: boolean;
   message: string;
@@ -31,7 +37,8 @@ interface SyncResult {
 }
 
 /**
- * Syncs features table from development to production
+ * Syncs features table from development to production.
+ * @param config
  */
 async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<SyncResult> {
   const result: SyncResult = {
@@ -130,7 +137,7 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
 }
 
 /**
- * Main execution function
+ * Main execution function.
  */
 async function main() {
   const isDryRun = process.argv.includes('--dry-run');

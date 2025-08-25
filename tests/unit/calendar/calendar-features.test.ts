@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals';
 
 /**
  * Calendar Features Unit Tests
- * Tests core calendar functionality using real demo users and data structures
+ * Tests core calendar functionality using real demo users and data structures.
  */
 
 describe('Calendar Features Unit Tests', () => {
@@ -575,7 +575,7 @@ describe('Calendar Features Unit Tests', () => {
       const syncFeatures = {
         exportToExternal: (events: any[], format: string) => {
           if (format === 'ics') {
-            let icsContent = [
+            const icsContent = [
               'BEGIN:VCALENDAR',
               'VERSION:2.0',
               'PRODID:-//Koveo Gestion//Calendar Export//FR'

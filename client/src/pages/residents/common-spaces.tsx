@@ -43,7 +43,7 @@ import { CalendarView } from '@/components/common-spaces/calendar-view';
 import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
 /**
- * Common Space interface
+ * Common Space interface.
  */
 interface CommonSpace {
   id: string;
@@ -64,7 +64,7 @@ interface CommonSpace {
 }
 
 /**
- * Booking interface
+ * Booking interface.
  */
 interface Booking {
   id: string;
@@ -82,7 +82,7 @@ interface Booking {
 }
 
 /**
- * Booking form schema
+ * Booking form schema.
  */
 const bookingFormSchema = z.object({
   date: z.date({
@@ -99,10 +99,13 @@ const bookingFormSchema = z.object({
   path: ["endTime"],
 });
 
+/**
+ *
+ */
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 /**
- * Compact Booking Calendar Component
+ * Compact Booking Calendar Component.
  */
 interface BookingCalendarProps {
   selected: Date;
@@ -113,6 +116,16 @@ interface BookingCalendarProps {
   'data-testid'?: string;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.selected
+ * @param root0.onSelect
+ * @param root0.space
+ * @param root0.bookings
+ * @param root0.language
+ * @param root0.'data-testid'
+ */
 function BookingCalendar({ selected, onSelect, space, bookings, language, 'data-testid': testId }: BookingCalendarProps) {
   const [currentDate, setCurrentDate] = useState(selected || new Date());
   
@@ -130,13 +143,13 @@ function BookingCalendar({ selected, onSelect, space, bookings, language, 'data-
 
   const isDayAvailable = (day: Date) => {
     // Past dates are not available
-    if (day < new Date()) return false;
+    if (day < new Date()) {return false;}
     
     // Check opening hours if available
     if (space.openingHours) {
       const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const todayHours = space.openingHours.find(h => h.day.toLowerCase() === dayName);
-      if (!todayHours) return false;
+      if (!todayHours) {return false;}
     }
     
     return true;
@@ -293,7 +306,9 @@ function BookingCalendar({ selected, onSelect, space, bookings, language, 'data-
 }
 
 /**
- * Utility function to generate .ics calendar content
+ * Utility function to generate .ics calendar content.
+ * @param bookings
+ * @param allSpaces
  */
 function generateICS(bookings: Booking[], allSpaces?: boolean): string {
   const now = new Date();
@@ -337,7 +352,7 @@ function generateICS(bookings: Booking[], allSpaces?: boolean): string {
 }
 
 /**
- * Common Spaces page component for residents
+ * Common Spaces page component for residents.
  */
 export default function CommonSpacesPage() {
   const { user } = useAuth();
@@ -382,7 +397,7 @@ export default function CommonSpacesPage() {
   // Create booking mutation
   const createBookingMutation = useMutation({
     mutationFn: async (data: BookingFormData) => {
-      if (!selectedSpace) throw new Error('No space selected');
+      if (!selectedSpace) {throw new Error('No space selected');}
       
       // More robust date handling to avoid timezone issues
       const baseDate = data.date instanceof Date ? data.date : new Date(data.date);
@@ -433,7 +448,7 @@ export default function CommonSpacesPage() {
 
   // Get bookings for selected date
   const bookingsForDate = useMemo(() => {
-    if (!bookings || !selectedDate) return [];
+    if (!bookings || !selectedDate) {return [];}
     
     return bookings.filter((booking: Booking) => {
       const bookingDate = parseISO(booking.startTime);
@@ -453,7 +468,7 @@ export default function CommonSpacesPage() {
 
   // Check if time slot is available
   const isTimeSlotAvailable = (time: string, duration: number = 60) => {
-    if (!selectedSpace || !selectedDate) return false;
+    if (!selectedSpace || !selectedDate) {return false;}
     
     const [hour, minute] = time.split(':').map(Number);
     const slotStart = new Date(selectedDate);
@@ -467,7 +482,7 @@ export default function CommonSpacesPage() {
       const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const todayHours = selectedSpace.openingHours.find(h => h.day.toLowerCase() === dayName);
       
-      if (!todayHours) return false;
+      if (!todayHours) {return false;}
       
       const openTime = parse(todayHours.open, 'HH:mm', selectedDate);
       const closeTime = parse(todayHours.close, 'HH:mm', selectedDate);
@@ -504,7 +519,7 @@ export default function CommonSpacesPage() {
   };
 
   const exportAllBookings = () => {
-    if (!selectedSpace) return;
+    if (!selectedSpace) {return;}
     
     const icsContent = generateICS(bookings, true);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });

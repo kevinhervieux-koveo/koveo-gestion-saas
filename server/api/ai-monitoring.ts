@@ -6,8 +6,17 @@ const aiInteractions = {};
 const aiInsights = {};
 const aiMetrics = {};
 
+/**
+ *
+ */
 type InsertAIInteraction = any;
+/**
+ *
+ */
 type InsertAIInsight = any; 
+/**
+ *
+ */
 type InsertAIMetrics = any;
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 
@@ -529,8 +538,8 @@ export async function recordAIInteraction(req: Request, res: Response) {
 }
 
 /**
- * Register AI monitoring routes
- * @param app Express application
+ * Register AI monitoring routes.
+ * @param app Express application.
  */
 export function registerAIMonitoringRoutes(app: Express): void {
   

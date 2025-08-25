@@ -80,7 +80,8 @@ const userIdSchema = z.object({
 });
 
 /**
- * Helper function to get accessible building IDs for a user based on their role
+ * Helper function to get accessible building IDs for a user based on their role.
+ * @param user
  */
 async function getAccessibleBuildingIds(user: any): Promise<string[]> {
   if (user.role === 'admin' && user.canAccessAllOrganizations) {
@@ -129,7 +130,10 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
 }
 
 /**
- * Helper function to calculate user's total booking hours for a time period
+ * Helper function to calculate user's total booking hours for a time period.
+ * @param userId
+ * @param commonSpaceId
+ * @param limitType
  */
 async function getUserBookingHours(
   userId: string, 
@@ -166,7 +170,10 @@ async function getUserBookingHours(
 }
 
 /**
- * Helper function to check if user has exceeded their booking time limit
+ * Helper function to check if user has exceeded their booking time limit.
+ * @param userId
+ * @param commonSpaceId
+ * @param newBookingHours
  */
 async function checkUserTimeLimit(
   userId: string,
@@ -216,7 +223,11 @@ async function checkUserTimeLimit(
 }
 
 /**
- * Helper function to check if a time slot overlaps with existing bookings
+ * Helper function to check if a time slot overlaps with existing bookings.
+ * @param commonSpaceId
+ * @param startTime
+ * @param endTime
+ * @param excludeBookingId
  */
 async function hasOverlappingBookings(
   commonSpaceId: string, 
@@ -253,7 +264,9 @@ async function hasOverlappingBookings(
 }
 
 /**
- * Helper function to check if user is blocked from booking a space
+ * Helper function to check if user is blocked from booking a space.
+ * @param userId
+ * @param commonSpaceId
  */
 async function isUserBlocked(userId: string, commonSpaceId: string): Promise<boolean> {
   const restriction = await db
@@ -271,7 +284,10 @@ async function isUserBlocked(userId: string, commonSpaceId: string): Promise<boo
 }
 
 /**
- * Helper function to check if booking time is within opening hours
+ * Helper function to check if booking time is within opening hours.
+ * @param startTime
+ * @param endTime
+ * @param openingHours
  */
 function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[]): boolean {
   if (!openingHours || openingHours.length === 0) {
@@ -298,11 +314,12 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
 }
 
 /**
- * Registers all common spaces API endpoints
+ * Registers all common spaces API endpoints.
+ * @param app
  */
 export function registerCommonSpacesRoutes(app: Express): void {
   /**
-   * GET /api/common-spaces - Retrieve common spaces for accessible buildings
+   * GET /api/common-spaces - Retrieve common spaces for accessible buildings.
    */
   app.get('/api/common-spaces', requireAuth, async (req: any, res: Response) => {
     try {
@@ -384,7 +401,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/common-spaces/:spaceId/bookings - Get bookings for a specific space
+   * GET /api/common-spaces/:spaceId/bookings - Get bookings for a specific space.
    */
   app.get('/api/common-spaces/:spaceId/bookings', requireAuth, async (req: any, res: Response) => {
     try {
@@ -482,7 +499,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/common-spaces/:spaceId/bookings - Create a new booking
+   * POST /api/common-spaces/:spaceId/bookings - Create a new booking.
    */
   app.post('/api/common-spaces/:spaceId/bookings', requireAuth, async (req: any, res: Response) => {
     try {
@@ -640,7 +657,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/common-spaces/calendar/:spaceId - Get calendar data for a specific space
+   * GET /api/common-spaces/calendar/:spaceId - Get calendar data for a specific space.
    */
   app.get('/api/common-spaces/calendar/:spaceId', requireAuth, async (req: any, res: Response) => {
     try {
@@ -791,7 +808,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/common-spaces/my-bookings - Get current user's bookings
+   * GET /api/common-spaces/my-bookings - Get current user's bookings.
    */
   app.get('/api/common-spaces/my-bookings', requireAuth, async (req: any, res: Response) => {
     try {
@@ -832,7 +849,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * DELETE /api/common-spaces/bookings/:bookingId - Cancel a booking
+   * DELETE /api/common-spaces/bookings/:bookingId - Cancel a booking.
    */
   app.delete('/api/common-spaces/bookings/:bookingId', requireAuth, async (req: any, res: Response) => {
     try {
@@ -919,7 +936,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/common-spaces/:spaceId/stats - Get usage statistics (Manager/Admin only)
+   * GET /api/common-spaces/:spaceId/stats - Get usage statistics (Manager/Admin only).
    */
   app.get('/api/common-spaces/:spaceId/stats', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
     try {
@@ -1024,7 +1041,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/common-spaces/users/:userId/restrictions - Block/unblock user (Manager/Admin only)
+   * POST /api/common-spaces/users/:userId/restrictions - Block/unblock user (Manager/Admin only).
    */
   app.post('/api/common-spaces/users/:userId/restrictions', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
     try {
@@ -1149,7 +1166,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/common-spaces - Create a new common space (Manager/Admin only)
+   * POST /api/common-spaces - Create a new common space (Manager/Admin only).
    */
   app.post('/api/common-spaces', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
     try {
@@ -1262,7 +1279,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/common-spaces/users/:userId/time-limits - Set user time limits (Manager/Admin only)
+   * POST /api/common-spaces/users/:userId/time-limits - Set user time limits (Manager/Admin only).
    */
   app.post('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
     try {
@@ -1398,7 +1415,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/common-spaces/users/:userId/time-limits - Get user time limits
+   * GET /api/common-spaces/users/:userId/time-limits - Get user time limits.
    */
   app.get('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
     try {
@@ -1462,7 +1479,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
   /**
    * GET /api/common-spaces/user-calendar - Get user's personal calendar
-   * Shows all user's bookings across all spaces they have access to
+   * Shows all user's bookings across all spaces they have access to.
    */
   app.get('/api/common-spaces/user-calendar', requireAuth, async (req: any, res: Response) => {
     try {
@@ -1544,7 +1561,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
   /**
    * GET /api/common-spaces/calendar/building/:buildingId - Get building-wide calendar (Manager/Admin only)
-   * Shows all bookings across all spaces in a building with full details
+   * Shows all bookings across all spaces in a building with full details.
    */
   app.get('/api/common-spaces/calendar/building/:buildingId', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
     try {

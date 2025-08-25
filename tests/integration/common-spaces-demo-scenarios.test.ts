@@ -1,7 +1,7 @@
 /**
  * @file Demo scenarios tests for Common Spaces functionality using REAL Demo Organization data
  * Tests comprehensive real-world booking scenarios for the Quebec property management system
- * Covers booking, unbooking, downloads, manager operations, and user restrictions
+ * Covers booking, unbooking, downloads, manager operations, and user restrictions.
  */
 
 import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
@@ -1114,16 +1114,24 @@ describe('Common Spaces Demo Organization Scenarios', () => {
 });
 
 // Helper function to categorize spaces based on name
+/**
+ *
+ * @param name
+ */
 function getCategoryFromName(name: string): string {
-  if (name.toLowerCase().includes('gym')) return 'fitness';
-  if (name.toLowerCase().includes('réunion') || name.toLowerCase().includes('meeting')) return 'meeting';
-  if (name.toLowerCase().includes('fête') || name.toLowerCase().includes('party')) return 'event';
-  if (name.toLowerCase().includes('lavage') || name.toLowerCase().includes('laundry')) return 'utility';
-  if (name.toLowerCase().includes('entrepôt') || name.toLowerCase().includes('storage')) return 'storage';
+  if (name.toLowerCase().includes('gym')) {return 'fitness';}
+  if (name.toLowerCase().includes('réunion') || name.toLowerCase().includes('meeting')) {return 'meeting';}
+  if (name.toLowerCase().includes('fête') || name.toLowerCase().includes('party')) {return 'event';}
+  if (name.toLowerCase().includes('lavage') || name.toLowerCase().includes('laundry')) {return 'utility';}
+  if (name.toLowerCase().includes('entrepôt') || name.toLowerCase().includes('storage')) {return 'storage';}
   return 'other';
 }
 
 // Helper function for ICS generation simulation
+/**
+ *
+ * @param bookings
+ */
 function generateICS(bookings: any[]): string {
   const events = bookings.map(booking => `
 BEGIN:VEVENT

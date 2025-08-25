@@ -243,7 +243,7 @@ describe('Demands API Unit Tests', () => {
 
     } catch (_error) {
       console.error('Failed to setup test _data:', _error);
-      throw error;
+      throw _error;
     }
   }
 

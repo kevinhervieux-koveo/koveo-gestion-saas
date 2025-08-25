@@ -82,6 +82,12 @@ const MockMemoryRouter = ({ children }: { children: React.ReactNode }) => {
  */
 
 // Test providers wrapper
+/**
+ *
+ * @param root0
+ * @param root0.children
+ * @param root0.initialLocation
+ */
 function TestProviders({ children, initialLocation = '/' }: { children: React.ReactNode; initialLocation?: string }) {
   const queryClient = new QueryClient({
     defaultOptions: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'wouter/memory';
@@ -203,7 +203,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Feature Request Creation Form', () => {
     test('opens create dialog when Submit Idea button is clicked', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper>
@@ -212,7 +212,7 @@ describe('Feature Requests Frontend Tests', () => {
       );
 
       const submitButton = screen.getByTestId('button-create-feature-request');
-      await user.click(submitButton);
+      await _user.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByText('Submit a Feature Request')).toBeInTheDocument();
@@ -226,7 +226,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('validates required fields in create form', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper>
@@ -236,7 +236,7 @@ describe('Feature Requests Frontend Tests', () => {
 
       // Open dialog
       const submitButton = screen.getByTestId('button-create-feature-request');
-      await user.click(submitButton);
+      await _user.click(submitButton);
 
       // Try to submit empty form
       await waitFor(() => {
@@ -245,7 +245,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const submitFormButton = screen.getByTestId('button-submit-feature-request');
-      await user.click(submitFormButton);
+      await _user.click(submitFormButton);
 
       // Check for validation errors (the form should prevent submission)
       expect(mockMutationResult.mutate).not.toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('submits feature request with valid data', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper>
@@ -263,21 +263,21 @@ describe('Feature Requests Frontend Tests', () => {
 
       // Open dialog
       const submitButton = screen.getByTestId('button-create-feature-request');
-      await user.click(submitButton);
+      await _user.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByTestId('input-feature-title')).toBeInTheDocument();
       });
 
       // Fill form
-      await user.type(screen.getByTestId('input-feature-title'), 'Test Feature');
-      await user.type(screen.getByTestId('textarea-feature-description'), 'This is a test feature request with detailed description.');
-      await user.type(screen.getByTestId('textarea-feature-need'), 'This addresses the need for testing.');
-      await user.type(screen.getByTestId('input-feature-page'), 'Test Page');
+      await _user.type(screen.getByTestId('input-feature-title'), 'Test Feature');
+      await _user.type(screen.getByTestId('textarea-feature-description'), 'This is a test feature request with detailed description.');
+      await _user.type(screen.getByTestId('textarea-feature-need'), 'This addresses the need for testing.');
+      await _user.type(screen.getByTestId('input-feature-page'), 'Test Page');
 
       // Submit form
       const submitFormButton = screen.getByTestId('button-submit-feature-request');
-      await user.click(submitFormButton);
+      await _user.click(submitFormButton);
 
       expect(mockMutationResult.mutate).toHaveBeenCalled();
     });
@@ -301,7 +301,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('makes feature request cards clickable for admin', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={true}>
@@ -317,7 +317,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('opens edit dialog when admin clicks on feature request card', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={true}>
@@ -331,7 +331,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const card = screen.getByTestId('card-feature-request-feature-1');
-      await user.click(card);
+      await _user.click(card);
 
       await waitFor(() => {
         expect(screen.getByTestId('edit-feature-request-dialog')).toBeInTheDocument();
@@ -341,7 +341,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('edit dialog includes status and admin fields', async () => {
       jest.doMock('@/hooks/use-auth', () => mockAdminAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={true}>
@@ -355,7 +355,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const card = screen.getByTestId('card-feature-request-feature-1');
-      await user.click(card);
+      await _user.click(card);
 
       await waitFor(() => {
         expect(screen.getByTestId('select-edit-status')).toBeInTheDocument();
@@ -436,7 +436,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('triggers upvote mutation when clicked', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={false}>
@@ -449,7 +449,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const upvoteButton = screen.getByTestId('button-upvote-feature-1');
-      await user.click(upvoteButton);
+      await _user.click(upvoteButton);
 
       expect(mockMutationResult.mutate).toHaveBeenCalledWith('feature-1');
     });
@@ -458,7 +458,7 @@ describe('Feature Requests Frontend Tests', () => {
   describe('Filtering and Search', () => {
     test('search input filters feature requests', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={false}>
@@ -471,7 +471,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const searchInput = screen.getByTestId('input-search-features');
-      await user.type(searchInput, 'Dashboard');
+      await _user.type(searchInput, 'Dashboard');
 
       // The search should filter the results (this tests the UI behavior)
       expect(searchInput).toHaveValue('Dashboard');
@@ -479,7 +479,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('status filter works correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={false}>
@@ -492,7 +492,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const statusFilter = screen.getByTestId('select-status-filter');
-      await user.click(statusFilter);
+      await _user.click(statusFilter);
 
       // Check if status options are available
       await waitFor(() => {
@@ -503,7 +503,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('category filter works correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={false}>
@@ -516,7 +516,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const categoryFilter = screen.getByTestId('select-category-filter');
-      await user.click(categoryFilter);
+      await _user.click(categoryFilter);
 
       // Check if category options are available
       await waitFor(() => {
@@ -527,7 +527,7 @@ describe('Feature Requests Frontend Tests', () => {
 
     test('sort options work correctly', async () => {
       jest.doMock('@/hooks/use-auth', () => mockRegularAuth);
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       render(
         <TestWrapper isAdmin={false}>
@@ -540,7 +540,7 @@ describe('Feature Requests Frontend Tests', () => {
       });
 
       const sortFilter = screen.getByTestId('select-sort-by');
-      await user.click(sortFilter);
+      await _user.click(sortFilter);
 
       // Check if sort options are available
       await waitFor(() => {

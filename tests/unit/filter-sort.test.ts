@@ -230,12 +230,12 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         ];
         
         const result = applyFilters(mockSuggestions, filters);
-        expect(_result).toHaveLength(1);
+        expect(result).toHaveLength(1);
         expect(result[0].title).toBe('Improve Law 25 Compliance Documentation');
       });
 
       it('should return all items when no filters applied', () => {
-        const result = applyFilters(mockSuggestions, []);
+        const _result = applyFilters(mockSuggestions, []);
         expect(_result).toHaveLength(3);
       });
 
@@ -245,7 +245,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         ];
         
         const result = applyFilters(mockSuggestions, filters);
-        expect(_result).toHaveLength(2);
+        expect(result).toHaveLength(2);
         expect(result.map(r => r.category)).toEqual(['Security', 'Documentation']);
       });
     });
@@ -255,7 +255,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const searchFields = ['title', 'description'];
         const result = applySearch(mockSuggestions, 'quebec', searchFields);
         
-        expect(_result).toHaveLength(3);
+        expect(result).toHaveLength(3);
         expect(result.map(r => r.id)).toEqual(['1', '2', '3']);
       });
 
@@ -263,18 +263,18 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         const searchFields = ['title'];
         const result = applySearch(mockSuggestions, 'PROPERTY', searchFields);
         
-        expect(_result).toHaveLength(1);
+        expect(result).toHaveLength(1);
         expect(result[0].title).toBe('Optimize Property Search Performance');
       });
 
       it('should return all items for empty search', () => {
-        const result = applySearch(mockSuggestions, '', ['title']);
+        const _result = applySearch(mockSuggestions, '', ['title']);
         expect(_result).toHaveLength(3);
       });
 
       it('should search across multiple fields when no specific fields provided', () => {
         const result = applySearch(mockSuggestions, 'Legal');
-        expect(_result).toHaveLength(1);
+        expect(result).toHaveLength(1);
         expect(result[0].id).toBe('3');
       });
     });
@@ -301,7 +301,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
 
       it('should handle null sort gracefully', () => {
         const result = applySort(mockSuggestions, null);
-        expect(_result).toEqual(mockSuggestions);
+        expect(result).toEqual(mockSuggestions);
       });
 
       it('should handle null values in sort field', () => {
@@ -332,7 +332,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
         
         const result = applyFilterSort(mockSuggestions, filters, search, sort, searchFields);
         
-        expect(_result).toHaveLength(2);
+        expect(result).toHaveLength(2);
         // Should be sorted by priority: Critical before High
         expect(result[0].priority).toBe('Critical');
         expect(result[1].priority).toBe('High');

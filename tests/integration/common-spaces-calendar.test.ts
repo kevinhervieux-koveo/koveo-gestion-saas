@@ -6,7 +6,7 @@ const mockConnectDB = jest.fn();
 const mockCloseDB = jest.fn();
 
 /**
- * Test configuration data for calendar integration
+ * Test configuration data for calendar integration.
  */
 const DEMO_USERS = {
   // Admin user with full access
@@ -50,7 +50,7 @@ const DEMO_BUILDINGS = {
 
 /**
  * Integration tests for Common Spaces Calendar functionality
- * Tests calendar API endpoints and frontend integration with role-based permissions
+ * Tests calendar API endpoints and frontend integration with role-based permissions.
  */
 describe('Common Spaces Calendar Integration', () => {
   beforeAll(async () => {
@@ -422,9 +422,12 @@ describe('Common Spaces Calendar Integration', () => {
 });
 
 /**
- * Helper functions for calendar integration tests
+ * Helper functions for calendar integration tests.
  */
 
+/**
+ *
+ */
 async function getTestCommonSpaceId(): Promise<string> {
   const result = await runQuery(`
     SELECT id FROM common_spaces 
@@ -440,6 +443,15 @@ async function getTestCommonSpaceId(): Promise<string> {
   return result.rows[0].id;
 }
 
+/**
+ *
+ * @param booking
+ * @param booking.commonSpaceId
+ * @param booking.userId
+ * @param booking.startTime
+ * @param booking.endTime
+ * @param booking.status
+ */
 async function createTestBooking(booking: {
   commonSpaceId: string;
   userId: string;
@@ -457,6 +469,12 @@ async function createTestBooking(booking: {
   return result.rows[0].id;
 }
 
+/**
+ *
+ * @param userId
+ * @param startDate
+ * @param endDate
+ */
 async function getUserCalendar(userId: string, startDate: Date, endDate: Date): Promise<any> {
   // Simulate the user calendar API endpoint
   const result = await runQuery(`
@@ -511,6 +529,13 @@ async function getUserCalendar(userId: string, startDate: Date, endDate: Date): 
   };
 }
 
+/**
+ *
+ * @param spaceId
+ * @param userId
+ * @param startDate
+ * @param endDate
+ */
 async function getSpaceCalendar(spaceId: string, userId: string, startDate: Date, endDate: Date): Promise<any> {
   // Check user permissions
   const user = await runQuery('SELECT role FROM users WHERE id = $1', [userId]);
@@ -578,6 +603,13 @@ async function getSpaceCalendar(spaceId: string, userId: string, startDate: Date
   };
 }
 
+/**
+ *
+ * @param buildingId
+ * @param userId
+ * @param startDate
+ * @param endDate
+ */
 async function getBuildingCalendar(buildingId: string, userId: string, startDate: Date, endDate: Date): Promise<any> {
   // Get building info
   const building = await runQuery(`
@@ -651,6 +683,10 @@ async function getBuildingCalendar(buildingId: string, userId: string, startDate
   };
 }
 
+/**
+ *
+ * @param buildingId
+ */
 async function getCommonSpacesForBuilding(buildingId: string): Promise<Array<{id: string, name: string}>> {
   const result = await runQuery(`
     SELECT id, name

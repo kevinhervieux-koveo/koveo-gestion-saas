@@ -19,6 +19,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 
+/**
+ *
+ */
 interface UserBooking {
   id: string;
   startTime: string;
@@ -30,6 +33,9 @@ interface UserBooking {
   buildingId: string;
 }
 
+/**
+ *
+ */
 interface UserCalendarData {
   user: {
     id: string;
@@ -48,6 +54,9 @@ interface UserCalendarData {
   };
 }
 
+/**
+ *
+ */
 export function UserCalendar() {
   const { t, language } = useLanguage();
   const { user } = useAuth();

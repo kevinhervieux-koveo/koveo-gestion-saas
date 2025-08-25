@@ -56,6 +56,9 @@ jest.mock('@tanstack/react-query', () => ({
 
 /**
  * Test wrapper component with all necessary providers.
+ * @param root0
+ * @param root0.children
+ * @param root0.route
  */
 function TestWrapper({ children, route = '/' }: { children: React.ReactNode; route?: string }) {
   const queryClient = new QueryClient({
@@ -170,6 +173,9 @@ const LoginPage = () => (
 
 /**
  * Helper function to validate a page component.
+ * @param PageComponent
+ * @param pageName
+ * @param route
  */
 async function validatePageComponent(
   PageComponent: React.ComponentType,

@@ -83,7 +83,7 @@ describe('Demo Users Validation', () => {
         for (const rel of userOrgRelations) {
           const user = rel.user;
           
-          if (!user) continue;
+          if (!user) {continue;}
           
           // Check first name is realistic
           for (const bannedName of bannedNames) {
@@ -124,7 +124,7 @@ describe('Demo Users Validation', () => {
         for (const rel of userOrgRelations) {
           const user = rel.user;
           
-          if (!user) continue;
+          if (!user) {continue;}
           
           const emailPrefix = user.email.split('@')[0];
           
@@ -174,7 +174,7 @@ describe('Demo Users Validation', () => {
         for (const rel of userOrgRelations) {
           const user = rel.user;
           
-          if (!user) continue;
+          if (!user) {continue;}
           
           // Check user role
           expect(allowedRoles).toContain(user.role);

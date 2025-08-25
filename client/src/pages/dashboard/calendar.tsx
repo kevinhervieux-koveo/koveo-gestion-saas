@@ -24,6 +24,9 @@ import {
 } from 'lucide-react';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
 
+/**
+ *
+ */
 interface Building {
   id: string;
   name: string;
@@ -31,6 +34,9 @@ interface Building {
   city: string;
 }
 
+/**
+ *
+ */
 interface CommonSpace {
   id: string;
   name: string;
@@ -41,6 +47,9 @@ interface CommonSpace {
   capacity?: number;
 }
 
+/**
+ *
+ */
 export default function DashboardCalendarPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -689,7 +698,7 @@ export default function DashboardCalendarPage() {
           <div className="space-y-6">
             {Array.from(visibleSpaces).map((spaceId) => {
               const space = filteredSpaces.find(s => s.id === spaceId);
-              if (!space) return null;
+              if (!space) {return null;}
 
               const building = buildings.find(b => b.id === space.buildingId);
 

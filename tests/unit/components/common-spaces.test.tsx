@@ -1,6 +1,6 @@
 /**
  * @file Tests for Common Spaces Resident Booking Page
- * Tests the resident common spaces booking component with MSW mocks
+ * Tests the resident common spaces booking component with MSW mocks.
  */
 
 import React from 'react';
@@ -23,8 +23,8 @@ jest.mock('date-fns', () => {
   return {
     ...originalModule,
     format: (date: Date, formatStr: string) => {
-      if (formatStr === 'yyyy-MM-dd') return '2024-01-20';
-      if (formatStr === 'HH:mm') return '09:00';
+      if (formatStr === 'yyyy-MM-dd') {return '2024-01-20';}
+      if (formatStr === 'HH:mm') {return '09:00';}
       return originalModule.format(date, formatStr);
     },
     addDays: (date: Date, amount: number) => new Date(date.getTime() + amount * 24 * 60 * 60 * 1000),
@@ -423,7 +423,7 @@ describe('Common Spaces Resident Page', () => {
       };
       const originalCreateElement = document.createElement;
       document.createElement = jest.fn((tagName) => {
-        if (tagName === 'a') return mockLink as any;
+        if (tagName === 'a') {return mockLink as any;}
         return originalCreateElement.call(document, tagName);
       });
 
