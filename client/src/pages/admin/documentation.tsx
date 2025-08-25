@@ -639,7 +639,7 @@ This documentation provides a complete technical portrait of the Koveo Gestion p
           <div className='flex items-center gap-4 text-gray-600'>
             <div className='flex items-center gap-2'>
               <Clock className='h-4 w-4' />
-              <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
+              <span>Last updated: {lastRefresh.toLocaleDateString()} at {lastRefresh.toLocaleTimeString()}</span>
             </div>
             {isAutoRefreshing && (
               <div className='flex items-center gap-2 text-blue-600'>
