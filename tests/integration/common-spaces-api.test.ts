@@ -364,7 +364,7 @@ describe('Common Spaces API Integration Tests', () => {
             id: 'new-booking-id',
             ...validBookingData,
             userId: 'user-123',
-            commonSpaceId: 'space-1',
+            commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
             status: 'confirmed',
           }],
         }),
@@ -646,7 +646,7 @@ describe('Common Spaces API Integration Tests', () => {
         ...mockDb,
         from: () => ({
           ...mockDb,
-          where: () => [{ id: 'building-1' }],
+          where: () => [{ id: '123e4567-e89b-12d3-a456-426614174002' }],
         }),
       }));
 
@@ -704,7 +704,7 @@ describe('Common Spaces API Integration Tests', () => {
             limit: () => [{
               id: 'booking-2',
               userId: 'user-123', // Same as requesting user
-              commonSpaceId: 'space-1',
+              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
               status: 'confirmed',
             }],
           }),
@@ -746,9 +746,9 @@ describe('Common Spaces API Integration Tests', () => {
           where: () => ({
             ...mockDb,
             limit: () => [{
-              id: 'booking-1',
-              userId: 'user-456', // Different user
-              commonSpaceId: 'space-1',
+              id: '123e4567-e89b-12d3-a456-426614174003',
+              userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
+              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
               status: 'confirmed',
             }],
           }),
@@ -756,7 +756,7 @@ describe('Common Spaces API Integration Tests', () => {
       }));
 
       const response = await request(app)
-        .delete('/api/common-spaces/bookings/booking-1')
+        .delete('/api/common-spaces/bookings/123e4567-e89b-12d3-a456-426614174003')
         .set('Authorization', 'Bearer token')
         .send();
 
@@ -781,9 +781,9 @@ describe('Common Spaces API Integration Tests', () => {
           where: () => ({
             ...mockDb,
             limit: () => [{
-              id: 'booking-1',
-              userId: 'user-456', // Different user
-              commonSpaceId: 'space-1',
+              id: '123e4567-e89b-12d3-a456-426614174003',
+              userId: '123e4567-e89b-12d3-a456-426614174004', // Different user
+              commonSpaceId: '123e4567-e89b-12d3-a456-426614174001',
               status: 'confirmed',
             }],
           }),
@@ -807,7 +807,7 @@ describe('Common Spaces API Integration Tests', () => {
         ...mockDb,
         from: () => ({
           ...mockDb,
-          where: () => [{ id: 'building-1' }],
+          where: () => [{ id: '123e4567-e89b-12d3-a456-426614174002' }],
         }),
       }));
 
@@ -821,7 +821,7 @@ describe('Common Spaces API Integration Tests', () => {
       }));
 
       const response = await request(app)
-        .delete('/api/common-spaces/bookings/booking-1')
+        .delete('/api/common-spaces/bookings/123e4567-e89b-12d3-a456-426614174003')
         .set('Authorization', 'Bearer token')
         .send();
 
@@ -847,7 +847,7 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{ id: 'user-456' }],
+            limit: () => [{ id: '123e4567-e89b-12d3-a456-426614174000' }],
           }),
         }),
       }));
@@ -859,7 +859,7 @@ describe('Common Spaces API Integration Tests', () => {
           ...mockDb,
           where: () => ({
             ...mockDb,
-            limit: () => [{ id: 'space-1', buildingId: 'building-1' }],
+            limit: () => [{ id: '123e4567-e89b-12d3-a456-426614174001', buildingId: '123e4567-e89b-12d3-a456-426614174002' }],
           }),
         }),
       }));
@@ -869,7 +869,7 @@ describe('Common Spaces API Integration Tests', () => {
         ...mockDb,
         from: () => ({
           ...mockDb,
-          where: () => [{ id: 'building-1' }],
+          where: () => [{ id: '123e4567-e89b-12d3-a456-426614174002' }],
         }),
       }));
 
@@ -892,10 +892,10 @@ describe('Common Spaces API Integration Tests', () => {
       }));
 
       const response = await request(app)
-        .post('/api/common-spaces/users/user-456/restrictions')
+        .post('/api/common-spaces/users/123e4567-e89b-12d3-a456-426614174000/restrictions')
         .send({
           mockUser: managerUser,
-          common_space_id: 'space-1',
+          common_space_id: '123e4567-e89b-12d3-a456-426614174001',
           is_blocked: true,
           reason: 'Violated booking rules',
         });
@@ -914,7 +914,7 @@ describe('Common Spaces API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/common-spaces/users/invalid-uuid/restrictions')
+        .post('/api/common-spaces/users/invalid-uuid-format/restrictions')
         .send({
           mockUser: managerUser,
           common_space_id: 'invalid-uuid',

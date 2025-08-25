@@ -9,11 +9,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { server } from '../../mocks/server';
 import { http, HttpResponse } from 'msw';
-// Mock the component to fix import issues
-jest.mock('../../../client/src/pages/manager/common-spaces-stats', () => ({
-  __esModule: true,
-  default: () => <div data-testid="common-spaces-stats-page">Common Spaces Stats Page Mock</div>,
-}));
+import CommonSpacesStatsPage from '../../../client/src/pages/manager/common-spaces-stats';
 import { renderWithProviders, TestProviders } from '../../setup/test-utils';
 
 // MSW setup
