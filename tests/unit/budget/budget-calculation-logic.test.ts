@@ -19,8 +19,8 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       expect(maintenanceBills.length).toBeGreaterThan(0);
       expect(maintenanceTotal).toBeGreaterThan(0);
 
-      console.warn(`Demo Organization Total Expenses: $${totalExpenses.toLocaleString()}`);
-      console.warn(`Maintenance Expenses: $${maintenanceTotal.toLocaleString()}`);
+      // Demo Organization Total Expenses: $${totalExpenses.toLocaleString()}
+      // Maintenance Expenses: $${maintenanceTotal.toLocaleString()}
     });
 
     it('categorizes expenses correctly from Demo bills', () => {
@@ -45,7 +45,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
         expect(amount).toBeGreaterThan(0);
       });
 
-      console.warn('Demo Organization Expenses by Category:', expensesByCategory);
+      // Demo Organization Expenses by Category: expensesByCategory
     });
 
     it('calculates net cash flow with realistic income and expenses', () => {
@@ -64,10 +64,10 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       expect(totalExpenses).toBeGreaterThan(0);
       expect(typeof netCashFlow).toBe('number');
 
-      console.warn(`Demo Organization Cash Flow Analysis:`);
-      console.warn(`  Total Income: $${totalIncome.toLocaleString()}`);
-      console.warn(`  Total Expenses: $${totalExpenses.toLocaleString()}`);
-      console.warn(`  Net Cash Flow: $${netCashFlow.toLocaleString()}`);
+      // Demo Organization Cash Flow Analysis:
+      // Total Income: $${totalIncome.toLocaleString()}
+      // Total Expenses: $${totalExpenses.toLocaleString()}
+      // Net Cash Flow: $${netCashFlow.toLocaleString()}
 
       // Determine if special contributions are needed
       if (netCashFlow < 0) {
@@ -287,7 +287,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const demoBills = getDemoBills();
 
       // Measure calculation performance
-      const startTime = performance.now();
+      const startTime = Date.now();
 
       // Simulate complex budget calculations
       const calculations = demoBills.map((bill) => ({
@@ -298,7 +298,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
         processed: true,
       }));
 
-      const endTime = performance.now();
+      const endTime = Date.now();
       const processingTime = endTime - startTime;
 
       expect(calculations.length).toBe(demoBills.length);

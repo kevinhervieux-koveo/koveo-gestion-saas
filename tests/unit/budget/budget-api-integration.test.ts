@@ -1,4 +1,4 @@
-import { getDemoBills, getDemoBuildings, DEMO_ORG_ID } from '../../utils/demo-data-helpers';
+import { getDemoBills, getDemoBuildings } from '../../utils/demo-data-helpers';
 
 describe('Budget API Integration and Data Flow Testing', () => {
   describe('Data Transformation and API Response Handling', () => {
@@ -30,7 +30,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
         expect(expense.description).toContain(originalBill.billNumber);
       });
 
-      console.warn(`Transformed ${budgetExpenses.length} Demo bills into budget expenses`);
+      // Transformed ${budgetExpenses.length} Demo bills into budget expenses
     });
 
     it('generates income entries for Demo buildings', () => {

@@ -17,11 +17,11 @@ const db = drizzle({ client: pool, schema });
  * @property {string} username - User's login username.
  * @property {string} email - User's email address.
  * @property {string} firstName - User's first name.
- * @property {string} lastName - User's last name
- * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system
- * @property {boolean} isActive - Whether the user account is active
- * @property {string[]} [organizations] - Array of organization IDs the user can access
- * @property {boolean} [canAccessAllOrganizations] - Whether user has global organization access (Koveo org)
+ * @property {string} lastName - User's last name.
+ * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system.
+ * @property {boolean} isActive - Whether the user account is active.
+ * @property {string[]} [organizations] - Array of organization IDs the user can access.
+ * @property {boolean} [canAccessAllOrganizations] - Whether user has global organization access (Koveo org).
  */
 export interface AuthenticatedUser {
   id: string;

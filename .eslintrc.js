@@ -138,14 +138,36 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/*.test.{ts,tsx,js,jsx}'],
+      files: ['**/*.test.{ts,tsx,js,jsx}', '**/tests/**/*.{ts,tsx,js,jsx}', 'tests/**/*.{ts,tsx,js,jsx}'],
       env: {
-        jest: true
+        jest: true,
+        node: true
+      },
+      globals: {
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        URL: 'readonly',
+        performance: 'readonly'
       },
       rules: {
-        'jsdoc/require-jsdoc': 'off', // Relaxed for test files
-        '@typescript-eslint/no-explicit-any': 'off',
-        'no-console': 'off'
+        'jsdoc/require-jsdoc': 'off',
+        'jsdoc/require-description': 'off',
+        'jsdoc/require-param-description': 'off',
+        'jsdoc/require-returns-description': 'off',
+        'jsdoc/require-returns': 'off',
+        'jsdoc/check-param-names': 'off',
+        '@typescript-eslint/no-explicit-any': 'warn',
+        'no-console': 'off',
+        'no-undef': 'off',
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off'
       }
     },
     {
