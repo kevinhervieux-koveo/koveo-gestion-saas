@@ -87,7 +87,7 @@ export default function Permissions() {
   const [filterRole, setFilterRole] = useState('all');
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [showNewPermissionForm, setShowNewPermissionForm] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   // Additional filters
@@ -195,7 +195,7 @@ export default function Permissions() {
   // Filter permissions by category, search, and action type
   const filteredPermissions = permissions?.filter(permission => {
     // Category filter
-    if (selectedCategory && permission.resourceType !== selectedCategory) return false;
+    if (selectedCategory !== 'all' && permission.resourceType !== selectedCategory) return false;
     
     // Search filter
     if (permissionSearchQuery) {
@@ -247,7 +247,7 @@ export default function Permissions() {
 
   const resetPermissionFilters = () => {
     setPermissionSearchQuery('');
-    setSelectedCategory('');
+    setSelectedCategory('all');
     setFilterActionType('all');
     setSortBy('name');
   };
@@ -723,7 +723,7 @@ export default function Permissions() {
                           <SelectValue placeholder="Filter by category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Categories</SelectItem>
+                          <SelectItem value="all">All Categories</SelectItem>
                           {Object.keys(permissionsByResource).map(category => (
                             <SelectItem key={category} value={category}>
                               {category.charAt(0).toUpperCase() + category.slice(1).replace(/[_-]/g, ' ')}
@@ -776,7 +776,7 @@ export default function Permissions() {
                     {/* Filter summary */}
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <span>Showing {sortedPermissions.length} of {permissions?.length || 0} permissions</span>
-                      {(permissionSearchQuery || selectedCategory || filterActionType !== 'all' || sortBy !== 'name') && (
+                      {(permissionSearchQuery || selectedCategory !== 'all' || filterActionType !== 'all' || sortBy !== 'name') && (
                         <div className="flex items-center gap-2">
                           <Filter className="h-4 w-4" />
                           <span>Filters active</span>
