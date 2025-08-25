@@ -118,7 +118,6 @@ export default function BugReports() {
   });
 
   const onSubmit = (data: BugFormData) => {
-    console.log('Submitting bug data:', data);
     createBugMutation.mutate(data);
   };
 
