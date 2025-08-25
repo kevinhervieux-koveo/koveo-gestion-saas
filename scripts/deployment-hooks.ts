@@ -69,7 +69,12 @@ async function runDeploymentHooks(): Promise<void> {
 
     // 3. Warm up the application
     if (process.env.WARMUP_ON_DEPLOY === 'true') {
-      runCommand('curl -f http://localhost:${PORT:-8080}/health || echo "Warmup skipped - server not ready"', 'Warming up application');
+      let port = parseInt(process.env.PORT || '8080', 10);
+      if (isNaN(port) || port < 1 || port > 65535) {
+        console.warn('⚠️  Invalid PORT value, using default 8080');
+        port = 8080;
+      }
+      runCommand(`curl -f http://localhost:${port}/health || echo "Warmup skipped - server not ready"`, 'Warming up application');
     }
 
     console.warn('\n✅ All deployment hooks completed successfully!');
