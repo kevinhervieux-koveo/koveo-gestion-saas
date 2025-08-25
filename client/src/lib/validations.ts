@@ -243,23 +243,71 @@ export const validationHelpers = {
 };
 
 // Type inference helpers
+/**
+ *
+ */
 export type UserRole = z.infer<typeof enumFields.userRole>;
+/**
+ *
+ */
 export type DemandType = z.infer<typeof enumFields.demandType>;
+/**
+ *
+ */
 export type DemandStatus = z.infer<typeof enumFields.demandStatus>;
+/**
+ *
+ */
 export type BillStatus = z.infer<typeof enumFields.billStatus>;
+/**
+ *
+ */
 export type BillCategory = z.infer<typeof enumFields.billCategory>;
+/**
+ *
+ */
 export type PaymentType = z.infer<typeof enumFields.paymentType>;
+/**
+ *
+ */
 export type ScheduleType = z.infer<typeof enumFields.scheduleType>;
+/**
+ *
+ */
 export type BuildingType = z.infer<typeof enumFields.buildingType>;
+/**
+ *
+ */
 export type BuildingDocumentType = z.infer<typeof enumFields.buildingDocumentType>;
+/**
+ *
+ */
 export type ResidenceDocumentType = z.infer<typeof enumFields.residenceDocumentType>;
 
 // Schema type exports
+/**
+ *
+ */
 export type UserCreateSchema = z.infer<typeof schemas.userCreate>;
+/**
+ *
+ */
 export type BuildingDocumentSchema = z.infer<typeof schemas.buildingDocument>;
+/**
+ *
+ */
 export type ResidenceDocumentSchema = z.infer<typeof schemas.residenceDocument>;
+/**
+ *
+ */
 export type BillSchema = z.infer<typeof schemas.bill>;
+/**
+ *
+ */
 export type DemandSchema = z.infer<typeof schemas.demand>;
+/**
+ *
+ */
 export type DemandReviewSchema = z.infer<typeof schemas.demandReview>;
 
 export default {

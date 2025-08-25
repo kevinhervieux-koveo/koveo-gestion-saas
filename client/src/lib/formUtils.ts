@@ -2,6 +2,9 @@ import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 // Common form states and behaviors
+/**
+ *
+ */
 export interface FormState {
   isSubmitting: boolean;
   hasErrors: boolean;
@@ -10,6 +13,9 @@ export interface FormState {
 }
 
 // Common form field configurations
+/**
+ *
+ */
 export interface SelectOption {
   value: string;
   label: string;
@@ -140,7 +146,7 @@ export const validationUtils = {
       const startDate = data[startDateField];
       const endDate = data[endDateField];
       
-      if (!startDate || !endDate) return true;
+      if (!startDate || !endDate) {return true;}
       
       return new Date(startDate) <= new Date(endDate);
     }, {

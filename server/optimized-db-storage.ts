@@ -2312,6 +2312,12 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   // Bug operations implementation
+  /**
+   *
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
   async getBugsForUser(
     userId: string,
     userRole: string,
@@ -2342,6 +2348,13 @@ export class OptimizedDatabaseStorage implements IStorage {
     }
   }
 
+  /**
+   *
+   * @param id
+   * @param userId
+   * @param userRole
+   * @param organizationId
+   */
   async getBug(
     id: string,
     userId: string,
@@ -2358,7 +2371,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           .where(eq(schema.bugs.id, id));
         
         const bug = result[0];
-        if (!bug) return undefined;
+        if (!bug) {return undefined;}
         
         if (userRole === 'admin') {
           return bug;
@@ -2374,6 +2387,10 @@ export class OptimizedDatabaseStorage implements IStorage {
     );
   }
 
+  /**
+   *
+   * @param bugData
+   */
   async createBug(bugData: InsertBug): Promise<Bug> {
     const result = await db.insert(schema.bugs)
       .values({
@@ -2395,6 +2412,13 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   *
+   * @param id
+   * @param updates
+   * @param userId
+   * @param userRole
+   */
   async updateBug(
     id: string,
     updates: Partial<Bug>,
@@ -2435,6 +2459,12 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
+  /**
+   *
+   * @param id
+   * @param userId
+   * @param userRole
+   */
   async deleteBug(
     id: string,
     userId: string,
@@ -2527,7 +2557,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           .where(eq(schema.featureRequests.id, id));
         
         const featureRequest = result[0];
-        if (!featureRequest) return undefined;
+        if (!featureRequest) {return undefined;}
         
         // All users can see any feature request
         if (userRole === 'admin') {

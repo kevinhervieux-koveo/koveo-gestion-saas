@@ -59,10 +59,10 @@ const testUsers = {
 };
 
 let testOrganizationId: string;
-let createdBugIds: string[] = [];
+const createdBugIds: string[] = [];
 
 /**
- * Create test users and organization for bug testing
+ * Create test users and organization for bug testing.
  */
 async function setupTestData() {
   console.log('🏗️ Setting up bug test data...');
@@ -116,7 +116,7 @@ async function setupTestData() {
 }
 
 /**
- * Clean up test data
+ * Clean up test data.
  */
 async function cleanupTestData() {
   console.log('🧹 Cleaning up bug test data...');
@@ -150,7 +150,10 @@ async function cleanupTestData() {
 }
 
 /**
- * Login helper function
+ * Login helper function.
+ * @param app
+ * @param email
+ * @param password
  */
 async function loginUser(app: any, email: string, password: string) {
   const response = await request(app)

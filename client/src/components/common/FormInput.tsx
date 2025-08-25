@@ -2,6 +2,9 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Control, FieldPath, FieldValues } from 'react-hook-form';
 
+/**
+ *
+ */
 interface FormInputProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
@@ -20,7 +23,21 @@ interface FormInputProps<T extends FieldValues> {
 
 /**
  * Reusable form input component with proper React Hook Form integration
- * Standardizes input patterns across forms
+ * Standardizes input patterns across forms.
+ * @param root0
+ * @param root0.control
+ * @param root0.name
+ * @param root0.label
+ * @param root0.type
+ * @param root0.placeholder
+ * @param root0.required
+ * @param root0.disabled
+ * @param root0.'data-testid'
+ * @param root0.description
+ * @param root0.className
+ * @param root0.step
+ * @param root0.min
+ * @param root0.max
  */
 export function FormInput<T extends FieldValues>({
   control,

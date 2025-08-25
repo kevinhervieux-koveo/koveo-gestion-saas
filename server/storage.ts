@@ -3237,7 +3237,7 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<Bug | undefined> {
     const bug = this.bugs.get(id);
-    if (!bug) return undefined;
+    if (!bug) {return undefined;}
     
     if (userRole === 'admin') {
       return bug;
@@ -3278,7 +3278,7 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<Bug | undefined> {
     const bug = this.bugs.get(id);
-    if (!bug) return undefined;
+    if (!bug) {return undefined;}
     
     // Only admins and managers can update bugs
     if (userRole !== 'admin' && userRole !== 'manager') {
@@ -3301,7 +3301,7 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<boolean> {
     const bug = this.bugs.get(id);
-    if (!bug) return false;
+    if (!bug) {return false;}
     
     // Only admins can delete bugs
     if (userRole !== 'admin') {
@@ -3339,7 +3339,7 @@ export class MemStorage implements IStorage {
     organizationId?: string
   ): Promise<FeatureRequest | undefined> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) return undefined;
+    if (!featureRequest) {return undefined;}
     
     // All users can see any feature request
     if (userRole === 'admin') {
@@ -3382,7 +3382,7 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<FeatureRequest | undefined> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) return undefined;
+    if (!featureRequest) {return undefined;}
     
     // Only admins can update feature requests
     if (userRole !== 'admin') {
@@ -3405,7 +3405,7 @@ export class MemStorage implements IStorage {
     userRole: string
   ): Promise<boolean> {
     const featureRequest = this.featureRequests.get(id);
-    if (!featureRequest) return false;
+    if (!featureRequest) {return false;}
     
     // Only admins can delete feature requests
     if (userRole !== 'admin') {

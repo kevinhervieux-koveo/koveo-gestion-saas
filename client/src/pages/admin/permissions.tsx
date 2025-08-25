@@ -159,8 +159,8 @@ export default function Permissions() {
       const hasGrantedPermissions = userSpecificPermissions.some(up => up.granted);
       const hasRevokedPermissions = userSpecificPermissions.some(up => !up.granted);
       
-      if (filterPermissionStatus === 'granted' && !hasGrantedPermissions) return false;
-      if (filterPermissionStatus === 'revoked' && !hasRevokedPermissions) return false;
+      if (filterPermissionStatus === 'granted' && !hasGrantedPermissions) {return false;}
+      if (filterPermissionStatus === 'revoked' && !hasRevokedPermissions) {return false;}
     }
     
     return matchesSearch && matchesRole && matchesStatus;
@@ -195,7 +195,7 @@ export default function Permissions() {
   // Filter permissions by category, search, and action type
   const filteredPermissions = permissions?.filter(permission => {
     // Category filter
-    if (selectedCategory !== 'all' && permission.resourceType !== selectedCategory) return false;
+    if (selectedCategory !== 'all' && permission.resourceType !== selectedCategory) {return false;}
     
     // Search filter
     if (permissionSearchQuery) {
@@ -205,13 +205,13 @@ export default function Permissions() {
         permission.displayName.toLowerCase().includes(searchLower) ||
         permission.description.toLowerCase().includes(searchLower) ||
         permission.resourceType.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
+      if (!matchesSearch) {return false;}
     }
     
     // Action type filter
     if (filterActionType !== 'all') {
       const actionMatches = permission.action.toLowerCase().includes(filterActionType.toLowerCase());
-      if (!actionMatches) return false;
+      if (!actionMatches) {return false;}
     }
     
     return true;

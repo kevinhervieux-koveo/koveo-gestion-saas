@@ -2,12 +2,18 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Control, FieldPath, FieldValues } from 'react-hook-form';
 
+/**
+ *
+ */
 export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
+/**
+ *
+ */
 interface FormSelectProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
@@ -23,7 +29,18 @@ interface FormSelectProps<T extends FieldValues> {
 
 /**
  * Reusable form select component with proper React Hook Form integration
- * Eliminates repetitive form field patterns across forms
+ * Eliminates repetitive form field patterns across forms.
+ * @param root0
+ * @param root0.control
+ * @param root0.name
+ * @param root0.label
+ * @param root0.options
+ * @param root0.placeholder
+ * @param root0.required
+ * @param root0.disabled
+ * @param root0.'data-testid'
+ * @param root0.description
+ * @param root0.className
  */
 export function FormSelect<T extends FieldValues>({
   control,

@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Edit2, CheckCircle, XCircle, Building2, Home, User, Clock } from 'lucide-react';
 
 // Common demand interface
+/**
+ *
+ */
 export interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
@@ -36,12 +39,18 @@ export interface Demand {
 }
 
 // Common interfaces
+/**
+ *
+ */
 export interface Building {
   id: string;
   name: string;
   address?: string;
 }
 
+/**
+ *
+ */
 export interface Residence {
   id: string;
   name: string;
@@ -82,6 +91,9 @@ export const STATUS_LABELS = {
 } as const;
 
 // Card actions configuration
+/**
+ *
+ */
 interface DemandCardActions {
   onView?: (demand: Demand) => void;
   onEdit?: (demand: Demand) => void;
@@ -91,6 +103,9 @@ interface DemandCardActions {
   showQuickActions?: boolean; // Show approve/reject for submitted demands
 }
 
+/**
+ *
+ */
 interface DemandCardProps {
   demand: Demand;
   buildings?: Building[];
@@ -101,7 +116,13 @@ interface DemandCardProps {
 
 /**
  * Unified DemandCard component for displaying demand information
- * Supports different user roles and customizable actions
+ * Supports different user roles and customizable actions.
+ * @param root0
+ * @param root0.demand
+ * @param root0.buildings
+ * @param root0.residences
+ * @param root0.actions
+ * @param root0.userRole
  */
 export function DemandCard({ 
   demand, 

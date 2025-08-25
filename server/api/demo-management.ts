@@ -11,6 +11,7 @@ import { requireAuth, requireRole } from '../auth';
 
 /**
  * Register demo management routes.
+ * @param app
  */
 export function registerDemoManagementRoutes(app: Express): void {
   

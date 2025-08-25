@@ -1,5 +1,8 @@
 import { ReactNode } from 'react';
 
+/**
+ *
+ */
 interface PageHeaderProps {
   title: string;
   description?: string;
@@ -9,7 +12,13 @@ interface PageHeaderProps {
 }
 
 /**
- * Common page header component for consistent title/description layout
+ * Common page header component for consistent title/description layout.
+ * @param root0
+ * @param root0.title
+ * @param root0.description
+ * @param root0.actions
+ * @param root0.titleClassName
+ * @param root0.descriptionClassName
  */
 export function PageHeader({ 
   title, 

@@ -97,8 +97,8 @@ const QUEBEC_LEGAL_TERMS = {
  */
 /**
  * ExtractVisibleText function.
- * @param container
- * @returns Function result.
+ * @param container - The HTML element to extract text from
+ * @returns Array of visible text strings
  */
 function extractVisibleText(container: HTMLElement): string[] {
   const textNodes: string[] = [];
@@ -109,8 +109,8 @@ function extractVisibleText(container: HTMLElement): string[] {
    */
   /**
    * Traverse function.
-   * @param node
-   * @returns Function result.
+   * @param node - The DOM node to traverse
+   * @returns void
    */
   function traverse(node: Node) {
     if (node.nodeType === Node.TEXT_NODE) { // 3 = TEXT_NODE
@@ -154,10 +154,9 @@ function extractVisibleText(container: HTMLElement): string[] {
  */
 /**
  * ValidateText function.
- * @param text
- * @param context
- * @param _context
- * @returns Function result.
+ * @param text - The text to validate
+ * @param _context - Context information for the validation
+ * @returns Array of validation violations
  */
 function validateText(text: string, _context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -183,7 +182,7 @@ function validateText(text: string, _context: string = ''): Array<{
         term,
         suggestion: PREFERRED_TERMS.technical[term] || PREFERRED_TERMS.propertyManagement[term],
         severity: 'error',
-        _context: context
+        _context
       });
     }
   });
@@ -195,7 +194,7 @@ function validateText(text: string, _context: string = ''): Array<{
         type: 'france_french',
         term,
         severity: 'warning',
-        _context: context
+        _context
       });
     }
   });
@@ -207,7 +206,7 @@ function validateText(text: string, _context: string = ''): Array<{
         type: 'legal_violation',
         term,
         severity: 'error',
-        _context: context
+        _context
       });
     }
   });
@@ -229,7 +228,7 @@ function validateText(text: string, _context: string = ''): Array<{
         term: wrong,
         suggestion: correct,
         severity: 'error',
-        _context: context
+        _context
       });
     }
   });
@@ -259,7 +258,7 @@ class LanguageValidator {
     const textNodes = extractVisibleText(container);
     
     textNodes.forEach((text, _index) => {
-      const context = `${componentName} - Text node ${index + 1}`;
+      const _context = `${componentName} - Text node ${_index + 1}`;
       const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
@@ -275,7 +274,7 @@ class LanguageValidator {
     const textNodes = extractVisibleText(dom.window.document.body);
     
     textNodes.forEach((text, _index) => {
-      const context = `${pageName} - HTML Text node ${index + 1}`;
+      const _context = `${pageName} - HTML Text node ${_index + 1}`;
       const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
@@ -295,9 +294,9 @@ class LanguageValidator {
      */
     /**
      * ExtractStrings function.
-     * @param obj
-     * @param path
-     * @returns Function result.
+     * @param obj - Object to extract strings from
+     * @param path - Current path in the object
+     * @returns Array of extracted strings
      */
     function extractStrings(obj: unknown, path: string = ''): string[] {
       const strings: string[] = [];
@@ -306,11 +305,11 @@ class LanguageValidator {
         strings.push(obj);
       } else if (Array.isArray(obj)) {
         obj.forEach((item, _index) => {
-          strings.push(...extractStrings(item, `${path}[${index}]`));
+          strings.push(...extractStrings(item, `${path}[${_index}]`));
         });
       } else if (obj && typeof obj === 'object') {
         Object.keys(obj).forEach(key => {
-          strings.push(...extractStrings(obj[key], path ? `${path}.${key}` : _key));
+          strings.push(...extractStrings((obj as Record<string, unknown>)[key], path ? `${path}.${key}` : key));
         });
       }
       
@@ -319,7 +318,7 @@ class LanguageValidator {
     
     const strings = extractStrings(jsonData);
     strings.forEach((text, _index) => {
-      const context = `${dataName} - JSON string ${index + 1}`;
+      const _context = `${dataName} - JSON string ${_index + 1}`;
       const textViolations = validateText(text, _context);
       this.violations.push(...textViolations);
     });
@@ -368,22 +367,22 @@ class LanguageValidator {
     if (errors.length > 0) {
       report += `❌ ERREURS (${errors.length}):\n`;
       errors.forEach((error, _index) => {
-        report += `${index + 1}. [${error.type.toUpperCase()}] "${error.term}"`;
+        report += `${_index + 1}. [${error.type.toUpperCase()}] "${error.term}"`;
         if (error.suggestion) {
           report += ` → Suggestion: "${error.suggestion}"`;
         }
-        report += `\n   Contexte: ${error.context}\n\n`;
+        report += `\n   Contexte: ${error._context}\n\n`;
       });
     }
     
     if (warnings.length > 0) {
       report += `⚠️  AVERTISSEMENTS (${warnings.length}):\n`;
       warnings.forEach((warning, _index) => {
-        report += `${index + 1}. [${warning.type.toUpperCase()}] "${warning.term}"`;
+        report += `${_index + 1}. [${warning.type.toUpperCase()}] "${warning.term}"`;
         if (warning.suggestion) {
           report += ` → Suggestion: "${warning.suggestion}"`;
         }
-        report += `\n   Contexte: ${warning.context}\n\n`;
+        report += `\n   Contexte: ${warning._context}\n\n`;
       });
     }
     

@@ -10,9 +10,9 @@
  * - Complete data duplication (all tables and relationships)
  * - User email domain changes (@demo.com → @opendemo.com)
  * - Preserves all data relationships
- * - Safe cleanup of existing Open Demo data
+ * - Safe cleanup of existing Open Demo data.
  * 
- * Usage: tsx scripts/duplicate-demo-to-open-demo.ts
+ * Usage: tsx scripts/duplicate-demo-to-open-demo.ts.
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';

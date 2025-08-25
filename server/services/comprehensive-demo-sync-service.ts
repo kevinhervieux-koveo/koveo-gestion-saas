@@ -16,7 +16,7 @@ const db = drizzle({ client: pool, schema });
  * - Financial data (bills, budgets, money flow)
  * - Operations data (maintenance, demands, notifications)
  * - Settings data (bugs, feature requests)
- * - Documents
+ * - Documents.
  */
 export class ComprehensiveDemoSyncService {
   private static readonly DEMO_ORG_NAME = 'Demo';
@@ -86,6 +86,7 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Clean all existing Open Demo data.
+   * @param openDemoOrgId
    */
   private static async cleanOpenDemoData(openDemoOrgId: string): Promise<void> {
     console.log('  🧹 Cleaning existing Open Demo data...');
@@ -221,6 +222,8 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Sync core data (users, buildings, residences).
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncCoreData(demoOrgId: string, openDemoOrgId: string): Promise<Map<string, string>> {
     console.log('  👥 Syncing users...');
@@ -316,7 +319,7 @@ export class ComprehensiveDemoSyncService {
     // Create residences in Open Demo
     for (const residence of demoResidences) {
       const newBuildingId = buildingMapping.get(residence.buildingId);
-      if (!newBuildingId) continue;
+      if (!newBuildingId) {continue;}
       
       const [newResidence] = await db.insert(schema.residences).values({
         buildingId: newBuildingId,
@@ -366,6 +369,9 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Sync financial data (bills, budgets, money flow).
+   * @param demoOrgId
+   * @param openDemoOrgId
+   * @param buildingMapping
    */
   private static async syncFinancialData(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
     console.log('  💰 Syncing financial data...');
@@ -393,7 +399,7 @@ export class ComprehensiveDemoSyncService {
     
     for (const bill of demoBills) {
       const newBuildingId = buildingMapping.get(bill.buildingId);
-      if (!newBuildingId) continue;
+      if (!newBuildingId) {continue;}
       
       await db.insert(schema.bills).values({
         buildingId: newBuildingId,
@@ -427,7 +433,7 @@ export class ComprehensiveDemoSyncService {
     
     for (const budget of demoBudgets) {
       const newBuildingId = buildingMapping.get(budget.buildingId);
-      if (!newBuildingId) continue;
+      if (!newBuildingId) {continue;}
       
       await db.insert(schema.budgets).values({
         buildingId: newBuildingId,
@@ -452,7 +458,7 @@ export class ComprehensiveDemoSyncService {
     
     for (const budget of demoMonthlyBudgets) {
       const newBuildingId = buildingMapping.get(budget.buildingId);
-      if (!newBuildingId) continue;
+      if (!newBuildingId) {continue;}
       
       await db.insert(schema.monthlyBudgets).values({
         buildingId: newBuildingId,
@@ -475,7 +481,7 @@ export class ComprehensiveDemoSyncService {
     
     for (const flow of demoMoneyFlow) {
       const newBuildingId = buildingMapping.get(flow.buildingId);
-      if (!newBuildingId) continue;
+      if (!newBuildingId) {continue;}
       
       await db.insert(schema.moneyFlow).values({
         buildingId: newBuildingId,
@@ -499,6 +505,9 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Sync operations data (maintenance, demands, notifications).
+   * @param demoOrgId
+   * @param openDemoOrgId
+   * @param buildingMapping
    */
   private static async syncOperationsData(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
     console.log('  🔧 Syncing operations data...');
@@ -635,6 +644,8 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Sync settings data (bugs, feature requests).
+   * @param demoOrgId
+   * @param openDemoOrgId
    */
   private static async syncSettingsData(demoOrgId: string, openDemoOrgId: string): Promise<void> {
     console.log('  ⚙️ Syncing settings data...');
@@ -738,6 +749,9 @@ export class ComprehensiveDemoSyncService {
 
   /**
    * Sync documents.
+   * @param demoOrgId
+   * @param openDemoOrgId
+   * @param buildingMapping
    */
   private static async syncDocuments(demoOrgId: string, openDemoOrgId: string, buildingMapping: Map<string, string>): Promise<void> {
     console.log('  📄 Syncing documents...');

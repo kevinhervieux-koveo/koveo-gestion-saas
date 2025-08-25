@@ -1,5 +1,5 @@
 /**
- * Common constants to eliminate hardcoded values across the application
+ * Common constants to eliminate hardcoded values across the application.
  */
 
 // Layout constants

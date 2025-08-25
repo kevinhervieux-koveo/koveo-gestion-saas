@@ -2,6 +2,9 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { forwardRef } from 'react';
 
+/**
+ *
+ */
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -14,7 +17,7 @@ interface SearchInputProps {
 
 /**
  * Reusable search input component with search icon
- * Eliminates the repetitive search input pattern across the app
+ * Eliminates the repetitive search input pattern across the app.
  */
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(({
   value,

@@ -58,9 +58,15 @@ const billFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+/**
+ *
+ */
 type BillFormData = z.infer<typeof billFormSchema>;
 
 // AI analysis result interface
+/**
+ *
+ */
 interface AiAnalysisResult {
   title: string;
   vendor?: string;
@@ -73,6 +79,9 @@ interface AiAnalysisResult {
 }
 
 // Component props interface
+/**
+ *
+ */
 interface BillFormProps {
   mode: 'create' | 'edit';
   buildingId: string;
@@ -126,6 +135,12 @@ export const STATUS_OPTIONS = [
 /**
  * Unified bill form component for creating and editing bills.
  * Supports both manual entry and AI document analysis for creation.
+ * @param root0
+ * @param root0.mode
+ * @param root0.buildingId
+ * @param root0.bill
+ * @param root0.onSuccess
+ * @param root0.onCancel
  */
 export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFormProps) {
   const [activeTab, setActiveTab] = useState('manual');

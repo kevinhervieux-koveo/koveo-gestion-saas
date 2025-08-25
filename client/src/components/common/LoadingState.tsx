@@ -1,5 +1,8 @@
 import { ReactNode } from 'react';
 
+/**
+ *
+ */
 interface LoadingStateProps {
   message?: string;
   children?: ReactNode;
@@ -8,7 +11,12 @@ interface LoadingStateProps {
 }
 
 /**
- * Common loading state component for consistent loading displays
+ * Common loading state component for consistent loading displays.
+ * @param root0
+ * @param root0.message
+ * @param root0.children
+ * @param root0.className
+ * @param root0.center
  */
 export function LoadingState({ 
   message = 'Loading...', 

@@ -1,5 +1,8 @@
 import { ReactNode } from 'react';
 
+/**
+ *
+ */
 interface PageLayoutProps {
   children: ReactNode;
   maxWidth?: 'default' | 'wide' | 'full';
@@ -13,7 +16,11 @@ const maxWidthClasses = {
 };
 
 /**
- * Common page layout component for consistent spacing and container styling
+ * Common page layout component for consistent spacing and container styling.
+ * @param root0
+ * @param root0.children
+ * @param root0.maxWidth
+ * @param root0.className
  */
 export function PageLayout({ children, maxWidth = 'default', className = '' }: PageLayoutProps) {
   return (

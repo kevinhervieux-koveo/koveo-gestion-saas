@@ -56,10 +56,22 @@ const deleteAccountSchema = z.object({
   reason: z.string().optional(),
 });
 
+/**
+ *
+ */
 type ProfileFormData = z.infer<typeof profileSchema>;
+/**
+ *
+ */
 type PasswordFormData = z.infer<typeof passwordSchema>;
+/**
+ *
+ */
 type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
 
+/**
+ *
+ */
 export default function Settings() {
   const { user, logout } = useAuth();
   const { toast } = useToast();

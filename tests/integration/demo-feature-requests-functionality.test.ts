@@ -8,7 +8,7 @@ import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 
 describe('Demo Feature Request Functionality Tests', () => {
   let app: any;
-  let demoUserCookies: Record<string, string[]> = {};
+  const demoUserCookies: Record<string, string[]> = {};
 
   // Demo user credentials - these should match the test users created by scripts/create-test-users.ts
   const demoUsers = {

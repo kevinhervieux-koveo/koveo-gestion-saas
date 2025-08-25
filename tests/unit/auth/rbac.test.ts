@@ -202,9 +202,9 @@ const ROLE_PERMISSIONS = {
 
 /**
  * Check if a user with given role has a specific permission.
- * @param role - User role (admin, manager, resident, tenant)
- * @param permission - Permission string to check
- * @returns boolean indicating if role has permission
+ * @param role - User role (admin, manager, resident, tenant).
+ * @param permission - Permission string to check.
+ * @returns Boolean indicating if role has permission.
  */
 function hasPermission(role: string, permission: string): boolean {
   const rolePerms = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];

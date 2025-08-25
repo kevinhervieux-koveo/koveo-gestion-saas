@@ -19,9 +19,9 @@
  * - Notifications
  * - Bug reports
  * - Feature requests
- * - Documents (both building and residence level)
+ * - Documents (both building and residence level).
  * 
- * Usage: tsx scripts/create-comprehensive-demo.ts
+ * Usage: tsx scripts/create-comprehensive-demo.ts.
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -158,6 +158,7 @@ async function createOrganizations() {
 
 /**
  * Create buildings with varied configurations.
+ * @param organizationId
  */
 async function createBuildings(organizationId: string) {
   const buildingConfigs = [
@@ -233,6 +234,7 @@ async function createBuildings(organizationId: string) {
 
 /**
  * Create residences with different configurations.
+ * @param buildings
  */
 async function createResidences(buildings: any[]) {
   const residences = [];
@@ -295,6 +297,7 @@ async function createResidences(buildings: any[]) {
 
 /**
  * Create users with different roles.
+ * @param organizationId
  */
 async function createUsers(organizationId: string) {
   const hashedPassword = await bcrypt.hash('Demo@123456', 10);
@@ -354,6 +357,8 @@ async function createUsers(organizationId: string) {
 
 /**
  * Assign users to residences.
+ * @param users
+ * @param residences
  */
 async function assignUsersToResidences(users: any[], residences: any[]): Promise<void> {
   const tenantUsers = users.filter(u => u.role === 'tenant' || u.role === 'resident');
@@ -377,6 +382,9 @@ async function assignUsersToResidences(users: any[], residences: any[]): Promise
 
 /**
  * Create comprehensive financial data.
+ * @param buildings
+ * @param residences
+ * @param users
  */
 async function createFinancialData(buildings: any[], residences: any[], users: any[]): Promise<void> {
   const adminUser = users.find(u => u.role === 'admin');
@@ -466,6 +474,8 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
 
 /**
  * Create operations data (maintenance, demands, notifications).
+ * @param residences
+ * @param users
  */
 async function createOperationsData(residences: any[], users: any[]): Promise<void> {
   const tenantUsers = users.filter(u => u.role === 'tenant' || u.role === 'resident');
@@ -546,6 +556,7 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
 
 /**
  * Create settings data (bugs, feature requests).
+ * @param users
  */
 async function createSettingsData(users: any[]): Promise<void> {
   const allUsers = users;
@@ -622,6 +633,9 @@ async function createSettingsData(users: any[]): Promise<void> {
 
 /**
  * Create document data.
+ * @param buildings
+ * @param residences
+ * @param users
  */
 async function createDocuments(buildings: any[], residences: any[], users: any[]): Promise<void> {
   const adminUser = users.find(u => u.role === 'admin');
@@ -675,6 +689,7 @@ async function createDocuments(buildings: any[], residences: any[], users: any[]
 
 /**
  * Create Open Demo organization by duplicating Demo data.
+ * @param demoOrgId
  */
 async function createOpenDemoOrganization(demoOrgId: string): Promise<void> {
   console.log('Creating Open Demo organization as a copy of Demo...');

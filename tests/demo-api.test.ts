@@ -128,6 +128,9 @@ describe('Demo Management API', () => {
     await cleanupDemoData();
   });
 
+  /**
+   *
+   */
   async function cleanupTestData() {
     try {
       const testOrg = await db.query.organizations.findFirst({
@@ -141,6 +144,9 @@ describe('Demo Management API', () => {
     }
   }
 
+  /**
+   *
+   */
   async function cleanupDemoData() {
     try {
       const demoOrg = await db.query.organizations.findFirst({

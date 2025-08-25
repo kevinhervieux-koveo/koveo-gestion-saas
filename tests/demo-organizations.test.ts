@@ -34,6 +34,9 @@ describe('Demo Organizations System', () => {
     await cleanupDemoData();
   });
 
+  /**
+   *
+   */
   async function cleanupDemoData() {
     try {
       // Delete demo organizations and all related data

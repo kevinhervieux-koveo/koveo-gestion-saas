@@ -74,31 +74,10 @@ const billCreateSchema = z.object({
 
 /**
  * Bill creation form with manual entry and AI document analysis.
- * @param root0 - The component props.
- * @param root0.buildingId - The ID of the building to create the bill for.
- * @param root0.onSuccess - Callback function called when bill is successfully created.
+ * @param props - Component props
+ * @param props.buildingId - The ID of the building to create the bill for
+ * @param props.onSuccess - Callback function called when bill is successfully created
  * @returns JSX element for bill creation form.
- */
-/**
- * BillCreateForm function.
- * @param root0
- * @param root0.buildingId
- * @param root0.onSuccess
- * @returns Function result.
- */
-/**
- * BillCreateForm component.
- * @param props - Component props.
- * @param props.buildingId - Unique identifier for the building.
- * @param props.onSuccess - Callback function called when operation succeeds.
- * @returns JSX element.
- */
-/**
- * BillCreateForm component.
- * @param props - Component props.
- * @param props.buildingId - Unique identifier for the building.
- * @param props.onSuccess - Callback function called when operation succeeds.
- * @returns JSX element.
  */
 export function BillCreateForm({ 
   buildingId, 
@@ -108,7 +87,7 @@ export function BillCreateForm({
   onSuccess: () => void; 
 }) {
   const [activeTab, setActiveTab] = useState('manual');
-  const [_uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [_uploadedFile, setUploadedFile] = useState<globalThis.File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -144,13 +123,7 @@ export function BillCreateForm({
           ...billData,
           costs: [parseFloat(billData.totalAmount)]
         })
-      }); /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */ /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
+      });
 
 
       
@@ -167,7 +140,7 @@ export function BillCreateForm({
   });
 
   const uploadAndAnalyzeMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (file: globalThis.File) => {
       setIsAnalyzing(true);
       
       // First create a draft bill
@@ -188,13 +161,7 @@ export function BillCreateForm({
           status: 'draft',
           notes: 'Draft bill created for AI analysis'
         })
-      }); /**
-   * If function.
-   * @param !createResponse.ok - !createResponse.ok parameter.
-   */ /**
-   * If function.
-   * @param !createResponse.ok - !createResponse.ok parameter.
-   */
+      });
 
 
       
@@ -205,20 +172,14 @@ export function BillCreateForm({
       const draftBill = await createResponse.json();
       
       // Upload and analyze the document
-      const formData = new FormData();
+      const formData = new globalThis.FormData();
       formData.append('document', file);
       
       const uploadResponse = await fetch(`/api/bills/${draftBill.bill.id}/upload-document`, {
         method: 'POST',
         credentials: 'include',
         body: formData
-      }); /**
-   * If function.
-   * @param !uploadResponse.ok - !uploadResponse.ok parameter.
-   */ /**
-   * If function.
-   * @param !uploadResponse.ok - !uploadResponse.ok parameter.
-   */
+      });
 
 
       

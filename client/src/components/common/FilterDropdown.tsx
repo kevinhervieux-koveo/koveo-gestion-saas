@@ -1,11 +1,17 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+/**
+ *
+ */
 export interface FilterOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
+/**
+ *
+ */
 interface FilterDropdownProps {
   value: string;
   onValueChange: (value: string) => void;
@@ -19,7 +25,16 @@ interface FilterDropdownProps {
 
 /**
  * Reusable filter dropdown component
- * Standardizes the select dropdown pattern used across filtering components
+ * Standardizes the select dropdown pattern used across filtering components.
+ * @param root0
+ * @param root0.value
+ * @param root0.onValueChange
+ * @param root0.options
+ * @param root0.placeholder
+ * @param root0.width
+ * @param root0.disabled
+ * @param root0.'data-testid'
+ * @param root0.className
  */
 export function FilterDropdown({
   value,

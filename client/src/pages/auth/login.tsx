@@ -53,6 +53,9 @@ const DEMO_CREDENTIALS = {
   TENANT_DEMO_PASSWORD: 'Tenant123!',
 } as const;
 
+/**
+ *
+ */
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();

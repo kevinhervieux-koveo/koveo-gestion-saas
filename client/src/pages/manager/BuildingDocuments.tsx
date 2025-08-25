@@ -229,7 +229,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: ["/api/documents", "building", buildingId],
     queryFn: async () => {
-      if (!buildingId) return [];
+      if (!buildingId) {return [];}
       const response = await apiRequest("GET", `/api/documents?buildingId=${buildingId}`);
       return response as BuildingDocument[];
     },

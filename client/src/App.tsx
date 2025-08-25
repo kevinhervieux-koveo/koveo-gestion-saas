@@ -16,7 +16,7 @@ memoryOptimizer.start();
 
 // Make queryClient available globally for memory cleanup
 if (typeof window !== 'undefined') {
-  (window as any).queryClient = queryClient;
+  (window as unknown as Record<string, unknown>).queryClient = queryClient;
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';

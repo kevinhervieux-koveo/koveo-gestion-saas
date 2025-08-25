@@ -94,6 +94,10 @@ const STORAGE_PREFIX = 'filter-sort-state-';
  * @param options
  * @returns Function result.
  */
+/**
+ *
+ * @param options
+ */
 export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSortReturn<T> {
   const { data, config, initialState } = options;
 

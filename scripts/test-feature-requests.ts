@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Feature Request Testing Script
+ * Feature Request Testing Script.
  * 
  * This script runs comprehensive tests for the feature request functionality,
  * including both integration tests (API) and frontend tests (UI).
@@ -9,7 +9,7 @@
  * Usage:
  *   npm run test:feature-requests
  *   or
- *   tsx scripts/test-feature-requests.ts
+ *   tsx scripts/test-feature-requests.ts.
  */
 
 import { execSync } from 'child_process';

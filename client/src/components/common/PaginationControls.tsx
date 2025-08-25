@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+/**
+ *
+ */
 interface PaginationControlsProps {
   currentPage: number;
   totalPages: number;
@@ -13,7 +16,15 @@ interface PaginationControlsProps {
 
 /**
  * Reusable pagination controls component
- * Handles page navigation with proper disabled states and page info
+ * Handles page navigation with proper disabled states and page info.
+ * @param root0
+ * @param root0.currentPage
+ * @param root0.totalPages
+ * @param root0.totalItems
+ * @param root0.itemsPerPage
+ * @param root0.onPageChange
+ * @param root0.className
+ * @param root0.showInfo
  */
 export function PaginationControls({
   currentPage,

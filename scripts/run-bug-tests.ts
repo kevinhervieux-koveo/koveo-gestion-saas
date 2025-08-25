@@ -17,10 +17,20 @@ const colors = {
   bold: '\x1b[1m'
 };
 
+/**
+ *
+ * @param message
+ * @param color
+ */
 function log(message: string, color = colors.reset) {
   console.log(`${color}${message}${colors.reset}`);
 }
 
+/**
+ *
+ * @param command
+ * @param description
+ */
 function runCommand(command: string, description: string): boolean {
   try {
     log(`\n${colors.blue}${colors.bold}${description}${colors.reset}`);
@@ -40,6 +50,9 @@ function runCommand(command: string, description: string): boolean {
   }
 }
 
+/**
+ *
+ */
 async function main() {
   log(`${colors.bold}${colors.blue}🐛 Bug Reporting System Test Suite${colors.reset}`);
   log('='.repeat(50));

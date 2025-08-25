@@ -4,6 +4,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Building } from './DemandCard';
 
 // Filter state interface
+/**
+ *
+ */
 export interface FilterState {
   searchTerm: string;
   statusFilter: string;
@@ -12,6 +15,9 @@ export interface FilterState {
 }
 
 // Filter change handlers
+/**
+ *
+ */
 export interface FilterHandlers {
   onSearchChange: (value: string) => void;
   onStatusChange: (value: string) => void;
@@ -50,6 +56,9 @@ const TYPE_OPTIONS = [
   { value: 'other', label: 'Other' },
 ] as const;
 
+/**
+ *
+ */
 interface DemandFiltersProps {
   filters: FilterState;
   handlers: FilterHandlers;
@@ -61,7 +70,14 @@ interface DemandFiltersProps {
 
 /**
  * Common demand filtering component
- * Supports search, status, type, and optional building filters
+ * Supports search, status, type, and optional building filters.
+ * @param root0
+ * @param root0.filters
+ * @param root0.handlers
+ * @param root0.userRole
+ * @param root0.buildings
+ * @param root0.searchPlaceholder
+ * @param root0.className
  */
 export function DemandFilters({
   filters,
@@ -140,6 +156,11 @@ export function DemandFilters({
 }
 
 // Utility function to filter demands based on filter state
+/**
+ *
+ * @param demands
+ * @param filters
+ */
 export function filterDemands<T extends { 
   description: string; 
   type: string; 

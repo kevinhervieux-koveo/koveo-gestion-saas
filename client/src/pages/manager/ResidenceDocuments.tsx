@@ -235,7 +235,7 @@ export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsPr
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: ["/api/documents", "residence", residenceId],
     queryFn: async () => {
-      if (!residenceId) return [];
+      if (!residenceId) {return [];}
       const response = await apiRequest("GET", `/api/documents?residenceId=${residenceId}`);
       return response as ResidenceDocument[];
     },

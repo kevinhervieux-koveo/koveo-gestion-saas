@@ -5,8 +5,9 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 import { RegistrationWizard } from '../../../client/src/components/auth/registration-wizard';
 import { TokenValidationStep } from '../../../client/src/components/auth/steps/token-validation-step';
 import { PasswordCreationStep } from '../../../client/src/components/auth/steps/password-creation-step';
@@ -232,7 +233,7 @@ describe('Fixed User Creation Component Tests', () => {
   });
 
   describe('Complete Registration Wizard', () => {
-    const mockTokenValidationData = {
+    const _mockTokenValidationData = {
       token: 'e38ddf5e720e8708dd2034539199e33a35e7cff5cb7867eb525c77c01cb7b771',
       isValid: true,
       invitation: {

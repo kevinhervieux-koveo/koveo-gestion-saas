@@ -2,6 +2,9 @@ import { apiRequest } from './queryClient';
 import { toast } from '@/hooks/use-toast';
 
 // Common API response patterns
+/**
+ *
+ */
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
@@ -10,7 +13,16 @@ export interface ApiResponse<T = any> {
 }
 
 // Common API error handling
+/**
+ *
+ */
 export class ApiError extends Error {
+  /**
+   *
+   * @param message
+   * @param status
+   * @param code
+   */
   constructor(
     message: string,
     public status?: number,
@@ -113,7 +125,7 @@ export const crudHelpers = {
     // Show confirmation dialog if message provided
     if (options?.confirmMessage) {
       const confirmed = window.confirm(options.confirmMessage);
-      if (!confirmed) return;
+      if (!confirmed) {return;}
     }
 
     try {
@@ -312,9 +324,9 @@ export const pollingHelpers = {
 
   // Common polling intervals
   intervals: {
-    fast: 5000,    // 5 seconds
+    fast: 5000, // 5 seconds
     normal: 30000, // 30 seconds  
-    slow: 60000,   // 1 minute
+    slow: 60000, // 1 minute
   },
 };
 

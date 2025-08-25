@@ -31,8 +31,14 @@ const bugFormSchema = z.object({
   environment: z.string().optional(),
 });
 
+/**
+ *
+ */
 type BugFormData = z.infer<typeof bugFormSchema>;
 
+/**
+ *
+ */
 interface Bug {
   id: string;
   title: string;
@@ -77,6 +83,9 @@ const statusColors = {
   closed: 'bg-gray-100 text-gray-800',
 };
 
+/**
+ *
+ */
 export default function BugReports() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -179,7 +188,7 @@ export default function BugReports() {
   };
 
   const handleEdit = (bug: Bug) => {
-    if (!canEditBug(bug)) return;
+    if (!canEditBug(bug)) {return;}
     
     setEditingBug(bug);
     editForm.reset({

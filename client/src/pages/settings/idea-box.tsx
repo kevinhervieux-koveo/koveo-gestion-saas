@@ -35,9 +35,18 @@ const adminEditFormSchema = featureRequestFormSchema.extend({
   adminNotes: z.string().optional(),
 });
 
+/**
+ *
+ */
 type FeatureRequestFormData = z.infer<typeof featureRequestFormSchema>;
+/**
+ *
+ */
 type AdminEditFormData = z.infer<typeof adminEditFormSchema>;
 
+/**
+ *
+ */
 interface FeatureRequest {
   id: string;
   title: string;
@@ -82,6 +91,9 @@ const statusColors = {
   rejected: 'bg-red-100 text-red-800',
 };
 
+/**
+ *
+ */
 export default function IdeaBox() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -220,7 +232,7 @@ export default function IdeaBox() {
   };
 
   const handleEdit = (featureRequest: FeatureRequest) => {
-    if (!canEditFeatureRequest()) return;
+    if (!canEditFeatureRequest()) {return;}
     
     setEditingFeatureRequest(featureRequest);
     editForm.reset({

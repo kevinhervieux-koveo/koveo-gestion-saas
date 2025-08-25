@@ -7,7 +7,7 @@
  * It verifies that all components work together correctly by running through
  * the entire demo lifecycle.
  * 
- * Usage: tsx scripts/test-demo-system.ts
+ * Usage: tsx scripts/test-demo-system.ts.
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -32,6 +32,9 @@ if (!DATABASE_URL) {
 const pool = new Pool({ connectionString: DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
+/**
+ *
+ */
 interface TestResult {
   name: string;
   passed: boolean;
@@ -306,6 +309,8 @@ async function runIntegrationTests(): Promise<void> {
 
 /**
  * Run a single test and capture its result.
+ * @param name
+ * @param testFn
  */
 async function runTest(name: string, testFn: () => Promise<void>): Promise<TestResult> {
   console.log(`🧪 Running: ${name}...`);
@@ -349,6 +354,8 @@ async function cleanupDemoData(): Promise<void> {
 
 /**
  * Print test results summary.
+ * @param results
+ * @param totalTime
  */
 function printResults(results: TestResult[], totalTime: number): void {
   console.log('📊 Test Results Summary');

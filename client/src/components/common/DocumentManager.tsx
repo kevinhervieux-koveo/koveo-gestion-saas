@@ -27,6 +27,9 @@ import {
 } from '@/lib/documents';
 
 // Common document interface
+/**
+ *
+ */
 interface Document {
   id: string;
   name: string;
@@ -45,6 +48,9 @@ interface Document {
 }
 
 // Configuration for different document types
+/**
+ *
+ */
 interface DocumentManagerConfig {
   type: 'building' | 'residence';
   userRole: 'manager' | 'resident';
@@ -85,6 +91,9 @@ const createDocumentFormSchema = (type: 'building' | 'residence') => {
   }
 };
 
+/**
+ *
+ */
 interface EditDocumentFormProps {
   document: Document;
   config: DocumentManagerConfig;
@@ -92,6 +101,14 @@ interface EditDocumentFormProps {
   onCancel: () => void;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.document
+ * @param root0.config
+ * @param root0.onSave
+ * @param root0.onCancel
+ */
 function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFormProps) {
   const { toast } = useToast();
   const documentCategories = config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
@@ -215,10 +232,18 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
   );
 }
 
+/**
+ *
+ */
 interface DocumentManagerProps {
   config: DocumentManagerConfig;
 }
 
+/**
+ *
+ * @param root0
+ * @param root0.config
+ */
 export default function DocumentManager({ config }: DocumentManagerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -277,7 +302,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Calculate available years
   const availableYears = useMemo(() => {
-    if (!Array.isArray(documents)) return [];
+    if (!Array.isArray(documents)) {return [];}
     const years = documents
       .map((doc: Document) => new Date(doc.dateReference).getFullYear().toString())
       .filter(Boolean);
@@ -369,7 +394,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const handleNewDocumentUpload = async () => {
-    if (!entity) return null;
+    if (!entity) {return null;}
     
     const response = await fetch('/api/upload-url', {
       method: 'POST',
@@ -437,7 +462,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return 'Unknown size';
+    if (!bytes) {return 'Unknown size';}
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
@@ -713,7 +738,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   {config.userRole === 'manager' || selectedCategory !== 'all' ? (
                     documentCategories.map((category) => {
                       const categoryDocuments = documentsByCategory[category._value] || [];
-                      if (categoryDocuments.length === 0) return null;
+                      if (categoryDocuments.length === 0) {return null;}
 
                       return (
                         <Card key={category._value} data-testid={`category-${category._value}`}>
@@ -869,7 +894,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                       <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                          if (pageNum > totalPages) return null;
+                          if (pageNum > totalPages) {return null;}
                           return (
                             <Button
                               key={pageNum}

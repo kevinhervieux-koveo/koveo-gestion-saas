@@ -11,9 +11,9 @@
  * - Creates comprehensive demo data if missing
  * - Synchronizes Demo → Open Demo automatically
  * - Production-safe with proper error handling
- * - Can be run during deployment or as a scheduled task
+ * - Can be run during deployment or as a scheduled task.
  * 
- * Usage: tsx scripts/production-demo-sync.ts [--force-recreate] [--check-only]
+ * Usage: tsx scripts/production-demo-sync.ts [--force-recreate] [--check-only].
  */
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -36,12 +36,18 @@ if (!DATABASE_URL) {
 const pool = new Pool({ connectionString: DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
+/**
+ *
+ */
 interface SyncOptions {
   forceRecreate?: boolean;
   checkOnly?: boolean;
   silent?: boolean;
 }
 
+/**
+ *
+ */
 interface DemoStatus {
   demoExists: boolean;
   openDemoExists: boolean;
@@ -93,9 +99,11 @@ async function checkDemoStatus(): Promise<DemoStatus> {
 
 /**
  * Display current demo status.
+ * @param status
+ * @param options
  */
 function displayStatus(status: DemoStatus, options: SyncOptions): void {
-  if (options.silent) return;
+  if (options.silent) {return;}
 
   console.log('📊 Demo Organizations Status:');
   console.log(`  Demo Organization: ${status.demoExists ? '✅ Exists' : '❌ Missing'}`);
@@ -107,6 +115,7 @@ function displayStatus(status: DemoStatus, options: SyncOptions): void {
 
 /**
  * Production-safe demo synchronization.
+ * @param options
  */
 async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
   try {

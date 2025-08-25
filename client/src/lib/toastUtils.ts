@@ -1,7 +1,7 @@
 import { toast } from '@/hooks/use-toast';
 
 /**
- * Common toast utilities for consistent error and success messaging
+ * Common toast utilities for consistent error and success messaging.
  */
 export const toastUtils = {
   success: (title: string, description?: string) => {
@@ -67,7 +67,9 @@ export const toastUtils = {
 };
 
 /**
- * Handle API errors with automatic toast display
+ * Handle API errors with automatic toast display.
+ * @param error
+ * @param fallbackMessage
  */
 export const handleApiError = (error: any, fallbackMessage = 'An error occurred') => {
   const message = error?.response?.data?.message || error?.message || fallbackMessage;

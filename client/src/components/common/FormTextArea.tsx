@@ -2,6 +2,9 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Textarea } from '@/components/ui/textarea';
 import { Control, FieldPath, FieldValues } from 'react-hook-form';
 
+/**
+ *
+ */
 interface FormTextAreaProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
@@ -18,7 +21,19 @@ interface FormTextAreaProps<T extends FieldValues> {
 
 /**
  * Reusable form textarea component with proper React Hook Form integration
- * Standardizes textarea patterns across forms
+ * Standardizes textarea patterns across forms.
+ * @param root0
+ * @param root0.control
+ * @param root0.name
+ * @param root0.label
+ * @param root0.placeholder
+ * @param root0.required
+ * @param root0.disabled
+ * @param root0.rows
+ * @param root0.'data-testid'
+ * @param root0.description
+ * @param root0.className
+ * @param root0.maxLength
  */
 export function FormTextArea<T extends FieldValues>({
   control,

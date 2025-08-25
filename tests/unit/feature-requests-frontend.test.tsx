@@ -111,7 +111,10 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 
 /**
- * Test wrapper component with all necessary providers
+ * Test wrapper component with all necessary providers.
+ * @param root0
+ * @param root0.children
+ * @param root0.isAdmin
  */
 function TestWrapper({ 
   children, 
