@@ -100,6 +100,6 @@ export const renderWithProviders = (ui: React.ReactElement, options = {}) => {
     <TestProviders>
       {ui}
     </TestProviders>,
-    _options
+    options
   );
 };

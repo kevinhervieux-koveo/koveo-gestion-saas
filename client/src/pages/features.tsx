@@ -99,9 +99,9 @@ export default function /**
     },
     {
       icon: CreditCard,
-      title: "Paiements en ligne",
-      description: "Solution de paiement intégrée pour faciliter les transactions",
-      features: ["Paiements sécurisés", "Réconciliation automatique", "Historique des paiements"]
+      title: "Facturation électronique",
+      description: "Système de facturation numérique pour suivre les paiements",
+      features: ["Factures électroniques", "Suivi des paiements", "Historique des factures"]
     },
     {
       icon: MessageSquare,
@@ -117,9 +117,9 @@ export default function /**
     },
     {
       icon: Settings,
-      title: "Automatisation des processus",
-      description: "Automatisation des tâches répétitives pour gagner en efficacité",
-      features: ["Flux de travail automatisés", "Règles métier configurables", "Intégrations système"]
+      title: "Gestion des processus",
+      description: "Outils pour organiser et gérer les processus de gestion immobilière",
+      features: ["Flux de travail organisés", "Règles de gestion", "Configuration système"]
     }
   ];
 
@@ -198,7 +198,7 @@ export default function /**
 
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
           {coreFeatures.map((feature, _index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`core-feature-${index}`}>
+            <Card key={_index} className="hover:shadow-lg transition-shadow" data-testid={`core-feature-${_index}`}>
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <feature.icon className="h-12 w-12 text-blue-600" />
@@ -239,7 +239,7 @@ export default function /**
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {advancedFeatures.map((feature, _index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow" data-testid={`advanced-feature-${index}`}>
+              <Card key={_index} className="text-center hover:shadow-lg transition-shadow" data-testid={`advanced-feature-${_index}`}>
                 <CardHeader>
                   <feature.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -276,7 +276,7 @@ export default function /**
 
         <div className="grid md:grid-cols-2 gap-8">
           {quebecCompliance.map((item, _index) => (
-            <div key={index} className="flex items-start space-x-4" data-testid={`compliance-item-${index}`}>
+            <div key={_index} className="flex items-start space-x-4" data-testid={`compliance-item-${_index}`}>
               <Lock className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>

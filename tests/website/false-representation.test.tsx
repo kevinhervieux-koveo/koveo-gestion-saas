@@ -2,6 +2,8 @@ import { describe, it, expect } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'wouter/memory';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LanguageProvider } from '@/hooks/use-language';
+import { AuthProvider } from '@/hooks/use-auth';
 import HomePage from '@/pages/home';
 
 /**
@@ -17,7 +19,7 @@ import HomePage from '@/pages/home';
  * @param root0.children
   * @returns Function result.
 */
-function TestProviders({ children }: { children: React.ReactNode }) {
+function WebsiteTestProviders({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -28,7 +30,11 @@ function TestProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        {children}
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -38,9 +44,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Feature Capability Accuracy', () => {
     it('should not claim features that are not implemented', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -55,9 +61,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should accurately represent current platform state', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -74,9 +80,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not exaggerate security capabilities', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -91,9 +97,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Performance Claims Validation', () => {
     it('should not make unsubstantiated performance claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -108,9 +114,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should make realistic availability claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -125,9 +131,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Business Claims Validation', () => {
     it('should not make false business claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -142,9 +148,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not make false geographical claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -157,9 +163,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not claim false partnerships or certifications', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -174,9 +180,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Legal Compliance Accuracy', () => {
     it('should accurately represent legal compliance', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -189,9 +195,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not make false legal guarantees', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -206,9 +212,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Pricing and Value Representation', () => {
     it('should not make false pricing claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -222,9 +228,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not make false ROI claims', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -239,9 +245,9 @@ describe('False Representation Prevention Tests', () => {
   describe('User Experience Claims', () => {
     it('should not overstate ease of use', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -255,9 +261,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should accurately represent support availability', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -273,9 +279,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Technical Capability Honesty', () => {
     it('should not claim false technical capabilities', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -289,9 +295,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should accurately represent integration capabilities', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -306,9 +312,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Timeline and Availability Claims', () => {
     it('should not promise unrealistic timelines', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -322,9 +328,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should accurately represent feature availability', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -340,9 +346,9 @@ describe('False Representation Prevention Tests', () => {
   describe('Content Accuracy Validation', () => {
     it('should use accurate statistics and facts', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
@@ -355,9 +361,9 @@ describe('False Representation Prevention Tests', () => {
 
     it('should not misrepresent competitive advantages', () => {
       render(
-        <TestProviders>
+        <WebsiteTestProviders>
           <HomePage />
-        </TestProviders>
+        </WebsiteTestProviders>
       );
 
       const pageContent = document.body.textContent || '';
