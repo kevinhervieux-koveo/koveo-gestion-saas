@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Building2, 
   Users, 
@@ -24,11 +25,14 @@ import {
   TrendingUp,
   Calendar,
   Plus,
-  Timer
+  Timer,
+  CalendarDays,
+  Eye
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { CalendarView } from '@/components/common-spaces/calendar-view';
 
 /**
  * Building interface
@@ -584,10 +588,23 @@ function CommonSpacesStatsPage() {
           </CardContent>
         </Card>
 
-        {spaceStats && (
-          <>
-            {/* Summary Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Tabs defaultValue="stats" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="stats" className="flex items-center gap-2" data-testid="tab-stats">
+              <BarChart3 className="h-4 w-4" />
+              {language === 'fr' ? 'Statistiques' : 'Statistics'}
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
+              <CalendarDays className="h-4 w-4" />
+              {language === 'fr' ? 'Calendrier' : 'Calendar'}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="stats" className="space-y-6">
+            {spaceStats && (
+              <>
+                {/* Summary Statistics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center">
@@ -903,6 +920,56 @@ function CommonSpacesStatsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+            )}
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  {language === 'fr' ? 'Vue Calendrier Manager' : 'Manager Calendar View'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedSpaceId ? (
+                  <CalendarView
+                    mode="space"
+                    spaceId={selectedSpaceId}
+                    showControls={true}
+                    onEventClick={(event) => {
+                      console.log('Manager viewing event:', event);
+                    }}
+                    data-testid="manager-space-calendar-view"
+                  />
+                ) : selectedBuildingId ? (
+                  <CalendarView
+                    mode="building"
+                    buildingId={selectedBuildingId}
+                    showControls={true}
+                    onEventClick={(event) => {
+                      console.log('Manager viewing building event:', event);
+                    }}
+                    data-testid="manager-building-calendar-view"
+                  />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CalendarDays className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                    <h3 className="text-lg font-medium mb-2">
+                      {language === 'fr' ? 'Sélectionnez un espace ou un bâtiment' : 'Select a space or building'}
+                    </h3>
+                    <p>
+                      {language === 'fr' 
+                        ? 'Choisissez un bâtiment ou un espace spécifique pour voir son calendrier de réservations avec les détails complets'
+                        : 'Choose a building or specific space to view its booking calendar with full details'
+                      }
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

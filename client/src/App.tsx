@@ -129,6 +129,12 @@ const ResidentsCommonSpaces = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ResidentsMyCalendar = createOptimizedLoader(
+  () => import('@/pages/residents/my-calendar'),
+  'residents-my-calendar',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Settings pages
 const SettingsSettings = createOptimizedLoader(
   () => import('@/pages/settings/settings'),
@@ -337,6 +343,7 @@ function Router() {
               <Route path='/residents/building/documents' component={() => <ResidentsBuildingDocuments />} />
               <Route path='/residents/demands' component={ResidentsDemands} />
               <Route path='/resident/common-spaces' component={ResidentsCommonSpaces} />
+              <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
               {/* Settings routes */}
               <Route path='/settings/settings' component={SettingsSettings} />

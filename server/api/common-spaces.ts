@@ -26,6 +26,17 @@ const bookingFilterSchema = z.object({
   end_date: z.string().datetime().optional(),
 });
 
+// Calendar-specific schemas
+const calendarQuerySchema = z.object({
+  start_date: z.string().datetime(),
+  end_date: z.string().datetime(),
+  view: z.enum(['month', 'week', 'day']).optional().default('month'),
+});
+
+const buildingCalendarSchema = z.object({
+  buildingId: z.string().uuid(),
+});
+
 const createBookingSchema = z.object({
   start_time: z.string().datetime(),
   end_time: z.string().datetime(),
@@ -1247,6 +1258,392 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('Error fetching time limits:', error);
       res.status(500).json({
         message: 'Failed to fetch time limits',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * GET /api/common-spaces/calendar/:spaceId - Get calendar view for specific space
+   * Shows different levels of detail based on user role
+   */
+  app.get('/api/common-spaces/calendar/:spaceId', requireAuth, async (req: any, res: Response) => {
+    try {
+      const user = req.user || req.session?.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Validate parameters and query
+      const paramValidation = spaceIdSchema.safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid space ID',
+          errors: paramValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const queryValidation = calendarQuerySchema.safeParse(req.query);
+      if (!queryValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid calendar query parameters',
+          errors: queryValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const { spaceId } = paramValidation.data;
+      const { start_date, end_date, view } = queryValidation.data;
+
+      // Check space exists and user has access
+      const space = await db
+        .select({
+          id: commonSpaces.id,
+          name: commonSpaces.name,
+          buildingId: commonSpaces.buildingId,
+          isReservable: commonSpaces.isReservable,
+          openingHours: commonSpaces.openingHours
+        })
+        .from(commonSpaces)
+        .where(eq(commonSpaces.id, spaceId))
+        .limit(1);
+
+      if (space.length === 0) {
+        return res.status(404).json({
+          message: 'Common space not found',
+          code: 'NOT_FOUND'
+        });
+      }
+
+      const commonSpace = space[0];
+
+      // Check building access
+      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
+        return res.status(403).json({
+          message: 'Access denied to this common space',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // Get bookings for the time period
+      const bookingConditions = [
+        eq(bookings.commonSpaceId, spaceId),
+        eq(bookings.status, 'confirmed'),
+        gte(bookings.startTime, new Date(start_date)),
+        lte(bookings.endTime, new Date(end_date))
+      ];
+
+      const isManager = ['admin', 'manager'].includes(user.role);
+
+      // Different queries based on user role
+      let calendarEvents;
+
+      if (isManager) {
+        // Managers see full details
+        calendarEvents = await db
+          .select({
+            id: bookings.id,
+            startTime: bookings.startTime,
+            endTime: bookings.endTime,
+            status: bookings.status,
+            userId: bookings.userId,
+            userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+            userEmail: users.email
+          })
+          .from(bookings)
+          .innerJoin(users, eq(bookings.userId, users.id))
+          .where(and(...bookingConditions))
+          .orderBy(bookings.startTime);
+      } else {
+        // Regular users see limited details
+        const allBookings = await db
+          .select({
+            id: bookings.id,
+            startTime: bookings.startTime,
+            endTime: bookings.endTime,
+            status: bookings.status,
+            userId: bookings.userId,
+            userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`
+          })
+          .from(bookings)
+          .innerJoin(users, eq(bookings.userId, users.id))
+          .where(and(...bookingConditions))
+          .orderBy(bookings.startTime);
+
+        // Filter out user details for other users' bookings
+        calendarEvents = allBookings.map(booking => ({
+          id: booking.id,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
+          userId: booking.userId === user.id ? booking.userId : null,
+          userName: booking.userId === user.id ? booking.userName : 'Déjà Réservé',
+          userEmail: booking.userId === user.id ? null : null,
+          isOwnBooking: booking.userId === user.id
+        }));
+      }
+
+      res.json({
+        space: {
+          id: commonSpace.id,
+          name: commonSpace.name,
+          isReservable: commonSpace.isReservable,
+          openingHours: commonSpace.openingHours
+        },
+        calendar: {
+          view,
+          startDate: start_date,
+          endDate: end_date,
+          events: calendarEvents
+        },
+        permissions: {
+          canViewDetails: isManager,
+          canCreateBookings: commonSpace.isReservable
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching calendar:', error);
+      res.status(500).json({
+        message: 'Failed to fetch calendar data',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * GET /api/common-spaces/user-calendar - Get user's personal calendar
+   * Shows all user's bookings across all spaces they have access to
+   */
+  app.get('/api/common-spaces/user-calendar', requireAuth, async (req: any, res: Response) => {
+    try {
+      const user = req.user || req.session?.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      const queryValidation = calendarQuerySchema.safeParse(req.query);
+      if (!queryValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid calendar query parameters',
+          errors: queryValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const { start_date, end_date, view } = queryValidation.data;
+
+      // Get user's bookings within date range
+      const userBookings = await db
+        .select({
+          id: bookings.id,
+          startTime: bookings.startTime,
+          endTime: bookings.endTime,
+          status: bookings.status,
+          spaceName: commonSpaces.name,
+          spaceId: commonSpaces.id,
+          buildingName: buildings.name,
+          buildingId: buildings.id
+        })
+        .from(bookings)
+        .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
+        .innerJoin(buildings, eq(commonSpaces.buildingId, buildings.id))
+        .where(
+          and(
+            eq(bookings.userId, user.id),
+            eq(bookings.status, 'confirmed'),
+            gte(bookings.startTime, new Date(start_date)),
+            lte(bookings.endTime, new Date(end_date))
+          )
+        )
+        .orderBy(bookings.startTime);
+
+      res.json({
+        user: {
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          role: user.role
+        },
+        calendar: {
+          view,
+          startDate: start_date,
+          endDate: end_date,
+          bookings: userBookings
+        },
+        summary: {
+          totalBookings: userBookings.length,
+          totalHours: userBookings.reduce((total, booking) => {
+            const duration = (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
+            return total + duration;
+          }, 0)
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching user calendar:', error);
+      res.status(500).json({
+        message: 'Failed to fetch user calendar',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * GET /api/common-spaces/calendar/building/:buildingId - Get building-wide calendar (Manager/Admin only)
+   * Shows all bookings across all spaces in a building with full details
+   */
+  app.get('/api/common-spaces/calendar/building/:buildingId', requireAuth, requireRole(['admin', 'manager']), async (req: any, res: Response) => {
+    try {
+      const user = req.user || req.session?.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      const paramValidation = z.object({ buildingId: z.string().uuid() }).safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid building ID',
+          errors: paramValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const queryValidation = calendarQuerySchema.safeParse(req.query);
+      if (!queryValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid calendar query parameters',
+          errors: queryValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const { buildingId } = paramValidation.data;
+      const { start_date, end_date, view } = queryValidation.data;
+
+      // Check building access
+      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      if (!accessibleBuildingIds.includes(buildingId)) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // Get building details
+      const building = await db
+        .select({
+          id: buildings.id,
+          name: buildings.name,
+          address: buildings.address
+        })
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+
+      if (building.length === 0) {
+        return res.status(404).json({
+          message: 'Building not found',
+          code: 'NOT_FOUND'
+        });
+      }
+
+      // Get all bookings for spaces in this building within date range
+      const buildingBookings = await db
+        .select({
+          id: bookings.id,
+          startTime: bookings.startTime,
+          endTime: bookings.endTime,
+          status: bookings.status,
+          spaceName: commonSpaces.name,
+          spaceId: commonSpaces.id,
+          userId: bookings.userId,
+          userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          userEmail: users.email,
+          userRole: users.role
+        })
+        .from(bookings)
+        .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
+        .innerJoin(users, eq(bookings.userId, users.id))
+        .where(
+          and(
+            eq(commonSpaces.buildingId, buildingId),
+            eq(bookings.status, 'confirmed'),
+            gte(bookings.startTime, new Date(start_date)),
+            lte(bookings.endTime, new Date(end_date))
+          )
+        )
+        .orderBy(bookings.startTime);
+
+      // Get all common spaces in this building
+      const buildingSpaces = await db
+        .select({
+          id: commonSpaces.id,
+          name: commonSpaces.name,
+          isReservable: commonSpaces.isReservable,
+          capacity: commonSpaces.capacity
+        })
+        .from(commonSpaces)
+        .where(eq(commonSpaces.buildingId, buildingId))
+        .orderBy(commonSpaces.name);
+
+      // Generate usage statistics
+      const spaceUsage = buildingSpaces.map(space => {
+        const spaceBookings = buildingBookings.filter(booking => booking.spaceId === space.id);
+        const totalHours = spaceBookings.reduce((total, booking) => {
+          const duration = (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
+          return total + duration;
+        }, 0);
+
+        return {
+          ...space,
+          bookingCount: spaceBookings.length,
+          totalHours: Math.round(totalHours * 10) / 10,
+          uniqueUsers: [...new Set(spaceBookings.map(b => b.userId))].length
+        };
+      });
+
+      res.json({
+        building: building[0],
+        calendar: {
+          view,
+          startDate: start_date,
+          endDate: end_date,
+          events: buildingBookings
+        },
+        spaces: spaceUsage,
+        summary: {
+          totalBookings: buildingBookings.length,
+          totalSpaces: buildingSpaces.length,
+          activeSpaces: buildingSpaces.filter(s => s.isReservable).length,
+          uniqueUsers: [...new Set(buildingBookings.map(b => b.userId))].length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching building calendar:', error);
+      res.status(500).json({
+        message: 'Failed to fetch building calendar',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

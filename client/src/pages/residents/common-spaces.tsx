@@ -26,12 +26,15 @@ import {
   Plus,
   X,
   FileText,
-  User
+  User,
+  CalendarDays
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
+import { CalendarView } from '@/components/common-spaces/calendar-view';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /**
  * Common Space interface
@@ -148,6 +151,7 @@ export default function CommonSpacesPage() {
   const [selectedSpace, setSelectedSpace] = useState<CommonSpace | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'list' | 'calendar'>('list');
 
   // Form for booking creation
   const form = useForm<BookingFormData>({
@@ -310,9 +314,22 @@ export default function CommonSpacesPage() {
       />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Common Spaces List */}
-          <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'list' | 'calendar')} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="list" className="flex items-center gap-2" data-testid="tab-list">
+              <FileText className="h-4 w-4" />
+              {language === 'fr' ? 'Liste' : 'List'}
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
+              <CalendarDays className="h-4 w-4" />
+              {language === 'fr' ? 'Calendrier' : 'Calendar'}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Common Spaces List */}
+              <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900" data-testid="spaces-list-title">
                 {language === 'fr' ? 'Espaces Disponibles' : 'Available Spaces'}
@@ -654,8 +671,77 @@ export default function CommonSpacesPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-        </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-6">
+            {!user ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    {language === 'fr' ? 'Connexion requise' : 'Login required'}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold" data-testid="calendar-view-title">
+                    {language === 'fr' ? 'Vue Calendrier' : 'Calendar View'}
+                  </h2>
+                  
+                  <div className="flex items-center gap-4">
+                    {selectedSpace && (
+                      <div className="text-sm text-muted-foreground">
+                        {language === 'fr' ? 'Espace sélectionné:' : 'Selected space:'} 
+                        <span className="font-medium ml-1">{selectedSpace.name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {selectedSpace ? (
+                  <CalendarView 
+                    mode="space"
+                    spaceId={selectedSpace.id}
+                    showControls={true}
+                    onEventClick={(event) => {
+                      // Handle calendar event clicks
+                      console.log('Event clicked:', event);
+                    }}
+                    data-testid="space-calendar-view"
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="p-12">
+                      <div className="text-center text-muted-foreground">
+                        <CalendarIcon className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                        <h3 className="text-lg font-medium mb-2">
+                          {language === 'fr' ? 'Sélectionnez un espace' : 'Select a space'}
+                        </h3>
+                        <p>
+                          {language === 'fr' 
+                            ? 'Choisissez un espace commun dans l\'onglet Liste pour voir son calendrier' 
+                            : 'Choose a common space from the List tab to view its calendar'
+                          }
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setActiveTab('list')}
+                          className="mt-4"
+                          data-testid="go-to-list-btn"
+                        >
+                          {language === 'fr' ? 'Voir la Liste' : 'View List'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
