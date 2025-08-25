@@ -234,6 +234,7 @@ function CommonSpacesStatsPage() {
       is_reservable: boolean;
       capacity?: number;
       opening_hours?: { start: string; end: string };
+      weekly_hours?: any;
     }) => {
       if (isEditMode && selectedSpaceId) {
         return apiRequest('PUT', `/api/common-spaces/${selectedSpaceId}`, spaceData);
@@ -307,7 +308,8 @@ function CommonSpacesStatsPage() {
         ? (createFormData.opening_hours.start && createFormData.opening_hours.end 
            ? createFormData.opening_hours 
            : undefined)
-        : createFormData.weekly_hours
+        : undefined,
+      weekly_hours: createFormData.hours_mode === 'custom' ? createFormData.weekly_hours : undefined
     };
 
     createSpaceMutation.mutate(spaceData);
@@ -419,8 +421,8 @@ function CommonSpacesStatsPage() {
                     {language === 'fr' ? 'Créer un espace' : 'Create Space'}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-lg">
-                  <DialogHeader>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+                  <DialogHeader className="flex-shrink-0">
                     <DialogTitle>
                       {isEditMode 
                         ? (language === 'fr' ? 'Modifier l\'espace commun' : 'Edit Common Space')
@@ -439,7 +441,8 @@ function CommonSpacesStatsPage() {
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <div className="space-y-4 py-4">
+                  <div className="flex-1 overflow-y-auto px-1">
+                    <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label htmlFor="space-name">{language === 'fr' ? 'Nom de l\'espace' : 'Space Name'} *</Label>
                       <Input
@@ -632,12 +635,16 @@ function CommonSpacesStatsPage() {
                         )}
                       </div>
                     </div>
+                    </div>
                   </div>
 
-                  <DialogFooter>
+                  <DialogFooter className="flex-shrink-0 mt-4">
                     <Button 
                       variant="outline" 
-                      onClick={() => setCreateDialogOpen(false)}
+                      onClick={() => {
+                        setCreateDialogOpen(false);
+                        setIsEditMode(false);
+                      }}
                       data-testid="button-cancel-create"
                     >
                       {language === 'fr' ? 'Annuler' : 'Cancel'}
@@ -648,8 +655,12 @@ function CommonSpacesStatsPage() {
                       data-testid="button-confirm-create"
                     >
                       {createSpaceMutation.isPending 
-                        ? (language === 'fr' ? 'Création...' : 'Creating...')
-                        : (language === 'fr' ? 'Créer l\'espace' : 'Create Space')
+                        ? (isEditMode 
+                          ? (language === 'fr' ? 'Modification...' : 'Updating...')
+                          : (language === 'fr' ? 'Création...' : 'Creating...'))
+                        : (isEditMode 
+                          ? (language === 'fr' ? 'Modifier l\'espace' : 'Update Space')
+                          : (language === 'fr' ? 'Créer l\'espace' : 'Create Space'))
                       }
                     </Button>
                   </DialogFooter>
