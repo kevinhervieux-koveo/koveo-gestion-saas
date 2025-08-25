@@ -392,7 +392,7 @@ export default function CommonSpacesPage() {
       const [endHour, endMinute] = data.endTime.split(':').map(Number);
       endDateTime.setHours(endHour, endMinute, 0, 0);
       
-      return apiRequest(`/api/common-spaces/${selectedSpace.id}/bookings`, 'POST', {
+      return apiRequest('POST', `/api/common-spaces/${selectedSpace.id}/bookings`, {
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
       });
