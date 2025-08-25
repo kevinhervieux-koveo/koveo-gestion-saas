@@ -9,6 +9,7 @@ describe('Quebec Property Management Business Logic', () => {
   describe('User Schema Validation - Quebec Context', () => {
     it('should validate Quebec user with French language default', () => {
       const validUser = {
+        username: 'marie.tremblay',
         email: 'marie.tremblay@example.com',
         password: 'SecurePass123!',
         firstName: 'Marie',
@@ -29,12 +30,13 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should validate Quebec user with English language', () => {
       const validUser = {
+        username: 'john.smith',
         email: 'john.smith@example.com',
         password: 'SecurePass123!',
         firstName: 'John',
         lastName: 'Smith',
         language: 'en',
-        role: 'owner',
+        role: 'resident',
       };
 
       const result = insertUserSchema.safeParse(validUser);
@@ -46,6 +48,7 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should require valid email format', () => {
       const invalidUser = {
+        username: 'marie.invalid',
         email: 'invalid-email',
         password: 'SecurePass123!',
         firstName: 'Marie',
@@ -61,6 +64,7 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should require minimum password length for security', () => {
       const invalidUser = {
+        username: 'marie.short',
         email: 'marie@example.com',
         password: 'short',
         firstName: 'Marie',
@@ -76,10 +80,11 @@ describe('Quebec Property Management Business Logic', () => {
     });
 
     it('should validate Quebec property management roles', () => {
-      const roles = ['admin', 'manager', 'owner', 'tenant'];
+      const roles = ['admin', 'manager', 'resident', 'tenant'];
       
       roles.forEach(role => {
         const user = {
+          username: 'test.user',
           email: 'test@example.com',
           password: 'SecurePass123!',
           firstName: 'Test',
@@ -98,6 +103,7 @@ describe('Quebec Property Management Business Logic', () => {
     it('should handle Quebec name length requirements', () => {
       const longName = 'A'.repeat(101);
       const invalidUser = {
+        username: 'test.long',
         email: 'test@example.com',
         password: 'SecurePass123!',
         firstName: longName,
@@ -388,8 +394,8 @@ describe('Quebec Property Management Business Logic', () => {
       const result = insertResidenceSchema.safeParse(basicUnit);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.parkingSpaceNumber).toBeUndefined();
-        expect(result.data.storageSpaceNumber).toBeUndefined();
+        expect(result.data.parkingSpaceNumbers).toBeUndefined();
+        expect(result.data.storageSpaceNumbers).toBeUndefined();
         expect(result.data.balcony).toBeUndefined();
       }
     });
@@ -446,6 +452,7 @@ describe('Quebec Property Management Business Logic', () => {
 
     it('should handle bilingual user preferences', () => {
       const bilingualUser = {
+        username: 'jean.dupuis',
         email: 'admin@example.com',
         password: 'SecurePass123!',
         firstName: 'Jean',
