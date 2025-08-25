@@ -42,6 +42,7 @@ interface CalendarViewProps {
   buildingId?: string;
   mode: 'space' | 'user' | 'building';
   onEventClick?: (event: CalendarEvent) => void;
+  onDateClick?: (date: Date) => void;
   showControls?: boolean;
   className?: string;
 }
@@ -88,6 +89,7 @@ export function CalendarView({
   buildingId, 
   mode, 
   onEventClick,
+  onDateClick,
   showControls = true,
   className = '' 
 }: CalendarViewProps) {
@@ -339,6 +341,7 @@ export function CalendarView({
                         ${isCurrentDay ? 'bg-primary/10 border-primary/30' : 'bg-card hover:bg-muted/50'}
                         transition-colors cursor-pointer
                       `}
+                      onClick={() => onDateClick?.(day)}
                       data-testid={`calendar-day-${format(day, 'yyyy-MM-dd')}`}
                     >
                       <div className={`text-xs font-medium mb-1 ${isCurrentDay ? 'text-primary' : 'text-foreground'}`}>

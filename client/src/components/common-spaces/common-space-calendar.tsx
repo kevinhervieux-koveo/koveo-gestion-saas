@@ -13,7 +13,7 @@ interface CommonSpaceCalendarProps {
     isReservable: boolean;
   };
   onExport?: () => void;
-  onNewBooking?: () => void;
+  onNewBooking?: (date?: Date) => void;
   className?: string;
 }
 
@@ -214,6 +214,10 @@ export function CommonSpaceCalendar({
         showControls={false}
         onEventClick={(event) => {
           console.log('Clicked event:', event);
+        }}
+        onDateClick={(date) => {
+          console.log('Clicked date:', date);
+          onNewBooking?.(date);
         }}
         data-testid={`inline-calendar-${space.id}`}
       />

@@ -82,7 +82,7 @@ interface Booking {
  */
 const bookingFormSchema = z.object({
   date: z.date({
-    required_error: "La date est requise",
+    message: "La date est requise",
   }),
   startTime: z.string().min(1, "L'heure de début est requise"),
   endTime: z.string().min(1, "L'heure de fin est requise"),
@@ -154,6 +154,7 @@ export default function CommonSpacesPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [expandedSpaceId, setExpandedSpaceId] = useState<string | null>(null);
+  const [preSelectedDate, setPreSelectedDate] = useState<Date | null>(null);
 
   // Form for booking creation
   const form = useForm<BookingFormData>({
@@ -313,6 +314,21 @@ export default function CommonSpacesPage() {
     setExpandedSpaceId(expandedSpaceId === space.id ? null : space.id);
   };
 
+  const handleDateClick = (date: Date) => {
+    setPreSelectedDate(date);
+    form.setValue('date', date);
+    setIsBookingDialogOpen(true);
+  };
+
+  const handleNewBooking = (space: CommonSpace, date?: Date) => {
+    setSelectedSpace(space);
+    if (date) {
+      setPreSelectedDate(date);
+      form.setValue('date', date);
+    }
+    setIsBookingDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50" data-testid="common-spaces-page">
       <Header 
@@ -431,7 +447,7 @@ export default function CommonSpacesPage() {
                       <CommonSpaceCalendar
                         space={space}
                         onExport={exportAllBookings}
-                        onNewBooking={() => setIsBookingDialogOpen(true)}
+                        onNewBooking={(date) => handleNewBooking(space, date)}
                         className="mt-4"
                       />
                       
@@ -458,18 +474,35 @@ export default function CommonSpacesPage() {
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>
-                                        {language === 'fr' ? 'Date' : 'Date'}
+                                        {language === 'fr' ? 'Date de réservation' : 'Booking Date'}
                                       </FormLabel>
                                       <FormControl>
-                                        <Calendar
-                                          mode="single"
-                                          selected={field.value}
-                                          onSelect={field.onChange}
-                                          disabled={(date) => date < new Date()}
-                                          locale={language === 'fr' ? fr : undefined}
-                                          className="rounded-md border"
-                                          data-testid="booking-date-picker"
-                                        />
+                                        <div className="space-y-3">
+                                          {preSelectedDate && (
+                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                              <div className="text-sm font-medium text-blue-900">
+                                                {language === 'fr' ? 'Date sélectionnée depuis le calendrier' : 'Date selected from calendar'}
+                                              </div>
+                                              <div className="text-sm text-blue-700">
+                                                {format(preSelectedDate, 'EEEE, d MMMM yyyy', { 
+                                                  locale: language === 'fr' ? fr : undefined 
+                                                })}
+                                              </div>
+                                            </div>
+                                          )}
+                                          <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                              field.onChange(date);
+                                              setPreSelectedDate(null);
+                                            }}
+                                            disabled={(date) => date < new Date()}
+                                            locale={language === 'fr' ? fr : undefined}
+                                            className="rounded-md border"
+                                            data-testid="booking-date-picker"
+                                          />
+                                        </div>
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
