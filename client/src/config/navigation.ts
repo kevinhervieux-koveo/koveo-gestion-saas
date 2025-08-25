@@ -51,6 +51,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'tenant',
     items: [
       { name: 'Quick Actions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
+      { name: 'Calendar', href: '/dashboard/calendar', icon: AreaChart },
     ],
   },
   {

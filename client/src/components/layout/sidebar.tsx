@@ -115,6 +115,7 @@ export function Sidebar() {
       const translations: Record<string, { fr: string; en: string }> = {
         'Dashboard': { fr: 'Tableau de bord', en: 'Dashboard' },
         'Quick Actions': { fr: 'Actions Rapides', en: 'Quick Actions' },
+        'Calendar': { fr: 'Calendrier', en: 'Calendar' },
         'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
         'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
         'My Demands': { fr: 'Mes demandes', en: 'My Demands' },
