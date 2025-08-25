@@ -26,6 +26,7 @@ const bugFormSchema = z.object({
   category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
   page: z.string().min(1, 'Page is required'),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().optional(),
   environment: z.string().optional(),
 });
@@ -178,6 +179,8 @@ export default function BugReports() {
   };
 
   const handleEdit = (bug: Bug) => {
+    if (!canEditBug(bug)) return;
+    
     setEditingBug(bug);
     editForm.reset({
       title: bug.title,
@@ -185,6 +188,7 @@ export default function BugReports() {
       category: bug.category as any,
       page: bug.page,
       priority: bug.priority as any,
+      status: bug.status as any,
       reproductionSteps: bug.reproductionSteps || '',
       environment: bug.environment || '',
     });
@@ -459,7 +463,7 @@ export default function BugReports() {
                         )}
                       </div>
 
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                         <div className='space-y-2'>
                           <Label htmlFor='edit-priority' className='text-sm font-medium'>
                             Priority <span className='text-red-500'>*</span>
@@ -476,6 +480,27 @@ export default function BugReports() {
                               <SelectItem value='medium'>Medium</SelectItem>
                               <SelectItem value='high'>High</SelectItem>
                               <SelectItem value='critical'>Critical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className='space-y-2'>
+                          <Label htmlFor='edit-status' className='text-sm font-medium'>
+                            Status
+                          </Label>
+                          <Select
+                            value={editForm.watch('status')}
+                            onValueChange={(value) => editForm.setValue('status', value as any)}
+                          >
+                            <SelectTrigger data-testid='select-edit-status'>
+                              <SelectValue placeholder='Select status' />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value='new'>New</SelectItem>
+                              <SelectItem value='acknowledged'>Acknowledged</SelectItem>
+                              <SelectItem value='in_progress'>In Progress</SelectItem>
+                              <SelectItem value='resolved'>Resolved</SelectItem>
+                              <SelectItem value='closed'>Closed</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -560,7 +585,12 @@ export default function BugReports() {
               ) : (
                 <div className='space-y-4'>
                   {filteredBugs.map((bug: Bug) => (
-                    <div key={bug.id} className='border rounded-lg p-4 hover:bg-gray-50 transition-colors' data-testid={`bug-card-${bug.id}`}>
+                    <div 
+                      key={bug.id} 
+                      className='border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer' 
+                      data-testid={`bug-card-${bug.id}`}
+                      onClick={() => handleEdit(bug)}
+                    >
                       <div className='flex items-start justify-between gap-4'>
                         <div className='flex-1 min-w-0'>
                           <div className='flex items-center gap-2 mb-2'>
@@ -587,63 +617,39 @@ export default function BugReports() {
                             </div>
                           </div>
                         </div>
-                        {(canEditBug(bug) || canDeleteBug(bug)) && (
+                        {canDeleteBug(bug) && (
                           <div className='flex-shrink-0'>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
                                 <Button 
                                   variant='ghost' 
                                   size='sm' 
-                                  className='h-8 w-8 p-0'
-                                  data-testid={`bug-actions-${bug.id}`}
+                                  className='h-8 w-8 p-0 text-red-600 hover:text-red-700'
+                                  data-testid={`button-delete-${bug.id}`}
+                                  onClick={(e) => e.stopPropagation()}
                                 >
-                                  <MoreHorizontal className='h-4 w-4' />
+                                  <Trash2 className='h-4 w-4' />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align='end'>
-                                {canEditBug(bug) && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleEdit(bug)}
-                                    data-testid={`button-edit-${bug.id}`}
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this bug report? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete(bug.id)}
+                                    className='bg-red-600 hover:bg-red-700'
+                                    data-testid={`confirm-delete-${bug.id}`}
                                   >
-                                    <Edit2 className='mr-2 h-4 w-4' />
-                                    Edit
-                                  </DropdownMenuItem>
-                                )}
-                                {canDeleteBug(bug) && (
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <DropdownMenuItem 
-                                        onSelect={(e) => e.preventDefault()}
-                                        className='text-red-600 hover:text-red-700'
-                                        data-testid={`button-delete-${bug.id}`}
-                                      >
-                                        <Trash2 className='mr-2 h-4 w-4' />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete this bug report? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction 
-                                          onClick={() => handleDelete(bug.id)}
-                                          className='bg-red-600 hover:bg-red-700'
-                                          data-testid={`confirm-delete-${bug.id}`}
-                                        >
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         )}
                       </div>
