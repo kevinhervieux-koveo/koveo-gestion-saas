@@ -2,15 +2,47 @@ import { describe, test, expect } from '@jest/globals';
 
 /**
  * Calendar Features Unit Tests
- * Tests core calendar functionality, data structures, and business logic
+ * Tests core calendar functionality using real demo users and data structures
  */
 
 describe('Calendar Features Unit Tests', () => {
   
-  // Mock calendar data structure
+  // Real demo users from the system
+  const DEMO_USERS = {
+    ADMIN: {
+      id: '222f5a0d-6bc6-4f28-9f4d-32c133eed333',
+      email: 'admin@koveo.ca',
+      role: 'admin',
+      name: 'Marie Tremblay'
+    },
+    MANAGER: {
+      id: 'cb8e5b4d-8f2a-4e8d-9c5a-1b2c3d4e5f6g',
+      email: 'manager@koveo.ca',
+      role: 'manager',
+      name: 'Jean Dupuis'
+    },
+    RESIDENT: {
+      id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
+      email: 'resident@demo.ca',
+      role: 'resident',
+      name: 'Sophie Martin'
+    }
+  };
+
+  const DEMO_ORGANIZATION = {
+    id: 'e98cc553-c2d7-4854-877a-7cc9eeb8c6b6',
+    name: 'Demo Organization'
+  };
+
+  const DEMO_BUILDING = {
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    name: 'Complexe Rivière-des-Prairies'
+  };
+  
+  // Calendar data with real demo users
   const mockCalendarData = {
     space: {
-      id: 'test-space-id',
+      id: '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real space ID from demo
       name: 'Salle communautaire',
       isReservable: true
     },
@@ -20,7 +52,9 @@ describe('Calendar Features Unit Tests', () => {
         startTime: '2024-12-15T14:00:00Z',
         endTime: '2024-12-15T16:00:00Z',
         status: 'confirmed',
-        userName: 'Sophie Tremblay',
+        userName: DEMO_USERS.RESIDENT.name, // Sophie Martin
+        userEmail: DEMO_USERS.RESIDENT.email,
+        userId: DEMO_USERS.RESIDENT.id,
         isOwnBooking: true
       },
       {
@@ -28,7 +62,9 @@ describe('Calendar Features Unit Tests', () => {
         startTime: '2024-12-16T10:00:00Z',
         endTime: '2024-12-16T12:00:00Z',
         status: 'confirmed',
-        userName: 'Déjà Réservé',
+        userName: DEMO_USERS.MANAGER.name, // Jean Dupuis
+        userEmail: DEMO_USERS.MANAGER.email,
+        userId: DEMO_USERS.MANAGER.id,
         isOwnBooking: false
       }
     ]
@@ -38,7 +74,7 @@ describe('Calendar Features Unit Tests', () => {
     test('should have valid space information', () => {
       const { space } = mockCalendarData;
       
-      expect(space.id).toBe('test-space-id');
+      expect(space.id).toBe('75c4f108-3ec1-437d-bdec-35d1f8e2a44d'); // Real demo space ID
       expect(space.name).toBe('Salle communautaire');
       expect(space.isReservable).toBe(true);
       expect(typeof space.id).toBe('string');
@@ -163,8 +199,8 @@ describe('Calendar Features Unit Tests', () => {
       expect(ownBookings).toHaveLength(1);
       expect(otherBookings).toHaveLength(1);
       
-      expect(ownBookings[0].userName).toBe('Sophie Tremblay');
-      expect(otherBookings[0].userName).toBe('Déjà Réservé');
+      expect(ownBookings[0].userName).toBe('Sophie Martin'); // Real demo resident
+      expect(otherBookings[0].userName).toBe('Jean Dupuis'); // Real demo manager
     });
 
     test('should calculate event durations correctly', () => {
@@ -196,8 +232,8 @@ describe('Calendar Features Unit Tests', () => {
       };
 
       const validBooking = {
-        spaceId: 'test-space-id',
-        userId: 'user-123',
+        spaceId: '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
+        userId: DEMO_USERS.RESIDENT.id, // Real demo user ID
         startTime: '2025-12-20T14:00:00Z',
         endTime: '2025-12-20T16:00:00Z'
       };
@@ -258,7 +294,7 @@ describe('Calendar Features Unit Tests', () => {
       const calendarTitles = {
         space: 'Salle communautaire',
         user: 'Mon Calendrier',
-        building: 'Complexe Rivière-des-Prairies - Calendrier'
+        building: `${DEMO_BUILDING.name} - Calendrier`
       };
       
       expect(viewModes).toContain('space');
@@ -266,7 +302,7 @@ describe('Calendar Features Unit Tests', () => {
       expect(viewModes).toContain('building');
       expect(calendarTitles.space).toBe('Salle communautaire');
       expect(calendarTitles.user).toBe('Mon Calendrier');
-      expect(calendarTitles.building).toContain('Complexe Rivière-des-Prairies');
+      expect(calendarTitles.building).toContain(DEMO_BUILDING.name);
     });
 
     test('should handle calendar navigation controls', () => {
@@ -365,7 +401,8 @@ describe('Calendar Features Unit Tests', () => {
         startTime: `2024-12-${String((i % 30) + 1).padStart(2, '0')}T14:00:00Z`,
         endTime: `2024-12-${String((i % 30) + 1).padStart(2, '0')}T16:00:00Z`,
         status: 'confirmed',
-        userName: i % 2 === 0 ? 'Sophie Tremblay' : 'Déjà Réservé',
+        userName: i % 2 === 0 ? DEMO_USERS.RESIDENT.name : DEMO_USERS.MANAGER.name,
+        userId: i % 2 === 0 ? DEMO_USERS.RESIDENT.id : DEMO_USERS.MANAGER.id,
         isOwnBooking: i % 2 === 0
       }));
       
@@ -378,7 +415,7 @@ describe('Calendar Features Unit Tests', () => {
       const totalEvents = largeEventSet.length;
       const ownBookings = largeEventSet.filter(e => e.isOwnBooking).length;
       
-      expect(uniqueUsers).toBe(2);
+      expect(uniqueUsers).toBe(2); // Sophie Martin and Jean Dupuis
       expect(totalEvents).toBe(100);
       expect(ownBookings).toBe(50);
     });
@@ -399,7 +436,7 @@ describe('Calendar Features Unit Tests', () => {
       
       expect(statistics.totalBookings).toBe(2);
       expect(statistics.totalHours).toBe(4);
-      expect(statistics.uniqueUsers).toBe(2);
+      expect(statistics.uniqueUsers).toBe(2); // Sophie Martin + Jean Dupuis
       expect(statistics.ownBookings).toBe(1);
       expect(statistics.otherBookings).toBe(1);
     });
@@ -512,8 +549,8 @@ describe('Calendar Features Unit Tests', () => {
       };
       
       const testBooking = bookingIntegration.createBooking(
-        'test-space-id',
-        'user-123',
+        '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
+        DEMO_USERS.RESIDENT.id, // Real demo user ID
         '2025-12-25T14:00:00Z',
         '2025-12-25T16:00:00Z'
       );
@@ -526,7 +563,7 @@ describe('Calendar Features Unit Tests', () => {
       expect(validation.isValid).toBe(true);
       
       const hasConflict = bookingIntegration.checkConflicts(
-        'test-space-id',
+        '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         '2025-12-25T15:00:00Z',
         '2025-12-25T17:00:00Z',
         [testBooking]
@@ -574,13 +611,13 @@ describe('Calendar Features Unit Tests', () => {
       const icsExport = syncFeatures.exportToExternal(mockCalendarData.events, 'ics');
       expect(icsExport).toContain('BEGIN:VCALENDAR');
       expect(icsExport).toContain('BEGIN:VEVENT');
-      expect(icsExport).toContain('Sophie Tremblay');
+      expect(icsExport).toContain(DEMO_USERS.RESIDENT.name); // Sophie Martin
       
-      const linkResult = syncFeatures.linkCalendar('test-space-id', 'common-space');
+      const linkResult = syncFeatures.linkCalendar('75c4f108-3ec1-437d-bdec-35d1f8e2a44d', 'common-space');
       expect(linkResult.success).toBe(true);
-      expect(linkResult.linkId).toContain('link-test-space-id');
+      expect(linkResult.linkId).toContain('link-75c4f108-3ec1-437d-bdec-35d1f8e2a44d');
       
-      const futureFeatureResult = syncFeatures.linkCalendar('test-space-id', 'maintenance');
+      const futureFeatureResult = syncFeatures.linkCalendar('75c4f108-3ec1-437d-bdec-35d1f8e2a44d', 'maintenance');
       expect(futureFeatureResult.success).toBe(false);
       expect(futureFeatureResult.message).toBe('Feature not yet available');
     });
