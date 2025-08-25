@@ -1156,6 +1156,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Cleanup scheduler failed: ${_error}`, 'error');
   }
 
+  // Add 404 handler for unmatched API routes (must be after all API routes)
+  app.use('/api/*', (req: any, res: any) => {
+    res.status(404).json({
+      message: 'API endpoint not found',
+      path: req.originalUrl,
+      code: 'NOT_FOUND'
+    });
+  });
+
   // Initialize demo organizations for production
   try {
     DemoManagementService.initializeDemoOrganizations();
