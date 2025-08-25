@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Download, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { CalendarIcon, Download, Plus, Link2, Check } from 'lucide-react';
 import { CalendarView } from './calendar-view';
 import { useLanguage } from '@/hooks/use-language';
 
@@ -27,6 +28,8 @@ export function CommonSpaceCalendar({
   className = ""
 }: CommonSpaceCalendarProps) {
   const { language } = useLanguage();
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedCalendarType, setSelectedCalendarType] = useState<string | null>(null);
 
   return (
     <div className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${className}`}>
@@ -36,6 +39,144 @@ export function CommonSpaceCalendar({
           {language === 'fr' ? `Calendrier - ${space.name}` : `Calendar - ${space.name}`}
         </h3>
         <div className="flex gap-2">
+          <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="button-link-calendar"
+              >
+                <Link2 className="w-4 h-4" />
+                {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {language === 'fr' 
+                    ? 'Lier votre calendrier externe' 
+                    : 'Link your external calendar'
+                  }
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="text-sm text-gray-600">
+                  {language === 'fr' 
+                    ? 'Sélectionnez quel type de calendrier vous souhaitez synchroniser:'
+                    : 'Select which type of calendar you want to sync:'
+                  }
+                </div>
+                
+                {/* Common Space Calendar Option */}
+                <div 
+                  className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedCalendarType === 'common-space' 
+                      ? 'border-koveo-navy bg-koveo-navy/5' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setSelectedCalendarType('common-space')}
+                  data-testid="option-common-space-calendar"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {language === 'fr' ? 'Espaces communs' : 'Common spaces'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {language === 'fr' 
+                        ? 'Synchroniser les réservations des espaces communs'
+                        : 'Sync common space bookings'
+                      }
+                    </div>
+                  </div>
+                  {selectedCalendarType === 'common-space' && (
+                    <Check className="w-5 h-5 text-koveo-navy" />
+                  )}
+                </div>
+
+                {/* Maintenance Calendar Option */}
+                <div 
+                  className="flex items-center justify-between p-4 border rounded-lg opacity-50 cursor-not-allowed border-gray-200"
+                  data-testid="option-maintenance-calendar"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {language === 'fr' ? 'Réparations/Maintenance' : 'Repairs/Maintenance'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {language === 'fr' 
+                        ? 'Fonctionnalité à venir - pas encore disponible'
+                        : 'Feature to come - not yet available'
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {/* Building Events Calendar Option */}
+                <div 
+                  className="flex items-center justify-between p-4 border rounded-lg opacity-50 cursor-not-allowed border-gray-200"
+                  data-testid="option-building-events-calendar"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {language === 'fr' ? 'Événements du bâtiment' : 'Building events'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {language === 'fr' 
+                        ? 'Fonctionnalité à venir - pas encore disponible'
+                        : 'Feature to come - not yet available'
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {selectedCalendarType === 'common-space' && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm font-medium text-blue-900 mb-2">
+                      {language === 'fr' 
+                        ? 'Configuration des espaces communs'
+                        : 'Common spaces configuration'
+                      }
+                    </div>
+                    <div className="text-sm text-blue-700">
+                      {language === 'fr' 
+                        ? `Cette option synchronisera les réservations de "${space.name}" avec votre calendrier externe.`
+                        : `This option will sync bookings for "${space.name}" with your external calendar.`
+                      }
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsLinkDialogOpen(false);
+                      setSelectedCalendarType(null);
+                    }}
+                    data-testid="button-cancel-link"
+                  >
+                    {language === 'fr' ? 'Annuler' : 'Cancel'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (selectedCalendarType === 'common-space') {
+                        // Handle common space calendar linking here
+                        console.log(`Linking calendar for space: ${space.name}`);
+                      }
+                      setIsLinkDialogOpen(false);
+                      setSelectedCalendarType(null);
+                    }}
+                    disabled={!selectedCalendarType}
+                    data-testid="button-confirm-link"
+                  >
+                    {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {onExport && (
             <Button
               onClick={(e) => {
