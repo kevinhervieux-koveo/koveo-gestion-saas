@@ -77,6 +77,14 @@ export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => Query
     }
 
     await throwIfResNotOk(res);
+    
+    // Check if response is JSON before parsing
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      throw new Error(`Expected JSON response but received ${contentType || 'unknown content type'}. Response: ${text.substring(0, 100)}...`);
+    }
+    
     return await res.json();
   };
 
@@ -112,7 +120,15 @@ export const queryClient = new QueryClient({
     onError: (error) => {
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('Query error:', error);
+        // Provide more helpful error messages for common issues
+        if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
+          console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);
+          console.error('• API endpoint not found (404)');
+          console.error('• Server error returning error page');
+          console.error('• Route mismatch between frontend and backend');
+        } else {
+          console.error('Query error:', error);
+        }
       }
     },
     onSuccess: () => {
