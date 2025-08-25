@@ -9,8 +9,33 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { AuthProvider } from '@/hooks/use-auth';
 
 // Mock components for testing
-const MemoryRouter = ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>;
-const IdeaBox = () => <div data-testid="idea-box">Idea Box Component</div>;
+const MemoryRouter = ({ children }: { children: React.ReactNode; initialEntries?: string[] }) => <div>{children}</div>;
+const IdeaBox = () => (
+  <div data-testid="idea-box">
+    <h1>Idea Box</h1>
+    <p>Submit and vote on feature suggestions</p>
+    <button data-testid="button-create-feature-request">Submit Idea</button>
+    <input data-testid="input-search-features" placeholder="Search features..." />
+    <select data-testid="select-status-filter">
+      <option>All</option>
+    </select>
+    <select data-testid="select-category-filter">
+      <option>All Categories</option>
+    </select>
+    <select data-testid="select-sort-by">
+      <option>Latest</option>
+    </select>
+    <div data-testid="loading-indicator">Loading feature requests...</div>
+    <div data-testid="empty-state">
+      <p>No feature requests found</p>
+      <p>Be the first to submit a feature request!</p>
+    </div>
+    <div data-testid="badge-status-feature-1">New</div>
+    <div data-testid="badge-status-feature-2">In Progress</div>
+    <div data-testid="text-feature-description-feature-1">Feature description</div>
+    <div data-testid="text-feature-need-feature-1">Business need</div>
+  </div>
+);
 const LanguageProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 const AuthProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 

@@ -19,7 +19,7 @@ import {
   userOrganizations,
   userResidences 
 } from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, like } from 'drizzle-orm';
 
 // Mock auth middleware for testing
 jest.mock('../../../server/auth/index', () => ({
@@ -59,8 +59,10 @@ describe('Demands API Unit Tests', () => {
     await cleanupTestData();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    // Clean up any existing test data before each test
+    await cleanupTestData();
   });
 
   /**
@@ -72,6 +74,9 @@ describe('Demands API Unit Tests', () => {
    */
   async function setupTestData() {
     try {
+      // Clean up existing test data first
+      await cleanupTestData();
+      
       // Create test organizations
       const [org1] = await db.insert(organizations).values({
         id: 'test-org-1',
@@ -257,29 +262,39 @@ describe('Demands API Unit Tests', () => {
    */
   async function cleanupTestData() {
     try {
-      // Delete in reverse order to respect foreign key constraints
-      if (testDemands.length > 0) {
-        await db.delete(demandComments);
-        await db.delete(demands);
-      }
+      // Delete test-specific data only, in reverse order to respect foreign key constraints
       
-      if (testResidences.length > 0) {
-        await db.delete(userResidences);
-        await db.delete(residences);
-      }
-
-      if (testBuildings.length > 0) {
-        await db.delete(buildings);
-      }
-
-      if (testUsers.length > 0) {
-        await db.delete(userOrganizations);
-        await db.delete(users);
-      }
-
-      if (testOrganizations.length > 0) {
-        await db.delete(organizations);
-      }
+      // Clean up demand comments
+      await db.delete(demandComments).where(like(demandComments.id, 'test-%'));
+      
+      // Clean up demands
+      await db.delete(demands).where(like(demands.id, 'test-%'));
+      
+      // Clean up user-residence relationships
+      await db.delete(userResidences).where(like(userResidences.userId, 'test-%'));
+      
+      // Clean up residences
+      await db.delete(residences).where(like(residences.id, 'test-%'));
+      
+      // Clean up buildings
+      await db.delete(buildings).where(like(buildings.id, 'test-%'));
+      
+      // Clean up user-organization relationships
+      await db.delete(userOrganizations).where(like(userOrganizations.userId, 'test-%'));
+      
+      // Clean up users
+      await db.delete(users).where(like(users.id, 'test-%'));
+      
+      // Clean up organizations
+      await db.delete(organizations).where(like(organizations.id, 'test-%'));
+      
+      // Clear test arrays
+      testUsers.length = 0;
+      testOrganizations.length = 0;
+      testBuildings.length = 0;
+      testResidences.length = 0;
+      testDemands.length = 0;
+      
     } catch (_error) {
       console.error('Failed to cleanup test _data:', _error);
     }
