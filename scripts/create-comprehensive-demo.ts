@@ -303,27 +303,24 @@ async function createUsers(organizationId: string) {
   const hashedPassword = await bcrypt.hash('Demo@123456', 10);
   
   const userConfigs = [
-    // Admin users
-    { firstName: 'Admin', lastName: 'Demo', email: 'admin@demo.com', role: 'admin' as const },
+    // Manager users (realistic Quebec names)
+    { firstName: 'Sophie', lastName: 'Tremblay', email: 'sophie.tremblay@demo.com', role: 'manager' as const },
+    { firstName: 'Marc', lastName: 'Gauthier', email: 'marc.gauthier@demo.com', role: 'manager' as const },
     
-    // Manager users
-    { firstName: 'Sophie', lastName: 'Manager', email: 'sophie.manager@demo.com', role: 'manager' as const },
-    { firstName: 'Marc', lastName: 'Supervisor', email: 'marc.supervisor@demo.com', role: 'manager' as const },
-    
-    // Tenant/Resident users
+    // Tenant/Resident users (realistic Quebec and Canadian names)
     { firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@demo.com', role: 'tenant' as const },
     { firstName: 'Bob', lastName: 'Smith', email: 'bob.smith@demo.com', role: 'resident' as const },
-    { firstName: 'Claire', lastName: 'Brown', email: 'claire.brown@demo.com', role: 'tenant' as const },
+    { firstName: 'Claire', lastName: 'Bouchard', email: 'claire.bouchard@demo.com', role: 'tenant' as const },
     { firstName: 'David', lastName: 'Wilson', email: 'david.wilson@demo.com', role: 'resident' as const },
-    { firstName: 'Emma', lastName: 'Davis', email: 'emma.davis@demo.com', role: 'tenant' as const },
+    { firstName: 'Emma', lastName: 'Côté', email: 'emma.cote@demo.com', role: 'tenant' as const },
     { firstName: 'Frank', lastName: 'Miller', email: 'frank.miller@demo.com', role: 'resident' as const },
-    { firstName: 'Grace', lastName: 'Garcia', email: 'grace.garcia@demo.com', role: 'tenant' as const },
-    { firstName: 'Henry', lastName: 'Martinez', email: 'henry.martinez@demo.com', role: 'resident' as const },
-    { firstName: 'Isabel', lastName: 'Rodriguez', email: 'isabel.rodriguez@demo.com', role: 'tenant' as const },
-    { firstName: 'Jack', lastName: 'Anderson', email: 'jack.anderson@demo.com', role: 'resident' as const },
-    { firstName: 'Katie', lastName: 'Taylor', email: 'katie.taylor@demo.com', role: 'tenant' as const },
-    { firstName: 'Liam', lastName: 'Thomas', email: 'liam.thomas@demo.com', role: 'resident' as const },
-    { firstName: 'Maya', lastName: 'Jackson', email: 'maya.jackson@demo.com', role: 'tenant' as const },
+    { firstName: 'Gabrielle', lastName: 'Leclerc', email: 'gabrielle.leclerc@demo.com', role: 'tenant' as const },
+    { firstName: 'Henri', lastName: 'Dubois', email: 'henri.dubois@demo.com', role: 'resident' as const },
+    { firstName: 'Isabelle', lastName: 'Morin', email: 'isabelle.morin@demo.com', role: 'tenant' as const },
+    { firstName: 'Jacques', lastName: 'Anderson', email: 'jacques.anderson@demo.com', role: 'resident' as const },
+    { firstName: 'Katia', lastName: 'Roy', email: 'katia.roy@demo.com', role: 'tenant' as const },
+    { firstName: 'Louis', lastName: 'Fournier', email: 'louis.fournier@demo.com', role: 'resident' as const },
+    { firstName: 'Marie', lastName: 'Lavoie', email: 'marie.lavoie@demo.com', role: 'tenant' as const },
   ];
 
   const users = [];
@@ -345,7 +342,7 @@ async function createUsers(organizationId: string) {
       userId: user.id,
       organizationId,
       organizationRole: config.role,
-      canAccessAllOrganizations: config.role === 'admin',
+      canAccessAllOrganizations: false,
     });
 
     users.push(user);

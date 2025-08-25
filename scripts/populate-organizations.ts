@@ -88,10 +88,11 @@ async function populateOrganizations() {
       // Create admin user if doesn't exist
       const hashedPassword = await bcrypt.hash('Admin@123456', 10);
       [adminUser] = await db.insert(schema.users).values({
+        username: 'admin.koveo',
         email: 'admin@koveo.com',
         password: hashedPassword,
-        firstName: 'Admin',
-        lastName: 'User',
+        firstName: 'Alexandre',
+        lastName: 'Bergeron',
         phone: '514-555-0001',
         language: 'fr',
         role: 'admin',
@@ -221,8 +222,8 @@ async function populateOrganizations() {
         bedrooms: 2,
         bathrooms: '1.5',
         balcony: i % 2 === 0,
-        parkingSpaceNumber: `P${i}`,
-        storageSpaceNumber: `S${i}`,
+        parkingSpaceNumbers: [`P${i}`],
+        storageSpaceNumbers: [`S${i}`],
         ownershipPercentage: '0.2000',
         monthlyFees: '350.00',
         isActive: true,
@@ -242,8 +243,8 @@ async function populateOrganizations() {
         bedrooms: 1,
         bathrooms: '1.0',
         balcony: i > 2,
-        parkingSpaceNumber: `P${i}`,
-        storageSpaceNumber: `S${i}`,
+        parkingSpaceNumbers: [`P${i}`],
+        storageSpaceNumbers: [`S${i}`],
         monthlyFees: '1200.00',
         isActive: true,
       }).returning();
@@ -262,8 +263,8 @@ async function populateOrganizations() {
         bedrooms: 3,
         bathrooms: '2.0',
         balcony: true,
-        parkingSpaceNumber: `P${i}A`,
-        storageSpaceNumber: `S${i}`,
+        parkingSpaceNumbers: [`P${i}A`],
+        storageSpaceNumbers: [`S${i}`],
         ownershipPercentage: '0.1667',
         monthlyFees: '450.00',
         isActive: true,
@@ -275,29 +276,8 @@ async function populateOrganizations() {
     // Step 6: Assign users to residences
     console.warn('\n🏘️ Assigning users to residences...');
     
-    // Assign mock users to Demo Building 1 residences
-    for (let i = 0; i < 5 && i < mockUsers.length; i++) {
-      await db.insert(schema.userResidences).values({
-        userId: mockUsers[i].id,
-        residenceId: demo1Residences[i].id,
-        relationshipType: 'owner',
-        startDate: new Date('2024-01-01').toISOString().split('T')[0],
-        isActive: true,
-      });
-    }
-    console.warn('✅ Assigned users to Demo Building 1');
-
-    // Assign remaining mock users to Demo Building 2 residences
-    for (let i = 0; i < 4 && (i + 5) < mockUsers.length; i++) {
-      await db.insert(schema.userResidences).values({
-        userId: mockUsers[i + 5].id,
-        residenceId: demo2Residences[i].id,
-        relationshipType: 'tenant',
-        startDate: new Date('2024-01-01').toISOString().split('T')[0],
-        isActive: true,
-      });
-    }
-    console.warn('✅ Assigned users to Demo Building 2');
+    // Note: User-residence assignments will be handled through the invitation system
+    console.warn('✅ User-residence assignments available through invitation system');
 
     console.warn('\n✨ Successfully populated all organizations, buildings, and residences!');
     console.warn('\n📊 Summary:');
@@ -306,8 +286,8 @@ async function populateOrganizations() {
     console.warn('- 15 Residences created (5 + 4 + 6)');
     console.warn('- Users assigned to organizations and residences');
 
-  } catch (_error) {
-    console.error('❌ Error populating _data:', _error);
+  } catch (error) {
+    console.error('❌ Error populating data:', error);
     throw error;
   } finally {
     await pool.end();
@@ -315,4 +295,4 @@ async function populateOrganizations() {
 }
 
 // Run the population script
-populateOrganizations().catch(console._error);
+populateOrganizations().catch(console.error);

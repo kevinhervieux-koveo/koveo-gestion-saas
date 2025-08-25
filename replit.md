@@ -3,38 +3,8 @@
 ## Overview
 Koveo Gestion is an AI-powered SaaS platform for property management, specifically designed for Quebec's residential communities. It offers comprehensive tools for documentation, maintenance, financial planning, and complaint management, ensuring compliance with Law 25 and supporting both French and English. The project aims to deliver a robust, enterprise-grade application using a rigorous, automated development system called the "Pillar Methodology," with significant market potential in Quebec's co-ownership properties.
 
-## Recent Changes (August 2025)
-- **Demo Organizations Production Migration Complete**: Successfully prepared both Demo and Open Demo organizations for production deployment. Demo organization (ID: e98cc553-c2d7-4854-877a-7cc9eeb8c6b6) maintains full administrative access with all original data (2 buildings, 9 residences, 13+ users, 118 documents). Open Demo organization (ID: open-demo-org-id) provides read-only public access with identical data structure but converted admin/manager roles to resident/tenant for security. Created production migration script ensuring data integrity and automated deployment validation.
-- **TypeScript Compilation Issues Resolved**: Successfully fixed all major TypeScript compilation blockers that were preventing application deployment. Restored corrupted BuildingDocuments.tsx, ResidenceDocuments.tsx, Buildings.tsx, and residents pages with proper type casting, API call handling, and component structure. Reduced LSP errors from 201+ down to zero, ensuring clean compilation and seamless application functionality.
-- **Complete Test Suite Resolution (98/98 Tests Passing)**: Successfully resolved all test issues across the entire Koveo Gestion test suite, achieving perfect test coverage with systematic fixes. Enhanced Demands Schema Validation (19/19), RBAC Authentication (28/28), Quebec Law 25 Compliance (18/18), React Component Integration (20/20), and maintained Payment Plan Validation (13/13). Key improvements include proper Zod boundary validation constraints, dynamic configuration usage from actual system files, enhanced Quebec French terminology validation with cultural compliance, comprehensive React component testing with real providers, and robust business logic validation using authentic Demo organization data
-- **Code Redundancy Analysis Test Suite**: Created comprehensive test suite with 105+ test cases to identify and reduce code redundancies across forms, buttons, cards, and formatting. Includes automated component extraction analysis, style consolidation recommendations, and design token generation with implementation strategy
-- **Comprehensive French and English Language Validation**: Created extensive test suite with 170+ test cases covering translation completeness, Quebec French quality, Law 25 compliance, form validation, and content display across all application components
-- **Quebec Law 25 Compliance Testing**: Added specialized tests for privacy terminology, legal document translations, consent forms, and breach notification language to ensure full compliance with Quebec privacy legislation
-- **Multi-language Form Validation**: Implemented comprehensive form validation testing with Quebec French terminology (courriel vs email), proper typography rules, and culturally appropriate error messages
-- **Content Display Internationalization**: Built end-to-end tests for seamless language switching, date/time formatting, address formats, and regional preferences with performance validation
-- **Text Formatting and Overflow Tests**: Created visual regression tests specifically addressing card text overflow issues from provided screenshots, with CSS utilities for proper text handling and responsive layouts
-- **Document Management System Completed**: Full document management system with role-based access control for buildings and residences. Features include document upload/download, categorization, and assignment to specific buildings/residences with proper permissions (Admin: full access, Manager: organization-wide, Resident: residence and building documents, Tenant: view-only based on assignments)
-- **Document Navigation Fixed**: Document buttons on buildings and residences pages now use proper SPA navigation instead of full page reloads, preventing redirect issues to home page
-- **SelectItem Validation Fixed**: Resolved validation error in Documents page by changing empty string values to proper "all" values for category filters
-- **Responsive Forms Implementation**: All forms across the application are now responsive with single scroll bar behavior. Forms use max-h-[90vh] with overflow-y-auto on dialog containers to ensure they fit within viewport height while remaining scrollable when content exceeds screen dimensions
-- **Object Storage Integration**: Replit object storage integration with file upload functionality, presigned URLs, and ACL policies for secure document management
-- **Password Reset System Completed**: Full password reset functionality with secure token-based authentication, email integration, comprehensive frontend pages, and working API integration
-- **Registration System Completed**: Multi-step registration wizard with invitation token validation, password creation, and Quebec Law 25 privacy consent fully implemented and tested
-- **Database Schema Enhanced**: Added password_reset_tokens table with security features (token expiration, one-time use, SHA-256 hashing)
-- **Email Service Integration**: SendGrid integration for password reset emails with French/English templates, disabled link tracking for direct URL access, uses FRONTEND_URL environment variable for correct domain
-- **Frontend Pages Added**: Forgot password and reset password pages with proper styling, error handling, and public route authentication
-- **Security Features**: Password reset tokens expire after 1 hour, secure token generation, proper validation, and enhanced password requirements (8+ characters, uppercase, lowercase, number)
-- **Database Schema Fixed**: Added missing username field to users table and updated user creation logic
-- **Privacy Consent Enhanced**: Collapsible "Collecte et traitement des données" section with master checkbox functionality
-- **Contact Information Updated**: Phone number displays correct "514-712-8441" from PHONE_CONTACT secret
-
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-
-## Production Demo Organizations
-- **Demo Organization** (e98cc553-c2d7-4854-877a-7cc9eeb8c6b6): Full administrative access with all original data including 2 buildings, 9 residences, 13+ users, 31 building documents, and 87 residence documents
-- **Open Demo Organization** (open-demo-org-id): Read-only public access with identical data structure, all admin/manager roles converted to resident/tenant for security, all documents marked visible to tenants
-- **Production Migration**: Both organizations are ready for production deployment with automated validation script `scripts/production-demo-migration.sql`
 
 ## System Architecture
 
@@ -45,6 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack Query.
 - **Form Handling**: React Hook Form with Zod validation.
 - **Internationalization**: Custom language provider for English and French.
+- **UI/UX Decisions**: All forms are responsive with single scroll bar behavior, using `max-h-[90vh]` and `overflow-y-auto` on dialog containers.
 
 ### Backend
 - **Runtime**: Node.js with Express.js.
@@ -59,42 +30,38 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication and Authorization
 - **Session Management**: Express sessions with PostgreSQL store.
-- **User Management**: Custom username/password system.
-- **RBAC**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions.
-- **Access Control**: Organization-based access rules (Demo, Koveo, normal organizations, tenant/resident specific).
+- **User Management**: Custom username/password system, password reset system (token-based, email integration with SendGrid, 1-hour expiry, SHA-256 hashing), multi-step registration wizard (invitation token validation, password creation, Quebec Law 25 privacy consent).
+- **RBAC**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions and organization-based access rules.
 - **Security**: Law 25 compliance framework.
-- **Invitation System**: Role-based user invitation with organization/residence assignment, audit logging, SendGrid email integration, automatic replacement of existing invitations, and simplified process without 2FA. Complete multi-step registration wizard with token validation, password creation, and Quebec Law 25 privacy consent with collapsible data collection section and master checkbox functionality.
-- **Buildings Management**: Comprehensive building management system with role-based access control where Admin and Manager roles can view all buildings in their organization, while Resident and Tenant roles are restricted from accessing Manager and Admin features. Features include real-time search functionality for building names and addresses, admin-only building creation with organization assignment, and edit/delete capabilities (Admin and Manager can edit all building information, only Admin can delete buildings). Special privilege: Koveo organization users have global access to view buildings from all organizations.
-- **Residences Management**: Complete residences management system with automatic generation of residences when buildings are created (max 300 units per building). Features include advanced search by unit number or assigned person name, filtering by building and floor, pagination with 10 residences per page, and comprehensive edit functionality. Each residence supports multiple parking spots and storage spaces as arrays. Role-based access ensures users can only see residences in buildings they have access to. No create/delete buttons exist since residences are auto-generated from building data.
+
+### Features
+- **Document Management**: Full system with role-based access control (Admin: full, Manager: organization-wide, Resident: residence/building, Tenant: view-only). Supports upload/download, categorization, assignment. Document navigation uses SPA.
+- **Property Management**:
+    - **Buildings**: Comprehensive management for Admin/Manager roles (view, create, edit, delete). Koveo organization users have global access.
+    - **Residences**: Auto-generated (max 300 units/building) with advanced search, filtering, pagination, and multi-parking/storage support. Role-based access.
 
 ### Development Framework (Pillar Methodology)
 - **Core Principles**: Modular components for quality assurance, testing, and security.
-- **Monitoring**: Real-time workspace status, automated quality metrics (code quality, coverage, performance).
+- **Monitoring**: Real-time workspace status, automated quality metrics.
 - **Configuration**: Dynamic framework configuration.
-- **Progress Tracking**: Automated validation for development phases.
+- **Progress Tracking**: Automated validation.
 
 ### Project Structure
 - **Monorepo**: Single workspace for client, server, and shared code.
 - **TypeScript**: Unified type checking.
 - **Build System**: Separate builds for client (Vite) and server (ESBuild).
-- **Conventions**: Consistent path aliases and centralized form component location.
 
 ### Testing & Validation
-- **Comprehensive Test Suite (98/98 Passing)**: Complete validation coverage across all system components including Demands Schema Validation, RBAC Authentication, Quebec Law 25 Compliance, React Component Integration, and Payment Plan Validation using real Demo organization data
-- **Schema Validation**: Robust Zod validation with proper boundary constraints (10-2000 characters for descriptions), special character handling, and edge case coverage
-- **RBAC Testing**: Dynamic permission validation using actual `config/permissions.json`, role hierarchy enforcement, and organization access control
-- **Quebec Compliance**: Cultural validation for Quebec French terminology, Law 25 privacy legislation compliance, typography rules, and legal document translations
-- **Component Testing**: Comprehensive React component testing with TestProviders, mock strategies for hooks and navigation, and authentic provider integration
-- **Quality Gates**: Automated checks including static analysis (ESLint, TypeScript), testing (unit, integration, E2E with 80% coverage), security (NPM audit), Quebec compliance (bilingual support, accessibility, Law 25), build validation, and code complexity (cyclomatic complexity <=10).
-- **Continuous Improvement**: Quality metrics, readability scoring, automated suggestions, and `ORGANIZATION_VALIDATION_REPORT.md` generation.
-- **Developer Workflow**: Husky pre-commit hooks, lint-staged, Commitlint for conventional commits, GitHub branch protection with CODEOWNERS.
+- **Comprehensive Test Suite**: Covers Demands Schema, RBAC, Quebec Law 25 Compliance, React Components, and Payment Plan. Achieves 100% pass rate.
+- **Quality Gates**: Automated checks including static analysis (ESLint, TypeScript), testing (unit, integration, E2E with 80% coverage), security (NPM audit), Quebec compliance (bilingual, Law 25), build validation, and code complexity.
+- **Developer Workflow**: Husky pre-commit hooks, lint-staged, Commitlint.
 
 ### AI Agent Enhancement Toolkit
-- **Project Health Analysis**: 6-dimension scoring (code quality, documentation, testing, security, performance, overall).
-- **Smart Context Management**: Intelligent file relationship analysis and context-aware recommendations.
-- **Workflow Automation**: Pattern detection, automated task execution, and security auditing.
-- **Real-time Monitoring**: Interactive dashboard with metrics and trend analysis.
-- **CLI Operations**: Command-line interface for health checks, context management, and workflow execution.
+- **Project Health Analysis**: 6-dimension scoring.
+- **Smart Context Management**: Intelligent file relationship analysis.
+- **Workflow Automation**: Pattern detection, automated task execution, security auditing.
+- **Real-time Monitoring**: Interactive dashboard.
+- **CLI Operations**: For health checks, context management, workflow execution.
 
 ## External Dependencies
 
@@ -122,9 +89,5 @@ Preferred communication style: Simple, everyday language.
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Replit**: Development and hosting platform.
 - **Express.js**: Web application framework.
-
-### Planned Integrations (Future)
-- **AI Services**: For property management insights.
-- **Quebec Law 25 Compliance**: Integrated privacy and data protection framework.
-- **Multi-language Support**: Enhanced internationalization.
-- **Property Management APIs**: External integrations for Quebec property data.
+- **SendGrid**: Email service integration (for password reset and invitations).
+```
