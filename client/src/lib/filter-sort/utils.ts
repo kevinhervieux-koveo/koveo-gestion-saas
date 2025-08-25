@@ -12,7 +12,7 @@ import { FilterValue, FilterOperator, SortValue, SortDirection } from './types';
  * @example
  * ```typescript
  * const user = { name: 'John Doe', age: 30, active: true };
- * const filter = { field: 'age', operator: 'greater_than', _value: 25 };
+ * const filter = { field: 'age', operator: 'greater_than', value: 25 };
  * const matches = applyFilter(user, filter); // true
  * ```
  */
@@ -42,7 +42,7 @@ export function /**
 
  applyFilter(item: any, filter: FilterValue): boolean {
   const value = getNestedValue(item, filter.field);
-  const filterValue = filter.value;
+  const filterValue = filter._value;
   const operator = filter.operator; /**
    * Switch function.
    * @param operator - Operator parameter.
@@ -61,28 +61,28 @@ export function /**
       return value !== filterValue;
 
     case 'contains':
-      return String(_value).toLowerCase().includes(String(filterValue).toLowerCase());
+      return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
 
     case 'not_contains':
-      return !String(_value).toLowerCase().includes(String(filterValue).toLowerCase());
+      return !String(value).toLowerCase().includes(String(filterValue).toLowerCase());
 
     case 'starts_with':
-      return String(_value).toLowerCase().startsWith(String(filterValue).toLowerCase());
+      return String(value).toLowerCase().startsWith(String(filterValue).toLowerCase());
 
     case 'ends_with':
-      return String(_value).toLowerCase().endsWith(String(filterValue).toLowerCase());
+      return String(value).toLowerCase().endsWith(String(filterValue).toLowerCase());
 
     case 'greater_than':
-      return Number(_value) > Number(filterValue);
+      return Number(value) > Number(filterValue);
 
     case 'less_than':
-      return Number(_value) < Number(filterValue);
+      return Number(value) < Number(filterValue);
 
     case 'greater_than_or_equal':
-      return Number(_value) >= Number(filterValue);
+      return Number(value) >= Number(filterValue);
 
     case 'less_than_or_equal':
-      return Number(_value) <= Number(filterValue);
+      return Number(value) <= Number(filterValue);
 
     case 'in':
       return Array.isArray(filterValue) ? filterValue. /**
@@ -95,23 +95,23 @@ export function /**
    * @returns String result.
    */
 
-includes(_value) : false;
+includes(value) : false;
 
     case 'not_in':
-      return Array.isArray(filterValue) ? !filterValue.includes(_value) : true;
+      return Array.isArray(filterValue) ? !filterValue.includes(value) : true;
 
     case 'is_empty':
       return (
         !value ||
         (typeof value === 'string' && value.trim() === '') ||
-        (Array.isArray(_value) && value.length === 0)
+        (Array.isArray(value) && value.length === 0)
       );
 
     case 'is_not_empty':
       return (
         value &&
         (typeof value !== 'string' || value.trim() !== '') &&
-        (!Array.isArray(_value) || value.length > 0)
+        (!Array.isArray(value) || value.length > 0)
       );
 
     default:
@@ -132,8 +132,8 @@ includes(_value) : false;
  * ```typescript
  * const users = [{ name: 'John', age: 30 }, { name: 'Jane', age: 25 }];
  * const filters = [
- *   { field: 'age', operator: 'greater_than', _value: 20 },
- *   { field: 'name', operator: 'contains', _value: 'J' }
+ *   { field: 'age', operator: 'greater_than', value: 20 },
+ *   { field: 'name', operator: 'contains', value: 'J' }
  * ];
  * const filtered = applyFilters(users, filters); // Both users match
  * ```
@@ -155,10 +155,10 @@ export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] { /**
 
 
   if (!filters || filters.length === 0) {
-    return data;
+    return _data;
   }
 
-  return data.filter((item) => filters.every((filter) => applyFilter(item, filter)));
+  return _data.filter((item) => filters.every((filter) => applyFilter(item, filter)));
 }
 
 /**
@@ -187,12 +187,12 @@ export function applyFilters<T>(_data: T[], filters: FilterValue[]): T[] { /**
  */
 export function applySearch<T>(_data: T[], search: string, searchFields?: string[]): T[] {
   if (!search || search.trim() === '') {
-    return data;
+    return _data;
   }
 
   const searchLower = search.toLowerCase();
 
-  return data.filter((item) => { /**
+  return _data.filter((item) => { /**
    * If function.
    * @param searchFields && searchFields.length > 0 - searchFields && searchFields.length > 0 parameter.
    */ /**
@@ -205,7 +205,7 @@ export function applySearch<T>(_data: T[], search: string, searchFields?: string
       // Search only in specified fields
       return searchFields.some((field) => {
         const value = getNestedValue(item, field);
-        return String(_value).toLowerCase().includes(searchLower);
+        return String(value).toLowerCase().includes(searchLower);
       });
     } else {
       // Search in all string fields
@@ -289,7 +289,7 @@ export function applySort<T>(data: T[], sort: SortValue | null): T[] {
  * const users = [{ name: 'John Doe', age: 30, active: true }];
  * const result = applyFilterSort(
  *   users,
- *   [{ field: 'active', operator: 'equals', _value: true }],
+ *   [{ field: 'active', operator: 'equals', value: true }],
  *   'john',
  *   { field: 'age', direction: 'asc' },
  *   ['name']
@@ -313,7 +313,7 @@ export function applyFilterSort<T>(
   sort: SortValue | null,
   searchFields?: string[]
 ): T[] {
-  let result = data;
+  let result = _data;
 
   // Apply filters first
   result = applyFilters(result, filters);
@@ -362,7 +362,7 @@ function /**
    */
 
  getNestedValue(obj: any, path: string): any {
-  return path.split('.').reduce((current, _key) => current?.[key], obj);
+  return path.split('.').reduce((current, _key) => current?.[_key], obj);
 }
 
 /**
@@ -448,7 +448,7 @@ function /**
 
 
   if (typeof obj === 'object') {
-    return Object.values(obj).some((_value) => searchInObject(value, search));
+    return Object.values(obj).some((value) => searchInObject(value, search));
   }
 
   return false;

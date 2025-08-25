@@ -19,7 +19,7 @@ const localStorageMock = {
   clear: jest.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
-  _value: localStorageMock,
+  value: localStorageMock,
 });
 
 // Mock data for testing - Quebec property management specific
@@ -60,7 +60,7 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'priority',
       label: 'Priority',
       type: 'select',
-      _options: [
+      options: [
         { label: 'Critical', _value: 'Critical' },
         { label: 'High', _value: 'High' },
         { label: 'Medium', _value: 'Medium' },
@@ -73,7 +73,7 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'status',
       label: 'Status',
       type: 'select',
-      _options: [
+      options: [
         { label: 'New', _value: 'New' },
         { label: 'Acknowledged', _value: 'Acknowledged' },
         { label: 'Done', _value: 'Done' },
@@ -85,7 +85,7 @@ const mockFilterConfig: FilterSortConfig = {
       field: 'category',
       label: 'Category',
       type: 'select',
-      _options: [
+      options: [
         { label: 'Security', _value: 'Security' },
         { label: 'Performance', _value: 'Performance' },
         { label: 'Documentation', _value: 'Documentation' },
@@ -368,7 +368,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should initialize with default state', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -384,7 +384,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should add and remove filters correctly', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -414,7 +414,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle sorting operations', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -439,7 +439,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle search functionality', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -463,7 +463,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should apply presets correctly', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
         })
       );
@@ -481,7 +481,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should persist state to localStorage when enabled', () => {
       renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: { ...mockFilterConfig, persistState: true, storageKey: 'test-key' },
         })
       );
@@ -493,7 +493,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should handle multiple filters when allowMultipleFilters is true', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: { ...mockFilterConfig, allowMultipleFilters: true },
         })
       );
@@ -521,7 +521,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
     it('should replace filter when allowMultipleFilters is false', () => {
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: { ...mockFilterConfig, allowMultipleFilters: false },
         })
       );
@@ -555,7 +555,7 @@ describe('Filter and Sort System - Quebec Property Management', () => {
 
       const { result } = renderHook(() =>
         useFilterSort({
-          _data: mockSuggestions,
+          data: mockSuggestions,
           config: mockFilterConfig,
           initialState,
         })

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import express from 'express';
+import express, { Express } from 'express';
 import request from 'supertest';
 import { db } from '../../../server/db';
 import { registerDemandRoutes } from '../../../server/api/demands';
@@ -37,7 +37,7 @@ jest.mock('../../../server/auth/index', () => ({
 }));
 
 describe('Demands API Unit Tests', () => {
-  let app: express.Application;
+  let app: Express;
   const testUsers: Record<string, unknown>[] = [];
   const testOrganizations: Record<string, unknown>[] = [];
   const testBuildings: Record<string, unknown>[] = [];
@@ -48,7 +48,7 @@ describe('Demands API Unit Tests', () => {
     // Setup test application
     app = express();
     app.use(express.json());
-    registerDemandRoutes(app);
+    registerDemandRoutes(app as express.Application);
 
     // Create test data
     await setupTestData();
@@ -187,57 +187,58 @@ describe('Demands API Unit Tests', () => {
       }
 
       // Link users to residences
-      await db.insert(userResidences).values([
+      const userResidenceData = [
         {
-          userId: testUsers[2].id, // resident
-          residenceId: testResidences[0].id,
-          relationshipType: 'owner',
+          userId: testUsers[2].id as string,
+          residenceId: testResidences[0].id as string,
+          relationshipType: 'owner' as const,
           startDate: '2024-01-01'
         },
         {
-          userId: testUsers[3].id, // tenant
-          residenceId: testResidences[1].id,
-          relationshipType: 'tenant',
+          userId: testUsers[3].id as string,
+          residenceId: testResidences[1].id as string,
+          relationshipType: 'tenant' as const,
           startDate: '2024-01-01'
         }
-      ]);
+      ];
+      await db.insert(userResidences).values(userResidenceData);
 
       // Create test demands
       const demandsData = [
         {
           id: 'test-demand-1',
-          submitterId: testUsers[2].id, // resident
+          submitterId: testUsers[2].id as string, // resident
           type: 'maintenance' as const,
           description: 'Faucet is leaking in kitchen',
-          residenceId: testResidences[0].id,
-          buildingId: building1.id,
+          residenceId: testResidences[0].id as string,
+          buildingId: building1.id as string,
           status: 'submitted' as const
         },
         {
           id: 'test-demand-2',
-          submitterId: testUsers[3].id, // tenant
+          submitterId: testUsers[3].id as string, // tenant
           type: 'complaint' as const,
           description: 'Noise from upstairs neighbor',
-          residenceId: testResidences[1].id,
-          buildingId: building1.id,
+          residenceId: testResidences[1].id as string,
+          buildingId: building1.id as string,
           status: 'approved' as const
         },
         {
           id: 'test-demand-3',
-          submitterId: testUsers[2].id, // resident
+          submitterId: testUsers[2].id as string, // resident
           type: 'information' as const,
           description: 'Question about parking rules',
-          residenceId: testResidences[0].id,
-          buildingId: building1.id,
+          residenceId: testResidences[0].id as string,
+          buildingId: building1.id as string,
           status: 'completed' as const,
-          reviewedBy: testUsers[1].id, // manager
+          reviewedBy: testUsers[1].id as string, // manager
           reviewedAt: new Date(),
           reviewNotes: 'Information provided via email'
         }
       ];
 
       for (const demandData of demandsData) {
-        const [demand] = await db.insert(demands).values(demandData).returning();
+        const [demand] = await db.insert(demands).values([demandData]).returning();
         testDemands.push(demand);
       }
 
@@ -319,7 +320,7 @@ describe('Demands API Unit Tests', () => {
       
       // Verify manager can see demands from their organization
       response.body.forEach((demand: Record<string, unknown>) => {
-        expect(demand.building.id).toBe(testBuildings[0].id);
+        expect((demand as any).building.id).toBe(testBuildings[0].id);
       });
     });
 
@@ -421,7 +422,7 @@ describe('Demands API Unit Tests', () => {
       expect(response.body.length).toBeGreaterThan(0);
       
       // Verify search results contain the search term
-      const foundMatch = response.body.some((demand: unknown) => 
+      const foundMatch = response.body.some((demand: any) => 
         demand.description.toLowerCase().includes('faucet')
       );
       expect(foundMatch).toBe(true);
