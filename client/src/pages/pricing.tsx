@@ -162,7 +162,7 @@ export default function PricingPage() {
             <CardContent className="p-8">
               <div className="text-center mb-8">
                 <div className="text-5xl font-bold text-koveo-navy mb-2">
-                  $9.50 <span className="text-lg font-normal text-gray-600">CAD</span>
+                  $9.50 <span className="text-lg font-normal text-gray-600">+ taxes</span>
                 </div>
                 <div className="text-gray-600">{t('perDoorPerMonth')}</div>
                 <div className="text-sm text-gray-500 mt-2">{t('noSetupFees')}</div>
