@@ -52,7 +52,8 @@ Preferred communication style: Simple, everyday language.
 - **Build System**: Separate builds for client (Vite) and server (ESBuild).
 
 ### Testing & Validation
-- **Comprehensive Test Suite**: Covers Demands Schema, RBAC, Quebec Law 25 Compliance, React Components, and Payment Plan. Achieves 100% pass rate.
+- **Comprehensive Test Suite**: Covers Demands Schema, RBAC, Quebec Law 25 Compliance, React Components, Payment Plan, and Calendar Features. Achieves 100% pass rate.
+- **Calendar Testing**: Complete unit test suite covering calendar data structures, linking features, event management, export functionality, internationalization, performance optimization, accessibility, and integration points (23 test cases).
 - **Quality Gates**: Automated checks including static analysis (ESLint, TypeScript), testing (unit, integration, E2E with 80% coverage), security (NPM audit), Quebec compliance (bilingual, Law 25), build validation, and code complexity.
 - **Developer Workflow**: Husky pre-commit hooks, lint-staged, Commitlint.
 
@@ -90,4 +91,15 @@ Preferred communication style: Simple, everyday language.
 - **Replit**: Development and hosting platform.
 - **Express.js**: Web application framework.
 - **SendGrid**: Email service integration (for password reset and invitations).
+
+## Recent Changes
+
+### Calendar Testing Implementation (December 2024)
+- **Created Comprehensive Calendar Test Suite**: Added `tests/unit/calendar/calendar-features.test.ts` with 23 test cases covering all calendar functionality
+- **Test Coverage Areas**: Calendar data structures, linking features, event management, export functionality, view modes, internationalization, performance optimization, accessibility features, and integration points
+- **Calendar Linking Tests**: Validates popup structure, selection logic, configuration details, and future feature handling
+- **Business Logic Validation**: Tests booking validation rules, time consistency, conflict detection, and calendar statistics calculation
+- **Quebec Compliance Testing**: Validates French language support, Quebec-specific date formats, holidays, and cultural requirements
+- **Performance Testing**: Validates efficient handling of large event datasets (100+ events) and statistical calculations
+- **Accessibility Testing**: Validates test IDs, ARIA labels, navigation controls, and proper component structure
 ```
