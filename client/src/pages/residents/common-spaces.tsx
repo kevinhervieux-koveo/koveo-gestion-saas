@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
+import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
 /**
  * Common Space interface
@@ -81,7 +82,7 @@ interface Booking {
  */
 const bookingFormSchema = z.object({
   date: z.date({
-    errorMap: () => ({ message: "La date est requise" }),
+    required_error: "La date est requise",
   }),
   startTime: z.string().min(1, "L'heure de début est requise"),
   endTime: z.string().min(1, "L'heure de fin est requise"),
@@ -426,174 +427,141 @@ export default function CommonSpacesPage() {
                   
                   {/* Inline Calendar */}
                   {expandedSpaceId === space.id && (
-                    <div className="mt-4 bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <CalendarIcon className="h-5 w-5 text-koveo-navy" />
-                          {language === 'fr' ? `Calendrier - ${space.name}` : `Calendar - ${space.name}`}
-                        </h3>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              exportAllBookings();
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2"
-                            data-testid="button-export-space-calendar"
-                          >
-                            <Download className="w-4 h-4" />
-                            {language === 'fr' ? 'Exporter (.ics)' : 'Export (.ics)'}
-                          </Button>
-                          {space.isReservable && (
-                            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="flex items-center gap-2"
-                                  data-testid="button-new-booking-inline"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                  {language === 'fr' ? 'Réserver' : 'Book'}
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-md" data-testid="booking-dialog">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
-                                  </DialogTitle>
-                                  <DialogDescription>
-                                    {language === 'fr' 
-                                      ? `Réserver ${space.name}`
-                                      : `Book ${space.name}`}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                
-                                <Form {...form}>
-                                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                    <FormField
-                                      control={form.control}
-                                      name="date"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>
-                                            {language === 'fr' ? 'Date' : 'Date'}
-                                          </FormLabel>
-                                          <FormControl>
-                                            <Calendar
-                                              mode="single"
-                                              selected={field.value}
-                                              onSelect={field.onChange}
-                                              disabled={(date) => date < new Date()}
-                                              locale={language === 'fr' ? fr : undefined}
-                                              className="rounded-md border"
-                                              data-testid="booking-date-picker"
-                                            />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <FormField
-                                        control={form.control}
-                                        name="startTime"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel>
-                                              {language === 'fr' ? 'Heure de début' : 'Start Time'}
-                                            </FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                              <FormControl>
-                                                <SelectTrigger data-testid="booking-start-time">
-                                                  <SelectValue placeholder="09:00" />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent>
-                                                {timeSlots.map((time) => (
-                                                  <SelectItem 
-                                                    key={time} 
-                                                    value={time}
-                                                    disabled={!isTimeSlotAvailable(time)}
-                                                  >
-                                                    {time}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                      
-                                      <FormField
-                                        control={form.control}
-                                        name="endTime"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel>
-                                              {language === 'fr' ? 'Heure de fin' : 'End Time'}
-                                            </FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                              <FormControl>
-                                                <SelectTrigger data-testid="booking-end-time">
-                                                  <SelectValue placeholder="10:00" />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent>
-                                                {timeSlots.map((time) => (
-                                                  <SelectItem key={time} value={time}>
-                                                    {time}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-                                    
-                                    <DialogFooter>
-                                      <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        onClick={() => setIsBookingDialogOpen(false)}
-                                        data-testid="button-cancel-booking"
-                                      >
-                                        {language === 'fr' ? 'Annuler' : 'Cancel'}
-                                      </Button>
-                                      <Button 
-                                        type="submit" 
-                                        disabled={createBookingMutation.isPending}
-                                        data-testid="button-confirm-booking"
-                                      >
-                                        {createBookingMutation.isPending 
-                                          ? (language === 'fr' ? 'Réservation...' : 'Booking...') 
-                                          : (language === 'fr' ? 'Réserver' : 'Book')
-                                        }
-                                      </Button>
-                                    </DialogFooter>
-                                  </form>
-                                </Form>
-                              </DialogContent>
-                            </Dialog>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <CalendarView
-                        mode="space"
-                        spaceId={space.id}
-                        showControls={false}
-                        onEventClick={(event) => {
-                          console.log('Clicked event:', event);
-                        }}
-                        data-testid={`inline-calendar-${space.id}`}
+                    <>
+                      <CommonSpaceCalendar
+                        space={space}
+                        onExport={exportAllBookings}
+                        onNewBooking={() => setIsBookingDialogOpen(true)}
+                        className="mt-4"
                       />
-                    </div>
+                      
+                      {/* Booking Dialog */}
+                      {space.isReservable && (
+                        <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+                          <DialogContent className="max-w-md" data-testid="booking-dialog">
+                            <DialogHeader>
+                              <DialogTitle>
+                                {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
+                              </DialogTitle>
+                              <DialogDescription>
+                                {language === 'fr' 
+                                  ? `Réserver ${space.name}`
+                                  : `Book ${space.name}`}
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <Form {...form}>
+                              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                <FormField
+                                  control={form.control}
+                                  name="date"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        {language === 'fr' ? 'Date' : 'Date'}
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Calendar
+                                          mode="single"
+                                          selected={field.value}
+                                          onSelect={field.onChange}
+                                          disabled={(date) => date < new Date()}
+                                          locale={language === 'fr' ? fr : undefined}
+                                          className="rounded-md border"
+                                          data-testid="booking-date-picker"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="startTime"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>
+                                          {language === 'fr' ? 'Heure de début' : 'Start Time'}
+                                        </FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger data-testid="booking-start-time">
+                                              <SelectValue placeholder="09:00" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {timeSlots.map((time) => (
+                                              <SelectItem 
+                                                key={time} 
+                                                value={time}
+                                                disabled={!isTimeSlotAvailable(time)}
+                                              >
+                                                {time}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={form.control}
+                                    name="endTime"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>
+                                          {language === 'fr' ? 'Heure de fin' : 'End Time'}
+                                        </FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger data-testid="booking-end-time">
+                                              <SelectValue placeholder="10:00" />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {timeSlots.map((time) => (
+                                              <SelectItem key={time} value={time}>
+                                                {time}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                
+                                <DialogFooter>
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    onClick={() => setIsBookingDialogOpen(false)}
+                                    data-testid="button-cancel-booking"
+                                  >
+                                    {language === 'fr' ? 'Annuler' : 'Cancel'}
+                                  </Button>
+                                  <Button 
+                                    type="submit" 
+                                    disabled={createBookingMutation.isPending}
+                                    data-testid="button-confirm-booking"
+                                  >
+                                    {createBookingMutation.isPending 
+                                      ? (language === 'fr' ? 'Réservation...' : 'Booking...') 
+                                      : (language === 'fr' ? 'Réserver' : 'Book')
+                                    }
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </>
                   )}
                 </div>
               ))}

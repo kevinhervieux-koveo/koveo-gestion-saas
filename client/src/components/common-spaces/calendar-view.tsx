@@ -120,7 +120,7 @@ export function CalendarView({
 
   const { data, isLoading, error } = useQuery<CalendarData>({
     queryKey: ['calendar', mode, spaceId, buildingId, startDate, endDate, viewMode],
-    queryFn: () => apiUrl ? apiRequest(apiUrl) : Promise.resolve(null),
+    queryFn: () => apiUrl ? apiRequest(apiUrl, 'GET') : Promise.resolve(null),
     enabled: !!apiUrl,
   });
 

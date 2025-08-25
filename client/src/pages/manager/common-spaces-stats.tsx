@@ -33,6 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
+import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
 /**
  * Building interface
@@ -932,15 +933,16 @@ function CommonSpacesStatsPage() {
               </CardHeader>
               <CardContent>
                 {selectedSpaceId ? (
-                  <CalendarView
-                    mode="space"
-                    spaceId={selectedSpaceId}
-                    showControls={true}
-                    onEventClick={(event) => {
-                      console.log('Manager viewing event:', event);
-                    }}
-                    data-testid="manager-space-calendar-view"
-                  />
+                  <div className="p-0">
+                    <CommonSpaceCalendar
+                      space={{
+                        id: selectedSpaceId,
+                        name: commonSpaces.find(s => s.id === selectedSpaceId)?.name || 'Espace sélectionné',
+                        isReservable: false
+                      }}
+                      className="border-0 shadow-none bg-transparent p-0"
+                    />
+                  </div>
                 ) : selectedBuildingId ? (
                   <CalendarView
                     mode="building"
