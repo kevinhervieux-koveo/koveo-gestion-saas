@@ -2317,31 +2317,29 @@ export class OptimizedDatabaseStorage implements IStorage {
     userRole: string,
     organizationId?: string
   ): Promise<Bug[]> {
-    const key = `bugs:user:${userId}:${userRole}:${organizationId || 'null'}`;
-    
-    return queryCache.get(
-      key,
-      async () => {
-        if (userRole === 'admin') {
-          // Admin can see all bugs
-          const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-          return result;
-        }
-        
-        if (userRole === 'manager' && organizationId) {
-          // For managers, return all bugs for now (can be refined later)
-          const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-          return result;
-        }
-        
-        // For residents and tenants, return only their own bugs
-        const result = await db.select()
-          .from(schema.bugs)
-          .where(eq(schema.bugs.createdBy, userId))
-          .orderBy(desc(schema.bugs.createdAt));
-        return result;
+    try {
+      if (userRole === 'admin') {
+        // Admin can see all bugs
+        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
+        return result || [];
       }
-    );
+      
+      if (userRole === 'manager' && organizationId) {
+        // For managers, return all bugs for now (can be refined later)
+        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
+        return result || [];
+      }
+      
+      // For residents and tenants, return only their own bugs
+      const result = await db.select()
+        .from(schema.bugs)
+        .where(eq(schema.bugs.createdBy, userId))
+        .orderBy(desc(schema.bugs.createdAt));
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching bugs:', error);
+      return [];
+    }
   }
 
   async getBug(

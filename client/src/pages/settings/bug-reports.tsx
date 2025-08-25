@@ -98,7 +98,7 @@ export default function BugReports() {
 
   // Create bug mutation
   const createBugMutation = useMutation({
-    mutationFn: (data: BugFormData) => apiRequest('/api/bugs', 'POST', data),
+    mutationFn: (data: BugFormData) => apiRequest('POST', '/api/bugs', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
       setIsCreateDialogOpen(false);
