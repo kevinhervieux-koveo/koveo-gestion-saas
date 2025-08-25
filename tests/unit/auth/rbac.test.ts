@@ -7,14 +7,14 @@
 import { describe, it, expect, beforeEach as _beforeEach, afterEach as _afterEach, jest } from '@jest/globals';
 import { 
   getUserAccessibleOrganizations as _getUserAccessibleOrganizations,
-  canUserAccessOrganization, 
-  canUserAccessBuilding,
-  canUserAccessResidence,
-  canUserPerformWriteOperation,
-  isOpenDemoUser
+  canUserAccessOrganization as _canUserAccessOrganization, 
+  canUserAccessBuilding as _canUserAccessBuilding,
+  canUserAccessResidence as _canUserAccessResidence,
+  canUserPerformWriteOperation as _canUserPerformWriteOperation,
+  isOpenDemoUser as _isOpenDemoUser
 } from '../../../server/rbac';
-import { db } from '../../../server/db';
-import type { AuthenticatedUser } from '../../../server/rbac';
+import { db as _db } from '../../../server/db';
+import type { AuthenticatedUser as _AuthenticatedUser } from '../../../server/rbac';
 
 // Mock database functions for testing
 jest.mock('../../../server/db', () => ({
@@ -52,7 +52,7 @@ const ROLES = {
 } as const;
 
 // Test data
-const testUsers = {
+const _testUsers = {
   admin: {
     id: 'admin-user-id',
     username: 'admin@test.com',
@@ -114,7 +114,7 @@ const testBuildings = {
   },
 };
 
-const testResidences = {
+const _testResidences = {
   demo: {
     id: 'demo-residence-id',
     buildingId: testBuildings.demo.id,

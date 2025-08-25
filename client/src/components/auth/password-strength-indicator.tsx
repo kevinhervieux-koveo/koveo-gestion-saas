@@ -31,15 +31,6 @@ interface PasswordStrengthIndicatorProps {
  * @param root0.className - Optional CSS class name.
  * @returns JSX element for password strength indicator.
  */
-/**
- * PasswordStrengthIndicator function.
- * @param root0
- * @param root0.password
- * @param root0.showPassword
- * @param root0.onToggleVisibility
- * @param root0.className
- * @returns Function result.
- */
 export function PasswordStrengthIndicator({ 
   password, 
   showPassword, 

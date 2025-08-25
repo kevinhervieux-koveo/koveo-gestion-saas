@@ -60,17 +60,6 @@ interface RegistrationWizardProps {
  * @param root0.className - Optional CSS class name.
  * @returns JSX element for the registration wizard.
  */
-/**
- * RegistrationWizard function.
- * @param root0
- * @param root0.steps
- * @param root0.initialData
- * @param root0.onComplete
- * @param root0.onCancel
- * @param root0.title
- * @param root0.className
- * @returns Function result.
- */
 export function RegistrationWizard({
   steps: initialSteps,
   initialData = {},

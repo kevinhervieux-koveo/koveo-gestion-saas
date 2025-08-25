@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState as _useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { FeatureCard } from './feature-card';
@@ -10,7 +10,7 @@ import type { DuplicateInfo } from './feature-duplicate-analysis';
  */
 export interface Section {
   title: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
   features: Feature[];
 }
@@ -52,25 +52,6 @@ interface RoadmapSectionProps {
  * @param root0.onCopyPrompt
  * @param root0.onUpdateStatus
  * @param root0.onToggleStrategic
- */
-/**
- * RoadmapSection function.
- * @param root0
- * @param root0.section
- * @param root0.isExpanded
- * @param root0.expandedFeatures
- * @param root0.actionableItems
- * @param root0.duplicateAnalysis
- * @param root0.searchTerm
- * @param root0.onToggleSection
- * @param root0.onToggleFeature
- * @param root0.onFeatureClick
- * @param root0.onToggleActionableItem
- * @param root0.onFetchActionableItems
- * @param root0.onCopyPrompt
- * @param root0.onUpdateStatus
- * @param root0.onToggleStrategic
- * @returns Function result.
  */
 export function RoadmapSection({
   section,

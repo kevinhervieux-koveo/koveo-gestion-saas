@@ -79,11 +79,11 @@ interface InvitationManagementProps {
 /**
  * Invitation Management Component
  * Displays and manages user invitations with actions for reminders, cancellation, etc.
- * @param props - Component props
- * @param props.invitations - Array of invitation objects
- * @param props.onSendReminder - Callback for sending invitation reminders
- * @param props.onRefresh - Callback to refresh the invitation list
- * @param props.isLoading - Loading state indicator
+ * @param props - Component props.
+ * @param props.invitations - Array of invitation objects.
+ * @param props.onSendReminder - Callback for sending invitation reminders.
+ * @param props.onRefresh - Callback to refresh the invitation list.
+ * @param props.isLoading - Loading state indicator.
  * @returns JSX element for the invitation management interface.
  */
 export function InvitationManagement({ 

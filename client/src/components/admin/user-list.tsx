@@ -53,20 +53,12 @@ interface EditUserDialogProps {
 
 /**
  * Edit User Dialog Component - Now using BaseDialog and StandardForm.
- * @param root0
- * @param root0.user
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.onSuccess
- */
-/**
- * EditUserDialog function.
- * @param root0
- * @param root0.user
- * @param root0.open
- * @param root0.onOpenChange
- * @param root0.onSuccess
- * @returns Function result.
+ * @param root0 - The component props.
+ * @param root0.user - The user object to edit.
+ * @param root0.open - Whether the dialog is open.
+ * @param root0.onOpenChange - Callback when dialog open state changes.
+ * @param root0.onSuccess - Callback when edit is successful.
+ * @returns JSX element for the edit user dialog.
  */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
@@ -131,22 +123,13 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
 
 /**
  * User List Component - Now using reusable DataTable.
- * @param root0
- * @param root0.users
- * @param root0.selectedUsers
- * @param root0.onSelectionChange
- * @param root0.onBulkAction
- * @param root0.isLoading
- */
-/**
- * UserListComponent function.
- * @param root0
- * @param root0.users
- * @param root0.selectedUsers
- * @param root0.onSelectionChange
- * @param root0.onBulkAction
- * @param root0.isLoading
- * @returns Function result.
+ * @param root0 - The component props.
+ * @param root0.users - Array of users to display.
+ * @param root0.selectedUsers - Array of currently selected users.
+ * @param root0.onSelectionChange - Callback when user selection changes.
+ * @param root0.onBulkAction - Callback for bulk actions on selected users.
+ * @param root0.isLoading - Whether the component is in loading state.
+ * @returns JSX element for the user list component.
  */
 export function UserListComponent({ 
   users, 

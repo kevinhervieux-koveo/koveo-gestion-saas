@@ -545,7 +545,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
         mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
         mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([]);
         
-        const result = await getUserAccessibleOrganizations(id as any);
+        const result = await getUserAccessibleOrganizations(id as string);
         expect(Array.isArray(result)).toBe(true);
       }
     });

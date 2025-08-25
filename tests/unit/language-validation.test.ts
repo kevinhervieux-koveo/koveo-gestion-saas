@@ -94,7 +94,7 @@ const QUEBEC_LEGAL_TERMS = {
 
 /**
  * Extracts all visible text from a rendered React component.
- * @param container - The HTML element to extract text from
+ * @param container - The HTML element to extract text from.
  * @returns Array of visible text strings.
  */
 function extractVisibleText(container: HTMLElement): string[] {
@@ -102,8 +102,8 @@ function extractVisibleText(container: HTMLElement): string[] {
   
   /**
    * Traverses DOM nodes to extract text content.
-   * @param node - The DOM node to traverse
-   * @returns void.
+   * @param node - The DOM node to traverse.
+   * @returns Void.
    */
   function traverse(node: globalThis.Node) {
     if (node.nodeType === globalThis.Node.TEXT_NODE) { // 3 = TEXT_NODE
@@ -147,9 +147,9 @@ function extractVisibleText(container: HTMLElement): string[] {
  */
 /**
  * ValidateText function.
- * @param text - The text to validate
- * @param _context - Context information for the validation
- * @returns Array of validation violations
+ * @param text - The text to validate.
+ * @param _context - Context information for the validation.
+ * @returns Array of validation violations.
  */
 function validateText(text: string, _context: string = ''): Array<{
   type: 'anglicism' | 'france_french' | 'technical' | 'legal_violation' | 'missing_accent';
@@ -287,9 +287,9 @@ class LanguageValidator {
      */
     /**
      * ExtractStrings function.
-     * @param obj - Object to extract strings from
-     * @param path - Current path in the object
-     * @returns Array of extracted strings
+     * @param obj - Object to extract strings from.
+     * @param path - Current path in the object.
+     * @returns Array of extracted strings.
      */
     function extractStrings(obj: unknown, path: string = ''): string[] {
       const strings: string[] = [];

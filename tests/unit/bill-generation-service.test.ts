@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, jest, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeEach as _beforeEach, afterEach as _afterEach, jest as _jest, beforeAll, afterAll } from '@jest/globals';
 import { billGenerationService } from '../../server/services/bill-generation-service';
 import { db } from '../../server/db';
-import { bills, users } from '../../shared/schema';
+import { bills, users as _users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 /**

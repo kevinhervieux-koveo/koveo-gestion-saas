@@ -74,9 +74,9 @@ const billCreateSchema = z.object({
 
 /**
  * Bill creation form with manual entry and AI document analysis.
- * @param props - Component props
- * @param props.buildingId - The ID of the building to create the bill for
- * @param props.onSuccess - Callback function called when bill is successfully created
+ * @param props - Component props.
+ * @param props.buildingId - The ID of the building to create the bill for.
+ * @param props.onSuccess - Callback function called when bill is successfully created.
  * @returns JSX element for bill creation form.
  */
 export function BillCreateForm({ 

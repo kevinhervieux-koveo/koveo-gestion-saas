@@ -205,7 +205,7 @@ export class AIAgentToolkit {
       });
       analysis.typeScriptErrors = (tscOutput.match(/error TS\d+:/g) || []).length;
     } catch (_error: unknown) {
-      const errorOutput = (_error as NodeJS.ErrnoException).stdout || (_error as Error).message;
+      const errorOutput = (_error as { stdout?: string }).stdout || (_error as Error).message;
       analysis.typeScriptErrors = (errorOutput.match(/error TS\d+:/g) || []).length;
     }
 
@@ -216,6 +216,9 @@ export class AIAgentToolkit {
         cwd: this.projectRoot 
       });
       const lintResults = JSON.parse(lintOutput);
+      /**
+       *
+       */
       interface LintResult {
         warningCount?: number;
         errorCount?: number;
@@ -224,7 +227,7 @@ export class AIAgentToolkit {
         total + (file.warningCount || 0) + (file.errorCount || 0), 0);
     } catch (_error: unknown) {
       try {
-        const errorOutput = (_error as NodeJS.ErrnoException).stdout || '';
+        const errorOutput = (_error as { stdout?: string }).stdout || '';
         if (errorOutput) {
           const lintResults = JSON.parse(errorOutput);
           analysis.lintWarnings = lintResults.reduce((total: number, file: LintResult) => 
