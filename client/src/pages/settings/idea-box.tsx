@@ -28,7 +28,15 @@ const featureRequestFormSchema = z.object({
   page: z.string().min(1, 'Page is required'),
 });
 
+// Enhanced edit form schema for admins (includes status)
+const adminEditFormSchema = featureRequestFormSchema.extend({
+  status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']),
+  assignedTo: z.string().optional(),
+  adminNotes: z.string().optional(),
+});
+
 type FeatureRequestFormData = z.infer<typeof featureRequestFormSchema>;
+type AdminEditFormData = z.infer<typeof adminEditFormSchema>;
 
 interface FeatureRequest {
   id: string;
@@ -90,8 +98,8 @@ export default function IdeaBox() {
     resolver: zodResolver(featureRequestFormSchema),
   });
 
-  const editForm = useForm<FeatureRequestFormData>({
-    resolver: zodResolver(featureRequestFormSchema),
+  const editForm = useForm<AdminEditFormData>({
+    resolver: zodResolver(adminEditFormSchema),
   });
 
   // Fetch feature requests
@@ -123,7 +131,7 @@ export default function IdeaBox() {
 
   // Update feature request mutation (admin only)
   const updateFeatureRequestMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<FeatureRequestFormData> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminEditFormData> }) => 
       apiRequest('PATCH', `/api/feature-requests/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
@@ -205,7 +213,7 @@ export default function IdeaBox() {
     createFeatureRequestMutation.mutate(data);
   };
 
-  const onEditSubmit = (data: FeatureRequestFormData) => {
+  const onEditSubmit = (data: AdminEditFormData) => {
     if (editingFeatureRequest) {
       updateFeatureRequestMutation.mutate({ id: editingFeatureRequest.id, data });
     }
@@ -221,8 +229,17 @@ export default function IdeaBox() {
       need: featureRequest.need,
       category: featureRequest.category as any,
       page: featureRequest.page,
+      status: featureRequest.status as any,
+      assignedTo: featureRequest.assignedTo || '',
+      adminNotes: featureRequest.adminNotes || '',
     });
     setIsEditDialogOpen(true);
+  };
+
+  const handleFeatureRequestClick = (featureRequest: FeatureRequest) => {
+    if (canEditFeatureRequest()) {
+      handleEdit(featureRequest);
+    }
   };
 
   const handleDelete = (featureRequestId: string) => {
@@ -465,7 +482,12 @@ export default function IdeaBox() {
               </Card>
             ) : (
               filteredAndSortedFeatureRequests.map((request: FeatureRequest) => (
-                <Card key={request.id} className='hover:shadow-md transition-shadow'>
+                <Card 
+                  key={request.id} 
+                  className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  onClick={() => handleFeatureRequestClick(request)}
+                  data-testid={`card-feature-request-${request.id}`}
+                >
                   <CardContent className='p-6'>
                     <div className='flex items-start justify-between'>
                       <div className='flex-1'>
@@ -573,7 +595,7 @@ export default function IdeaBox() {
           {/* Edit Feature Request Dialog */}
           {canEditFeatureRequest() && (
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto' data-testid='edit-feature-request-dialog'>
+              <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto' data-testid='edit-feature-request-dialog'>
                 <DialogHeader>
                   <DialogTitle>Edit Feature Request</DialogTitle>
                 </DialogHeader>
@@ -610,6 +632,45 @@ export default function IdeaBox() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor='edit-status' className='text-sm font-medium'>
+                        Status <span className='text-red-500'>*</span>
+                      </Label>
+                      <Select
+                        value={editForm.watch('status')}
+                        onValueChange={(value) => editForm.setValue('status', value as any)}
+                      >
+                        <SelectTrigger data-testid='select-edit-status'>
+                          <SelectValue placeholder='Select status' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='submitted'>Submitted</SelectItem>
+                          <SelectItem value='under_review'>Under Review</SelectItem>
+                          <SelectItem value='planned'>Planned</SelectItem>
+                          <SelectItem value='in_progress'>In Progress</SelectItem>
+                          <SelectItem value='completed'>Completed</SelectItem>
+                          <SelectItem value='rejected'>Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {editForm.formState.errors.status && (
+                        <p className='text-red-500 text-xs'>{editForm.formState.errors.status.message}</p>
+                      )}
+                    </div>
+
+                    <div className='space-y-2'>
+                      <Label htmlFor='edit-assigned-to' className='text-sm font-medium'>
+                        Assigned To
+                      </Label>
+                      <Input
+                        id='edit-assigned-to'
+                        {...editForm.register('assignedTo')}
+                        placeholder='Assign to team member'
+                        data-testid='input-edit-assigned-to'
+                      />
                     </div>
                   </div>
 
@@ -656,6 +717,19 @@ export default function IdeaBox() {
                     {editForm.formState.errors.page && (
                       <p className='text-red-500 text-xs'>{editForm.formState.errors.page.message}</p>
                     )}
+                  </div>
+
+                  <div className='space-y-2'>
+                    <Label htmlFor='edit-admin-notes' className='text-sm font-medium'>
+                      Admin Notes
+                    </Label>
+                    <Textarea
+                      id='edit-admin-notes'
+                      {...editForm.register('adminNotes')}
+                      rows={3}
+                      placeholder='Internal notes for team members'
+                      data-testid='textarea-edit-admin-notes'
+                    />
                   </div>
 
                   <div className='flex justify-end gap-2 pt-4'>
