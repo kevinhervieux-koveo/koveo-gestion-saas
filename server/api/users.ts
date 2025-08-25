@@ -536,4 +536,225 @@ export function registerUserRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * GET /api/users/me/data-export - Download user data for Law 25 compliance.
+   */
+  app.get('/api/users/me/data-export', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Get all user data for export
+      const userData = await storage.getUser(currentUser.id);
+      if (!userData) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+
+      // Remove sensitive fields
+      const { password, ...userDataExport } = userData;
+
+      // Get related data
+      const [organizations, residences, bills, documents, notifications, maintenanceRequests] = await Promise.all([
+        db.select().from(schema.userOrganizations).where(eq(schema.userOrganizations.userId, currentUser.id)),
+        db.select().from(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
+        db.select().from(schema.bills).innerJoin(schema.userResidences, eq(schema.bills.residenceId, schema.userResidences.residenceId))
+          .where(eq(schema.userResidences.userId, currentUser.id)),
+        db.select().from(schema.documents).innerJoin(schema.documentResident, eq(schema.documents.id, schema.documentResident.documentId))
+          .where(eq(schema.documentResident.userId, currentUser.id)),
+        db.select().from(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
+        db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+      ]);
+
+      const exportData = {
+        personalInformation: userDataExport,
+        organizations,
+        residences,
+        bills: bills.map(b => b.bills),
+        documents: documents.map(d => d.documents),
+        notifications,
+        maintenanceRequests,
+        exportDate: new Date().toISOString(),
+        note: 'This export contains all personal data we have on file for you in compliance with Quebec Law 25.'
+      };
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error('Failed to export user data:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to export user data',
+      });
+    }
+  });
+
+  /**
+   * POST /api/users/me/delete-account - Complete account deletion for Law 25 compliance.
+   */
+  app.post('/api/users/me/delete-account', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      const { confirmEmail, reason } = req.body;
+
+      // Verify email confirmation
+      if (confirmEmail !== currentUser.email) {
+        return res.status(400).json({
+          message: 'Email confirmation does not match',
+          code: 'EMAIL_MISMATCH'
+        });
+      }
+
+      // Delete all related data in the correct order to handle foreign key constraints
+      await Promise.all([
+        // Delete user relationships
+        db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, currentUser.id)),
+        db.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
+        db.delete(schema.documentResident).where(eq(schema.documentResident.userId, currentUser.id)),
+        
+        // Delete user-created content
+        db.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
+        db.delete(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+        
+        // Delete invitations
+        db.delete(schema.invitations).where(eq(schema.invitations.email, currentUser.email)),
+      ]);
+
+      // Finally, delete the user account
+      await db.delete(schema.users).where(eq(schema.users.id, currentUser.id));
+
+      // Log the deletion for audit purposes
+      console.log(`User account deleted: ${currentUser.email} (${currentUser.id}). Reason: ${reason || 'Not provided'}`);
+
+      // Clear session
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.error('Failed to destroy session after account deletion:', err);
+          }
+        });
+      }
+
+      res.json({
+        message: 'Account successfully deleted. All personal data has been permanently removed from our systems.',
+        deletionDate: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to delete user account:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete account. Please contact support.',
+      });
+    }
+  });
+
+  /**
+   * PUT /api/users/me - Update current user's profile.
+   */
+  app.put('/api/users/me', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Validate the update data (excluding password updates for security)
+      const updateSchema = insertUserSchema.partial().omit({ password: true, id: true, role: true });
+      const validatedData = updateSchema.parse(req.body);
+
+      const user = await storage.updateUser(currentUser.id, {
+        ...validatedData,
+        updatedAt: new Date(),
+      } as any);
+
+      if (!user) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+
+      // Remove sensitive information before sending response
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update profile',
+      });
+    }
+  });
+
+  /**
+   * POST /api/users/me/change-password - Change current user's password.
+   */
+  app.post('/api/users/me/change-password', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+          message: 'Current password and new password are required',
+          code: 'INVALID_INPUT'
+        });
+      }
+
+      // Verify current password
+      const bcrypt = require('bcryptjs');
+      const user = await storage.getUser(currentUser.id);
+      if (!user || !await bcrypt.compare(currentPassword, user.password)) {
+        return res.status(400).json({
+          message: 'Current password is incorrect',
+          code: 'INVALID_PASSWORD'
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+      // Update password
+      await storage.updateUser(currentUser.id, {
+        password: hashedPassword,
+        updatedAt: new Date(),
+      } as any);
+
+      res.json({
+        message: 'Password changed successfully'
+      });
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to change password',
+      });
+    }
+  });
 }
