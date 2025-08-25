@@ -117,6 +117,132 @@ export const handlers = [
     return HttpResponse.json({ status: 'ready' });
   }),
 
+  // Common Spaces endpoints
+  http.get('/api/common-spaces', () => {
+    return HttpResponse.json([
+      {
+        id: 'space-1',
+        name: 'Gym',
+        description: 'Building gymnasium',
+        buildingId: 'building-1',
+        buildingName: 'Test Building',
+        isReservable: true,
+        capacity: 20,
+        openingHours: [
+          { day: 'monday', open: '06:00', close: '22:00' },
+          { day: 'tuesday', open: '06:00', close: '22:00' },
+          { day: 'wednesday', open: '06:00', close: '22:00' },
+          { day: 'thursday', open: '06:00', close: '22:00' },
+          { day: 'friday', open: '06:00', close: '22:00' },
+          { day: 'saturday', open: '08:00', close: '20:00' },
+          { day: 'sunday', open: '08:00', close: '20:00' },
+        ],
+        bookingRules: 'Maximum 2 hours per booking',
+      },
+      {
+        id: 'space-2',
+        name: 'Meeting Room',
+        description: 'Conference room',
+        buildingId: 'building-1',
+        buildingName: 'Test Building',
+        isReservable: false,
+        capacity: 10,
+        openingHours: [],
+      }
+    ]);
+  }),
+
+  http.get('/api/common-spaces/:spaceId/bookings', () => {
+    return HttpResponse.json([
+      {
+        id: 'booking-1',
+        commonSpaceId: 'space-1',
+        userId: 'user-456',
+        userName: 'Other User',
+        userEmail: 'other@example.com',
+        startTime: new Date('2024-01-15T10:00:00Z').toISOString(),
+        endTime: new Date('2024-01-15T11:00:00Z').toISOString(),
+        status: 'confirmed',
+      }
+    ]);
+  }),
+
+  http.post('/api/common-spaces/:spaceId/bookings', () => {
+    return HttpResponse.json({
+      message: 'Booking created successfully',
+      booking: {
+        id: 'new-booking-1',
+        commonSpaceId: 'space-1',
+        userId: '1',
+        startTime: new Date('2024-01-20T09:00:00Z').toISOString(),
+        endTime: new Date('2024-01-20T10:00:00Z').toISOString(),
+        status: 'confirmed',
+      }
+    }, { status: 201 });
+  }),
+
+  http.get('/api/common-spaces/my-bookings', () => {
+    return HttpResponse.json([
+      {
+        id: 'my-booking-1',
+        commonSpaceId: 'space-1',
+        spaceName: 'Gym',
+        buildingName: 'Test Building',
+        startTime: new Date('2024-01-20T14:00:00Z').toISOString(),
+        endTime: new Date('2024-01-20T15:00:00Z').toISOString(),
+        status: 'confirmed',
+      }
+    ]);
+  }),
+
+  http.get('/api/manager/buildings', () => {
+    return HttpResponse.json({
+      buildings: [
+        {
+          id: 'building-1',
+          name: 'Test Building',
+          address: '123 Test St',
+          city: 'Test City',
+          organizationId: 'org-1',
+        }
+      ]
+    });
+  }),
+
+  http.get('/api/common-spaces/:spaceId/stats', () => {
+    return HttpResponse.json({
+      spaceName: 'Gym',
+      period: 'Last 12 months',
+      summary: {
+        totalBookings: 50,
+        totalHours: 75.5,
+        uniqueUsers: 15,
+      },
+      userStats: [
+        {
+          userId: 'user-1',
+          userName: 'John Doe',
+          userEmail: 'john@example.com',
+          totalHours: 12.5,
+          totalBookings: 8,
+        },
+        {
+          userId: 'user-2',
+          userName: 'Jane Smith',
+          userEmail: 'jane@example.com',
+          totalHours: 8.0,
+          totalBookings: 5,
+        }
+      ]
+    });
+  }),
+
+  http.post('/api/common-spaces/users/:userId/restrictions', () => {
+    return HttpResponse.json({
+      message: 'User blocked from booking this space'
+    });
+  }),
+
   // Root and dashboard routes
   http.get('/', () => {
     return HttpResponse.html(`<!DOCTYPE html>

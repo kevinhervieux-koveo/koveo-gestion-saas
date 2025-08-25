@@ -29,6 +29,14 @@ export const createTestQueryClient = () => new QueryClient({
     queries: {
       retry: false,
       staleTime: Infinity,
+      queryFn: async ({ queryKey }) => {
+        const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+        const response = await fetch(url as string);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      },
     },
     mutations: {
       retry: false,
