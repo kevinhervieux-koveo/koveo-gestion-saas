@@ -423,7 +423,7 @@ describe('Budget API Integration and Data Flow Testing', () => {
 
       // Generate budget with no buildings
       const budgetSummary = {
-        totalIncome: emptyBuildings.reduce((sum, building) => sum + 2500, 0),
+        totalIncome: emptyBuildings.reduce((sum: number, _building) => sum + 2500, 0),
         totalExpenses: 0,
         netCashFlow: 0,
         buildings: emptyBuildings,

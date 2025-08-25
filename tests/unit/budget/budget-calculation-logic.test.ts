@@ -153,7 +153,13 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       const baseContribution = shortfall / totalUnits;
 
       // Create property contribution breakdown
-      const propertyContributions = [];
+      const propertyContributions: Array<{
+        buildingId: string;
+        unitNumber: string;
+        ownershipPercentage: number;
+        contribution: number;
+        squareFootage: number;
+      }> = [];
       let unitNumber = 101;
 
       for (const building of demoBuildings) {
@@ -178,7 +184,7 @@ describe('Budget Calculation Logic with Demo Organization Data', () => {
       expect(baseContribution).toBe(1500); // $15,000 / 10 units
 
       const totalContributions = propertyContributions.reduce(
-        (sum, prop) => sum + prop.contribution,
+        (sum: number, prop) => sum + prop.contribution,
         0
       );
       expect(totalContributions).toBeCloseTo(shortfall, 2);

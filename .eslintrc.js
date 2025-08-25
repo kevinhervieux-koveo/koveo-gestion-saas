@@ -141,7 +141,8 @@ module.exports = {
       files: ['**/*.test.{ts,tsx,js,jsx}', '**/tests/**/*.{ts,tsx,js,jsx}', 'tests/**/*.{ts,tsx,js,jsx}'],
       env: {
         jest: true,
-        node: true
+        node: true,
+        browser: true
       },
       globals: {
         jest: 'readonly',
@@ -154,20 +155,32 @@ module.exports = {
         beforeAll: 'readonly',
         afterAll: 'readonly',
         URL: 'readonly',
-        performance: 'readonly'
+        performance: 'readonly',
+        console: 'readonly'
       },
       rules: {
+        // Completely disable JSDoc for test files
         'jsdoc/require-jsdoc': 'off',
         'jsdoc/require-description': 'off',
         'jsdoc/require-param-description': 'off',
         'jsdoc/require-returns-description': 'off',
         'jsdoc/require-returns': 'off',
         'jsdoc/check-param-names': 'off',
-        '@typescript-eslint/no-explicit-any': 'warn',
+        'jsdoc/require-param': 'off',
+        
+        // Relaxed rules for test files
+        '@typescript-eslint/no-explicit-any': 'off',
         'no-console': 'off',
         'no-undef': 'off',
         'no-unused-vars': 'off',
-        '@typescript-eslint/no-unused-vars': 'off'
+        '@typescript-eslint/no-unused-vars': 'off',
+        
+        // Additional relaxed rules for tests
+        'no-var': 'off',
+        'prefer-const': 'off',
+        'no-empty': 'off',
+        'security/detect-object-injection': 'off',
+        'security/detect-non-literal-regexp': 'off'
       }
     },
     {
