@@ -787,6 +787,47 @@ export function registerCommonSpacesRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/common-spaces/my-bookings - Get current user's bookings
+   */
+  app.get('/api/common-spaces/my-bookings', requireAuth, async (req: any, res: Response) => {
+    try {
+      const user = req.user;
+      
+      // Get all user's confirmed bookings with space and building info
+      const userBookings = await db
+        .select({
+          id: bookings.id,
+          commonSpaceId: bookings.commonSpaceId,
+          startTime: bookings.startTime,
+          endTime: bookings.endTime,
+          status: bookings.status,
+          createdAt: bookings.createdAt,
+          commonSpaceName: commonSpaces.name,
+          buildingName: buildings.name,
+          buildingAddress: buildings.address
+        })
+        .from(bookings)
+        .innerJoin(commonSpaces, eq(bookings.commonSpaceId, commonSpaces.id))
+        .innerJoin(buildings, eq(commonSpaces.buildingId, buildings.id))
+        .where(
+          and(
+            eq(bookings.userId, user.id),
+            eq(bookings.status, 'confirmed')
+          )
+        )
+        .orderBy(desc(bookings.startTime));
+
+      res.json(userBookings);
+    } catch (error) {
+      console.error('Error fetching user bookings:', error);
+      res.status(500).json({
+        message: 'Failed to fetch user bookings',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
    * DELETE /api/common-spaces/bookings/:bookingId - Cancel a booking
    */
   app.delete('/api/common-spaces/bookings/:bookingId', requireAuth, async (req: any, res: Response) => {
