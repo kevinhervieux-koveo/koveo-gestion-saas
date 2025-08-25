@@ -27,7 +27,8 @@ import {
   Plus,
   Timer,
   CalendarDays,
-  Eye
+  Eye,
+  Edit
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -144,6 +145,7 @@ function CommonSpacesStatsPage() {
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     name: '',
     description: '',
@@ -197,7 +199,7 @@ function CommonSpacesStatsPage() {
   // Block/Unblock user mutation
   const toggleUserRestrictionMutation = useMutation({
     mutationFn: async ({ userId, isBlocked, reason }: { userId: string; isBlocked: boolean; reason?: string }) => {
-      return apiRequest(`/api/common-spaces/users/${userId}/restrictions`, 'POST', {
+      return apiRequest('POST', `/api/common-spaces/users/${userId}/restrictions`, {
         common_space_id: selectedSpaceId,
         is_blocked: isBlocked,
         reason: reason || '',
@@ -223,7 +225,7 @@ function CommonSpacesStatsPage() {
     },
   });
 
-  // Mutation to create a new common space
+  // Mutation to create or update a common space
   const createSpaceMutation = useMutation({
     mutationFn: async (spaceData: {
       name: string;
@@ -233,20 +235,22 @@ function CommonSpacesStatsPage() {
       capacity?: number;
       opening_hours?: { start: string; end: string };
     }) => {
-      return apiRequest('/api/common-spaces', {
-        method: 'POST',
-        body: spaceData
-      });
+      if (isEditMode && selectedSpaceId) {
+        return apiRequest('PUT', `/api/common-spaces/${selectedSpaceId}`, spaceData);
+      } else {
+        return apiRequest('POST', '/api/common-spaces', spaceData);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' 
-          ? 'L\'espace commun a été créé avec succès.' 
-          : 'Common space created successfully.'
+        description: isEditMode 
+          ? (language === 'fr' ? 'L\'espace commun a été modifié avec succès.' : 'Common space updated successfully.')
+          : (language === 'fr' ? 'L\'espace commun a été créé avec succès.' : 'Common space created successfully.')
       });
       setCreateDialogOpen(false);
+      setIsEditMode(false);
       setCreateFormData({
         name: '',
         description: '',
@@ -273,9 +277,9 @@ function CommonSpacesStatsPage() {
       console.error('Error creating space:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr'
-          ? 'Impossible de créer l\'espace commun.'
-          : 'Failed to create common space.',
+        description: isEditMode
+          ? (language === 'fr' ? 'Impossible de modifier l\'espace commun.' : 'Failed to update common space.')
+          : (language === 'fr' ? 'Impossible de créer l\'espace commun.' : 'Failed to create common space.'),
         variant: 'destructive'
       });
     }
@@ -317,14 +321,11 @@ function CommonSpacesStatsPage() {
       limit_hours: number;
       common_space_id?: string;
     }) => {
-      return apiRequest(`/api/common-spaces/users/${limitData.user_id}/time-limits`, {
-        method: 'POST',
-        body: {
-          user_id: limitData.user_id,
-          limit_type: limitData.limit_type,
-          limit_hours: limitData.limit_hours,
-          common_space_id: limitData.common_space_id
-        }
+      return apiRequest('POST', `/api/common-spaces/users/${limitData.user_id}/time-limits`, {
+        user_id: limitData.user_id,
+        limit_type: limitData.limit_type,
+        limit_hours: limitData.limit_hours,
+        common_space_id: limitData.common_space_id
       });
     },
     onSuccess: () => {
@@ -421,12 +422,20 @@ function CommonSpacesStatsPage() {
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>
-                      {language === 'fr' ? 'Créer un nouvel espace commun' : 'Create New Common Space'}
+                      {isEditMode 
+                        ? (language === 'fr' ? 'Modifier l\'espace commun' : 'Edit Common Space')
+                        : (language === 'fr' ? 'Créer un nouvel espace commun' : 'Create New Common Space')
+                      }
                     </DialogTitle>
                     <DialogDescription>
-                      {language === 'fr' 
-                        ? 'Ajoutez un nouvel espace partagé pour les résidents de ce bâtiment.'
-                        : 'Add a new shared space for residents in this building.'}
+                      {isEditMode
+                        ? (language === 'fr' 
+                          ? 'Modifiez les détails de cet espace partagé.'
+                          : 'Edit the details of this shared space.')
+                        : (language === 'fr' 
+                          ? 'Ajoutez un nouvel espace partagé pour les résidents de ce bâtiment.'
+                          : 'Add a new shared space for residents in this building.')
+                      }
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -699,16 +708,60 @@ function CommonSpacesStatsPage() {
         </Card>
 
         <Tabs defaultValue="stats" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="stats" className="flex items-center gap-2" data-testid="tab-stats">
-              <BarChart3 className="h-4 w-4" />
-              {language === 'fr' ? 'Statistiques' : 'Statistics'}
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
-              <CalendarDays className="h-4 w-4" />
-              {language === 'fr' ? 'Calendrier' : 'Calendar'}
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList className="grid grid-cols-2 max-w-md">
+              <TabsTrigger value="stats" className="flex items-center gap-2" data-testid="tab-stats">
+                <BarChart3 className="h-4 w-4" />
+                {language === 'fr' ? 'Statistiques' : 'Statistics'}
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
+                <CalendarDays className="h-4 w-4" />
+                {language === 'fr' ? 'Calendrier' : 'Calendar'}
+              </TabsTrigger>
+            </TabsList>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              disabled={!selectedSpaceId}
+              onClick={() => {
+                if (selectedSpaceId) {
+                  // Find the selected space details
+                  const selectedSpace = commonSpaces.find(s => s.id === selectedSpaceId);
+                  if (selectedSpace) {
+                    setCreateFormData({
+                      name: selectedSpace.name,
+                      description: selectedSpace.description || '',
+                      building_id: selectedBuildingId,
+                      is_reservable: selectedSpace.isReservable,
+                      capacity: selectedSpace.capacity?.toString() || '',
+                      hours_mode: 'same',
+                      opening_hours: {
+                        start: '08:00',
+                        end: '22:00'
+                      },
+                      weekly_hours: {
+                        monday: { start: '08:00', end: '22:00' },
+                        tuesday: { start: '08:00', end: '22:00' },
+                        wednesday: { start: '08:00', end: '22:00' },
+                        thursday: { start: '08:00', end: '22:00' },
+                        friday: { start: '08:00', end: '22:00' },
+                        saturday: { start: '09:00', end: '21:00' },
+                        sunday: { start: '09:00', end: '21:00' }
+                      }
+                    });
+                    setIsEditMode(true);
+                    setCreateDialogOpen(true);
+                  }
+                }
+              }}
+              data-testid="button-edit-space"
+            >
+              <Edit className="h-4 w-4" />
+              {language === 'fr' ? 'Modifier' : 'Edit'}
+            </Button>
+          </div>
 
           <TabsContent value="stats" className="space-y-6">
             {spaceStats && (
