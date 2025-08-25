@@ -22,6 +22,7 @@ import {
   Users, 
   MapPin, 
   Download,
+  Link,
   Calendar as CalendarIcon,
   Plus,
   X,
@@ -342,16 +343,28 @@ export default function CommonSpacesPage() {
             <h2 className="text-2xl font-bold text-gray-900" data-testid="spaces-list-title">
               {language === 'fr' ? 'Espaces Disponibles' : 'Available Spaces'}
             </h2>
-            <Button
-              onClick={exportMyBookings}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              data-testid="button-export-my-bookings"
-            >
-              <Download className="w-4 h-4" />
-              {language === 'fr' ? 'Exporter mes réservations (.ics)' : 'Export my bookings (.ics)'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => window.open('https://calendar.google.com/calendar/u/0/r/settings/addbyurl', '_blank')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="button-link-calendar"
+              >
+                <Link className="w-4 h-4" />
+                {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
+              </Button>
+              <Button
+                onClick={exportMyBookings}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="button-export-my-bookings"
+              >
+                <Download className="w-4 h-4" />
+                {language === 'fr' ? 'Exporter mes réservations (.ics)' : 'Export my bookings (.ics)'}
+              </Button>
+            </div>
           </div>
 
           {spacesLoading ? (
