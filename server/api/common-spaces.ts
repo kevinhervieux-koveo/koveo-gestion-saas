@@ -525,7 +525,11 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      if (startTime < new Date()) {
+      // Allow bookings for today and future dates (with 5-minute buffer for current time)
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+      
+      if (startTime < fiveMinutesAgo) {
         return res.status(400).json({
           message: 'Cannot book in the past',
           code: 'INVALID_TIME_RANGE'

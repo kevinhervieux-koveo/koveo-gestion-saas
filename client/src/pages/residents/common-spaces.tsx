@@ -384,13 +384,29 @@ export default function CommonSpacesPage() {
     mutationFn: async (data: BookingFormData) => {
       if (!selectedSpace) throw new Error('No space selected');
       
-      const startDateTime = new Date(data.date);
+      // More robust date handling to avoid timezone issues
+      const baseDate = data.date instanceof Date ? data.date : new Date(data.date);
+      
+      // Create start time by setting the time on a date object in local timezone
+      const startDateTime = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
       const [startHour, startMinute] = data.startTime.split(':').map(Number);
       startDateTime.setHours(startHour, startMinute, 0, 0);
       
-      const endDateTime = new Date(data.date);
+      // Create end time similarly
+      const endDateTime = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
       const [endHour, endMinute] = data.endTime.split(':').map(Number);
       endDateTime.setHours(endHour, endMinute, 0, 0);
+      
+      // Log for debugging
+      console.log('Booking creation debug:', {
+        originalDate: data.date,
+        baseDate: baseDate,
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+        startTimeISO: startDateTime.toISOString(),
+        endTimeISO: endDateTime.toISOString(),
+        now: new Date().toISOString()
+      });
       
       return apiRequest('POST', `/api/common-spaces/${selectedSpace.id}/bookings`, {
         start_time: startDateTime.toISOString(),
