@@ -84,7 +84,7 @@ interface InvitationManagementProps {
  * @param props.onSendReminder - Callback for sending invitation reminders
  * @param props.onRefresh - Callback to refresh the invitation list
  * @param props.isLoading - Loading state indicator
- * @returns JSX element for the invitation management interface
+ * @returns JSX element for the invitation management interface.
  */
 export function InvitationManagement({ 
   invitations, 

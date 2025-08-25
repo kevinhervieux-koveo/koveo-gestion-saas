@@ -48,7 +48,7 @@ interface OrganizationsCardProps {
  * Organizations Card component displays and manages organization data.
  * @param props - Component props
  * @param props.className - Optional CSS class name for styling
- * @returns JSX element for the organizations card component
+ * @returns JSX element for the organizations card component.
  */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
   const { toast } = useToast();

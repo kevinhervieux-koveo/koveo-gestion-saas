@@ -311,7 +311,8 @@ export class IntelligentWorkflowAssistant {
         switch (action.type) {
           case 'command':
             try {
-              output = execSync(action.payload.command, {
+              const command = action.payload && typeof action.payload === 'object' && 'command' in action.payload ? (action.payload as { command: string }).command : '';
+              output = execSync(command, {
                 cwd: this.projectRoot,
                 encoding: 'utf-8',
                 stdio: 'pipe'
@@ -324,14 +325,15 @@ export class IntelligentWorkflowAssistant {
 
           case 'validation':
             try {
-              output = execSync(action.payload.command, {
+              const command = action.payload && typeof action.payload === 'object' && 'command' in action.payload ? (action.payload as { command: string }).command : '';
+              output = execSync(command, {
                 cwd: this.projectRoot,
                 encoding: 'utf-8',
                 stdio: 'pipe'
               });
             } catch (_error: unknown) {
               success = false;
-              output = (_error as any).stdout || (_error instanceof Error ? _error.message : 'Command failed');
+              output = (_error as { stdout?: string }).stdout || (_error instanceof Error ? _error.message : 'Command failed');
             }
             break;
 
@@ -386,11 +388,11 @@ export class IntelligentWorkflowAssistant {
    * @returns Promise resolving to analysis results string.
    */
   private async performAnalysis(payload: unknown): Promise<string> {
-    if (payload && typeof payload === 'object' && 'target' in payload && typeof (payload as any).target === 'string') {
+    if (payload && typeof payload === 'object' && 'target' in payload && typeof (payload as { target: string }).target === 'string') {
       // Analyze target directory/file
-      const targetPath = path.join(this.projectRoot, (payload as any).target);
+      const targetPath = path.join(this.projectRoot, (payload as { target: string }).target);
       if (!fs.existsSync(targetPath)) {
-        return `Target not found: ${(payload as any).target}`;
+        return `Target not found: ${(payload as { target: string }).target}`;
       }
 
       const stats = fs.statSync(targetPath);
@@ -486,7 +488,7 @@ export class IntelligentWorkflowAssistant {
         stdio: 'pipe'
       });
     } catch (_error: unknown) {
-      const errors = ((_error as any).stdout || '').match(/error TS\d+:/g) || [];
+      const errors = ((_error as { stdout?: string }).stdout || '').match(/error TS\d+:/g) || [];
       if (errors.length > 0) {
         insights.push({
           category: 'quality',

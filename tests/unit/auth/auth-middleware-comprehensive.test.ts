@@ -4,7 +4,7 @@
  * focusing on edge cases and security scenarios for Quebec property management.
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach as _beforeEach, jest } from '@jest/globals';
 import { Request, Response, NextFunction } from 'express';
 import { requireAuth, requireRole } from '../../../server/middleware/auth-middleware';
 

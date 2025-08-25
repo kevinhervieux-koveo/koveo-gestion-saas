@@ -96,7 +96,7 @@ export class AIAgentDashboard {
     const historyPath = path.join(this.projectRoot, '.ai-agent', 'metrics-history.json');
     if (fs.existsSync(historyPath)) {
       try {
-        const data = fs.readFileSync(historyPath, 'utf-8');
+        const _data = fs.readFileSync(historyPath, 'utf-8');
         this.metricsHistory = JSON.parse(_data);
       } catch (_error) {
         console.warn('Failed to load metrics history:', _error);

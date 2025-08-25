@@ -69,7 +69,7 @@ interface OrganizationFormDialogProps {
  * @param props.onOpenChange - Callback to handle dialog open state changes
  * @param props.organization - Organization data for editing, null for creating new
  * @param props.onSuccess - Callback called after successful form submission
- * @returns JSX element for the organization form dialog
+ * @returns JSX element for the organization form dialog.
  */
 export function OrganizationFormDialog({
   open,

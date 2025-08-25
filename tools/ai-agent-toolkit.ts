@@ -70,6 +70,7 @@ export class AIAgentToolkit {
 
   /**
    * Load current project context.
+   * @returns The current agent context with project information.
    */
   private loadContext(): AgentContext {
     const gitBranch = this.getGitBranch();
@@ -88,6 +89,7 @@ export class AIAgentToolkit {
 
   /**
    * Get current git branch.
+   * @returns The current git branch name.
    */
   private getGitBranch(): string {
     try {
@@ -102,6 +104,7 @@ export class AIAgentToolkit {
 
   /**
    * Get last commit hash.
+   * @returns The last commit hash (short).
    */
   private getLastCommit(): string {
     try {
@@ -116,6 +119,7 @@ export class AIAgentToolkit {
 
   /**
    * Get currently modified files.
+   * @returns Array of modified file paths.
    */
   private getWorkingFiles(): string[] {
     try {
@@ -133,6 +137,7 @@ export class AIAgentToolkit {
 
   /**
    * Extract active features from ROADMAP and issues.
+   * @returns Array of active feature descriptions.
    */
   private getActiveFeatures(): string[] {
     const features: string[] = [];
@@ -153,6 +158,7 @@ export class AIAgentToolkit {
 
   /**
    * Extract pending tasks from TODO comments and issues.
+   * @returns Array of pending task descriptions.
    */
   private getPendingTasks(): string[] {
     const tasks: string[] = [];
@@ -179,6 +185,7 @@ export class AIAgentToolkit {
 
   /**
    * Analyze code quality and complexity.
+   * @returns Promise resolving to code analysis results.
    */
   public async analyzeCode(): Promise<CodeAnalysis> {
     const analysis: CodeAnalysis = {
@@ -198,7 +205,7 @@ export class AIAgentToolkit {
       });
       analysis.typeScriptErrors = (tscOutput.match(/error TS\d+:/g) || []).length;
     } catch (_error: unknown) {
-      const errorOutput = (_error as any).stdout || (_error as any).message;
+      const errorOutput = (_error as NodeJS.ErrnoException).stdout || (_error as Error).message;
       analysis.typeScriptErrors = (errorOutput.match(/error TS\d+:/g) || []).length;
     }
 
@@ -209,14 +216,18 @@ export class AIAgentToolkit {
         cwd: this.projectRoot 
       });
       const lintResults = JSON.parse(lintOutput);
-      analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+      interface LintResult {
+        warningCount?: number;
+        errorCount?: number;
+      }
+      analysis.lintWarnings = lintResults.reduce((total: number, file: LintResult) => 
         total + (file.warningCount || 0) + (file.errorCount || 0), 0);
     } catch (_error: unknown) {
       try {
-        const errorOutput = (_error as any).stdout || '';
+        const errorOutput = (_error as NodeJS.ErrnoException).stdout || '';
         if (errorOutput) {
           const lintResults = JSON.parse(errorOutput);
-          analysis.lintWarnings = lintResults.reduce((total: number, file: any) => 
+          analysis.lintWarnings = lintResults.reduce((total: number, file: LintResult) => 
             total + (file.warningCount || 0) + (file.errorCount || 0), 0);
         }
       } catch {
@@ -263,6 +274,7 @@ export class AIAgentToolkit {
 
   /**
    * Get overall project health score.
+   * @returns Promise resolving to project health metrics.
    */
   public async getProjectHealth(): Promise<ProjectHealth> {
     const codeAnalysis = await this.analyzeCode();
@@ -315,6 +327,7 @@ export class AIAgentToolkit {
 
   /**
    * Calculate documentation score.
+   * @returns Promise resolving to documentation score percentage.
    */
   private async calculateDocumentationScore(): Promise<number> {
     const mdFiles = glob.sync('**/*.md', {
@@ -345,6 +358,7 @@ export class AIAgentToolkit {
 
   /**
    * Calculate security score.
+   * @returns Promise resolving to security score percentage.
    */
   private async calculateSecurityScore(): Promise<number> {
     let score = 100;
@@ -409,6 +423,7 @@ export class AIAgentToolkit {
 
   /**
    * Calculate performance score.
+   * @returns Promise resolving to performance score percentage.
    */
   private async calculatePerformanceScore(): Promise<number> {
     let score = 100;
@@ -461,6 +476,7 @@ export class AIAgentToolkit {
 
   /**
    * Generate AI agent development suggestions.
+   * @returns Array of development suggestions.
    */
   public generateAgentSuggestions(): string[] {
     const suggestions: string[] = [];
@@ -489,6 +505,7 @@ export class AIAgentToolkit {
 
   /**
    * Export current context and analysis.
+   * @returns Promise resolving to JSON string with analysis report.
    */
   public async exportAnalysis(): Promise<string> {
     const health = await this.getProjectHealth();
@@ -508,6 +525,7 @@ export class AIAgentToolkit {
 
   /**
    * Quick health check for AI agent.
+   * @returns Promise resolving to health status with score and top issues.
    */
   public async quickHealthCheck(): Promise<{
     status: 'healthy' | 'warning' | 'critical';

@@ -4,9 +4,9 @@
  * Focuses on critical business logic for Quebec property management.
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach as _beforeEach, afterEach as _afterEach, jest } from '@jest/globals';
 import { 
-  getUserAccessibleOrganizations,
+  getUserAccessibleOrganizations as _getUserAccessibleOrganizations,
   canUserAccessOrganization, 
   canUserAccessBuilding,
   canUserAccessResidence,

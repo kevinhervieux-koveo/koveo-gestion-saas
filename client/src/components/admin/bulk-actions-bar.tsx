@@ -73,7 +73,7 @@ interface BulkAction {
  * @param props.selectedCount - Number of selected items
  * @param props.onBulkAction - Callback for bulk actions
  * @param props.isLoading - Loading state indicator
- * @returns JSX element for the bulk actions bar
+ * @returns JSX element for the bulk actions bar.
  */
 export function BulkActionsBar({ 
   selectedCount, 

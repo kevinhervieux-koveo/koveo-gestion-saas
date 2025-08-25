@@ -175,7 +175,7 @@ interface Residence {
  * @param props.open - Whether dialog is open
  * @param props.onOpenChange - Handler for dialog open state changes
  * @param props.onSuccess - Handler called when invitation is sent successfully
- * @returns JSX element for the invitation dialog
+ * @returns JSX element for the invitation dialog.
  */
 export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvitationDialogProps) {
   const { t } = useLanguage();
