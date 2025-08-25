@@ -9,6 +9,7 @@ const {
   commonSpaces, 
   bookings, 
   userBookingRestrictions, 
+  userTimeLimits,
   buildings, 
   users, 
   userResidences,
@@ -46,6 +47,13 @@ const createCommonSpaceSchema = z.object({
     start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
     end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format')
   }).optional(),
+});
+
+const setTimeLimitSchema = z.object({
+  user_id: z.string().uuid(),
+  common_space_id: z.string().uuid().optional(), // null means applies to all spaces
+  limit_type: z.enum(['monthly', 'yearly']),
+  limit_hours: z.number().int().min(1).max(8760), // Max 1 year worth of hours
 });
 
 const spaceIdSchema = z.object({
@@ -107,6 +115,93 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
   }
 
   return []; // No access by default
+}
+
+/**
+ * Helper function to calculate user's total booking hours for a time period
+ */
+async function getUserBookingHours(
+  userId: string, 
+  commonSpaceId: string | null, 
+  limitType: 'monthly' | 'yearly'
+): Promise<number> {
+  const now = new Date();
+  let startDate: Date;
+  
+  if (limitType === 'monthly') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else {
+    startDate = new Date(now.getFullYear(), 0, 1);
+  }
+
+  const conditions = [
+    eq(bookings.userId, userId),
+    eq(bookings.status, 'confirmed'),
+    gte(bookings.startTime, startDate)
+  ];
+
+  if (commonSpaceId) {
+    conditions.push(eq(bookings.commonSpaceId, commonSpaceId));
+  }
+
+  const userBookings = await db
+    .select({
+      totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`
+    })
+    .from(bookings)
+    .where(and(...conditions));
+
+  return userBookings[0]?.totalHours || 0;
+}
+
+/**
+ * Helper function to check if user has exceeded their booking time limit
+ */
+async function checkUserTimeLimit(
+  userId: string,
+  commonSpaceId: string,
+  newBookingHours: number
+): Promise<{ withinLimit: boolean; message?: string; remainingHours?: number }> {
+  // Get user's time limits for this space (specific or global)
+  const timeLimits = await db
+    .select()
+    .from(userTimeLimits)
+    .where(
+      and(
+        eq(userTimeLimits.userId, userId),
+        or(
+          eq(userTimeLimits.commonSpaceId, commonSpaceId),
+          sql`${userTimeLimits.commonSpaceId} IS NULL`
+        )
+      )
+    )
+    .orderBy(userTimeLimits.commonSpaceId); // Specific limits come first (nulls last)
+
+  if (timeLimits.length === 0) {
+    return { withinLimit: true }; // No limits set
+  }
+
+  // Use the most specific limit (space-specific over global)
+  const activeLimit = timeLimits[0];
+  const currentHours = await getUserBookingHours(
+    userId, 
+    activeLimit.commonSpaceId, 
+    activeLimit.limitType as 'monthly' | 'yearly'
+  );
+  
+  const totalAfterBooking = currentHours + newBookingHours;
+  const remainingHours = Math.max(0, activeLimit.limitHours - currentHours);
+
+  if (totalAfterBooking > activeLimit.limitHours) {
+    const limitPeriod = activeLimit.limitType === 'monthly' ? 'ce mois' : 'cette année';
+    return {
+      withinLimit: false,
+      message: `Limite de temps dépassée. Vous avez utilisé ${Math.round(currentHours)}h sur ${activeLimit.limitHours}h autorisées pour ${limitPeriod}. Il vous reste ${Math.round(remainingHours)}h disponibles.`,
+      remainingHours
+    };
+  }
+
+  return { withinLimit: true, remainingHours };
 }
 
 /**
@@ -488,6 +583,18 @@ export function registerCommonSpacesRoutes(app: Express): void {
         return res.status(409).json({
           message: 'Time slot is already booked',
           code: 'TIME_CONFLICT'
+        });
+      }
+
+      // Check user's time limits
+      const bookingDurationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      const timeLimitCheck = await checkUserTimeLimit(user.id, spaceId, bookingDurationHours);
+      
+      if (!timeLimitCheck.withinLimit) {
+        return res.status(403).json({
+          message: timeLimitCheck.message,
+          code: 'TIME_LIMIT_EXCEEDED',
+          remainingHours: timeLimitCheck.remainingHours
         });
       }
 
@@ -930,6 +1037,204 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('Error creating common space:', error);
       res.status(500).json({
         message: 'Failed to create common space',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * POST /api/common-spaces/users/:userId/time-limits - Set user time limits (Manager/Admin only)
+   */
+  app.post('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      // Validate parameters
+      const paramValidation = userIdSchema.safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({
+          message: 'Invalid user ID',
+          errors: paramValidation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      // Validate request body
+      const validationResult = setTimeLimitSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: 'Invalid time limit data',
+          errors: validationResult.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+
+      const { userId } = paramValidation.data;
+      const { user_id, common_space_id, limit_type, limit_hours } = validationResult.data;
+
+      // Verify user exists
+      const targetUser = await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (targetUser.length === 0) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+
+      // If common_space_id is provided, verify space exists and user has access
+      if (common_space_id) {
+        const space = await db
+          .select({ id: commonSpaces.id, name: commonSpaces.name, buildingId: commonSpaces.buildingId })
+          .from(commonSpaces)
+          .where(eq(commonSpaces.id, common_space_id))
+          .limit(1);
+
+        if (space.length === 0) {
+          return res.status(404).json({
+            message: 'Common space not found',
+            code: 'SPACE_NOT_FOUND'
+          });
+        }
+
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied to this common space',
+            code: 'INSUFFICIENT_PERMISSIONS'
+          });
+        }
+      }
+
+      // Check if a time limit already exists
+      const existingLimit = await db
+        .select({ id: userTimeLimits.id })
+        .from(userTimeLimits)
+        .where(
+          and(
+            eq(userTimeLimits.userId, userId),
+            common_space_id 
+              ? eq(userTimeLimits.commonSpaceId, common_space_id)
+              : sql`${userTimeLimits.commonSpaceId} IS NULL`,
+            eq(userTimeLimits.limitType, limit_type)
+          )
+        )
+        .limit(1);
+
+      if (existingLimit.length > 0) {
+        // Update existing limit
+        await db
+          .update(userTimeLimits)
+          .set({
+            limitHours: limit_hours,
+            updatedAt: new Date()
+          })
+          .where(eq(userTimeLimits.id, existingLimit[0].id));
+      } else {
+        // Create new limit
+        await db
+          .insert(userTimeLimits)
+          .values({
+            userId,
+            commonSpaceId: common_space_id || null,
+            limitType: limit_type,
+            limitHours: limit_hours,
+          });
+      }
+
+      console.log(`✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`);
+
+      res.json({
+        message: 'Time limit set successfully',
+        user: {
+          id: targetUser[0].id,
+          name: `${targetUser[0].firstName} ${targetUser[0].lastName}`,
+          limitType: limit_type,
+          limitHours: limit_hours,
+          spaceId: common_space_id
+        }
+      });
+
+    } catch (error) {
+      console.error('Error setting time limit:', error);
+      res.status(500).json({
+        message: 'Failed to set time limit',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  /**
+   * GET /api/common-spaces/users/:userId/time-limits - Get user time limits
+   */
+  app.get('/api/common-spaces/users/:userId/time-limits', requireAuth, requireRole(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED'
+        });
+      }
+
+      const { userId } = req.params;
+
+      // Get user's time limits
+      const limits = await db
+        .select({
+          id: userTimeLimits.id,
+          userId: userTimeLimits.userId,
+          commonSpaceId: userTimeLimits.commonSpaceId,
+          spaceName: commonSpaces.name,
+          limitType: userTimeLimits.limitType,
+          limitHours: userTimeLimits.limitHours,
+          createdAt: userTimeLimits.createdAt,
+          updatedAt: userTimeLimits.updatedAt
+        })
+        .from(userTimeLimits)
+        .leftJoin(commonSpaces, eq(userTimeLimits.commonSpaceId, commonSpaces.id))
+        .where(eq(userTimeLimits.userId, userId))
+        .orderBy(userTimeLimits.limitType, userTimeLimits.commonSpaceId);
+
+      // Calculate current usage for each limit
+      const limitsWithUsage = await Promise.all(
+        limits.map(async (limit) => {
+          const currentHours = await getUserBookingHours(
+            userId,
+            limit.commonSpaceId,
+            limit.limitType as 'monthly' | 'yearly'
+          );
+          
+          return {
+            ...limit,
+            currentHours: Math.round(currentHours * 100) / 100,
+            remainingHours: Math.max(0, limit.limitHours - currentHours)
+          };
+        })
+      );
+
+      res.json({
+        limits: limitsWithUsage
+      });
+
+    } catch (error) {
+      console.error('Error fetching time limits:', error);
+      res.status(500).json({
+        message: 'Failed to fetch time limits',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

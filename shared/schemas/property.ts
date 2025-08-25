@@ -213,6 +213,25 @@ export const userBookingRestrictions = pgTable('user_booking_restrictions', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * User time limits table to manage booking time quotas.
+ * Allows setting monthly/yearly limits on how much time users can reserve.
+ */
+export const userTimeLimits = pgTable('user_time_limits', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  commonSpaceId: uuid('common_space_id')
+    .references(() => commonSpaces.id, { onDelete: 'cascade' }), // null means applies to all spaces
+  limitType: varchar('limit_type', { length: 20 }).notNull(), // 'monthly' or 'yearly'
+  limitHours: integer('limit_hours').notNull(), // Maximum hours allowed
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertBuildingSchema = z.object({
   organizationId: z.string().uuid(),
@@ -352,6 +371,13 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
  */
 export type Booking = typeof bookings.$inferSelect;
 
+export const insertUserTimeLimitSchema = z.object({
+  userId: z.string().uuid(),
+  commonSpaceId: z.string().uuid().optional(), // null means applies to all spaces
+  limitType: z.enum(['monthly', 'yearly']),
+  limitHours: z.number().int().min(1).max(8760), // Max 1 year worth of hours
+});
+
 /**
  *
  */
@@ -360,6 +386,15 @@ export type InsertUserBookingRestriction = z.infer<typeof insertUserBookingRestr
  *
  */
 export type UserBookingRestriction = typeof userBookingRestrictions.$inferSelect;
+
+/**
+ *
+ */
+export type InsertUserTimeLimit = z.infer<typeof insertUserTimeLimitSchema>;
+/**
+ *
+ */
+export type UserTimeLimit = typeof userTimeLimits.$inferSelect;
 
 // Relations - Temporarily commented out due to drizzle-orm version compatibility
 /*

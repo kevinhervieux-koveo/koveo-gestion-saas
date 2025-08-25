@@ -23,7 +23,8 @@ import {
   User,
   TrendingUp,
   Calendar,
-  Plus
+  Plus,
+  Timer
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -149,6 +150,12 @@ function CommonSpacesStatsPage() {
       end: '22:00'
     }
   });
+  const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
+  const [timeLimitFormData, setTimeLimitFormData] = useState({
+    limit_type: 'monthly' as 'monthly' | 'yearly',
+    limit_hours: '10',
+    common_space_id: '',
+  });
 
   // Fetch buildings accessible to the manager
   const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{buildings: Building[]}>({
@@ -273,6 +280,61 @@ function CommonSpacesStatsPage() {
     };
 
     createSpaceMutation.mutate(spaceData);
+  };
+
+  // Mutation to set user time limits
+  const setTimeLimitMutation = useMutation({
+    mutationFn: async (limitData: {
+      user_id: string;
+      limit_type: 'monthly' | 'yearly';
+      limit_hours: number;
+      common_space_id?: string;
+    }) => {
+      return apiRequest(`/api/common-spaces/users/${limitData.user_id}/time-limits`, {
+        method: 'POST',
+        body: {
+          user_id: limitData.user_id,
+          limit_type: limitData.limit_type,
+          limit_hours: limitData.limit_hours,
+          common_space_id: limitData.common_space_id
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces', selectedSpaceId, 'stats'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? 'Limite de temps définie avec succès.' 
+          : 'Time limit set successfully.'
+      });
+      setTimeLimitDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error setting time limit:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr'
+          ? 'Impossible de définir la limite de temps.'
+          : 'Failed to set time limit.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleSetTimeLimit = () => {
+    if (!selectedUser || !timeLimitFormData.limit_hours) {
+      return;
+    }
+
+    const limitData = {
+      user_id: selectedUser.userId,
+      limit_type: timeLimitFormData.limit_type,
+      limit_hours: parseInt(timeLimitFormData.limit_hours),
+      common_space_id: timeLimitFormData.common_space_id || undefined
+    };
+
+    setTimeLimitMutation.mutate(limitData);
   };
 
   // Reset space selection when building changes
@@ -679,6 +741,23 @@ function CommonSpacesStatsPage() {
                                 <CheckCircle className="w-4 h-4 mr-1" />
                                 {language === 'fr' ? 'Débloquer' : 'Unblock'}
                               </Button>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedUser(userStat);
+                                  setTimeLimitFormData({
+                                    limit_type: 'monthly',
+                                    limit_hours: '10',
+                                    common_space_id: selectedSpaceId
+                                  });
+                                  setTimeLimitDialogOpen(true);
+                                }}
+                                data-testid={`button-time-limit-${userStat.userId}`}
+                              >
+                                <Timer className="w-4 h-4 mr-1" />
+                                {language === 'fr' ? 'Limite' : 'Limit'}
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -718,6 +797,112 @@ function CommonSpacesStatsPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Time Limit Dialog */}
+        <Dialog open={timeLimitDialogOpen} onOpenChange={setTimeLimitDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {language === 'fr' ? 'Définir la limite de temps' : 'Set Time Limit'}
+              </DialogTitle>
+              <DialogDescription>
+                {language === 'fr' 
+                  ? `Définir une limite de réservation pour ${selectedUser?.userName}`
+                  : `Set booking time limit for ${selectedUser?.userName}`}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="limit-type">{language === 'fr' ? 'Type de limite' : 'Limit Type'}</Label>
+                <Select 
+                  value={timeLimitFormData.limit_type} 
+                  onValueChange={(value: 'monthly' | 'yearly') => 
+                    setTimeLimitFormData({...timeLimitFormData, limit_type: value})
+                  }
+                >
+                  <SelectTrigger data-testid="select-limit-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">
+                      {language === 'fr' ? 'Mensuelle' : 'Monthly'}
+                    </SelectItem>
+                    <SelectItem value="yearly">
+                      {language === 'fr' ? 'Annuelle' : 'Yearly'}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="limit-hours">
+                  {language === 'fr' ? 'Limite en heures' : 'Hour Limit'}
+                </Label>
+                <Input
+                  id="limit-hours"
+                  type="number"
+                  min="1"
+                  max="8760"
+                  placeholder="10"
+                  value={timeLimitFormData.limit_hours}
+                  onChange={(e) => setTimeLimitFormData({
+                    ...timeLimitFormData, 
+                    limit_hours: e.target.value
+                  })}
+                  data-testid="input-limit-hours"
+                />
+                <p className="text-xs text-gray-500">
+                  {language === 'fr' 
+                    ? `Limite ${timeLimitFormData.limit_type === 'monthly' ? 'mensuelle' : 'annuelle'} en heures`
+                    : `${timeLimitFormData.limit_type === 'monthly' ? 'Monthly' : 'Yearly'} limit in hours`}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="limit-scope">{language === 'fr' ? 'Portée' : 'Scope'}</Label>
+                <Select 
+                  value={timeLimitFormData.common_space_id} 
+                  onValueChange={(value) => 
+                    setTimeLimitFormData({...timeLimitFormData, common_space_id: value})
+                  }
+                >
+                  <SelectTrigger data-testid="select-limit-scope">
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionnez la portée' : 'Select scope'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      {language === 'fr' ? 'Tous les espaces' : 'All spaces'}
+                    </SelectItem>
+                    <SelectItem value={selectedSpaceId}>
+                      {language === 'fr' ? 'Cet espace uniquement' : 'This space only'}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setTimeLimitDialogOpen(false)}
+                data-testid="button-cancel-time-limit"
+              >
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                onClick={handleSetTimeLimit}
+                disabled={setTimeLimitMutation.isPending || !timeLimitFormData.limit_hours}
+                data-testid="button-confirm-time-limit"
+              >
+                {setTimeLimitMutation.isPending 
+                  ? (language === 'fr' ? 'Application...' : 'Setting...')
+                  : (language === 'fr' ? 'Appliquer la limite' : 'Set Limit')
+                }
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
