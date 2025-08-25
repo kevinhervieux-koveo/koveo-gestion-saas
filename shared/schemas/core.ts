@@ -262,9 +262,9 @@ export const userPermissions = pgTable('user_permissions', {
 export const insertUserSchema = z.object({
   username: z.string().min(1),
   email: z.string().email(),
-  password: z.string().min(1),
-  firstName: z.string(),
-  lastName: z.string(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  firstName: z.string().min(1).max(100, 'First name must be at most 100 characters'),
+  lastName: z.string().min(1).max(100, 'Last name must be at most 100 characters'),
   phone: z.string().optional(),
   profileImage: z.string().optional(),
   language: z.string().default('fr'),

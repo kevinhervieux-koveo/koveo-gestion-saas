@@ -72,16 +72,13 @@ describe('useAuth Hook Tests', () => {
       isActive: true
     };
 
-    // Mock successful user fetch - useAuth uses apiRequest directly  
-    mockApiRequest.mockImplementation((method, url) => {
-      if (url === '/api/auth/user') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => mockUser
-        });
-      }
-      return Promise.reject(new Error('Unknown endpoint'));
-    });
+    // Mock successful user fetch - useAuth uses fetch directly via useQuery
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockUser,
+      status: 200,
+      statusText: 'OK',
+    } as Response);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),
@@ -155,15 +152,12 @@ describe('useAuth Hook Tests', () => {
     };
 
     // Mock initial authenticated state
-    mockApiRequest.mockImplementation((method, url) => {
-      if (url === '/api/auth/user') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => mockUser
-        });
-      }
-      return Promise.reject(new Error('Unknown endpoint'));
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockUser,
+      status: 200,
+      statusText: 'OK',
+    } as Response);
     
     const { result } = renderHook(() => useAuth(), {
       wrapper: createWrapper(),

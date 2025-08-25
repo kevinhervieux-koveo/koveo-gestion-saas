@@ -324,21 +324,21 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440100',
         unitNumber: '1205',
         floor: 12,
-        squareFootage: '985.50',
+        squareFootage: 985.50,
         bedrooms: 2,
-        bathrooms: '1.5',
+        bathrooms: 1.5,
         balcony: true,
-        parkingSpaceNumber: 'P-045',
-        storageSpaceNumber: 'S-045',
-        ownershipPercentage: '0.0083', // 0.83% of building
-        monthlyFees: '425.75',
+        parkingSpaceNumbers: ['P-045'],
+        storageSpaceNumbers: ['S-045'],
+        ownershipPercentage: 0.0083, // 0.83% of building
+        monthlyFees: 425.75,
       };
 
       const result = insertResidenceSchema.safeParse(condoUnit);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.unitNumber).toBe('1205');
-        expect(result.data.ownershipPercentage).toBe('0.0083');
+        expect(result.data.ownershipPercentage).toBe(0.0083);
         expect(result.data.balcony).toBe(true);
       }
     });
@@ -348,17 +348,17 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440101',
         unitNumber: '3A',
         floor: 3,
-        squareFootage: '750.00',
+        squareFootage: 750.00,
         bedrooms: 1,
-        bathrooms: '1.0',
+        bathrooms: 1.0,
         balcony: false,
-        monthlyFees: '1250.00', // Rent in Quebec
+        monthlyFees: 1250.00, // Rent in Quebec
       };
 
       const result = insertResidenceSchema.safeParse(rentalUnit);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.monthlyFees).toBe('1250.00');
+        expect(result.data.monthlyFees).toBe(1250.00);
         expect(result.data.balcony).toBe(false);
       }
     });
@@ -368,10 +368,10 @@ describe('Quebec Property Management Business Logic', () => {
         buildingId: '550e8400-e29b-41d4-a716-446655440102',
         unitNumber: 'Unit-5',
         floor: 2,
-        squareFootage: '900.00',
+        squareFootage: 900.00,
         bedrooms: 3,
-        bathrooms: '1.0',
-        monthlyFees: '650.00', // Coop fees lower than market rent
+        bathrooms: 1.0,
+        monthlyFees: 650.00, // Coop fees lower than market rent
       };
 
       const result = insertResidenceSchema.safeParse(coopUnit);
@@ -386,9 +386,9 @@ describe('Quebec Property Management Business Logic', () => {
       const basicUnit = {
         buildingId: '550e8400-e29b-41d4-a716-446655440100',
         unitNumber: 'B-1',
-        squareFootage: '650.00',
+        squareFootage: 650.00,
         bedrooms: 1,
-        bathrooms: '1.0',
+        bathrooms: 1.0,
       };
 
       const result = insertResidenceSchema.safeParse(basicUnit);
@@ -494,8 +494,8 @@ describe('Quebec Property Management Business Logic', () => {
           buildingId: '550e8400-e29b-41d4-a716-446655440100',
           unitNumber: `${bedrooms}BR-Test`,
           bedrooms,
-          squareFootage: ((minSqFt + maxSqFt) / 2).toString(),
-          bathrooms: '1.0',
+          squareFootage: (minSqFt + maxSqFt) / 2,
+          bathrooms: 1.0,
         };
 
         const result = insertResidenceSchema.safeParse(testUnit);
