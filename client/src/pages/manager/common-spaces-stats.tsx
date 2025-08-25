@@ -134,10 +134,12 @@ function CommonSpacesStatsPage() {
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
 
   // Fetch buildings accessible to the manager
-  const { data: buildings = [], isLoading: buildingsLoading } = useQuery<Building[]>({
+  const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{buildings: Building[]}>({
     queryKey: ['/api/manager/buildings'],
     enabled: !!user,
   });
+
+  const buildings = buildingsResponse?.buildings || [];
 
   // Fetch common spaces for selected building
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
