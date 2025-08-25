@@ -416,14 +416,14 @@ export default function OwnerRoadmap() {
 
 
   const calculateProgress = (_features: Feature[]) => {
-    const completed = features.filter((f) => f.status === 'completed').length;
-    const inProgress = features.filter((f) => f.status === 'in-progress').length;
-    const total = features.length;
+    const completed = _features.filter((f) => f.status === 'completed').length;
+    const inProgress = _features.filter((f) => f.status === 'in-progress').length;
+    const total = _features.length;
     const progress = total > 0 ? ((completed + inProgress * 0.5) / total) * 100 : 0;
     return {
       completed,
       inProgress,
-      planned: features.filter((f) => f.status === 'planned').length,
+      planned: _features.filter((f) => f.status === 'planned').length,
       progress: Math.round(progress),
     };
   };
