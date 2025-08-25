@@ -920,7 +920,6 @@ function CommonSpacesStatsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-            )}
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-6">
