@@ -23,6 +23,21 @@ export const MockLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ 
   );
 };
 
+// Mock MobileMenuProvider
+export const MockMobileMenuProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const mockContext = {
+    isMobileMenuOpen: false,
+    toggleMobileMenu: jest.fn(),
+    closeMobileMenu: jest.fn(),
+  };
+
+  return (
+    <div data-mobile-menu-context="true">
+      {children}
+    </div>
+  );
+};
+
 // Create test query client
 export const createTestQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -51,11 +66,16 @@ export const AllProviders: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <QueryClientProvider client={queryClient}>
       <MockLanguageProvider>
-        {children}
+        <MockMobileMenuProvider>
+          {children}
+        </MockMobileMenuProvider>
       </MockLanguageProvider>
     </QueryClientProvider>
   );
 };
+
+// Alternative TestProviders alias for compatibility
+export const TestProviders = AllProviders;
 
 // Custom render with all providers
 export const renderWithProviders = (ui: React.ReactElement) => {

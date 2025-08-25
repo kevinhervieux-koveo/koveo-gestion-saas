@@ -64,7 +64,7 @@ const mockRequireAuth = (req: any, res: any, next: any) => {
 };
 
 const mockRequireRole = (roles: string[]) => (req: any, res: any, next: any) => {
-  const user = req.user || req.mockUser;
+  const user = req.user || req.body?.mockUser;
   if (user && roles.includes(user.role)) {
     next();
   } else {
@@ -893,8 +893,8 @@ describe('Common Spaces API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/common-spaces/users/user-456/restrictions')
-        .set('Authorization', 'Bearer token')
         .send({
+          mockUser: managerUser,
           common_space_id: 'space-1',
           is_blocked: true,
           reason: 'Violated booking rules',
@@ -915,8 +915,8 @@ describe('Common Spaces API Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/common-spaces/users/invalid-uuid/restrictions')
-        .set('Authorization', 'Bearer token')
         .send({
+          mockUser: managerUser,
           common_space_id: 'invalid-uuid',
           is_blocked: 'not-a-boolean', // Invalid type
         });
