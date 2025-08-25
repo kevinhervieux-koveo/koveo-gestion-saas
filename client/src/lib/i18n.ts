@@ -276,6 +276,43 @@ export interface Translations {
   closeMenu: string;
   copyright: string;
   law25Compliant: string;
+  // Pricing page translations
+  pricing: string;
+  simplePricing: string;
+  pricingSubtitle: string;
+  professionalPlan: string;
+  perfectForPropertyManagers: string;
+  perDoorPerMonth: string;
+  noSetupFees: string;
+  whatsIncluded: string;
+  unlimitedResidents: string;
+  documentStorage: string;
+  maintenanceTracking: string;
+  financialReports: string;
+  law25Protection: string;
+  multilingualSupport: string;
+  mobileAccess: string;
+  cloudBackup: string;
+  emailSupport: string;
+  regularUpdates: string;
+  documentManagement: string;
+  documentManagementDesc: string;
+  smartNotifications: string;
+  smartNotificationsDesc: string;
+  electronicBilling: string;
+  electronicBillingDesc: string;
+  centralizedCommunication: string;
+  centralizedCommunicationDesc: string;
+  maintenancePlanning: string;
+  maintenancePlanningDesc: string;
+  processManagement: string;
+  processManagementDesc: string;
+  law25Compliance: string;
+  law25ComplianceDesc: string;
+  featuresOverviewDesc: string;
+  viewAllFeatures: string;
+  readyToGetStarted: string;
+  allRightsReserved: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -534,6 +571,43 @@ const translations: Record<Language, Translations> = {
     closeMenu: 'Close menu',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Quebec Law 25 Compliant',
+    // Pricing page translations
+    pricing: 'Pricing',
+    simplePricing: 'Simple, Transparent Pricing',
+    pricingSubtitle: 'Professional property management that scales with your business',
+    professionalPlan: 'Professional Plan',
+    perfectForPropertyManagers: 'Perfect for property managers of all sizes',
+    perDoorPerMonth: 'per door per month',
+    noSetupFees: 'No setup fees',
+    whatsIncluded: 'What\'s included:',
+    unlimitedResidents: 'Unlimited residents',
+    documentStorage: 'Secure document storage',
+    maintenanceTracking: 'Maintenance tracking',
+    financialReports: 'Financial reports',
+    law25Protection: 'Quebec Law 25 protection',
+    multilingualSupport: 'Bilingual support (EN/FR)',
+    mobileAccess: 'Mobile access',
+    cloudBackup: 'Automatic cloud backup',
+    emailSupport: 'Email support',
+    regularUpdates: 'Regular updates',
+    documentManagement: 'Document Management',
+    documentManagementDesc: 'Secure storage and organization',
+    smartNotifications: 'Smart Notifications',
+    smartNotificationsDesc: 'Automated alerts and reminders',
+    electronicBilling: 'Electronic Billing',
+    electronicBillingDesc: 'Digital invoicing and payment tracking',
+    centralizedCommunication: 'Centralized Communication',
+    centralizedCommunicationDesc: 'Unified messaging platform',
+    maintenancePlanning: 'Maintenance Planning',
+    maintenancePlanningDesc: 'Smart scheduling and tracking',
+    processManagement: 'Process Management',
+    processManagementDesc: 'Organized workflow tools',
+    law25Compliance: 'Quebec Law 25 Compliance',
+    law25ComplianceDesc: 'Built-in privacy protection',
+    featuresOverviewDesc: 'Discover how our comprehensive platform can streamline your property management',
+    viewAllFeatures: 'View All Features',
+    readyToGetStarted: 'Ready to Get Started?',
+    allRightsReserved: 'All rights reserved',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -791,6 +865,43 @@ const translations: Record<Language, Translations> = {
     closeMenu: 'Fermer le menu',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Conforme à la Loi 25 du Québec',
+    // Pricing page translations
+    pricing: 'Tarification',
+    simplePricing: 'Tarification Simple et Transparente',
+    pricingSubtitle: 'Gestion immobilière professionnelle qui évolue avec votre entreprise',
+    professionalPlan: 'Plan Professionnel',
+    perfectForPropertyManagers: 'Parfait pour les gestionnaires immobiliers de toutes tailles',
+    perDoorPerMonth: 'par porte par mois',
+    noSetupFees: 'Aucuns frais d\'installation',
+    whatsIncluded: 'Ce qui est inclus :',
+    unlimitedResidents: 'Résidents illimités',
+    documentStorage: 'Stockage sécurisé de documents',
+    maintenanceTracking: 'Suivi de maintenance',
+    financialReports: 'Rapports financiers',
+    law25Protection: 'Protection Loi 25 du Québec',
+    multilingualSupport: 'Support bilingue (FR/EN)',
+    mobileAccess: 'Accès mobile',
+    cloudBackup: 'Sauvegarde automatique dans le nuage',
+    emailSupport: 'Support par courriel',
+    regularUpdates: 'Mises à jour régulières',
+    documentManagement: 'Gestion documentaire',
+    documentManagementDesc: 'Stockage et organisation sécurisés',
+    smartNotifications: 'Notifications intelligentes',
+    smartNotificationsDesc: 'Alertes et rappels automatisés',
+    electronicBilling: 'Facturation électronique',
+    electronicBillingDesc: 'Facturation numérique et suivi des paiements',
+    centralizedCommunication: 'Communication centralisée',
+    centralizedCommunicationDesc: 'Plateforme de messagerie unifiée',
+    maintenancePlanning: 'Planification de maintenance',
+    maintenancePlanningDesc: 'Planification et suivi intelligents',
+    processManagement: 'Gestion des processus',
+    processManagementDesc: 'Outils de flux de travail organisés',
+    law25Compliance: 'Conformité Loi 25 du Québec',
+    law25ComplianceDesc: 'Protection de la vie privée intégrée',
+    featuresOverviewDesc: 'Découvrez comment notre plateforme complète peut rationaliser votre gestion immobilière',
+    viewAllFeatures: 'Voir toutes les fonctionnalités',
+    readyToGetStarted: 'Prêt à commencer?',
+    allRightsReserved: 'Tous droits réservés',
   },
 };
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
-import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings, Globe, UserPlus } from 'lucide-react';
+import { X, Menu, Home, Wrench, Shield, BookOpen, FileText, Scale, Building2, Users, LogOut, User, Settings, Globe, UserPlus, DollarSign } from 'lucide-react';
 
 interface HamburgerMenuProps {
   className?: string;
@@ -56,6 +56,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   const publicNavItems = [
     { icon: Home, label: t('home'), path: '/', testId: 'nav-home' },
     { icon: Wrench, label: t('features'), path: '/features', testId: 'nav-features' },
+    { icon: DollarSign, label: t('pricing'), path: '/pricing', testId: 'nav-pricing' },
     { icon: Shield, label: t('security'), path: '/security', testId: 'nav-security' },
     { icon: BookOpen, label: t('ourStory'), path: '/story', testId: 'nav-story' },
     { icon: FileText, label: t('privacyPolicy'), path: '/privacy-policy', testId: 'nav-privacy' },

@@ -210,6 +210,11 @@ const TermsOfServicePage = createOptimizedLoader(
   'terms-of-service-page',
   { enableMemoryCleanup: true }
 );
+const PricingPage = createOptimizedLoader(
+  () => import('@/pages/pricing'),
+  'pricing-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
 
 // Main Dashboard page
 const DashboardPage = createOptimizedLoader(
@@ -260,6 +265,7 @@ function Router() {
     '/accept-invitation', 
     '/register',
     '/features',
+    '/pricing',
     '/security', 
     '/story',
     '/privacy-policy',
@@ -273,6 +279,7 @@ function Router() {
         <Switch>
           <Route path="/" component={HomePage} />
           <Route path="/features" component={FeaturesPage} />
+          <Route path="/pricing" component={PricingPage} />
           <Route path="/security" component={SecurityPage} />
           <Route path="/story" component={StoryPage} />
           <Route path="/privacy-policy" component={PrivacyPolicyPage} />
