@@ -150,9 +150,19 @@ function CommonSpacesStatsPage() {
     building_id: '',
     is_reservable: true,
     capacity: '',
+    hours_mode: 'same' as 'same' | 'custom',
     opening_hours: {
       start: '08:00',
       end: '22:00'
+    },
+    weekly_hours: {
+      monday: { start: '08:00', end: '22:00' },
+      tuesday: { start: '08:00', end: '22:00' },
+      wednesday: { start: '08:00', end: '22:00' },
+      thursday: { start: '08:00', end: '22:00' },
+      friday: { start: '08:00', end: '22:00' },
+      saturday: { start: '09:00', end: '21:00' },
+      sunday: { start: '09:00', end: '21:00' }
     }
   });
   const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
@@ -243,9 +253,19 @@ function CommonSpacesStatsPage() {
         building_id: '',
         is_reservable: true,
         capacity: '',
+        hours_mode: 'same',
         opening_hours: {
           start: '08:00',
           end: '22:00'
+        },
+        weekly_hours: {
+          monday: { start: '08:00', end: '22:00' },
+          tuesday: { start: '08:00', end: '22:00' },
+          wednesday: { start: '08:00', end: '22:00' },
+          thursday: { start: '08:00', end: '22:00' },
+          friday: { start: '08:00', end: '22:00' },
+          saturday: { start: '09:00', end: '21:00' },
+          sunday: { start: '09:00', end: '21:00' }
         }
       });
     },
@@ -279,9 +299,11 @@ function CommonSpacesStatsPage() {
       building_id: createFormData.building_id,
       is_reservable: createFormData.is_reservable,
       capacity: createFormData.capacity ? parseInt(createFormData.capacity) : undefined,
-      opening_hours: createFormData.opening_hours.start && createFormData.opening_hours.end 
-        ? createFormData.opening_hours 
-        : undefined
+      opening_hours: createFormData.hours_mode === 'same' 
+        ? (createFormData.opening_hours.start && createFormData.opening_hours.end 
+           ? createFormData.opening_hours 
+           : undefined)
+        : createFormData.weekly_hours
     };
 
     createSpaceMutation.mutate(spaceData);
@@ -479,39 +501,126 @@ function CommonSpacesStatsPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <Label>{language === 'fr' ? 'Heures d\'ouverture' : 'Opening Hours'}</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <Label htmlFor="opening-start" className="text-xs text-gray-500">
-                            {language === 'fr' ? 'Ouverture' : 'Start'}
-                          </Label>
-                          <Input
-                            id="opening-start"
-                            type="time"
-                            value={createFormData.opening_hours.start}
-                            onChange={(e) => setCreateFormData({
-                              ...createFormData,
-                              opening_hours: {...createFormData.opening_hours, start: e.target.value}
-                            })}
-                            data-testid="input-opening-start"
-                          />
+                      
+                      {/* Hours Mode Selection */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="hours-same"
+                              name="hours-mode"
+                              value="same"
+                              checked={createFormData.hours_mode === 'same'}
+                              onChange={(e) => setCreateFormData({...createFormData, hours_mode: 'same'})}
+                              className="w-4 h-4 text-blue-600"
+                              data-testid="radio-hours-same"
+                            />
+                            <Label htmlFor="hours-same" className="text-sm">
+                              {language === 'fr' ? 'Mêmes heures tous les jours' : 'Same hours every day'}
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="hours-custom"
+                              name="hours-mode"
+                              value="custom"
+                              checked={createFormData.hours_mode === 'custom'}
+                              onChange={(e) => setCreateFormData({...createFormData, hours_mode: 'custom'})}
+                              className="w-4 h-4 text-blue-600"
+                              data-testid="radio-hours-custom"
+                            />
+                            <Label htmlFor="hours-custom" className="text-sm">
+                              {language === 'fr' ? 'Heures personnalisées par jour' : 'Custom hours per day'}
+                            </Label>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label htmlFor="opening-end" className="text-xs text-gray-500">
-                            {language === 'fr' ? 'Fermeture' : 'End'}
-                          </Label>
-                          <Input
-                            id="opening-end"
-                            type="time"
-                            value={createFormData.opening_hours.end}
-                            onChange={(e) => setCreateFormData({
-                              ...createFormData,
-                              opening_hours: {...createFormData.opening_hours, end: e.target.value}
+
+                        {createFormData.hours_mode === 'same' ? (
+                          // Same hours for all days
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <Label htmlFor="opening-start" className="text-xs text-gray-500">
+                                {language === 'fr' ? 'Ouverture' : 'Start'}
+                              </Label>
+                              <Input
+                                id="opening-start"
+                                type="time"
+                                value={createFormData.opening_hours.start}
+                                onChange={(e) => setCreateFormData({
+                                  ...createFormData,
+                                  opening_hours: {...createFormData.opening_hours, start: e.target.value}
+                                })}
+                                data-testid="input-opening-start"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="opening-end" className="text-xs text-gray-500">
+                                {language === 'fr' ? 'Fermeture' : 'End'}
+                              </Label>
+                              <Input
+                                id="opening-end"
+                                type="time"
+                                value={createFormData.opening_hours.end}
+                                onChange={(e) => setCreateFormData({
+                                  ...createFormData,
+                                  opening_hours: {...createFormData.opening_hours, end: e.target.value}
+                                })}
+                                data-testid="input-opening-end"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          // Custom hours per day
+                          <div className="space-y-3 max-h-64 overflow-y-auto">
+                            {Object.entries(createFormData.weekly_hours).map(([day, hours]) => {
+                              const dayLabels = {
+                                monday: language === 'fr' ? 'Lundi' : 'Monday',
+                                tuesday: language === 'fr' ? 'Mardi' : 'Tuesday', 
+                                wednesday: language === 'fr' ? 'Mercredi' : 'Wednesday',
+                                thursday: language === 'fr' ? 'Jeudi' : 'Thursday',
+                                friday: language === 'fr' ? 'Vendredi' : 'Friday',
+                                saturday: language === 'fr' ? 'Samedi' : 'Saturday',
+                                sunday: language === 'fr' ? 'Dimanche' : 'Sunday'
+                              };
+                              
+                              return (
+                                <div key={day} className="grid grid-cols-3 gap-3 items-center">
+                                  <Label className="text-sm font-medium w-20">
+                                    {dayLabels[day as keyof typeof dayLabels]}
+                                  </Label>
+                                  <Input
+                                    type="time"
+                                    value={hours.start}
+                                    onChange={(e) => setCreateFormData({
+                                      ...createFormData,
+                                      weekly_hours: {
+                                        ...createFormData.weekly_hours,
+                                        [day]: {...hours, start: e.target.value}
+                                      }
+                                    })}
+                                    data-testid={`input-${day}-start`}
+                                  />
+                                  <Input
+                                    type="time"
+                                    value={hours.end}
+                                    onChange={(e) => setCreateFormData({
+                                      ...createFormData,
+                                      weekly_hours: {
+                                        ...createFormData.weekly_hours,
+                                        [day]: {...hours, end: e.target.value}
+                                      }
+                                    })}
+                                    data-testid={`input-${day}-end`}
+                                  />
+                                </div>
+                              );
                             })}
-                            data-testid="input-opening-end"
-                          />
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
