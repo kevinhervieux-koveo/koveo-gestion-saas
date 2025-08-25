@@ -169,10 +169,10 @@ const getCorsConfig = (isDevelopment: boolean) => {
  * Rate limiting configuration for different endpoints.
  */
 export const rateLimitConfig = {
-  // Authentication endpoints - stricter limits
+  // Authentication endpoints - more lenient for development
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Limit each IP to 5 requests per windowMs
+    max: 20, // Increased limit for development - 20 requests per windowMs
     message: {
       error: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
       error_en: 'Too many login attempts. Please try again in 15 minutes.',
@@ -207,7 +207,7 @@ export const rateLimitConfig = {
   // Password reset endpoints - more lenient than login
   passwordReset: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Allow more attempts for password reset
+    max: 30, // Increased limit for development - 30 attempts for password reset
     message: {
       error: 'Trop de demandes de réinitialisation. Veuillez réessayer dans 15 minutes.',
       error_en: 'Too many password reset requests. Please try again in 15 minutes.',
