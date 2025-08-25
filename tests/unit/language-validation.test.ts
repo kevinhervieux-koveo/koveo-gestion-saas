@@ -13,6 +13,8 @@ import React from 'react';
  * Based on Quebec language requirements and 'Termes à éviter' guidelines.
  */
 
+export { LanguageValidator };
+
 // Terms to avoid (anglicisms and inappropriate terms for Quebec French)
 const TERMS_TO_AVOID = {
   // Common anglicisms in property management
