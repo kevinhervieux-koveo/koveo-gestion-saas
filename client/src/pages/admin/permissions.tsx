@@ -90,6 +90,12 @@ export default function Permissions() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  // Additional filters
+  const [filterUserStatus, setFilterUserStatus] = useState('all'); // active, inactive, all
+  const [filterPermissionStatus, setFilterPermissionStatus] = useState('all'); // granted, revoked, all
+  const [permissionSearchQuery, setPermissionSearchQuery] = useState('');
+  const [filterActionType, setFilterActionType] = useState('all'); // read, write, delete, all
+  const [sortBy, setSortBy] = useState('name'); // name, resource, action, date
 
   // Fetch permissions matrix (includes all permission data grouped by resource)
   const { data: permissionsMatrix, isLoading: matrixLoading } = useQuery<{
@@ -137,13 +143,27 @@ export default function Permissions() {
   // Get unique categories from permissions
   const categories = permissionCategories?.map(cat => cat.name) || [];
 
-  // Filter users based on search and role
+  // Filter users based on search, role, and status
   const filteredUsers = users?.filter(user => {
     const matchesSearch = searchQuery === '' || 
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+    const matchesStatus = filterUserStatus === 'all' || 
+      (filterUserStatus === 'active' && user.isActive) ||
+      (filterUserStatus === 'inactive' && !user.isActive);
+    
+    // Filter by permission status if specified
+    if (filterPermissionStatus !== 'all') {
+      const userSpecificPermissions = userPermissions?.filter(up => up.userId === user.id) || [];
+      const hasGrantedPermissions = userSpecificPermissions.some(up => up.granted);
+      const hasRevokedPermissions = userSpecificPermissions.some(up => !up.granted);
+      
+      if (filterPermissionStatus === 'granted' && !hasGrantedPermissions) return false;
+      if (filterPermissionStatus === 'revoked' && !hasRevokedPermissions) return false;
+    }
+    
+    return matchesSearch && matchesRole && matchesStatus;
   }) || [];
 
   // Pagination calculations
@@ -172,11 +192,65 @@ export default function Permissions() {
     }
   }, [permissionsByResource, selectedCategory]);
 
-  // Filter permissions by category
+  // Filter permissions by category, search, and action type
   const filteredPermissions = permissions?.filter(permission => {
-    if (!selectedCategory) {return false;}
-    return permission.resourceType === selectedCategory;
+    // Category filter
+    if (selectedCategory && permission.resourceType !== selectedCategory) return false;
+    
+    // Search filter
+    if (permissionSearchQuery) {
+      const searchLower = permissionSearchQuery.toLowerCase();
+      const matchesSearch = 
+        permission.name.toLowerCase().includes(searchLower) ||
+        permission.displayName.toLowerCase().includes(searchLower) ||
+        permission.description.toLowerCase().includes(searchLower) ||
+        permission.resourceType.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // Action type filter
+    if (filterActionType !== 'all') {
+      const actionMatches = permission.action.toLowerCase().includes(filterActionType.toLowerCase());
+      if (!actionMatches) return false;
+    }
+    
+    return true;
   }) || [];
+
+  // Sort permissions
+  const sortedPermissions = [...filteredPermissions].sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.displayName.localeCompare(b.displayName);
+      case 'resource':
+        return a.resourceType.localeCompare(b.resourceType);
+      case 'action':
+        return a.action.localeCompare(b.action);
+      case 'date':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      default:
+        return 0;
+    }
+  });
+
+  // Get unique action types for filter
+  const actionTypes = [...new Set(permissions?.map(p => p.action) || [])];
+
+  // Reset filters functions
+  const resetUserFilters = () => {
+    setSearchQuery('');
+    setFilterRole('all');
+    setFilterUserStatus('all');
+    setFilterPermissionStatus('all');
+    setCurrentPage(1);
+  };
+
+  const resetPermissionFilters = () => {
+    setPermissionSearchQuery('');
+    setSelectedCategory('');
+    setFilterActionType('all');
+    setSortBy('name');
+  };
 
   // Mutations for managing permissions
   const grantUserPermissionMutation = useMutation({
@@ -304,32 +378,83 @@ export default function Permissions() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {/* Search and Filter */}
-                  <div className="flex gap-4 mb-6">
-                    <div className="flex-1">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Search users..."
-                          value={searchQuery}
-                          onChange={(e) => handleSearchChange(e.target.value)}
-                          className="pl-10"
-                        />
+                  {/* Enhanced Search and Filter Controls */}
+                  <div className="space-y-4 mb-6">
+                    {/* Primary filters row */}
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            placeholder="Search users by name or email..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            className="pl-10"
+                            data-testid="input-user-search"
+                          />
+                        </div>
                       </div>
+                      <Select value={filterRole} onValueChange={handleRoleChange}>
+                        <SelectTrigger className="w-40" data-testid="select-role-filter">
+                          <SelectValue placeholder="Filter by role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Roles</SelectItem>
+                          {roles.map(role => (
+                            <SelectItem key={role} value={role}>
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={filterRole} onValueChange={handleRoleChange}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Filter by role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        {roles.map(role => (
-                          <SelectItem key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                    {/* Secondary filters row */}
+                    <div className="flex gap-4 items-center">
+                      <Select value={filterUserStatus} onValueChange={setFilterUserStatus}>
+                        <SelectTrigger className="w-40" data-testid="select-user-status-filter">
+                          <SelectValue placeholder="User status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Users</SelectItem>
+                          <SelectItem value="active">Active Only</SelectItem>
+                          <SelectItem value="inactive">Inactive Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterPermissionStatus} onValueChange={setFilterPermissionStatus}>
+                        <SelectTrigger className="w-48" data-testid="select-permission-status-filter">
+                          <SelectValue placeholder="Permission status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Permission Types</SelectItem>
+                          <SelectItem value="granted">Has Granted Permissions</SelectItem>
+                          <SelectItem value="revoked">Has Revoked Permissions</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={resetUserFilters}
+                        className="flex items-center gap-2"
+                        data-testid="button-reset-user-filters"
+                      >
+                        <X className="h-4 w-4" />
+                        Reset Filters
+                      </Button>
+                    </div>
+
+                    {/* Filter summary */}
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>Showing {filteredUsers.length} of {users?.length || 0} users</span>
+                      {(searchQuery || filterRole !== 'all' || filterUserStatus !== 'all' || filterPermissionStatus !== 'all') && (
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <span>Filters active</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {isLoading ? (
@@ -577,31 +702,87 @@ export default function Permissions() {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  {/* Search and Filter for permissions */}
-                  <div className="flex gap-4 mb-6">
-                    <div className="flex-1">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Search permissions..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10"
-                        />
+                  {/* Enhanced Search and Filter for permissions */}
+                  <div className="space-y-4 mb-6">
+                    {/* Primary filters row */}
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            placeholder="Search permissions by name, description, or resource type..."
+                            value={permissionSearchQuery}
+                            onChange={(e) => setPermissionSearchQuery(e.target.value)}
+                            className="pl-10"
+                            data-testid="input-permission-search"
+                          />
+                        </div>
                       </div>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-48" data-testid="select-category-filter">
+                          <SelectValue placeholder="Filter by category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Categories</SelectItem>
+                          {Object.keys(permissionsByResource).map(category => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1).replace(/[_-]/g, ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.keys(permissionsByResource).map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                    {/* Secondary filters row */}
+                    <div className="flex gap-4 items-center">
+                      <Select value={filterActionType} onValueChange={setFilterActionType}>
+                        <SelectTrigger className="w-40" data-testid="select-action-filter">
+                          <SelectValue placeholder="Action type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Actions</SelectItem>
+                          {actionTypes.map(action => (
+                            <SelectItem key={action} value={action}>
+                              {action.toUpperCase()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-40" data-testid="select-sort-by">
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="name">Sort by Name</SelectItem>
+                          <SelectItem value="resource">Sort by Resource</SelectItem>
+                          <SelectItem value="action">Sort by Action</SelectItem>
+                          <SelectItem value="date">Sort by Date</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={resetPermissionFilters}
+                        className="flex items-center gap-2"
+                        data-testid="button-reset-permission-filters"
+                      >
+                        <X className="h-4 w-4" />
+                        Reset Filters
+                      </Button>
+                    </div>
+
+                    {/* Filter summary */}
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>Showing {sortedPermissions.length} of {permissions?.length || 0} permissions</span>
+                      {(permissionSearchQuery || selectedCategory || filterActionType !== 'all' || sortBy !== 'name') && (
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <span>Filters active</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {isLoading ? (
@@ -623,7 +804,7 @@ export default function Permissions() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredPermissions.map((permission) => {
+                          {sortedPermissions.map((permission) => {
                             const rolesWithPermission = roles.filter(role => 
                               roleMatrix[role]?.includes(permission.id)
                             );
@@ -670,7 +851,7 @@ export default function Permissions() {
                         </TableBody>
                       </Table>
                       
-                      {filteredPermissions.length === 0 && (
+                      {sortedPermissions.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <Shield className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                           <p>No permissions found matching your search criteria.</p>
