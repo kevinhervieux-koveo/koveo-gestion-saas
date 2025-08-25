@@ -118,6 +118,7 @@ export default function BugReports() {
   });
 
   const onSubmit = (data: BugFormData) => {
+    console.log('Submitting bug data:', data);
     createBugMutation.mutate(data);
   };
 
@@ -226,7 +227,13 @@ export default function BugReports() {
                       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                         <div>
                           <Label htmlFor='category'>Category*</Label>
-                          <Select onValueChange={(value) => form.setValue('category', value as any)}>
+                          <Select 
+                            onValueChange={(value) => {
+                              form.setValue('category', value as any);
+                              form.clearErrors('category');
+                            }}
+                            value={form.watch('category')}
+                          >
                             <SelectTrigger data-testid='select-bug-category'>
                               <SelectValue placeholder='Select category' />
                             </SelectTrigger>
@@ -243,7 +250,13 @@ export default function BugReports() {
 
                         <div>
                           <Label htmlFor='priority'>Priority</Label>
-                          <Select onValueChange={(value) => form.setValue('priority', value as any)} defaultValue='medium'>
+                          <Select 
+                            onValueChange={(value) => {
+                              form.setValue('priority', value as any);
+                              form.clearErrors('priority');
+                            }}
+                            value={form.watch('priority')}
+                          >
                             <SelectTrigger data-testid='select-bug-priority'>
                               <SelectValue />
                             </SelectTrigger>
