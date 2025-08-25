@@ -8,7 +8,7 @@ const mockStorage = {
     ];
   },
   async createPillar(_data: unknown) {
-    return { id: 'new-id', ...data, createdAt: new Date() };
+    return { id: 'new-id', ..._data, createdAt: new Date() };
   },
   async getWorkspaceStatuses() {
     return [

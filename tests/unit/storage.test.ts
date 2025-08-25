@@ -6,7 +6,7 @@ import type {
   InsertPillar,
   InsertFeature,
   InsertImprovementSuggestion,
-} from '@shared/schema';
+} from '../../shared/schema';
 import { randomUUID } from 'crypto';
 
 // Mock randomUUID to make tests predictable
@@ -179,6 +179,7 @@ describe('MemStorage', () => {
       email: 'info@abc-gestion.ca',
       address: '1234 Rue Saint-Denis',
       city: 'Montréal',
+      province: 'QC',
       postalCode: 'H2X 1L1',
     };
 
@@ -239,6 +240,7 @@ describe('MemStorage', () => {
       name: 'Complexe Maple',
       address: '456 Avenue du Parc',
       city: 'Québec',
+      province: 'QC',
       postalCode: 'G1R 2S5',
       buildingType: 'condo' as const,
       totalUnits: 50,
@@ -337,6 +339,8 @@ describe('MemStorage', () => {
       name: 'Advanced Reporting',
       description: 'Customizable financial and operational reports',
       category: 'Analytics & Reporting',
+      status: 'planned',
+      priority: 'medium',
     };
 
     describe('createFeature', () => {
@@ -408,6 +412,7 @@ describe('MemStorage', () => {
       description: 'Function complexity exceeds threshold of 10',
       category: 'Code Quality',
       priority: 'High',
+      status: 'New',
       filePath: 'src/services/UserService.ts',
     };
 

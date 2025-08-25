@@ -169,7 +169,7 @@ describe('Complete E2E User Creation Flow', () => {
       // Mock the complete flow
       (storage.getInvitationByToken as jest.Mock).mockResolvedValue(mockInvitation);
       (storage.createUser as jest.Mock).mockResolvedValue(mockCreatedUser);
-      (storage.updateInvitationStatus as jest.Mock).mockResolvedValue({ 
+      (storage.updateInvitation as jest.Mock).mockResolvedValue({ 
         ...mockInvitation, 
         status: 'accepted' as const 
       });
@@ -194,10 +194,9 @@ describe('Complete E2E User Creation Flow', () => {
       expect(createdUser.id).toBe('6a71e61e-a841-4106-bde7-dd2945653d49');
 
       // Step 3: Update invitation status
-      const updatedInvitation = await storage.updateInvitationStatus(
+      const updatedInvitation = await storage.updateInvitation(
         invitation.id, 
-        'accepted',
-        createdUser.id
+        { status: 'accepted' }
       );
 
       expect(updatedInvitation.status).toBe('accepted');
