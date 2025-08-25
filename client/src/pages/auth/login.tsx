@@ -196,7 +196,7 @@ export default function LoginPage() {
       setLoginError('');
       
       // Find the password for the selected user
-      let password = DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD; // default
+      let password: string = DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD; // default
       for (const role of Object.values(demoRoles)) {
         const user = role.users.find(u => u.email === demoUserEmail);
         if (user) {
