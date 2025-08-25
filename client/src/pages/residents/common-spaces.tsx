@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, addDays, isSameDay, parseISO, isWithinInterval, parse } from 'date-fns';
+import { format, addDays, isSameDay, parseISO, isWithinInterval, parse, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Calendar } from '@/components/ui/calendar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Building2, 
   Clock, 
@@ -30,7 +31,9 @@ import {
   User,
   CalendarDays,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -97,6 +100,197 @@ const bookingFormSchema = z.object({
 });
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
+
+/**
+ * Compact Booking Calendar Component
+ */
+interface BookingCalendarProps {
+  selected: Date;
+  onSelect: (date: Date) => void;
+  space: CommonSpace;
+  bookings: Booking[];
+  language: string;
+  'data-testid'?: string;
+}
+
+function BookingCalendar({ selected, onSelect, space, bookings, language, 'data-testid': testId }: BookingCalendarProps) {
+  const [currentDate, setCurrentDate] = useState(selected || new Date());
+  
+  const monthDays = useMemo(() => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+    return eachDayOfInterval({ start, end });
+  }, [currentDate]);
+
+  const getBookingsForDay = (day: Date) => {
+    return bookings.filter(booking => 
+      isSameDay(parseISO(booking.startTime), day) && booking.status === 'confirmed'
+    );
+  };
+
+  const isDayAvailable = (day: Date) => {
+    // Past dates are not available
+    if (day < new Date()) return false;
+    
+    // Check opening hours if available
+    if (space.openingHours) {
+      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const todayHours = space.openingHours.find(h => h.day.toLowerCase() === dayName);
+      if (!todayHours) return false;
+    }
+    
+    return true;
+  };
+
+  const goToPrevMonth = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+  };
+
+  return (
+    <TooltipProvider>
+      <div className="border rounded-md bg-white" data-testid={testId}>
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between p-3 border-b">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={goToPrevMonth}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <h3 className="text-sm font-semibold">
+            {format(currentDate, 'MMMM yyyy', { locale: language === 'fr' ? fr : undefined })}
+          </h3>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={goToNextMonth}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="p-2">
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {/* Week day headers */}
+            {[
+              language === 'fr' ? 'L' : 'M',
+              language === 'fr' ? 'M' : 'T', 
+              language === 'fr' ? 'M' : 'W',
+              language === 'fr' ? 'J' : 'T',
+              language === 'fr' ? 'V' : 'F',
+              language === 'fr' ? 'S' : 'S',
+              language === 'fr' ? 'D' : 'S'
+            ].map((day, index) => (
+              <div key={index} className="p-1 text-center text-xs font-medium text-gray-500">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-7 gap-1">
+            {monthDays.map((day, index) => {
+              const dayBookings = getBookingsForDay(day);
+              const isCurrentDay = isToday(day);
+              const isSelected = selected && isSameDay(day, selected);
+              const isAvailable = isDayAvailable(day);
+              
+              return (
+                <Tooltip key={index}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`
+                        h-8 p-1 text-xs rounded cursor-pointer transition-colors flex items-center justify-center
+                        ${!isAvailable 
+                          ? 'text-gray-300 cursor-not-allowed' 
+                          : isSelected 
+                            ? 'bg-blue-600 text-white' 
+                            : isCurrentDay 
+                              ? 'bg-blue-100 text-blue-900 hover:bg-blue-200' 
+                              : dayBookings.length > 0
+                                ? 'bg-orange-100 text-orange-900 hover:bg-orange-200'
+                                : 'hover:bg-gray-100'
+                        }
+                      `}
+                      onClick={() => isAvailable && onSelect(day)}
+                    >
+                      <span className="font-medium">{format(day, 'd')}</span>
+                      {dayBookings.length > 0 && (
+                        <div className="absolute -mt-3 -mr-1">
+                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {format(day, 'EEEE, d MMMM yyyy', { locale: language === 'fr' ? fr : undefined })}
+                      </p>
+                      {!isAvailable && (
+                        <p className="text-xs text-red-500">
+                          {language === 'fr' ? 'Non disponible' : 'Not available'}
+                        </p>
+                      )}
+                      {dayBookings.length > 0 && (
+                        <div className="text-xs">
+                          <p className="text-orange-600">
+                            {dayBookings.length} {language === 'fr' ? 'réservation(s)' : 'booking(s)'}
+                          </p>
+                          {dayBookings.slice(0, 2).map((booking, idx) => (
+                            <p key={idx} className="text-gray-600">
+                              {format(parseISO(booking.startTime), 'HH:mm')} - {format(parseISO(booking.endTime), 'HH:mm')}
+                            </p>
+                          ))}
+                          {dayBookings.length > 2 && (
+                            <p className="text-gray-500">+{dayBookings.length - 2} {language === 'fr' ? 'autres' : 'more'}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+          
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-4 mt-3 pt-2 border-t text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-blue-600 rounded"></div>
+              <span className="text-gray-600">{language === 'fr' ? 'Sélectionné' : 'Selected'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-orange-500 rounded"></div>
+              <span className="text-gray-600">{language === 'fr' ? 'Réservé' : 'Booked'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-blue-200 rounded"></div>
+              <span className="text-gray-600">{language === 'fr' ? 'Aujourd\'hui' : 'Today'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}
 
 /**
  * Utility function to generate .ics calendar content
@@ -471,7 +665,7 @@ export default function CommonSpacesPage() {
                       {/* Booking Dialog */}
                       {space.isReservable && (
                         <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                          <DialogContent className="max-w-md" data-testid="booking-dialog">
+                          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" data-testid="booking-dialog">
                             <DialogHeader>
                               <DialogTitle>
                                 {language === 'fr' ? 'Nouvelle réservation' : 'New Booking'}
@@ -507,16 +701,15 @@ export default function CommonSpacesPage() {
                                               </div>
                                             </div>
                                           )}
-                                          <Calendar
-                                            mode="single"
+                                          <BookingCalendar
                                             selected={field.value}
                                             onSelect={(date) => {
                                               field.onChange(date);
                                               setPreSelectedDate(null);
                                             }}
-                                            disabled={(date) => date < new Date()}
-                                            locale={language === 'fr' ? fr : undefined}
-                                            className="rounded-md border"
+                                            space={space}
+                                            bookings={bookings}
+                                            language={language}
                                             data-testid="booking-date-picker"
                                           />
                                         </div>
