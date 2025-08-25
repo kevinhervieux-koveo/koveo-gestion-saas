@@ -18,6 +18,7 @@ import { registerDelayedUpdateRoutes } from './api/delayed-updates';
 import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import { registerAIMonitoringRoutes } from './api/ai-monitoring';
+import { registerCommonSpacesRoutes } from './api/common-spaces';
 import budgetRoutes from './api/budgets';
 import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
@@ -250,6 +251,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Building routes registered');
   } catch (_error) {
     log(`❌ Building routes failed: ${_error}`, 'error');
+  }
+  
+  // Register common spaces API routes
+  try {
+    registerCommonSpacesRoutes(app);
+    log('✅ Common spaces routes registered');
+  } catch (_error) {
+    log(`❌ Common spaces routes failed: ${_error}`, 'error');
   }
 
   // Register document API routes
