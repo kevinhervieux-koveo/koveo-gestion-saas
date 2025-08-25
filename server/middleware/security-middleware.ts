@@ -233,16 +233,16 @@ export function configureSecurityMiddleware(app: Express): void {
 
   // Helmet Security Headers
   app.use(helmet({
-    // Content Security Policy
-    contentSecurityPolicy: getCSPConfig(isDevelopment),
+    // Content Security Policy - Disabled in development for React HMR
+    contentSecurityPolicy: isDevelopment ? false : getCSPConfig(isDevelopment),
     
-    // Cross-Origin Embedder Policy
-    crossOriginEmbedderPolicy: {
+    // Cross-Origin Embedder Policy - Relaxed in development
+    crossOriginEmbedderPolicy: isDevelopment ? false : {
       policy: "require-corp"
     },
     
-    // Cross-Origin Opener Policy
-    crossOriginOpenerPolicy: {
+    // Cross-Origin Opener Policy - Relaxed in development
+    crossOriginOpenerPolicy: isDevelopment ? false : {
       policy: "same-origin"
     },
     

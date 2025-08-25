@@ -100,8 +100,9 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
       const response = await apiRequest("PUT", `/api/documents/${document.id}`, {
         ...data,
         dateReference: new Date(data.dateReference).toISOString(),
-      }) as BuildingDocument;
-      onSave(response);
+      });
+      const updatedDocument = response as any;
+      onSave(updatedDocument);
       toast({
         title: "Success",
         description: "Document updated successfully",
@@ -227,7 +228,11 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
   // Fetch documents
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: ["/api/documents", "building", buildingId],
-    queryFn: () => buildingId ? apiRequest("GET", `/api/documents?buildingId=${buildingId}`) as Promise<BuildingDocument[]> : Promise.resolve([]),
+    queryFn: async () => {
+      if (!buildingId) return [];
+      const response = await apiRequest("GET", `/api/documents?buildingId=${buildingId}`);
+      return response as BuildingDocument[];
+    },
     enabled: !!buildingId,
   });
 
@@ -534,10 +539,6 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
                             </div>
                           ) : (
                             <ObjectUploader
-                              restrictions={{
-                                maxFileSize: 10 * 1024 * 1024, // 10MB
-                                allowedFileTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png'],
-                              }}
                               onUpload={handleNewDocumentUpload}
                               onComplete={handleNewDocumentUploadComplete}
                               disabled={isUploadingNewFile}

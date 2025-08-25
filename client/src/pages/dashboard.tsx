@@ -46,7 +46,7 @@ export default function Dashboard() {
           title: 'System Management',
           description: 'Manage organizations, users, and system settings',
           icon: Settings,
-          path: '/admin',
+          path: '/admin/organizations',
           color: 'bg-red-500',
           testId: 'card-admin'
         },
@@ -54,7 +54,7 @@ export default function Dashboard() {
           title: 'Organization Overview',
           description: 'View and manage all organizations',
           icon: Building,
-          path: '/organizations',
+          path: '/admin/organizations',
           color: 'bg-blue-500',
           testId: 'card-organizations'
         },
@@ -62,7 +62,7 @@ export default function Dashboard() {
           title: 'User Management',
           description: 'Manage users across all organizations',
           icon: Users,
-          path: '/users',
+          path: '/admin/organizations',
           color: 'bg-green-500',
           testId: 'card-users'
         }
@@ -76,7 +76,7 @@ export default function Dashboard() {
           title: 'Buildings',
           description: 'Manage your property portfolio',
           icon: Building,
-          path: '/buildings',
+          path: '/manager/buildings',
           color: 'bg-blue-600',
           testId: 'card-buildings'
         },
@@ -84,7 +84,7 @@ export default function Dashboard() {
           title: 'Financial Reports',
           description: 'View revenue, expenses, and financial analytics',
           icon: BarChart3,
-          path: '/reports',
+          path: '/manager/budget',
           color: 'bg-purple-500',
           testId: 'card-reports'
         },
@@ -92,7 +92,7 @@ export default function Dashboard() {
           title: 'Maintenance',
           description: 'Track and manage maintenance requests',
           icon: Settings,
-          path: '/maintenance',
+          path: '/manager/demands',
           color: 'bg-orange-500',
           testId: 'card-maintenance'
         }

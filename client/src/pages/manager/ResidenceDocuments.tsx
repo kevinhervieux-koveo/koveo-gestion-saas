@@ -101,7 +101,7 @@ function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps)
         ...data,
         dateReference: new Date(data.dateReference).toISOString(),
       });
-      onSave(response);
+      onSave(response as any);
       toast({
         title: "Success",
         description: "Document updated successfully",
@@ -234,7 +234,11 @@ export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsPr
   // Fetch documents
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
     queryKey: ["/api/documents", "residence", residenceId],
-    queryFn: () => residenceId ? apiRequest("GET", `/api/documents?residenceId=${residenceId}`) as Promise<ResidenceDocument[]> : Promise.resolve([]),
+    queryFn: async () => {
+      if (!residenceId) return [];
+      const response = await apiRequest("GET", `/api/documents?residenceId=${residenceId}`);
+      return response as ResidenceDocument[];
+    },
     enabled: !!residenceId,
   });
 
@@ -529,10 +533,6 @@ export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsPr
                             </div>
                           ) : (
                             <ObjectUploader
-                              restrictions={{
-                                maxFileSize: 10 * 1024 * 1024, // 10MB
-                                allowedFileTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png'],
-                              }}
                               onUpload={handleNewDocumentUpload}
                               onComplete={handleNewDocumentUploadComplete}
                               disabled={isUploadingNewFile}

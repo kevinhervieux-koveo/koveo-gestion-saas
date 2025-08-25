@@ -200,7 +200,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
                   <SelectItem value="all">All Categories</SelectItem>
                   {availableCategories.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {getCategoryLabel(category)}
+                      {getCategoryLabel(category, 'building')}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -224,7 +224,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
             {/* Summary */}
             <div className="text-sm text-gray-600">
               Showing {startItem + 1}-{endItem} of {filteredDocuments.length} documents
-              {selectedCategory !== 'all' && ` in ${getCategoryLabel(selectedCategory)}`}
+              {selectedCategory !== 'all' && ` in ${getCategoryLabel(selectedCategory, 'building')}`}
               {selectedYear !== 'all' && ` from ${selectedYear}`}
             </div>
           </div>
@@ -313,7 +313,7 @@ export default function BuildingDocuments({ buildingId }: BuildingDocumentsProps
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <FileText className="h-5 w-5" />
-                          {getCategoryLabel(selectedCategory)} Documents
+                          {getCategoryLabel(selectedCategory, 'building')} Documents
                           <Badge variant="secondary">{filteredDocuments.length}</Badge>
                         </CardTitle>
                       </CardHeader>
