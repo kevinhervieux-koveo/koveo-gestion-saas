@@ -120,8 +120,29 @@ export function CalendarView({
 
   const { data, isLoading, error } = useQuery<CalendarData>({
     queryKey: ['calendar', mode, spaceId, buildingId, startDate, endDate, viewMode],
-    queryFn: () => apiUrl ? apiRequest(apiUrl, 'GET') : Promise.resolve(null),
-    enabled: !!apiUrl,
+    queryFn: async () => {
+      if (!apiUrl) return null;
+      
+      try {
+        const response = await apiRequest('GET', apiUrl);
+        return await response.json();
+      } catch (error: any) {
+        // Handle authentication errors specifically
+        if (error.message?.includes('401')) {
+          console.warn('Calendar authentication required - user may need to log in');
+          throw new Error('Authentication required for calendar access');
+        }
+        throw error;
+      }
+    },
+    enabled: !!apiUrl && !!user,
+    retry: (failureCount, error: any) => {
+      // Don't retry on auth errors
+      if (error?.message?.includes('Authentication required')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   const monthDays = useMemo(() => {
@@ -175,11 +196,34 @@ export function CalendarView({
   };
 
   if (error) {
+    const isAuthError = error.message?.includes('Authentication required') || error.message?.includes('401');
+    
     return (
       <Card className={className}>
         <CardContent className="p-6">
-          <div className="text-center text-red-600" data-testid="calendar-error">
-            {language === 'fr' ? 'Erreur lors du chargement du calendrier' : 'Error loading calendar'}
+          <div className="text-center space-y-3" data-testid="calendar-error">
+            <div className="text-red-600">
+              {isAuthError 
+                ? (language === 'fr' ? 'Authentification requise pour le calendrier' : 'Authentication required for calendar')
+                : (language === 'fr' ? 'Erreur lors du chargement du calendrier' : 'Error loading calendar')
+              }
+            </div>
+            {isAuthError && (
+              <div className="text-sm text-gray-600">
+                {language === 'fr' 
+                  ? 'Veuillez vous reconnecter pour accéder au calendrier' 
+                  : 'Please sign in again to access the calendar'
+                }
+              </div>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['calendar'] })}
+              data-testid="retry-calendar"
+            >
+              {language === 'fr' ? 'Réessayer' : 'Retry'}
+            </Button>
           </div>
         </CardContent>
       </Card>
