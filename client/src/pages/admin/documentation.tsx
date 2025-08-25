@@ -89,7 +89,7 @@ export default function OwnerDocumentation() {
 
   // Fetch comprehensive documentation data
   const {
-    _data: docData,
+    data: docData,
     isLoading,
     refetch,
     isFetching,
@@ -359,10 +359,10 @@ export default function OwnerDocumentation() {
     }
     return `PROJECT OVERVIEW
     
-Name: ${data.projectOverview.name}
-Description: ${data.projectOverview.description}
-Version: ${data.projectOverview.version}
-Architecture: ${data.projectOverview.architecture}
+Name: ${_data.projectOverview.name}
+Description: ${_data.projectOverview.description}
+Version: ${_data.projectOverview.version}
+Architecture: ${_data.projectOverview.architecture}
 
 FEATURES:
 - Property management for Quebec residential communities
@@ -384,7 +384,7 @@ COMPLIANCE:
       return '';
     }
     let csv = 'Component Name,Type,Dependencies,Exports,Complexity\n';
-    data.components.forEach((comp) => {
+    _data.components.forEach((comp) => {
       csv += `"${comp.name}","${comp.type}","${comp.dependencies.join(', ')}","${comp.exports.join(', ')}",${comp.complexity}\n`;
     });
     return csv;
@@ -395,12 +395,12 @@ COMPLIANCE:
       return '';
     }
     let doc = 'API DOCUMENTATION\n\n';
-    data.apis.forEach((api) => {
+    _data.apis.forEach((api) => {
       doc += `Endpoint: ${api.endpoint}\n`;
       doc += `Method: ${api.method}\n`;
       doc += `Description: ${api.description}\n`;
       doc += `Parameters: ${api.parameters.join(', ')}\n`;
-      doc += `Response: ${api.response}\n\n`;
+      doc += `Response: ${api._response}\n\n`;
     });
     return doc;
   };
@@ -410,7 +410,7 @@ COMPLIANCE:
       return '';
     }
     let csv = 'Table,Column,Type,Nullable,Primary Key\n';
-    data.database.tables.forEach((table) => {
+    _data.database.tables.forEach((table) => {
       table.columns.forEach((col) => {
         csv += `"${table.name}","${col.name}","${col.type}",${col.nullable},${col.primary}\n`;
       });
@@ -424,13 +424,13 @@ COMPLIANCE:
     }
     let doc = 'DEPENDENCIES LIST\n\n';
     doc += 'PRODUCTION DEPENDENCIES:\n';
-    data.dependencies
+    _data.dependencies
       .filter((d) => d.type === 'production')
       .forEach((dep) => {
         doc += `- ${dep.name} (${dep.version}): ${dep.description}\n`;
       });
     doc += '\nDEVELOPMENT DEPENDENCIES:\n';
-    data.dependencies
+    _data.dependencies
       .filter((d) => d.type === 'development')
       .forEach((dep) => {
         doc += `- ${dep.name} (${dep.version}): ${dep.description}\n`;
@@ -455,7 +455,7 @@ COMPLIANCE:
     return `KOVEO_GESTION_COMPREHENSIVE_DOCUMENTATION_FOR_LLM_PROCESSING
 
 PROJECT_CONTEXT:
-- Name: ${data.projectOverview.name}
+- Name: ${_data.projectOverview.name}
 - Type: Quebec Property Management SaaS Platform
 - Target: Residential communities, syndicates, co-ownership properties
 - Compliance: Law 25 Quebec privacy regulations
@@ -476,7 +476,7 @@ USER_ROLES:
 3. RESIDENTS: Unit management, request submission, payment tracking
 
 COMPONENT_ARCHITECTURE:
-${data.components
+${_data.components
   .map(
     (comp) =>
       `COMPONENT_${comp.name.replace(/\s/g, '_').toUpperCase()}:
@@ -489,20 +489,20 @@ ${data.components
   .join('\n')}
 
 API_ENDPOINTS:
-${data.apis
+${_data.apis
   .map(
     (api) =>
       `ENDPOINT_${api.endpoint.replace(/[\/\-]/g, '_').toUpperCase()}:
   - Method: ${api.method}
   - Purpose: ${api.description}
   - Parameters: ${api.parameters.join(', ') || 'none'}
-  - Response_Type: ${api.response}
+  - Response_Type: ${api._response}
   - Authentication: Required for all endpoints`
   )
   .join('\n')}
 
 DATABASE_SCHEMA:
-${data.database.tables
+${_data.database.tables
   .map(
     (table) =>
       `TABLE_${table.name.toUpperCase()}:
