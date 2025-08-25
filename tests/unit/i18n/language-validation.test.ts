@@ -76,6 +76,80 @@ const _testTranslations = {
     'success.updated': 'Successfully updated',
     'success.deleted': 'Successfully deleted',
     
+    // Feature Requests/Idea Box
+    'ideaBox.title': 'Idea Box',
+    'ideaBox.subtitle': 'Submit and vote on feature suggestions',
+    'ideaBox.submitIdea': 'Submit Idea',
+    'ideaBox.searchPlaceholder': 'Search feature requests...',
+    'ideaBox.noFeatures': 'No feature requests found',
+    'ideaBox.firstSubmission': 'Be the first to submit a feature request!',
+    'ideaBox.loading': 'Loading feature requests...',
+    
+    // Feature Request Form
+    'featureRequest.create': 'Submit a Feature Request',
+    'featureRequest.edit': 'Edit Feature Request',
+    'featureRequest.title': 'Title',
+    'featureRequest.titlePlaceholder': 'Brief, descriptive title for your feature',
+    'featureRequest.description': 'Description',
+    'featureRequest.descriptionPlaceholder': 'Detailed description of the feature you\'d like to see',
+    'featureRequest.need': 'Need',
+    'featureRequest.needPlaceholder': 'Explain why this feature is needed and how it would help',
+    'featureRequest.category': 'Category',
+    'featureRequest.page': 'Page/Location',
+    'featureRequest.pagePlaceholder': 'e.g., Dashboard, Settings, etc.',
+    'featureRequest.status': 'Status',
+    'featureRequest.assignedTo': 'Assigned To',
+    'featureRequest.adminNotes': 'Admin Notes',
+    'featureRequest.adminNotesPlaceholder': 'Internal notes for team members',
+    
+    // Feature Request Categories
+    'featureRequest.category.dashboard': 'Dashboard',
+    'featureRequest.category.propertyManagement': 'Property Management',
+    'featureRequest.category.residentManagement': 'Resident Management',
+    'featureRequest.category.financialManagement': 'Financial Management',
+    'featureRequest.category.maintenance': 'Maintenance',
+    'featureRequest.category.documentManagement': 'Document Management',
+    'featureRequest.category.communication': 'Communication',
+    'featureRequest.category.reports': 'Reports',
+    'featureRequest.category.mobileApp': 'Mobile App',
+    'featureRequest.category.integrations': 'Integrations',
+    'featureRequest.category.security': 'Security',
+    'featureRequest.category.performance': 'Performance',
+    'featureRequest.category.other': 'Other',
+    
+    // Feature Request Statuses
+    'featureRequest.status.submitted': 'Submitted',
+    'featureRequest.status.underReview': 'Under Review',
+    'featureRequest.status.planned': 'Planned',
+    'featureRequest.status.inProgress': 'In Progress',
+    'featureRequest.status.completed': 'Completed',
+    'featureRequest.status.rejected': 'Rejected',
+    
+    // Feature Request Actions
+    'featureRequest.upvote': 'Upvote',
+    'featureRequest.upvoted': 'Upvoted',
+    'featureRequest.upvoteCount': '{count} upvotes',
+    'featureRequest.submittedBy': 'Submitted by: {submitter}',
+    'featureRequest.sortBy': 'Sort by',
+    'featureRequest.sortNewest': 'Newest First',
+    'featureRequest.sortOldest': 'Oldest First',
+    'featureRequest.sortMostUpvoted': 'Most Upvoted',
+    'featureRequest.sortLeastUpvoted': 'Least Upvoted',
+    'featureRequest.allStatuses': 'All Status',
+    'featureRequest.allCategories': 'All Categories',
+    'featureRequest.filterStatus': 'Filter by Status',
+    'featureRequest.filterCategory': 'Filter by Category',
+    
+    // Feature Request Messages
+    'featureRequest.submitSuccess': 'Feature request submitted successfully!',
+    'featureRequest.updateSuccess': 'Feature request updated successfully!',
+    'featureRequest.deleteSuccess': 'Feature request deleted successfully!',
+    'featureRequest.upvoteSuccess': 'Upvote added successfully!',
+    'featureRequest.upvoteRemoved': 'Upvote removed successfully!',
+    'featureRequest.alreadyUpvoted': 'You have already upvoted this feature request',
+    'featureRequest.deleteConfirm': 'Are you sure you want to delete this feature request?',
+    'featureRequest.deleteWarning': 'This action cannot be undone.',
+    
     // Date and time
     'date.today': 'Today',
     'date.yesterday': 'Yesterday',
@@ -162,6 +236,80 @@ const _testTranslations = {
     'success.created': 'Créé avec succès',
     'success.updated': 'Mis à jour avec succès',
     'success.deleted': 'Supprimé avec succès',
+    
+    // Feature Requests/Idea Box
+    'ideaBox.title': 'Boîte à idées',
+    'ideaBox.subtitle': 'Soumettez et votez sur les suggestions de fonctionnalités',
+    'ideaBox.submitIdea': 'Soumettre une idée',
+    'ideaBox.searchPlaceholder': 'Rechercher des demandes de fonctionnalités...',
+    'ideaBox.noFeatures': 'Aucune demande de fonctionnalité trouvée',
+    'ideaBox.firstSubmission': 'Soyez le premier à soumettre une demande de fonctionnalité !',
+    'ideaBox.loading': 'Chargement des demandes de fonctionnalités...',
+    
+    // Feature Request Form
+    'featureRequest.create': 'Soumettre une demande de fonctionnalité',
+    'featureRequest.edit': 'Modifier la demande de fonctionnalité',
+    'featureRequest.title': 'Titre',
+    'featureRequest.titlePlaceholder': 'Titre bref et descriptif pour votre fonctionnalité',
+    'featureRequest.description': 'Description',
+    'featureRequest.descriptionPlaceholder': 'Description détaillée de la fonctionnalité que vous aimeriez voir',
+    'featureRequest.need': 'Besoin',
+    'featureRequest.needPlaceholder': 'Expliquez pourquoi cette fonctionnalité est nécessaire et en quoi elle aiderait',
+    'featureRequest.category': 'Catégorie',
+    'featureRequest.page': 'Page/Emplacement',
+    'featureRequest.pagePlaceholder': 'ex: Tableau de bord, Paramètres, etc.',
+    'featureRequest.status': 'Statut',
+    'featureRequest.assignedTo': 'Assigné à',
+    'featureRequest.adminNotes': 'Notes administrateur',
+    'featureRequest.adminNotesPlaceholder': 'Notes internes pour les membres de l\'équipe',
+    
+    // Feature Request Categories
+    'featureRequest.category.dashboard': 'Tableau de bord',
+    'featureRequest.category.propertyManagement': 'Gestion immobilière',
+    'featureRequest.category.residentManagement': 'Gestion des résidents',
+    'featureRequest.category.financialManagement': 'Gestion financière',
+    'featureRequest.category.maintenance': 'Maintenance',
+    'featureRequest.category.documentManagement': 'Gestion de documents',
+    'featureRequest.category.communication': 'Communication',
+    'featureRequest.category.reports': 'Rapports',
+    'featureRequest.category.mobileApp': 'Application mobile',
+    'featureRequest.category.integrations': 'Intégrations',
+    'featureRequest.category.security': 'Sécurité',
+    'featureRequest.category.performance': 'Performance',
+    'featureRequest.category.other': 'Autre',
+    
+    // Feature Request Statuses
+    'featureRequest.status.submitted': 'Soumis',
+    'featureRequest.status.underReview': 'En révision',
+    'featureRequest.status.planned': 'Planifié',
+    'featureRequest.status.inProgress': 'En cours',
+    'featureRequest.status.completed': 'Terminé',
+    'featureRequest.status.rejected': 'Rejeté',
+    
+    // Feature Request Actions
+    'featureRequest.upvote': 'Voter pour',
+    'featureRequest.upvoted': 'Voté',
+    'featureRequest.upvoteCount': '{count} votes',
+    'featureRequest.submittedBy': 'Soumis par : {submitter}',
+    'featureRequest.sortBy': 'Trier par',
+    'featureRequest.sortNewest': 'Plus récent d\'abord',
+    'featureRequest.sortOldest': 'Plus ancien d\'abord',
+    'featureRequest.sortMostUpvoted': 'Plus voté',
+    'featureRequest.sortLeastUpvoted': 'Moins voté',
+    'featureRequest.allStatuses': 'Tous les statuts',
+    'featureRequest.allCategories': 'Toutes les catégories',
+    'featureRequest.filterStatus': 'Filtrer par statut',
+    'featureRequest.filterCategory': 'Filtrer par catégorie',
+    
+    // Feature Request Messages
+    'featureRequest.submitSuccess': 'Demande de fonctionnalité soumise avec succès !',
+    'featureRequest.updateSuccess': 'Demande de fonctionnalité mise à jour avec succès !',
+    'featureRequest.deleteSuccess': 'Demande de fonctionnalité supprimée avec succès !',
+    'featureRequest.upvoteSuccess': 'Vote ajouté avec succès !',
+    'featureRequest.upvoteRemoved': 'Vote retiré avec succès !',
+    'featureRequest.alreadyUpvoted': 'Vous avez déjà voté pour cette demande de fonctionnalité',
+    'featureRequest.deleteConfirm': 'Êtes-vous sûr de vouloir supprimer cette demande de fonctionnalité ?',
+    'featureRequest.deleteWarning': 'Cette action ne peut pas être annulée.',
     
     // Date and time
     'date.today': 'Aujourd\'hui',
@@ -268,6 +416,130 @@ const validateQuebecFrench = (text: string): { isValid: boolean; suggestions: st
 };
 
 describe('Language Validation Tests', () => {
+  describe('Feature Request Translation Coverage', () => {
+    it('should have complete English translations for feature requests', () => {
+      const requiredKeys = [
+        'ideaBox.title',
+        'ideaBox.subtitle', 
+        'ideaBox.submitIdea',
+        'featureRequest.create',
+        'featureRequest.edit',
+        'featureRequest.title',
+        'featureRequest.description',
+        'featureRequest.need',
+        'featureRequest.category',
+        'featureRequest.status',
+        'featureRequest.upvote',
+        'featureRequest.submitSuccess',
+        'featureRequest.updateSuccess',
+        'featureRequest.deleteSuccess'
+      ];
+
+      requiredKeys.forEach(key => {
+        expect(hasTranslation(key, 'en')).toBe(true);
+        expect(translate(key, 'en')).toBeTruthy();
+        expect(translate(key, 'en')).not.toBe(key); // Should not return the key itself
+      });
+    });
+
+    it('should have complete French translations for feature requests', () => {
+      const requiredKeys = [
+        'ideaBox.title',
+        'ideaBox.subtitle',
+        'ideaBox.submitIdea', 
+        'featureRequest.create',
+        'featureRequest.edit',
+        'featureRequest.title',
+        'featureRequest.description',
+        'featureRequest.need',
+        'featureRequest.category',
+        'featureRequest.status',
+        'featureRequest.upvote',
+        'featureRequest.submitSuccess',
+        'featureRequest.updateSuccess',
+        'featureRequest.deleteSuccess'
+      ];
+
+      requiredKeys.forEach(key => {
+        expect(hasTranslation(key, 'fr')).toBe(true);
+        expect(translate(key, 'fr')).toBeTruthy();
+        expect(translate(key, 'fr')).not.toBe(key); // Should not return the key itself
+      });
+    });
+
+    it('should have proper French translations for feature request categories', () => {
+      const categoryTranslations = {
+        'featureRequest.category.dashboard': 'Tableau de bord',
+        'featureRequest.category.propertyManagement': 'Gestion immobilière',
+        'featureRequest.category.residentManagement': 'Gestion des résidents',
+        'featureRequest.category.financialManagement': 'Gestion financière',
+        'featureRequest.category.maintenance': 'Maintenance',
+        'featureRequest.category.documentManagement': 'Gestion de documents',
+        'featureRequest.category.communication': 'Communication',
+        'featureRequest.category.reports': 'Rapports',
+        'featureRequest.category.mobileApp': 'Application mobile',
+        'featureRequest.category.integrations': 'Intégrations',
+        'featureRequest.category.security': 'Sécurité',
+        'featureRequest.category.performance': 'Performance',
+        'featureRequest.category.other': 'Autre'
+      };
+
+      Object.entries(categoryTranslations).forEach(([key, expectedTranslation]) => {
+        expect(translate(key, 'fr')).toBe(expectedTranslation);
+      });
+    });
+
+    it('should have proper French translations for feature request statuses', () => {
+      const statusTranslations = {
+        'featureRequest.status.submitted': 'Soumis',
+        'featureRequest.status.underReview': 'En révision',
+        'featureRequest.status.planned': 'Planifié',
+        'featureRequest.status.inProgress': 'En cours',
+        'featureRequest.status.completed': 'Terminé',
+        'featureRequest.status.rejected': 'Rejeté'
+      };
+
+      Object.entries(statusTranslations).forEach(([key, expectedTranslation]) => {
+        expect(translate(key, 'fr')).toBe(expectedTranslation);
+      });
+    });
+
+    it('should validate French accents in feature request translations', () => {
+      const textsToCheck = [
+        translate('featureRequest.create', 'fr'),
+        translate('featureRequest.category.propertyManagement', 'fr'),
+        translate('featureRequest.category.security', 'fr'),
+        translate('featureRequest.status.completed', 'fr'),
+        translate('ideaBox.title', 'fr')
+      ];
+
+      textsToCheck.forEach(text => {
+        expect(validateFrenchAccents(text)).toBe(true);
+      });
+    });
+
+    it('should validate parameter interpolation in feature request translations', () => {
+      const parameterizedKeys = [
+        'featureRequest.upvoteCount',
+        'featureRequest.submittedBy'
+      ];
+
+      parameterizedKeys.forEach(key => {
+        const enText = translate(key, 'en');
+        const frText = translate(key, 'fr');
+        
+        // Should contain parameter placeholders
+        expect(enText).toMatch(/\{[^}]+\}/);
+        expect(frText).toMatch(/\{[^}]+\}/);
+        
+        // Parameters should be consistent between languages
+        const enParams = enText.match(/\{([^}]+)\}/g) || [];
+        const frParams = frText.match(/\{([^}]+)\}/g) || [];
+        expect(enParams.sort()).toEqual(frParams.sort());
+      });
+    });
+  });
+
   describe('Translation Completeness', () => {
     it('should have all English keys translated in French', () => {
       const missingFrench = validateTranslationCompleteness(mockTranslations.en, mockTranslations.fr);
