@@ -16,6 +16,8 @@ import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
 import { registerDemoManagementRoutes } from './api/demo-management';
+import { registerFeatureManagementRoutes } from './api/feature-management';
+import { registerAIMonitoringRoutes } from './api/ai-monitoring';
 import budgetRoutes from './api/budgets';
 import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
@@ -224,6 +226,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Demo management routes registered');
   } catch (_error) {
     log(`❌ Demo management routes failed: ${_error}`, 'error');
+  }
+
+  // Register feature management API routes  
+  try {
+    registerFeatureManagementRoutes(app);
+    log('✅ Feature management routes registered');
+  } catch (_error) {
+    log(`❌ Feature management routes failed: ${_error}`, 'error');
+  }
+
+  // Register AI monitoring API routes
+  try {
+    registerAIMonitoringRoutes(app);
+    log('✅ AI monitoring routes registered');
+  } catch (_error) {
+    log(`❌ AI monitoring routes failed: ${_error}`, 'error');
   }
   
   // Register building API routes

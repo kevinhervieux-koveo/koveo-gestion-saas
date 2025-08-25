@@ -31,6 +31,18 @@ jest.mock('@shared/schema', () => ({
   aiMetrics: {},
 }));
 
+// Mock auth middleware
+jest.mock('../../server/auth', () => ({
+  requireAuth: (req: any, res: any, next: any) => {
+    req.user = { id: 'test-user', role: 'admin' };
+    next();
+  },
+  requireRole: (role: string) => (req: any, res: any, next: any) => {
+    req.user = { id: 'test-user', role };
+    next();
+  },
+}));
+
 describe('AI Monitoring API Tests', () => {
   let app: express.Express;
 

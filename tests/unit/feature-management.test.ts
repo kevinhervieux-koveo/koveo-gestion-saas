@@ -7,23 +7,32 @@ import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../../server/routes';
 
-// Mock database
-jest.mock('../../server/db', () => ({
-  db: {
-    select: jest.fn().mockReturnThis(),
-    from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
-    returning: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    values: jest.fn().mockReturnThis(),
-  },
+// Mock Neon database
+const mockQuery = jest.fn();
+const mockPool = {
+  query: mockQuery,
+};
+
+jest.mock('@neondatabase/serverless', () => ({
+  Pool: jest.fn(() => mockPool),
+  neonConfig: { webSocketConstructor: null },
 }));
 
 jest.mock('@shared/schema', () => ({
   features: {},
   actionableItems: {},
+}));
+
+// Mock auth middleware
+jest.mock('../../server/auth', () => ({
+  requireAuth: (req: any, res: any, next: any) => {
+    req.user = { id: 'test-user', role: 'admin' };
+    next();
+  },
+  requireRole: (role: string) => (req: any, res: any, next: any) => {
+    req.user = { id: 'test-user', role };
+    next();
+  },
 }));
 
 describe('Feature Management API Tests', () => {
@@ -34,6 +43,7 @@ describe('Feature Management API Tests', () => {
     app.use(express.json());
     registerRoutes(app);
     jest.clearAllMocks();
+    mockQuery.mockClear();
   });
 
   describe('POST /api/features/:id/update-status', () => {
@@ -42,10 +52,16 @@ describe('Feature Management API Tests', () => {
         id: 'test-feature-id',
         name: 'Test Feature',
         status: 'in-progress',
-        updatedAt: new Date(),
+        is_public_roadmap: false,
+        is_strategic_path: false,
+        business_objective: 'Test objective',
+        target_users: 'Test users',
+        success_metrics: 'Test metrics',
+        created_at: new Date(),
+        updated_at: new Date(),
       };
 
-      require('../../server/db').db.update.mockResolvedValueOnce([mockFeature]);
+      mockQuery.mockResolvedValueOnce({ rows: [mockFeature] });
 
       const response = await request(app)
         .post('/api/features/test-feature-id/update-status')

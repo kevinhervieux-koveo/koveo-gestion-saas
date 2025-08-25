@@ -11,7 +11,7 @@ import {
   insertDocumentResidentSchema,
   type DocumentResident,
   type InsertDocumentResident
-} from '../../shared/schema';
+} from '../../shared/schemas/documents';
 import { ObjectStorageService, ObjectNotFoundError } from '../objectStorage';
 import { z } from 'zod';
 
