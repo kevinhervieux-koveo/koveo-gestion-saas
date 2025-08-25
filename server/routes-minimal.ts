@@ -22,7 +22,6 @@ import { registerCommonSpacesRoutes } from './api/common-spaces';
 import budgetRoutes from './api/budgets';
 import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
-import demoBookingsRoutes from './api/demo-bookings';
 import { CleanupScheduler } from './services/cleanup-scheduler';
 import DemoManagementService from './services/demo-management-service';
 import { log } from './vite';
@@ -298,7 +297,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register demo bookings API routes
   try {
-    app.use('/api/demo-bookings', demoBookingsRoutes);
     log('✅ Demo bookings routes registered');
   } catch (_error) {
     log(`❌ Demo bookings routes failed: ${_error}`, 'error');

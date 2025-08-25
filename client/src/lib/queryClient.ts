@@ -104,7 +104,11 @@ export const queryClient = new QueryClient({
       // Cache data for 5 minutes before removal to prevent memory bloat
       gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
-        // Don't retry on client errors (4xx)
+        // Retry 401 errors once (authentication timing issues)
+        if (error?.message?.includes('401') && failureCount < 1) {
+          return true;
+        }
+        // Don't retry other client errors (4xx)
         if (error?.message?.includes('4')) {return false;}
         return failureCount < 2;
       },
@@ -120,6 +124,11 @@ export const queryClient = new QueryClient({
     onError: (error) => {
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
+        // Skip logging authentication timing errors to reduce console noise
+        if (error.message.includes('401') || error.message.includes('Authentication required')) {
+          return; // Authentication timing issues will be retried automatically
+        }
+        
         // Provide more helpful error messages for common issues
         if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
           console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);
