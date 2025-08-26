@@ -188,20 +188,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Session setup failed: ${_error}`, 'error');
   }
 
-  // Create API router that bypasses Vite's catch-all
-  const apiRouter = express.Router();
-  
-  // Setup authentication routes on API router (routes are /auth/*, mounted at /api)
+  // Create dedicated API router with session context
   try {
-    setupAuthRoutes(apiRouter);
-    log('✅ Auth routes registered on API router');
+    const apiApp = express();
+    
+    // Add session middleware to API sub-app (required for auth)
+    apiApp.use(sessionConfig);
+    
+    // Add JSON parsing to API sub-app
+    apiApp.use(express.json());
+    apiApp.use(express.urlencoded({ extended: true }));
+    
+    // Ensure JSON responses for all API routes
+    apiApp.use((req: any, res: any, next: any) => {
+      res.type('json');
+      next();
+    });
+    
+    // Setup auth routes on API sub-app
+    setupAuthRoutes(apiApp);
+    
+    // Mount API sub-app at /api with highest priority
+    app.use('/api', apiApp);
+    
+    log('✅ API sub-app with session context mounted at /api');
   } catch (_error) {
-    log(`❌ Auth routes failed: ${_error}`, 'error');
+    log(`❌ API sub-app setup failed: ${_error}`, 'error');
   }
-
-  // Mount API router EARLY to intercept /api/* before Vite processes them
-  app.use('/api', apiRouter);
-  log('✅ API router mounted at /api');
 
   // Production diagnostic endpoint
   try {
