@@ -119,7 +119,12 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Setup frontend serving first
+    // Load API routes FIRST (before frontend catch-all routes)
+    const { registerRoutes } = await import('./routes-minimal');
+    await registerRoutes(app);
+    log('✅ Full application routes loaded');
+    
+    // Setup frontend serving AFTER API routes
     const { setupVite, serveStatic } = await import('./vite');
     if (process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
@@ -130,11 +135,6 @@ async function loadFullApplication(): Promise<void> {
       serveStatic(app);
       log('✅ Static file serving configured');
     }
-    
-    // Load routes and features
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    log('✅ Full application routes loaded');
     
   } catch (error: any) {
     log(`⚠️ Failed to load full application: ${error.message}`, 'error');

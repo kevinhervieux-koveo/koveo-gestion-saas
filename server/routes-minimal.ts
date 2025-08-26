@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from 'express';
+import express, { type Express, Request, Response } from 'express';
 import { createServer, type Server } from 'http';
 import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } from './auth';
 import { registerPermissionsRoutes } from './api/permissions';
@@ -164,6 +164,11 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup JSON body parser FIRST
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  log('✅ Body parser middleware configured');
+
   // Setup session middleware
   try {
     app.use(sessionConfig);
