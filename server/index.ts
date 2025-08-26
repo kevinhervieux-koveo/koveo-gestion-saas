@@ -44,14 +44,25 @@ const app = express();
 async function initializeDatabase() {
   try {
     console.log('🔍 Initializing database connection...');
+    
+    // Import database here to ensure it's loaded after all modules
+    const { db } = await import('./db.js');
+    
     // Test database connection
     await db.execute({ sql: 'SELECT 1 as test' });
     console.log('✅ Database connection successful');
+    
+    return db;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    // Don't exit in production, let the app start but log the error
+    console.error('Error details:', error.message);
+    
+    // In production, log the error but don't crash the server
     if (process.env.NODE_ENV === 'production') {
       console.error('⚠️  Continuing startup despite database error in production');
+      return null;
+    } else {
+      throw error;
     }
   }
 }
