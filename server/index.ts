@@ -78,12 +78,14 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           });
         }, 100); // Very short delay for development
       } else {
-        // Production uses unified startup
-        log('🔄 Production mode: Starting application initialization...');
-        loadFullApplication().catch((error) => {
-          log(`⚠️ Full application load failed: ${error.message}`, 'error');
-          // Continue - health checks still work
-        });
+        // Production: Use same pattern as development but ensure API routes are loaded first
+        log('🔄 Production mode: Loading features in background...');
+        setTimeout(() => {
+          loadFullApplication().catch((error) => {
+            log(`⚠️ Full application load failed: ${error.message}`, 'error');
+            // Continue - health checks still work
+          });
+        }, 50); // Very short delay for production
       }
     });
 
@@ -122,6 +124,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 export { server };
 
 
+
 /**
  * Load full application features after health checks are available
  */
@@ -129,10 +132,15 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Setup Vite middleware first for frontend serving
-    const { setupVite } = await import('./vite');
+    // Load API routes FIRST to ensure they have priority over static files
+    const { registerRoutes } = await import('./routes-minimal');
+    await registerRoutes(app);
+    log('✅ Essential application routes loaded');
+    
+    // Setup frontend serving AFTER API routes are registered
     if (process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
+      const { setupVite } = await import('./vite');
       await setupVite(app, server);
       log('✅ Vite development server configured');
     } else {
@@ -141,11 +149,6 @@ async function loadFullApplication(): Promise<void> {
       serveStatic(app);
       log('✅ Static file serving enabled for production');
     }
-    
-    // Load API routes AFTER frontend setup to ensure they have priority over static files
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    log('✅ Essential application routes loaded');
     
     // Start heavy database work in background AFTER routes are ready
     setTimeout(() => {
