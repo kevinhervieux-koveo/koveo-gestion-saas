@@ -94,6 +94,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Deployment Build System (August 2025)
+- **Fixed Deployment Issues**: Resolved missing server entry point and build configuration problems
+- **Build Configuration**: Updated build process to properly compile TypeScript server files using esbuild (765.3kb output)
+- **Deployment Scripts**: Created `scripts/production-build.js` and `scripts/deploy-build.js` for automated deployment builds
+- **Server Entry Point**: Ensured `server/index.js` is created during build process for deployment compatibility
+- **Build Verification**: Added comprehensive deployment readiness checks and build summary reporting
+- **Production Ready**: Application now builds successfully with both client and server components for deployment
+
 ### Calendar Testing Implementation (December 2024)
 - **Created Comprehensive Calendar Test Suite**: Added `tests/unit/calendar/calendar-features.test.ts` with 23 test cases covering all calendar functionality
 - **Test Coverage Areas**: Calendar data structures, linking features, event management, export functionality, view modes, internationalization, performance optimization, accessibility features, and integration points
