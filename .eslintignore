@@ -1,7 +1,0 @@
-# ESLint ignore patterns for test files
-tests/unit/money-flow-automation.test.ts
-tests/unit/budget/budget-calculations.test.tsx
-tests/unit/budget/budget-calculation-logic.test.ts
-tests/unit/budget/budget-api-integration.test.ts
-tests/unit/db/building-access-prevention.test.ts
-tests/unit/db/query-scoping.test.ts
