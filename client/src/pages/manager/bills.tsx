@@ -535,6 +535,7 @@ Bills() {
                       </DialogHeader>
                       <BillCreateForm
                         buildingId={filters.buildingId}
+                        onClose={() => setShowCreateDialog(false)}
                         onSuccess={() => {
                           setShowCreateDialog(false);
                           queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
