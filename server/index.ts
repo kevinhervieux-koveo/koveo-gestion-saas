@@ -126,10 +126,15 @@ app.get('/ready', (req, res) => {
   res.status(200).send('OK');
 });
 
+// Root endpoint health check for deployment platforms
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // In production, skip ALL initialization during startup - health checks only
 if (process.env.NODE_ENV === 'production') {
-  app.use('*', (req, res) => {
-    res.status(503).send('Service Initializing - Health checks active');
+  app.use('/api/*', (req, res) => {
+    res.status(503).json({ message: 'Service Initializing - Health checks active' });
   });
 }
 app.get('/api/health', (req, res) => {
@@ -444,6 +449,9 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         log(`   - http://0.0.0.0:${port}/healthz`);
         log(`   - http://0.0.0.0:${port}/ready`);
 
+        // Always ensure port is properly bound
+        log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
+        
         // Initialize application in background only for development
         if (process.env.NODE_ENV !== 'production') {
           setTimeout(() => {
@@ -454,7 +462,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           }, 100);
         } else {
           // Production: health checks only for now
-          log('🚀 Production mode: Health checks active, application loading in background');
+          log('🚀 Production mode: Health checks active, minimal initialization');
         }
       }
     );

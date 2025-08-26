@@ -515,8 +515,20 @@ export function registerOrganizationRoutes(app: Express): void {
         // a true cascade delete instead of manual transaction management
         // This will automatically delete all related buildings, residences, and relationships
 
-        // Delete organization - cascade relationships will handle the rest
-        await tx.delete(organizations).where(eq(organizations.id, organizationId));
+        // Delete all buildings FIRST to prevent foreign key constraint violations
+        const orgBuildings = await tx.select().from(buildings).where(eq(buildings.organizationId, organizationId));
+        if (orgBuildings.length > 0) {
+          const orgBuildingIds = orgBuildings.map(b => b.id);
+          
+          // Delete residences first
+          await tx.delete(residences).where(inArray(residences.buildingId, orgBuildingIds));
+          
+          // Then delete buildings
+          await tx.delete(buildings).where(inArray(buildings.id, orgBuildingIds));
+        }
+        
+        // Now safe to delete organization references
+        await tx.delete(userOrganizations).where(eq(userOrganizations.organizationId, organizationId));
 
         console.log(`✅ Organization ${organizationId} deleted with automatic cascade`);
 

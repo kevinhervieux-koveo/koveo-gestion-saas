@@ -160,7 +160,7 @@ export class ComprehensiveDemoSyncService {
           await db.delete(schema.residences).where(inArray(schema.residences.id, residenceIds));
         }
 
-        // Delete buildings
+        // Delete buildings FIRST before any organization operations
         await db.delete(schema.buildings).where(inArray(schema.buildings.id, buildingIds));
       }
 
