@@ -119,7 +119,11 @@ Bills() {
 
   // Fetch buildings for filter dropdown
   const { data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/buildings'],
+    queryKey: ['/api/manager/buildings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      return await response.json();
+    },
   });
 
   // Fetch bills based on filters

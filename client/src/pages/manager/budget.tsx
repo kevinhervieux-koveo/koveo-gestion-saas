@@ -306,7 +306,11 @@ Budget() {
 
   // Get buildings for selection
   const { data: buildings = [] } = useQuery({
-    queryKey: ['/api/buildings'],
+    queryKey: ['/api/manager/buildings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      return await response.json();
+    },
   });
 
   // Get residences for selected building
