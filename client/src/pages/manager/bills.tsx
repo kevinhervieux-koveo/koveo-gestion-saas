@@ -118,7 +118,7 @@ Bills() {
   const queryClient = useQueryClient();
 
   // Fetch buildings for filter dropdown
-  const { data: buildings = [] } = useQuery<Building[]>({
+  const { data: buildings = [], isLoading: buildingsLoading, error: buildingsError } = useQuery<Building[]>({
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/manager/buildings');
@@ -289,7 +289,7 @@ Bills() {
   };
 
   // Get building construction year for minimum year calculation
-  const selectedBuilding = buildings.find((b) => b.id === filters.buildingId);
+  const selectedBuilding = Array.isArray(buildings) ? buildings.find((b) => b.id === filters.buildingId) : undefined;
   const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
   const currentYear = new Date().getFullYear();
 
@@ -317,6 +317,41 @@ Bills() {
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     }
   };
+
+  // Show loading state while buildings are loading
+  if (buildingsLoading) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
+            <p className='text-gray-500'>Loading buildings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if buildings failed to load
+  if (buildingsError) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='text-center'>
+            <p className='text-red-500 mb-4'>Failed to load buildings</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
@@ -347,7 +382,7 @@ Bills() {
                       <SelectValue placeholder='Select building' />
                     </SelectTrigger>
                     <SelectContent>
-                      {buildings.map((building: Building) => (
+                      {Array.isArray(buildings) && buildings.map((building: Building) => (
                         <SelectItem key={building.id} value={building.id}>
                           {building.name}
                         </SelectItem>
@@ -515,7 +550,7 @@ Bills() {
           {/* Bills Display */}
           {!filters.buildingId ? (
             <BuildingSelectionGrid
-              buildings={buildings}
+              buildings={Array.isArray(buildings) ? buildings : []}
               onBuildingSelect={(buildingId) => handleFilterChange('buildingId', buildingId)}
             />
           ) : isLoading ? (
