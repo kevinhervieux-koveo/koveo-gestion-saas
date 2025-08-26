@@ -18,6 +18,10 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
+// Basic middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Request timeout middleware
 app.use((req, res, next) => {
   req.setTimeout(5000, () => {
@@ -143,6 +147,11 @@ async function loadFullApplication(): Promise<void> {
       const { setupVite } = await import('./vite');
       await setupVite(app, server);
       log('✅ Vite development server configured');
+      
+      // Verify Vite is working
+      app.get('/test-vite', (req, res) => {
+        res.json({ vite: 'configured', mode: 'development' });
+      });
     } else {
       log('🔄 Setting up production server with proper API routing...');
       
