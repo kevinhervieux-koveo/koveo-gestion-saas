@@ -74,6 +74,17 @@ export interface Translations {
   initializeQAPillar: string;
   setupValidationQualityAssurance: string;
   configureTesting: string;
+  // Continuous Improvement Pillar translations
+  continuousImprovementPillar: string;
+  continuousImprovementDescription: string;
+  documentationPillar: string;
+  documentationDescription: string;
+  active: string;
+  systemHealth: string;
+  completedToday: string;
+  activeSuggestions: string;
+  healthy: string;
+  suggestions: string;
   availableAfterQACompletion: string;
   developmentConsole: string;
   accessDenied: string;
@@ -369,6 +380,17 @@ const translations: Record<Language, Translations> = {
     initializeQAPillar: 'Initialize QA Pillar',
     setupValidationQualityAssurance: 'Set up validation and quality assurance framework',
     configureTesting: 'Configure Testing',
+    // Continuous Improvement translations
+    continuousImprovementPillar: 'Continuous Improvement',
+    continuousImprovementDescription: 'AI-driven metrics, analytics, and automated improvement suggestions',
+    documentationPillar: 'Documentation & Knowledge',
+    documentationDescription: 'Comprehensive documentation and knowledge management system',
+    activePillar: 'Active',
+    systemHealth: 'System Health',
+    completedToday: 'Completed Today',
+    activeSuggestions: 'Active Suggestions',
+    healthy: 'healthy',
+    suggestions: 'suggestions',
     availableAfterQACompletion: 'Available after QA pillar completion',
     developmentConsole: 'Development Console',
     accessDenied: 'Access Denied',
@@ -673,6 +695,17 @@ const translations: Record<Language, Translations> = {
     initializeQAPillar: 'Initialiser le pilier AQ',
     setupValidationQualityAssurance: "Configurer le cadre de validation et d'assurance qualité",
     configureTesting: 'Configurer les tests',
+    // Continuous Improvement translations
+    continuousImprovementPillar: 'Amélioration Continue',
+    continuousImprovementDescription: 'Métriques IA, analyses et suggestions d\'amélioration automatisées',
+    documentationPillar: 'Documentation et Connaissances',
+    documentationDescription: 'Système complet de documentation et de gestion des connaissances',
+    activePillar: 'Actif',
+    systemHealth: 'Santé du Système',
+    completedToday: 'Complétées Aujourd\'hui',
+    activeSuggestions: 'Suggestions Actives',
+    healthy: 'sain',
+    suggestions: 'suggestions',
     availableAfterQACompletion: "Disponible après l'achèvement du pilier AQ",
     developmentConsole: 'Console de développement',
     accessDenied: 'Accès refusé',
