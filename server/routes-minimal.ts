@@ -175,19 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Note: static files are handled in index.ts before this function
   }
 
-  // API route override middleware - intercept API calls even after Vite middleware
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api/')) {
-      // Force API routes to be handled properly, bypassing any catch-all
-      res.set('Content-Type', 'application/json');
-      // Remove any Vite-specific headers that might interfere
-      res.removeHeader('Accept-Ranges');
-      res.removeHeader('Cache-Control');
-    }
-    next();
-  });
-
-  // Setup JSON body parser FIRST
+  // Setup JSON body parser
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   log('✅ Body parser middleware configured');
@@ -200,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Session setup failed: ${_error}`, 'error');
   }
 
-  // Setup authentication routes
+  // Setup authentication routes FIRST - these must be registered before Vite middleware
   try {
     setupAuthRoutes(app);
     log('✅ Auth routes registered');
