@@ -8701,19 +8701,16 @@ function registerUserRoutes(app2) {
           userResidences,
           eq6(bills.residenceId, userResidences.residenceId)
         ).where(eq6(userResidences.userId, currentUser.id)),
-        db3.select().from(documents).innerJoin(
-          void 0,
-          eq6(documents.id, (void 0).documentId)
-        ).where(eq6((void 0).userId, currentUser.id)),
+        db3.select().from(documentsResidents).where(eq6(documentsResidents.uploadedBy, currentUser.id)),
         db3.select().from(notifications).where(eq6(notifications.userId, currentUser.id)),
-        db3.select().from(maintenanceRequests).where(eq6(maintenanceRequests.requestedByUserId, currentUser.id))
+        db3.select().from(maintenanceRequests).where(eq6(maintenanceRequests.submittedBy, currentUser.id))
       ]);
       const exportData = {
         personalInformation: userDataExport,
         organizations: organizations3,
         residences: residences4,
         bills: bills4.map((b) => b.bills),
-        documents: documents2.map((d) => d.documents),
+        documents: documents2,
         notifications: notifications2,
         maintenanceRequests: maintenanceRequests2,
         exportDate: (/* @__PURE__ */ new Date()).toISOString(),
@@ -8753,10 +8750,10 @@ function registerUserRoutes(app2) {
         // Delete user relationships
         db3.delete(userOrganizations).where(eq6(userOrganizations.userId, currentUser.id)),
         db3.delete(userResidences).where(eq6(userResidences.userId, currentUser.id)),
-        db3.delete(void 0).where(eq6((void 0).userId, currentUser.id)),
+        db3.delete(documentsResidents).where(eq6(documentsResidents.uploadedBy, currentUser.id)),
         // Delete user-created content
         db3.delete(notifications).where(eq6(notifications.userId, currentUser.id)),
-        db3.delete(maintenanceRequests).where(eq6(maintenanceRequests.requestedByUserId, currentUser.id)),
+        db3.delete(maintenanceRequests).where(eq6(maintenanceRequests.submittedBy, currentUser.id)),
         // Delete invitations
         db3.delete(invitations).where(eq6(invitations.email, currentUser.email))
       ]);
@@ -8830,15 +8827,15 @@ function registerUserRoutes(app2) {
           code: "INVALID_INPUT"
         });
       }
-      const bcrypt3 = __require("bcryptjs");
+      const bcrypt2 = __require("bcryptjs");
       const user = await storage.getUser(currentUser.id);
-      if (!user || !await bcrypt3.compare(currentPassword, user.password)) {
+      if (!user || !await bcrypt2.compare(currentPassword, user.password)) {
         return res.status(400).json({
           message: "Current password is incorrect",
           code: "INVALID_PASSWORD"
         });
       }
-      const hashedPassword = await bcrypt3.hash(newPassword, 12);
+      const hashedPassword = await bcrypt2.hash(newPassword, 12);
       await storage.updateUser(currentUser.id, {
         password: hashedPassword,
         updatedAt: /* @__PURE__ */ new Date()
@@ -12504,10 +12501,10 @@ var init_delayed_update_service = __esm({
        */
       async getBuildingIdFromBill(billId) {
         try {
-          const { db: db10 } = await Promise.resolve().then(() => (init_db(), db_exports));
+          const { db: db6 } = await Promise.resolve().then(() => (init_db(), db_exports));
           const { bills: bills4 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const { eq: eq26 } = await import("drizzle-orm");
-          const result = await db10.select({ buildingId: bills4.buildingId }).from(bills4).where(eq26(bills4.id, billId)).limit(1);
+          const { eq: eq22 } = await import("drizzle-orm");
+          const result = await db6.select({ buildingId: bills4.buildingId }).from(bills4).where(eq22(bills4.id, billId)).limit(1);
           return result.length > 0 ? result[0].buildingId : null;
         } catch (_error2) {
           console.error(`\u274C Failed to get building ID for bill ${billId}:`, _error2);
@@ -12520,10 +12517,10 @@ var init_delayed_update_service = __esm({
        */
       async getBuildingIdFromResidence(residenceId) {
         try {
-          const { db: db10 } = await Promise.resolve().then(() => (init_db(), db_exports));
+          const { db: db6 } = await Promise.resolve().then(() => (init_db(), db_exports));
           const { residences: residences4 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const { eq: eq26 } = await import("drizzle-orm");
-          const result = await db10.select({ buildingId: residences4.buildingId }).from(residences4).where(eq26(residences4.id, residenceId)).limit(1);
+          const { eq: eq22 } = await import("drizzle-orm");
+          const result = await db6.select({ buildingId: residences4.buildingId }).from(residences4).where(eq22(residences4.id, residenceId)).limit(1);
           return result.length > 0 ? result[0].buildingId : null;
         } catch (_error2) {
           console.error(`\u274C Failed to get building ID for residence ${residenceId}:`, _error2);
@@ -13999,1653 +13996,14 @@ var init_delayed_updates = __esm({
   }
 });
 
-// scripts/create-comprehensive-demo.ts
-import { Pool as Pool5, neonConfig as neonConfig3 } from "@neondatabase/serverless";
-import { drizzle as drizzle6 } from "drizzle-orm/neon-serverless";
-import { eq as eq15, like as like2 } from "drizzle-orm";
-import * as bcrypt2 from "bcryptjs";
-import ws3 from "ws";
-async function createComprehensiveDemo() {
-  try {
-    console.log("\u{1F680} Creating comprehensive demo organizations and data...\n");
-    console.log("\u{1F9F9} Cleaning existing demo data...");
-    await cleanExistingDemoData();
-    console.log("\u{1F4C1} Creating organizations...");
-    const organizations3 = await createOrganizations();
-    console.log("\n\u{1F3E2} Creating buildings with varied configurations...");
-    const buildings7 = await createBuildings(organizations3.demo.id);
-    console.log("\n\u{1F3E0} Creating residences with different types...");
-    const residences4 = await createResidences(buildings7);
-    console.log("\n\u{1F465} Creating users with different roles...");
-    const users4 = await createUsers(organizations3.demo.id);
-    console.log("\n\u{1F517} Assigning users to residences...");
-    await assignUsersToResidences(users4, residences4);
-    console.log("\n\u{1F4B0} Creating financial data (bills, budgets, money flow)...");
-    await createFinancialData(buildings7, residences4, users4.filter((u) => u && u.id));
-    console.log("\n\u{1F527} Creating operations data (maintenance, demands, notifications)...");
-    await createOperationsData(residences4, users4);
-    console.log("\n\u2699\uFE0F Creating settings data (bugs, feature requests)...");
-    await createSettingsData(users4);
-    console.log("\n\u{1F4C4} Creating document data...");
-    await createDocuments(buildings7, residences4, users4);
-    console.log("\n\u{1F504} Creating Open Demo organization...");
-    await createOpenDemoOrganization(organizations3.demo.id);
-    console.log("\n\u2728 Comprehensive demo data creation completed successfully!");
-    console.log("\n\u{1F4CA} Summary of created data:");
-    console.log("- 2 Organizations (Demo, Open Demo)");
-    console.log("- 4 Buildings with varied types");
-    console.log("- 20+ Residences with different configurations");
-    console.log("- 15+ Users with different roles");
-    console.log("- 50+ Bills with various statuses");
-    console.log("- Budget and monthly budget data");
-    console.log("- Money flow transactions");
-    console.log("- 30+ Maintenance requests");
-    console.log("- 20+ Demands/complaints");
-    console.log("- Multiple notifications");
-    console.log("- Bug reports for testing");
-    console.log("- Feature requests for idea box");
-    console.log("- Building and residence documents");
-  } catch (error2) {
-    console.error("\u274C Error creating comprehensive demo data:", error2);
-    throw error2;
-  } finally {
-    await pool5.end();
-  }
-}
-async function cleanExistingDemoData() {
-  try {
-    console.log("  \u{1F5D1}\uFE0F  Removing ALL existing demo users...");
-    const demoUsers = await db6.select({ username: users.username }).from(users).where(like2(users.email, "%demo.com%"));
-    if (demoUsers.length > 0) {
-      console.log(`  \u{1F5D1}\uFE0F  Found ${demoUsers.length} demo users to remove`);
-      await db6.delete(users).where(
-        like2(users.email, "%demo.com%")
-      );
-    }
-    console.log("  \u{1F5D1}\uFE0F  Removing existing demo organizations...");
-    await db6.delete(organizations).where(
-      organizations.name.in(["Demo", "Open Demo"])
-    );
-    console.log("  \u2705 Cleanup complete");
-  } catch (error2) {
-    console.log("  \u26A0\uFE0F  Cleanup warning (non-critical):", error2.message);
-  }
-}
-async function createOrganizations() {
-  console.log("  \u{1F9F9} Cleaning existing demo data...");
-  await cleanExistingDemoData();
-  const [demoOrg] = await db6.insert(organizations).values({
-    name: "Demo",
-    type: "demo",
-    address: "123 Demo Street",
-    city: "Montreal",
-    province: "QC",
-    postalCode: "H1A 1A1",
-    phone: "514-555-0100",
-    email: "demo@koveogesion.com",
-    website: "https://demo.koveogesion.com",
-    registrationNumber: "DEMO-001",
-    isActive: true
-  }).returning();
-  const [openDemoOrg] = await db6.insert(organizations).values({
-    name: "Open Demo",
-    type: "demo",
-    address: "456 Open Demo Avenue",
-    city: "Montreal",
-    province: "QC",
-    postalCode: "H2B 2B2",
-    phone: "514-555-0200",
-    email: "opendemo@koveogesion.com",
-    website: "https://opendemo.koveogesion.com",
-    registrationNumber: "OPEN-DEMO-001",
-    isActive: true
-  }).returning();
-  console.log("\u2705 Created Demo and Open Demo organizations");
-  return { demo: demoOrg, openDemo: openDemoOrg };
-}
-async function createBuildings(organizationId) {
-  const buildingConfigs = [
-    {
-      name: "Maple Heights Condominiums",
-      address: "100 Maple Street",
-      city: "Montreal",
-      buildingType: "condo",
-      yearBuilt: 2018,
-      totalUnits: 12,
-      totalFloors: 4,
-      parkingSpaces: 15,
-      storageSpaces: 12,
-      amenities: { gym: true, pool: true, laundry: true, concierge: true, security: true },
-      managementCompany: "Koveo Gestion"
-    },
-    {
-      name: "Riverside Apartments",
-      address: "200 River Boulevard",
-      city: "Montreal",
-      buildingType: "rental",
-      yearBuilt: 2020,
-      totalUnits: 8,
-      totalFloors: 3,
-      parkingSpaces: 10,
-      storageSpaces: 8,
-      amenities: { gym: false, pool: false, laundry: true, elevators: true },
-      managementCompany: "Koveo Gestion"
-    },
-    {
-      name: "Downtown Executive Suites",
-      address: "300 Business District",
-      city: "Montreal",
-      buildingType: "condo",
-      yearBuilt: 2022,
-      totalUnits: 6,
-      totalFloors: 2,
-      parkingSpaces: 8,
-      storageSpaces: 6,
-      amenities: { gym: true, pool: false, laundry: true, rooftop: true },
-      managementCompany: "Koveo Gestion"
-    },
-    {
-      name: "Family Garden Complex",
-      address: "400 Garden Lane",
-      city: "Montreal",
-      buildingType: "rental",
-      yearBuilt: 2015,
-      totalUnits: 16,
-      totalFloors: 4,
-      parkingSpaces: 20,
-      storageSpaces: 16,
-      amenities: { gym: false, pool: true, laundry: true, playground: true, garden: true },
-      managementCompany: "Koveo Gestion"
-    }
-  ];
-  const buildings7 = [];
-  for (const config of buildingConfigs) {
-    const [building] = await db6.insert(buildings).values({
-      organizationId,
-      ...config,
-      province: "QC",
-      postalCode: `H${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))} ${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 9) + 1}`,
-      isActive: true
-    }).returning();
-    buildings7.push(building);
-    console.log(`\u2705 Created building: ${building.name}`);
-  }
-  return buildings7;
-}
-async function createResidences(buildings7) {
-  const residences4 = [];
-  for (const building of buildings7) {
-    const residenceConfigs = [];
-    if (building.buildingType === "condo") {
-      for (let i = 1; i <= building.totalUnits; i++) {
-        const bedrooms = [1, 2, 3][Math.floor(i / 4) % 3];
-        residenceConfigs.push({
-          unitNumber: `${Math.floor((i - 1) / 3) + 1}0${(i - 1) % 3 + 1}`,
-          floor: Math.floor((i - 1) / 3) + 1,
-          squareFootage: bedrooms === 1 ? "650.00" : bedrooms === 2 ? "850.00" : "1200.00",
-          bedrooms,
-          bathrooms: bedrooms === 1 ? "1.0" : bedrooms === 2 ? "1.5" : "2.0",
-          balcony: Math.floor((i - 1) / 3) > 0,
-          // Upper floors have balconies
-          parkingSpaceNumbers: [`P${i}`],
-          storageSpaceNumbers: [`S${i}`],
-          ownershipPercentage: (100 / building.totalUnits / 100).toFixed(4),
-          monthlyFees: bedrooms === 1 ? "350.00" : bedrooms === 2 ? "425.00" : "550.00"
-        });
-      }
-    } else {
-      for (let i = 1; i <= building.totalUnits; i++) {
-        const bedrooms = [1, 2, 2, 3][i % 4];
-        residenceConfigs.push({
-          unitNumber: `${Math.floor((i - 1) / 4) + 1}${String.fromCharCode(65 + (i - 1) % 4)}`,
-          floor: Math.floor((i - 1) / 4) + 1,
-          squareFootage: bedrooms === 1 ? "750.00" : bedrooms === 2 ? "950.00" : "1350.00",
-          bedrooms,
-          bathrooms: bedrooms === 1 ? "1.0" : bedrooms === 2 ? "1.5" : "2.0",
-          balcony: i % 3 !== 0,
-          // Most units have balconies
-          parkingSpaceNumbers: i <= building.parkingSpaces ? [`P${i}`] : [],
-          storageSpaceNumbers: [`S${i}`],
-          ownershipPercentage: null,
-          // Rentals don't have ownership percentage
-          monthlyFees: bedrooms === 1 ? "1200.00" : bedrooms === 2 ? "1500.00" : "1900.00"
-        });
-      }
-    }
-    for (const config of residenceConfigs) {
-      const [residence] = await db6.insert(residences).values({
-        buildingId: building.id,
-        ...config,
-        isActive: true
-      }).returning();
-      residences4.push({ ...residence, buildingName: building.name });
-    }
-    console.log(`\u2705 Created ${residenceConfigs.length} residences for ${building.name}`);
-  }
-  return residences4;
-}
-async function createUsers(organizationId) {
-  const hashedPassword = await bcrypt2.hash("Demo@123456", 10);
-  const userConfigs = [
-    // Manager users (realistic Quebec names)
-    {
-      firstName: "Sophie",
-      lastName: "Tremblay",
-      email: "sophie.tremblay@demo.com",
-      role: "manager"
-    },
-    {
-      firstName: "Marc",
-      lastName: "Gauthier",
-      email: "marc.gauthier@demo.com",
-      role: "manager"
-    },
-    // Tenant/Resident users (realistic Quebec and Canadian names)
-    {
-      firstName: "Alice",
-      lastName: "Johnson",
-      email: "alice.johnson@demo.com",
-      role: "tenant"
-    },
-    { firstName: "Bob", lastName: "Smith", email: "bob.smith@demo.com", role: "resident" },
-    {
-      firstName: "Claire",
-      lastName: "Bouchard",
-      email: "claire.bouchard@demo.com",
-      role: "tenant"
-    },
-    {
-      firstName: "David",
-      lastName: "Wilson",
-      email: "david.wilson@demo.com",
-      role: "resident"
-    },
-    { firstName: "Emma", lastName: "C\xF4t\xE9", email: "emma.cote@demo.com", role: "tenant" },
-    {
-      firstName: "Frank",
-      lastName: "Miller",
-      email: "frank.miller@demo.com",
-      role: "resident"
-    },
-    {
-      firstName: "Gabrielle",
-      lastName: "Leclerc",
-      email: "gabrielle.leclerc@demo.com",
-      role: "tenant"
-    },
-    {
-      firstName: "Henri",
-      lastName: "Dubois",
-      email: "henri.dubois@demo.com",
-      role: "resident"
-    },
-    {
-      firstName: "Isabelle",
-      lastName: "Morin",
-      email: "isabelle.morin@demo.com",
-      role: "tenant"
-    },
-    {
-      firstName: "Jacques",
-      lastName: "Anderson",
-      email: "jacques.anderson@demo.com",
-      role: "resident"
-    },
-    { firstName: "Katia", lastName: "Roy", email: "katia.roy@demo.com", role: "tenant" },
-    {
-      firstName: "Louis",
-      lastName: "Fournier",
-      email: "louis.fournier@demo.com",
-      role: "resident"
-    },
-    {
-      firstName: "Marie",
-      lastName: "Lavoie",
-      email: "marie.lavoie@demo.com",
-      role: "tenant"
-    }
-  ];
-  const users4 = [];
-  for (const config of userConfigs) {
-    const [user] = await db6.insert(users).values({
-      username: config.email.split("@")[0],
-      email: config.email,
-      password: hashedPassword,
-      firstName: config.firstName,
-      lastName: config.lastName,
-      phone: `514-555-${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}`,
-      language: "fr",
-      role: config.role,
-      isActive: true
-    }).returning();
-    await db6.insert(userOrganizations).values({
-      userId: user.id,
-      organizationId,
-      organizationRole: config.role,
-      canAccessAllOrganizations: false
-    });
-    users4.push(user);
-    console.log(`\u2705 Created user: ${user.firstName} ${user.lastName} (${user.role})`);
-  }
-  return users4;
-}
-async function assignUsersToResidences(users4, residences4) {
-  const tenantUsers = users4.filter((u) => u.role === "tenant" || u.role === "resident");
-  for (let i = 0; i < Math.min(tenantUsers.length, residences4.length); i++) {
-    const user = tenantUsers[i];
-    const residence = residences4[i];
-    await db6.insert(userResidences).values({
-      userId: user.id,
-      residenceId: residence.id,
-      relationshipType: user.role === "resident" ? "owner" : "tenant",
-      startDate: (/* @__PURE__ */ new Date("2024-01-01")).toISOString().split("T")[0],
-      isActive: true
-    });
-    console.log(
-      `\u2705 Assigned ${user.firstName} ${user.lastName} to ${residence.buildingName} - Unit ${residence.unitNumber}`
-    );
-  }
-}
-async function createFinancialData(buildings7, residences4, users4) {
-  const adminUser = users4.find((u) => u.role === "admin" || u.role === "manager");
-  const currentYear = (/* @__PURE__ */ new Date()).getFullYear();
-  for (const building of buildings7) {
-    const budgetCategories = ["operational", "reserve", "special_project"];
-    for (const category2 of budgetCategories) {
-      await db6.insert(budgets).values({
-        buildingId: building.id,
-        year: currentYear,
-        name: `${category2.replace("_", " ").toUpperCase()} Budget ${currentYear}`,
-        description: `Annual ${category2} budget for ${building.name}`,
-        category: category2,
-        budgetedAmount: category2 === "operational" ? "125000.00" : category2 === "reserve" ? "50000.00" : "75000.00",
-        actualAmount: "0.00",
-        variance: "0.00",
-        createdBy: adminUser.id,
-        isActive: true
-      });
-    }
-    for (let month = 1; month <= 12; month++) {
-      await db6.insert(monthlyBudgets).values({
-        buildingId: building.id,
-        year: currentYear,
-        month,
-        incomeTypes: ["monthly_fees", "parking_fees", "utility_reimbursement"],
-        incomes: ["10500.00", "800.00", "200.00"],
-        spendingTypes: ["maintenance_expense", "administrative_expense", "professional_services"],
-        spendings: ["3500.00", "1200.00", "800.00"],
-        approved: month <= (/* @__PURE__ */ new Date()).getMonth() + 1,
-        approvedBy: month <= (/* @__PURE__ */ new Date()).getMonth() + 1 ? adminUser.id : null,
-        approvedDate: month <= (/* @__PURE__ */ new Date()).getMonth() + 1 ? /* @__PURE__ */ new Date() : null
-      });
-    }
-    const billCategories = [
-      "maintenance",
-      "utilities",
-      "insurance",
-      "professional_services",
-      "supplies"
-    ];
-    const billStatuses = ["paid", "sent", "overdue", "draft"];
-    for (let i = 0; i < 15; i++) {
-      const category2 = billCategories[i % billCategories.length];
-      const status = billStatuses[i % billStatuses.length];
-      const amount = (Math.random() * 5e3 + 500).toFixed(2);
-      await db6.insert(bills).values({
-        buildingId: building.id,
-        billNumber: `BILL-${building.name.substring(0, 3).toUpperCase()}-${String(i + 1).padStart(4, "0")}`,
-        title: `${category2.replace("_", " ").toUpperCase()} - ${building.name}`,
-        description: `${category2} expense for building maintenance and operations`,
-        category: category2,
-        vendor: `${category2.toUpperCase()} Company Inc.`,
-        paymentType: "unique",
-        costs: [amount],
-        totalAmount: amount,
-        startDate: new Date(
-          currentYear,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ).toISOString().split("T")[0],
-        status,
-        createdBy: adminUser.id
-      });
-    }
-    const flowCategories = ["monthly_fees", "bill_payment", "maintenance_expense", "other_income"];
-    for (let i = 0; i < 20; i++) {
-      const category2 = flowCategories[i % flowCategories.length];
-      const isIncome = category2.includes("fees") || category2.includes("income");
-      await db6.insert(moneyFlow).values({
-        buildingId: building.id,
-        type: isIncome ? "income" : "expense",
-        category: category2,
-        description: `${category2.replace("_", " ")} transaction for ${building.name}`,
-        amount: (Math.random() * 3e3 + 200).toFixed(2),
-        transactionDate: new Date(
-          currentYear,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ).toISOString().split("T")[0],
-        referenceNumber: `REF-${String(Math.floor(Math.random() * 1e5)).padStart(5, "0")}`,
-        isReconciled: Math.random() > 0.3,
-        createdBy: adminUser.id
-      });
-    }
-    console.log(`\u2705 Created financial data for ${building.name}`);
-  }
-}
-async function createOperationsData(residences4, users4) {
-  const tenantUsers = users4.filter((u) => u.role === "tenant" || u.role === "resident");
-  const managerUsers = users4.filter((u) => u.role === "manager");
-  const maintenanceCategories = ["plumbing", "electrical", "hvac", "appliances", "general"];
-  const priorities = ["low", "medium", "high", "urgent"];
-  const statuses = ["submitted", "acknowledged", "in_progress", "completed"];
-  for (let i = 0; i < 35; i++) {
-    const residence = residences4[i % residences4.length];
-    const submitter = tenantUsers[i % tenantUsers.length];
-    const assignedTo = managerUsers[i % managerUsers.length];
-    const category2 = maintenanceCategories[i % maintenanceCategories.length];
-    const priority = priorities[i % priorities.length];
-    const status = statuses[i % statuses.length];
-    await db6.insert(maintenanceRequests).values({
-      residenceId: residence.id,
-      submittedBy: submitter.id,
-      assignedTo: Math.random() > 0.3 ? assignedTo.id : null,
-      title: `${category2.toUpperCase()} Issue - Unit ${residence.unitNumber}`,
-      description: `${category2} maintenance request for unit ${residence.unitNumber}. Requires professional attention.`,
-      category: category2,
-      priority,
-      status,
-      estimatedCost: Math.random() > 0.5 ? (Math.random() * 1e3 + 100).toFixed(2) : null,
-      actualCost: status === "completed" ? (Math.random() * 1e3 + 100).toFixed(2) : null,
-      scheduledDate: Math.random() > 0.6 ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1e3) : null,
-      completedDate: status === "completed" ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1e3) : null,
-      notes: status !== "submitted" ? "Work in progress, will update soon." : null
-    });
-  }
-  const demandTypes = ["maintenance", "complaint", "information", "other"];
-  const demandStatuses = ["submitted", "under_review", "approved", "in_progress", "completed"];
-  for (let i = 0; i < 25; i++) {
-    const residence = residences4[i % residences4.length];
-    const submitter = tenantUsers[i % tenantUsers.length];
-    const type = demandTypes[i % demandTypes.length];
-    const status = demandStatuses[i % demandStatuses.length];
-    await db6.insert(demands).values({
-      submitterId: submitter.id,
-      type,
-      description: `${type.toUpperCase()} request from unit ${residence.unitNumber}: Details about the ${type} that needs attention.`,
-      residenceId: residence.id,
-      buildingId: residence.buildingId,
-      status,
-      reviewedBy: status !== "submitted" ? managerUsers[0].id : null,
-      reviewedAt: status !== "submitted" ? /* @__PURE__ */ new Date() : null,
-      reviewNotes: status !== "submitted" ? "Request reviewed and being processed." : null
-    });
-  }
-  const notificationTypes = ["bill_reminder", "maintenance_update", "announcement", "system"];
-  for (const user of users4) {
-    for (let i = 0; i < 5; i++) {
-      const type = notificationTypes[i % notificationTypes.length];
-      await db6.insert(notifications).values({
-        userId: user.id,
-        type,
-        title: `${type.replace("_", " ").toUpperCase()} Notification`,
-        message: `This is a ${type} notification for ${user.firstName} ${user.lastName}.`,
-        isRead: Math.random() > 0.4,
-        readAt: Math.random() > 0.4 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1e3) : null
-      });
-    }
-  }
-  console.log("\u2705 Created maintenance requests, demands, and notifications");
-}
-async function createSettingsData(users4) {
-  const allUsers = users4;
-  const bugCategories = ["ui_ux", "functionality", "performance", "data", "security"];
-  const bugPriorities = ["low", "medium", "high", "critical"];
-  const bugStatuses = ["new", "acknowledged", "in_progress", "resolved"];
-  const pages = [
-    "Dashboard",
-    "Buildings",
-    "Residences",
-    "Bills",
-    "Budget",
-    "Maintenance",
-    "Settings"
-  ];
-  for (let i = 0; i < 15; i++) {
-    const user = allUsers[i % allUsers.length];
-    const category2 = bugCategories[i % bugCategories.length];
-    const priority = bugPriorities[i % bugPriorities.length];
-    const status = bugStatuses[i % bugStatuses.length];
-    const page = pages[i % pages.length];
-    await db6.insert(bugs).values({
-      createdBy: user.id,
-      title: `${category2.replace("_", " ").toUpperCase()} issue on ${page} page`,
-      description: `Detailed description of the ${category2} bug found on the ${page} page. This affects user experience and needs attention.`,
-      category: category2,
-      page,
-      priority,
-      status,
-      assignedTo: status !== "new" ? users4.find((u) => u.role === "admin")?.id || null : null,
-      resolvedAt: status === "resolved" ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1e3) : null,
-      resolvedBy: status === "resolved" ? users4.find((u) => u.role === "admin")?.id || null : null,
-      reproductionSteps: "Step 1: Navigate to page\nStep 2: Perform action\nStep 3: Observe issue",
-      environment: "Chrome 119.0, Windows 11, Desktop"
-    });
-  }
-  const featureCategories = [
-    "dashboard",
-    "property_management",
-    "financial_management",
-    "maintenance",
-    "communication"
-  ];
-  const featureStatuses = ["submitted", "under_review", "planned", "in_progress", "completed"];
-  for (let i = 0; i < 20; i++) {
-    const user = allUsers[i % allUsers.length];
-    const category2 = featureCategories[i % featureCategories.length];
-    const status = featureStatuses[i % featureStatuses.length];
-    const page = pages[i % pages.length];
-    const [featureRequest] = await db6.insert(featureRequests).values({
-      createdBy: user.id,
-      title: `Enhanced ${category2.replace("_", " ")} functionality`,
-      description: `Detailed feature request for improving ${category2} capabilities on the ${page} page. This would enhance user productivity and satisfaction.`,
-      need: `Users need better ${category2} tools to manage their daily tasks more efficiently.`,
-      category: category2,
-      page,
-      status,
-      upvoteCount: Math.floor(Math.random() * 10),
-      assignedTo: status !== "submitted" ? users4.find((u) => u.role === "admin")?.id || null : null,
-      reviewedBy: status !== "submitted" ? users4.find((u) => u.role === "admin")?.id || null : null,
-      reviewedAt: status !== "submitted" ? /* @__PURE__ */ new Date() : null,
-      adminNotes: status !== "submitted" ? "Feature request under consideration for next development cycle." : null
-    }).returning();
-    const upvoteCount = Math.floor(Math.random() * 5);
-    for (let j = 0; j < upvoteCount; j++) {
-      const upvoter = allUsers[(i + j) % allUsers.length];
-      if (upvoter.id !== user.id) {
-        await db6.insert(featureRequestUpvotes).values({
-          featureRequestId: featureRequest.id,
-          userId: upvoter.id
-        });
-      }
-    }
-  }
-  console.log("\u2705 Created bug reports and feature requests");
-}
-async function createDocuments(buildings7, residences4, users4) {
-  const adminUser = users4.find((u) => u.role === "admin");
-  const buildingDocTypes = [
-    "Financial Reports",
-    "Insurance Policies",
-    "Maintenance Contracts",
-    "Legal Documents",
-    "Meeting Minutes"
-  ];
-  for (const building of buildings7) {
-    for (let i = 0; i < buildingDocTypes.length; i++) {
-      const docType = buildingDocTypes[i];
-      await db6.insert(documentsBuildings).values({
-        name: `${docType} - ${building.name}`,
-        dateReference: new Date(
-          2024,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ),
-        type: docType,
-        buildingId: building.id,
-        fileName: `${docType.toLowerCase().replace(/\s+/g, "_")}_${building.name.toLowerCase().replace(/\s+/g, "_")}.pdf`,
-        fileSize: `${Math.floor(Math.random() * 5e3) + 500}KB`,
-        mimeType: "application/pdf",
-        uploadedBy: adminUser.id,
-        isVisibleToTenants: docType === "Meeting Minutes" || docType === "Financial Reports"
-      });
-    }
-    console.log(`\u2705 Created building documents for ${building.name}`);
-  }
-  const residenceDocTypes = [
-    "Lease Agreement",
-    "Move-in Inspection",
-    "Maintenance Records",
-    "Insurance Claims"
-  ];
-  for (let i = 0; i < Math.min(10, residences4.length); i++) {
-    const residence = residences4[i];
-    for (const docType of residenceDocTypes) {
-      await db6.insert(documentsResidents).values({
-        name: `${docType} - Unit ${residence.unitNumber}`,
-        dateReference: new Date(
-          2024,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ),
-        type: docType,
-        residenceId: residence.id,
-        fileName: `${docType.toLowerCase().replace(/\s+/g, "_")}_unit_${residence.unitNumber}.pdf`,
-        fileSize: `${Math.floor(Math.random() * 2e3) + 200}KB`,
-        mimeType: "application/pdf",
-        uploadedBy: adminUser.id,
-        isVisibleToTenants: docType === "Lease Agreement" || docType === "Move-in Inspection"
-      });
-    }
-  }
-  console.log("\u2705 Created residence documents");
-}
-async function createOpenDemoOrganization(demoOrgId) {
-  console.log("Creating Open Demo organization as a copy of Demo...");
-  const openDemoOrg = await db6.query.organizations.findFirst({
-    where: eq15(organizations.name, "Open Demo")
-  });
-  if (!openDemoOrg) {
-    throw new Error("Open Demo organization not found");
-  }
-  console.log("\u2705 Open Demo organization ready for synchronization");
-}
-var DATABASE_URL, pool5, db6;
-var init_create_comprehensive_demo = __esm({
-  "scripts/create-comprehensive-demo.ts"() {
-    init_schema();
-    neonConfig3.webSocketConstructor = ws3;
-    DATABASE_URL = process.env.DATABASE_URL;
-    if (!DATABASE_URL) {
-      console.error("DATABASE_URL is not defined");
-      process.exit(1);
-    }
-    pool5 = new Pool5({ connectionString: DATABASE_URL });
-    db6 = drizzle6({ client: pool5, schema: schema_exports });
-    if (import.meta.url === `file://${process.argv[1]}`) {
-      createComprehensiveDemo().catch(console.error);
-    }
-  }
-});
-
-// server/services/comprehensive-demo-sync-service.ts
-import { Pool as Pool6 } from "@neondatabase/serverless";
-import { drizzle as drizzle7 } from "drizzle-orm/neon-serverless";
-import { eq as eq16, and as and15, inArray as inArray8 } from "drizzle-orm";
-var pool6, db7, ComprehensiveDemoSyncService, comprehensive_demo_sync_service_default;
-var init_comprehensive_demo_sync_service = __esm({
-  "server/services/comprehensive-demo-sync-service.ts"() {
-    init_schema();
-    pool6 = new Pool6({ connectionString: process.env.DATABASE_URL });
-    db7 = drizzle7({ client: pool6, schema: schema_exports });
-    ComprehensiveDemoSyncService = class {
-      static {
-        this.DEMO_ORG_NAME = "Demo";
-      }
-      static {
-        this.OPEN_DEMO_ORG_NAME = "Open Demo";
-      }
-      /**
-       * Get the Demo organization.
-       */
-      static async getDemoOrg() {
-        const result = await db7.select().from(organizations).where(eq16(organizations.name, this.DEMO_ORG_NAME)).limit(1);
-        return result[0];
-      }
-      /**
-       * Get the Open Demo organization.
-       */
-      static async getOpenDemoOrg() {
-        const result = await db7.select().from(organizations).where(eq16(organizations.name, this.OPEN_DEMO_ORG_NAME)).limit(1);
-        return result[0];
-      }
-      /**
-       * Complete synchronization from Demo to Open Demo.
-       */
-      static async fullSync() {
-        console.log("\u{1F504} Starting comprehensive Demo \u2192 Open Demo synchronization...");
-        const demoOrg = await this.getDemoOrg();
-        const openDemoOrg = await this.getOpenDemoOrg();
-        if (!demoOrg) {
-          throw new Error("Demo organization not found");
-        }
-        if (!openDemoOrg) {
-          throw new Error("Open Demo organization not found");
-        }
-        try {
-          await this.cleanOpenDemoData(openDemoOrg.id);
-          const buildingMapping = await this.syncCoreData(demoOrg.id, openDemoOrg.id);
-          await this.syncFinancialData(demoOrg.id, openDemoOrg.id, buildingMapping);
-          await this.syncOperationsData(demoOrg.id, openDemoOrg.id, buildingMapping);
-          await this.syncSettingsData(demoOrg.id, openDemoOrg.id);
-          await this.syncDocuments(demoOrg.id, openDemoOrg.id, buildingMapping);
-          console.log("\u2705 Comprehensive Demo \u2192 Open Demo synchronization completed successfully");
-        } catch (error2) {
-          console.error("\u274C Demo synchronization failed:", error2);
-          throw error2;
-        }
-      }
-      /**
-       * Clean all existing Open Demo data.
-       * @param openDemoOrgId
-       */
-      static async cleanOpenDemoData(openDemoOrgId) {
-        console.log("  \u{1F9F9} Cleaning existing Open Demo data...");
-        try {
-          const openDemoBuildings = await db7.query.buildings.findMany({
-            where: eq16(buildings.organizationId, openDemoOrgId)
-          });
-          const buildingIds = openDemoBuildings.map((b) => b.id);
-          if (buildingIds.length > 0) {
-            const residences4 = await db7.query.residences.findMany({
-              where: inArray8(residences.buildingId, buildingIds)
-            });
-            const residenceIds = residences4.map((r) => r.id);
-            if (residenceIds.length > 0) {
-              await db7.delete(userResidences).where(inArray8(userResidences.residenceId, residenceIds));
-            }
-            if (residenceIds.length > 0) {
-              await db7.delete(documentsResidents).where(inArray8(documentsResidents.residenceId, residenceIds));
-            }
-            await db7.delete(documentsBuildings).where(inArray8(documentsBuildings.buildingId, buildingIds));
-            if (residenceIds.length > 0) {
-              const demands2 = await db7.query.demands.findMany({
-                where: inArray8(demands.residenceId, residenceIds)
-              });
-              const demandIds = demands2.map((d) => d.id);
-              if (demandIds.length > 0) {
-                await db7.delete(demandComments).where(inArray8(demandComments.demandId, demandIds));
-                await db7.delete(demands).where(inArray8(demands.id, demandIds));
-              }
-            }
-            if (residenceIds.length > 0) {
-              await db7.delete(maintenanceRequests).where(inArray8(maintenanceRequests.residenceId, residenceIds));
-            }
-            await db7.delete(bills).where(inArray8(bills.buildingId, buildingIds));
-            await db7.delete(budgets).where(inArray8(budgets.buildingId, buildingIds));
-            await db7.delete(monthlyBudgets).where(inArray8(monthlyBudgets.buildingId, buildingIds));
-            if (residenceIds.length > 0) {
-              await db7.delete(residences).where(inArray8(residences.id, residenceIds));
-            }
-            await db7.delete(buildings).where(inArray8(buildings.id, buildingIds));
-          }
-          await db7.delete(userOrganizations).where(eq16(userOrganizations.organizationId, openDemoOrgId));
-          const openDemoUserOrgs = await db7.query.userOrganizations.findMany({
-            where: eq16(userOrganizations.organizationId, openDemoOrgId)
-          });
-          for (const userOrg of openDemoUserOrgs) {
-            const otherOrgs = await db7.query.userOrganizations.findMany({
-              where: and15(
-                eq16(userOrganizations.userId, userOrg.userId),
-                eq16(userOrganizations.organizationId, openDemoOrgId)
-              )
-            });
-            if (otherOrgs.length === 0) {
-              await db7.delete(notifications).where(eq16(notifications.userId, userOrg.userId));
-              await db7.delete(bugs).where(eq16(bugs.createdBy, userOrg.userId));
-              const userFeatureRequests = await db7.query.featureRequests.findMany({
-                where: eq16(featureRequests.createdBy, userOrg.userId)
-              });
-              const featureRequestIds = userFeatureRequests.map((fr) => fr.id);
-              if (featureRequestIds.length > 0) {
-                await db7.delete(featureRequestUpvotes).where(inArray8(featureRequestUpvotes.featureRequestId, featureRequestIds));
-                await db7.delete(featureRequests).where(inArray8(featureRequests.id, featureRequestIds));
-              }
-              await db7.delete(users).where(eq16(users.id, userOrg.userId));
-            }
-          }
-          console.log("  \u2705 Cleaned existing Open Demo data");
-        } catch (error2) {
-          console.error("  \u274C Error cleaning Open Demo data:", error2);
-          throw error2;
-        }
-      }
-      /**
-       * Sync core data (users, buildings, residences).
-       * @param demoOrgId
-       * @param openDemoOrgId
-       */
-      static async syncCoreData(demoOrgId, openDemoOrgId) {
-        console.log("  \u{1F465} Syncing users...");
-        const demoUserOrgs = await db7.select().from(userOrganizations).where(eq16(userOrganizations.organizationId, demoOrgId));
-        const userMapping = /* @__PURE__ */ new Map();
-        for (const userOrg of demoUserOrgs) {
-          const [user] = await db7.select().from(users).where(eq16(users.id, userOrg.userId));
-          const [newUser] = await db7.insert(users).values({
-            username: user.username + ".1",
-            // PRODUCTION FIX: Add number suffix to make usernames unique for Open Demo
-            email: user.email.replace("@demo.com", "@opendemo.com"),
-            // Different email domain
-            password: user.password,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone,
-            profileImage: user.profileImage,
-            language: user.language,
-            role: user.role,
-            isActive: user.isActive
-          }).returning();
-          await db7.insert(userOrganizations).values({
-            userId: newUser.id,
-            organizationId: openDemoOrgId,
-            organizationRole: userOrg.organizationRole,
-            canAccessAllOrganizations: userOrg.canAccessAllOrganizations
-          });
-          userMapping.set(user.id, newUser.id);
-        }
-        console.log(`  \u2705 Synced ${demoUserOrgs.length} users`);
-        console.log("  \u{1F3E2} Syncing buildings...");
-        const demoBuildings = await db7.query.buildings.findMany({
-          where: eq16(buildings.organizationId, demoOrgId)
-        });
-        const buildingMapping = /* @__PURE__ */ new Map();
-        for (const building of demoBuildings) {
-          const [newBuilding] = await db7.insert(buildings).values({
-            organizationId: openDemoOrgId,
-            name: building.name,
-            address: building.address,
-            city: building.city,
-            province: building.province,
-            postalCode: building.postalCode,
-            buildingType: building.buildingType,
-            yearBuilt: building.yearBuilt,
-            totalUnits: building.totalUnits,
-            totalFloors: building.totalFloors,
-            parkingSpaces: building.parkingSpaces,
-            storageSpaces: building.storageSpaces,
-            amenities: building.amenities,
-            managementCompany: building.managementCompany,
-            bankAccountNumber: building.bankAccountNumber,
-            bankAccountNotes: building.bankAccountNotes,
-            bankAccountUpdatedAt: building.bankAccountUpdatedAt,
-            bankAccountStartDate: building.bankAccountStartDate,
-            bankAccountStartAmount: building.bankAccountStartAmount,
-            bankAccountMinimums: building.bankAccountMinimums,
-            inflationSettings: building.inflationSettings,
-            isActive: building.isActive
-          }).returning();
-          buildingMapping.set(building.id, newBuilding.id);
-        }
-        console.log(`  \u2705 Synced ${demoBuildings.length} buildings`);
-        console.log("  \u{1F3E0} Syncing residences...");
-        const demoResidences = await db7.query.residences.findMany({
-          where: inArray8(residences.buildingId, Array.from(buildingMapping.keys()))
-        });
-        const residenceMapping = /* @__PURE__ */ new Map();
-        for (const residence of demoResidences) {
-          const newBuildingId = buildingMapping.get(residence.buildingId);
-          if (!newBuildingId) {
-            continue;
-          }
-          const [newResidence] = await db7.insert(residences).values({
-            buildingId: newBuildingId,
-            unitNumber: residence.unitNumber,
-            floor: residence.floor,
-            squareFootage: residence.squareFootage,
-            bedrooms: residence.bedrooms,
-            bathrooms: residence.bathrooms,
-            balcony: residence.balcony,
-            parkingSpaceNumbers: residence.parkingSpaceNumbers,
-            storageSpaceNumbers: residence.storageSpaceNumbers,
-            ownershipPercentage: residence.ownershipPercentage,
-            monthlyFees: residence.monthlyFees,
-            isActive: residence.isActive
-          }).returning();
-          residenceMapping.set(residence.id, newResidence.id);
-        }
-        console.log(`  \u2705 Synced ${demoResidences.length} residences`);
-        const demoUserResidences = await db7.query.userResidences.findMany({
-          where: inArray8(userResidences.residenceId, Array.from(residenceMapping.keys()))
-        });
-        for (const userRes of demoUserResidences) {
-          const newUserId = userMapping.get(userRes.userId);
-          const newResidenceId = residenceMapping.get(userRes.residenceId);
-          if (newUserId && newResidenceId) {
-            await db7.insert(userResidences).values({
-              userId: newUserId,
-              residenceId: newResidenceId,
-              relationshipType: userRes.relationshipType,
-              startDate: userRes.startDate,
-              endDate: userRes.endDate,
-              isActive: userRes.isActive
-            });
-          }
-        }
-        console.log(`  \u2705 Synced ${demoUserResidences.length} user-residence relationships`);
-        return buildingMapping;
-      }
-      /**
-       * Sync financial data (bills, budgets, money flow).
-       * @param demoOrgId
-       * @param openDemoOrgId
-       * @param buildingMapping
-       */
-      static async syncFinancialData(demoOrgId, openDemoOrgId, buildingMapping) {
-        console.log("  \u{1F4B0} Syncing financial data...");
-        const demoBuildingIds = Array.from(buildingMapping.keys());
-        const openDemoBuildingIds = Array.from(buildingMapping.values());
-        const openDemoAdmin = await db7.query.userOrganizations.findFirst({
-          where: and15(
-            eq16(userOrganizations.organizationId, openDemoOrgId),
-            eq16(userOrganizations.organizationRole, "admin")
-          ),
-          with: { user: true }
-        });
-        if (!openDemoAdmin) {
-          throw new Error("Open Demo admin user not found");
-        }
-        const demoBills = await db7.query.bills.findMany({
-          where: inArray8(bills.buildingId, demoBuildingIds)
-        });
-        for (const bill of demoBills) {
-          const newBuildingId = buildingMapping.get(bill.buildingId);
-          if (!newBuildingId) {
-            continue;
-          }
-          await db7.insert(bills).values({
-            buildingId: newBuildingId,
-            billNumber: bill.billNumber,
-            title: bill.title,
-            description: bill.description,
-            category: bill.category,
-            vendor: bill.vendor,
-            paymentType: bill.paymentType,
-            schedulePayment: bill.schedulePayment,
-            scheduleCustom: bill.scheduleCustom,
-            costs: bill.costs,
-            totalAmount: bill.totalAmount,
-            startDate: bill.startDate,
-            endDate: bill.endDate,
-            status: bill.status,
-            documentPath: bill.documentPath,
-            documentName: bill.documentName,
-            isAiAnalyzed: bill.isAiAnalyzed,
-            aiAnalysisData: bill.aiAnalysisData,
-            notes: bill.notes,
-            autoGenerated: bill.autoGenerated,
-            createdBy: openDemoAdmin.userId
-          });
-        }
-        const demoBudgets = await db7.query.budgets.findMany({
-          where: inArray8(budgets.buildingId, demoBuildingIds)
-        });
-        for (const budget of demoBudgets) {
-          const newBuildingId = buildingMapping.get(budget.buildingId);
-          if (!newBuildingId) {
-            continue;
-          }
-          await db7.insert(budgets).values({
-            buildingId: newBuildingId,
-            year: budget.year,
-            name: budget.name,
-            description: budget.description,
-            category: budget.category,
-            budgetedAmount: budget.budgetedAmount,
-            actualAmount: budget.actualAmount,
-            variance: budget.variance,
-            approvedBy: openDemoAdmin.userId,
-            approvedDate: budget.approvedDate,
-            isActive: budget.isActive,
-            createdBy: openDemoAdmin.userId
-          });
-        }
-        const demoMonthlyBudgets = await db7.query.monthlyBudgets.findMany({
-          where: inArray8(monthlyBudgets.buildingId, demoBuildingIds)
-        });
-        for (const budget of demoMonthlyBudgets) {
-          const newBuildingId = buildingMapping.get(budget.buildingId);
-          if (!newBuildingId) {
-            continue;
-          }
-          await db7.insert(monthlyBudgets).values({
-            buildingId: newBuildingId,
-            year: budget.year,
-            month: budget.month,
-            incomeTypes: budget.incomeTypes,
-            incomes: budget.incomes,
-            spendingTypes: budget.spendingTypes,
-            spendings: budget.spendings,
-            approved: budget.approved,
-            approvedBy: budget.approved ? openDemoAdmin.userId : null,
-            approvedDate: budget.approvedDate
-          });
-        }
-        console.log(
-          `  \u2705 Synced financial data: ${demoBills.length} bills, ${demoBudgets.length} budgets, ${demoMonthlyBudgets.length} monthly budgets`
-        );
-      }
-      /**
-       * Sync operations data (maintenance, demands, notifications).
-       * @param demoOrgId
-       * @param openDemoOrgId
-       * @param buildingMapping
-       */
-      static async syncOperationsData(demoOrgId, openDemoOrgId, buildingMapping) {
-        console.log("  \u{1F527} Syncing operations data...");
-        const userMapping = /* @__PURE__ */ new Map();
-        const demoUserOrgs = await db7.query.userOrganizations.findMany({
-          where: eq16(userOrganizations.organizationId, demoOrgId)
-        });
-        const openDemoUserOrgs = await db7.query.userOrganizations.findMany({
-          where: eq16(userOrganizations.organizationId, openDemoOrgId)
-        });
-        for (const demoUserOrg of demoUserOrgs) {
-          const demoUser = await db7.query.users.findFirst({
-            where: eq16(users.id, demoUserOrg.userId)
-          });
-          if (demoUser) {
-            const openDemoUser = await db7.query.users.findFirst({
-              where: eq16(users.email, demoUser.email.replace("@demo.com", "@opendemo.com"))
-            });
-            if (openDemoUser) {
-              userMapping.set(demoUser.id, openDemoUser.id);
-            }
-          }
-        }
-        const residenceMapping = /* @__PURE__ */ new Map();
-        const demoBuildingIds = Array.from(buildingMapping.keys());
-        const demoResidences = await db7.query.residences.findMany({
-          where: inArray8(residences.buildingId, demoBuildingIds)
-        });
-        for (const demoRes of demoResidences) {
-          const newBuildingId = buildingMapping.get(demoRes.buildingId);
-          if (newBuildingId) {
-            const openDemoRes = await db7.query.residences.findFirst({
-              where: and15(
-                eq16(residences.buildingId, newBuildingId),
-                eq16(residences.unitNumber, demoRes.unitNumber)
-              )
-            });
-            if (openDemoRes) {
-              residenceMapping.set(demoRes.id, openDemoRes.id);
-            }
-          }
-        }
-        const demoMaintenanceRequests = await db7.query.maintenanceRequests.findMany({
-          where: inArray8(maintenanceRequests.residenceId, Array.from(residenceMapping.keys()))
-        });
-        for (const request of demoMaintenanceRequests) {
-          const newResidenceId = residenceMapping.get(request.residenceId);
-          const newSubmitterId = userMapping.get(request.submittedBy);
-          const newAssignedTo = request.assignedTo ? userMapping.get(request.assignedTo) : null;
-          if (newResidenceId && newSubmitterId) {
-            await db7.insert(maintenanceRequests).values({
-              residenceId: newResidenceId,
-              submittedBy: newSubmitterId,
-              assignedTo: newAssignedTo,
-              title: request.title,
-              description: request.description,
-              category: request.category,
-              priority: request.priority,
-              status: request.status,
-              estimatedCost: request.estimatedCost,
-              actualCost: request.actualCost,
-              scheduledDate: request.scheduledDate,
-              completedDate: request.completedDate,
-              notes: request.notes,
-              images: request.images
-            });
-          }
-        }
-        const demoDemands = await db7.query.demands.findMany({
-          where: inArray8(demands.residenceId, Array.from(residenceMapping.keys()))
-        });
-        for (const demand of demoDemands) {
-          const newResidenceId = residenceMapping.get(demand.residenceId);
-          const newBuildingId = buildingMapping.get(demand.buildingId);
-          const newSubmitterId = userMapping.get(demand.submitterId);
-          const newReviewedBy = demand.reviewedBy ? userMapping.get(demand.reviewedBy) : null;
-          if (newResidenceId && newBuildingId && newSubmitterId) {
-            await db7.insert(demands).values({
-              submitterId: newSubmitterId,
-              type: demand.type,
-              assignationResidenceId: demand.assignationResidenceId ? residenceMapping.get(demand.assignationResidenceId) : null,
-              assignationBuildingId: demand.assignationBuildingId ? buildingMapping.get(demand.assignationBuildingId) : null,
-              description: demand.description,
-              residenceId: newResidenceId,
-              buildingId: newBuildingId,
-              status: demand.status,
-              reviewedBy: newReviewedBy,
-              reviewedAt: demand.reviewedAt,
-              reviewNotes: demand.reviewNotes
-            });
-          }
-        }
-        for (const [demoUserId, openDemoUserId] of userMapping.entries()) {
-          const demoNotifications = await db7.query.notifications.findMany({
-            where: eq16(notifications.userId, demoUserId)
-          });
-          for (const notification of demoNotifications) {
-            await db7.insert(notifications).values({
-              userId: openDemoUserId,
-              type: notification.type,
-              title: notification.title,
-              message: notification.message,
-              relatedEntityId: notification.relatedEntityId,
-              relatedEntityType: notification.relatedEntityType,
-              isRead: notification.isRead,
-              readAt: notification.readAt
-            });
-          }
-        }
-        console.log(
-          `  \u2705 Synced operations data: ${demoMaintenanceRequests.length} maintenance requests, ${demoDemands.length} demands, notifications`
-        );
-      }
-      /**
-       * Sync settings data (bugs, feature requests).
-       * @param demoOrgId
-       * @param openDemoOrgId
-       */
-      static async syncSettingsData(demoOrgId, openDemoOrgId) {
-        console.log("  \u2699\uFE0F Syncing settings data...");
-        const userMapping = /* @__PURE__ */ new Map();
-        const demoUserOrgs = await db7.query.userOrganizations.findMany({
-          where: eq16(userOrganizations.organizationId, demoOrgId)
-        });
-        for (const demoUserOrg of demoUserOrgs) {
-          const demoUser = await db7.query.users.findFirst({
-            where: eq16(users.id, demoUserOrg.userId)
-          });
-          if (demoUser) {
-            const openDemoUser = await db7.query.users.findFirst({
-              where: eq16(users.email, demoUser.email.replace("@demo.com", "@opendemo.com"))
-            });
-            if (openDemoUser) {
-              userMapping.set(demoUser.id, openDemoUser.id);
-            }
-          }
-        }
-        const demoBugs = await db7.query.bugs.findMany({
-          where: inArray8(bugs.createdBy, Array.from(userMapping.keys()))
-        });
-        for (const bug of demoBugs) {
-          const newCreatedBy = userMapping.get(bug.createdBy);
-          const newAssignedTo = bug.assignedTo ? userMapping.get(bug.assignedTo) : null;
-          const newResolvedBy = bug.resolvedBy ? userMapping.get(bug.resolvedBy) : null;
-          if (newCreatedBy) {
-            await db7.insert(bugs).values({
-              createdBy: newCreatedBy,
-              title: bug.title,
-              description: bug.description,
-              category: bug.category,
-              page: bug.page,
-              priority: bug.priority,
-              status: bug.status,
-              assignedTo: newAssignedTo,
-              resolvedAt: bug.resolvedAt,
-              resolvedBy: newResolvedBy,
-              notes: bug.notes,
-              reproductionSteps: bug.reproductionSteps,
-              environment: bug.environment
-            });
-          }
-        }
-        const demoFeatureRequests = await db7.query.featureRequests.findMany({
-          where: inArray8(featureRequests.createdBy, Array.from(userMapping.keys()))
-        });
-        for (const featureRequest of demoFeatureRequests) {
-          const newCreatedBy = userMapping.get(featureRequest.createdBy);
-          const newAssignedTo = featureRequest.assignedTo ? userMapping.get(featureRequest.assignedTo) : null;
-          const newReviewedBy = featureRequest.reviewedBy ? userMapping.get(featureRequest.reviewedBy) : null;
-          if (newCreatedBy) {
-            const [newFeatureRequest] = await db7.insert(featureRequests).values({
-              createdBy: newCreatedBy,
-              title: featureRequest.title,
-              description: featureRequest.description,
-              need: featureRequest.need,
-              category: featureRequest.category,
-              page: featureRequest.page,
-              status: featureRequest.status,
-              upvoteCount: featureRequest.upvoteCount,
-              assignedTo: newAssignedTo,
-              reviewedBy: newReviewedBy,
-              reviewedAt: featureRequest.reviewedAt,
-              adminNotes: featureRequest.adminNotes
-            }).returning();
-            const upvotes = await db7.query.featureRequestUpvotes.findMany({
-              where: eq16(featureRequestUpvotes.featureRequestId, featureRequest.id)
-            });
-            for (const upvote of upvotes) {
-              const newUserId = userMapping.get(upvote.userId);
-              if (newUserId) {
-                await db7.insert(featureRequestUpvotes).values({
-                  featureRequestId: newFeatureRequest.id,
-                  userId: newUserId
-                });
-              }
-            }
-          }
-        }
-        console.log(
-          `  \u2705 Synced settings data: ${demoBugs.length} bugs, ${demoFeatureRequests.length} feature requests`
-        );
-      }
-      /**
-       * Sync documents.
-       * @param demoOrgId
-       * @param openDemoOrgId
-       * @param buildingMapping
-       */
-      static async syncDocuments(demoOrgId, openDemoOrgId, buildingMapping) {
-        console.log("  \u{1F4C4} Syncing documents...");
-        const openDemoAdmin = await db7.query.userOrganizations.findFirst({
-          where: and15(
-            eq16(userOrganizations.organizationId, openDemoOrgId),
-            eq16(userOrganizations.organizationRole, "admin")
-          )
-        });
-        if (!openDemoAdmin) {
-          throw new Error("Open Demo admin user not found");
-        }
-        const demoBuildingDocs = await db7.query.documentsBuildings.findMany({
-          where: inArray8(documentsBuildings.buildingId, Array.from(buildingMapping.keys()))
-        });
-        for (const doc of demoBuildingDocs) {
-          const newBuildingId = buildingMapping.get(doc.buildingId);
-          if (newBuildingId) {
-            await db7.insert(documentsBuildings).values({
-              name: doc.name,
-              dateReference: doc.dateReference,
-              type: doc.type,
-              buildingId: newBuildingId,
-              fileUrl: doc.fileUrl,
-              fileName: doc.fileName,
-              fileSize: doc.fileSize,
-              mimeType: doc.mimeType,
-              uploadedBy: openDemoAdmin.userId,
-              isVisibleToTenants: doc.isVisibleToTenants
-            });
-          }
-        }
-        const residenceMapping = /* @__PURE__ */ new Map();
-        const demoBuildingIds = Array.from(buildingMapping.keys());
-        const demoResidences = await db7.query.residences.findMany({
-          where: inArray8(residences.buildingId, demoBuildingIds)
-        });
-        for (const demoRes of demoResidences) {
-          const newBuildingId = buildingMapping.get(demoRes.buildingId);
-          if (newBuildingId) {
-            const openDemoRes = await db7.query.residences.findFirst({
-              where: and15(
-                eq16(residences.buildingId, newBuildingId),
-                eq16(residences.unitNumber, demoRes.unitNumber)
-              )
-            });
-            if (openDemoRes) {
-              residenceMapping.set(demoRes.id, openDemoRes.id);
-            }
-          }
-        }
-        const demoResidenceDocs = await db7.query.documentsResidents.findMany({
-          where: inArray8(documentsResidents.residenceId, Array.from(residenceMapping.keys()))
-        });
-        for (const doc of demoResidenceDocs) {
-          const newResidenceId = residenceMapping.get(doc.residenceId);
-          if (newResidenceId) {
-            await db7.insert(documentsResidents).values({
-              name: doc.name,
-              dateReference: doc.dateReference,
-              type: doc.type,
-              residenceId: newResidenceId,
-              fileUrl: doc.fileUrl,
-              fileName: doc.fileName,
-              fileSize: doc.fileSize,
-              mimeType: doc.mimeType,
-              uploadedBy: openDemoAdmin.userId,
-              isVisibleToTenants: doc.isVisibleToTenants
-            });
-          }
-        }
-        console.log(
-          `  \u2705 Synced documents: ${demoBuildingDocs.length} building documents, ${demoResidenceDocs.length} residence documents`
-        );
-      }
-      /**
-       * Run complete synchronization.
-       */
-      static async runFullSync() {
-        try {
-          await this.fullSync();
-          console.log("\u{1F389} Complete Demo \u2192 Open Demo synchronization finished successfully");
-        } catch (error2) {
-          console.error("\u{1F4A5} Complete Demo synchronization failed:", error2);
-          throw error2;
-        }
-      }
-    };
-    comprehensive_demo_sync_service_default = ComprehensiveDemoSyncService;
-  }
-});
-
-// scripts/duplicate-demo-to-open-demo.ts
-import { Pool as Pool7, neonConfig as neonConfig4 } from "@neondatabase/serverless";
-import { drizzle as drizzle8 } from "drizzle-orm/neon-serverless";
-import { eq as eq17 } from "drizzle-orm";
-import ws4 from "ws";
-async function duplicateDemoToOpenDemo() {
-  try {
-    console.log("\u{1F504} Starting Demo \u2192 Open Demo duplication process...\n");
-    console.log("\u{1F4CD} Verifying Demo organization exists...");
-    const demoOrg = await db8.query.organizations.findFirst({
-      where: eq17(organizations.name, "Demo")
-    });
-    if (!demoOrg) {
-      console.error("\u274C Demo organization not found!");
-      console.log("\u{1F4A1} Please run the comprehensive demo creation script first:");
-      console.log("   tsx scripts/create-comprehensive-demo.ts");
-      process.exit(1);
-    }
-    console.log(`\u2705 Demo organization found: ${demoOrg.id}`);
-    console.log("\n\u{1F4CD} Verifying Open Demo organization exists...");
-    const openDemoOrg = await db8.query.organizations.findFirst({
-      where: eq17(organizations.name, "Open Demo")
-    });
-    if (!openDemoOrg) {
-      console.error("\u274C Open Demo organization not found!");
-      console.log("\u{1F4A1} Please run the comprehensive demo creation script first:");
-      console.log("   tsx scripts/create-comprehensive-demo.ts");
-      process.exit(1);
-    }
-    console.log(`\u2705 Open Demo organization found: ${openDemoOrg.id}`);
-    console.log("\n\u{1F4CA} Analyzing Demo organization data...");
-    const demoBuildings = await db8.query.buildings.findMany({
-      where: eq17(buildings.organizationId, demoOrg.id)
-    });
-    const demoUsers = await db8.query.userOrganizations.findMany({
-      where: eq17(userOrganizations.organizationId, demoOrg.id)
-    });
-    console.log(`  \u2022 Buildings: ${demoBuildings.length}`);
-    console.log(`  \u2022 Users: ${demoUsers.length}`);
-    if (demoBuildings.length === 0) {
-      console.warn("\u26A0\uFE0F  Demo organization has no buildings!");
-      console.log("\u{1F4A1} Consider running the comprehensive demo creation script:");
-      console.log("   tsx scripts/create-comprehensive-demo.ts");
-    }
-    if (demoUsers.length === 0) {
-      console.warn("\u26A0\uFE0F  Demo organization has no users!");
-      console.log("\u{1F4A1} Consider running the comprehensive demo creation script:");
-      console.log("   tsx scripts/create-comprehensive-demo.ts");
-    }
-    console.log("\n\u{1F680} Starting comprehensive synchronization...");
-    await comprehensive_demo_sync_service_default.runFullSync();
-    console.log("\n\u{1F4CA} Verifying duplication results...");
-    const openDemoBuildings = await db8.query.buildings.findMany({
-      where: eq17(buildings.organizationId, openDemoOrg.id)
-    });
-    const openDemoUsers = await db8.query.userOrganizations.findMany({
-      where: eq17(userOrganizations.organizationId, openDemoOrg.id)
-    });
-    console.log(`  \u2022 Open Demo Buildings: ${openDemoBuildings.length}`);
-    console.log(`  \u2022 Open Demo Users: ${openDemoUsers.length}`);
-    console.log("\n\u2728 Demo \u2192 Open Demo duplication completed successfully!");
-    console.log("\n\u{1F4CB} Duplication Summary:");
-    console.log(`  \u2705 Source: Demo organization (${demoOrg.id})`);
-    console.log(`  \u2705 Target: Open Demo organization (${openDemoOrg.id})`);
-    console.log(`  \u2705 Buildings duplicated: ${demoBuildings.length} \u2192 ${openDemoBuildings.length}`);
-    console.log(`  \u2705 Users duplicated: ${demoUsers.length} \u2192 ${openDemoUsers.length}`);
-    console.log(`  \u2705 All data relationships preserved`);
-    console.log(`  \u2705 User email domains changed: @demo.com \u2192 @opendemo.com`);
-    console.log("\n\u{1F3AF} Open Demo organization is now ready for use!");
-    console.log("   The Open Demo provides a read-only demonstration environment");
-    console.log("   with identical data to the Demo organization.");
-  } catch (error2) {
-    console.error("\n\u274C Duplication failed:", error2);
-    throw error2;
-  } finally {
-    await pool7.end();
-  }
-}
-function displayUsage() {
-  console.log("\u{1F4D6} Demo to Open Demo Duplication Script");
-  console.log("");
-  console.log("This script duplicates the Demo organization to create an identical");
-  console.log("Open Demo organization for read-only demonstration purposes.");
-  console.log("");
-  console.log("Prerequisites:");
-  console.log("  \u2022 Demo organization must exist");
-  console.log("  \u2022 Open Demo organization must exist");
-  console.log("  \u2022 Database connection must be available");
-  console.log("");
-  console.log("Usage:");
-  console.log("  tsx scripts/duplicate-demo-to-open-demo.ts");
-  console.log("");
-  console.log("Options:");
-  console.log("  --help    Show this help message");
-  console.log("");
-}
-var DATABASE_URL2, pool7, db8;
-var init_duplicate_demo_to_open_demo = __esm({
-  "scripts/duplicate-demo-to-open-demo.ts"() {
-    init_schema();
-    init_comprehensive_demo_sync_service();
-    neonConfig4.webSocketConstructor = ws4;
-    DATABASE_URL2 = process.env.DATABASE_URL;
-    if (!DATABASE_URL2) {
-      console.error("DATABASE_URL is not defined");
-      process.exit(1);
-    }
-    pool7 = new Pool7({ connectionString: DATABASE_URL2 });
-    db8 = drizzle8({ client: pool7, schema: schema_exports });
-    if (process.argv.includes("--help") || process.argv.includes("-h")) {
-      displayUsage();
-      process.exit(0);
-    }
-    if (import.meta.url === `file://${process.argv[1]}`) {
-      duplicateDemoToOpenDemo().catch((error2) => {
-        console.error("Script execution failed:", error2);
-        process.exit(1);
-      });
-    }
-  }
-});
-
-// scripts/production-demo-sync.ts
-import { Pool as Pool8, neonConfig as neonConfig5 } from "@neondatabase/serverless";
-import { drizzle as drizzle9 } from "drizzle-orm/neon-serverless";
-import { eq as eq18 } from "drizzle-orm";
-import ws5 from "ws";
-async function checkDemoStatus() {
-  const demoOrg = await db9.query.organizations.findFirst({
-    where: eq18(organizations.name, "Demo")
-  });
-  const openDemoOrg = await db9.query.organizations.findFirst({
-    where: eq18(organizations.name, "Open Demo")
-  });
-  let demoHasData = false;
-  let openDemoHasData = false;
-  if (demoOrg) {
-    const demoBuildings = await db9.query.buildings.findMany({
-      where: eq18(buildings.organizationId, demoOrg.id)
-    });
-    demoHasData = demoBuildings.length > 0;
-  }
-  if (openDemoOrg) {
-    const openDemoBuildings = await db9.query.buildings.findMany({
-      where: eq18(buildings.organizationId, openDemoOrg.id)
-    });
-    openDemoHasData = openDemoBuildings.length > 0;
-  }
-  const lastSyncNeeded = !openDemoOrg || !openDemoHasData || demoHasData && !openDemoHasData;
-  return {
-    demoExists: !!demoOrg,
-    openDemoExists: !!openDemoOrg,
-    demoHasData,
-    openDemoHasData,
-    lastSyncNeeded
-  };
-}
-function displayStatus(status, options2) {
-  if (options2.silent) {
-    return;
-  }
-  console.log("\u{1F4CA} Demo Organizations Status:");
-  console.log(`  Demo Organization: ${status.demoExists ? "\u2705 Exists" : "\u274C Missing"}`);
-  console.log(`  Demo Data: ${status.demoHasData ? "\u2705 Populated" : "\u274C Empty"}`);
-  console.log(`  Open Demo Organization: ${status.openDemoExists ? "\u2705 Exists" : "\u274C Missing"}`);
-  console.log(`  Open Demo Data: ${status.openDemoHasData ? "\u2705 Populated" : "\u274C Empty"}`);
-  console.log(`  Sync Needed: ${status.lastSyncNeeded ? "\u26A0\uFE0F  Yes" : "\u2705 No"}`);
-}
-async function productionDemoSync(options2 = {}) {
-  try {
-    if (!options2.silent) {
-      console.log("\u{1F504} Production Demo Synchronization Starting...\n");
-    }
-    const status = await checkDemoStatus();
-    displayStatus(status, options2);
-    if (options2.checkOnly) {
-      console.log("\n\u{1F4CB} Check-only mode: Status check completed.");
-      return;
-    }
-    const needsFullCreation = !status.demoExists || !status.demoHasData || options2.forceRecreate;
-    const needsSync = status.demoExists && status.demoHasData && (!status.openDemoExists || !status.openDemoHasData || options2.forceRecreate);
-    if (!needsFullCreation && !needsSync) {
-      if (!options2.silent) {
-        console.log("\n\u2705 Demo organizations are already properly configured.");
-        console.log("   No action required.");
-      }
-      return;
-    }
-    if (needsFullCreation) {
-      if (!options2.silent) {
-        console.log("\n\u{1F680} Creating comprehensive demo data...");
-      }
-      await createComprehensiveDemo();
-      if (!options2.silent) {
-        console.log("\u2705 Comprehensive demo data created successfully.");
-      }
-    }
-    if (needsSync || needsFullCreation) {
-      if (!options2.silent) {
-        console.log("\n\u{1F504} Synchronizing Demo \u2192 Open Demo...");
-      }
-      await duplicateDemoToOpenDemo();
-      if (!options2.silent) {
-        console.log("\u2705 Demo \u2192 Open Demo synchronization completed.");
-      }
-    }
-    if (!options2.silent) {
-      console.log("\n\u{1F4CA} Final Status Verification:");
-      const finalStatus = await checkDemoStatus();
-      displayStatus(finalStatus, { silent: false });
-      if (finalStatus.demoExists && finalStatus.demoHasData && finalStatus.openDemoExists && finalStatus.openDemoHasData) {
-        console.log("\n\u{1F389} Production demo synchronization completed successfully!");
-        console.log("   Both Demo and Open Demo organizations are ready for use.");
-      } else {
-        console.warn("\n\u26A0\uFE0F  Demo synchronization completed with warnings.");
-        console.log("   Please check the status above for any issues.");
-      }
-    }
-  } catch (error2) {
-    console.error("\n\u274C Production demo synchronization failed:", error2);
-    throw error2;
-  }
-}
-function parseArguments() {
-  const args = process.argv.slice(2);
-  const options2 = {};
-  for (const arg of args) {
-    switch (arg) {
-      case "--force-recreate":
-      case "-f":
-        options2.forceRecreate = true;
-        break;
-      case "--check-only":
-      case "-c":
-        options2.checkOnly = true;
-        break;
-      case "--silent":
-      case "-s":
-        options2.silent = true;
-        break;
-      case "--help":
-      case "-h":
-        displayUsage2();
-        process.exit(0);
-        break;
-      default:
-        console.error(`Unknown argument: ${arg}`);
-        displayUsage2();
-        process.exit(1);
-    }
-  }
-  return options2;
-}
-function displayUsage2() {
-  console.log("\u{1F4D6} Production Demo Synchronization Script");
-  console.log("");
-  console.log("Ensures Demo and Open Demo organizations are properly configured");
-  console.log("in the production environment with comprehensive demo data.");
-  console.log("");
-  console.log("Usage:");
-  console.log("  tsx scripts/production-demo-sync.ts [options]");
-  console.log("");
-  console.log("Options:");
-  console.log("  -f, --force-recreate    Force recreation of demo data");
-  console.log("  -c, --check-only        Only check status, do not perform sync");
-  console.log("  -s, --silent            Run in silent mode (minimal output)");
-  console.log("  -h, --help              Show this help message");
-  console.log("");
-  console.log("Examples:");
-  console.log("  tsx scripts/production-demo-sync.ts                 # Normal sync");
-  console.log("  tsx scripts/production-demo-sync.ts --check-only    # Check status only");
-  console.log("  tsx scripts/production-demo-sync.ts --force-recreate # Force recreation");
-  console.log("  tsx scripts/production-demo-sync.ts --silent        # Silent operation");
-  console.log("");
-}
-async function healthCheck() {
-  try {
-    const status = await checkDemoStatus();
-    const healthy = status.demoExists && status.demoHasData && status.openDemoExists && status.openDemoHasData;
-    const message = healthy ? "Demo organizations are healthy and properly configured" : "Demo organizations need attention - missing data or organizations";
-    return { healthy, status, message };
-  } catch (error2) {
-    return {
-      healthy: false,
-      status: {
-        demoExists: false,
-        openDemoExists: false,
-        demoHasData: false,
-        openDemoHasData: false,
-        lastSyncNeeded: true
-      },
-      message: `Health check failed: ${error2 instanceof Error ? error2.message : "Unknown error"}`
-    };
-  }
-}
-async function quickSync() {
-  await productionDemoSync({ silent: true });
-}
-var DATABASE_URL3, pool8, db9;
-var init_production_demo_sync = __esm({
-  "scripts/production-demo-sync.ts"() {
-    init_schema();
-    init_create_comprehensive_demo();
-    init_duplicate_demo_to_open_demo();
-    neonConfig5.webSocketConstructor = ws5;
-    DATABASE_URL3 = process.env.DATABASE_URL;
-    if (!DATABASE_URL3) {
-      console.error("DATABASE_URL is not defined");
-      process.exit(1);
-    }
-    pool8 = new Pool8({ connectionString: DATABASE_URL3 });
-    db9 = drizzle9({ client: pool8, schema: schema_exports });
-    if (import.meta.url === `file://${process.argv[1]}`) {
-      const options2 = parseArguments();
-      productionDemoSync(options2).then(() => {
-        if (!options2.silent) {
-          console.log("\n\u{1F3C1} Script execution completed successfully.");
-        }
-        process.exit(0);
-      }).catch((error2) => {
-        console.error("\n\u{1F4A5} Script execution failed:", error2);
-        process.exit(1);
-      }).finally(() => {
-        pool8.end();
-      });
-    }
-  }
-});
-
 // server/services/demo-management-service.ts
-import { Pool as Pool9 } from "@neondatabase/serverless";
-import { drizzle as drizzle10 } from "drizzle-orm/neon-serverless";
-import { eq as eq19 } from "drizzle-orm";
+import { Pool as Pool5 } from "@neondatabase/serverless";
+import { drizzle as drizzle6 } from "drizzle-orm/neon-serverless";
+import { eq as eq15 } from "drizzle-orm";
 var DemoManagementService, demo_management_service_default;
 var init_demo_management_service = __esm({
   "server/services/demo-management-service.ts"() {
     init_schema();
-    init_production_demo_sync();
     DemoManagementService = class {
       static {
         this.DEMO_ORG_NAME = "Demo";
@@ -15657,20 +14015,12 @@ var init_demo_management_service = __esm({
        * Check if demo organizations are healthy and properly configured.
        */
       static async checkDemoHealth() {
-        try {
-          const result = await healthCheck();
-          return {
-            ...result,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString()
-          };
-        } catch (error2) {
-          return {
-            healthy: false,
-            status: null,
-            message: `Demo health check failed: ${error2 instanceof Error ? error2.message : "Unknown error"}`,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString()
-          };
-        }
+        return {
+          healthy: true,
+          status: { message: "Demo sync functionality removed" },
+          message: "Demo organizations managed locally only",
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        };
       }
       /**
        * Ensure demo organizations exist and are properly configured.
@@ -15679,16 +14029,15 @@ var init_demo_management_service = __esm({
       static async ensureDemoOrganizations() {
         try {
           console.log("\u{1F504} Ensuring demo organizations are properly configured...");
-          await quickSync();
-          const pool9 = new Pool9({ connectionString: process.env.DATABASE_URL });
-          const db10 = drizzle10({ client: pool9, schema: schema_exports });
-          const demoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.DEMO_ORG_NAME)
+          const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
+          const db6 = drizzle6({ client: pool5, schema: schema_exports });
+          const demoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.DEMO_ORG_NAME)
           });
-          const openDemoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.OPEN_DEMO_ORG_NAME)
+          const openDemoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
           });
-          await pool9.end();
+          await pool5.end();
           if (!demoOrg || !openDemoOrg) {
             throw new Error("Demo organizations were not created successfully");
           }
@@ -15714,16 +14063,15 @@ var init_demo_management_service = __esm({
       static async recreateDemoOrganizations() {
         try {
           console.log("\u{1F504} Force recreating demo organizations...");
-          await productionDemoSync({ forceRecreate: true, silent: true });
-          const pool9 = new Pool9({ connectionString: process.env.DATABASE_URL });
-          const db10 = drizzle10({ client: pool9, schema: schema_exports });
-          const demoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.DEMO_ORG_NAME)
+          const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
+          const db6 = drizzle6({ client: pool5, schema: schema_exports });
+          const demoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.DEMO_ORG_NAME)
           });
-          const openDemoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.OPEN_DEMO_ORG_NAME)
+          const openDemoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
           });
-          await pool9.end();
+          await pool5.end();
           if (!demoOrg || !openDemoOrg) {
             throw new Error("Demo organizations were not recreated successfully");
           }
@@ -15746,35 +14094,35 @@ var init_demo_management_service = __esm({
        * Get demo organization information.
        */
       static async getDemoOrganizationInfo() {
-        const pool9 = new Pool9({ connectionString: process.env.DATABASE_URL });
-        const db10 = drizzle10({ client: pool9, schema: schema_exports });
+        const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
+        const db6 = drizzle6({ client: pool5, schema: schema_exports });
         try {
-          const demoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.DEMO_ORG_NAME)
+          const demoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.DEMO_ORG_NAME)
           });
-          const openDemoOrg = await db10.query.organizations.findFirst({
-            where: eq19(organizations.name, this.OPEN_DEMO_ORG_NAME)
+          const openDemoOrg = await db6.query.organizations.findFirst({
+            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
           });
           let demoBuildings = 0;
           let demoUsers = 0;
           let openDemoBuildings = 0;
           let openDemoUsers = 0;
           if (demoOrg) {
-            const buildings7 = await db10.query.buildings.findMany({
-              where: eq19(buildings.organizationId, demoOrg.id)
+            const buildings7 = await db6.query.buildings.findMany({
+              where: eq15(buildings.organizationId, demoOrg.id)
             });
-            const users4 = await db10.query.userOrganizations.findMany({
-              where: eq19(userOrganizations.organizationId, demoOrg.id)
+            const users4 = await db6.query.userOrganizations.findMany({
+              where: eq15(userOrganizations.organizationId, demoOrg.id)
             });
             demoBuildings = buildings7.length;
             demoUsers = users4.length;
           }
           if (openDemoOrg) {
-            const buildings7 = await db10.query.buildings.findMany({
-              where: eq19(buildings.organizationId, openDemoOrg.id)
+            const buildings7 = await db6.query.buildings.findMany({
+              where: eq15(buildings.organizationId, openDemoOrg.id)
             });
-            const users4 = await db10.query.userOrganizations.findMany({
-              where: eq19(userOrganizations.organizationId, openDemoOrg.id)
+            const users4 = await db6.query.userOrganizations.findMany({
+              where: eq15(userOrganizations.organizationId, openDemoOrg.id)
             });
             openDemoBuildings = buildings7.length;
             openDemoUsers = users4.length;
@@ -15790,7 +14138,7 @@ var init_demo_management_service = __esm({
             }
           };
         } finally {
-          await pool9.end();
+          await pool5.end();
         }
       }
       /**
@@ -15821,25 +14169,25 @@ var init_demo_management_service = __esm({
        */
       static async createBasicOrganizationsIfMissing() {
         try {
-          const { Pool: Pool10 } = await import("@neondatabase/serverless");
-          const { drizzle: drizzle11 } = await import("drizzle-orm/neon-serverless");
-          const { eq: eq26 } = await import("drizzle-orm");
+          const { Pool: Pool6 } = await import("@neondatabase/serverless");
+          const { drizzle: drizzle7 } = await import("drizzle-orm/neon-serverless");
+          const { eq: eq22 } = await import("drizzle-orm");
           const schema2 = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const pool9 = new Pool10({ connectionString: process.env.DATABASE_URL });
-          const db10 = drizzle11({ client: pool9, schema: schema2 });
-          const existingDemo = await db10.select().from(schema2.organizations).where(eq26(schema2.organizations.name, "Demo")).limit(1);
+          const pool5 = new Pool6({ connectionString: process.env.DATABASE_URL });
+          const db6 = drizzle7({ client: pool5, schema: schema2 });
+          const existingDemo = await db6.select().from(schema2.organizations).where(eq22(schema2.organizations.name, "Demo")).limit(1);
           if (existingDemo.length === 0) {
             console.log("\u{1F4DD} Creating Demo organization...");
-            await db10.insert(schema2.organizations).values({
+            await db6.insert(schema2.organizations).values({
               name: "Demo",
               type: "demo",
               isActive: true
             });
           }
-          const existingOpenDemo = await db10.select().from(schema2.organizations).where(eq26(schema2.organizations.name, "Open Demo")).limit(1);
+          const existingOpenDemo = await db6.select().from(schema2.organizations).where(eq22(schema2.organizations.name, "Open Demo")).limit(1);
           if (existingOpenDemo.length === 0) {
             console.log("\u{1F4DD} Creating Open Demo organization...");
-            await db10.insert(schema2.organizations).values({
+            await db6.insert(schema2.organizations).values({
               name: "Open Demo",
               type: "demo",
               isActive: true
@@ -15861,8 +14209,7 @@ var init_demo_management_service = __esm({
           const health = await this.checkDemoHealth();
           actions.push(`Health check: ${health.healthy ? "HEALTHY" : "UNHEALTHY"}`);
           if (!health.healthy) {
-            await quickSync();
-            actions.push("Performed quick synchronization to fix issues");
+            actions.push("Demo sync functionality removed - local management only");
             const newHealth = await this.checkDemoHealth();
             actions.push(`Post-sync health: ${newHealth.healthy ? "HEALTHY" : "STILL_UNHEALTHY"}`);
           }
@@ -16004,7 +14351,7 @@ var init_demo_management = __esm({
 });
 
 // server/api/feature-management.ts
-import { sql as sql17 } from "drizzle-orm";
+import { sql as sql16 } from "drizzle-orm";
 function registerFeatureManagementRoutes(app2) {
   app2.post("/api/features/:id/update-status", requireAuth, async (req, res) => {
     try {
@@ -16021,7 +14368,7 @@ function registerFeatureManagementRoutes(app2) {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
-      const result = await db3.execute(sql17`
+      const result = await db3.execute(sql16`
         UPDATE features 
         SET status = ${status}, updated_at = NOW() 
         WHERE id = ${featureId} 
@@ -16054,7 +14401,7 @@ function registerFeatureManagementRoutes(app2) {
       if (typeof isStrategicPath !== "boolean") {
         return res.status(400).json({ message: "isStrategicPath must be a boolean" });
       }
-      const result = await db3.execute(sql17`
+      const result = await db3.execute(sql16`
         UPDATE features 
         SET is_strategic_path = ${isStrategicPath}, updated_at = NOW() 
         WHERE id = ${featureId} 
@@ -16083,7 +14430,7 @@ function registerFeatureManagementRoutes(app2) {
   app2.post("/api/features/:id/analyze", requireAuth, async (req, res) => {
     try {
       const featureId = req.params.id;
-      const checkResult = await db3.execute(sql17`SELECT * FROM features WHERE id = ${featureId}`);
+      const checkResult = await db3.execute(sql16`SELECT * FROM features WHERE id = ${featureId}`);
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ message: "Feature not found" });
       }
@@ -16093,7 +14440,7 @@ function registerFeatureManagementRoutes(app2) {
           message: 'Feature must be in "in-progress" status for analysis'
         });
       }
-      const result = await db3.execute(sql17`
+      const result = await db3.execute(sql16`
         UPDATE features 
         SET status = 'ai-analyzed', updated_at = NOW() 
         WHERE id = ${featureId} 
@@ -16120,13 +14467,13 @@ function registerFeatureManagementRoutes(app2) {
   });
   app2.post("/api/features/trigger-sync", requireAuth, async (req, res) => {
     try {
-      const result = await db3.execute(sql17`
+      const result = await db3.execute(sql16`
         UPDATE features 
         SET synced_at = NOW(), updated_at = NOW() 
         WHERE synced_at IS NULL OR synced_at < updated_at
         RETURNING COUNT(*) as count
       `);
-      const countResult = await db3.execute(sql17`
+      const countResult = await db3.execute(sql16`
         SELECT COUNT(*) as total FROM features WHERE synced_at IS NOT NULL
       `);
       const totalSynced = countResult.rows[0]?.total || 0;
@@ -16154,12 +14501,12 @@ var init_feature_management = __esm({
 });
 
 // server/api/ai-monitoring.ts
-import { eq as eq20, desc as desc5, gte as gte5 } from "drizzle-orm";
+import { eq as eq16, desc as desc5, gte as gte5 } from "drizzle-orm";
 async function getAIMetrics(req, res) {
   try {
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
-    let [metrics] = await db3.select().from(aiMetrics).where(eq20(aiMetrics.date, today.toISOString().split("T")[0])).limit(1);
+    let [metrics] = await db3.select().from(aiMetrics).where(eq16(aiMetrics.date, today.toISOString().split("T")[0])).limit(1);
     if (!metrics) {
       const interactions = await db3.select().from(aiInteractions).where(gte5(aiInteractions.timestamp, today));
       const insights = await db3.select().from(aiInsights);
@@ -16218,14 +14565,14 @@ function registerAIMonitoringRoutes(app2) {
   app2.post("/api/ai/insights/:id/apply", requireAuth, async (req, res) => {
     try {
       const insightId = req.params.id;
-      const [insight] = await db3.select().from(aiInsights).where(eq20(aiInsights.id, insightId)).limit(1);
+      const [insight] = await db3.select().from(aiInsights).where(eq16(aiInsights.id, insightId)).limit(1);
       if (!insight) {
         return res.status(404).json({ _error: "Insight not found" });
       }
       const [updatedInsight] = await db3.update(aiInsights).set({
         status: "completed",
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq20(aiInsights.id, insightId)).returning();
+      }).where(eq16(aiInsights.id, insightId)).returning();
       res.json({
         message: "Suggestion applied successfully",
         insight: updatedInsight
@@ -16248,11 +14595,11 @@ var init_ai_monitoring = __esm({
 });
 
 // server/api/common-spaces.ts
-import { eq as eq21, desc as desc6, and as and17, sql as sql19, or as or9, gte as gte6, lte as lte4, inArray as inArray9 } from "drizzle-orm";
+import { eq as eq17, desc as desc6, and as and15, sql as sql18, or as or8, gte as gte6, lte as lte4, inArray as inArray8 } from "drizzle-orm";
 import { z as z15 } from "zod";
 async function getAccessibleBuildingIds(user) {
   if (user.role === "admin" && user.canAccessAllOrganizations) {
-    const allBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(eq21(buildings4.isActive, true));
+    const allBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(eq17(buildings4.isActive, true));
     return allBuildings.map((b) => b.id);
   }
   if (["admin", "manager"].includes(user.role)) {
@@ -16260,12 +14607,12 @@ async function getAccessibleBuildingIds(user) {
       return [];
     }
     const orgBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(
-      and17(eq21(buildings4.isActive, true), inArray9(buildings4.organizationId, user.organizations))
+      and15(eq17(buildings4.isActive, true), inArray8(buildings4.organizationId, user.organizations))
     );
     return orgBuildings.map((b) => b.id);
   }
   if (["resident", "tenant"].includes(user.role)) {
-    const userBuildingIds = await db3.select({ buildingId: residences.buildingId }).from(userResidences4).innerJoin(residences, eq21(userResidences4.residenceId, residences.id)).where(and17(eq21(userResidences4.userId, user.id), eq21(userResidences4.isActive, true)));
+    const userBuildingIds = await db3.select({ buildingId: residences.buildingId }).from(userResidences4).innerJoin(residences, eq17(userResidences4.residenceId, residences.id)).where(and15(eq17(userResidences4.userId, user.id), eq17(userResidences4.isActive, true)));
     return userBuildingIds.map((b) => b.buildingId);
   }
   return [];
@@ -16279,25 +14626,25 @@ async function getUserBookingHours(userId, commonSpaceId, limitType) {
     startDate = new Date(now.getFullYear(), 0, 1);
   }
   const conditions = [
-    eq21(bookings2.userId, userId),
-    eq21(bookings2.status, "confirmed"),
+    eq17(bookings2.userId, userId),
+    eq17(bookings2.status, "confirmed"),
     gte6(bookings2.startTime, startDate)
   ];
   if (commonSpaceId) {
-    conditions.push(eq21(bookings2.commonSpaceId, commonSpaceId));
+    conditions.push(eq17(bookings2.commonSpaceId, commonSpaceId));
   }
   const userBookings = await db3.select({
-    totalHours: sql19`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`
-  }).from(bookings2).where(and17(...conditions));
+    totalHours: sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`
+  }).from(bookings2).where(and15(...conditions));
   return userBookings[0]?.totalHours || 0;
 }
 async function checkUserTimeLimit(userId, commonSpaceId, newBookingHours) {
   const timeLimits = await db3.select().from(userTimeLimits2).where(
-    and17(
-      eq21(userTimeLimits2.userId, userId),
-      or9(
-        eq21(userTimeLimits2.commonSpaceId, commonSpaceId),
-        sql19`${userTimeLimits2.commonSpaceId} IS NULL`
+    and15(
+      eq17(userTimeLimits2.userId, userId),
+      or8(
+        eq17(userTimeLimits2.commonSpaceId, commonSpaceId),
+        sql18`${userTimeLimits2.commonSpaceId} IS NULL`
       )
     )
   ).orderBy(userTimeLimits2.commonSpaceId);
@@ -16324,30 +14671,30 @@ async function checkUserTimeLimit(userId, commonSpaceId, newBookingHours) {
 }
 async function hasOverlappingBookings(commonSpaceId, startTime, endTime, excludeBookingId) {
   const conditions = [
-    eq21(bookings2.commonSpaceId, commonSpaceId),
-    eq21(bookings2.status, "confirmed"),
-    or9(
+    eq17(bookings2.commonSpaceId, commonSpaceId),
+    eq17(bookings2.status, "confirmed"),
+    or8(
       // New booking starts during existing booking
-      and17(gte6(bookings2.startTime, startTime), lte4(bookings2.startTime, endTime)),
+      and15(gte6(bookings2.startTime, startTime), lte4(bookings2.startTime, endTime)),
       // New booking ends during existing booking
-      and17(gte6(bookings2.endTime, startTime), lte4(bookings2.endTime, endTime)),
+      and15(gte6(bookings2.endTime, startTime), lte4(bookings2.endTime, endTime)),
       // New booking completely contains existing booking
-      and17(lte4(bookings2.startTime, startTime), gte6(bookings2.endTime, endTime)),
+      and15(lte4(bookings2.startTime, startTime), gte6(bookings2.endTime, endTime)),
       // Existing booking completely contains new booking
-      and17(gte6(bookings2.startTime, startTime), lte4(bookings2.endTime, endTime))
+      and15(gte6(bookings2.startTime, startTime), lte4(bookings2.endTime, endTime))
     )
   ];
   if (excludeBookingId) {
-    conditions.push(sql19`${bookings2.id} != ${excludeBookingId}`);
+    conditions.push(sql18`${bookings2.id} != ${excludeBookingId}`);
   }
-  const overlapping = await db3.select({ id: bookings2.id }).from(bookings2).where(and17(...conditions)).limit(1);
+  const overlapping = await db3.select({ id: bookings2.id }).from(bookings2).where(and15(...conditions)).limit(1);
   return overlapping.length > 0;
 }
 async function isUserBlocked(userId, commonSpaceId) {
   const restriction = await db3.select({ isBlocked: userBookingRestrictions2.isBlocked }).from(userBookingRestrictions2).where(
-    and17(
-      eq21(userBookingRestrictions2.userId, userId),
-      eq21(userBookingRestrictions2.commonSpaceId, commonSpaceId)
+    and15(
+      eq17(userBookingRestrictions2.userId, userId),
+      eq17(userBookingRestrictions2.commonSpaceId, commonSpaceId)
     )
   ).limit(1);
   return restriction.length > 0 && restriction[0].isBlocked;
@@ -16392,7 +14739,7 @@ function registerCommonSpacesRoutes(app2) {
       if (accessibleBuildingIds.length === 0) {
         return res.json([]);
       }
-      const conditions = [eq21(buildings4.isActive, true)];
+      const conditions = [eq17(buildings4.isActive, true)];
       if (building_id) {
         if (!accessibleBuildingIds.includes(building_id)) {
           return res.status(403).json({
@@ -16400,9 +14747,9 @@ function registerCommonSpacesRoutes(app2) {
             code: "INSUFFICIENT_PERMISSIONS"
           });
         }
-        conditions.push(eq21(commonSpaces2.buildingId, building_id));
+        conditions.push(eq17(commonSpaces2.buildingId, building_id));
       } else {
-        conditions.push(inArray9(commonSpaces2.buildingId, accessibleBuildingIds));
+        conditions.push(inArray8(commonSpaces2.buildingId, accessibleBuildingIds));
       }
       const spaces = await db3.select({
         id: commonSpaces2.id,
@@ -16413,12 +14760,12 @@ function registerCommonSpacesRoutes(app2) {
         isReservable: commonSpaces2.isReservable,
         capacity: commonSpaces2.capacity,
         contactPersonId: commonSpaces2.contactPersonId,
-        contactPersonName: sql19`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
+        contactPersonName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
         openingHours: commonSpaces2.openingHours,
         bookingRules: commonSpaces2.bookingRules,
         createdAt: commonSpaces2.createdAt,
         updatedAt: commonSpaces2.updatedAt
-      }).from(commonSpaces2).innerJoin(buildings4, eq21(commonSpaces2.buildingId, buildings4.id)).leftJoin(users3, eq21(commonSpaces2.contactPersonId, users3.id)).where(and17(...conditions)).orderBy(buildings4.name, commonSpaces2.name);
+      }).from(commonSpaces2).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).leftJoin(users3, eq17(commonSpaces2.contactPersonId, users3.id)).where(and15(...conditions)).orderBy(buildings4.name, commonSpaces2.name);
       console.warn(`\u2705 Found ${spaces.length} common spaces for user ${user.id}`);
       res.json(spaces);
     } catch (error2) {
@@ -16457,7 +14804,7 @@ function registerCommonSpacesRoutes(app2) {
       const space = await db3.select({
         id: commonSpaces2.id,
         buildingId: commonSpaces2.buildingId
-      }).from(commonSpaces2).where(eq21(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -16471,7 +14818,7 @@ function registerCommonSpacesRoutes(app2) {
           code: "INSUFFICIENT_PERMISSIONS"
         });
       }
-      const conditions = [eq21(bookings2.commonSpaceId, spaceId)];
+      const conditions = [eq17(bookings2.commonSpaceId, spaceId)];
       if (start_date) {
         conditions.push(gte6(bookings2.startTime, new Date(start_date)));
       }
@@ -16482,14 +14829,14 @@ function registerCommonSpacesRoutes(app2) {
         id: bookings2.id,
         commonSpaceId: bookings2.commonSpaceId,
         userId: bookings2.userId,
-        userName: sql19`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
+        userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
         userEmail: users3.email,
         startTime: bookings2.startTime,
         endTime: bookings2.endTime,
         status: bookings2.status,
         createdAt: bookings2.createdAt,
         updatedAt: bookings2.updatedAt
-      }).from(bookings2).innerJoin(users3, eq21(bookings2.userId, users3.id)).where(and17(...conditions)).orderBy(bookings2.startTime);
+      }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
       res.json(spaceBookings);
     } catch (error2) {
       console.error("Error fetching bookings:", error2);
@@ -16546,7 +14893,7 @@ function registerCommonSpacesRoutes(app2) {
         buildingId: commonSpaces2.buildingId,
         isReservable: commonSpaces2.isReservable,
         openingHours: commonSpaces2.openingHours
-      }).from(commonSpaces2).where(eq21(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -16647,7 +14994,7 @@ function registerCommonSpacesRoutes(app2) {
         isReservable: commonSpaces2.isReservable,
         openingHours: commonSpaces2.openingHours,
         capacity: commonSpaces2.capacity
-      }).from(commonSpaces2).where(eq21(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -16663,8 +15010,8 @@ function registerCommonSpacesRoutes(app2) {
         });
       }
       const conditions = [
-        eq21(bookings2.commonSpaceId, spaceId),
-        eq21(bookings2.status, "confirmed"),
+        eq17(bookings2.commonSpaceId, spaceId),
+        eq17(bookings2.status, "confirmed"),
         gte6(bookings2.startTime, new Date(start_date)),
         lte4(bookings2.endTime, new Date(end_date))
       ];
@@ -16674,10 +15021,10 @@ function registerCommonSpacesRoutes(app2) {
         endTime: bookings2.endTime,
         status: bookings2.status,
         userId: bookings2.userId,
-        userName: sql19`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
+        userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
         userEmail: users3.email,
         userRole: users3.role
-      }).from(bookings2).innerJoin(users3, eq21(bookings2.userId, users3.id)).where(and17(...conditions)).orderBy(bookings2.startTime);
+      }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
       const canViewDetails = ["admin", "manager"].includes(user.role);
       const events = spaceBookings.map((booking) => ({
         id: booking.id,
@@ -16743,7 +15090,7 @@ function registerCommonSpacesRoutes(app2) {
         commonSpaceName: commonSpaces2.name,
         buildingName: buildings4.name,
         buildingAddress: buildings4.address
-      }).from(bookings2).innerJoin(commonSpaces2, eq21(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq21(commonSpaces2.buildingId, buildings4.id)).where(and17(eq21(bookings2.userId, user.id), eq21(bookings2.status, "confirmed"))).orderBy(desc6(bookings2.startTime));
+      }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).where(and15(eq17(bookings2.userId, user.id), eq17(bookings2.status, "confirmed"))).orderBy(desc6(bookings2.startTime));
       res.json(userBookings);
     } catch (error2) {
       console.error("Error fetching user bookings:", error2);
@@ -16779,7 +15126,7 @@ function registerCommonSpacesRoutes(app2) {
           commonSpaceId: bookings2.commonSpaceId,
           buildingId: commonSpaces2.buildingId,
           status: bookings2.status
-        }).from(bookings2).innerJoin(commonSpaces2, eq21(bookings2.commonSpaceId, commonSpaces2.id)).where(eq21(bookings2.id, bookingId)).limit(1);
+        }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).where(eq17(bookings2.id, bookingId)).limit(1);
         if (booking.length === 0) {
           return res.status(404).json({
             message: "Booking not found",
@@ -16803,7 +15150,7 @@ function registerCommonSpacesRoutes(app2) {
         await db3.update(bookings2).set({
           status: "cancelled",
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq21(bookings2.id, bookingId));
+        }).where(eq17(bookings2.id, bookingId));
         res.json({
           message: "Booking cancelled successfully"
         });
@@ -16841,7 +15188,7 @@ function registerCommonSpacesRoutes(app2) {
           id: commonSpaces2.id,
           buildingId: commonSpaces2.buildingId,
           name: commonSpaces2.name
-        }).from(commonSpaces2).where(eq21(commonSpaces2.id, spaceId)).limit(1);
+        }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
         if (space.length === 0) {
           return res.status(404).json({
             message: "Common space not found",
@@ -16859,29 +15206,29 @@ function registerCommonSpacesRoutes(app2) {
         oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
         const stats = await db3.select({
           userId: bookings2.userId,
-          userName: sql19`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
+          userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
           userEmail: users3.email,
-          totalHours: sql19`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`,
-          totalBookings: sql19`COUNT(${bookings2.id})`
-        }).from(bookings2).innerJoin(users3, eq21(bookings2.userId, users3.id)).where(
-          and17(
-            eq21(bookings2.commonSpaceId, spaceId),
-            eq21(bookings2.status, "confirmed"),
+          totalHours: sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`,
+          totalBookings: sql18`COUNT(${bookings2.id})`
+        }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(
+          and15(
+            eq17(bookings2.commonSpaceId, spaceId),
+            eq17(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, oneYearAgo)
           )
         ).groupBy(bookings2.userId, users3.firstName, users3.lastName, users3.email).orderBy(
           desc6(
-            sql19`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`
+            sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`
           )
         );
         const totalStats = await db3.select({
-          totalBookings: sql19`COUNT(${bookings2.id})`,
-          totalHours: sql19`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`,
-          uniqueUsers: sql19`COUNT(DISTINCT ${bookings2.userId})`
+          totalBookings: sql18`COUNT(${bookings2.id})`,
+          totalHours: sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`,
+          uniqueUsers: sql18`COUNT(DISTINCT ${bookings2.userId})`
         }).from(bookings2).where(
-          and17(
-            eq21(bookings2.commonSpaceId, spaceId),
-            eq21(bookings2.status, "confirmed"),
+          and15(
+            eq17(bookings2.commonSpaceId, spaceId),
+            eq17(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, oneYearAgo)
           )
         );
@@ -16935,7 +15282,7 @@ function registerCommonSpacesRoutes(app2) {
         }
         const { userId } = paramValidation.data;
         const { common_space_id, is_blocked, reason } = bodyValidation.data;
-        const targetUser = await db3.select({ id: users3.id }).from(users3).where(eq21(users3.id, userId)).limit(1);
+        const targetUser = await db3.select({ id: users3.id }).from(users3).where(eq17(users3.id, userId)).limit(1);
         if (targetUser.length === 0) {
           return res.status(404).json({
             message: "User not found",
@@ -16945,7 +15292,7 @@ function registerCommonSpacesRoutes(app2) {
         const space = await db3.select({
           id: commonSpaces2.id,
           buildingId: commonSpaces2.buildingId
-        }).from(commonSpaces2).where(eq21(commonSpaces2.id, common_space_id)).limit(1);
+        }).from(commonSpaces2).where(eq17(commonSpaces2.id, common_space_id)).limit(1);
         if (space.length === 0) {
           return res.status(404).json({
             message: "Common space not found",
@@ -16960,9 +15307,9 @@ function registerCommonSpacesRoutes(app2) {
           });
         }
         const existingRestriction = await db3.select({ id: userBookingRestrictions2.id }).from(userBookingRestrictions2).where(
-          and17(
-            eq21(userBookingRestrictions2.userId, userId),
-            eq21(userBookingRestrictions2.commonSpaceId, common_space_id)
+          and15(
+            eq17(userBookingRestrictions2.userId, userId),
+            eq17(userBookingRestrictions2.commonSpaceId, common_space_id)
           )
         ).limit(1);
         if (existingRestriction.length > 0) {
@@ -16970,7 +15317,7 @@ function registerCommonSpacesRoutes(app2) {
             isBlocked: is_blocked,
             reason,
             updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq21(userBookingRestrictions2.id, existingRestriction[0].id));
+          }).where(eq17(userBookingRestrictions2.id, existingRestriction[0].id));
         } else {
           await db3.insert(userBookingRestrictions2).values({
             userId,
@@ -17022,14 +15369,14 @@ function registerCommonSpacesRoutes(app2) {
             code: "INSUFFICIENT_PERMISSIONS"
           });
         }
-        const building = await db3.select({ id: buildings4.id, name: buildings4.name }).from(buildings4).where(and17(eq21(buildings4.id, building_id), eq21(buildings4.isActive, true))).limit(1);
+        const building = await db3.select({ id: buildings4.id, name: buildings4.name }).from(buildings4).where(and15(eq17(buildings4.id, building_id), eq17(buildings4.isActive, true))).limit(1);
         if (building.length === 0) {
           return res.status(404).json({
             message: "Building not found or inactive",
             code: "BUILDING_NOT_FOUND"
           });
         }
-        const existingSpace = await db3.select({ id: commonSpaces2.id }).from(commonSpaces2).where(and17(eq21(commonSpaces2.name, name), eq21(commonSpaces2.buildingId, building_id))).limit(1);
+        const existingSpace = await db3.select({ id: commonSpaces2.id }).from(commonSpaces2).where(and15(eq17(commonSpaces2.name, name), eq17(commonSpaces2.buildingId, building_id))).limit(1);
         if (existingSpace.length > 0) {
           return res.status(409).json({
             message: "A common space with this name already exists in this building",
@@ -17103,7 +15450,7 @@ function registerCommonSpacesRoutes(app2) {
         }
         const { userId } = paramValidation.data;
         const { user_id, common_space_id, limit_type, limit_hours } = validationResult.data;
-        const targetUser = await db3.select({ id: users3.id, firstName: users3.firstName, lastName: users3.lastName }).from(users3).where(eq21(users3.id, userId)).limit(1);
+        const targetUser = await db3.select({ id: users3.id, firstName: users3.firstName, lastName: users3.lastName }).from(users3).where(eq17(users3.id, userId)).limit(1);
         if (targetUser.length === 0) {
           return res.status(404).json({
             message: "User not found",
@@ -17115,7 +15462,7 @@ function registerCommonSpacesRoutes(app2) {
             id: commonSpaces2.id,
             name: commonSpaces2.name,
             buildingId: commonSpaces2.buildingId
-          }).from(commonSpaces2).where(eq21(commonSpaces2.id, common_space_id)).limit(1);
+          }).from(commonSpaces2).where(eq17(commonSpaces2.id, common_space_id)).limit(1);
           if (space.length === 0) {
             return res.status(404).json({
               message: "Common space not found",
@@ -17131,17 +15478,17 @@ function registerCommonSpacesRoutes(app2) {
           }
         }
         const existingLimit = await db3.select({ id: userTimeLimits2.id }).from(userTimeLimits2).where(
-          and17(
-            eq21(userTimeLimits2.userId, userId),
-            common_space_id ? eq21(userTimeLimits2.commonSpaceId, common_space_id) : sql19`${userTimeLimits2.commonSpaceId} IS NULL`,
-            eq21(userTimeLimits2.limitType, limit_type)
+          and15(
+            eq17(userTimeLimits2.userId, userId),
+            common_space_id ? eq17(userTimeLimits2.commonSpaceId, common_space_id) : sql18`${userTimeLimits2.commonSpaceId} IS NULL`,
+            eq17(userTimeLimits2.limitType, limit_type)
           )
         ).limit(1);
         if (existingLimit.length > 0) {
           await db3.update(userTimeLimits2).set({
             limitHours: limit_hours,
             updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq21(userTimeLimits2.id, existingLimit[0].id));
+          }).where(eq17(userTimeLimits2.id, existingLimit[0].id));
         } else {
           await db3.insert(userTimeLimits2).values({
             userId,
@@ -17195,7 +15542,7 @@ function registerCommonSpacesRoutes(app2) {
           limitHours: userTimeLimits2.limitHours,
           createdAt: userTimeLimits2.createdAt,
           updatedAt: userTimeLimits2.updatedAt
-        }).from(userTimeLimits2).leftJoin(commonSpaces2, eq21(userTimeLimits2.commonSpaceId, commonSpaces2.id)).where(eq21(userTimeLimits2.userId, userId)).orderBy(userTimeLimits2.limitType, userTimeLimits2.commonSpaceId);
+        }).from(userTimeLimits2).leftJoin(commonSpaces2, eq17(userTimeLimits2.commonSpaceId, commonSpaces2.id)).where(eq17(userTimeLimits2.userId, userId)).orderBy(userTimeLimits2.limitType, userTimeLimits2.commonSpaceId);
         const limitsWithUsage = await Promise.all(
           limits.map(async (limit) => {
             const currentHours = await getUserBookingHours(
@@ -17251,10 +15598,10 @@ function registerCommonSpacesRoutes(app2) {
         spaceId: commonSpaces2.id,
         buildingName: buildings4.name,
         buildingId: buildings4.id
-      }).from(bookings2).innerJoin(commonSpaces2, eq21(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq21(commonSpaces2.buildingId, buildings4.id)).where(
-        and17(
-          eq21(bookings2.userId, user.id),
-          eq21(bookings2.status, "confirmed"),
+      }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).where(
+        and15(
+          eq17(bookings2.userId, user.id),
+          eq17(bookings2.status, "confirmed"),
           gte6(bookings2.startTime, new Date(start_date)),
           lte4(bookings2.endTime, new Date(end_date))
         )
@@ -17333,7 +15680,7 @@ function registerCommonSpacesRoutes(app2) {
           id: buildings4.id,
           name: buildings4.name,
           address: buildings4.address
-        }).from(buildings4).where(eq21(buildings4.id, buildingId)).limit(1);
+        }).from(buildings4).where(eq17(buildings4.id, buildingId)).limit(1);
         if (building.length === 0) {
           return res.status(404).json({
             message: "Building not found",
@@ -17348,13 +15695,13 @@ function registerCommonSpacesRoutes(app2) {
           spaceName: commonSpaces2.name,
           spaceId: commonSpaces2.id,
           userId: bookings2.userId,
-          userName: sql19`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
+          userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
           userEmail: users3.email,
           userRole: users3.role
-        }).from(bookings2).innerJoin(commonSpaces2, eq21(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(users3, eq21(bookings2.userId, users3.id)).where(
-          and17(
-            eq21(commonSpaces2.buildingId, buildingId),
-            eq21(bookings2.status, "confirmed"),
+        }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(
+          and15(
+            eq17(commonSpaces2.buildingId, buildingId),
+            eq17(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, new Date(start_date)),
             lte4(bookings2.endTime, new Date(end_date))
           )
@@ -17364,7 +15711,7 @@ function registerCommonSpacesRoutes(app2) {
           name: commonSpaces2.name,
           isReservable: commonSpaces2.isReservable,
           capacity: commonSpaces2.capacity
-        }).from(commonSpaces2).where(eq21(commonSpaces2.buildingId, buildingId)).orderBy(commonSpaces2.name);
+        }).from(commonSpaces2).where(eq17(commonSpaces2.buildingId, buildingId)).orderBy(commonSpaces2.name);
         const spaceUsage = buildingSpaces.map((space) => {
           const spaceBookings = buildingBookings.filter((booking) => booking.spaceId === space.id);
           const totalHours = spaceBookings.reduce((total, booking) => {
@@ -17477,7 +15824,7 @@ var init_common_spaces = __esm({
 
 // server/api/budgets.ts
 import express3 from "express";
-import { and as and18, eq as eq22, gte as gte7, lte as lte5, sql as sql20, asc as asc2 } from "drizzle-orm";
+import { and as and16, eq as eq18, gte as gte7, lte as lte5, sql as sql19, asc as asc2 } from "drizzle-orm";
 var router2, budgets_default;
 var init_budgets = __esm({
   "server/api/budgets.ts"() {
@@ -17496,7 +15843,7 @@ var init_budgets = __esm({
         const startMo = startMonth ? parseInt(startMonth) : 1;
         const endMo = endMonth ? parseInt(endMonth) : 12;
         const building = await db3.query.buildings.findFirst({
-          where: eq22(buildings.id, buildingId),
+          where: eq18(buildings.id, buildingId),
           columns: {
             id: true,
             name: true
@@ -17513,22 +15860,22 @@ var init_budgets = __esm({
             actualAmount: budgets.actualAmount,
             variance: budgets.variance
           }).from(budgets).where(
-            and18(
-              eq22(budgets.buildingId, buildingId),
+            and16(
+              eq18(budgets.buildingId, buildingId),
               gte7(budgets.year, start),
               lte5(budgets.year, end),
-              eq22(budgets.isActive, true)
+              eq18(budgets.isActive, true)
             )
           ).orderBy(asc2(budgets.year));
           return res.json({ budgets: yearlyBudgets, type: "yearly" });
         } else {
-          const whereConditions = [eq22(monthlyBudgets.buildingId, buildingId)];
+          const whereConditions = [eq18(monthlyBudgets.buildingId, buildingId)];
           if (groupBy === "monthly" && (startMonth || endMonth)) {
             const startYearMonth = start * 100 + startMo;
             const endYearMonth = end * 100 + endMo;
             whereConditions.push(
-              gte7(sql20`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
-              lte5(sql20`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
+              gte7(sql19`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
+              lte5(sql19`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
             );
           } else {
             whereConditions.push(gte7(monthlyBudgets.year, start), lte5(monthlyBudgets.year, end));
@@ -17541,7 +15888,7 @@ var init_budgets = __esm({
             spendingTypes: monthlyBudgets.spendingTypes,
             spendings: monthlyBudgets.spendings,
             approved: monthlyBudgets.approved
-          }).from(monthlyBudgets).where(and18(...whereConditions)).orderBy(asc2(monthlyBudgets.year), asc2(monthlyBudgets.month));
+          }).from(monthlyBudgets).where(and16(...whereConditions)).orderBy(asc2(monthlyBudgets.year), asc2(monthlyBudgets.month));
           if (monthlyBudgetData.length === 0) {
             const sampleData = [];
             for (let year = start; year <= Math.min(end, start + 3); year++) {
@@ -17582,13 +15929,13 @@ var init_budgets = __esm({
         const end = endYear ? parseInt(endYear) : currentYear + 25;
         const startMo = startMonth ? parseInt(startMonth) : 1;
         const endMo = endMonth ? parseInt(endMonth) : 12;
-        const whereConditions = [eq22(monthlyBudgets.buildingId, buildingId)];
+        const whereConditions = [eq18(monthlyBudgets.buildingId, buildingId)];
         if (startMonth || endMonth) {
           const startYearMonth = start * 100 + startMo;
           const endYearMonth = end * 100 + endMo;
           whereConditions.push(
-            gte7(sql20`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
-            lte5(sql20`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
+            gte7(sql19`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
+            lte5(sql19`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
           );
         } else {
           whereConditions.push(gte7(monthlyBudgets.year, start), lte5(monthlyBudgets.year, end));
@@ -17601,7 +15948,7 @@ var init_budgets = __esm({
           spendingTypes: monthlyBudgets.spendingTypes,
           spendings: monthlyBudgets.spendings,
           approved: monthlyBudgets.approved
-        }).from(monthlyBudgets).where(and18(...whereConditions)).orderBy(asc2(monthlyBudgets.year), asc2(monthlyBudgets.month));
+        }).from(monthlyBudgets).where(and16(...whereConditions)).orderBy(asc2(monthlyBudgets.year), asc2(monthlyBudgets.month));
         if (summaryData.length === 0) {
           const sampleSummary = [];
           for (let year = start; year <= Math.min(end, start + 3); year++) {
@@ -17642,7 +15989,7 @@ var init_budgets = __esm({
           bankAccountMinimums
         } = req.body;
         const building = await db3.query.buildings.findFirst({
-          where: eq22(buildings.id, buildingId),
+          where: eq18(buildings.id, buildingId),
           columns: { id: true }
         });
         if (!building) {
@@ -17655,7 +16002,7 @@ var init_budgets = __esm({
           bankAccountStartAmount,
           bankAccountMinimums,
           bankAccountUpdatedAt: /* @__PURE__ */ new Date()
-        }).where(eq22(buildings.id, buildingId));
+        }).where(eq18(buildings.id, buildingId));
         res.json({
           message: "Bank account updated successfully",
           bankAccountNumber,
@@ -17682,7 +16029,7 @@ var init_budgets = __esm({
       try {
         const { buildingId } = req.params;
         const building = await db3.query.buildings.findFirst({
-          where: eq22(buildings.id, buildingId),
+          where: eq18(buildings.id, buildingId),
           columns: {
             id: true,
             bankAccountNumber: true,
@@ -17714,7 +16061,7 @@ var init_budgets = __esm({
 });
 
 // server/services/dynamic-financial-calculator.ts
-import { eq as eq23, and as and19, sql as sql21 } from "drizzle-orm";
+import { eq as eq19, and as and17, sql as sql20 } from "drizzle-orm";
 var bills3, residences2, buildings5, DynamicFinancialCalculator, dynamicFinancialCalculator;
 var init_dynamic_financial_calculator = __esm({
   "server/services/dynamic-financial-calculator.ts"() {
@@ -17755,17 +16102,17 @@ var init_dynamic_financial_calculator = __esm({
        */
       async calculateFinancialData(buildingId, startDate, endDate) {
         const activeBills = await db3.select().from(bills3).where(
-          and19(
-            eq23(bills3.buildingId, buildingId),
-            eq23(bills3.paymentType, "recurrent"),
-            sql21`${bills3.status} IN ('sent', 'draft')`
+          and17(
+            eq19(bills3.buildingId, buildingId),
+            eq19(bills3.paymentType, "recurrent"),
+            sql20`${bills3.status} IN ('sent', 'draft')`
           )
         );
         const activeResidences = await db3.select().from(residences2).where(
-          and19(
-            eq23(residences2.buildingId, buildingId),
-            eq23(residences2.isActive, true),
-            sql21`${residences2.monthlyFees} > 0`
+          and17(
+            eq19(residences2.buildingId, buildingId),
+            eq19(residences2.isActive, true),
+            sql20`${residences2.monthlyFees} > 0`
           )
         );
         const monthlyData = this.generateMonthlyDataPoints(
@@ -17931,7 +16278,7 @@ var init_dynamic_financial_calculator = __esm({
        * @param endDate
        */
       async getCachedData(buildingId, cacheKey, startDate, endDate) {
-        const result = await db3.execute(sql21`
+        const result = await db3.execute(sql20`
       SELECT cache_data
       FROM financial_cache
       WHERE building_id = ${buildingId}
@@ -17959,7 +16306,7 @@ var init_dynamic_financial_calculator = __esm({
       async cacheFinancialData(buildingId, cacheKey, startDate, endDate, _data) {
         const expiresAt = /* @__PURE__ */ new Date();
         expiresAt.setHours(expiresAt.getHours() + this.CACHE_DURATION_HOURS);
-        await db3.execute(sql21`
+        await db3.execute(sql20`
       INSERT INTO financial_cache (building_id, cache_key, cache_data, start_date, end_date, expires_at)
       VALUES (${buildingId}, ${cacheKey}, ${JSON.stringify(data)}, ${startDate}, ${endDate}, ${expiresAt.toISOString()})
       ON CONFLICT (building_id, cache_key, start_date, end_date)
@@ -17974,10 +16321,10 @@ var init_dynamic_financial_calculator = __esm({
        * Clean up expired cache entries and enforce size limits.
        */
       async cleanupExpiredCache() {
-        await db3.execute(sql21`
+        await db3.execute(sql20`
       DELETE FROM financial_cache WHERE expires_at < NOW()
     `);
-        await db3.execute(sql21`
+        await db3.execute(sql20`
       DELETE FROM financial_cache
       WHERE id IN (
         SELECT id FROM financial_cache
@@ -17995,7 +16342,7 @@ var init_dynamic_financial_calculator = __esm({
         console.warn(
           `\u{1F5D1}\uFE0F Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ""}`
         );
-        await db3.execute(sql21`
+        await db3.execute(sql20`
       DELETE FROM financial_cache WHERE building_id = ${buildingId}
     `);
       }
@@ -18003,7 +16350,7 @@ var init_dynamic_financial_calculator = __esm({
        * Get cache statistics.
        */
       async getCacheStatistics() {
-        const stats = await db3.execute(sql21`
+        const stats = await db3.execute(sql20`
       SELECT 
         COUNT(*) as total_entries,
         COUNT(CASE WHEN expires_at < NOW() THEN 1 END) as expired_entries,
@@ -18557,14 +16904,14 @@ var residences_exports = {};
 __export(residences_exports, {
   registerResidenceRoutes: () => registerResidenceRoutes
 });
-import { eq as eq24, and as and20, inArray as inArray10, sql as sql22 } from "drizzle-orm";
+import { eq as eq20, and as and18, inArray as inArray9, sql as sql21 } from "drizzle-orm";
 function registerResidenceRoutes(app2) {
   app2.get("/api/user/residences", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       const userResidencesList = await db3.select({
         residenceId: userResidences.residenceId
-      }).from(userResidences).where(and20(eq24(userResidences.userId, user.id), eq24(userResidences.isActive, true)));
+      }).from(userResidences).where(and18(eq20(userResidences.userId, user.id), eq20(userResidences.isActive, true)));
       res.json(userResidencesList);
     } catch (_error2) {
       console.error("Error fetching user residences:", _error2);
@@ -18589,8 +16936,8 @@ function registerResidenceRoutes(app2) {
           startDate: userResidences.startDate,
           endDate: userResidences.endDate,
           isActive: userResidences.isActive
-        }).from(userResidences).innerJoin(users, eq24(userResidences.userId, users.id)).where(
-          and20(eq24(userResidences.residenceId, residenceId), eq24(userResidences.isActive, true))
+        }).from(userResidences).innerJoin(users, eq20(userResidences.userId, users.id)).where(
+          and18(eq20(userResidences.residenceId, residenceId), eq20(userResidences.isActive, true))
         );
         res.json(assignedUsers);
       } catch (_error2) {
@@ -18613,7 +16960,7 @@ function registerResidenceRoutes(app2) {
           email,
           phone,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq24(users.id, userId));
+        }).where(eq20(users.id, userId));
         res.json({ message: "User updated successfully" });
       } catch (_error2) {
         console.error("Error updating assigned user:", _error2);
@@ -18626,25 +16973,25 @@ function registerResidenceRoutes(app2) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
       console.warn(`\u{1F4CA} Fetching residences for user ${user.id} with role ${user.role}`);
-      const conditions = [eq24(residences.isActive, true)];
+      const conditions = [eq20(residences.isActive, true)];
       if (buildingId) {
-        conditions.push(eq24(residences.buildingId, buildingId));
+        conditions.push(eq20(residences.buildingId, buildingId));
       }
       if (floor) {
-        conditions.push(eq24(residences.floor, parseInt(floor)));
+        conditions.push(eq20(residences.floor, parseInt(floor)));
       }
       const accessibleBuildingIds = /* @__PURE__ */ new Set();
       const userOrgs = await db3.select({
         organizationId: organizations.id,
         organizationName: organizations.name,
         canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations
-      }).from(organizations).innerJoin(userOrganizations, eq24(userOrganizations.organizationId, organizations.id)).where(and20(eq24(userOrganizations.userId, user.id), eq24(userOrganizations.isActive, true)));
+      }).from(organizations).innerJoin(userOrganizations, eq20(userOrganizations.organizationId, organizations.id)).where(and18(eq20(userOrganizations.userId, user.id), eq20(userOrganizations.isActive, true)));
       const hasGlobalAccess = user.role === "admin" || userOrgs.some((org) => org.organizationName === "Koveo" || org.canAccessAllOrganizations);
       if (hasGlobalAccess) {
         console.warn(
           `\u{1F31F} Admin user or user with global access detected - granting access to ALL residences`
         );
-        const allBuildings = await db3.select({ id: buildings.id }).from(buildings).where(eq24(buildings.isActive, true));
+        const allBuildings = await db3.select({ id: buildings.id }).from(buildings).where(eq20(buildings.isActive, true));
         allBuildings.forEach((building) => {
           accessibleBuildingIds.add(building.id);
         });
@@ -18652,7 +16999,7 @@ function registerResidenceRoutes(app2) {
         if (user.role === "admin" || user.role === "manager") {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
-            const orgBuildings = await db3.select({ id: buildings.id }).from(buildings).where(and20(inArray10(buildings.organizationId, orgIds), eq24(buildings.isActive, true)));
+            const orgBuildings = await db3.select({ id: buildings.id }).from(buildings).where(and18(inArray9(buildings.organizationId, orgIds), eq20(buildings.isActive, true)));
             orgBuildings.forEach((building) => {
               accessibleBuildingIds.add(building.id);
             });
@@ -18660,17 +17007,17 @@ function registerResidenceRoutes(app2) {
         }
         const userResidenceRecords = await db3.select({
           residenceId: userResidences.residenceId
-        }).from(userResidences).where(and20(eq24(userResidences.userId, user.id), eq24(userResidences.isActive, true)));
+        }).from(userResidences).where(and18(eq20(userResidences.userId, user.id), eq20(userResidences.isActive, true)));
         if (userResidenceRecords.length > 0) {
           const residenceIds2 = userResidenceRecords.map((ur) => ur.residenceId);
-          const residenceBuildings = await db3.select({ id: buildings.id }).from(residences).innerJoin(buildings, eq24(residences.buildingId, buildings.id)).where(and20(inArray10(residences.id, residenceIds2), eq24(buildings.isActive, true)));
+          const residenceBuildings = await db3.select({ id: buildings.id }).from(residences).innerJoin(buildings, eq20(residences.buildingId, buildings.id)).where(and18(inArray9(residences.id, residenceIds2), eq20(buildings.isActive, true)));
           residenceBuildings.forEach((building) => {
             accessibleBuildingIds.add(building.id);
           });
         }
       }
       if (accessibleBuildingIds.size > 0) {
-        conditions.push(inArray10(residences.buildingId, Array.from(accessibleBuildingIds)));
+        conditions.push(inArray9(residences.buildingId, Array.from(accessibleBuildingIds)));
       } else {
         console.warn(`\u274C User ${user.id} has no access to any buildings`);
         return res.json([]);
@@ -18679,7 +17026,7 @@ function registerResidenceRoutes(app2) {
         residence: residences,
         building: buildings,
         organization: organizations
-      }).from(residences).leftJoin(buildings, eq24(residences.buildingId, buildings.id)).leftJoin(organizations, eq24(buildings.organizationId, organizations.id)).where(and20(...conditions));
+      }).from(residences).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).leftJoin(organizations, eq20(buildings.organizationId, organizations.id)).where(and18(...conditions));
       let results = await baseQuery;
       if (search) {
         const searchLower = search.toLowerCase();
@@ -18691,10 +17038,10 @@ function registerResidenceRoutes(app2) {
       const tenants = residenceIds.length > 0 ? await db3.select({
         residenceId: userResidences.residenceId,
         tenant: users
-      }).from(userResidences).innerJoin(users, eq24(userResidences.userId, users.id)).where(
-        and20(
-          inArray10(userResidences.residenceId, residenceIds),
-          eq24(userResidences.isActive, true)
+      }).from(userResidences).innerJoin(users, eq20(userResidences.userId, users.id)).where(
+        and18(
+          inArray9(userResidences.residenceId, residenceIds),
+          eq20(userResidences.isActive, true)
         )
       ) : [];
       const tenantsByResidence = tenants.reduce(
@@ -18732,16 +17079,16 @@ function registerResidenceRoutes(app2) {
         residence: residences,
         building: buildings,
         organization: organizations
-      }).from(residences).leftJoin(buildings, eq24(residences.buildingId, buildings.id)).leftJoin(organizations, eq24(buildings.organizationId, organizations.id)).where(and20(eq24(residences.id, id), eq24(residences.isActive, true)));
+      }).from(residences).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).leftJoin(organizations, eq20(buildings.organizationId, organizations.id)).where(and18(eq20(residences.id, id), eq20(residences.isActive, true)));
       if (result.length === 0) {
         return res.status(404).json({ message: "Residence not found" });
       }
       const residence = result[0];
       if (user.role !== "admin" && !user.canAccessAllOrganizations) {
-        const userHasAccess = await db3.select({ count: sql22`count(*)` }).from(userResidences).leftJoin(residences, eq24(userResidences.residenceId, residences.id)).leftJoin(buildings, eq24(residences.buildingId, buildings.id)).where(
-          and20(
-            eq24(userResidences.userId, user.id),
-            eq24(buildings.organizationId, residence.organization.id)
+        const userHasAccess = await db3.select({ count: sql21`count(*)` }).from(userResidences).leftJoin(residences, eq20(userResidences.residenceId, residences.id)).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).where(
+          and18(
+            eq20(userResidences.userId, user.id),
+            eq20(buildings.organizationId, residence.organization.id)
           )
         );
         if (userHasAccess[0].count === 0) {
@@ -18756,7 +17103,7 @@ function registerResidenceRoutes(app2) {
         relationshipType: userResidences.relationshipType,
         startDate: userResidences.startDate,
         endDate: userResidences.endDate
-      }).from(userResidences).leftJoin(users, eq24(userResidences.userId, users.id)).where(and20(eq24(userResidences.residenceId, id), eq24(userResidences.isActive, true)));
+      }).from(userResidences).leftJoin(users, eq20(userResidences.userId, users.id)).where(and18(eq20(userResidences.residenceId, id), eq20(userResidences.isActive, true)));
       res.json({
         ...residence.residence,
         building: residence.building,
@@ -18778,7 +17125,7 @@ function registerResidenceRoutes(app2) {
       const updated = await db3.update(residences).set({
         ...updateData,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq24(residences.id, id)).returning();
+      }).where(eq20(residences.id, id)).returning();
       if (updated.length === 0) {
         return res.status(404).json({ message: "Residence not found" });
       }
@@ -18800,7 +17147,7 @@ function registerResidenceRoutes(app2) {
     async (req, res) => {
       try {
         const { buildingId } = req.params;
-        const building = await db3.select().from(buildings).where(eq24(buildings.id, buildingId)).limit(1);
+        const building = await db3.select().from(buildings).where(eq20(buildings.id, buildingId)).limit(1);
         if (building.length === 0) {
           return res.status(404).json({ message: "Building not found" });
         }
@@ -18810,7 +17157,7 @@ function registerResidenceRoutes(app2) {
         if (totalUnits > 300) {
           return res.status(400).json({ message: "Cannot create more than 300 residences per building" });
         }
-        const existingResidences = await db3.select({ count: sql22`count(*)` }).from(residences).where(eq24(residences.buildingId, buildingId));
+        const existingResidences = await db3.select({ count: sql21`count(*)` }).from(residences).where(eq20(residences.buildingId, buildingId));
         if (existingResidences[0].count > 0) {
           return res.status(400).json({ message: "Residences already exist for this building" });
         }
@@ -18986,7 +17333,7 @@ __export(routes_minimal_exports, {
 });
 import express5 from "express";
 import { createServer } from "http";
-import { eq as eq25, and as and21, gte as gte9, desc as desc8, sql as sql23 } from "drizzle-orm";
+import { eq as eq21, and as and19, gte as gte9, desc as desc8, sql as sql22 } from "drizzle-orm";
 import crypto3 from "crypto";
 function generateSecureToken() {
   return crypto3.randomBytes(32).toString("hex");
@@ -19199,7 +17546,7 @@ async function registerRoutes(app2) {
     });
     app2.get("/api/features/:id/actionable-items", requireAuth, async (req, res) => {
       try {
-        const items = await db3.execute(sql23`
+        const items = await db3.execute(sql22`
           SELECT id, feature_id, title, description, technical_details, 
                  implementation_prompt, testing_requirements, estimated_effort, 
                  dependencies, status, completed_at, order_index, created_at, updated_at
@@ -19215,7 +17562,7 @@ async function registerRoutes(app2) {
     });
     app2.put("/api/actionable-items/:id", requireAuth, async (req, res) => {
       try {
-        const result = await db3.execute(sql23`
+        const result = await db3.execute(sql22`
           UPDATE actionable_items 
           SET status = ${req.body.status || "pending"},
               completed_at = ${req.body.status === "completed" ? /* @__PURE__ */ new Date() : null},
@@ -19244,7 +17591,7 @@ async function registerRoutes(app2) {
           if (typeof isStrategicPath !== "boolean") {
             return res.status(400).json({ message: "isStrategicPath must be a boolean" });
           }
-          const [feature] = await db3.update(features).set({ isStrategicPath, updatedAt: /* @__PURE__ */ new Date() }).where(eq25(features.id, req.params.id)).returning();
+          const [feature] = await db3.update(features).set({ isStrategicPath, updatedAt: /* @__PURE__ */ new Date() }).where(eq21(features.id, req.params.id)).returning();
           if (!feature) {
             return res.status(404).json({ message: "Feature not found" });
           }
@@ -19321,7 +17668,7 @@ async function registerRoutes(app2) {
               });
             }
           }
-          const existingUser = await db3.select().from(schemaUsers).where(eq25(schemaUsers.email, email)).limit(1);
+          const existingUser = await db3.select().from(schemaUsers).where(eq21(schemaUsers.email, email)).limit(1);
           if (existingUser.length > 0) {
             return res.status(409).json({
               message: "User with this email already exists",
@@ -19335,10 +17682,10 @@ async function registerRoutes(app2) {
             expiresAt: invitations2.expiresAt,
             organizationId: invitations2.organizationId
           }).from(invitations2).where(
-            and21(
-              eq25(invitations2.email, email),
-              eq25(invitations2.organizationId, organizationId),
-              eq25(invitations2.status, "pending"),
+            and19(
+              eq21(invitations2.email, email),
+              eq21(invitations2.organizationId, organizationId),
+              eq21(invitations2.status, "pending"),
               gte9(invitations2.expiresAt, /* @__PURE__ */ new Date())
             )
           ).limit(1);
@@ -19347,10 +17694,10 @@ async function registerRoutes(app2) {
               `\u{1F504} Found existing invitation for ${email} in organization ${organizationId}, deleting...`
             );
             await db3.delete(invitations2).where(
-              and21(
-                eq25(invitations2.email, email),
-                eq25(invitations2.organizationId, organizationId),
-                eq25(invitations2.status, "pending"),
+              and19(
+                eq21(invitations2.email, email),
+                eq21(invitations2.organizationId, organizationId),
+                eq21(invitations2.status, "pending"),
                 gte9(invitations2.expiresAt, /* @__PURE__ */ new Date())
               )
             );
@@ -19411,7 +17758,7 @@ async function registerRoutes(app2) {
             const isDevelopment = process.env.NODE_ENV !== "production";
             const baseUrl = isDevelopment ? "http://localhost:5000" : process.env.FRONTEND_URL || "http://localhost:5000";
             const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
-            const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq25(organizations2.id, organizationId)).limit(1);
+            const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq21(organizations2.id, organizationId)).limit(1);
             const organizationName = organization[0]?.name || "Your Organization";
             console.log("\u{1F4E7} Attempting to send invitation email with params:", {
               to: email,
@@ -19494,7 +17841,7 @@ async function registerRoutes(app2) {
           expiresAt: invitations2.expiresAt,
           invitedByUserId: invitations2.invitedByUserId,
           personalMessage: invitations2.personalMessage
-        }).from(invitations2).where(eq25(invitations2.tokenHash, tokenHash)).limit(1);
+        }).from(invitations2).where(eq21(invitations2.tokenHash, tokenHash)).limit(1);
         console.warn("\u{1F4CA} Database query _result:", { found: invitation.length > 0 });
         if (invitation.length === 0) {
           await createInvitationAuditLog(
@@ -19545,11 +17892,11 @@ async function registerRoutes(app2) {
             isValid: false
           });
         }
-        const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq25(organizations2.id, invitationData.organizationId)).limit(1);
+        const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq21(organizations2.id, invitationData.organizationId)).limit(1);
         const inviter = await db3.select({
           firstName: schemaUsers.firstName,
           lastName: schemaUsers.lastName
-        }).from(schemaUsers).where(eq25(schemaUsers.id, invitationData.invitedByUserId)).limit(1);
+        }).from(schemaUsers).where(eq21(schemaUsers.id, invitationData.invitedByUserId)).limit(1);
         await createInvitationAuditLog(
           invitationData.id,
           "validation_success",
@@ -19612,7 +17959,7 @@ async function registerRoutes(app2) {
           });
         }
         const tokenHash = hashToken(token);
-        const invitation = await db3.select().from(invitations2).where(and21(eq25(invitations2.tokenHash, tokenHash), eq25(invitations2.status, "pending"))).limit(1);
+        const invitation = await db3.select().from(invitations2).where(and19(eq21(invitations2.tokenHash, tokenHash), eq21(invitations2.status, "pending"))).limit(1);
         if (invitation.length === 0) {
           await createInvitationAuditLog(
             "unknown",
@@ -19644,7 +17991,7 @@ async function registerRoutes(app2) {
             code: "TOKEN_EXPIRED"
           });
         }
-        const existingUser = await db3.select().from(schemaUsers).where(eq25(schemaUsers.email, invitationData.email)).limit(1);
+        const existingUser = await db3.select().from(schemaUsers).where(eq21(schemaUsers.email, invitationData.email)).limit(1);
         if (existingUser.length > 0) {
           return res.status(409).json({
             message: "User with this email already exists",
@@ -19677,7 +18024,7 @@ async function registerRoutes(app2) {
         await db3.update(invitations2).set({
           status: "accepted",
           acceptedAt: /* @__PURE__ */ new Date()
-        }).where(eq25(invitations2.id, invitationData.id));
+        }).where(eq21(invitations2.id, invitationData.id));
         await createInvitationAuditLog(
           invitationData.id,
           "accepted",
@@ -19739,7 +18086,7 @@ async function registerRoutes(app2) {
       authorize("update:improvement_suggestions"),
       async (req, res) => {
         try {
-          const [suggestion] = await db3.update(improvementSuggestions).set({ status: "Acknowledged" }).where(eq25(improvementSuggestions.id, req.params.id)).returning();
+          const [suggestion] = await db3.update(improvementSuggestions).set({ status: "Acknowledged" }).where(eq21(improvementSuggestions.id, req.params.id)).returning();
           if (!suggestion) {
             return res.status(404).json({ message: "Suggestion not found" });
           }
@@ -19756,7 +18103,7 @@ async function registerRoutes(app2) {
       authorize("delete:improvement_suggestions"),
       async (req, res) => {
         try {
-          const [deletedSuggestion] = await db3.delete(improvementSuggestions).where(eq25(improvementSuggestions.id, req.params.id)).returning({
+          const [deletedSuggestion] = await db3.delete(improvementSuggestions).where(eq21(improvementSuggestions.id, req.params.id)).returning({
             id: improvementSuggestions.id,
             title: improvementSuggestions.title,
             description: improvementSuggestions.description,
@@ -19896,7 +18243,7 @@ async function registerRoutes(app2) {
   try {
     app2.get("/api/user-organizations", requireAuth, async (req, res) => {
       try {
-        const userOrgs = await db3.select().from(userOrganizations).where(eq25(userOrganizations.isActive, true));
+        const userOrgs = await db3.select().from(userOrganizations).where(eq21(userOrganizations.isActive, true));
         res.json(userOrgs);
       } catch (error2) {
         console.error("Error fetching user organizations:", error2);
@@ -19905,7 +18252,7 @@ async function registerRoutes(app2) {
     });
     app2.get("/api/user-residences", requireAuth, async (req, res) => {
       try {
-        const userRes = await db3.select().from(userResidences).where(eq25(userResidences.isActive, true));
+        const userRes = await db3.select().from(userResidences).where(eq21(userResidences.isActive, true));
         res.json(userRes);
       } catch (error2) {
         console.error("Error fetching user residences:", error2);
@@ -20093,7 +18440,10 @@ function createUltraHealthEndpoints(app2) {
 // server/index.ts
 await init_vite();
 var app = express6();
-var port = parseInt(process.env.PORT || "5000", 10);
+var port = parseInt(
+  process.env.NODE_ENV === "production" ? process.env.PORT_PROD || process.env.PORT || "5000" : process.env.PORT || "5000",
+  10
+);
 if (isNaN(port) || port < 1 || port > 65535) {
   console.error(`Invalid port: ${process.env.PORT || "80"}. Using default 80.`);
 }
