@@ -103,6 +103,7 @@ const getCSPConfig = (isDevelopment: boolean) => {
  */
 const getCorsConfig = (isDevelopment: boolean) => {
   const allowedOrigins: (string | RegExp)[] = [
+    'https://koveo-gestion.com', // Primary production domain
     'https://koveogestion.com',
     'https://app.koveogestion.com',
     'https://koveo.com',
