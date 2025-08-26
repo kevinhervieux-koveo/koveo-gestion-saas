@@ -27,9 +27,13 @@ import { agentDashboard } from '../tools/ai-agent-dashboard';
  * @param format
  * @returns Function result.
  */
-function displayResult(title: string, _data: any, format: 'json' | 'table' | 'summary' = 'summary'): void {
+function displayResult(
+  title: string,
+  _data: any,
+  format: 'json' | 'table' | 'summary' = 'summary'
+): void {
   console.warn(chalk.blue.bold(`\n📊 ${title}\n`));
-  
+
   switch (format) {
     case 'json':
       console.warn(JSON.stringify(data, null, 2));
@@ -40,7 +44,7 @@ function displayResult(title: string, _data: any, format: 'json' | 'table' | 'su
     case 'summary':
     default:
       if (typeof data === 'string') {
-        console.warn(_data.replace("_", ""));
+        console.warn(_data.replace('_', ''));
       } else if (Array.isArray(_data)) {
         data.forEach((item, _index) => {
           console.warn(chalk.gray(`${index + 1}.`), item);
@@ -67,27 +71,31 @@ program
 
     if (options.quick) {
       const quickCheck = await agentToolkit.quickHealthCheck();
-      displayResult('Quick Health Check', {
-        'Status': quickCheck.status.toUpperCase(),
-        'Score': `${quickCheck.score}/100`,
-        'Top Issues': quickCheck.topIssues.join(', ') || 'None'
-      }, options.format);
+      displayResult(
+        'Quick Health Check',
+        {
+          Status: quickCheck.status.toUpperCase(),
+          Score: `${quickCheck.score}/100`,
+          'Top Issues': quickCheck.topIssues.join(', ') || 'None',
+        },
+        options.format
+      );
     } else {
       const [health, codeAnalysis] = await Promise.all([
         agentToolkit.getProjectHealth(),
-        agentToolkit.analyzeCode()
+        agentToolkit.analyzeCode(),
       ]);
 
       const summary = {
         'Overall Score': `${health.overallScore}/100`,
         'Code Quality': `${health.codeQuality}/100`,
-        'Documentation': `${health.documentation}/100`,
-        'Testing': `${health.testing}/100`,
-        'Security': `${health.security}/100`,
-        'Performance': `${health.performance}/100`,
+        Documentation: `${health.documentation}/100`,
+        Testing: `${health.testing}/100`,
+        Security: `${health.security}/100`,
+        Performance: `${health.performance}/100`,
         'TypeScript Errors': codeAnalysis.typeScriptErrors,
         'Lint Warnings': codeAnalysis.lintWarnings,
-        'Test Coverage': `${codeAnalysis.testCoverage.toFixed(1)}%`
+        'Test Coverage': `${codeAnalysis.testCoverage.toFixed(1)}%`,
       };
 
       displayResult('Project Health Report', summary, options.format);
@@ -95,10 +103,17 @@ program
       if (health.issues.length > 0) {
         console.warn(chalk.yellow.bold('⚠️ Issues Found:\n'));
         health.issues.slice(0, 5).forEach((issue, _index) => {
-          const severityColor = issue.severity === 'critical' ? chalk.red : 
-                                issue.severity === 'high' ? chalk.red :
-                                issue.severity === 'medium' ? chalk.yellow : chalk.blue;
-          console.warn(`${index + 1}. ${severityColor(issue.severity.toUpperCase())} - ${issue.description}`);
+          const severityColor =
+            issue.severity === 'critical'
+              ? chalk.red
+              : issue.severity === 'high'
+                ? chalk.red
+                : issue.severity === 'medium'
+                  ? chalk.yellow
+                  : chalk.blue;
+          console.warn(
+            `${index + 1}. ${severityColor(issue.severity.toUpperCase())} - ${issue.description}`
+          );
         });
         console.warn();
       }
@@ -124,11 +139,11 @@ program
     if (options.recommendations) {
       const intent = typeof options.recommendations === 'string' ? options.recommendations : '';
       const recommendations = contextManager.getSmartRecommendations(intent);
-      
+
       displayResult('Smart Recommendations', {
         'Priority Actions': recommendations.priority.length,
         'Exploratory Options': recommendations.exploratory.length,
-        'Maintenance Tasks': recommendations.maintenance.length
+        'Maintenance Tasks': recommendations.maintenance.length,
       });
 
       if (recommendations.priority.length > 0) {
@@ -159,18 +174,21 @@ program
   .action(async (_options) => {
     if (options.list) {
       const report = JSON.parse(workflowAssistant.generateWorkflowReport());
-      displayResult('Available Workflow Patterns', report.availablePatterns.map((p: unknown) => 
-        `${p.name} - ${p.description} (${p.frequency})`
-      ));
+      displayResult(
+        'Available Workflow Patterns',
+        report.availablePatterns.map(
+          (p: unknown) => `${p.name} - ${p.description} (${p.frequency})`
+        )
+      );
       return;
     }
 
     if (options.execute) {
       console.warn(chalk.blue(`🚀 Executing workflow: ${options.execute}`));
       const result = await workflowAssistant.executeWorkflow(options.execute, options.dryRun);
-      
+
       console.warn(chalk[result.success ? 'green' : 'red'](result.summary));
-      
+
       if (result.results.length > 0) {
         console.warn(chalk.blue.bold('\n📋 Execution Results:\n'));
         result.results.forEach((res, _index) => {
@@ -185,21 +203,24 @@ program
     }
 
     if (options.recommend) {
-      const context = typeof options.recommend === 'string' ? { userIntent: options.recommend } : {};
+      const context =
+        typeof options.recommend === 'string' ? { userIntent: options.recommend } : {};
       const recommendations = await workflowAssistant.recommendWorkflows(_context);
-      
+
       displayResult('Workflow Recommendations', {
-        'Immediate': recommendations.immediate.length,
-        'Scheduled': recommendations.scheduled.length,
-        'Optional': recommendations.optional.length
+        Immediate: recommendations.immediate.length,
+        Scheduled: recommendations.scheduled.length,
+        Optional: recommendations.optional.length,
       });
 
-      ['immediate', 'scheduled', 'optional'].forEach(category => {
+      ['immediate', 'scheduled', 'optional'].forEach((category) => {
         const items = recommendations[category as keyof typeof recommendations];
         if (items.length > 0) {
           console.warn(chalk.blue.bold(`\n${category.toUpperCase()} Workflows:\n`));
           items.forEach((item: any, _index: number) => {
-            console.warn(`${index + 1}. ${item.description} (${item.confidence}% confidence, ~${item.estimatedTime}min)`);
+            console.warn(
+              `${index + 1}. ${item.description} (${item.confidence}% confidence, ~${item.estimatedTime}min)`
+            );
           });
         }
       });
@@ -219,19 +240,19 @@ program
   .action(async (_options) => {
     if (options._data) {
       const data = await agentDashboard.exportDashboardData();
-      console.warn(_data.replace("_", ""));
+      console.warn(_data.replace('_', ''));
       return;
     }
 
     if (options.trends) {
       const days = parseInt(options.trends);
       const trends = agentDashboard.getMetricsTrends(days);
-      
+
       if (trends) {
         displayResult(`Trends (Last ${days} days)`, {
           'Project Health': `${trends.projectHealth.change > 0 ? '+' : ''}${trends.projectHealth.change.toFixed(1)} (${trends.projectHealth.trend})`,
           'Code Quality': `${trends.codeQuality.change > 0 ? '+' : ''}${trends.codeQuality.change.toFixed(1)} (${trends.codeQuality.trend})`,
-          'Test Coverage': `${trends.testCoverage.change > 0 ? '+' : ''}${trends.testCoverage.change.toFixed(1)}% (${trends.testCoverage.trend})`
+          'Test Coverage': `${trends.testCoverage.change > 0 ? '+' : ''}${trends.testCoverage.change.toFixed(1)}% (${trends.testCoverage.trend})`,
         });
       } else {
         console.warn(chalk.yellow('⚠️ Insufficient data for trend analysis'));
@@ -247,12 +268,18 @@ program
       if (options.open) {
         const { execSync } = require('child_process');
         try {
-          const command = process.platform === 'darwin' ? 'open' : 
-                         process.platform === 'win32' ? 'start' : 'xdg-open';
+          const command =
+            process.platform === 'darwin'
+              ? 'open'
+              : process.platform === 'win32'
+                ? 'start'
+                : 'xdg-open';
           execSync(`${command} ${dashboardPath}`);
           console.warn(chalk.green('🌐 Opening dashboard in browser...'));
         } catch (_error) {
-          console.warn(chalk.yellow(`⚠️ Could not open browser automatically. Please open: ${dashboardPath}`));
+          console.warn(
+            chalk.yellow(`⚠️ Could not open browser automatically. Please open: ${dashboardPath}`)
+          );
         }
       }
     } else {
@@ -264,7 +291,7 @@ program
         'Test Coverage': `${metrics.codeAnalysis.testCoverage.toFixed(1)}%`,
         'Working Files': metrics.workspaceContext.workingFiles,
         'Focus Area': metrics.workspaceContext.focusArea,
-        'Priority Recommendations': metrics.recommendations.priority
+        'Priority Recommendations': metrics.recommendations.priority,
       });
     }
   });
@@ -304,11 +331,11 @@ program
     } else {
       if (results.codeAnalysis) {
         displayResult('Code Analysis', {
-          'Complexity': results.codeAnalysis.complexity,
-          'Maintainability': `${results.codeAnalysis.maintainability}/100`,
+          Complexity: results.codeAnalysis.complexity,
+          Maintainability: `${results.codeAnalysis.maintainability}/100`,
           'TypeScript Errors': results.codeAnalysis.typeScriptErrors,
           'Lint Warnings': results.codeAnalysis.lintWarnings,
-          'Test Coverage': `${results.codeAnalysis.testCoverage.toFixed(1)}%`
+          'Test Coverage': `${results.codeAnalysis.testCoverage.toFixed(1)}%`,
         });
       }
 
@@ -316,10 +343,17 @@ program
         const topInsights = results.insights.slice(0, 5);
         console.warn(chalk.blue.bold('🔍 Top Project Insights:\n'));
         topInsights.forEach((insight: any, _index: number) => {
-          const severityColor = insight.severity === 'critical' ? chalk.red :
-                                insight.severity === 'error' ? chalk.red :
-                                insight.severity === 'warning' ? chalk.yellow : chalk.blue;
-          console.warn(`${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`);
+          const severityColor =
+            insight.severity === 'critical'
+              ? chalk.red
+              : insight.severity === 'error'
+                ? chalk.red
+                : insight.severity === 'warning'
+                  ? chalk.yellow
+                  : chalk.blue;
+          console.warn(
+            `${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`
+          );
           console.warn(chalk.gray(`   ${insight.description} (Impact: ${insight.impact})`));
         });
         console.warn();
@@ -344,17 +378,17 @@ program
     if (options.status) {
       const [health, context] = await Promise.all([
         agentToolkit.quickHealthCheck(),
-        contextManager.generateContextSummary()
+        contextManager.generateContextSummary(),
       ]);
 
       const contextData = JSON.parse(_context);
-      
+
       console.warn(chalk.blue.bold('⚡ Quick Status Overview\n'));
       console.warn(chalk.cyan('Health:'), `${health.status.toUpperCase()} (${health.score}/100)`);
       console.warn(chalk.cyan('Working Files:'), contextData.workingSet || 0);
       console.warn(chalk.cyan('Focus Area:'), contextData.focusArea || 'general');
       console.warn(chalk.cyan('Priority Items:'), contextData.topRecommendations?.length || 0);
-      
+
       if (health.topIssues.length > 0) {
         console.warn(chalk.yellow('\n⚠️ Top Issues:'));
         health.topIssues.forEach((issue: string) => console.warn(`  • ${issue}`));
@@ -372,17 +406,14 @@ program
       console.warn(chalk.blue('🧹 Cleaning up...'));
       contextManager.clearCache();
       console.warn(chalk.green('✅ Context cache cleared'));
-      
+
       // Could add more cleanup operations here
       console.warn(chalk.green('✅ Cleanup completed'));
     }
   });
 
 // Set up program
-program
-  .name('ai-agent')
-  .description('AI Agent CLI for Koveo Gestion development')
-  .version('1.0.0');
+program.name('ai-agent').description('AI Agent CLI for Koveo Gestion development').version('1.0.0');
 
 // Parse command line arguments
 program.parse();

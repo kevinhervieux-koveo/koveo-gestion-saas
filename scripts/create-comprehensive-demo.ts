@@ -2,10 +2,10 @@
 
 /**
  * Comprehensive Demo Organization Creation Script.
- * 
- * This script creates a comprehensive Demo organization with all data elements 
+ *
+ * This script creates a comprehensive Demo organization with all data elements
  * needed to demonstrate every aspect of the resident/manager/settings menus.
- * 
+ *
  * Data Created:
  * - Organizations (Demo and Open Demo)
  * - Buildings with varied types and amenities
@@ -20,7 +20,7 @@
  * - Bug reports
  * - Feature requests
  * - Documents (both building and residence level).
- * 
+ *
  * Usage: tsx scripts/create-comprehensive-demo.ts.
  */
 
@@ -53,39 +53,39 @@ async function createComprehensiveDemo(): Promise<void> {
     // Step 1: Create Organizations
     console.log('📁 Creating organizations...');
     const organizations = await createOrganizations();
-    
+
     // Step 2: Create Buildings
     console.log('\n🏢 Creating buildings with varied configurations...');
     const buildings = await createBuildings(organizations.demo.id);
-    
+
     // Step 3: Create Residences
     console.log('\n🏠 Creating residences with different types...');
     const residences = await createResidences(buildings);
-    
+
     // Step 4: Create Users
     console.log('\n👥 Creating users with different roles...');
     const users = await createUsers(organizations.demo.id);
-    
+
     // Step 5: Assign Users to Residences
     console.log('\n🔗 Assigning users to residences...');
     await assignUsersToResidences(users, residences);
-    
+
     // Step 6: Create Financial Data
     console.log('\n💰 Creating financial data (bills, budgets, money flow)...');
     await createFinancialData(buildings, residences, users);
-    
+
     // Step 7: Create Operations Data
     console.log('\n🔧 Creating operations data (maintenance, demands, notifications)...');
     await createOperationsData(residences, users);
-    
+
     // Step 8: Create Settings Data
     console.log('\n⚙️ Creating settings data (bugs, feature requests)...');
     await createSettingsData(users);
-    
+
     // Step 9: Create Documents
     console.log('\n📄 Creating document data...');
     await createDocuments(buildings, residences, users);
-    
+
     // Step 10: Create Open Demo Organization
     console.log('\n🔄 Creating Open Demo organization...');
     await createOpenDemoOrganization(organizations.demo.id);
@@ -105,7 +105,6 @@ async function createComprehensiveDemo(): Promise<void> {
     console.log('- Bug reports for testing');
     console.log('- Feature requests for idea box');
     console.log('- Building and residence documents');
-
   } catch (error) {
     console.error('❌ Error creating comprehensive demo data:', error);
     throw error;
@@ -123,34 +122,40 @@ async function createOrganizations() {
   await db.delete(schema.organizations).where(eq(schema.organizations.name, 'Open Demo'));
 
   // Create Demo organization
-  const [demoOrg] = await db.insert(schema.organizations).values({
-    name: 'Demo',
-    type: 'management_company',
-    address: '123 Demo Street',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H1A 1A1',
-    phone: '514-555-0100',
-    email: 'demo@koveogesion.com',
-    website: 'https://demo.koveogesion.com',
-    registrationNumber: 'DEMO-001',
-    isActive: true,
-  }).returning();
+  const [demoOrg] = await db
+    .insert(schema.organizations)
+    .values({
+      name: 'Demo',
+      type: 'management_company',
+      address: '123 Demo Street',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+      phone: '514-555-0100',
+      email: 'demo@koveogesion.com',
+      website: 'https://demo.koveogesion.com',
+      registrationNumber: 'DEMO-001',
+      isActive: true,
+    })
+    .returning();
 
   // Create Open Demo organization (read-only demo)
-  const [openDemoOrg] = await db.insert(schema.organizations).values({
-    name: 'Open Demo',
-    type: 'management_company',
-    address: '456 Open Demo Avenue',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2B 2B2',
-    phone: '514-555-0200',
-    email: 'opendemo@koveogesion.com',
-    website: 'https://opendemo.koveogesion.com',
-    registrationNumber: 'OPEN-DEMO-001',
-    isActive: true,
-  }).returning();
+  const [openDemoOrg] = await db
+    .insert(schema.organizations)
+    .values({
+      name: 'Open Demo',
+      type: 'management_company',
+      address: '456 Open Demo Avenue',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H2B 2B2',
+      phone: '514-555-0200',
+      email: 'opendemo@koveogesion.com',
+      website: 'https://opendemo.koveogesion.com',
+      registrationNumber: 'OPEN-DEMO-001',
+      isActive: true,
+    })
+    .returning();
 
   console.log('✅ Created Demo and Open Demo organizations');
   return { demo: demoOrg, openDemo: openDemoOrg };
@@ -204,7 +209,7 @@ async function createBuildings(organizationId: string) {
     {
       name: 'Family Garden Complex',
       address: '400 Garden Lane',
-      city: 'Montreal', 
+      city: 'Montreal',
       buildingType: 'rental' as const,
       yearBuilt: 2015,
       totalUnits: 16,
@@ -213,18 +218,21 @@ async function createBuildings(organizationId: string) {
       storageSpaces: 16,
       amenities: { gym: false, pool: true, laundry: true, playground: true, garden: true },
       managementCompany: 'Koveo Gestion',
-    }
+    },
   ];
 
   const buildings = [];
   for (const config of buildingConfigs) {
-    const [building] = await db.insert(schema.buildings).values({
-      organizationId,
-      ...config,
-      province: 'QC',
-      postalCode: `H${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))} ${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 9) + 1}`,
-      isActive: true,
-    }).returning();
+    const [building] = await db
+      .insert(schema.buildings)
+      .values({
+        organizationId,
+        ...config,
+        province: 'QC',
+        postalCode: `H${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))} ${Math.floor(Math.random() * 9) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 9) + 1}`,
+        isActive: true,
+      })
+      .returning();
     buildings.push(building);
     console.log(`✅ Created building: ${building.name}`);
   }
@@ -238,10 +246,10 @@ async function createBuildings(organizationId: string) {
  */
 async function createResidences(buildings: any[]) {
   const residences = [];
-  
+
   for (const building of buildings) {
     const residenceConfigs = [];
-    
+
     // Generate different residence types based on building type
     if (building.buildingType === 'condo') {
       // Condos: Mix of 1, 2, and 3 bedroom units
@@ -281,14 +289,17 @@ async function createResidences(buildings: any[]) {
 
     // Create residences for this building
     for (const config of residenceConfigs) {
-      const [residence] = await db.insert(schema.residences).values({
-        buildingId: building.id,
-        ...config,
-        isActive: true,
-      }).returning();
+      const [residence] = await db
+        .insert(schema.residences)
+        .values({
+          buildingId: building.id,
+          ...config,
+          isActive: true,
+        })
+        .returning();
       residences.push({ ...residence, buildingName: building.name });
     }
-    
+
     console.log(`✅ Created ${residenceConfigs.length} residences for ${building.name}`);
   }
 
@@ -301,41 +312,104 @@ async function createResidences(buildings: any[]) {
  */
 async function createUsers(organizationId: string) {
   const hashedPassword = await bcrypt.hash('Demo@123456', 10);
-  
+
   const userConfigs = [
     // Manager users (realistic Quebec names)
-    { firstName: 'Sophie', lastName: 'Tremblay', email: 'sophie.tremblay@demo.com', role: 'manager' as const },
-    { firstName: 'Marc', lastName: 'Gauthier', email: 'marc.gauthier@demo.com', role: 'manager' as const },
-    
+    {
+      firstName: 'Sophie',
+      lastName: 'Tremblay',
+      email: 'sophie.tremblay@demo.com',
+      role: 'manager' as const,
+    },
+    {
+      firstName: 'Marc',
+      lastName: 'Gauthier',
+      email: 'marc.gauthier@demo.com',
+      role: 'manager' as const,
+    },
+
     // Tenant/Resident users (realistic Quebec and Canadian names)
-    { firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@demo.com', role: 'tenant' as const },
+    {
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      email: 'alice.johnson@demo.com',
+      role: 'tenant' as const,
+    },
     { firstName: 'Bob', lastName: 'Smith', email: 'bob.smith@demo.com', role: 'resident' as const },
-    { firstName: 'Claire', lastName: 'Bouchard', email: 'claire.bouchard@demo.com', role: 'tenant' as const },
-    { firstName: 'David', lastName: 'Wilson', email: 'david.wilson@demo.com', role: 'resident' as const },
+    {
+      firstName: 'Claire',
+      lastName: 'Bouchard',
+      email: 'claire.bouchard@demo.com',
+      role: 'tenant' as const,
+    },
+    {
+      firstName: 'David',
+      lastName: 'Wilson',
+      email: 'david.wilson@demo.com',
+      role: 'resident' as const,
+    },
     { firstName: 'Emma', lastName: 'Côté', email: 'emma.cote@demo.com', role: 'tenant' as const },
-    { firstName: 'Frank', lastName: 'Miller', email: 'frank.miller@demo.com', role: 'resident' as const },
-    { firstName: 'Gabrielle', lastName: 'Leclerc', email: 'gabrielle.leclerc@demo.com', role: 'tenant' as const },
-    { firstName: 'Henri', lastName: 'Dubois', email: 'henri.dubois@demo.com', role: 'resident' as const },
-    { firstName: 'Isabelle', lastName: 'Morin', email: 'isabelle.morin@demo.com', role: 'tenant' as const },
-    { firstName: 'Jacques', lastName: 'Anderson', email: 'jacques.anderson@demo.com', role: 'resident' as const },
+    {
+      firstName: 'Frank',
+      lastName: 'Miller',
+      email: 'frank.miller@demo.com',
+      role: 'resident' as const,
+    },
+    {
+      firstName: 'Gabrielle',
+      lastName: 'Leclerc',
+      email: 'gabrielle.leclerc@demo.com',
+      role: 'tenant' as const,
+    },
+    {
+      firstName: 'Henri',
+      lastName: 'Dubois',
+      email: 'henri.dubois@demo.com',
+      role: 'resident' as const,
+    },
+    {
+      firstName: 'Isabelle',
+      lastName: 'Morin',
+      email: 'isabelle.morin@demo.com',
+      role: 'tenant' as const,
+    },
+    {
+      firstName: 'Jacques',
+      lastName: 'Anderson',
+      email: 'jacques.anderson@demo.com',
+      role: 'resident' as const,
+    },
     { firstName: 'Katia', lastName: 'Roy', email: 'katia.roy@demo.com', role: 'tenant' as const },
-    { firstName: 'Louis', lastName: 'Fournier', email: 'louis.fournier@demo.com', role: 'resident' as const },
-    { firstName: 'Marie', lastName: 'Lavoie', email: 'marie.lavoie@demo.com', role: 'tenant' as const },
+    {
+      firstName: 'Louis',
+      lastName: 'Fournier',
+      email: 'louis.fournier@demo.com',
+      role: 'resident' as const,
+    },
+    {
+      firstName: 'Marie',
+      lastName: 'Lavoie',
+      email: 'marie.lavoie@demo.com',
+      role: 'tenant' as const,
+    },
   ];
 
   const users = [];
   for (const config of userConfigs) {
-    const [user] = await db.insert(schema.users).values({
-      username: config.email.split('@')[0],
-      email: config.email,
-      password: hashedPassword,
-      firstName: config.firstName,
-      lastName: config.lastName,
-      phone: `514-555-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
-      language: 'fr',
-      role: config.role,
-      isActive: true,
-    }).returning();
+    const [user] = await db
+      .insert(schema.users)
+      .values({
+        username: config.email.split('@')[0],
+        email: config.email,
+        password: hashedPassword,
+        firstName: config.firstName,
+        lastName: config.lastName,
+        phone: `514-555-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+        language: 'fr',
+        role: config.role,
+        isActive: true,
+      })
+      .returning();
 
     // Create user-organization relationship
     await db.insert(schema.userOrganizations).values({
@@ -358,13 +432,13 @@ async function createUsers(organizationId: string) {
  * @param residences
  */
 async function assignUsersToResidences(users: any[], residences: any[]): Promise<void> {
-  const tenantUsers = users.filter(u => u.role === 'tenant' || u.role === 'resident');
-  
+  const tenantUsers = users.filter((u) => u.role === 'tenant' || u.role === 'resident');
+
   // Assign each tenant/resident to a residence
   for (let i = 0; i < Math.min(tenantUsers.length, residences.length); i++) {
     const user = tenantUsers[i];
     const residence = residences[i];
-    
+
     await db.insert(schema.userResidences).values({
       userId: user.id,
       residenceId: residence.id,
@@ -372,8 +446,10 @@ async function assignUsersToResidences(users: any[], residences: any[]): Promise
       startDate: new Date('2024-01-01').toISOString().split('T')[0] as any,
       isActive: true,
     });
-    
-    console.log(`✅ Assigned ${user.firstName} ${user.lastName} to ${residence.buildingName} - Unit ${residence.unitNumber}`);
+
+    console.log(
+      `✅ Assigned ${user.firstName} ${user.lastName} to ${residence.buildingName} - Unit ${residence.unitNumber}`
+    );
   }
 }
 
@@ -383,10 +459,14 @@ async function assignUsersToResidences(users: any[], residences: any[]): Promise
  * @param residences
  * @param users
  */
-async function createFinancialData(buildings: any[], residences: any[], users: any[]): Promise<void> {
-  const adminUser = users.find(u => u.role === 'admin');
+async function createFinancialData(
+  buildings: any[],
+  residences: any[],
+  users: any[]
+): Promise<void> {
+  const adminUser = users.find((u) => u.role === 'admin');
   const currentYear = new Date().getFullYear();
-  
+
   for (const building of buildings) {
     // Create annual budgets
     const budgetCategories = ['operational', 'reserve', 'special_project'];
@@ -397,7 +477,12 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
         name: `${category.replace('_', ' ').toUpperCase()} Budget ${currentYear}`,
         description: `Annual ${category} budget for ${building.name}`,
         category,
-        budgetedAmount: category === 'operational' ? '125000.00' : category === 'reserve' ? '50000.00' : '75000.00',
+        budgetedAmount:
+          category === 'operational'
+            ? '125000.00'
+            : category === 'reserve'
+              ? '50000.00'
+              : '75000.00',
         actualAmount: '0.00',
         variance: '0.00',
         createdBy: adminUser.id,
@@ -422,14 +507,20 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
     }
 
     // Create bills with various statuses
-    const billCategories = ['maintenance', 'utilities', 'insurance', 'professional_services', 'supplies'];
+    const billCategories = [
+      'maintenance',
+      'utilities',
+      'insurance',
+      'professional_services',
+      'supplies',
+    ];
     const billStatuses = ['paid', 'sent', 'overdue', 'draft'];
-    
+
     for (let i = 0; i < 15; i++) {
       const category = billCategories[i % billCategories.length];
       const status = billStatuses[i % billStatuses.length];
       const amount = (Math.random() * 5000 + 500).toFixed(2);
-      
+
       await db.insert(schema.bills).values({
         buildingId: building.id,
         billNumber: `BILL-${building.name.substring(0, 3).toUpperCase()}-${String(i + 1).padStart(4, '0')}`,
@@ -440,7 +531,13 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
         paymentType: 'unique',
         costs: [amount],
         totalAmount: amount,
-        startDate: new Date(currentYear, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] as any,
+        startDate: new Date(
+          currentYear,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        )
+          .toISOString()
+          .split('T')[0] as any,
         status: status as any,
         createdBy: adminUser.id,
       });
@@ -451,20 +548,26 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
     for (let i = 0; i < 20; i++) {
       const category = flowCategories[i % flowCategories.length];
       const isIncome = category.includes('fees') || category.includes('income');
-      
+
       await db.insert(schema.moneyFlow).values({
         buildingId: building.id,
         type: isIncome ? 'income' : 'expense',
         category: category as any,
         description: `${category.replace('_', ' ')} transaction for ${building.name}`,
         amount: (Math.random() * 3000 + 200).toFixed(2),
-        transactionDate: new Date(currentYear, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] as any,
+        transactionDate: new Date(
+          currentYear,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        )
+          .toISOString()
+          .split('T')[0] as any,
         referenceNumber: `REF-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`,
         isReconciled: Math.random() > 0.3,
         createdBy: adminUser.id,
       });
     }
-    
+
     console.log(`✅ Created financial data for ${building.name}`);
   }
 }
@@ -475,14 +578,14 @@ async function createFinancialData(buildings: any[], residences: any[], users: a
  * @param users
  */
 async function createOperationsData(residences: any[], users: any[]): Promise<void> {
-  const tenantUsers = users.filter(u => u.role === 'tenant' || u.role === 'resident');
-  const managerUsers = users.filter(u => u.role === 'manager');
-  
+  const tenantUsers = users.filter((u) => u.role === 'tenant' || u.role === 'resident');
+  const managerUsers = users.filter((u) => u.role === 'manager');
+
   // Create maintenance requests
   const maintenanceCategories = ['plumbing', 'electrical', 'hvac', 'appliances', 'general'];
   const priorities = ['low', 'medium', 'high', 'urgent'];
   const statuses = ['submitted', 'acknowledged', 'in_progress', 'completed'];
-  
+
   for (let i = 0; i < 35; i++) {
     const residence = residences[i % residences.length];
     const submitter = tenantUsers[i % tenantUsers.length];
@@ -490,7 +593,7 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
     const category = maintenanceCategories[i % maintenanceCategories.length];
     const priority = priorities[i % priorities.length];
     const status = statuses[i % statuses.length];
-    
+
     await db.insert(schema.maintenanceRequests).values({
       residenceId: residence.id,
       submittedBy: submitter.id,
@@ -502,8 +605,14 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
       status: status as any,
       estimatedCost: Math.random() > 0.5 ? (Math.random() * 1000 + 100).toFixed(2) : null,
       actualCost: status === 'completed' ? (Math.random() * 1000 + 100).toFixed(2) : null,
-      scheduledDate: Math.random() > 0.6 ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000) : null,
-      completedDate: status === 'completed' ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : null,
+      scheduledDate:
+        Math.random() > 0.6
+          ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000)
+          : null,
+      completedDate:
+        status === 'completed'
+          ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+          : null,
       notes: status !== 'submitted' ? 'Work in progress, will update soon.' : null,
     });
   }
@@ -511,13 +620,13 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
   // Create demands
   const demandTypes = ['maintenance', 'complaint', 'information', 'other'];
   const demandStatuses = ['submitted', 'under_review', 'approved', 'in_progress', 'completed'];
-  
+
   for (let i = 0; i < 25; i++) {
     const residence = residences[i % residences.length];
     const submitter = tenantUsers[i % tenantUsers.length];
     const type = demandTypes[i % demandTypes.length];
     const status = demandStatuses[i % demandStatuses.length];
-    
+
     await db.insert(schema.demands).values({
       submitterId: submitter.id,
       type: type as any,
@@ -536,18 +645,21 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
   for (const user of users) {
     for (let i = 0; i < 5; i++) {
       const type = notificationTypes[i % notificationTypes.length];
-      
+
       await db.insert(schema.notifications).values({
         userId: user.id,
         type: type as any,
         title: `${type.replace('_', ' ').toUpperCase()} Notification`,
         message: `This is a ${type} notification for ${user.firstName} ${user.lastName}.`,
         isRead: Math.random() > 0.4,
-        readAt: Math.random() > 0.4 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
+        readAt:
+          Math.random() > 0.4
+            ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+            : null,
       });
     }
   }
-  
+
   console.log('✅ Created maintenance requests, demands, and notifications');
 }
 
@@ -557,20 +669,28 @@ async function createOperationsData(residences: any[], users: any[]): Promise<vo
  */
 async function createSettingsData(users: any[]): Promise<void> {
   const allUsers = users;
-  
+
   // Create bug reports
   const bugCategories = ['ui_ux', 'functionality', 'performance', 'data', 'security'];
   const bugPriorities = ['low', 'medium', 'high', 'critical'];
   const bugStatuses = ['new', 'acknowledged', 'in_progress', 'resolved'];
-  const pages = ['Dashboard', 'Buildings', 'Residences', 'Bills', 'Budget', 'Maintenance', 'Settings'];
-  
+  const pages = [
+    'Dashboard',
+    'Buildings',
+    'Residences',
+    'Bills',
+    'Budget',
+    'Maintenance',
+    'Settings',
+  ];
+
   for (let i = 0; i < 15; i++) {
     const user = allUsers[i % allUsers.length];
     const category = bugCategories[i % bugCategories.length];
     const priority = bugPriorities[i % bugPriorities.length];
     const status = bugStatuses[i % bugStatuses.length];
     const page = pages[i % pages.length];
-    
+
     await db.insert(schema.bugs).values({
       createdBy: user.id,
       title: `${category.replace('_', ' ').toUpperCase()} issue on ${page} page`,
@@ -579,38 +699,55 @@ async function createSettingsData(users: any[]): Promise<void> {
       page,
       priority: priority as any,
       status: status as any,
-      assignedTo: status !== 'new' ? users.find(u => u.role === 'admin')?.id || null : null,
-      resolvedAt: status === 'resolved' ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
-      resolvedBy: status === 'resolved' ? users.find(u => u.role === 'admin')?.id || null : null,
+      assignedTo: status !== 'new' ? users.find((u) => u.role === 'admin')?.id || null : null,
+      resolvedAt:
+        status === 'resolved'
+          ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+          : null,
+      resolvedBy: status === 'resolved' ? users.find((u) => u.role === 'admin')?.id || null : null,
       reproductionSteps: 'Step 1: Navigate to page\nStep 2: Perform action\nStep 3: Observe issue',
       environment: 'Chrome 119.0, Windows 11, Desktop',
     });
   }
 
   // Create feature requests
-  const featureCategories = ['dashboard', 'property_management', 'financial_management', 'maintenance', 'communication'];
+  const featureCategories = [
+    'dashboard',
+    'property_management',
+    'financial_management',
+    'maintenance',
+    'communication',
+  ];
   const featureStatuses = ['submitted', 'under_review', 'planned', 'in_progress', 'completed'];
-  
+
   for (let i = 0; i < 20; i++) {
     const user = allUsers[i % allUsers.length];
     const category = featureCategories[i % featureCategories.length];
     const status = featureStatuses[i % featureStatuses.length];
     const page = pages[i % pages.length];
-    
-    const [featureRequest] = await db.insert(schema.featureRequests).values({
-      createdBy: user.id,
-      title: `Enhanced ${category.replace('_', ' ')} functionality`,
-      description: `Detailed feature request for improving ${category} capabilities on the ${page} page. This would enhance user productivity and satisfaction.`,
-      need: `Users need better ${category} tools to manage their daily tasks more efficiently.`,
-      category: category as any,
-      page,
-      status: status as any,
-      upvoteCount: Math.floor(Math.random() * 10),
-      assignedTo: status !== 'submitted' ? users.find(u => u.role === 'admin')?.id || null : null,
-      reviewedBy: status !== 'submitted' ? users.find(u => u.role === 'admin')?.id || null : null,
-      reviewedAt: status !== 'submitted' ? new Date() : null,
-      adminNotes: status !== 'submitted' ? 'Feature request under consideration for next development cycle.' : null,
-    }).returning();
+
+    const [featureRequest] = await db
+      .insert(schema.featureRequests)
+      .values({
+        createdBy: user.id,
+        title: `Enhanced ${category.replace('_', ' ')} functionality`,
+        description: `Detailed feature request for improving ${category} capabilities on the ${page} page. This would enhance user productivity and satisfaction.`,
+        need: `Users need better ${category} tools to manage their daily tasks more efficiently.`,
+        category: category as any,
+        page,
+        status: status as any,
+        upvoteCount: Math.floor(Math.random() * 10),
+        assignedTo:
+          status !== 'submitted' ? users.find((u) => u.role === 'admin')?.id || null : null,
+        reviewedBy:
+          status !== 'submitted' ? users.find((u) => u.role === 'admin')?.id || null : null,
+        reviewedAt: status !== 'submitted' ? new Date() : null,
+        adminNotes:
+          status !== 'submitted'
+            ? 'Feature request under consideration for next development cycle.'
+            : null,
+      })
+      .returning();
 
     // Add some upvotes
     const upvoteCount = Math.floor(Math.random() * 5);
@@ -624,7 +761,7 @@ async function createSettingsData(users: any[]): Promise<void> {
       }
     }
   }
-  
+
   console.log('✅ Created bug reports and feature requests');
 }
 
@@ -635,18 +772,28 @@ async function createSettingsData(users: any[]): Promise<void> {
  * @param users
  */
 async function createDocuments(buildings: any[], residences: any[], users: any[]): Promise<void> {
-  const adminUser = users.find(u => u.role === 'admin');
-  
+  const adminUser = users.find((u) => u.role === 'admin');
+
   // Create building documents
-  const buildingDocTypes = ['Financial Reports', 'Insurance Policies', 'Maintenance Contracts', 'Legal Documents', 'Meeting Minutes'];
-  
+  const buildingDocTypes = [
+    'Financial Reports',
+    'Insurance Policies',
+    'Maintenance Contracts',
+    'Legal Documents',
+    'Meeting Minutes',
+  ];
+
   for (const building of buildings) {
     for (let i = 0; i < buildingDocTypes.length; i++) {
       const docType = buildingDocTypes[i];
-      
+
       await db.insert(schema.documentsBuildings).values({
         name: `${docType} - ${building.name}`,
-        dateReference: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        dateReference: new Date(
+          2024,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        ),
         type: docType,
         buildingId: building.id,
         fileName: `${docType.toLowerCase().replace(/\s+/g, '_')}_${building.name.toLowerCase().replace(/\s+/g, '_')}.pdf`,
@@ -659,17 +806,26 @@ async function createDocuments(buildings: any[], residences: any[], users: any[]
     console.log(`✅ Created building documents for ${building.name}`);
   }
 
-  // Create residence documents  
-  const residenceDocTypes = ['Lease Agreement', 'Move-in Inspection', 'Maintenance Records', 'Insurance Claims'];
-  
+  // Create residence documents
+  const residenceDocTypes = [
+    'Lease Agreement',
+    'Move-in Inspection',
+    'Maintenance Records',
+    'Insurance Claims',
+  ];
+
   // Create documents for first 10 residences to avoid too much data
   for (let i = 0; i < Math.min(10, residences.length); i++) {
     const residence = residences[i];
-    
+
     for (const docType of residenceDocTypes) {
       await db.insert(schema.documentsResidents).values({
         name: `${docType} - Unit ${residence.unitNumber}`,
-        dateReference: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        dateReference: new Date(
+          2024,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        ),
         type: docType,
         residenceId: residence.id,
         fileName: `${docType.toLowerCase().replace(/\s+/g, '_')}_unit_${residence.unitNumber}.pdf`,
@@ -680,7 +836,7 @@ async function createDocuments(buildings: any[], residences: any[], users: any[]
       });
     }
   }
-  
+
   console.log('✅ Created residence documents');
 }
 
@@ -690,12 +846,12 @@ async function createDocuments(buildings: any[], residences: any[], users: any[]
  */
 async function createOpenDemoOrganization(demoOrgId: string): Promise<void> {
   console.log('Creating Open Demo organization as a copy of Demo...');
-  
+
   // Find Open Demo organization
   const openDemoOrg = await db.query.organizations.findFirst({
-    where: eq(schema.organizations.name, 'Open Demo')
+    where: eq(schema.organizations.name, 'Open Demo'),
   });
-  
+
   if (!openDemoOrg) {
     throw new Error('Open Demo organization not found');
   }

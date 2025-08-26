@@ -2,17 +2,17 @@
 
 /**
  * Production Demo Synchronization Script.
- * 
+ *
  * This script ensures that Demo and Open Demo organizations are always
  * available and properly populated in the production environment.
- * 
+ *
  * Features:
  * - Detects if Demo/Open Demo organizations exist
  * - Creates comprehensive demo data if missing
  * - Synchronizes Demo → Open Demo automatically
  * - Production-safe with proper error handling
  * - Can be run during deployment or as a scheduled task.
- * 
+ *
  * Usage: tsx scripts/production-demo-sync.ts [--force-recreate] [--check-only].
  */
 
@@ -61,11 +61,11 @@ interface DemoStatus {
  */
 async function checkDemoStatus(): Promise<DemoStatus> {
   const demoOrg = await db.query.organizations.findFirst({
-    where: eq(schema.organizations.name, 'Demo')
+    where: eq(schema.organizations.name, 'Demo'),
   });
 
   const openDemoOrg = await db.query.organizations.findFirst({
-    where: eq(schema.organizations.name, 'Open Demo')
+    where: eq(schema.organizations.name, 'Open Demo'),
   });
 
   let demoHasData = false;
@@ -73,14 +73,14 @@ async function checkDemoStatus(): Promise<DemoStatus> {
 
   if (demoOrg) {
     const demoBuildings = await db.query.buildings.findMany({
-      where: eq(schema.buildings.organizationId, demoOrg.id)
+      where: eq(schema.buildings.organizationId, demoOrg.id),
     });
     demoHasData = demoBuildings.length > 0;
   }
 
   if (openDemoOrg) {
     const openDemoBuildings = await db.query.buildings.findMany({
-      where: eq(schema.buildings.organizationId, openDemoOrg.id)
+      where: eq(schema.buildings.organizationId, openDemoOrg.id),
     });
     openDemoHasData = openDemoBuildings.length > 0;
   }
@@ -103,7 +103,9 @@ async function checkDemoStatus(): Promise<DemoStatus> {
  * @param options
  */
 function displayStatus(status: DemoStatus, options: SyncOptions): void {
-  if (options.silent) {return;}
+  if (options.silent) {
+    return;
+  }
 
   console.log('📊 Demo Organizations Status:');
   console.log(`  Demo Organization: ${status.demoExists ? '✅ Exists' : '❌ Missing'}`);
@@ -134,8 +136,10 @@ async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
 
     // Step 2: Determine required actions
     const needsFullCreation = !status.demoExists || !status.demoHasData || options.forceRecreate;
-    const needsSync = status.demoExists && status.demoHasData && 
-                     (!status.openDemoExists || !status.openDemoHasData || options.forceRecreate);
+    const needsSync =
+      status.demoExists &&
+      status.demoHasData &&
+      (!status.openDemoExists || !status.openDemoHasData || options.forceRecreate);
 
     if (!needsFullCreation && !needsSync) {
       if (!options.silent) {
@@ -150,9 +154,9 @@ async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
       if (!options.silent) {
         console.log('\n🚀 Creating comprehensive demo data...');
       }
-      
+
       await createComprehensiveDemo();
-      
+
       if (!options.silent) {
         console.log('✅ Comprehensive demo data created successfully.');
       }
@@ -163,9 +167,9 @@ async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
       if (!options.silent) {
         console.log('\n🔄 Synchronizing Demo → Open Demo...');
       }
-      
+
       await duplicateDemoToOpenDemo();
-      
+
       if (!options.silent) {
         console.log('✅ Demo → Open Demo synchronization completed.');
       }
@@ -176,9 +180,13 @@ async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
       console.log('\n📊 Final Status Verification:');
       const finalStatus = await checkDemoStatus();
       displayStatus(finalStatus, { silent: false });
-      
-      if (finalStatus.demoExists && finalStatus.demoHasData && 
-          finalStatus.openDemoExists && finalStatus.openDemoHasData) {
+
+      if (
+        finalStatus.demoExists &&
+        finalStatus.demoHasData &&
+        finalStatus.openDemoExists &&
+        finalStatus.openDemoHasData
+      ) {
         console.log('\n🎉 Production demo synchronization completed successfully!');
         console.log('   Both Demo and Open Demo organizations are ready for use.');
       } else {
@@ -186,7 +194,6 @@ async function productionDemoSync(options: SyncOptions = {}): Promise<void> {
         console.log('   Please check the status above for any issues.');
       }
     }
-
   } catch (error) {
     console.error('\n❌ Production demo synchronization failed:', error);
     throw error;
@@ -258,13 +265,17 @@ function displayUsage(): void {
 /**
  * Health check function for monitoring.
  */
-export async function healthCheck(): Promise<{ healthy: boolean; status: DemoStatus; message: string }> {
+export async function healthCheck(): Promise<{
+  healthy: boolean;
+  status: DemoStatus;
+  message: string;
+}> {
   try {
     const status = await checkDemoStatus();
-    const healthy = status.demoExists && status.demoHasData && 
-                   status.openDemoExists && status.openDemoHasData;
-    
-    const message = healthy 
+    const healthy =
+      status.demoExists && status.demoHasData && status.openDemoExists && status.openDemoHasData;
+
+    const message = healthy
       ? 'Demo organizations are healthy and properly configured'
       : 'Demo organizations need attention - missing data or organizations';
 
@@ -279,7 +290,7 @@ export async function healthCheck(): Promise<{ healthy: boolean; status: DemoSta
         openDemoHasData: false,
         lastSyncNeeded: true,
       },
-      message: `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      message: `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
     };
   }
 }
@@ -294,7 +305,7 @@ export async function quickSync(): Promise<void> {
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const options = parseArguments();
-  
+
   productionDemoSync(options)
     .then(() => {
       if (!options.silent) {

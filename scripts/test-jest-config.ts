@@ -15,7 +15,7 @@ try {
     'jest.config.js',
     'tests/setup.ts',
     'tests/polyfills.js',
-    'tests/mocks/styleMock.js'
+    'tests/mocks/styleMock.js',
   ];
 
   console.warn('📁 Checking required files...');
@@ -29,21 +29,20 @@ try {
 
   // Test Jest configuration by running a simple test
   console.warn('\n🔍 Testing Jest configuration...');
-  
+
   try {
-    const result = execSync('npx jest --showConfig', { 
-      encoding: 'utf-8', 
+    const result = execSync('npx jest --showConfig', {
+      encoding: 'utf-8',
       stdio: 'pipe',
-      timeout: 15000
+      timeout: 15000,
     });
     console.warn('   ✅ Jest configuration is valid');
-    
+
     // Extract key config information
     const config = JSON.parse(_result);
     console.warn(`   📊 Test environment: ${config.configs[0].testEnvironment}`);
     console.warn(`   📂 Root directory: ${config.configs[0].rootDir}`);
     console.warn(`   🎯 Test match patterns: ${config.configs[0].testMatch.length} patterns`);
-    
   } catch (___configError) {
     console.warn('   ❌ Jest configuration has issues:');
     console.warn(`   ${configError}`);
@@ -51,48 +50,47 @@ try {
 
   // Try running a simple test
   console.warn('\n🎭 Testing with a simple test...');
-  
+
   try {
     // Run just the language test to check if basic setup works
     const testResult = execSync('npx jest tests/unit/language.test.tsx --verbose', {
       encoding: 'utf-8',
       stdio: 'pipe',
-      timeout: 30000
+      timeout: 30000,
     });
-    
+
     console.warn('   ✅ Basic test execution works');
-    
+
     // Parse test results
     const passMatches = testResult.match(/(\d+) passing/g) || [];
     const failMatches = testResult.match(/(\d+) failing/g) || [];
-    
+
     const passed = passMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
-    
+
     const failed = failMatches.reduce((sum, _match) => {
       const num = parseInt(match.match(/\d+/)?.[0] || '0');
       return sum + num;
     }, 0);
-    
+
     console.warn(`   📊 Results: ${passed} passed, ${failed} failed`);
-    
+
     if (failed > 0) {
       console.warn('   ⚠️  Some tests failed, but Jest configuration is working');
     }
-    
   } catch (___testError) {
     console.warn('   ❌ Test execution failed:');
     console.warn(`   ${testError.toString().slice(0, 300)}...`);
-    
+
     if (testError.toString().includes('SyntaxError')) {
       console.warn('\n💡 Possible fixes for syntax errors:');
       console.warn('   • Check ES modules configuration');
       console.warn('   • Verify TypeScript compilation settings');
       console.warn('   • Review transform configuration');
     }
-    
+
     if (testError.toString().includes('Cannot find module')) {
       console.warn('\n💡 Possible fixes for module resolution:');
       console.warn('   • Check moduleNameMapper in jest.config.js');
@@ -126,7 +124,6 @@ try {
   console.warn('• ✅ Configured CSS mocking');
   console.warn('• ✅ Set up transform ignore patterns');
   console.warn('• ✅ Extended test timeout to 10 seconds');
-
 } catch (_error) {
   console.error('\n💥 Jest configuration test failed:', _error);
   process.exit(1);

@@ -1,6 +1,6 @@
 /**
  * Continuous Test Coverage Monitoring for Koveo Gestion.
- * 
+ *
  * Provides real-time monitoring of test coverage, effectiveness tracking,
  * and automated alerts for Quebec property management compliance.
  */
@@ -84,19 +84,19 @@ class CoverageMonitoringService {
     this.projectRoot = process.cwd();
     this.dataDir = join(this.projectRoot, 'coverage', 'monitoring');
     this.validator = new TestQualityValidator();
-    
+
     this.config = {
       coverageThresholds: {
         critical: 80,
         warning: 90,
-        target: 95
+        target: 95,
       },
       quebecComplianceThreshold: 90,
       performanceThreshold: 80,
       qualityThreshold: 85,
       monitoringInterval: 300000, // 5 minutes
       alertRetention: 7 * 24 * 60 * 60 * 1000, // 7 days
-      reportFrequency: 24 * 60 * 60 * 1000 // 24 hours
+      reportFrequency: 24 * 60 * 60 * 1000, // 24 hours
     };
 
     this.ensureDataDirectory();
@@ -113,7 +113,7 @@ class CoverageMonitoringService {
 
     console.warn('🚀 Starting continuous coverage monitoring for Koveo Gestion...');
     console.warn('🇨🇦 Including Quebec property management compliance tracking\n');
-    
+
     this.isMonitoring = true;
 
     // Initial baseline collection
@@ -127,7 +127,9 @@ class CoverageMonitoringService {
 
     console.warn('✅ Coverage monitoring started successfully');
     console.warn(`📊 Collecting metrics every ${this.config.monitoringInterval / 1000} seconds`);
-    console.warn(`📧 Daily reports generated every ${this.config.reportFrequency / (60 * 60 * 1000)} hours\n`);
+    console.warn(
+      `📧 Daily reports generated every ${this.config.reportFrequency / (60 * 60 * 1000)} hours\n`
+    );
   }
 
   /**
@@ -143,12 +145,12 @@ class CoverageMonitoringService {
    */
   private async collectBaseline(): Promise<void> {
     console.warn('📋 Collecting baseline metrics...');
-    
+
     try {
       const metrics = await this.collectCurrentMetrics();
       const baselinePath = join(this.dataDir, 'baseline.json');
       writeFileSync(baselinePath, JSON.stringify(metrics, null, 2));
-      
+
       console.warn('✅ Baseline metrics collected and saved');
     } catch (_error) {
       console.error('❌ Failed to collect baseline:', _error);
@@ -162,35 +164,34 @@ class CoverageMonitoringService {
     while (this.isMonitoring) {
       try {
         console.warn(`🔍 [${new Date().toLocaleTimeString()}] Collecting metrics...`);
-        
+
         // Collect current metrics
         const metrics = await this.collectCurrentMetrics();
-        
+
         // Analyze trends and detect issues
         const alerts = await this.analyzeMetricsAndGenerateAlerts(metrics);
         metrics.alerts = alerts;
-        
+
         // Save metrics
         await this.saveMetrics(metrics);
-        
+
         // Process alerts
         if (alerts.length > 0) {
           await this.processAlerts(alerts);
         }
-        
+
         // Clean up old data
         await this.cleanupOldData();
-        
+
         console.warn(`✅ [${new Date().toLocaleTimeString()}] Metrics collected successfully`);
-        
+
         if (alerts.length > 0) {
           console.warn(`⚠️  ${alerts.length} alerts generated`);
         }
-        
       } catch (_error) {
         console.error(`❌ [${new Date().toLocaleTimeString()}] Monitoring _error:`, _error);
       }
-      
+
       // Wait for next collection interval
       await this.sleep(this.config.monitoringInterval);
     }
@@ -202,16 +203,21 @@ class CoverageMonitoringService {
   private async collectCurrentMetrics(): Promise<MonitoringMetrics> {
     // Run comprehensive coverage analysis
     const coverageData = await coverageAutomation.runComprehensiveCoverage();
-    
+
     // Run quality validation
     const qualityReport = await this.validator.validateTestQuality();
-    
+
     // Calculate trends
     const trends = await this.calculateTrends(coverageData, qualityReport);
-    
+
     const aggregateCoverage = coverageData.coverageData.aggregate;
-    const overallCoverage = aggregateCoverage ? 
-      (aggregateCoverage.statements + aggregateCoverage.branches + aggregateCoverage.functions + aggregateCoverage.lines) / 4 : 0;
+    const overallCoverage = aggregateCoverage
+      ? (aggregateCoverage.statements +
+          aggregateCoverage.branches +
+          aggregateCoverage.functions +
+          aggregateCoverage.lines) /
+        4
+      : 0;
 
     const metrics: MonitoringMetrics = {
       timestamp: new Date().toISOString(),
@@ -220,16 +226,16 @@ class CoverageMonitoringService {
         branches: aggregateCoverage?.branches || 0,
         functions: aggregateCoverage?.functions || 0,
         lines: aggregateCoverage?.lines || 0,
-        overall: Math.round(overallCoverage * 100) / 100
+        overall: Math.round(overallCoverage * 100) / 100,
       },
       quality: {
         testQuality: qualityReport.testQuality || 0,
         quebecCompliance: qualityReport.quebecCompliance || 0,
         performance: qualityReport.performance || 0,
-        accessibility: qualityReport.accessibility || 0
+        accessibility: qualityReport.accessibility || 0,
       },
       trends,
-      alerts: []
+      alerts: [],
     };
 
     return metrics;
@@ -239,7 +245,9 @@ class CoverageMonitoringService {
    * Analyzes metrics and generates alerts for issues.
    * @param metrics
    */
-  private async analyzeMetricsAndGenerateAlerts(metrics: MonitoringMetrics): Promise<CoverageAlert[]> {
+  private async analyzeMetricsAndGenerateAlerts(
+    metrics: MonitoringMetrics
+  ): Promise<CoverageAlert[]> {
     const alerts: CoverageAlert[] = [];
 
     // Coverage threshold alerts
@@ -250,7 +258,7 @@ class CoverageMonitoringService {
         message: `Test coverage critically low: ${metrics.coverage.overall.toFixed(1)}%`,
         details: { coverage: metrics.coverage },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     } else if (metrics.coverage.overall < this.config.coverageThresholds.warning) {
       alerts.push({
@@ -259,7 +267,7 @@ class CoverageMonitoringService {
         message: `Test coverage below warning threshold: ${metrics.coverage.overall.toFixed(1)}%`,
         details: { coverage: metrics.coverage },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -271,7 +279,7 @@ class CoverageMonitoringService {
         message: `Quebec compliance tests below threshold: ${metrics.quality.quebecCompliance.toFixed(1)}%`,
         details: { quebecCompliance: metrics.quality.quebecCompliance },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -283,7 +291,7 @@ class CoverageMonitoringService {
         message: `Test performance below threshold: ${metrics.quality.performance.toFixed(1)}%`,
         details: { performance: metrics.quality.performance },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -295,7 +303,7 @@ class CoverageMonitoringService {
         message: `Test quality below threshold: ${metrics.quality.testQuality.toFixed(1)}%`,
         details: { testQuality: metrics.quality.testQuality },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -307,7 +315,7 @@ class CoverageMonitoringService {
         message: `Significant coverage drop detected: ${metrics.trends.coverageChange.toFixed(1)}%`,
         details: { trend: metrics.trends.coverageChange },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -318,7 +326,7 @@ class CoverageMonitoringService {
         message: `Quebec compliance declining rapidly: ${metrics.trends.quebecComplianceChange.toFixed(1)}%`,
         details: { trend: metrics.trends.quebecComplianceChange },
         timestamp: new Date().toISOString(),
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -333,7 +341,7 @@ class CoverageMonitoringService {
   private async calculateTrends(coverageData: unknown, qualityReport: unknown): Promise<any> {
     const historicalPath = join(this.dataDir, 'historical.json');
     let historical = [];
-    
+
     if (existsSync(historicalPath)) {
       historical = JSON.parse(readFileSync(historicalPath, 'utf8'));
     }
@@ -342,19 +350,25 @@ class CoverageMonitoringService {
       return {
         coverageChange: 0,
         qualityChange: 0,
-        quebecComplianceChange: 0
+        quebecComplianceChange: 0,
       };
     }
 
     const latest = historical[historical.length - 1];
     const aggregateCoverage = coverageData.coverageData.aggregate;
-    const currentCoverage = aggregateCoverage ? 
-      (aggregateCoverage.statements + aggregateCoverage.branches + aggregateCoverage.functions + aggregateCoverage.lines) / 4 : 0;
+    const currentCoverage = aggregateCoverage
+      ? (aggregateCoverage.statements +
+          aggregateCoverage.branches +
+          aggregateCoverage.functions +
+          aggregateCoverage.lines) /
+        4
+      : 0;
 
     return {
       coverageChange: currentCoverage - (latest.coverage?.overall || 0),
       qualityChange: (qualityReport.testQuality || 0) - (latest.quality?.testQuality || 0),
-      quebecComplianceChange: (qualityReport.quebecCompliance || 0) - (latest.quality?.quebecCompliance || 0)
+      quebecComplianceChange:
+        (qualityReport.quebecCompliance || 0) - (latest.quality?.quebecCompliance || 0),
     };
   }
 
@@ -369,14 +383,14 @@ class CoverageMonitoringService {
         low: '💙',
         medium: '🟡',
         high: '🟠',
-        critical: '🔴'
+        critical: '🔴',
       }[alert.severity];
-      
+
       console.warn(`${severityIcon} [${alert.type.toUpperCase()}] ${alert.message}`);
-      
+
       // Save alert to file
       await this.saveAlert(alert);
-      
+
       // Send notifications for critical alerts
       if (alert.severity === 'critical') {
         await this.sendCriticalAlert(alert);
@@ -391,11 +405,11 @@ class CoverageMonitoringService {
   private async saveAlert(alert: CoverageAlert): Promise<void> {
     const alertsPath = join(this.dataDir, 'alerts.json');
     let alerts = [];
-    
+
     if (existsSync(alertsPath)) {
       alerts = JSON.parse(readFileSync(alertsPath, 'utf8'));
     }
-    
+
     alerts.push(alert);
     writeFileSync(alertsPath, JSON.stringify(alerts, null, 2));
   }
@@ -409,7 +423,7 @@ class CoverageMonitoringService {
     console.warn('📧 Notification would be sent to development team');
     console.warn(`   Alert: ${alert.message}`);
     console.warn(`   Time: ${alert.timestamp}`);
-    
+
     // In a real implementation, this would send emails, Slack messages, etc.
   }
 
@@ -421,20 +435,20 @@ class CoverageMonitoringService {
     // Save to historical data
     const historicalPath = join(this.dataDir, 'historical.json');
     let historical = [];
-    
+
     if (existsSync(historicalPath)) {
       historical = JSON.parse(readFileSync(historicalPath, 'utf8'));
     }
-    
+
     historical.push(metrics);
-    
+
     // Keep only last 100 data points
     if (historical.length > 100) {
       historical = historical.slice(-100);
     }
-    
+
     writeFileSync(historicalPath, JSON.stringify(historical, null, 2));
-    
+
     // Save current metrics
     const currentPath = join(this.dataDir, 'current.json');
     writeFileSync(currentPath, JSON.stringify(metrics, null, 2));
@@ -456,33 +470,35 @@ class CoverageMonitoringService {
    */
   private async generateDailyReport(): Promise<void> {
     console.warn('📊 Generating daily coverage report...');
-    
+
     try {
       const historicalPath = join(this.dataDir, 'historical.json');
       if (!existsSync(historicalPath)) {
         console.warn('⚠️  No historical data available for report');
         return;
       }
-      
+
       const historical = JSON.parse(readFileSync(historicalPath, 'utf8'));
       const last24Hours = historical.filter((metric: unknown) => {
         const metricTime = new Date(metric.timestamp).getTime();
         const now = Date.now();
         return now - metricTime <= 24 * 60 * 60 * 1000;
       });
-      
+
       if (last24Hours.length === 0) {
         console.warn('⚠️  No data from last 24 hours');
         return;
       }
-      
+
       const report = this.generateReportSummary(last24Hours);
-      const reportPath = join(this.dataDir, `daily-report-${new Date().toISOString().split('T')[0]}.html`);
-      
+      const reportPath = join(
+        this.dataDir,
+        `daily-report-${new Date().toISOString().split('T')[0]}.html`
+      );
+
       writeFileSync(reportPath, this.generateDailyReportHTML(report));
-      
+
       console.warn(`✅ Daily report generated: ${reportPath}`);
-      
     } catch (_error) {
       console.error('❌ Failed to generate daily report:', _error);
     }
@@ -494,25 +510,27 @@ class CoverageMonitoringService {
    * @param _data
    */
   private generateReportSummary(_data: MonitoringMetrics[]): any {
-    if (data.length === 0) {return {};}
-    
+    if (data.length === 0) {
+      return {};
+    }
+
     const latest = data[data.length - 1];
     const oldest = data[0];
-    
+
     return {
       period: {
         start: oldest.timestamp,
         end: latest.timestamp,
-        dataPoints: data.length
+        dataPoints: data.length,
       },
       current: latest,
       trends: {
         coverage: latest.coverage.overall - oldest.coverage.overall,
         quality: latest.quality.testQuality - oldest.quality.testQuality,
-        quebecCompliance: latest.quality.quebecCompliance - oldest.quality.quebecCompliance
+        quebecCompliance: latest.quality.quebecCompliance - oldest.quality.quebecCompliance,
       },
       alerts: data.reduce((acc, metric) => acc + metric.alerts.length, 0),
-      avgCoverage: data.reduce((acc, metric) => acc + metric.coverage.overall, 0) / data.length
+      avgCoverage: data.reduce((acc, metric) => acc + metric.coverage.overall, 0) / data.length,
     };
   }
 
@@ -589,13 +607,13 @@ class CoverageMonitoringService {
    */
   private async cleanupOldData(): Promise<void> {
     const cutoffTime = Date.now() - this.config.alertRetention;
-    
+
     // Clean up old alerts
     const alertsPath = join(this.dataDir, 'alerts.json');
     if (existsSync(alertsPath)) {
       const alerts = JSON.parse(readFileSync(alertsPath, 'utf8'));
-      const recentAlerts = alerts.filter((alert: CoverageAlert) => 
-        new Date(alert.timestamp).getTime() > cutoffTime
+      const recentAlerts = alerts.filter(
+        (alert: CoverageAlert) => new Date(alert.timestamp).getTime() > cutoffTime
       );
       writeFileSync(alertsPath, JSON.stringify(recentAlerts, null, 2));
     }
@@ -615,7 +633,7 @@ class CoverageMonitoringService {
    * @param ms
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -626,17 +644,17 @@ class CoverageMonitoringService {
     if (!existsSync(currentPath)) {
       return { status: 'not_initialized' };
     }
-    
+
     const current = JSON.parse(readFileSync(currentPath, 'utf8'));
     const alertsPath = join(this.dataDir, 'alerts.json');
     const alerts = existsSync(alertsPath) ? JSON.parse(readFileSync(alertsPath, 'utf8')) : [];
-    
+
     return {
       status: this.isMonitoring ? 'running' : 'stopped',
       lastUpdate: current.timestamp,
       metrics: current,
       activeAlerts: alerts.filter((alert: CoverageAlert) => !alert.resolved).length,
-      totalAlerts: alerts.length
+      totalAlerts: alerts.length,
     };
   }
 }
@@ -647,14 +665,14 @@ export const coverageMonitor = new CoverageMonitoringService();
 // Run monitoring if script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
-  
+
   if (command === 'start') {
     coverageMonitor.startMonitoring().catch(console._error);
   } else if (command === 'stop') {
     coverageMonitor.stopMonitoring();
     process.exit(0);
   } else if (command === 'status') {
-    coverageMonitor.getMonitoringStatus().then(status => {
+    coverageMonitor.getMonitoringStatus().then((status) => {
       console.warn('📊 Monitoring Status:', JSON.stringify(status, null, 2));
       process.exit(0);
     });

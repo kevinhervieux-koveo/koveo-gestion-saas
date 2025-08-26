@@ -14,7 +14,7 @@ import * as schema from '../shared/schema';
  */
 async function updateSchema() {
   console.warn('🔄 Updating database schema...');
-  
+
   const sql = neon(process.env.DATABASE_URL!);
   const db = drizzle(sql, { schema });
 

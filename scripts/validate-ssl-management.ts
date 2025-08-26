@@ -2,10 +2,10 @@
 
 /**
  * SSL Management System Validation Script.
- * 
+ *
  * This script validates that all SSL Management components are working correctly:
  * - SSL Service initialization
- * - SSL Renewal Job configuration  
+ * - SSL Renewal Job configuration
  * - Notification Service functionality
  * - Database schema integrity
  * - API endpoint availability.
@@ -40,7 +40,12 @@ class SSLManagementValidator {
    * @param message
    * @param details
    */
-  private addResult(component: string, status: 'PASS' | 'FAIL' | 'WARNING', message: string, details?: unknown) {
+  private addResult(
+    component: string,
+    status: 'PASS' | 'FAIL' | 'WARNING',
+    message: string,
+    details?: unknown
+  ) {
     this.results.push({ component, status, message, details });
   }
 
@@ -50,7 +55,7 @@ class SSLManagementValidator {
   async validateSSLRenewalJob(): Promise<void> {
     try {
       const jobStatus = sslRenewalJob.getStatus();
-      
+
       // Check job configuration
       if (!jobStatus.config) {
         this.addResult('SSL Renewal Job', 'FAIL', 'Job configuration missing');
@@ -85,12 +90,13 @@ class SSLManagementValidator {
           schedule: jobStatus.schedule,
           renewalThreshold: `${config.renewalThresholdDays} days`,
           notificationThreshold: `${config.expiryNotificationThresholdDays} days`,
-          maxRetries: config.maxRetryAttempts
+          maxRetries: config.maxRetryAttempts,
         });
       }
-
     } catch (_error) {
-      this.addResult('SSL Renewal Job', 'FAIL', 'Failed to get job status', { _error: String(_error) });
+      this.addResult('SSL Renewal Job', 'FAIL', 'Failed to get job status', {
+        _error: String(_error),
+      });
     }
   }
 
@@ -104,25 +110,33 @@ class SSLManagementValidator {
       this.addResult('Database - SSL Certificates', 'PASS', 'SSL certificates table accessible');
 
       // Test notifications table with SSL type
-      await db.select().from(notifications)
+      await db
+        .select()
+        .from(notifications)
         .where(eq(notifications.type, 'ssl_certificate'))
         .limit(1);
-      this.addResult('Database - Notifications', 'PASS', 'Notifications table with SSL type accessible');
+      this.addResult(
+        'Database - Notifications',
+        'PASS',
+        'Notifications table with SSL type accessible'
+      );
 
       // Test users table for admin/owner roles
-      const adminUsers = await db.select()
-        .from(users)
-        .where(eq(users.role, 'admin'))
-        .limit(1);
+      const adminUsers = await db.select().from(users).where(eq(users.role, 'admin')).limit(1);
 
       if (adminUsers.length === 0) {
-        this.addResult('Database - Admin Users', 'WARNING', 'No admin users found for SSL notifications');
+        this.addResult(
+          'Database - Admin Users',
+          'WARNING',
+          'No admin users found for SSL notifications'
+        );
       } else {
         this.addResult('Database - Admin Users', 'PASS', 'Admin users available for notifications');
       }
-
     } catch (_error) {
-      this.addResult('Database', 'FAIL', 'Database connectivity or schema issues', { _error: String(_error) });
+      this.addResult('Database', 'FAIL', 'Database connectivity or schema issues', {
+        _error: String(_error),
+      });
     }
   }
 
@@ -138,27 +152,44 @@ class SSLManagementValidator {
       }
 
       if (typeof notificationService.sendSSLRenewalFailureAlert !== 'function') {
-        this.addResult('Notification Service', 'FAIL', 'SSL renewal failure alert method not available');
+        this.addResult(
+          'Notification Service',
+          'FAIL',
+          'SSL renewal failure alert method not available'
+        );
         return;
       }
 
       if (typeof notificationService.sendSSLRenewalSuccessAlert !== 'function') {
-        this.addResult('Notification Service', 'FAIL', 'SSL renewal success alert method not available');
+        this.addResult(
+          'Notification Service',
+          'FAIL',
+          'SSL renewal success alert method not available'
+        );
         return;
       }
 
       // Test notification count method
       const testUserId = '00000000-0000-0000-0000-000000000000';
       const count = await notificationService.getUnreadSSLNotificationCount(testUserId);
-      
-      if (typeof count === 'number') {
-        this.addResult('Notification Service', 'PASS', 'All notification methods available and functional');
-      } else {
-        this.addResult('Notification Service', 'FAIL', 'Notification count method returned invalid type');
-      }
 
+      if (typeof count === 'number') {
+        this.addResult(
+          'Notification Service',
+          'PASS',
+          'All notification methods available and functional'
+        );
+      } else {
+        this.addResult(
+          'Notification Service',
+          'FAIL',
+          'Notification count method returned invalid type'
+        );
+      }
     } catch (_error) {
-      this.addResult('Notification Service', 'FAIL', 'Notification service validation failed', { _error: String(_error) });
+      this.addResult('Notification Service', 'FAIL', 'Notification service validation failed', {
+        _error: String(_error),
+      });
     }
   }
 
@@ -167,17 +198,17 @@ class SSLManagementValidator {
    */
   validateEnvironmentConfig(): void {
     const requiredEnvVars = {
-      'DATABASE_URL': 'Database connection string',
-      'SSL_NOTIFICATION_EMAIL': 'Email for SSL notifications',
+      DATABASE_URL: 'Database connection string',
+      SSL_NOTIFICATION_EMAIL: 'Email for SSL notifications',
     };
 
     const optionalEnvVars = {
-      'SSL_RENEWAL_ENABLED': 'Enable/disable SSL renewal job',
-      'SSL_RENEWAL_SCHEDULE': 'Cron schedule for renewal job',
-      'SSL_RENEWAL_THRESHOLD_DAYS': 'Days before expiry to attempt renewal',
-      'SSL_EXPIRY_NOTIFICATIONS_ENABLED': 'Enable expiry notifications',
-      'SSL_EXPIRY_NOTIFICATION_THRESHOLD_DAYS': 'Days before expiry to send notifications',
-      'SSL_MAX_RETRY_ATTEMPTS': 'Maximum renewal retry attempts'
+      SSL_RENEWAL_ENABLED: 'Enable/disable SSL renewal job',
+      SSL_RENEWAL_SCHEDULE: 'Cron schedule for renewal job',
+      SSL_RENEWAL_THRESHOLD_DAYS: 'Days before expiry to attempt renewal',
+      SSL_EXPIRY_NOTIFICATIONS_ENABLED: 'Enable expiry notifications',
+      SSL_EXPIRY_NOTIFICATION_THRESHOLD_DAYS: 'Days before expiry to send notifications',
+      SSL_MAX_RETRY_ATTEMPTS: 'Maximum renewal retry attempts',
     };
 
     // Check required variables
@@ -189,7 +220,9 @@ class SSLManagementValidator {
     });
 
     if (missingRequired.length > 0) {
-      this.addResult('Environment Config', 'FAIL', 'Missing required environment variables', { missing: missingRequired });
+      this.addResult('Environment Config', 'FAIL', 'Missing required environment variables', {
+        missing: missingRequired,
+      });
     } else {
       this.addResult('Environment Config', 'PASS', 'Required environment variables present');
     }
@@ -203,7 +236,12 @@ class SSLManagementValidator {
     });
 
     if (missingOptional.length > 0) {
-      this.addResult('Environment Config', 'WARNING', 'Optional environment variables not set (using defaults)', { missing: missingOptional });
+      this.addResult(
+        'Environment Config',
+        'WARNING',
+        'Optional environment variables not set (using defaults)',
+        { missing: missingOptional }
+      );
     }
   }
 
@@ -219,24 +257,37 @@ class SSLManagementValidator {
       const validCert = {
         certificate: '',
         privateKey: '',
-        issuer: 'Let\'s Encrypt',
+        issuer: "Let's Encrypt",
         subject: 'CN=test.com',
         validFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         validTo: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
         serialNumber: '123456',
-        fingerprint: 'AA:BB:CC'
+        fingerprint: 'AA:BB:CC',
       };
 
       const status = getCertificateStatus(validCert);
-      
-      if (status.isValid && status.daysUntilExpiry > 30) {
-        this.addResult('Certificate Status Logic', 'PASS', 'Certificate status calculation working correctly');
-      } else {
-        this.addResult('Certificate Status Logic', 'FAIL', 'Certificate status calculation incorrect', { status });
-      }
 
+      if (status.isValid && status.daysUntilExpiry > 30) {
+        this.addResult(
+          'Certificate Status Logic',
+          'PASS',
+          'Certificate status calculation working correctly'
+        );
+      } else {
+        this.addResult(
+          'Certificate Status Logic',
+          'FAIL',
+          'Certificate status calculation incorrect',
+          { status }
+        );
+      }
     } catch (_error) {
-      this.addResult('Certificate Status Logic', 'FAIL', 'Cannot validate certificate status logic', { _error: String(_error) });
+      this.addResult(
+        'Certificate Status Logic',
+        'FAIL',
+        'Cannot validate certificate status logic',
+        { _error: String(_error) }
+      );
     }
   }
 
@@ -269,18 +320,25 @@ class SSLManagementValidator {
     let warningCount = 0;
     let failCount = 0;
 
-    this.results.forEach(result => {
-      const statusIcon = result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
+    this.results.forEach((result) => {
+      const statusIcon =
+        result.status === 'PASS' ? '✅' : result.status === 'WARNING' ? '⚠️' : '❌';
       console.warn(`\n${statusIcon} ${result.component}: ${result.status}`);
       console.warn(`   ${result.message}`);
-      
+
       if (result.details) {
-        console.warn(`   Details: ${JSON.stringify(result.details, null, 4).replace(/^/gm, '   ')}`);
+        console.warn(
+          `   Details: ${JSON.stringify(result.details, null, 4).replace(/^/gm, '   ')}`
+        );
       }
 
-      if (result.status === 'PASS') {passCount++;}
-      else if (result.status === 'WARNING') {warningCount++;}
-      else {failCount++;}
+      if (result.status === 'PASS') {
+        passCount++;
+      } else if (result.status === 'WARNING') {
+        warningCount++;
+      } else {
+        failCount++;
+      }
     });
 
     console.warn('\n' + '='.repeat(80));
@@ -316,7 +374,7 @@ class SSLManagementValidator {
 // Run validation if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new SSLManagementValidator();
-  validator.runAllValidations().catch(error => {
+  validator.runAllValidations().catch((error) => {
     console.error('❌ Validation script failed:', _error);
     process.exit(1);
   });

@@ -2,10 +2,10 @@
 
 /**
  * Deployment Hooks Script.
- * 
+ *
  * This script runs deployment-specific tasks including Demo organization sync.
  * Should be executed during the deployment process.
- * 
+ *
  * Usage: tsx scripts/deployment-hooks.ts.
  */
 
@@ -32,8 +32,12 @@ function runCommand(command: string, description: string): void {
     console.warn(`✅ ${description} completed`);
   } catch (_error: unknown) {
     console.error(`❌ ${description} failed:`, _error);
-    if ((_error as any).stdout) {console.warn('STDOUT:', (_error as any).stdout);}
-    if ((_error as any).stderr) {console.warn('STDERR:', (_error as any).stderr);}
+    if ((_error as any).stdout) {
+      console.warn('STDOUT:', (_error as any).stdout);
+    }
+    if ((_error as any).stderr) {
+      console.warn('STDERR:', (_error as any).stderr);
+    }
     throw _error;
   }
 }
@@ -55,22 +59,30 @@ async function runDeploymentHooks(): Promise<void> {
     // 2. Check if we need to sync Demo organization
     if (process.env.SYNC_DEMO_ON_DEPLOY === 'true') {
       console.warn('\n📋 Demo organization sync enabled');
-      
+
       if (process.env.NODE_ENV === 'production') {
         // In production, import from file
         runCommand('tsx scripts/import-demo-organization.ts', 'Importing Demo organization data');
       } else {
         // In development/staging, sync to production if configured
-        runCommand('tsx scripts/sync-demo-organization.ts', 'Syncing Demo organization to production');
+        runCommand(
+          'tsx scripts/sync-demo-organization.ts',
+          'Syncing Demo organization to production'
+        );
       }
     } else {
-      console.warn('\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)');
+      console.warn(
+        '\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)'
+      );
     }
 
     // 3. Sync features table to production
     console.warn('\n📊 Features sync to production');
     try {
-      runCommand('tsx scripts/sync-features-to-production.ts', 'Syncing features table to production');
+      runCommand(
+        'tsx scripts/sync-features-to-production.ts',
+        'Syncing features table to production'
+      );
     } catch (syncError) {
       console.warn('⚠️  Features sync failed but deployment continues:', syncError);
     }
@@ -82,11 +94,13 @@ async function runDeploymentHooks(): Promise<void> {
         console.warn('⚠️  Invalid PORT value, using default 8080');
         port = 8080;
       }
-      runCommand(`curl -f http://localhost:${port}/health || echo "Warmup skipped - server not ready"`, 'Warming up application');
+      runCommand(
+        `curl -f http://localhost:${port}/health || echo "Warmup skipped - server not ready"`,
+        'Warming up application'
+      );
     }
 
     console.warn('\n✅ All deployment hooks completed successfully!');
-
   } catch (_error) {
     console.error('\n❌ Deployment hooks failed:', _error);
     process.exit(1);

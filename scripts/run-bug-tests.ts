@@ -14,7 +14,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 /**
@@ -35,12 +35,12 @@ function runCommand(command: string, description: string): boolean {
   try {
     log(`\n${colors.blue}${colors.bold}${description}${colors.reset}`);
     log(`Running: ${command}`);
-    
-    execSync(command, { 
+
+    execSync(command, {
       stdio: 'inherit',
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
-    
+
     log(`${colors.green}✅ ${description} completed successfully${colors.reset}`);
     return true;
   } catch (error) {
@@ -60,27 +60,29 @@ async function main() {
   const testResults = {
     passed: 0,
     failed: 0,
-    total: 0
+    total: 0,
   };
 
   // Test configuration
   const tests = [
     {
       command: 'npm run test -- tests/unit/bugs-frontend.test.tsx --verbose',
-      description: '🎨 Frontend UI Tests - Bug Reporting Page'
+      description: '🎨 Frontend UI Tests - Bug Reporting Page',
     },
     {
       command: 'npm run test -- tests/integration/bugs-api.test.ts --verbose',
-      description: '🔌 API Integration Tests - Bug CRUD Operations'
+      description: '🔌 API Integration Tests - Bug CRUD Operations',
     },
     {
-      command: 'npm run test -- tests/integration/page-language-validation.test.tsx --testNamePattern="Bug Reports.*language" --verbose',
-      description: '🇫🇷 Language Validation - Bug Reports Page'
+      command:
+        'npm run test -- tests/integration/page-language-validation.test.tsx --testNamePattern="Bug Reports.*language" --verbose',
+      description: '🇫🇷 Language Validation - Bug Reports Page',
     },
     {
-      command: 'npm run test -- tests/integration/page-language-validation.test.tsx --testNamePattern="Settings.*language" --verbose',
-      description: '🇫🇷 Language Validation - Settings Page'
-    }
+      command:
+        'npm run test -- tests/integration/page-language-validation.test.tsx --testNamePattern="Settings.*language" --verbose',
+      description: '🇫🇷 Language Validation - Settings Page',
+    },
   ];
 
   log(`\n${colors.yellow}Running ${tests.length} test suites...${colors.reset}\n`);
@@ -88,7 +90,7 @@ async function main() {
   // Run each test suite
   for (const test of tests) {
     testResults.total++;
-    
+
     const success = runCommand(test.command, test.description);
     if (success) {
       testResults.passed++;
@@ -101,14 +103,16 @@ async function main() {
   log('\n' + '='.repeat(50));
   log(`${colors.bold}📊 Test Results Summary${colors.reset}`);
   log('='.repeat(50));
-  
+
   log(`Total test suites: ${testResults.total}`);
   log(`${colors.green}Passed: ${testResults.passed}${colors.reset}`);
   log(`${colors.red}Failed: ${testResults.failed}${colors.reset}`);
 
   if (testResults.failed === 0) {
     log(`\n${colors.green}${colors.bold}🎉 All bug reporting tests passed!${colors.reset}`);
-    log(`${colors.green}The bug reporting system is fully functional and well-tested.${colors.reset}`);
+    log(
+      `${colors.green}The bug reporting system is fully functional and well-tested.${colors.reset}`
+    );
   } else {
     log(`\n${colors.red}${colors.bold}❌ Some tests failed.${colors.reset}`);
     log(`${colors.yellow}Please review the failed tests above and fix any issues.${colors.reset}`);

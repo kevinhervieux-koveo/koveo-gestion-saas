@@ -2,16 +2,16 @@
 
 /**
  * Demo to Open Demo Duplication Script.
- * 
- * This script duplicates the complete Demo organization to create an 
+ *
+ * This script duplicates the complete Demo organization to create an
  * identical Open Demo organization for read-only demonstration purposes.
- * 
+ *
  * Features:
  * - Complete data duplication (all tables and relationships)
  * - User email domain changes (@demo.com → @opendemo.com)
  * - Preserves all data relationships
  * - Safe cleanup of existing Open Demo data.
- * 
+ *
  * Usage: tsx scripts/duplicate-demo-to-open-demo.ts.
  */
 
@@ -44,7 +44,7 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
     // Step 1: Verify Demo organization exists
     console.log('📍 Verifying Demo organization exists...');
     const demoOrg = await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, 'Demo')
+      where: eq(schema.organizations.name, 'Demo'),
     });
 
     if (!demoOrg) {
@@ -59,7 +59,7 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
     // Step 2: Verify Open Demo organization exists
     console.log('\n📍 Verifying Open Demo organization exists...');
     const openDemoOrg = await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, 'Open Demo')
+      where: eq(schema.organizations.name, 'Open Demo'),
     });
 
     if (!openDemoOrg) {
@@ -73,13 +73,13 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
 
     // Step 3: Check Demo organization data
     console.log('\n📊 Analyzing Demo organization data...');
-    
+
     const demoBuildings = await db.query.buildings.findMany({
-      where: eq(schema.buildings.organizationId, demoOrg.id)
+      where: eq(schema.buildings.organizationId, demoOrg.id),
     });
-    
+
     const demoUsers = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, demoOrg.id)
+      where: eq(schema.userOrganizations.organizationId, demoOrg.id),
     });
 
     console.log(`  • Buildings: ${demoBuildings.length}`);
@@ -103,13 +103,13 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
 
     // Step 5: Verify duplication results
     console.log('\n📊 Verifying duplication results...');
-    
+
     const openDemoBuildings = await db.query.buildings.findMany({
-      where: eq(schema.buildings.organizationId, openDemoOrg.id)
+      where: eq(schema.buildings.organizationId, openDemoOrg.id),
     });
-    
+
     const openDemoUsers = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, openDemoOrg.id)
+      where: eq(schema.userOrganizations.organizationId, openDemoOrg.id),
     });
 
     console.log(`  • Open Demo Buildings: ${openDemoBuildings.length}`);
@@ -124,11 +124,10 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
     console.log(`  ✅ Users duplicated: ${demoUsers.length} → ${openDemoUsers.length}`);
     console.log(`  ✅ All data relationships preserved`);
     console.log(`  ✅ User email domains changed: @demo.com → @opendemo.com`);
-    
+
     console.log('\n🎯 Open Demo organization is now ready for use!');
     console.log('   The Open Demo provides a read-only demonstration environment');
     console.log('   with identical data to the Demo organization.');
-
   } catch (error) {
     console.error('\n❌ Duplication failed:', error);
     throw error;

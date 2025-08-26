@@ -2,7 +2,7 @@
 
 /**
  * Automatic Features Table Sync to Production.
- * 
+ *
  * This script synchronizes the features table from development to production
  * during deployments. It ensures the production roadmap reflects the latest
  * feature status and completion data.
@@ -45,7 +45,7 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
     success: false,
     message: '',
     stats: { total: 0, synced: 0, skipped: 0, errors: 0 },
-    details: []
+    details: [],
   };
 
   try {
@@ -83,7 +83,7 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
               .set({
                 ...feature,
                 syncedAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
               })
               .where(eq(features.id, feature.id));
 
@@ -93,7 +93,7 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
             await prodDb.insert(features).values({
               ...feature,
               syncedAt: new Date(),
-              updatedAt: new Date()
+              updatedAt: new Date(),
             });
 
             result.details?.push(`➕ Added new feature: ${feature.name}`);
@@ -102,7 +102,6 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
 
         result.stats.synced++;
         console.log(`✅ ${config.dryRun ? '[DRY RUN] ' : ''}Synced: ${feature.name}`);
-
       } catch (error) {
         result.stats.errors++;
         const errorMsg = `❌ Failed to sync feature ${feature.name}: ${error}`;
@@ -121,13 +120,12 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
     }
 
     result.success = result.stats.errors === 0;
-    result.message = result.success 
+    result.message = result.success
       ? `Successfully synced ${result.stats.synced} features to production`
       : `Sync completed with ${result.stats.errors} errors`;
 
     console.log(`🏁 Sync complete: ${result.message}`);
     return result;
-
   } catch (error) {
     result.success = false;
     result.message = `Sync failed: ${error}`;
@@ -142,7 +140,7 @@ async function syncFeaturesToProduction(config: FeatureSyncConfig): Promise<Sync
 async function main() {
   const isDryRun = process.argv.includes('--dry-run');
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   if (!process.env.DATABASE_URL) {
     console.error('❌ DATABASE_URL environment variable is required');
     process.exit(1);
@@ -153,7 +151,7 @@ async function main() {
   const config: FeatureSyncConfig = {
     developmentDatabaseUrl: process.env.DATABASE_URL,
     productionDatabaseUrl: process.env.PRODUCTION_DATABASE_URL || process.env.DATABASE_URL,
-    dryRun: isDryRun
+    dryRun: isDryRun,
   };
 
   console.log('🚀 Features Sync to Production');
@@ -175,7 +173,7 @@ async function main() {
 
   if (result.details && result.details.length > 0) {
     console.log('\n📋 Details:');
-    result.details.forEach(detail => console.log(`   ${detail}`));
+    result.details.forEach((detail) => console.log(`   ${detail}`));
   }
 
   // Exit with appropriate code

@@ -2,10 +2,10 @@
 
 /**
  * Quebec French Language Validation Script.
- * 
+ *
  * This script runs comprehensive language validation tests across the entire
  * Koveo Gestion application to ensure Quebec French compliance.
- * 
+ *
  * Usage:
  *   npm run validate-language
  *   npx tsx scripts/validate-language.ts
@@ -27,7 +27,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 /**
@@ -87,16 +87,16 @@ function parseArguments(): {
   output?: string;
 } {
   const args = process.argv.slice(2);
-  
+
   return {
     help: args.includes('--help') || args.includes('-h'),
     report: args.includes('--report') || args.includes('-r'),
     quick: args.includes('--quick') || args.includes('-q'),
     verbose: args.includes('--verbose') || args.includes('-v'),
     output: (() => {
-      const outputIndex = args.findIndex(arg => arg === '--output');
+      const outputIndex = args.findIndex((arg) => arg === '--output');
       return outputIndex !== -1 ? args[outputIndex + 1] : undefined;
-    })()
+    })(),
   };
 }
 
@@ -111,7 +111,10 @@ function parseArguments(): {
  * @param verbose
  * @returns Function result.
  */
-function runTests(pattern: string, verbose: boolean = false): {
+function runTests(
+  pattern: string,
+  verbose: boolean = false
+): {
   success: boolean;
   output: string;
   summary: {
@@ -122,24 +125,24 @@ function runTests(pattern: string, verbose: boolean = false): {
 } {
   try {
     const command = `npx jest ${pattern} ${verbose ? '--verbose' : ''} --passWithNoTests`;
-    const output = execSync(command, { 
+    const output = execSync(command, {
       encoding: 'utf-8',
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
-    
+
     // Parse Jest output for summary
     const summaryMatch = output.match(/Tests:\\s*(\\d+) passed.*?(\\d+) total/);
     const passed = summaryMatch ? parseInt(summaryMatch[1]) : 0;
     const total = summaryMatch ? parseInt(summaryMatch[2]) : 0;
-    
+
     return {
       success: true,
       output,
       summary: {
         passed,
         failed: total - passed,
-        total
-      }
+        total,
+      },
     };
   } catch (_error: unknown) {
     return {
@@ -148,8 +151,8 @@ function runTests(pattern: string, verbose: boolean = false): {
       summary: {
         passed: 0,
         failed: 1,
-        total: 1
-      }
+        total: 1,
+      },
     };
   }
 }
@@ -170,7 +173,7 @@ function generateReport(verbose: boolean = false): string {
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 
   let report = `
@@ -188,7 +191,7 @@ Standard: Français québécois (Loi 96, Charte de la langue française)
   // Run unit tests for language validation
   console.warn(`${colors.cyan}🧪 Exécution des tests de validation linguistique...${colors.reset}`);
   const unitTestResult = runTests('tests/unit/language-validation.test.ts', verbose);
-  
+
   report += `
 ══════════════════════════════════════════════════════════════
                       TESTS UNITAIRES
@@ -196,7 +199,7 @@ Standard: Français québécois (Loi 96, Charte de la langue française)
 
 Tests de validation du français québécois
 `;
-  
+
   if (unitTestResult.success) {
     report += `✅ Statut: RÉUSSI
 📊 Résultats: ${unitTestResult.summary.passed}/${unitTestResult.summary.total} tests passés
@@ -211,7 +214,7 @@ Tests de validation du français québécois
   // Run translation validation tests
   console.warn(`${colors.cyan}📝 Validation des fichiers de traduction...${colors.reset}`);
   const translationTestResult = runTests('tests/unit/translation-validation.test.ts', verbose);
-  
+
   report += `
 ══════════════════════════════════════════════════════════════
                  VALIDATION DES TRADUCTIONS
@@ -219,7 +222,7 @@ Tests de validation du français québécois
 
 Tests des fichiers de traduction et terminologie spécialisée
 `;
-  
+
   if (translationTestResult.success) {
     report += `✅ Statut: RÉUSSI
 📊 Résultats: ${translationTestResult.summary.passed}/${translationTestResult.summary.total} tests passés
@@ -234,7 +237,7 @@ Tests des fichiers de traduction et terminologie spécialisée
   // Run page validation tests
   console.warn(`${colors.cyan}🌐 Validation des pages de l'application...${colors.reset}`);
   const pageTestResult = runTests('tests/integration/page-language-validation.test.ts', verbose);
-  
+
   report += `
 ══════════════════════════════════════════════════════════════
                     VALIDATION DES PAGES
@@ -242,7 +245,7 @@ Tests des fichiers de traduction et terminologie spécialisée
 
 Tests de toutes les pages visibles aux utilisateurs
 `;
-  
+
   if (pageTestResult.success) {
     report += `✅ Statut: RÉUSSI
 📊 Résultats: ${pageTestResult.summary.passed}/${pageTestResult.summary.total} tests passés
@@ -255,10 +258,16 @@ Tests de toutes les pages visibles aux utilisateurs
   }
 
   // Overall summary
-  const totalPassed = unitTestResult.summary.passed + translationTestResult.summary.passed + pageTestResult.summary.passed;
-  const totalFailed = unitTestResult.summary.failed + translationTestResult.summary.failed + pageTestResult.summary.failed;
+  const totalPassed =
+    unitTestResult.summary.passed +
+    translationTestResult.summary.passed +
+    pageTestResult.summary.passed;
+  const totalFailed =
+    unitTestResult.summary.failed +
+    translationTestResult.summary.failed +
+    pageTestResult.summary.failed;
   const totalTests = totalPassed + totalFailed;
-  
+
   report += `
 ══════════════════════════════════════════════════════════════
                       RÉSUMÉ GLOBAL
@@ -350,37 +359,42 @@ ${pageTestResult.output}
  */
 function main() {
   const args = parseArguments();
-  
+
   if (args.help) {
     displayHelp();
     return;
   }
-  
-  console.warn(`${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}\n`);
-  
+
+  console.warn(
+    `${colors.bright}${colors.blue}=== VALIDATION LINGUISTIQUE KOVEO GESTION ===${colors.reset}\n`
+  );
+
   if (args.quick) {
     console.warn(`${colors.yellow}🚀 Mode rapide activé${colors.reset}\n`);
   }
-  
+
   try {
     const report = generateReport(args.verbose);
-    
+
     console.warn(report);
-    
+
     if (args.output) {
       writeFileSync(args.output, report, 'utf-8');
       console.warn(`\n${colors.green}📄 Rapport sauvegardé dans: ${args.output}${colors.reset}`);
     }
-    
+
     // Exit with error code if tests failed
     if (report.includes('❌ Statut: ÉCHEC')) {
-      console.warn(`\n${colors.red}⚠️  Certains tests ont échoué. Consultez le rapport pour les détails.${colors.reset}`);
+      console.warn(
+        `\n${colors.red}⚠️  Certains tests ont échoué. Consultez le rapport pour les détails.${colors.reset}`
+      );
       process.exit(1);
     } else {
-      console.warn(`\n${colors.green}✅ Tous les tests de validation linguistique ont réussi!${colors.reset}`);
+      console.warn(
+        `\n${colors.green}✅ Tous les tests de validation linguistique ont réussi!${colors.reset}`
+      );
       process.exit(0);
     }
-    
   } catch (_error) {
     console.error(`${colors.red}❌ Erreur lors de l'exécution des tests:${colors.reset}`, _error);
     process.exit(1);

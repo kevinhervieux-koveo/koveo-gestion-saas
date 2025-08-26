@@ -19,12 +19,12 @@ async function demoAIAgentTools() {
   try {
     // Demo 1: Import and test basic functionality
     console.warn(chalk.yellow('1. Testing Tool Imports...'));
-    
+
     const { agentToolkit } = await import('../tools/ai-agent-toolkit');
     const { contextManager } = await import('../tools/smart-context-manager');
     const { workflowAssistant } = await import('../tools/intelligent-workflow-assistant');
     const { agentDashboard } = await import('../tools/ai-agent-dashboard');
-    
+
     console.warn(chalk.green('✅ All tools imported successfully'));
     console.warn();
 
@@ -32,8 +32,12 @@ async function demoAIAgentTools() {
     console.warn(chalk.yellow('2. Testing Quick Health Check...'));
     try {
       const quickCheck = await agentToolkit.quickHealthCheck();
-      const statusColor = quickCheck.status === 'healthy' ? chalk.green :
-                         quickCheck.status === 'warning' ? chalk.yellow : chalk.red;
+      const statusColor =
+        quickCheck.status === 'healthy'
+          ? chalk.green
+          : quickCheck.status === 'warning'
+            ? chalk.yellow
+            : chalk.red;
       console.warn(chalk.green(`✅ Status: ${statusColor(quickCheck.status.toUpperCase())}`));
       console.warn(chalk.cyan(`   Score: ${quickCheck.score}/100`));
     } catch (_error) {
@@ -46,7 +50,7 @@ async function demoAIAgentTools() {
     try {
       const testFiles = ['package.json', 'tsconfig.json', 'vite.config.ts'];
       contextManager.updateWorkingSet(testFiles, 'demo');
-      
+
       const contextSummary = JSON.parse(contextManager.generateContextSummary());
       console.warn(chalk.green(`✅ Working Set: ${contextSummary.workingSet} files`));
       console.warn(chalk.cyan(`   Focus Area: ${contextSummary.focusArea}`));
@@ -59,13 +63,17 @@ async function demoAIAgentTools() {
     console.warn(chalk.yellow('4. Testing Workflow Detection...'));
     try {
       const workflowSuggestions = workflowAssistant.detectWorkflowPatterns(
-        ['client/src/App.tsx', 'server/index.ts'], 
+        ['client/src/App.tsx', 'server/index.ts'],
         ['shared/schema.ts']
       );
       console.warn(chalk.green(`✅ Generated ${workflowSuggestions.length} workflow suggestions`));
-      
+
       workflowSuggestions.slice(0, 2).forEach((suggestion, _index) => {
-        console.warn(chalk.cyan(`   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`));
+        console.warn(
+          chalk.cyan(
+            `   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`
+          )
+        );
       });
     } catch (_error) {
       console.warn(chalk.yellow(`⚠️ Workflow test simplified: Pattern detection works`));
@@ -98,7 +106,7 @@ async function demoAIAgentTools() {
 
     // Summary
     console.warn(chalk.green.bold('🎉 AI Agent Tools Demo Complete!\n'));
-    
+
     console.warn(chalk.blue('✅ Successfully Created:'));
     console.warn(chalk.cyan('  📦 AI Agent Toolkit - Project health & code analysis'));
     console.warn(chalk.cyan('  🧠 Smart Context Manager - Intelligent workspace management'));
@@ -130,7 +138,6 @@ async function demoAIAgentTools() {
     console.warn(chalk.cyan('  • ORGANIZATION_VALIDATION_REPORT.md - Current project status'));
     console.warn(chalk.cyan('  • replit.md - Updated with new tooling information'));
     console.warn();
-
   } catch (_error) {
     console.error(chalk.red('❌ Demo failed:'), _error);
     process.exit(1);

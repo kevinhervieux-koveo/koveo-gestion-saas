@@ -18,7 +18,7 @@ import { join } from 'path';
  */
 function checkJSDocCoverage(): number {
   console.warn('📚 Checking JSDoc coverage...');
-  
+
   let missingDocs = 0;
   const checkDirectory = (dir: string) => {
     try {
@@ -26,7 +26,7 @@ function checkJSDocCoverage(): number {
       for (const item of items) {
         const fullPath = join(dir, item);
         const stat = statSync(fullPath);
-        
+
         if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
           checkDirectory(fullPath);
         } else if (item.endsWith('.ts') || item.endsWith('.tsx')) {
@@ -48,16 +48,16 @@ function checkJSDocCoverage(): number {
       // Skip directories that can't be read
     }
   };
-  
+
   checkDirectory('./client/src');
   checkDirectory('./server');
-  
+
   if (missingDocs > 0) {
     console.warn(`⚠️  Found ${missingDocs} files potentially missing JSDoc documentation`);
   } else {
     console.warn('✅ JSDoc coverage check passed');
   }
-  
+
   return missingDocs;
 }
 
@@ -71,7 +71,7 @@ function checkJSDocCoverage(): number {
  */
 function validateTypeDoc(): number {
   console.warn('📖 Validating TypeDoc generation...');
-  
+
   try {
     execSync('npm run docs:generate', { stdio: 'pipe' });
     console.warn('✅ TypeDoc validation passed');
@@ -92,14 +92,14 @@ function validateTypeDoc(): number {
  */
 export function validateDocs(): number {
   console.warn('🔍 Running documentation validation...\n');
-  
+
   const jsDocIssues = checkJSDocCoverage();
   const typeDocResult = validateTypeDoc();
-  
+
   console.warn('\n📊 Documentation validation summary:');
   console.warn(`- JSDoc coverage issues: ${jsDocIssues}`);
   console.warn(`- TypeDoc generation: ${typeDocResult === 0 ? 'passed' : 'failed'}`);
-  
+
   // For now, documentation issues are warnings, not failures
   console.warn('\n✅ Documentation validation completed (warnings only)');
   return 0;

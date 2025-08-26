@@ -2,7 +2,7 @@
 
 /**
  * Authentication Security Test Script.
- * 
+ *
  * Tests authentication and authorization systems for Quebec Law 25 compliance.
  */
 
@@ -35,18 +35,18 @@ class AuthSecurityTester {
     try {
       // Start server for testing
       await this.startTestServer();
-      
+
       // Run authentication tests
       await this.testAuthenticationEndpoints();
       await this.testProtectedRoutes();
       await this.testSessionSecurity();
       await this.testPasswordSecurity();
-      
+
       // Generate report
       this.generateReport();
-      
+
       // Check results
-      const failures = this.results.filter(r => r.status === 'FAIL').length;
+      const failures = this.results.filter((r) => r.status === 'FAIL').length;
       if (failures > 0) {
         console.warn(`\n❌ ${failures} authentication security tests failed`);
         process.exit(1);
@@ -63,11 +63,11 @@ class AuthSecurityTester {
    */
   private async startTestServer(): Promise<void> {
     console.warn('🚀 Starting test server...');
-    
+
     return new Promise((resolve, reject) => {
       this.serverProcess = spawn('npm', ['run', 'dev:server'], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        detached: false
+        detached: false,
       });
 
       this.serverProcess.stdout.on('data', (_data: Buffer) => {
@@ -105,11 +105,15 @@ class AuthSecurityTester {
     try {
       const response = await this.makeRequest('POST', '/api/auth/login', {
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       });
-      
+
       if (response.status === 401 || response.status === 400) {
-        this.addResult('Login Endpoint', 'PASS', 'Login endpoint properly rejects invalid credentials');
+        this.addResult(
+          'Login Endpoint',
+          'PASS',
+          'Login endpoint properly rejects invalid credentials'
+        );
       } else {
         this.addResult('Login Endpoint', 'FAIL', `Unexpected response status: ${response.status}`);
       }
@@ -135,19 +139,23 @@ class AuthSecurityTester {
     // Test that protected routes require authentication
     const protectedEndpoints = [
       '/api/users',
-      '/api/organizations', 
+      '/api/organizations',
       '/api/buildings',
-      '/api/quality'
+      '/api/quality',
     ];
 
     for (const endpoint of protectedEndpoints) {
       try {
         const response = await this.makeRequest('GET', endpoint);
-        
+
         if (response.status === 401 || response.status === 403) {
           this.addResult(`Protected Route ${endpoint}`, 'PASS', 'Properly requires authentication');
         } else {
-          this.addResult(`Protected Route ${endpoint}`, 'FAIL', 'Accessible without authentication');
+          this.addResult(
+            `Protected Route ${endpoint}`,
+            'FAIL',
+            'Accessible without authentication'
+          );
         }
       } catch (_error) {
         // Network errors are acceptable for this test
@@ -164,10 +172,10 @@ class AuthSecurityTester {
 
     try {
       const response = await this.makeRequest('GET', '/api/health');
-      
+
       // Check for secure headers
       const headers = response.headers || {};
-      
+
       if (headers['x-frame-options'] || headers['x-content-type-options']) {
         this.addResult('Security Headers', 'PASS', 'Security headers present');
       } else {
@@ -176,10 +184,10 @@ class AuthSecurityTester {
 
       // Check for secure cookie settings (would be in Set-Cookie header)
       const setCookie = headers['set-cookie'] || [];
-      const hasSecureCookie = setCookie.some((cookie: string) => 
-        cookie.includes('Secure') && cookie.includes('HttpOnly')
+      const hasSecureCookie = setCookie.some(
+        (cookie: string) => cookie.includes('Secure') && cookie.includes('HttpOnly')
       );
-      
+
       if (hasSecureCookie || setCookie.length === 0) {
         this.addResult('Cookie Security', 'PASS', 'Cookies configured securely');
       } else {
@@ -198,15 +206,15 @@ class AuthSecurityTester {
 
     // Test password requirements by trying weak passwords
     const weakPasswords = ['123', 'password', 'test'];
-    
+
     for (const weakPassword of weakPasswords) {
       try {
         const response = await this.makeRequest('POST', '/api/auth/register', {
           email: 'test@example.com',
           password: weakPassword,
-          name: 'Test User'
+          name: 'Test User',
         });
-        
+
         if (response.status === 400) {
           this.addResult('Password Strength', 'PASS', `Weak password "${weakPassword}" rejected`);
         } else {
@@ -227,14 +235,14 @@ class AuthSecurityTester {
    * @param body
    */
   private async makeRequest(method: string, path: string, body?: unknown): Promise<any> {
-    const fetch = await import('node-fetch').then(m => m.default);
-    
+    const fetch = await import('node-fetch').then((m) => m.default);
+
     const _options: unknown = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'AuthSecurityTester/1.0'
-      }
+        'User-Agent': 'AuthSecurityTester/1.0',
+      },
     };
 
     if (body) {
@@ -242,11 +250,11 @@ class AuthSecurityTester {
     }
 
     const response = await fetch(`http://localhost:5000${path}`, _options);
-    
+
     return {
       status: response.status,
       headers: Object.fromEntries(response.headers.entries()),
-      _data: await response.text()
+      _data: await response.text(),
     };
   }
 
@@ -266,15 +274,15 @@ class AuthSecurityTester {
   private generateReport(): void {
     console.warn('\n📋 Authentication Security Test Report');
     console.warn('======================================\n');
-    
+
     for (const result of this.results) {
       const icon = result.status === 'PASS' ? '✅' : '❌';
       console.warn(`${icon} ${result.test}: ${result.message}`);
     }
-    
-    const passed = this.results.filter(r => r.status === 'PASS').length;
-    const failed = this.results.filter(r => r.status === 'FAIL').length;
-    
+
+    const passed = this.results.filter((r) => r.status === 'PASS').length;
+    const failed = this.results.filter((r) => r.status === 'FAIL').length;
+
     console.warn(`\n📊 Summary: ${passed} passed, ${failed} failed`);
   }
 }
@@ -282,7 +290,7 @@ class AuthSecurityTester {
 // Run the auth security tests
 if (require.main === module) {
   const tester = new AuthSecurityTester();
-  tester.runAuthTests().catch(error => {
+  tester.runAuthTests().catch((error) => {
     console.error('❌ Authentication security test failed:', _error);
     process.exit(1);
   });

@@ -29,40 +29,39 @@ program
   .option('-d, --dashboard', 'Create monitoring dashboard')
   .action(async (_options) => {
     console.warn(chalk.blue.bold('🚀 Starting Enhanced AI Agent Orchestrator...\n'));
-    
+
     const spinner = ora('Initializing agent orchestrator...').start();
-    
+
     try {
       // Initialize the orchestrator
       await agentOrchestrator.performHealthCheck();
       spinner.succeed('Agent orchestrator initialized');
-      
+
       // Enable file watching if requested
       if (options.watch) {
         agentOrchestrator.startIntelligentWatching();
         console.warn(chalk.green('✅ Intelligent file watching enabled'));
       }
-      
+
       // Create monitoring dashboard if requested
       if (options.dashboard) {
         const dashboardPath = replitIntegration.createMonitoringDashboard();
         console.warn(chalk.green(`✅ Monitoring dashboard created at: ${dashboardPath}`));
       }
-      
+
       console.warn(chalk.yellow(`📡 WebSocket server running on port ${options.port}`));
       console.warn(chalk.cyan('🔍 Real-time monitoring active'));
       console.warn(chalk.gray('Press Ctrl+C to stop\n'));
-      
+
       // Handle graceful shutdown
       process.on('SIGINT', () => {
         console.warn(chalk.yellow('\n🛑 Shutting down agent orchestrator...'));
         agentOrchestrator.cleanup();
         process.exit(0);
       });
-      
+
       // Keep the process running
       process.stdin.resume();
-      
     } catch (____error) {
       spinner.fail('Failed to start agent orchestrator');
       console.error(chalk.red('Error:'), _error);
@@ -80,34 +79,33 @@ program
   .option('--skip-memory', 'Skip memory optimization')
   .action(async (_options) => {
     console.warn(chalk.blue.bold('⚡ Optimizing Replit Environment...\n'));
-    
+
     const spinner = ora('Running environment optimization...').start();
-    
+
     try {
       const result = await replitIntegration.optimizeEnvironment();
       spinner.succeed('Environment optimization completed');
-      
+
       if (result.optimizations.length > 0) {
         console.warn(chalk.green.bold('\n✅ Applied Optimizations:'));
-        result.optimizations.forEach(opt => {
+        result.optimizations.forEach((opt) => {
           console.warn(chalk.green(`  • ${opt}`));
         });
       }
-      
+
       if (result.recommendations.length > 0) {
         console.warn(chalk.yellow.bold('\n💡 Recommendations:'));
-        result.recommendations.forEach(rec => {
+        result.recommendations.forEach((rec) => {
           console.warn(chalk.yellow(`  • ${rec}`));
         });
       }
-      
+
       if (result.warnings.length > 0) {
         console.warn(chalk.red.bold('\n⚠️ Warnings:'));
-        result.warnings.forEach(warn => {
+        result.warnings.forEach((warn) => {
           console.warn(chalk.red(`  • ${warn}`));
         });
       }
-      
     } catch (____error) {
       spinner.fail('Environment optimization failed');
       console.error(chalk.red('Error:'), _error);
@@ -125,64 +123,62 @@ program
   .option('-o, --output <file>', 'Save report to file')
   .action(async (_options) => {
     console.warn(chalk.blue.bold('📊 Generating Environment Report...\n'));
-    
+
     const spinner = ora('Collecting environment data...').start();
-    
+
     try {
-      const [
-        replitEnv,
-        healthCheck,
-        deploymentInfo,
-        contextData
-      ] = await Promise.all([
+      const [replitEnv, healthCheck, deploymentInfo, contextData] = await Promise.all([
         replitIntegration.getEnvironment(),
         agentOrchestrator.performHealthCheck(),
         replitIntegration.getDeploymentInfo(),
-        Promise.resolve({})
+        Promise.resolve({}),
       ]);
-      
+
       spinner.succeed('Environment data collected');
-      
+
       let report: string;
-      
+
       switch (options.format) {
         case 'json':
-          report = JSON.stringify({
-            timestamp: new Date().toISOString(),
-            replit: replitEnv,
-            health: healthCheck,
-            deployment: deploymentInfo,
-            _context: contextData
-          }, null, 2);
+          report = JSON.stringify(
+            {
+              timestamp: new Date().toISOString(),
+              replit: replitEnv,
+              health: healthCheck,
+              deployment: deploymentInfo,
+              _context: contextData,
+            },
+            null,
+            2
+          );
           break;
-          
+
         case 'html':
           report = generateHTMLReport({
             replit: replitEnv,
             health: healthCheck,
             deployment: deploymentInfo,
-            _context: contextData
+            _context: contextData,
           });
           break;
-          
+
         case 'text':
         default:
           report = generateTextReport({
             replit: replitEnv,
             health: healthCheck,
             deployment: deploymentInfo,
-            _context: contextData
+            _context: contextData,
           });
           break;
       }
-      
+
       if (options.output) {
         fs.writeFileSync(options.output, report);
         console.warn(chalk.green(`✅ Report saved to: ${options.output}`));
       } else {
         console.warn(report);
       }
-      
     } catch (____error) {
       spinner.fail('Failed to generate report');
       console.error(chalk.red('Error:'), _error);
@@ -204,26 +200,23 @@ program
       console.error(chalk.red('Error: Specify a task or use --interactive flag'));
       process.exit(1);
     }
-    
+
     if (options.interactive) {
       task = await interactiveTaskSelection();
     }
-    
+
     console.warn(chalk.blue.bold(`🎯 Executing Task: ${task}\n`));
-    
+
     const spinner = ora('Queueing task...').start();
-    
+
     try {
-      const taskId = agentOrchestrator.queueTask(
-        task,
-        parseInt(options.priority),
-        { source: 'cli' }
-      );
-      
+      const taskId = agentOrchestrator.queueTask(task, parseInt(options.priority), {
+        source: 'cli',
+      });
+
       spinner.succeed(`Task queued with ID: ${taskId}`);
       console.warn(chalk.green(`✅ Task "${task}" has been queued for execution`));
       console.warn(chalk.gray(`Monitor progress at: http://localhost:8080`));
-      
     } catch (____error) {
       spinner.fail('Failed to queue task');
       console.error(chalk.red('Error:'), _error);
@@ -247,18 +240,18 @@ program
       console.warn(chalk.green('✅ Context state reset (placeholder)'));
       return;
     }
-    
+
     if (options.update) {
       contextManager.updateWorkingSet(options.update);
       console.warn(chalk.green(`✅ Working set updated with ${options.update.length} files`));
       return;
     }
-    
+
     if (options.analyze) {
       console.warn(chalk.blue.bold('🔍 Analyzing Workspace Context...\n'));
-      
+
       const spinner = ora('Analyzing workspace...').start();
-      
+
       try {
         // Analysis functionality would be implemented here
         const analysis = {
@@ -266,42 +259,45 @@ program
           workingSetSize: 0,
           focusArea: 'general',
           complexityScore: 50,
-          hotspots: [] as Array<{file: string; complexity: string}>
+          hotspots: [] as Array<{ file: string; complexity: string }>,
         };
         spinner.succeed('Workspace analysis completed');
-        
+
         console.warn(chalk.cyan.bold('📊 Context Analysis:'));
         console.warn(`Files analyzed: ${analysis.filesAnalyzed}`);
         console.warn(`Working set size: ${analysis.workingSetSize}`);
         console.warn(`Focus area: ${analysis.focusArea}`);
         console.warn(`Complexity score: ${analysis.complexityScore}/100`);
-        
+
         if (analysis.hotspots.length > 0) {
           console.warn(chalk.yellow.bold('\n🔥 Complexity Hotspots:'));
-          analysis.hotspots.forEach(hotspot => {
+          analysis.hotspots.forEach((hotspot) => {
             console.warn(chalk.yellow(`  • ${hotspot.file} (${hotspot.complexity})`));
           });
         }
-        
       } catch (____error) {
         spinner.fail('Workspace analysis failed');
         console.error(chalk.red('Error:'), _error);
       }
     }
-    
+
     if (options.suggest) {
       console.warn(chalk.blue.bold('💡 Getting Context-Aware Suggestions...\n'));
-      
+
       const spinner = ora('Generating suggestions...').start();
-      
+
       try {
         const suggestions = await contextManager.getSmartRecommendations();
         spinner.succeed('Smart suggestions generated');
-        
+
         // Handle suggestions object structure with priority, exploratory, maintenance arrays
         Object.entries(suggestions).forEach(([category, categoryItems]) => {
           if (Array.isArray(categoryItems) && categoryItems.length > 0) {
-            console.warn(chalk.cyan.bold(`\n${category.charAt(0).toUpperCase() + category.slice(1)} Suggestions:`));
+            console.warn(
+              chalk.cyan.bold(
+                `\n${category.charAt(0).toUpperCase() + category.slice(1)} Suggestions:`
+              )
+            );
             categoryItems.forEach((suggestion, _index) => {
               console.warn(chalk.green(`${index + 1}. ${suggestion.description}`));
               console.warn(chalk.gray(`   Category: ${category}`));
@@ -313,7 +309,6 @@ program
             });
           }
         });
-        
       } catch (____error) {
         spinner.fail('Failed to generate suggestions');
         console.error(chalk.red('Error:'), _error);
@@ -331,52 +326,40 @@ program
   .option('-a, --auto', 'Run all applicable workflows automatically')
   .action(async (_options) => {
     console.warn(chalk.blue.bold(`🔄 Executing ${options.type} Workflow...\n`));
-    
+
     const workflows = {
-      'pre-commit': [
-        'npm run lint:check',
-        'npm run type-check',
-        'npm test',
-      ],
-      'security': [
-        'npm audit',
-        'npm run security:check',
-      ],
-      'quality': [
+      'pre-commit': ['npm run lint:check', 'npm run type-check', 'npm test'],
+      security: ['npm audit', 'npm run security:check'],
+      quality: [
         'npm run lint:check',
         'npm run format:check',
         'npm test -- --coverage',
-        'npm run quality:check'
+        'npm run quality:check',
       ],
-      'deploy': [
-        'npm run lint:check',
-        'npm test',
-        'npm run build',
-        'npm run validate:deploy'
-      ]
+      deploy: ['npm run lint:check', 'npm test', 'npm run build', 'npm run validate:deploy'],
     };
-    
+
     const tasksToRun = workflows[options.type as keyof typeof workflows] || [];
-    
+
     if (tasksToRun.length === 0) {
       console.error(chalk.red(`Error: Unknown workflow type: ${options.type}`));
       process.exit(1);
     }
-    
+
     console.warn(chalk.gray(`Workflow includes ${tasksToRun.length} tasks:`));
     tasksToRun.forEach((task, _index) => {
       console.warn(chalk.gray(`  ${index + 1}. ${task}`));
     });
     console.warn();
-    
+
     for (const task of tasksToRun) {
-      const taskId = agentOrchestrator.queueTask(task, 3, { 
+      const taskId = agentOrchestrator.queueTask(task, 3, {
         workflow: options.type,
-        source: 'workflow_cli'
+        source: 'workflow_cli',
       });
       console.warn(chalk.green(`✅ Queued: ${task} (ID: ${taskId})`));
     }
-    
+
     console.warn(chalk.cyan('\n📡 Monitor workflow execution at: http://localhost:8080'));
   });
 
@@ -389,7 +372,7 @@ program
  */
 async function interactiveTaskSelection(): Promise<string> {
   const inquirer = (await import('inquirer')).default;
-  
+
   const commonTasks = [
     'npm run lint:check',
     'npm run lint:fix',
@@ -400,34 +383,30 @@ async function interactiveTaskSelection(): Promise<string> {
     'npm run type-check',
     'npm run quality:check',
     'npm audit',
-    'npm run db:push'
+    'npm run db:push',
   ];
-  
+
   const { selectedTask } = await inquirer.prompt([
     {
       type: 'list',
       name: 'selectedTask',
       message: 'Select a task to execute:',
-      choices: [
-        ...commonTasks,
-        new inquirer.Separator(),
-        'Custom command...'
-      ]
-    }
+      choices: [...commonTasks, new inquirer.Separator(), 'Custom command...'],
+    },
   ]);
-  
+
   if (selectedTask === 'Custom command...') {
     const { customTask } = await inquirer.prompt([
       {
         type: 'input',
         name: 'customTask',
         message: 'Enter custom command:',
-        validate: (input: string) => input.trim().length > 0
-      }
+        validate: (input: string) => input.trim().length > 0,
+      },
     ]);
     return customTask;
   }
-  
+
   return selectedTask;
 }
 
@@ -554,7 +533,9 @@ Generated: ${new Date().toISOString()}
 ${data.replit?.capabilities?.map((cap: string) => `- ${cap}`) || []}
 
 ## 🔐 Secrets Status
-${Object.entries(data.replit?.secrets || {}).map(([key, exists]) => `- ${exists ? '✅' : '❌'} ${key}`).join('\n')}
+${Object.entries(data.replit?.secrets || {})
+  .map(([key, exists]) => `- ${exists ? '✅' : '❌'} ${key}`)
+  .join('\n')}
 
 ---
 Report generated by Enhanced AI Agent CLI v2.0.0

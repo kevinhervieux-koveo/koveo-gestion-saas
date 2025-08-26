@@ -28,7 +28,7 @@ interface FileIssue {
 function getProjectFiles(): string[] {
   const extensions = ['.ts', '.tsx', '.js', '.jsx'];
   const excludeDirs = ['node_modules', '.git', 'dist', 'build'];
-  
+
   /**
   
    * WalkDir function.
@@ -36,34 +36,34 @@ function getProjectFiles(): string[] {
    * @returns Function result.
   
    */
-  
+
   /**
    *
    * @param dir
    */
   function walkDir(dir: string): string[] {
     const files: string[] = [];
-    
+
     try {
       const items = fs.readdirSync(dir);
-      
+
       for (const item of items) {
         const fullPath = path.join(dir, item);
         const stat = fs.statSync(fullPath);
-        
+
         if (stat.isDirectory() && !excludeDirs.includes(item)) {
           files.push(...walkDir(fullPath));
-        } else if (stat.isFile() && extensions.some(ext => item.endsWith(ext))) {
+        } else if (stat.isFile() && extensions.some((ext) => item.endsWith(ext))) {
           files.push(fullPath);
         }
       }
     } catch (_error) {
       // Skip directories we can't read
     }
-    
+
     return files;
   }
-  
+
   return walkDir('.');
 }
 
@@ -80,7 +80,7 @@ function getProjectFiles(): string[] {
 function fixUnusedVariables(content: string): string {
   // Fix unused catch variables
   content = content.replace(/} catch \((\w+)\) \{/g, '} catch (__$1) {');
-  
+
   // Fix unused function parameters (common patterns)
   content = content.replace(/\((\w+): [^,)]+\) => \{[^}]*\}/g, (_match) => {
     if (match.includes('req:') || match.includes('res:') || match.includes('next:')) {
@@ -88,14 +88,14 @@ function fixUnusedVariables(content: string): string {
     }
     return match;
   });
-  
+
   return content;
 }
 
 /**
  * Fix empty blocks by adding comments.
  * @param content File content.
- * @returns Fixed content  
+ * @returns Fixed content
  */
 /**
  * FixEmptyBlocks function.
@@ -104,13 +104,16 @@ function fixUnusedVariables(content: string): string {
  */
 function fixEmptyBlocks(content: string): string {
   // Fix empty catch blocks
-  content = content.replace(/catch[^{]*\{\s*\}/g, 'catch (_error) {\n    // Error handled silently\n  }');
-  
+  content = content.replace(
+    /catch[^{]*\{\s*\}/g,
+    'catch (_error) {\n    // Error handled silently\n  }'
+  );
+
   // Fix empty if blocks
   content = content.replace(/if[^{]*\{\s*\}/g, (_match) => {
     return match.replace(/\{\s*\}/, '{\n    // No action needed\n  }');
   });
-  
+
   return content;
 }
 
@@ -127,13 +130,16 @@ function fixEmptyBlocks(content: string): string {
 function addBasicJSDoc(content: string): string {
   // Add @returns to functions that need it
   const functionRegex = /^(\s*)(export\s+)?(async\s+)?function\s+(\w+)/gm;
-  
-  content = content.replace(functionRegex, (match, indent, exportKeyword, asyncKeyword, funcName) => {
-    const spacing = indent || '';
-    const docComment = `${spacing}/**\n${spacing} * ${funcName} function\n${spacing} * @returns Function result\n${spacing} */\n`;
-    return docComment + match;
-  });
-  
+
+  content = content.replace(
+    functionRegex,
+    (match, indent, exportKeyword, asyncKeyword, funcName) => {
+      const spacing = indent || '';
+      const docComment = `${spacing}/**\n${spacing} * ${funcName} function\n${spacing} * @returns Function result\n${spacing} */\n`;
+      return docComment + match;
+    }
+  );
+
   return content;
 }
 
@@ -151,21 +157,21 @@ function removeUnusedImports(content: string): string {
   const lines = content.split('\n');
   const imports: string[] = [];
   const usedImports = new Set<string>();
-  
+
   // Find all imports and what's used in the file
   for (const line of lines) {
-    if (line.trim().startsWith('import ') && !line.includes('from \'')) {
+    if (line.trim().startsWith('import ') && !line.includes("from '")) {
       continue; // Skip side-effect imports
     }
-    
+
     const importMatch = line.match(/import\s+(?:\{([^}]+)\}|\*\s+as\s+(\w+)|(\w+))\s+from/);
     if (importMatch) {
       imports.push(line);
-      
+
       if (importMatch[1]) {
         // Named imports
-        const namedImports = importMatch[1].split(',').map(s => s.trim());
-        namedImports.forEach(imp => {
+        const namedImports = importMatch[1].split(',').map((s) => s.trim());
+        namedImports.forEach((imp) => {
           const name = imp.split(' as ')[0].trim();
           if (content.includes(name) && content.indexOf(name) !== content.indexOf(line)) {
             usedImports.add(line);
@@ -186,7 +192,7 @@ function removeUnusedImports(content: string): string {
       }
     }
   }
-  
+
   // Remove unused imports
   let result = content;
   for (const importLine of imports) {
@@ -194,7 +200,7 @@ function removeUnusedImports(content: string): string {
       result = result.replace(importLine + '\n', '');
     }
   }
-  
+
   return result;
 }
 
@@ -215,7 +221,7 @@ function fixAnyTypes(content: string): string {
   content = content.replace(/\(.*: any\)/g, (_match) => {
     return match.replace(/: any/g, ': unknown');
   });
-  
+
   return content;
 }
 
@@ -232,20 +238,19 @@ function processFile(filePath: string): void {
   try {
     let content = fs.readFileSync(filePath, 'utf-8');
     const originalContent = content;
-    
+
     // Apply fixes
     content = fixUnusedVariables(content);
     content = fixEmptyBlocks(content);
     content = removeUnusedImports(content);
     content = fixAnyTypes(content);
     content = addBasicJSDoc(content);
-    
+
     // Only write if content changed
     if (content !== originalContent) {
       fs.writeFileSync(filePath, content);
       console.warn(`✅ Fixed: ${filePath}`);
     }
-    
   } catch (_error) {
     console.error(`❌ Error processing ${filePath}:`, _error);
   }
@@ -261,35 +266,37 @@ function processFile(filePath: string): void {
  */
 async function main(): Promise<void> {
   console.warn('🚀 Starting comprehensive validation issue fixes...\n');
-  
+
   const files = getProjectFiles();
   console.warn(`📁 Found ${files.length} files to process\n`);
-  
+
   let processed = 0;
   let fixed = 0;
-  
+
   for (const file of files) {
     // Skip certain files that might be problematic
     if (file.includes('node_modules') || file.includes('.d.ts')) {
       continue;
     }
-    
+
     const originalSize = fs.statSync(file).size;
     processFile(file);
     const newSize = fs.statSync(file).size;
-    
+
     processed++;
     if (newSize !== originalSize) {
       fixed++;
     }
-    
+
     if (processed % 50 === 0) {
-      console.warn(`📊 Progress: ${processed}/${files.length} files processed, ${fixed} files fixed`);
+      console.warn(
+        `📊 Progress: ${processed}/${files.length} files processed, ${fixed} files fixed`
+      );
     }
   }
-  
+
   console.warn(`\n✅ Completed! Processed ${processed} files, fixed ${fixed} files\n`);
-  
+
   // Run ESLint fix again after our changes
   console.warn('🔧 Running ESLint auto-fix on remaining issues...');
   try {
@@ -298,7 +305,7 @@ async function main(): Promise<void> {
   } catch (_error) {
     console.warn('⚠️ ESLint auto-fix completed with some remaining issues');
   }
-  
+
   console.warn('\n🎯 Fix completed! Run "npm run validate" to check remaining issues.');
 }
 

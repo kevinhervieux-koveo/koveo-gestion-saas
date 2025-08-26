@@ -2,7 +2,7 @@
 
 /**
  * Script to fix page organization issues identified by tests.
- * 
+ *
  * This script will:
  * 1. Remove orphaned pillars.tsx from root
  * 2. Identify and consolidate duplicate pages
@@ -28,56 +28,56 @@ const duplicatePages: DuplicatePage[] = [
     fileName: 'documentation.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'permissions.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'pillars.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'quality.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'roadmap.tsx',
     locations: ['admin', 'owner'],
     recommended: 'owner',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'suggestions-with-filter.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'suggestions.tsx',
     locations: ['admin', 'owner'],
     recommended: 'admin',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'demands.tsx',
     locations: ['manager', 'residents'],
     recommended: 'manager',
-    action: 'consolidate'
+    action: 'consolidate',
   },
   {
     fileName: 'dashboard.tsx',
     locations: ['owner', 'residents'],
     recommended: 'keep', // Both are different - owner dashboard vs resident dashboard
-    action: 'keep'
-  }
+    action: 'keep',
+  },
 ];
 
 /**
@@ -104,31 +104,40 @@ function main() {
 
   // 2. Process duplicate pages
   const consolidationReport: string[] = [];
-  
-  duplicatePages.forEach(duplicate => {
+
+  duplicatePages.forEach((duplicate) => {
     if (duplicate.action === 'keep') {
       console.warn(`📝 Keeping both versions of ${duplicate.fileName} (different purposes)`);
-      consolidationReport.push(`KEPT: ${duplicate.fileName} - both versions serve different purposes`);
+      consolidationReport.push(
+        `KEPT: ${duplicate.fileName} - both versions serve different purposes`
+      );
       return;
     }
 
     if (duplicate.action === 'consolidate') {
       console.warn(`🔄 Processing ${duplicate.fileName}...`);
-      
+
       const keepLocation = duplicate.recommended;
-      const removeLocations = duplicate.locations.filter(loc => loc !== keepLocation);
-      
-      removeLocations.forEach(removeLocation => {
-        const removeFilePath = join(process.cwd(), `client/src/pages/${removeLocation}/${duplicate.fileName}`);
-        
+      const removeLocations = duplicate.locations.filter((loc) => loc !== keepLocation);
+
+      removeLocations.forEach((removeLocation) => {
+        const removeFilePath = join(
+          process.cwd(),
+          `client/src/pages/${removeLocation}/${duplicate.fileName}`
+        );
+
         if (existsSync(removeFilePath)) {
           try {
             unlinkSync(removeFilePath);
             console.warn(`  ✅ Removed: ${removeLocation}/${duplicate.fileName}`);
-            consolidationReport.push(`REMOVED: ${removeLocation}/${duplicate.fileName} (kept ${keepLocation}/${duplicate.fileName})`);
+            consolidationReport.push(
+              `REMOVED: ${removeLocation}/${duplicate.fileName} (kept ${keepLocation}/${duplicate.fileName})`
+            );
           } catch (_error) {
             console.error(`  ❌ Failed to remove ${removeLocation}/${duplicate.fileName}:`, _error);
-            consolidationReport.push(`ERROR: Failed to remove ${removeLocation}/${duplicate.fileName}`);
+            consolidationReport.push(
+              `ERROR: Failed to remove ${removeLocation}/${duplicate.fileName}`
+            );
           }
         }
       });
@@ -137,7 +146,7 @@ function main() {
 
   // 3. Generate migration report
   console.warn('\n📋 Consolidation Report:');
-  consolidationReport.forEach(line => console.warn(`  ${line}`));
+  consolidationReport.forEach((line) => console.warn(`  ${line}`));
 
   // 4. Update App.tsx imports (manual step - too complex to automate safely)
   console.warn('\n⚠️  Manual Steps Required:');

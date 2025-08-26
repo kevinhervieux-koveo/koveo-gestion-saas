@@ -23,18 +23,22 @@ interface TestResult {
 const runRedundancyTests = (): Promise<TestResult> => {
   return new Promise((resolve) => {
     console.warn(chalk.blue('🔍 Running UI Component Redundancy Analysis...'));
-    
-    const jest = spawn('npx', [
-      'jest',
-      'tests/code-analysis/redundancy-detection.test.ts',
-      'tests/code-analysis/ui-component-redundancy.test.ts',
-      'tests/code-analysis/style-consolidation.test.ts',
-      '--verbose',
-      '--testNamePattern=redundancy|consolidation|component.*analysis'
-    ], {
-      stdio: 'pipe',
-      shell: true
-    });
+
+    const jest = spawn(
+      'npx',
+      [
+        'jest',
+        'tests/code-analysis/redundancy-detection.test.ts',
+        'tests/code-analysis/ui-component-redundancy.test.ts',
+        'tests/code-analysis/style-consolidation.test.ts',
+        '--verbose',
+        '--testNamePattern=redundancy|consolidation|component.*analysis',
+      ],
+      {
+        stdio: 'pipe',
+        shell: true,
+      }
+    );
 
     let output = '';
     let errorOutput = '';
@@ -42,7 +46,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
     jest.stdout?.on('data', (_data) => {
       const text = data.toString();
       output += text;
-      
+
       // Show relevant progress in real-time
       if (text.includes('PASS') || text.includes('FAIL') || text.includes('===')) {
         process.stdout.write(text);
@@ -55,7 +59,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
 
     jest.on('close', (code) => {
       const passed = code === 0;
-      
+
       if (passed) {
         console.warn(chalk.green('✅ Redundancy Analysis: PASSED'));
         console.warn(chalk.gray('   All component redundancy checks completed successfully'));
@@ -67,7 +71,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
       resolve({
         passed,
         output,
-        _error: errorOutput
+        _error: errorOutput,
       });
     });
 
@@ -76,7 +80,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
       resolve({
         passed: false,
         output,
-        _error: error.message
+        _error: error.message,
       });
     });
   });
@@ -88,16 +92,15 @@ const runRedundancyTests = (): Promise<TestResult> => {
 const runStyleAnalysis = (): Promise<TestResult> => {
   return new Promise((resolve) => {
     console.warn(chalk.blue('🎨 Running Style Consolidation Analysis...'));
-    
-    const jest = spawn('npx', [
-      'jest',
-      'tests/code-analysis/style-consolidation.test.ts',
-      '--verbose',
-      '--silent'
-    ], {
-      stdio: 'pipe',
-      shell: true
-    });
+
+    const jest = spawn(
+      'npx',
+      ['jest', 'tests/code-analysis/style-consolidation.test.ts', '--verbose', '--silent'],
+      {
+        stdio: 'pipe',
+        shell: true,
+      }
+    );
 
     let output = '';
     let errorOutput = '';
@@ -112,7 +115,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
 
     jest.on('close', (code) => {
       const passed = code === 0;
-      
+
       if (passed) {
         console.warn(chalk.green('✅ Style Analysis: PASSED'));
       } else {
@@ -123,7 +126,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       resolve({
         passed,
         output,
-        _error: errorOutput
+        _error: errorOutput,
       });
     });
 
@@ -131,7 +134,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       resolve({
         passed: false,
         output,
-        _error: error.message
+        _error: error.message,
       });
     });
   });
@@ -145,26 +148,32 @@ const runStyleAnalysis = (): Promise<TestResult> => {
 const generateSummary = (redundancyResult: TestResult, styleResult: TestResult) => {
   console.warn('\n' + chalk.bold('📊 REDUNDANCY ANALYSIS SUMMARY'));
   console.warn('='.repeat(50));
-  
+
   // Extract key metrics from test output
   const redundancyMetrics = extractMetrics(redundancyResult.output);
-  
+
   console.warn(chalk.cyan('Key Findings:'));
-  
+
   if (redundancyMetrics.totalComponents > 0) {
     console.warn(`• Total Components Analyzed: ${redundancyMetrics.totalComponents}`);
   }
-  
+
   if (redundancyMetrics.redundancyPercentage > 0) {
-    const color = redundancyMetrics.redundancyPercentage > 40 ? 'red' : 
-                  redundancyMetrics.redundancyPercentage > 20 ? 'yellow' : 'green';
+    const color =
+      redundancyMetrics.redundancyPercentage > 40
+        ? 'red'
+        : redundancyMetrics.redundancyPercentage > 20
+          ? 'yellow'
+          : 'green';
     console.warn(chalk[color](`• Redundancy Rate: ${redundancyMetrics.redundancyPercentage}%`));
   }
-  
+
   if (redundancyMetrics.highPriorityComponents > 0) {
-    console.warn(chalk.red(`• High-Priority Refactor Candidates: ${redundancyMetrics.highPriorityComponents}`));
+    console.warn(
+      chalk.red(`• High-Priority Refactor Candidates: ${redundancyMetrics.highPriorityComponents}`)
+    );
   }
-  
+
   // Status assessment
   if (redundancyResult.passed && styleResult.passed) {
     console.warn(chalk.green('\n✅ Overall Status: PASSED'));
@@ -173,7 +182,7 @@ const generateSummary = (redundancyResult: TestResult, styleResult: TestResult) 
     console.warn(chalk.yellow('\n⚠️  Overall Status: ATTENTION NEEDED'));
     console.warn(chalk.gray('   Review redundancy findings and consider refactoring'));
   }
-  
+
   console.warn('\n' + chalk.gray('Run with --verbose for detailed component analysis'));
 };
 
@@ -185,19 +194,25 @@ const extractMetrics = (output: string) => {
   const metrics = {
     totalComponents: 0,
     redundancyPercentage: 0,
-    highPriorityComponents: 0
+    highPriorityComponents: 0,
   };
-  
+
   // Extract metrics using regex patterns
   const totalMatch = output.match(/Total Components.*?(\d+)/i);
-  if (totalMatch) {metrics.totalComponents = parseInt(totalMatch[1]);}
-  
+  if (totalMatch) {
+    metrics.totalComponents = parseInt(totalMatch[1]);
+  }
+
   const redundancyMatch = output.match(/(\d+)%\)/i);
-  if (redundancyMatch) {metrics.redundancyPercentage = parseInt(redundancyMatch[1]);}
-  
+  if (redundancyMatch) {
+    metrics.redundancyPercentage = parseInt(redundancyMatch[1]);
+  }
+
   const highPriorityMatch = output.match(/High-Priority.*?(\d+)/i);
-  if (highPriorityMatch) {metrics.highPriorityComponents = parseInt(highPriorityMatch[1]);}
-  
+  if (highPriorityMatch) {
+    metrics.highPriorityComponents = parseInt(highPriorityMatch[1]);
+  }
+
   return metrics;
 };
 
@@ -210,17 +225,17 @@ const extractMetrics = (output: string) => {
  */
 async function main() {
   console.warn(chalk.bold.blue('🚀 Starting Redundancy Analysis Pipeline\n'));
-  
+
   try {
     // Run redundancy analysis
     const redundancyResult = await runRedundancyTests();
-    
+
     // Run style analysis (non-blocking for validation)
     const styleResult = await runStyleAnalysis();
-    
+
     // Generate summary
     generateSummary(redundancyResult, styleResult);
-    
+
     // Exit with appropriate code
     // Redundancy analysis is informational, so we don't fail validation
     // unless there are critical errors (not just redundancy findings)
@@ -245,7 +260,7 @@ async function main() {
 
 // Run if called directly
 if (require.main === module) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error(chalk.red(`Fatal _error: ${error}`));
     process.exit(1);
   });

@@ -2,10 +2,10 @@
 
 /**
  * Document Migration Script.
- * 
+ *
  * This script migrates existing documents from the legacy documents table
  * to the new separate documents_buildings and documents_residents tables.
- * 
+ *
  * Usage: npm run migrate:documents.
  */
 
@@ -66,7 +66,7 @@ function determineDocumentTarget(doc: LegacyDocument): 'building' | 'resident' |
  */
 async function getBuildingIds(): Promise<string[]> {
   const buildings = await db.select({ id: schema.buildings.id }).from(schema.buildings);
-  return buildings.map(b => b.id);
+  return buildings.map((b) => b.id);
 }
 
 /**
@@ -78,7 +78,7 @@ async function getBuildingIds(): Promise<string[]> {
  */
 async function getResidenceIds(): Promise<string[]> {
   const residences = await db.select({ id: schema.residences.id }).from(schema.residences);
-  return residences.map(r => r.id);
+  return residences.map((r) => r.id);
 }
 
 /**
@@ -122,7 +122,11 @@ async function createBuildingDocument(doc: LegacyDocument, buildingId: string, u
  * @param uploadedBy
  * @returns Function result.
  */
-async function createResidentDocument(doc: LegacyDocument, residenceId: string, uploadedBy: string) {
+async function createResidentDocument(
+  doc: LegacyDocument,
+  residenceId: string,
+  uploadedBy: string
+) {
   return {
     name: doc.name,
     uploadDate: doc.uploadDate,
@@ -150,7 +154,7 @@ async function migrateDocuments() {
   try {
     // Check if legacy documents table exists and has data
     console.warn('📋 Checking for existing documents...');
-    
+
     let legacyDocuments: LegacyDocument[] = [];
     try {
       // Try to query legacy documents table
@@ -158,7 +162,7 @@ async function migrateDocuments() {
         SELECT id, name, upload_date, date_reference, type, buildings, residence, tenant 
         FROM documents
       `);
-      
+
       legacyDocuments = result.rows.map((row: unknown) => ({
         id: row.id,
         name: row.name,
@@ -169,7 +173,7 @@ async function migrateDocuments() {
         residence: String(row.residence),
         tenant: String(row.tenant),
       }));
-      
+
       console.warn(`📄 Found ${legacyDocuments.length} legacy documents to migrate`);
     } catch (_error) {
       console.warn('ℹ️  No legacy documents table found or no documents to migrate');
@@ -207,7 +211,11 @@ async function migrateDocuments() {
       switch (target) {
         case 'building':
           if (defaultBuildingId) {
-            const buildingDoc = await createBuildingDocument(doc, defaultBuildingId, defaultUploadedBy);
+            const buildingDoc = await createBuildingDocument(
+              doc,
+              defaultBuildingId,
+              defaultUploadedBy
+            );
             await db.insert(schema.documentsBuildings).values(buildingDoc);
             buildingDocsCreated++;
           } else {
@@ -218,7 +226,11 @@ async function migrateDocuments() {
 
         case 'resident':
           if (defaultResidenceId) {
-            const residentDoc = await createResidentDocument(doc, defaultResidenceId, defaultUploadedBy);
+            const residentDoc = await createResidentDocument(
+              doc,
+              defaultResidenceId,
+              defaultUploadedBy
+            );
             await db.insert(schema.documentsResidents).values(residentDoc);
             residentDocsCreated++;
           } else {
@@ -229,12 +241,20 @@ async function migrateDocuments() {
 
         case 'both':
           if (defaultBuildingId) {
-            const buildingDoc = await createBuildingDocument(doc, defaultBuildingId, defaultUploadedBy);
+            const buildingDoc = await createBuildingDocument(
+              doc,
+              defaultBuildingId,
+              defaultUploadedBy
+            );
             await db.insert(schema.documentsBuildings).values(buildingDoc);
             buildingDocsCreated++;
           }
           if (defaultResidenceId) {
-            const residentDoc = await createResidentDocument(doc, defaultResidenceId, defaultUploadedBy);
+            const residentDoc = await createResidentDocument(
+              doc,
+              defaultResidenceId,
+              defaultUploadedBy
+            );
             await db.insert(schema.documentsResidents).values(residentDoc);
             residentDocsCreated++;
           }
@@ -261,7 +281,6 @@ async function migrateDocuments() {
     console.warn('   3. Update frontend to work with separate document types');
     console.warn('   4. Test document functionality end-to-end');
     console.warn('   5. Once verified, you can remove the legacy documents table');
-
   } catch (_error) {
     console.error('❌ Migration failed:', _error);
     throw error;
@@ -293,7 +312,7 @@ async function rollbackMigration() {
 // Main execution
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--rollback')) {
     rollbackMigration()
       .then(() => process.exit(0))

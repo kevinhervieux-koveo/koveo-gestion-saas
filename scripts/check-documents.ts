@@ -2,7 +2,7 @@
 
 /**
  * Document Check Script.
- * 
+ *
  * This script checks the current state of documents in the database
  * and displays information about existing documents and table structure.
  */
@@ -29,7 +29,7 @@ async function checkDocuments() {
     try {
       const legacyDocs = await db.execute('SELECT COUNT(*) as count FROM documents');
       console.warn(`   Legacy documents found: ${legacyDocs.rows[0]?.count || 0}`);
-      
+
       if (parseInt(legacyDocs.rows[0]?.count as string) > 0) {
         console.warn('\n   Sample legacy documents:');
         const sampleDocs = await db.execute(`
@@ -37,10 +37,12 @@ async function checkDocuments() {
           FROM documents 
           LIMIT 5
         `);
-        
+
         sampleDocs.rows.forEach((doc: any, _index) => {
           console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
-          console.warn(`      Building: ${doc.buildings}, Residence: ${doc.residence}, Tenant: ${doc.tenant}`);
+          console.warn(
+            `      Building: ${doc.buildings}, Residence: ${doc.residence}, Tenant: ${doc.tenant}`
+          );
           console.warn(`      Uploaded: ${doc.upload_date}`);
         });
       }
@@ -53,7 +55,7 @@ async function checkDocuments() {
     try {
       const buildingDocs = await db.execute('SELECT COUNT(*) as count FROM documents_buildings');
       console.warn(`   Building documents found: ${buildingDocs.rows[0]?.count || 0}`);
-      
+
       if (parseInt(buildingDocs.rows[0]?.count as string) > 0) {
         console.warn('\n   Sample building documents:');
         const sampleBuildingDocs = await db.execute(`
@@ -61,7 +63,7 @@ async function checkDocuments() {
           FROM documents_buildings 
           LIMIT 3
         `);
-        
+
         sampleBuildingDocs.rows.forEach((doc: any, _index) => {
           console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
           console.warn(`      Building ID: ${doc.building_id}`);
@@ -77,7 +79,7 @@ async function checkDocuments() {
     try {
       const residentDocs = await db.execute('SELECT COUNT(*) as count FROM documents_residents');
       console.warn(`   Resident documents found: ${residentDocs.rows[0]?.count || 0}`);
-      
+
       if (parseInt(residentDocs.rows[0]?.count as string) > 0) {
         console.warn('\n   Sample resident documents:');
         const sampleResidentDocs = await db.execute(`
@@ -85,7 +87,7 @@ async function checkDocuments() {
           FROM documents_residents 
           LIMIT 3
         `);
-        
+
         sampleResidentDocs.rows.forEach((doc: any, _index) => {
           console.warn(`   ${index + 1}. ${doc.name} (${doc.type})`);
           console.warn(`      Residence ID: ${doc.residence_id}`);
@@ -99,21 +101,24 @@ async function checkDocuments() {
     // Check available buildings and residences for migration context
     console.warn('\n🏗️  Available buildings and residences:');
     try {
-      const buildings = await db.execute('SELECT COUNT(*) as count FROM buildings WHERE is_active = true');
+      const buildings = await db.execute(
+        'SELECT COUNT(*) as count FROM buildings WHERE is_active = true'
+      );
       console.warn(`   Active buildings: ${buildings.rows[0]?.count || 0}`);
     } catch (_error) {
       console.warn('   ❌ Cannot check buildings table');
     }
 
     try {
-      const residences = await db.execute('SELECT COUNT(*) as count FROM residences WHERE is_active = true');
+      const residences = await db.execute(
+        'SELECT COUNT(*) as count FROM residences WHERE is_active = true'
+      );
       console.warn(`   Active residences: ${residences.rows[0]?.count || 0}`);
     } catch (_error) {
       console.warn('   ❌ Cannot check residences table');
     }
 
     console.warn('\n✅ Document check completed');
-
   } catch (_error) {
     console.error('❌ Error checking documents:', _error);
   }

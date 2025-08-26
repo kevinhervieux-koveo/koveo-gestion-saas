@@ -27,11 +27,11 @@ interface FeatureValidation {
  */
 async function validateFeatureCompleteness() {
   console.warn(chalk.blue('🔍 Validating Feature Completeness...'));
-  
+
   const features = [
     'Document Management',
     'User Management',
-    'Building Management', 
+    'Building Management',
     'SSL Management',
     'RBAC System',
     'Billing & Budgets',
@@ -40,25 +40,26 @@ async function validateFeatureCompleteness() {
     'Multi-language Support',
     'Security & Compliance',
     'Notification System',
-    'Audit Logging'
+    'Audit Logging',
   ];
-  
+
   const validations: FeatureValidation[] = [];
-  
+
   for (const feature of features) {
     const validation = await validateSingleFeature(feature);
     validations.push(validation);
   }
-  
+
   await generateFeatureValidationReport(validations);
-  
-  const incompleteFeatures = validations.filter(v => v.completeness < 80);
-  const averageCompleteness = validations.reduce((sum, v) => sum + v.completeness, 0) / validations.length;
-  
+
+  const incompleteFeatures = validations.filter((v) => v.completeness < 80);
+  const averageCompleteness =
+    validations.reduce((sum, v) => sum + v.completeness, 0) / validations.length;
+
   console.warn(chalk.green(`✅ Feature Validation Complete`));
   console.warn(chalk.gray(`   Average Completeness: ${averageCompleteness.toFixed(1)}%`));
   console.warn(chalk.gray(`   Features needing attention: ${incompleteFeatures.length}`));
-  
+
   return incompleteFeatures.length === 0 && averageCompleteness >= 85;
 }
 
@@ -69,21 +70,29 @@ async function validateFeatureCompleteness() {
  */
 async function validateSingleFeature(featureName: string): Promise<FeatureValidation> {
   const searchTerms = getFeatureSearchTerms(featureName);
-  
+
   const hasImplementation = await checkImplementation(searchTerms);
   const hasTests = await checkTests(searchTerms);
   const hasDocumentation = await checkDocumentation(searchTerms);
   const hasScripts = await checkScripts(searchTerms);
-  
+
   const components = [hasImplementation, hasTests, hasDocumentation, hasScripts];
   const completeness = (components.filter(Boolean).length / components.length) * 100;
-  
+
   const missingComponents: string[] = [];
-  if (!hasImplementation) {missingComponents.push('Implementation');}
-  if (!hasTests) {missingComponents.push('Tests');}
-  if (!hasDocumentation) {missingComponents.push('Documentation');}
-  if (!hasScripts) {missingComponents.push('Scripts');}
-  
+  if (!hasImplementation) {
+    missingComponents.push('Implementation');
+  }
+  if (!hasTests) {
+    missingComponents.push('Tests');
+  }
+  if (!hasDocumentation) {
+    missingComponents.push('Documentation');
+  }
+  if (!hasScripts) {
+    missingComponents.push('Scripts');
+  }
+
   return {
     feature: featureName,
     hasImplementation,
@@ -91,7 +100,7 @@ async function validateSingleFeature(featureName: string): Promise<FeatureValida
     hasDocumentation,
     hasScripts,
     completeness,
-    missingComponents
+    missingComponents,
   };
 }
 
@@ -113,9 +122,9 @@ function getFeatureSearchTerms(featureName: string): string[] {
     'Multi-language Support': ['i18n', 'language', 'locale'],
     'Security & Compliance': ['security', 'law25', 'compliance'],
     'Notification System': ['notification', 'email', 'alert'],
-    'Audit Logging': ['audit', 'log', 'tracking']
+    'Audit Logging': ['audit', 'log', 'tracking'],
   };
-  
+
   return termMap[featureName] || [featureName.toLowerCase().replace(/\s+/g, '-')];
 }
 
@@ -129,14 +138,14 @@ async function checkImplementation(searchTerms: string[]): Promise<boolean> {
     const files = await findFiles([
       `client/src/**/*${term}*`,
       `server/**/*${term}*`,
-      `shared/**/*${term}*`
+      `shared/**/*${term}*`,
     ]);
-    
+
     if (files.length > 0) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -151,14 +160,14 @@ async function checkTests(searchTerms: string[]): Promise<boolean> {
       `tests/**/*${term}*.test.*`,
       `tests/**/*${term}*.spec.*`,
       `**/*${term}*.test.*`,
-      `**/*${term}*.spec.*`
+      `**/*${term}*.spec.*`,
     ]);
-    
+
     if (files.length > 0) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -170,12 +179,8 @@ async function checkTests(searchTerms: string[]): Promise<boolean> {
 async function checkDocumentation(searchTerms: string[]): Promise<boolean> {
   for (const term of searchTerms) {
     // Check for documentation files
-    const files = await findFiles([
-      `docs/**/*${term}*`,
-      `**/*${term}*.md`,
-      `**/README.md`
-    ]);
-    
+    const files = await findFiles([`docs/**/*${term}*`, `**/*${term}*.md`, `**/README.md`]);
+
     if (files.length > 0) {
       // Check if the term is mentioned in documentation
       for (const file of files) {
@@ -190,7 +195,7 @@ async function checkDocumentation(searchTerms: string[]): Promise<boolean> {
       }
     }
   }
-  
+
   return false;
 }
 
@@ -202,12 +207,12 @@ async function checkDocumentation(searchTerms: string[]): Promise<boolean> {
 async function checkScripts(searchTerms: string[]): Promise<boolean> {
   try {
     const scriptsDir = await fs.readdir('scripts');
-    
+
     for (const term of searchTerms) {
-      const hasScript = scriptsDir.some(script => 
+      const hasScript = scriptsDir.some((script) =>
         script.toLowerCase().includes(term.toLowerCase())
       );
-      
+
       if (hasScript) {
         return true;
       }
@@ -215,7 +220,7 @@ async function checkScripts(searchTerms: string[]): Promise<boolean> {
   } catch {
     // Scripts directory doesn't exist or can't be read
   }
-  
+
   return false;
 }
 
@@ -226,34 +231,41 @@ async function checkScripts(searchTerms: string[]): Promise<boolean> {
  */
 async function findFiles(patterns: string[]): Promise<string[]> {
   const allFiles: string[] = [];
-  
+
   for (const pattern of patterns) {
     try {
       const { spawn } = await import('child_process');
       const files = await new Promise<string[]>((resolve) => {
-        const find = spawn('find', ['.', '-path', './node_modules', '-prune', '-o', '-name', pattern, '-print'], {
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-        
+        const find = spawn(
+          'find',
+          ['.', '-path', './node_modules', '-prune', '-o', '-name', pattern, '-print'],
+          {
+            stdio: ['pipe', 'pipe', 'pipe'],
+          }
+        );
+
         let output = '';
         find.stdout.on('data', (_data) => {
           output += data.toString();
         });
-        
+
         find.on('close', () => {
-          const fileList = output.trim().split('\n').filter(f => f && !f.includes('node_modules'));
+          const fileList = output
+            .trim()
+            .split('\n')
+            .filter((f) => f && !f.includes('node_modules'));
           resolve(fileList);
         });
-        
+
         find.on('error', () => resolve([]));
       });
-      
+
       allFiles.push(...files);
     } catch {
       // Continue with next pattern
     }
   }
-  
+
   return [...new Set(allFiles)];
 }
 
@@ -263,13 +275,14 @@ async function findFiles(patterns: string[]): Promise<string[]> {
  */
 async function generateFeatureValidationReport(validations: FeatureValidation[]) {
   const reportPath = path.join('reports', 'feature-completeness-report.md');
-  
+
   await fs.mkdir('reports', { recursive: true });
-  
-  const averageCompleteness = validations.reduce((sum, v) => sum + v.completeness, 0) / validations.length;
-  const completeFeatures = validations.filter(v => v.completeness === 100);
-  const incompleteFeatures = validations.filter(v => v.completeness < 80);
-  
+
+  const averageCompleteness =
+    validations.reduce((sum, v) => sum + v.completeness, 0) / validations.length;
+  const completeFeatures = validations.filter((v) => v.completeness === 100);
+  const incompleteFeatures = validations.filter((v) => v.completeness < 80);
+
   const report = `# Feature Completeness Validation Report
 
 Generated on: ${new Date().toISOString()}
@@ -286,7 +299,8 @@ Generated on: ${new Date().toISOString()}
 
 ${validations
   .sort((a, b) => b.completeness - a.completeness)
-  .map((validation, _index) => `
+  .map(
+    (validation, _index) => `
 ### ${index + 1}. ${validation.feature}
 
 **Completeness:** ${validation.completeness.toFixed(0)}% ${validation.completeness === 100 ? '✅' : validation.completeness >= 75 ? '⚠️' : '❌'}
@@ -301,17 +315,23 @@ ${validations
 ${validation.missingComponents.length > 0 ? `**Missing:** ${validation.missingComponents.join(', ')}` : '**Status:** Complete ✨'}
 
 ---
-`).join('')}
+`
+  )
+  .join('')}
 
 ## Recommendations
 
 ### Features Needing Attention
 
-${incompleteFeatures.map(feature => `
+${incompleteFeatures
+  .map(
+    (feature) => `
 #### ${feature.feature} (${feature.completeness.toFixed(0)}%)
 - Missing: ${feature.missingComponents.join(', ')}
 - **Action:** ${generateRecommendation(feature)}
-`).join('')}
+`
+  )
+  .join('')}
 
 ### Quality Improvements
 
@@ -332,7 +352,7 @@ Based on the analysis, consider adding these commands:
 
 The Koveo Gestion platform shows excellent implementation across core areas:
 
-${completeFeatures.map(feature => `- ✅ **${feature.feature}**: Complete implementation with all components`).join('\n')}
+${completeFeatures.map((feature) => `- ✅ **${feature.feature}**: Complete implementation with all components`).join('\n')}
 
 ## Next Steps
 
@@ -352,7 +372,7 @@ ${completeFeatures.map(feature => `- ✅ **${feature.feature}**: Complete implem
  */
 function generateRecommendation(feature: FeatureValidation): string {
   const missing = feature.missingComponents;
-  
+
   if (missing.includes('Implementation')) {
     return 'Implement core functionality first, then add tests and documentation';
   } else if (missing.includes('Tests')) {
@@ -362,11 +382,11 @@ function generateRecommendation(feature: FeatureValidation): string {
   } else if (missing.includes('Scripts')) {
     return 'Add utility scripts for maintenance and operations';
   }
-  
+
   return 'Review and enhance existing components';
 }
 
 // Run the validation
-validateFeatureCompleteness().then(success => {
+validateFeatureCompleteness().then((success) => {
   process.exit(success ? 0 : 1);
 });

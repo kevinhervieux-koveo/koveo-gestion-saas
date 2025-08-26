@@ -30,10 +30,10 @@ async function main() {
     console.warn(chalk.cyan(`   Testing: ${health.testing}/100`));
     console.warn(chalk.cyan(`   Security: ${health.security}/100`));
     console.warn(chalk.cyan(`   Performance: ${health.performance}/100`));
-    
+
     if (health.issues.length > 0) {
       console.warn(chalk.red(`   Issues found: ${health.issues.length}`));
-      health.issues.slice(0, 3).forEach(issue => {
+      health.issues.slice(0, 3).forEach((issue) => {
         console.warn(chalk.gray(`   • ${issue.description}`));
       });
     }
@@ -52,12 +52,12 @@ async function main() {
     console.warn(chalk.yellow('3. Testing Smart Context Management...'));
     const testFiles = ['client/src/App.tsx', 'server/index.ts', 'shared/schema.ts'];
     contextManager.updateWorkingSet(testFiles, 'testing');
-    
+
     const contextSummary = JSON.parse(contextManager.generateContextSummary());
     console.warn(chalk.green(`✅ Working Set: ${contextSummary.workingSet} files`));
     console.warn(chalk.cyan(`   Focus Area: ${contextSummary.focusArea}`));
     console.warn(chalk.cyan(`   Recent Files: ${contextSummary.recentFiles?.length || 0}`));
-    
+
     const recommendations = contextManager.getSmartRecommendations('testing');
     console.warn(chalk.cyan(`   Priority Recommendations: ${recommendations.priority.length}`));
     console.warn(chalk.cyan(`   Exploratory Options: ${recommendations.exploratory.length}`));
@@ -67,26 +67,41 @@ async function main() {
     console.warn(chalk.yellow('4. Testing Workflow Detection...'));
     const workflowSuggestions = workflowAssistant.detectWorkflowPatterns(testFiles, testFiles);
     console.warn(chalk.green(`✅ Workflow Suggestions: ${workflowSuggestions.length}`));
-    
+
     workflowSuggestions.slice(0, 3).forEach((suggestion, _index) => {
-      console.warn(chalk.cyan(`   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`));
+      console.warn(
+        chalk.cyan(
+          `   ${index + 1}. ${suggestion.description} (${suggestion.confidence}% confidence)`
+        )
+      );
     });
 
     const insights = await workflowAssistant.generateProjectInsights();
     console.warn(chalk.green(`✅ Project Insights: ${insights.length}`));
-    
+
     insights.slice(0, 3).forEach((insight, _index) => {
-      const severityColor = insight.severity === 'critical' ? chalk.red :
-                            insight.severity === 'error' ? chalk.red :
-                            insight.severity === 'warning' ? chalk.yellow : chalk.blue;
-      console.warn(chalk.cyan(`   ${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`));
+      const severityColor =
+        insight.severity === 'critical'
+          ? chalk.red
+          : insight.severity === 'error'
+            ? chalk.red
+            : insight.severity === 'warning'
+              ? chalk.yellow
+              : chalk.blue;
+      console.warn(
+        chalk.cyan(
+          `   ${index + 1}. ${severityColor(insight.category.toUpperCase())} - ${insight.title}`
+        )
+      );
     });
     console.warn();
 
     // Test 5: Dashboard Metrics Collection
     console.warn(chalk.yellow('5. Testing Dashboard Metrics...'));
     const metrics = await agentDashboard.collectMetrics();
-    console.warn(chalk.green(`✅ Metrics Collected at: ${new Date(metrics.timestamp).toLocaleTimeString()}`));
+    console.warn(
+      chalk.green(`✅ Metrics Collected at: ${new Date(metrics.timestamp).toLocaleTimeString()}`)
+    );
     console.warn(chalk.cyan(`   Project Health: ${metrics.projectHealth.overallScore}/100`));
     console.warn(chalk.cyan(`   Code Quality: ${metrics.projectHealth.codeQuality}/100`));
     console.warn(chalk.cyan(`   Working Files: ${metrics.workspaceContext.workingFiles}`));
@@ -105,11 +120,15 @@ async function main() {
     // Test 7: Quick Health Check
     console.warn(chalk.yellow('7. Testing Quick Health Check...'));
     const quickCheck = await agentToolkit.quickHealthCheck();
-    const statusColor = quickCheck.status === 'healthy' ? chalk.green :
-                       quickCheck.status === 'warning' ? chalk.yellow : chalk.red;
+    const statusColor =
+      quickCheck.status === 'healthy'
+        ? chalk.green
+        : quickCheck.status === 'warning'
+          ? chalk.yellow
+          : chalk.red;
     console.warn(chalk.green(`✅ Status: ${statusColor(quickCheck.status.toUpperCase())}`));
     console.warn(chalk.cyan(`   Score: ${quickCheck.score}/100`));
-    
+
     if (quickCheck.topIssues.length > 0) {
       console.warn(chalk.cyan(`   Top Issues: ${quickCheck.topIssues.length}`));
       quickCheck.topIssues.forEach((issue, _index) => {
@@ -122,7 +141,9 @@ async function main() {
     console.warn(chalk.yellow('8. Testing Workflow Execution (Dry Run)...'));
     try {
       const workflowResult = await workflowAssistant.executeWorkflow('pre-commit-validation', true);
-      console.warn(chalk.green(`✅ Workflow Status: ${workflowResult.success ? 'Success' : 'Warning'}`));
+      console.warn(
+        chalk.green(`✅ Workflow Status: ${workflowResult.success ? 'Success' : 'Warning'}`)
+      );
       console.warn(chalk.cyan(`   Actions: ${workflowResult.results.length}`));
       console.warn(chalk.gray(`   Summary: ${workflowResult.summary}`));
     } catch (_error) {
@@ -135,7 +156,7 @@ async function main() {
     try {
       const dashboardPath = await agentDashboard.saveDashboard();
       console.warn(chalk.green(`✅ Dashboard saved to: ${dashboardPath}`));
-      
+
       // Test trends (might not have enough _data)
       const trends = agentDashboard.getMetricsTrends(1);
       if (trends) {
@@ -154,10 +175,12 @@ async function main() {
       const exportData = await agentToolkit.exportAnalysis();
       const analysisSize = Math.round(exportData.length / 1024);
       console.warn(chalk.green(`✅ Analysis exported: ${analysisSize}KB`));
-      
+
       const parsedData = JSON.parse(exportData);
       console.warn(chalk.cyan(`   Contains: context, health, codeAnalysis, suggestions`));
-      console.warn(chalk.cyan(`   Timestamp: ${new Date(parsedData.timestamp).toLocaleTimeString()}`));
+      console.warn(
+        chalk.cyan(`   Timestamp: ${new Date(parsedData.timestamp).toLocaleTimeString()}`)
+      );
     } catch (_error) {
       console.warn(chalk.yellow(`⚠️ Export test failed: ${error}`));
     }
@@ -182,7 +205,6 @@ async function main() {
     console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts dashboard --save'));
     console.warn(chalk.cyan('  npx tsx scripts/ai-agent-cli.ts analyze'));
     console.warn();
-
   } catch (_error) {
     console.error(chalk.red('❌ Test failed:'), _error);
     process.exit(1);

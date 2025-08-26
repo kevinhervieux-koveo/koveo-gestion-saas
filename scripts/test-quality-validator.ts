@@ -1,6 +1,6 @@
 /**
  * Test Quality Validation Script for Koveo Gestion.
- * 
+ *
  * Validates test quality, effectiveness, and Quebec compliance standards.
  * Ensures all tests meet production-grade requirements for property management.
  */
@@ -61,7 +61,7 @@ class TestQualityValidator {
       minPerformance: 80,
       minAccessibility: 85,
       maxTestExecutionTime: 30000, // 30 seconds
-      minAssertionsPerTest: 2
+      minAssertionsPerTest: 2,
     };
     this.quebecRequirements = [
       'français',
@@ -73,7 +73,7 @@ class TestQualityValidator {
       'téléphone',
       'code postal',
       'règlement',
-      'conformité'
+      'conformité',
     ];
   }
 
@@ -94,52 +94,51 @@ class TestQualityValidator {
       accessibility: 0,
       recommendations: [],
       failedValidations: [],
-      passedValidations: []
+      passedValidations: [],
     };
 
     try {
       // Reset validation arrays for each run
       this.passedValidations = [];
       this.failedValidations = [];
-      
+
       // 1. Validate test coverage
       console.warn('📊 Validating test coverage...');
       report.testCoverage = await this.validateTestCoverage();
-      
+
       // 2. Analyze test quality
       console.warn('🎯 Analyzing test quality...');
       report.testQuality = await this.analyzeTestQuality();
-      
+
       // 3. Check Quebec compliance
       console.warn('🇨🇦 Checking Quebec compliance in tests...');
       report.quebecCompliance = await this.validateQuebecCompliance();
-      
+
       // 4. Measure performance
       console.warn('⚡ Measuring test performance...');
       report.performance = await this.measureTestPerformance();
-      
+
       // 5. Validate accessibility tests
       console.warn('♿ Validating accessibility test coverage...');
       report.accessibility = await this.validateAccessibilityTests();
-      
+
       // 6. Set validation results
       report.passedValidations = [...this.passedValidations];
       report.failedValidations = [...this.failedValidations];
-      
+
       // 7. Calculate overall score
       report.overallScore = this.calculateOverallScore(report);
-      
+
       // 8. Generate recommendations
       report.recommendations = this.generateRecommendations(report);
-      
+
       // 8. Output results
       this.outputValidationResults(report);
-      
+
       // 9. Save detailed report
       await this.saveDetailedReport(report);
-      
+
       return report;
-      
     } catch (_error) {
       console.error('❌ Test quality validation failed:', _error);
       throw error;
@@ -153,7 +152,7 @@ class TestQualityValidator {
     try {
       // Run coverage analysis
       const coverageData = await coverageAutomation.runComprehensiveCoverage();
-      
+
       const coverage = coverageData.coverageData.aggregate;
       let score = 0;
       let validations = 0;
@@ -222,7 +221,7 @@ class TestQualityValidator {
     }
 
     // Check for specific quality issues
-    const filesWithIssues = analyses.filter(a => a.issues.length > 0);
+    const filesWithIssues = analyses.filter((a) => a.issues.length > 0);
     if (filesWithIssues.length === 0) {
       this.passedValidations.push('✅ No critical test quality issues found');
     } else {
@@ -246,12 +245,12 @@ class TestQualityValidator {
       'Quebec regulations',
       'Montreal specific features',
       'Quebec postal codes',
-      'Quebec phone numbers'
+      'Quebec phone numbers',
     ];
 
     for (const file of testFiles) {
       const content = readFileSync(file, 'utf8');
-      
+
       // Count Quebec-specific tests
       for (const requirement of this.quebecRequirements) {
         if (content.toLowerCase().includes(requirement.toLowerCase())) {
@@ -268,18 +267,22 @@ class TestQualityValidator {
       }
     }
 
-    const quebecCoveragePercent = testFiles.length > 0 ? 
-      (quebecTestCount / testFiles.length) * 100 : 0;
-    
-    const featureCoveragePercent = quebecFeatures.length > 0 ? 
-      (quebecFeatureCoverage / quebecFeatures.length) * 100 : 0;
+    const quebecCoveragePercent =
+      testFiles.length > 0 ? (quebecTestCount / testFiles.length) * 100 : 0;
+
+    const featureCoveragePercent =
+      quebecFeatures.length > 0 ? (quebecFeatureCoverage / quebecFeatures.length) * 100 : 0;
 
     const overallQuebecScore = (quebecCoveragePercent + featureCoveragePercent) / 2;
 
     if (overallQuebecScore >= this.qualityThresholds.minQuebecCompliance) {
-      this.passedValidations.push(`✅ Quebec compliance coverage: ${overallQuebecScore.toFixed(1)}%`);
+      this.passedValidations.push(
+        `✅ Quebec compliance coverage: ${overallQuebecScore.toFixed(1)}%`
+      );
     } else {
-      this.failedValidations.push(`❌ Quebec compliance below 90%: ${overallQuebecScore.toFixed(1)}%`);
+      this.failedValidations.push(
+        `❌ Quebec compliance below 90%: ${overallQuebecScore.toFixed(1)}%`
+      );
     }
 
     // Specific Quebec feature validations
@@ -301,9 +304,9 @@ class TestQualityValidator {
     try {
       // Measure test execution time
       const startTime = Date.now();
-      execSync('npm run test -- --passWithNoTests', { 
+      execSync('npm run test -- --passWithNoTests', {
         stdio: 'pipe',
-        timeout: this.qualityThresholds.maxTestExecutionTime
+        timeout: this.qualityThresholds.maxTestExecutionTime,
       });
       const executionTime = Date.now() - startTime;
 
@@ -320,12 +323,12 @@ class TestQualityValidator {
 
       for (const file of testFiles) {
         const content = readFileSync(file, 'utf8');
-        
+
         // Check for synchronous operations that should be async
         if (content.includes('setTimeout') && !content.includes('await')) {
           antiPatterns++;
         }
-        
+
         // Check for excessive mocking
         const mockCount = (content.match(/jest\.mock/g) || []).length;
         if (mockCount > 10) {
@@ -339,7 +342,6 @@ class TestQualityValidator {
         this.failedValidations.push(`❌ ${antiPatterns} performance anti-patterns found`);
         performanceScore -= antiPatterns * 5;
       }
-
     } catch (_error) {
       this.failedValidations.push(`❌ Performance measurement failed: ${error.message}`);
       performanceScore = 0;
@@ -362,7 +364,7 @@ class TestQualityValidator {
       'focus management',
       'color contrast',
       'alt text',
-      'tabindex'
+      'tabindex',
     ];
 
     let accessibilityTestCount = 0;
@@ -384,13 +386,14 @@ class TestQualityValidator {
       }
     }
 
-    const a11yCoverage = testFiles.length > 0 ? 
-      (filesWithA11yTests / testFiles.length) * 100 : 0;
+    const a11yCoverage = testFiles.length > 0 ? (filesWithA11yTests / testFiles.length) * 100 : 0;
 
     if (a11yCoverage >= this.qualityThresholds.minAccessibility) {
       this.passedValidations.push(`✅ Accessibility test coverage: ${a11yCoverage.toFixed(1)}%`);
     } else {
-      this.failedValidations.push(`❌ Accessibility coverage below 85%: ${a11yCoverage.toFixed(1)}%`);
+      this.failedValidations.push(
+        `❌ Accessibility coverage below 85%: ${a11yCoverage.toFixed(1)}%`
+      );
     }
 
     if (accessibilityTestCount > 0) {
@@ -415,24 +418,26 @@ class TestQualityValidator {
       quebecSpecificTests: 0,
       mockUsage: 0,
       qualityScore: 100,
-      issues: []
+      issues: [],
     };
 
     // Count tests
     analysis.testCount = (content.match(/test\(|it\(/g) || []).length;
-    
+
     // Count assertions
     analysis.assertionCount = (content.match(/expect\(/g) || []).length;
-    
+
     // Count Quebec-specific content
     for (const requirement of this.quebecRequirements) {
       if (content.toLowerCase().includes(requirement.toLowerCase())) {
         analysis.quebecSpecificTests++;
       }
     }
-    
+
     // Count mock usage
-    analysis.mockUsage = (content.match(/jest\.mock|mockImplementation|mockReturnValue/g) || []).length;
+    analysis.mockUsage = (
+      content.match(/jest\.mock|mockImplementation|mockReturnValue/g) || []
+    ).length;
 
     // Quality checks
     if (analysis.testCount === 0) {
@@ -440,7 +445,10 @@ class TestQualityValidator {
       analysis.qualityScore -= 50;
     }
 
-    if (analysis.assertionCount < analysis.testCount * this.qualityThresholds.minAssertionsPerTest) {
+    if (
+      analysis.assertionCount <
+      analysis.testCount * this.qualityThresholds.minAssertionsPerTest
+    ) {
       analysis.issues.push('Insufficient assertions per test');
       analysis.qualityScore -= 20;
     }
@@ -469,7 +477,12 @@ class TestQualityValidator {
     for (const dir of testDirs) {
       const fullPath = join(this.projectRoot, dir);
       if (existsSync(fullPath)) {
-        const files = this.getFilesRecursively(fullPath, ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx']);
+        const files = this.getFilesRecursively(fullPath, [
+          '.test.ts',
+          '.test.tsx',
+          '.spec.ts',
+          '.spec.tsx',
+        ]);
         testFiles.push(...files);
       }
     }
@@ -492,7 +505,7 @@ class TestQualityValidator {
 
       if (stat.isDirectory()) {
         files.push(...this.getFilesRecursively(fullPath, extensions));
-      } else if (extensions.some(ext => item.endsWith(ext))) {
+      } else if (extensions.some((ext) => item.endsWith(ext))) {
         files.push(fullPath);
       }
     }
@@ -510,7 +523,7 @@ class TestQualityValidator {
       testQuality: 0.25,
       quebecCompliance: 0.25,
       performance: 0.1,
-      accessibility: 0.1
+      accessibility: 0.1,
     };
 
     return (
@@ -541,15 +554,15 @@ class TestQualityValidator {
     }
 
     if (report.accessibility < this.qualityThresholds.minAccessibility) {
-      recommendations.push('Améliorer la couverture des tests d\'accessibilité');
+      recommendations.push("Améliorer la couverture des tests d'accessibilité");
       recommendations.push('Ajouter des tests pour la navigation au clavier');
       recommendations.push('Valider les attributs ARIA dans les tests');
     }
 
     if (report.performance < this.qualityThresholds.minPerformance) {
-      recommendations.push('Optimiser les temps d\'exécution des tests');
+      recommendations.push("Optimiser les temps d'exécution des tests");
       recommendations.push('Réduire les mocks excessifs');
-      recommendations.push('Paralléliser l\'exécution des tests');
+      recommendations.push("Paralléliser l'exécution des tests");
     }
 
     if (report.testQuality < this.qualityThresholds.minTestQuality) {
@@ -567,13 +580,12 @@ class TestQualityValidator {
    */
   private outputValidationResults(report: TestQualityReport): void {
     console.warn('\n🏆 TEST QUALITY VALIDATION RESULTS');
-    console.warn('=' .repeat(60));
-    
+    console.warn('='.repeat(60));
+
     // Overall score
-    const scoreColor = report.overallScore >= 90 ? '🟢' : 
-                      report.overallScore >= 80 ? '🟡' : '🔴';
+    const scoreColor = report.overallScore >= 90 ? '🟢' : report.overallScore >= 80 ? '🟡' : '🔴';
     console.warn(`${scoreColor} Overall Score: ${report.overallScore.toFixed(1)}%`);
-    
+
     console.warn('\n📊 DETAILED METRICS:');
     console.warn(`   Test Coverage: ${report.testCoverage.toFixed(1)}%`);
     console.warn(`   Test Quality: ${report.testQuality.toFixed(1)}%`);
@@ -582,11 +594,11 @@ class TestQualityValidator {
     console.warn(`   Accessibility: ${report.accessibility.toFixed(1)}%`);
 
     console.warn('\n✅ PASSED VALIDATIONS:');
-    report.passedValidations.forEach(validation => console.warn(`   ${validation}`));
+    report.passedValidations.forEach((validation) => console.warn(`   ${validation}`));
 
     if (report.failedValidations.length > 0) {
       console.warn('\n❌ FAILED VALIDATIONS:');
-      report.failedValidations.forEach(validation => console.warn(`   ${validation}`));
+      report.failedValidations.forEach((validation) => console.warn(`   ${validation}`));
     }
 
     if (report.recommendations.length > 0) {
@@ -594,8 +606,8 @@ class TestQualityValidator {
       report.recommendations.forEach((rec, i) => console.warn(`   ${i + 1}. ${rec}`));
     }
 
-    console.warn('\n' + '=' .repeat(60));
-    
+    console.warn('\n' + '='.repeat(60));
+
     if (report.overallScore >= 95) {
       console.warn('🎉 EXCELLENT! Tests meet Quebec property management standards.');
     } else if (report.overallScore >= 85) {
@@ -612,11 +624,11 @@ class TestQualityValidator {
   private async saveDetailedReport(report: TestQualityReport): Promise<void> {
     const reportPath = join(this.projectRoot, 'coverage', 'test-quality-report.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     const htmlReportPath = join(this.projectRoot, 'coverage', 'test-quality-report.html');
     const htmlContent = this.generateHTMLReport(report);
     writeFileSync(htmlReportPath, htmlContent);
-    
+
     console.warn(`\n📄 Detailed reports saved:`);
     console.warn(`   JSON: ${reportPath}`);
     console.warn(`   HTML: ${htmlReportPath}`);
@@ -681,38 +693,45 @@ class TestQualityValidator {
           </div>
         </div>
 
-        ${report.recommendations.length > 0 ? `
+        ${
+          report.recommendations.length > 0
+            ? `
         <div class="recommendations">
           <h3>💡 Recommandations</h3>
           <ul>
-            ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            ${report.recommendations.map((rec) => `<li>${rec}</li>`).join('')}
           </ul>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div class="validations">
           <div class="passed">
             <h3>✅ Validations Réussies</h3>
             <ul>
-              ${report.passedValidations.map(val => `<li>${val}</li>`).join('')}
+              ${report.passedValidations.map((val) => `<li>${val}</li>`).join('')}
             </ul>
           </div>
           
-          ${report.failedValidations.length > 0 ? `
+          ${
+            report.failedValidations.length > 0
+              ? `
           <div class="failed">
             <h3>❌ Validations Échouées</h3>
             <ul>
-              ${report.failedValidations.map(val => `<li>${val}</li>`).join('')}
+              ${report.failedValidations.map((val) => `<li>${val}</li>`).join('')}
             </ul>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     </body>
     </html>
     `;
   }
-
 }
 
 // Export singleton instance for use in other modules
@@ -720,12 +739,13 @@ export const testQualityValidator = new TestQualityValidator();
 
 // Run validation if script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  testQualityValidator.validateTestQuality()
-    .then(report => {
+  testQualityValidator
+    .validateTestQuality()
+    .then((report) => {
       console.warn(`\n🏆 Test quality validation completed with score: ${report.overallScore}%`);
       process.exit(report.overallScore >= 90 ? 0 : 1);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('❌ Test quality validation failed:', _error);
       process.exit(1);
     });

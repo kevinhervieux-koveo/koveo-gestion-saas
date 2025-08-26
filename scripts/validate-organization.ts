@@ -33,25 +33,25 @@ interface TestResult {
 function runTestSuite(suitePath: string): TestResult {
   const suiteName = path.basename(suitePath, '.test.ts');
   console.warn(chalk.blue(`\nRunning ${suiteName}...`));
-  
+
   try {
-    const output = execSync(
-      `npx jest ${suitePath} --no-coverage --silent`,
-      { encoding: 'utf-8', stdio: 'pipe' }
-    );
-    
+    const output = execSync(`npx jest ${suitePath} --no-coverage --silent`, {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+    });
+
     return {
       suite: suiteName,
       passed: true,
       details: output,
-      suggestions: extractSuggestions(output)
+      suggestions: extractSuggestions(output),
     };
   } catch (_error: unknown) {
     return {
       suite: suiteName,
       passed: false,
       details: error.stdout || error.message,
-      suggestions: extractSuggestions(error.stdout || '')
+      suggestions: extractSuggestions(error.stdout || ''),
     };
   }
 }
@@ -68,16 +68,18 @@ function runTestSuite(suitePath: string): TestResult {
 function extractSuggestions(output: string): string[] {
   const suggestions: string[] = [];
   const lines = output.split('\n');
-  
-  lines.forEach(line => {
-    if (line.includes('suggestion:') || 
-        line.includes('improvement:') || 
-        line.includes('TODO:') ||
-        line.includes('Missing')) {
+
+  lines.forEach((line) => {
+    if (
+      line.includes('suggestion:') ||
+      line.includes('improvement:') ||
+      line.includes('TODO:') ||
+      line.includes('Missing')
+    ) {
       suggestions.push(line.trim());
     }
   });
-  
+
   return suggestions;
 }
 
@@ -92,9 +94,9 @@ function extractSuggestions(output: string): string[] {
  */
 function generateReport(results: TestResult[]): string {
   const timestamp = new Date().toISOString();
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
-  
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
+
   let report = `# Organization Validation Report
 Generated: ${timestamp}
 
@@ -107,28 +109,28 @@ Generated: ${timestamp}
 ## Test Results
 `;
 
-  results.forEach(result => {
+  results.forEach((result) => {
     const status = result.passed ? '✅' : '❌';
     report += `\n### ${status} ${result.suite}\n`;
-    
+
     if (!result.passed) {
       // Extract key error messages
       const errors = result.details
         .split('\n')
-        .filter(line => line.includes('Expected') || line.includes('Error'))
+        .filter((line) => line.includes('Expected') || line.includes('Error'))
         .slice(0, 5);
-      
+
       if (errors.length > 0) {
         report += '\n**Errors:**\n';
-        errors.forEach(error => {
+        errors.forEach((error) => {
           report += `- ${error.trim()}\n`;
         });
       }
     }
-    
+
     if (result.suggestions.length > 0) {
       report += '\n**Suggestions:**\n';
-      result.suggestions.forEach(suggestion => {
+      result.suggestions.forEach((suggestion) => {
         report += `- ${suggestion}\n`;
       });
     }
@@ -175,7 +177,7 @@ async function validateOrganization() {
     'tests/organization/project-structure.test.ts',
     'tests/organization/documentation-validation.test.ts',
     'tests/organization/error-detection.test.ts',
-    'tests/organization/documentation-improvement.test.ts'
+    'tests/organization/documentation-improvement.test.ts',
   ];
 
   const results: TestResult[] = [];
@@ -198,11 +200,11 @@ async function validateOrganization() {
 
   // Print summary
   console.warn(chalk.bold.blue('\n📊 Validation Summary:\n'));
-  
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
-  
-  results.forEach(result => {
+
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
+
+  results.forEach((result) => {
     const status = result.passed ? chalk.green('✅') : chalk.red('❌');
     console.warn(`${status} ${result.suite}`);
   });
@@ -215,7 +217,7 @@ async function validateOrganization() {
 }
 
 // Run validation
-validateOrganization().catch(error => {
+validateOrganization().catch((error) => {
   console.error(chalk.red('Validation failed with _error:'), _error);
   process.exit(1);
 });

@@ -18,29 +18,28 @@ import { join } from 'path';
  */
 function buildServer() {
   console.warn('🔨 Building server...');
-  
+
   try {
     // Run esbuild
     console.warn('Running esbuild...');
-    execSync('esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { 
-      stdio: 'inherit' 
-    });
-    
+    execSync(
+      'esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist',
+      {
+        stdio: 'inherit',
+      }
+    );
+
     // Create config directory in dist
     const distConfigDir = join('dist', 'config');
     if (!existsSync(distConfigDir)) {
       mkdirSync(distConfigDir, { recursive: true });
     }
-    
+
     // Copy permissions.json
     console.warn('Copying permissions.json...');
-    copyFileSync(
-      join('config', 'permissions.json'),
-      join('dist', 'config', 'permissions.json')
-    );
-    
+    copyFileSync(join('config', 'permissions.json'), join('dist', 'config', 'permissions.json'));
+
     console.warn('✅ Server build completed successfully');
-    
   } catch (_error) {
     console.error('❌ Build failed:', _error);
     process.exit(1);

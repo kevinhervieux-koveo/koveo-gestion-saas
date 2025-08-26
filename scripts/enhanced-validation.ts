@@ -25,11 +25,13 @@ interface ValidationResult {
  */
 async function runEnhancedValidation(): Promise<number> {
   console.warn(chalk.blue('🚀 Running Enhanced Validation Suite with Consolidation Analysis...'));
-  console.warn(chalk.gray('   Includes linting, testing, consolidation analysis, and feature validation\n'));
-  
+  console.warn(
+    chalk.gray('   Includes linting, testing, consolidation analysis, and feature validation\n')
+  );
+
   const startTime = Date.now();
   const results: ValidationResult[] = [];
-  
+
   // Enhanced validation steps including JSDoc templates and consolidation analysis
   const validationSteps = [
     { name: 'JSDoc Templates', command: 'npx tsx scripts/apply-jsdoc-templates.ts' },
@@ -40,43 +42,47 @@ async function runEnhancedValidation(): Promise<number> {
     { name: 'Tests', command: 'npm run test' },
     { name: 'Quality Check', command: 'npm run quality:check' },
     { name: 'Consolidation Analysis', command: 'npx tsx scripts/consolidate-redundancies.ts' },
-    { name: 'Feature Coverage', command: 'npx tsx scripts/analyze-feature-coverage.ts' }
+    { name: 'Feature Coverage', command: 'npx tsx scripts/analyze-feature-coverage.ts' },
   ];
-  
+
   let allPassed = true;
-  
+
   for (const step of validationSteps) {
     console.warn(chalk.blue(`🔍 ${step.name}...`));
     const result = await runValidationStep(step.name, step.command);
     results.push(_result);
-    
+
     if (!result.passed) {
       allPassed = false;
       console.warn(chalk.red(`❌ ${step.name}: FAILED`));
     } else {
       console.warn(chalk.green(`✅ ${step.name}: PASSED`));
     }
-    
+
     console.warn(chalk.gray(`   Duration: ${result.duration}ms`));
     if (result.issues > 0) {
       console.warn(chalk.yellow(`   Issues: ${result.issues}`));
     }
     console.warn('');
   }
-  
+
   const totalDuration = Date.now() - startTime;
   const totalIssues = results.reduce((sum, r) => sum + r.issues, 0);
-  
+
   // Generate summary report
   await generateValidationSummary(results, totalDuration, allPassed);
-  
+
   console.warn(chalk.blue('📊 Enhanced Validation Summary:'));
   console.warn(chalk.gray(`   Total Duration: ${totalDuration}ms`));
-  console.warn(chalk.gray(`   Steps Passed: ${results.filter(r => r.passed).length}/${results.length}`));
+  console.warn(
+    chalk.gray(`   Steps Passed: ${results.filter((r) => r.passed).length}/${results.length}`)
+  );
   console.warn(chalk.gray(`   Total Issues: ${totalIssues}`));
-  
+
   if (allPassed) {
-    console.warn(chalk.green('\n🎉 All validation checks passed! Your codebase is in excellent shape.'));
+    console.warn(
+      chalk.green('\n🎉 All validation checks passed! Your codebase is in excellent shape.')
+    );
     console.warn(chalk.gray('   Reports saved to: reports/enhanced-validation-report.md'));
     return 0;
   } else {
@@ -94,48 +100,48 @@ async function runEnhancedValidation(): Promise<number> {
  */
 async function runValidationStep(name: string, command: string): Promise<ValidationResult> {
   const startTime = Date.now();
-  
+
   return new Promise((resolve) => {
     const [cmd, ...args] = command.split(' ');
     const process = spawn(cmd, args, {
       stdio: 'pipe',
-      shell: true
+      shell: true,
     });
-    
+
     let output = '';
     let errorOutput = '';
-    
+
     process.stdout?.on('data', (_data) => {
       output += data.toString();
     });
-    
+
     process.stderr?.on('data', (_data) => {
       errorOutput += data.toString();
     });
-    
+
     process.on('close', (code) => {
       const duration = Date.now() - startTime;
       const passed = code === 0;
       const fullOutput = output + errorOutput;
-      
+
       // Count issues based on output
       const issues = countIssuesInOutput(fullOutput, name);
-      
+
       resolve({
         category: name,
         passed,
         duration,
-        issues
+        issues,
       });
     });
-    
+
     process.on('error', () => {
       const duration = Date.now() - startTime;
       resolve({
         category: name,
         passed: false,
         duration,
-        issues: 1
+        issues: 1,
       });
     });
   });
@@ -163,7 +169,7 @@ function countIssuesInOutput(output: string, category: string): number {
       return parseInt(issuesMatch[1] || issuesMatch[2]);
     }
   }
-  
+
   return 0;
 }
 
@@ -174,15 +180,15 @@ function countIssuesInOutput(output: string, category: string): number {
  * @param allPassed - Whether all passed.
  */
 async function generateValidationSummary(
-  results: ValidationResult[], 
-  totalDuration: number, 
+  results: ValidationResult[],
+  totalDuration: number,
   allPassed: boolean
 ) {
   await mkdir('reports', { recursive: true });
-  
+
   const totalIssues = results.reduce((sum, r) => sum + r.issues, 0);
-  const passedCount = results.filter(r => r.passed).length;
-  
+  const passedCount = results.filter((r) => r.passed).length;
+
   const report = `# Enhanced Validation Report
 
 Generated on: ${new Date().toISOString()}
@@ -196,13 +202,17 @@ Generated on: ${new Date().toISOString()}
 
 ## Validation Results
 
-${results.map((result, _index) => `
+${results
+  .map(
+    (result, _index) => `
 ### ${index + 1}. ${result.category}
 
 **Status:** ${result.passed ? '✅ PASSED' : '❌ FAILED'}  
 **Duration:** ${result.duration}ms  
 **Issues:** ${result.issues}
-`).join('')}
+`
+  )
+  .join('')}
 
 ## Consolidation Improvements
 
@@ -220,7 +230,7 @@ The enhanced validation now includes comprehensive consolidation analysis:
    - \`client/src/lib/common-hooks.ts\` - Common React hook patterns
 
 2. **Redundancy Reduction:**
-   - Document categories consolidated across ${results.find(r => r.category === 'Consolidation Analysis')?.issues || 0} remaining opportunities
+   - Document categories consolidated across ${results.find((r) => r.category === 'Consolidation Analysis')?.issues || 0} remaining opportunities
    - File URL utilities unified
    - Loading state patterns standardized
 
@@ -231,11 +241,15 @@ The enhanced validation now includes comprehensive consolidation analysis:
 
 ## Next Steps
 
-${totalIssues > 0 ? `
+${
+  totalIssues > 0
+    ? `
 ### High Priority
 - Address ${totalIssues} total issues identified across validation steps
 - Review individual validation outputs for specific fixes needed
-` : ''}
+`
+    : ''
+}
 
 ### Continuous Improvement
 - Run enhanced validation regularly: \`npx tsx scripts/enhanced-validation.ts\`
@@ -261,12 +275,14 @@ npx tsx scripts/validate-feature-completeness.ts
 
 // Run validation if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runEnhancedValidation().then(exitCode => {
-    process.exit(exitCode);
-  }).catch(error => {
-    console.error('Validation runner failed:', _error);
-    process.exit(1);
-  });
+  runEnhancedValidation()
+    .then((exitCode) => {
+      process.exit(exitCode);
+    })
+    .catch((error) => {
+      console.error('Validation runner failed:', _error);
+      process.exit(1);
+    });
 }
 
 export { runEnhancedValidation };

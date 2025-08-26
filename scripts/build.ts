@@ -16,18 +16,17 @@ import { execSync } from 'child_process';
  */
 async function runBuild() {
   console.warn('🚀 Starting complete build process...');
-  
+
   try {
     // Build client
     console.warn('📦 Building client...');
     execSync('npm run build:client', { stdio: 'inherit' });
-    
+
     // Build server with config copying
     console.warn('🔨 Building server...');
     execSync('tsx scripts/build-server.ts', { stdio: 'inherit' });
-    
+
     console.warn('✅ Build completed successfully!');
-    
   } catch (_error) {
     console.error('❌ Build failed:', _error);
     process.exit(1);

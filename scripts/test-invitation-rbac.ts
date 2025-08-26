@@ -65,7 +65,7 @@ async function testInvitationRBAC() {
       organizationId: 'some-org-id', // Admin should be able to choose any accessible org
       expiryDays: 7,
       requires2FA: false,
-      personalMessage: 'Welcome to our organization!'
+      personalMessage: 'Welcome to our organization!',
     };
     console.warn('✅ Admin can specify organization in invitation data\n');
 
@@ -79,7 +79,7 @@ async function testInvitationRBAC() {
       residenceId: 'residence-for-tenant',
       expiryDays: 7,
       requires2FA: false,
-      personalMessage: 'Welcome to our building!'
+      personalMessage: 'Welcome to our building!',
     };
     console.warn('✅ Manager invitation restricted to their organization\n');
 
@@ -92,14 +92,14 @@ async function testInvitationRBAC() {
       buildingId: 'building-id',
       residenceId: 'residence-id',
       expiryDays: 7,
-      requires2FA: false
+      requires2FA: false,
       // No securityLevel field - should work fine
     };
     console.warn('✅ Invitation schema works without securityLevel field\n');
 
     // Test 4: Residence required for tenants/residents
     console.warn('Test 4: Residence requirement for tenants/residents');
-    
+
     // Valid tenant invitation with residence
     const validTenantData = {
       email: 'valid.tenant@example.com',
@@ -108,7 +108,7 @@ async function testInvitationRBAC() {
       buildingId: 'building-id',
       residenceId: 'residence-id', // Required for tenant
       expiryDays: 7,
-      requires2FA: false
+      requires2FA: false,
     };
     console.warn('✅ Valid tenant invitation includes residence\n');
 
@@ -120,7 +120,7 @@ async function testInvitationRBAC() {
       buildingId: 'building-id',
       // Missing residenceId - should fail validation
       expiryDays: 7,
-      requires2FA: false
+      requires2FA: false,
     };
     console.warn('❌ Invalid tenant invitation missing residence (should fail)\n');
 
@@ -131,7 +131,7 @@ async function testInvitationRBAC() {
       organizationId: 'org-id',
       // No residenceId needed for admin
       expiryDays: 7,
-      requires2FA: false
+      requires2FA: false,
     };
     console.warn('✅ Valid admin invitation without residence\n');
 
@@ -145,18 +145,17 @@ async function testInvitationRBAC() {
       residenceId: 'residence-id', // Required for residents
       expiryDays: 7,
       requires2FA: false,
-      personalMessage: 'Welcome to our community!'
+      personalMessage: 'Welcome to our community!',
     };
     console.warn('✅ Bulk invitation follows same RBAC rules\n');
 
     console.warn('🎯 All test scenarios defined successfully!');
     console.warn('\nInvitation RBAC Implementation Status:');
     console.warn('✅ Admin can choose organization for invites');
-    console.warn('✅ Manager can only invite to their organization'); 
+    console.warn('✅ Manager can only invite to their organization');
     console.warn('✅ Security level removed from form');
     console.warn('✅ Residence required for tenants/residents');
     console.warn('✅ Proper validation and access control implemented');
-
   } catch (_error) {
     console.error('❌ Test failed:', _error);
   }

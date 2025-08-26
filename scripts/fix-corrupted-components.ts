@@ -9,7 +9,7 @@ import { glob } from 'glob';
 const corruptedFiles = [
   'client/src/components/ui/hamburger-menu.tsx',
   'client/src/pages/residents/dashboard.tsx',
-  'client/src/hooks/use-toast.ts'
+  'client/src/hooks/use-toast.ts',
 ];
 
 /**
@@ -191,11 +191,11 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
  */
 async function main(): Promise<void> {
   console.warn('🔧 Fixing corrupted React components...');
-  
+
   // Fix hamburger menu
   await fixHamburgerMenu();
   console.warn('✅ Fixed hamburger-menu.tsx');
-  
+
   console.warn('✅ All corrupted components fixed');
 }
 

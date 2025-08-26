@@ -13,7 +13,7 @@ import { glob } from 'glob';
 async function fixVariableReferences(filePath: string): Promise<void> {
   let content = await fs.readFile(filePath, 'utf-8');
   let hasChanges = false;
-  
+
   // Fix common incorrect references
   const fixes = [
     { from: /JSON\.stringify\(_data\)/g, to: 'JSON.stringify(data)' },
@@ -24,26 +24,29 @@ async function fixVariableReferences(filePath: string): Promise<void> {
     { from: /_data\s*\?\s*_data/g, to: 'data ? data' },
     { from: /_context\s*\?\s*_context/g, to: 'context ? context' },
     { from: /_options\s*\?\s*_options/g, to: 'options ? options' },
-    { from: /console\.warn\((_error|_data|_context|_options)\)/g, to: 'console.warn($1.replace("_", ""))' },
+    {
+      from: /console\.warn\((_error|_data|_context|_options)\)/g,
+      to: 'console.warn($1.replace("_", ""))',
+    },
     // Fix specific context references that were over-replaced
     { from: /'context' is not defined/g, to: "'context' is not defined" },
     { from: /'data' is not defined/g, to: "'data' is not defined" },
     // Fix levels object references
-    { from: /_error:\s*0/g, to: 'error: 0' }
+    { from: /_error:\s*0/g, to: 'error: 0' },
   ];
-  
-  fixes.forEach(fix => {
+
+  fixes.forEach((fix) => {
     if (fix.from.test(content)) {
       content = content.replace(fix.from, fix.to);
       hasChanges = true;
     }
   });
-  
+
   // Fix specific patterns in JSDoc that shouldn't have underscores
   content = content.replace(/@param\s+_data\b/g, '@param data');
-  content = content.replace(/@param\s+_context\b/g, '@param context'); 
+  content = content.replace(/@param\s+_context\b/g, '@param context');
   content = content.replace(/@param\s+_options\b/g, '@param options');
-  
+
   // Only rewrite if we made changes
   if (hasChanges) {
     await fs.writeFile(filePath, content, 'utf-8');
@@ -56,14 +59,14 @@ async function fixVariableReferences(filePath: string): Promise<void> {
  */
 async function main(): Promise<void> {
   console.warn('🔧 Fixing incorrect variable references...');
-  
+
   const files = await glob('**/*.{ts,tsx}', {
     ignore: ['node_modules/**', 'dist/**', '.git/**'],
     cwd: process.cwd(),
   });
-  
+
   let fixedFiles = 0;
-  
+
   for (const file of files) {
     try {
       await fixVariableReferences(file);
@@ -72,7 +75,7 @@ async function main(): Promise<void> {
       console.warn(`Failed to fix file: ${file}`);
     }
   }
-  
+
   console.warn(`✅ Processed ${fixedFiles} files`);
 }
 

@@ -2,7 +2,7 @@
 
 /**
  * Security Report Generator.
- * 
+ *
  * Generates comprehensive security reports for Koveo Gestion
  * including Quebec Law 25 compliance status.
  */
@@ -40,14 +40,14 @@ class SecurityReportGenerator {
       high: 0,
       moderate: 0,
       low: 0,
-      info: 0
+      info: 0,
     },
     compliance: {
       quebec_law25: 'NEEDS_REVIEW',
       authentication: 'NEEDS_REVIEW',
-      data_protection: 'NEEDS_REVIEW'
+      data_protection: 'NEEDS_REVIEW',
     },
-    recommendations: []
+    recommendations: [],
   };
 
   /**
@@ -62,14 +62,14 @@ class SecurityReportGenerator {
     await this.assessQuebecCompliance();
     await this.assessAuthenticationSecurity();
     await this.assessDataProtection();
-    
+
     // Generate recommendations
     this.generateRecommendations();
-    
+
     // Create reports
     this.createTextReport();
     this.createJsonReport();
-    
+
     console.warn('✅ Security report generated successfully');
     console.warn('📁 Reports saved: security-report.md, security-report.json');
   }
@@ -82,23 +82,25 @@ class SecurityReportGenerator {
 
     try {
       // Run npm audit and parse results
-      const auditOutput = execSync('npm audit --json 2>/dev/null || echo "{}"', { 
-        encoding: 'utf-8' 
+      const auditOutput = execSync('npm audit --json 2>/dev/null || echo "{}"', {
+        encoding: 'utf-8',
       });
-      
+
       const auditData = JSON.parse(auditOutput);
-      
+
       if (auditData.metadata && auditData.metadata.vulnerabilities) {
         this.metrics.vulnerabilities = {
           critical: auditData.metadata.vulnerabilities.critical || 0,
           high: auditData.metadata.vulnerabilities.high || 0,
           moderate: auditData.metadata.vulnerabilities.moderate || 0,
           low: auditData.metadata.vulnerabilities.low || 0,
-          info: auditData.metadata.vulnerabilities.info || 0
+          info: auditData.metadata.vulnerabilities.info || 0,
         };
       }
 
-      console.warn(`   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`);
+      console.warn(
+        `   Found ${this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high} critical/high vulnerabilities`
+      );
     } catch (_error) {
       console.warn('   Warning: Could not collect vulnerability data');
     }
@@ -112,17 +114,19 @@ class SecurityReportGenerator {
 
     try {
       // Try to run Quebec compliance check
-      execSync('tsx scripts/quebec-security-check.ts', { 
+      execSync('tsx scripts/quebec-security-check.ts', {
         stdio: 'pipe',
-        timeout: 30000 
+        timeout: 30000,
       });
-      
+
       this.metrics.compliance.quebec_law25 = 'COMPLIANT';
       console.warn('   ✅ Quebec Law 25: COMPLIANT');
     } catch (_error) {
       this.metrics.compliance.quebec_law25 = 'NON_COMPLIANT';
       console.warn('   ❌ Quebec Law 25: NON_COMPLIANT');
-      this.metrics.recommendations.push('Address Quebec Law 25 compliance issues identified in security check');
+      this.metrics.recommendations.push(
+        'Address Quebec Law 25 compliance issues identified in security check'
+      );
     }
   }
 
@@ -134,36 +138,40 @@ class SecurityReportGenerator {
 
     try {
       // Check if authentication files exist
-      const authFiles = [
-        'server/auth.ts',
-        'server/middleware/auth.ts',
-        'server/routes/auth.ts'
-      ];
+      const authFiles = ['server/auth.ts', 'server/middleware/auth.ts', 'server/routes/auth.ts'];
 
-      const hasAuthSystem = authFiles.some(file => existsSync(join(process.cwd(), file)));
-      
+      const hasAuthSystem = authFiles.some((file) => existsSync(join(process.cwd(), file)));
+
       if (hasAuthSystem) {
         // Check for secure patterns
         let securePatterns = 0;
-        
+
         for (const file of authFiles) {
           const filePath = join(process.cwd(), file);
           if (existsSync(filePath)) {
             const content = readFileSync(filePath, 'utf-8');
-            
-            if (content.includes('bcrypt') || content.includes('hash')) {securePatterns++;}
-            if (content.includes('session') && content.includes('secure')) {securePatterns++;}
-            if (content.includes('jwt') && content.includes('secret')) {securePatterns++;}
+
+            if (content.includes('bcrypt') || content.includes('hash')) {
+              securePatterns++;
+            }
+            if (content.includes('session') && content.includes('secure')) {
+              securePatterns++;
+            }
+            if (content.includes('jwt') && content.includes('secret')) {
+              securePatterns++;
+            }
           }
         }
-        
+
         if (securePatterns >= 2) {
           this.metrics.compliance.authentication = 'SECURE';
           console.warn('   ✅ Authentication: SECURE');
         } else {
           this.metrics.compliance.authentication = 'NEEDS_REVIEW';
           console.warn('   ⚠️  Authentication: NEEDS_REVIEW');
-          this.metrics.recommendations.push('Review authentication implementation for security best practices');
+          this.metrics.recommendations.push(
+            'Review authentication implementation for security best practices'
+          );
         }
       } else {
         this.metrics.compliance.authentication = 'INSECURE';
@@ -184,23 +192,29 @@ class SecurityReportGenerator {
 
     try {
       let protectionScore = 0;
-      
+
       // Check for encryption libraries
       const packageJsonPath = join(process.cwd(), 'package.json');
       if (existsSync(packageJsonPath)) {
         const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
         const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-        
-        if (deps.bcrypt || deps.crypto) {protectionScore++;}
-        if (deps.helmet) {protectionScore++;}
-        if (deps['express-session']) {protectionScore++;}
+
+        if (deps.bcrypt || deps.crypto) {
+          protectionScore++;
+        }
+        if (deps.helmet) {
+          protectionScore++;
+        }
+        if (deps['express-session']) {
+          protectionScore++;
+        }
       }
-      
+
       // Check for secure database connection
       if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('ssl')) {
         protectionScore++;
       }
-      
+
       if (protectionScore >= 3) {
         this.metrics.compliance.data_protection = 'COMPLIANT';
         console.warn('   ✅ Data Protection: COMPLIANT');
@@ -227,11 +241,11 @@ class SecurityReportGenerator {
     if (this.metrics.vulnerabilities.critical > 0) {
       this.metrics.recommendations.unshift('URGENT: Address critical vulnerabilities immediately');
     }
-    
+
     if (this.metrics.vulnerabilities.high > 3) {
       this.metrics.recommendations.push('Address high-severity vulnerabilities');
     }
-    
+
     // Add general recommendations
     this.metrics.recommendations.push('Run security audits regularly (weekly minimum)');
     this.metrics.recommendations.push('Keep dependencies up to date');
@@ -244,7 +258,7 @@ class SecurityReportGenerator {
    */
   private createTextReport(): void {
     const timestamp = new Date().toISOString();
-    
+
     const report = `# 🔒 Koveo Gestion Security Report
 
 **Generated:** ${timestamp}
@@ -294,9 +308,11 @@ ${this.metrics.recommendations.map((rec, _index) => `${index + 1}. ${rec}`).join
 
 ## 🎯 Action Items
 
-${this.metrics.vulnerabilities.critical > 0 ? 
-'🚨 **IMMEDIATE ACTION REQUIRED:** Critical vulnerabilities detected\n' : 
-'✅ No critical vulnerabilities detected\n'}
+${
+  this.metrics.vulnerabilities.critical > 0
+    ? '🚨 **IMMEDIATE ACTION REQUIRED:** Critical vulnerabilities detected\n'
+    : '✅ No critical vulnerabilities detected\n'
+}
 
 ### Next Steps
 1. Review and address all recommendations above
@@ -325,8 +341,8 @@ ${this.metrics.vulnerabilities.critical > 0 ?
         overall_status: this.getOverallStatus(),
         critical_issues: this.metrics.vulnerabilities.critical + this.metrics.vulnerabilities.high,
         compliance_level: this.getComplianceLevel(),
-        recommendations_count: this.metrics.recommendations.length
-      }
+        recommendations_count: this.metrics.recommendations.length,
+      },
     };
 
     writeFileSync('security-report.json', JSON.stringify(report, null, 2));
@@ -339,12 +355,14 @@ ${this.metrics.vulnerabilities.critical > 0 ?
     if (this.metrics.vulnerabilities.critical > 0) {
       return 'CRITICAL';
     }
-    
-    if (this.metrics.vulnerabilities.high > 3 || 
-        this.metrics.compliance.quebec_law25 === 'NON_COMPLIANT') {
+
+    if (
+      this.metrics.vulnerabilities.high > 3 ||
+      this.metrics.compliance.quebec_law25 === 'NON_COMPLIANT'
+    ) {
       return 'NEEDS_ATTENTION';
     }
-    
+
     return 'SECURE';
   }
 
@@ -354,24 +372,37 @@ ${this.metrics.vulnerabilities.critical > 0 ?
   private getComplianceLevel(): number {
     let score = 0;
     let total = 0;
-    
+
     // Vulnerability score (40% weight)
-    if (this.metrics.vulnerabilities.critical === 0) {score += 15;}
-    if (this.metrics.vulnerabilities.high <= 3) {score += 25;}
+    if (this.metrics.vulnerabilities.critical === 0) {
+      score += 15;
+    }
+    if (this.metrics.vulnerabilities.high <= 3) {
+      score += 25;
+    }
     total += 40;
-    
+
     // Compliance score (60% weight)
-    if (this.metrics.compliance.quebec_law25 === 'COMPLIANT') {score += 20;}
-    else if (this.metrics.compliance.quebec_law25 === 'NEEDS_REVIEW') {score += 10;}
-    
-    if (this.metrics.compliance.authentication === 'SECURE') {score += 20;}
-    else if (this.metrics.compliance.authentication === 'NEEDS_REVIEW') {score += 10;}
-    
-    if (this.metrics.compliance.data_protection === 'COMPLIANT') {score += 20;}
-    else if (this.metrics.compliance.data_protection === 'NEEDS_REVIEW') {score += 10;}
-    
+    if (this.metrics.compliance.quebec_law25 === 'COMPLIANT') {
+      score += 20;
+    } else if (this.metrics.compliance.quebec_law25 === 'NEEDS_REVIEW') {
+      score += 10;
+    }
+
+    if (this.metrics.compliance.authentication === 'SECURE') {
+      score += 20;
+    } else if (this.metrics.compliance.authentication === 'NEEDS_REVIEW') {
+      score += 10;
+    }
+
+    if (this.metrics.compliance.data_protection === 'COMPLIANT') {
+      score += 20;
+    } else if (this.metrics.compliance.data_protection === 'NEEDS_REVIEW') {
+      score += 10;
+    }
+
     total += 60;
-    
+
     return Math.round((score / total) * 100);
   }
 }
@@ -379,7 +410,7 @@ ${this.metrics.vulnerabilities.critical > 0 ?
 // Run the report generator
 if (require.main === module) {
   const generator = new SecurityReportGenerator();
-  generator.generateReport().catch(error => {
+  generator.generateReport().catch((error) => {
     console.error('❌ Security report generation failed:', _error);
     process.exit(1);
   });

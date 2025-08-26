@@ -3,7 +3,7 @@
 /**
  * Script to create initial admin user for Koveo Gestion.
  * Creates a default admin account for Quebec property management system access.
- * 
+ *
  * Usage: tsx scripts/create-admin-user.ts.
  */
 
@@ -33,7 +33,7 @@ const db = drizzle({ client: pool, schema });
 async function createAdminUser() {
   try {
     console.warn('🔍 Checking for existing admin user...');
-    
+
     // Check if admin user already exists
     const existingAdmin = await db
       .select()
@@ -74,7 +74,6 @@ async function createAdminUser() {
       console.warn('🔐 Security Note: Please change the default password after first login');
       console.warn('🇨🇦 Law 25 Compliance: This account follows Quebec privacy regulations');
     }
-
   } catch (_error) {
     console.error('❌ Error creating admin user:', _error);
     throw error;
@@ -157,7 +156,6 @@ async function createSampleUsers() {
     console.warn('');
     console.warn('🎯 Test accounts ready for Quebec property management system');
     console.warn('🔐 All passwords follow the same pattern: [Role]123!');
-
   } catch (_error) {
     console.error('❌ Error creating sample users:', _error);
   }
