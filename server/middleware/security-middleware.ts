@@ -35,19 +35,25 @@ const getCSPConfig = (isDevelopment: boolean) => {
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        "'strict-dynamic'",
         // Quebec government trusted domains for integration
         '*.quebec.ca',
         '*.gouv.qc.ca',
         // Essential CDNs with SRI
         'https://cdn.jsdelivr.net',
         'https://unpkg.com',
+        // Allow application domain for built assets
+        'https://koveo-gestion.com',
+        'https://*.replit.app',
+        'https://replit.com', // For Replit dev banner
         ...devSources,
       ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'", // Required for CSS-in-JS and styled components
         'https://fonts.googleapis.com',
+        // Allow application domain for built CSS
+        'https://koveo-gestion.com',
+        'https://*.replit.app',
         ...devSources,
       ],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:', ...devSources],
@@ -66,6 +72,9 @@ const getCSPConfig = (isDevelopment: boolean) => {
         '*.gouv.qc.ca',
         // Essential services
         'https://api.koveo.com',
+        // Allow application domain for API calls
+        'https://koveo-gestion.com',
+        'https://*.replit.app',
         ...devSources,
       ],
       frameSrc: [
