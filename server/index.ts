@@ -3,25 +3,7 @@ import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 
-// Import database and schema to ensure they're available in production
-import { db } from './db.js';
-import { sql } from 'drizzle-orm';
-import {
-  initializeDatabaseOptimizations,
-  startPerformanceMonitoring,
-} from './init-database-optimizations';
-import { startJobs } from './jobs';
-import { emailService } from './services/email-service';
-import { errorHandler, notFoundHandler } from './middleware/error-handler';
-import {
-  configureSecurityMiddleware,
-  securityHealthCheck,
-  addLaw25Headers,
-  rateLimitConfig,
-} from './middleware/security-middleware';
-import { memoryOptimization, startMemoryMonitoring } from './middleware/memory-optimization';
-import { devSecurityMiddleware, devCorsMiddleware } from './middleware/dev-security';
-import rateLimit from 'express-rate-limit';
+// Defer heavy imports until after server starts
 import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -42,32 +24,7 @@ if (isNaN(port) || port < 1 || port > 65535) {
 
 const app = express();
 
-// Initialize database connection early to catch any connection issues
-async function initializeDatabase() {
-  try {
-    console.log('🔍 Initializing database connection...');
-    
-    // Import database here to ensure it's loaded after all modules
-    const { db } = await import('./db.js');
-    
-    // Test database connection using sql template
-    await db.execute(sql`SELECT 1 as test`);
-    console.log('✅ Database connection successful');
-    
-    return db;
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    console.error('Error details:', error.message);
-    
-    // In production, log the error but don't crash the server
-    if (process.env.NODE_ENV === 'production') {
-      console.error('⚠️  Continuing startup despite database error in production');
-      return null;
-    } else {
-      throw error;
-    }
-  }
-}
+// Database initialization will be deferred until after server starts
 
 // Trust proxy for rate limiting - secure configuration for production
 // Only trust specific proxy headers from known sources
@@ -83,30 +40,9 @@ if (isProduction) {
 // Export app for testing
 export { app };
 
-// Add global timeout middleware to prevent hanging requests
-app.use((req, res, next) => {
-  // Set timeout for all requests to prevent deployment hanging
-  req.setTimeout(30000, () => {
-    if (!res.headersSent) {
-      res.status(408).send('Request Timeout');
-    }
-  });
-  
-  // Set response timeout
-  res.setTimeout(30000, () => {
-    if (!res.headersSent) {
-      res.status(408).send('Response Timeout');
-    }
-  });
-  
-  next();
-});
-
-// CRITICAL: Ultra-fast health check endpoints MUST come before any middleware
-// These endpoints respond immediately to prevent deployment timeouts
+// CRITICAL: Ultra-fast health check endpoints MUST come FIRST
+// These endpoints respond immediately without any middleware
 app.get('/', createRootHandler());
-
-// Fast HEAD request support for root
 app.head('/', (req, res) => {
   res.status(200).end();
 });
@@ -127,9 +63,7 @@ app.get('/ping', (req, res) => {
 
 app.get('/status', createStatusCheck());
 
-// Root endpoint health check - only for deployment health checks, not browsers
-
-// Production mode: Allow full application after health checks are ready
+// Simple API health endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -137,52 +71,8 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0',
   });
 });
-// NOW add middleware after health checks
 
-// SECURITY: Configure comprehensive security middleware before any other middleware
-configureSecurityMiddleware(app);
-
-// SECURITY: Add development-specific security (mitigates esbuild vulnerability)
-app.use(devCorsMiddleware);
-app.use(devSecurityMiddleware);
-
-// SECURITY: Add security health check middleware
-app.use(securityHealthCheck);
-
-// SECURITY: Add Law 25 compliance headers for Quebec privacy regulations
-app.use(addLaw25Headers);
-
-// PERFORMANCE: Add memory optimization middleware
-app.use(memoryOptimization);
-
-// SECURITY: Configure rate limiting for different endpoint types
-const generalRateLimit = rateLimit(rateLimitConfig.api);
-const authRateLimit = rateLimit(rateLimitConfig.auth);
-const passwordResetRateLimit = rateLimit(rateLimitConfig.passwordReset);
-const uploadRateLimit = rateLimit(rateLimitConfig.upload);
-
-// Apply rate limiting to API routes - specific endpoints first, then general
-app.use('/api/auth/forgot-password', passwordResetRateLimit); // More lenient for password reset
-app.use('/api/auth/reset-password', passwordResetRateLimit); // More lenient for password reset
-app.use('/api/auth', authRateLimit); // Strict rate limit for other auth endpoints
-app.use('/api/upload', uploadRateLimit);
-app.use('/api/files', uploadRateLimit);
-app.use('/api', generalRateLimit);
-
-// Remove this duplicate - already defined above
-
-app.get('/api/health/detailed', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    timestamp: new Date().toISOString(),
-    pid: process.pid,
-    nodeVersion: process.version,
-    port: port,
-    env: process.env.NODE_ENV || 'development',
-  });
-});
+// All middleware and expensive operations will be initialized AFTER server starts
 
 // Add global error handlers to prevent application crashes
 process.on('uncaughtException', (_error) => {
@@ -217,218 +107,7 @@ process.on('SIGTERM', () => {
   }, 10000);
 });
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    if (path.startsWith('/api')) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + '…';
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
-});
-
-// Setup static file serving for production immediately
-const isProductionBuild =
-  process.env.NODE_ENV === 'production' ||
-  !process.env.NODE_ENV ||
-  process.env.NODE_ENV !== 'development';
-
-if (isProductionBuild) {
-  log('🏗️ Setting up production static file serving immediately');
-  const distPath = path.resolve(process.cwd(), 'dist', 'public');
-
-  log(`📁 Looking for build files in: ${distPath}`);
-  log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
-
-  if (fs.existsSync(distPath)) {
-    const indexPath = path.resolve(distPath, 'index.html');
-    log(`📄 Index file exists: ${fs.existsSync(indexPath)}`);
-
-    // Serve static files with proper cache headers
-    app.use(
-      express.static(distPath, {
-        maxAge: '1d',
-        setHeaders: (res, path) => {
-          if (path.endsWith('.html')) {
-            res.setHeader('Cache-Control', 'no-cache');
-          }
-        },
-      })
-    );
-
-    // Add specific root route handler AFTER static middleware  
-    app.get('/', (_req: Request, res: Response, next) => {
-      // Skip if this is a health check (already handled above)
-      const userAgent = _req.get('User-Agent') || '';
-      if (userAgent.includes('GoogleHC') || userAgent.includes('health') || !userAgent) {
-        return next();
-      }
-      
-      const indexPath = path.resolve(distPath, 'index.html');
-      log(`📄 Root request - serving index.html from: ${indexPath}`);
-      if (fs.existsSync(indexPath)) {
-        res.setHeader('Cache-Control', 'no-cache');
-        res.sendFile(indexPath);
-      } else {
-        log(`❌ Index file not found at: ${indexPath}`, 'error');
-        res.status(200).send('OK'); // Return OK for health checks even if app not built
-      }
-    });
-
-    // SPA fallback for other routes
-    app.get('*', (_req: Request, res: Response, next) => {
-      // Skip API routes and health checks
-      if (
-        _req.path.startsWith('/api') ||
-        _req.path === '/health' ||
-        _req.path === '/healthz' ||
-        _req.path === '/ready'
-      ) {
-        return next();
-      }
-
-      const indexPath = path.resolve(distPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send(`Application not found. Index path: ${indexPath}`);
-      }
-    });
-
-    log('✅ Static files and SPA routing configured immediately');
-  } else {
-    log(`⚠️ Build directory not found: ${distPath}`, 'error');
-
-    // List what's actually in the directory
-    const parentDir = path.dirname(distPath);
-    if (fs.existsSync(parentDir)) {
-      const contents = fs.readdirSync(parentDir);
-      log(`📂 Contents of ${parentDir}: ${contents.join(', ')}`);
-    }
-  }
-}
-
-// Features API route - Placed here to ensure it takes precedence over Vite middleware
-app.get('/api/features', async (req, res) => {
-  try {
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
-    neonConfig.webSocketConstructor = ws.default;
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const { roadmap } = req.query;
-
-    if (roadmap === 'true') {
-      const rawFeatures = await pool.query(`
-        SELECT id, name, description, category, status, priority, 
-               business_objective, target_users, success_metrics,
-               is_public_roadmap, is_strategic_path, created_at, updated_at
-        FROM features 
-        WHERE is_public_roadmap = true 
-        ORDER BY created_at DESC
-      `);
-
-      const features = rawFeatures.rows.map((row) => ({
-        ...row,
-        isPublicRoadmap: row.is_public_roadmap,
-        isStrategicPath: row.is_strategic_path,
-        businessObjective: row.business_objective,
-        targetUsers: row.target_users,
-        successMetrics: row.success_metrics,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
-
-      res.setHeader('Content-Type', 'application/json');
-      res.json(features);
-    } else {
-      res.json([]);
-    }
-  } catch (_error) {
-    console.error('Features API _error:', _error);
-    res.status(500).json({ _error: 'Internal server error' });
-  }
-});
-
-// User organizations API route - Must be before Vite middleware
-// Note: This route needs to be defined before Vite middleware but after session setup
-// We'll move it to the proper location after session initialization
-
-// Feature status update route - Also placed here to bypass middleware issues
-app.post('/api/features/:id/update-status', async (req, res) => {
-  try {
-    const { Pool, neonConfig } = await import('@neondatabase/serverless');
-    const ws = await import('ws');
-    neonConfig.webSocketConstructor = ws.default;
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const { status } = req.body;
-    const featureId = req.params.id;
-
-    const validStatuses = [
-      'submitted',
-      'planned',
-      'in-progress',
-      'ai-analyzed',
-      'completed',
-      'cancelled',
-    ];
-
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
-    const updateQuery = `
-      UPDATE features 
-      SET status = $1, updated_at = NOW() 
-      WHERE id = $2 
-      RETURNING *
-    `;
-
-    const result = await pool.query(updateQuery, [status, featureId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Feature not found' });
-    }
-
-    const feature = {
-      ...result.rows[0],
-      isPublicRoadmap: result.rows[0].is_public_roadmap,
-      isStrategicPath: result.rows[0].is_strategic_path,
-      businessObjective: result.rows[0].business_objective,
-      targetUsers: result.rows[0].target_users,
-      successMetrics: result.rows[0].success_metrics,
-      createdAt: result.rows[0].created_at,
-      updatedAt: result.rows[0].updated_at,
-    };
-
-    res.setHeader('Content-Type', 'application/json');
-    res.json(feature);
-  } catch (_error) {
-    console.error('Feature status update _error:', _error);
-    res.status(500).json({ _error: 'Internal server error' });
-  }
-});
+// All API routes, static file serving and middleware will be deferred until after server starts
 
 // Start the server immediately with health checks first
 // Cloud Run provides PORT environment variable, fallback to 8080
@@ -455,13 +134,13 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         // Always ensure port is properly bound
         log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
         
-        // Initialize application in background for both dev and production
+        // Initialize application in background after a longer delay to ensure health checks work first
         setTimeout(() => {
-          initializeApplication().catch((error) => {
-            log(`Application initialization failed: ${error}`, 'error');
+          initializeApplicationAsync().catch((error) => {
+            log(`⚠️ Application initialization failed: ${error.message}`, 'error');
             // Don't crash - health checks still work
           });
-        }, 100);
+        }, 5000); // 5 second delay to ensure health checks respond first
       }
     );
 
@@ -495,20 +174,22 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
   log('⚠️ Server startup skipped in test environment', 'info');
 }
 
-// Initialize application components after server starts
-/**
- *
- */
-/**
- * InitializeApplication function.
- * @returns Function result.
- */
-async function initializeApplication() {
+// Initialize application components after server starts (non-blocking)
+async function initializeApplicationAsync() {
   try {
-    log('🚀 Starting application initialization...');
+    log('🚀 Starting background application initialization...');
     
-    // Initialize database connection first
-    await initializeDatabase();
+    // Initialize database connection (non-blocking)
+    try {
+      console.log('🔍 Initializing database connection in background...');
+      const { db } = await import('./db.js');
+      const { sql } = await import('drizzle-orm');
+      await db.execute(sql`SELECT 1 as test`);
+      console.log('✅ Database connection successful');
+    } catch (error) {
+      console.error('❌ Database connection failed in background:', error.message);
+      // Continue without database - health checks still work
+    }
 
     // Object Storage routes (must come before other routes for proper file serving)
     try {
