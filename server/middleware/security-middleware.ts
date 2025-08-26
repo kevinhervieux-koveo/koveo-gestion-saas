@@ -35,6 +35,7 @@ const getCSPConfig = (isDevelopment: boolean) => {
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
+        "'unsafe-inline'", // Temporary for production debugging
         // Quebec government trusted domains for integration
         '*.quebec.ca',
         '*.gouv.qc.ca',
