@@ -36,6 +36,9 @@ import { storage } from './storage';
 // Import required tables from schema
 const { invitations, users: schemaUsers, organizations, buildings, residences } = schema;
 
+// Production diagnostic endpoint
+import { createProductionDiagnostic } from './production-check';
+
 // Initialize email service
 const emailService = new EmailService();
 
@@ -183,6 +186,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('✅ Auth routes registered');
   } catch (_error) {
     log(`❌ Auth routes failed: ${_error}`, 'error');
+  }
+
+  // Production diagnostic endpoint
+  try {
+    createProductionDiagnostic(app);
+    log('✅ Production diagnostic routes registered');
+  } catch (_error) {
+    log(`❌ Production diagnostic failed: ${_error}`, 'error');
   }
 
   // Register permissions API routes
