@@ -284,9 +284,22 @@ async function initializeApplicationAsync() {
       log('✅ User organizations route registered');
 
       // Add error handling middleware for API routes only
-      app.use('/api', notFoundHandler);
-      app.use(errorHandler);
-      log('✅ Error handling middleware configured');
+      try {
+        const { notFoundHandler, errorHandler } = await import('./middleware/error-handler');
+        app.use('/api', notFoundHandler);
+        app.use(errorHandler);
+        log('✅ Error handling middleware configured');
+      } catch (importError) {
+        log('⚠️ Error handler import failed, using basic handlers', 'error');
+        // Basic fallback error handlers
+        app.use('/api', (req, res) => {
+          res.status(404).json({ error: 'API route not found' });
+        });
+        app.use((err: any, req: any, res: any, next: any) => {
+          console.error('Error:', err);
+          res.status(500).json({ error: 'Internal server error' });
+        });
+      }
     } catch (_error) {
       log(`❌ Route registration failed: ${_error}`, 'error');
       // Skip route registration but continue with Vite setup
