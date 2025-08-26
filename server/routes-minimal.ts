@@ -188,33 +188,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Session setup failed: ${_error}`, 'error');
   }
 
-  // Create dedicated API router with session context
+  // Create API router with session middleware
+  const apiRouter = express.Router();
+  apiRouter.use(sessionConfig); // Add session middleware to API routes
+  apiRouter.use(express.json()); // Add JSON parsing
+  apiRouter.use(express.urlencoded({ extended: true })); // Add URL encoding
+  
+  // Register auth routes on the API router
   try {
-    const apiApp = express();
-    
-    // Add session middleware to API sub-app (required for auth)
-    apiApp.use(sessionConfig);
-    
-    // Add JSON parsing to API sub-app
-    apiApp.use(express.json());
-    apiApp.use(express.urlencoded({ extended: true }));
-    
-    // Ensure JSON responses for all API routes
-    apiApp.use((req: any, res: any, next: any) => {
-      res.type('json');
-      next();
-    });
-    
-    // Setup auth routes on API sub-app
-    setupAuthRoutes(apiApp);
-    
-    // Mount API sub-app at /api with highest priority
-    app.use('/api', apiApp);
-    
-    log('✅ API sub-app with session context mounted at /api');
+    setupAuthRoutes(apiRouter);
+    log('✅ Auth routes registered on API router with session middleware');
   } catch (_error) {
-    log(`❌ API sub-app setup failed: ${_error}`, 'error');
+    log(`❌ Auth routes failed: ${_error}`, 'error');
   }
+  
+  // Mount the API router at /api with all necessary middleware
+  app.use('/api', apiRouter);
 
   // Production diagnostic endpoint
   try {
