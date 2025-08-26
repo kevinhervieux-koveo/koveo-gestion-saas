@@ -765,11 +765,16 @@ async function initializeApplication() {
     log(`✅ Core application initialized on port ${port}`);
 
     // Start all database and background operations after core app is ready
-    setTimeout(() => {
-      initializeEmailServiceInBackground();
-      initializeDatabaseOptimizationsInBackground();
-      initializeBackgroundJobsInBackground();
-    }, 100);
+    // Skip heavy operations in production for stability
+    if (process.env.NODE_ENV !== 'production') {
+      setTimeout(() => {
+        initializeEmailServiceInBackground();
+        initializeDatabaseOptimizationsInBackground();
+        initializeBackgroundJobsInBackground();
+      }, 100);
+    } else {
+      log('🚀 Production mode: Core application ready without heavy background processes');
+    }
   } catch (_error) {
     log(`⚠️ Application initialization failed: ${_error}`, 'error');
     // Don't crash - health checks will still work

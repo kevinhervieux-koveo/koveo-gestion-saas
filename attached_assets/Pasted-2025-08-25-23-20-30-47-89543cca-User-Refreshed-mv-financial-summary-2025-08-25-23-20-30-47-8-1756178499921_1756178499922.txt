@@ -1,0 +1,128 @@
+2025-08-25 23:20:30.47
+89543cca
+User
+✓ Refreshed: mv_financial_summary
+2025-08-25 23:20:30.47
+89543cca
+User
+✓ Refreshed materialized views
+2025-08-25 23:20:30.47
+89543cca
+User
+Database maintenance complete
+2025-08-25 23:20:30.47
+89543cca
+User
+✅ Database maintenance completed
+2025-08-25 23:20:30.47
+89543cca
+User
+📈 Analyzing query performance...
+2025-08-25 23:20:30.47
+89543cca
+User
+Analyzing query performance...
+2025-08-25 23:20:30.47
+89543cca
+User
+Slow queries detected: SQL {
+2025-08-25 23:20:30.47
+89543cca
+User
+decoder: { mapFromDriverValue: [Function: mapFromDriverValue] },
+2025-08-25 23:20:30.47
+89543cca
+User
+shouldInlineParams: false,
+2025-08-25 23:20:30.47
+89543cca
+User
+usedTables: [],
+2025-08-25 23:20:30.47
+89543cca
+User
+queryChunks: [ StringChunk { value: [Array] } ]
+2025-08-25 23:20:30.47
+89543cca
+User
+}
+2025-08-25 23:20:30.67
+89543cca
+User
+Index usage statistics: SQL {
+2025-08-25 23:20:30.67
+89543cca
+User
+decoder: { mapFromDriverValue: [Function: mapFromDriverValue] },
+2025-08-25 23:20:30.67
+89543cca
+User
+shouldInlineParams: false,
+2025-08-25 23:20:30.67
+89543cca
+User
+usedTables: [],
+2025-08-25 23:20:30.67
+89543cca
+User
+queryChunks: [ StringChunk { value: [Array] } ]
+2025-08-25 23:20:30.67
+89543cca
+User
+}
+2025-08-25 23:20:30.67
+89543cca
+User
+✅ Performance analysis completed
+2025-08-25 23:20:30.67
+89543cca
+User
+💡 Optimization suggestions:
+2025-08-25 23:20:30.67
+89543cca
+User
+• ✅ Add indexes on frequently queried foreign keys
+2025-08-25 23:20:30.67
+89543cca
+User
+• ✅ Use partial indexes for filtered queries (e.g., WHERE is_active = true)
+2025-08-25 23:20:30.67
+89543cca
+User
+• ✅ Implement query result caching for expensive operations
+2025-08-25 23:20:30.67
+89543cca
+User
+• ✅ Regular VACUUM and ANALYZE maintenance
+2025-08-25 23:20:32.82
+89543cca
+User
+• Users: 0
+2025-08-25 23:20:32.82
+89543cca
+User
+tsx scripts/create-comprehensive-demo.ts
+2025-08-25 23:20:32.83
+89543cca
+User
+at file:///home/runner/workspace/dist/index.js:6866:15
+2025-08-25 23:20:32.83
+89543cca
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-08-25 23:20:38.07
+89543cca
+User
+> koveo-gestion@1.0.0 start
+2025-08-25 23:20:38.07
+89543cca
+User
+> NODE_ENV=production node dist/index.js
+2025-08-25 23:20:23.06
+89543cca
+User
+length: 340,
+2025-08-25 23:20:23.06
+89543cca
+User
+severity: 'ERROR',
