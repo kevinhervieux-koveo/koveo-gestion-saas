@@ -1,0 +1,115 @@
+2025-08-25 23:37:27.77
+82f76b3f
+User
+✅ Storage cleanup scheduler started - runs every 6 hours
+2025-08-25 23:37:27.77
+82f76b3f
+User
+3:37:27 AM [express] ✅ Storage cleanup scheduler initialized
+2025-08-25 23:37:27.77
+82f76b3f
+User
+🚀 Initializing demo organizations...
+2025-08-25 23:37:27.77
+82f76b3f
+User
+🔄 Ensuring demo organizations are properly configured...
+2025-08-25 23:37:27.77
+82f76b3f
+User
+3:37:27 AM [express] ✅ Demo organizations initialization started
+2025-08-25 23:37:27.77
+82f76b3f
+User
+3:37:27 AM [express] ✅ Routes registered successfully
+2025-08-25 23:37:27.77
+82f76b3f
+User
+3:37:27 AM [express] ✅ User organizations route registered
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] ✅ Error handling middleware configured
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] 🏗️ Setting up production static file serving
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] 📁 Looking for build files in: /home/runner/workspace/dist/public
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] 📋 Directory exists: true
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] 📄 Index file exists: true
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] ✅ Static files and SPA routing configured
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] ✅ Core application initialized on port 5000
+2025-08-25 23:37:27.78
+82f76b3f
+User
+3:37:27 AM [express] 🚀 Production mode: Core application ready without heavy background processes
+2025-08-25 23:37:27.78
+82f76b3f
+User
+📊 Demo Organizations Status:
+2025-08-25 23:37:27.78
+82f76b3f
+User
+Demo Organization: ✅ Exists
+2025-08-25 23:37:27.78
+82f76b3f
+User
+Demo Data: ✅ Populated
+2025-08-25 23:37:27.78
+82f76b3f
+User
+Open Demo Organization: ✅ Exists
+2025-08-25 23:37:27.78
+82f76b3f
+User
+Open Demo Data: ✅ Populated
+2025-08-25 23:37:27.78
+82f76b3f
+User
+Sync Needed: ✅ No
+2025-08-25 23:37:27.78
+82f76b3f
+User
+2025-08-25 23:37:27.78
+82f76b3f
+User
+✅ Demo organizations are already properly configured.
+2025-08-25 23:37:27.78
+82f76b3f
+User
+No action required.
+2025-08-25 23:37:27.78
+82f76b3f
+User
+🏁 Script execution completed successfully.
+2025-08-25 23:37:27.80
+82f76b3f
+User
+npm notice
+2025-08-25 23:37:27.80
+82f76b3f
+User
+npm notice New major version of npm available! 10.8.2 -> 11.5.2
+2025-08-25 23:37:27.80
+82f76b3f
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-25 23:37:27.80
+82f76b3f
+User
+npm notice To update run: npm install -g npm@11.5.2
