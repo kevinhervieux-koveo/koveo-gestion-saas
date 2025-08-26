@@ -690,8 +690,8 @@ async function analyzeCoverage(): Promise<CoverageResult> {
       lineCoverage: totalCoverage.lines.pct,
       uncoveredFiles,
     };
-  } catch (____error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${_error}${COLORS.RESET}`);
+  } catch (error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Coverage analysis failed: ${error}${COLORS.RESET}`);
     return {
       totalCoverage: 0,
       branchCoverage: 0,
@@ -1717,14 +1717,14 @@ async function main(): Promise<void> {
 
       process.exit(1);
     }
-  } catch (_error) {
-    console.error(`${COLORS.RED}💥 Auditor failed with _error: ${_error}${COLORS.RESET}`);
+  } catch (error) {
+    console.error(`${COLORS.RED}💥 Auditor failed with error: ${error}${COLORS.RESET}`);
     process.exit(1);
   }
 }
 
 // Execute main function
-main().catch((_error) => {
-  console.error(`${COLORS.RED}Fatal _error: ${error}${COLORS.RESET}`);
+main().catch((error) => {
+  console.error(`${COLORS.RED}Fatal error: ${error}${COLORS.RESET}`);
   process.exit(1);
 });
