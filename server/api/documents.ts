@@ -81,27 +81,32 @@ export function registerDocumentRoutes(app: Express): void {
       // If specific residence ID provided, filter to only that residence
       let residenceIds: string[];
       if (specificResidenceId) {
-        // Verify user has access to this specific residence
-        // Handle both simple {residenceId: string} and complex nested structures
-        const hasAccess = userResidences.some((ur: unknown) => {
-          // Handle simple structure
-          if (ur.residenceId === specificResidenceId) {
-            return true;
+        // Admin users have access to all residences
+        if (userRole === 'admin' || userRole === 'manager') {
+          residenceIds = [specificResidenceId];
+        } else {
+          // Verify user has access to this specific residence
+          // Handle both simple {residenceId: string} and complex nested structures
+          const hasAccess = userResidences.some((ur: unknown) => {
+            // Handle simple structure
+            if (ur.residenceId === specificResidenceId) {
+              return true;
+            }
+            // Handle complex nested structure
+            if (ur.userResidence?.residenceId === specificResidenceId) {
+              return true;
+            }
+            // Handle residence nested structure
+            if (ur.residence?.id === specificResidenceId) {
+              return true;
+            }
+            return false;
+          });
+          if (!hasAccess) {
+            return res.status(403).json({ message: 'Access denied to this residence' });
           }
-          // Handle complex nested structure
-          if (ur.userResidence?.residenceId === specificResidenceId) {
-            return true;
-          }
-          // Handle residence nested structure
-          if (ur.residence?.id === specificResidenceId) {
-            return true;
-          }
-          return false;
-        });
-        if (!hasAccess) {
-          return res.status(403).json({ message: 'Access denied to this residence' });
+          residenceIds = [specificResidenceId];
         }
-        residenceIds = [specificResidenceId];
       } else {
         // Extract residence IDs from both simple and complex structures
         residenceIds = userResidences
