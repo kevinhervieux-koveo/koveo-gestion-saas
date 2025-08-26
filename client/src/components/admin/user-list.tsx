@@ -66,7 +66,7 @@ interface EditUserDialogProps {
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
 
-  const updateUserMutation = useUpdateMutation<User, { role: string; isActive: boolean }>(
+  const updateUserMutation = useUpdateMutation(
     (_data) => `/api/users/${user?.id}`,
     {
       successMessage: 'User updated successfully',
@@ -153,16 +153,18 @@ export function UserListComponent({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // API mutations using our reusable hooks
-  const deleteUserMutation = useDeleteMutation<string>((userId) => `/api/users/${userId}`, {
+  const deleteUserMutation = useDeleteMutation((userId) => `/api/users/${userId}`, {
     successMessage: 'User deleted successfully',
     invalidateQueries: ['/api/users'],
   });
 
-  const resetPasswordMutation = useApiMutation({
-    method: 'POST',
-    endpoint: (userId: string) => `/api/users/${userId}/reset-password`,
-    successMessage: 'Password reset email sent successfully',
-  });
+  const resetPasswordMutation = useUpdateMutation(
+    (userId: string) => `/api/users/${userId}/reset-password`,
+    {
+      successMessage: 'Password reset email sent successfully',
+      invalidateQueries: ['/api/users'],
+    }
+  );
 
   const canEditUser = hasRole(['admin']);
   const canDeleteUser = hasRole(['admin']);

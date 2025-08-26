@@ -88,7 +88,7 @@ export interface BulkAction<T> {
  * Props for the DataTable component
 
 interface DataTableProps<T> {
-  _data: T[];
+  data: T[];
   columns: TableColumn<T>[];
   actions?: TableAction<T>[];
   bulkActions?: BulkAction<T>[];
@@ -110,13 +110,9 @@ interface DataTableProps<T> {
  * 
  * @param props - Table configuration and data
  * @returns Standardized data table component
-
-/*
- * DataTable function
- * @returns Function result
-
+ */
 export function DataTable<T extends Record<string, unknown>>({
-  data,
+  data: _data,
   columns,
   actions = [],
   bulkActions = [],
@@ -145,7 +141,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
 
     if (checked) {
-      const newSelection = new Set(data.map(item => String(item[keyAccessor])));
+      const newSelection = new Set(_data.map(item => String(item[keyAccessor])));
       setSelection(newSelection);
     } else {
       setSelection(new Set());
