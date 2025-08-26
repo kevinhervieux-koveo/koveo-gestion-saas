@@ -3,7 +3,7 @@
 /**
  * Deployment Hooks Script.
  *
- * This script runs deployment-specific tasks including Demo organization sync.
+ * This script runs deployment-specific tasks.
  * Should be executed during the deployment process.
  *
  * Usage: tsx scripts/deployment-hooks.ts.
@@ -56,43 +56,12 @@ async function runDeploymentHooks(): Promise<void> {
     // 1. Run database migrations
     runCommand('npm run db:push', 'Running database migrations');
 
-    // 2. Check if we need to sync Demo organization
-    if (process.env.SYNC_DEMO_ON_DEPLOY === 'true') {
-      console.warn('\n📋 Demo organization sync enabled');
-
-      if (process.env.NODE_ENV === 'production') {
-        // In production, import from file
-        runCommand('tsx scripts/import-demo-organization.ts', 'Importing Demo organization data');
-      } else {
-        // In development/staging, sync to production if configured
-        runCommand(
-          'tsx scripts/sync-demo-organization.ts',
-          'Syncing Demo organization to production'
-        );
-      }
-    } else {
-      console.warn(
-        '\n⏭️  Demo organization sync disabled (set SYNC_DEMO_ON_DEPLOY=true to enable)'
-      );
-    }
-
-    // 3. Sync features table to production
-    console.warn('\n📊 Features sync to production');
-    try {
-      runCommand(
-        'tsx scripts/sync-features-to-production.ts',
-        'Syncing features table to production'
-      );
-    } catch (syncError) {
-      console.warn('⚠️  Features sync failed but deployment continues:', syncError);
-    }
-
-    // 4. Warm up the application
+    // 2. Warm up the application
     if (process.env.WARMUP_ON_DEPLOY === 'true') {
-      let port = parseInt(process.env.PORT || '8080', 10);
+      let port = parseInt(process.env.PORT || '5000', 10);
       if (isNaN(port) || port < 1 || port > 65535) {
-        console.warn('⚠️  Invalid PORT value, using default 8080');
-        port = 8080;
+        console.warn('⚠️  Invalid PORT value, using default 5000');
+        port = 5000;
       }
       runCommand(
         `curl -f http://localhost:${port}/health || echo "Warmup skipped - server not ready"`,

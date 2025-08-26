@@ -3,13 +3,12 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import chalk from 'chalk';
-import validateDemoSync from './validate-demo-sync';
 
 const execAsync = promisify(exec);
 
 /**
- * Enhanced validation script that includes demo organization sync
- * This extends the standard validate:all with additional production-ready checks
+ * Enhanced validation script for production-ready checks
+ * This extends the standard validate:all with additional validation steps
  */
 
 interface ValidationStep {
@@ -43,11 +42,6 @@ const validationSteps: ValidationStep[] = [
   {
     name: 'Quality Check',
     command: 'npm run quality:check',
-    required: true,
-  },
-  {
-    name: 'Demo Organization Sync',
-    customFunction: validateDemoSync,
     required: true,
   },
 ];

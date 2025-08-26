@@ -2,7 +2,6 @@ import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../../shared/schema';
 import { eq } from 'drizzle-orm';
-import { productionDemoSync, healthCheck, quickSync } from '../../scripts/production-demo-sync';
 
 /**
  * Demo Management Service.
@@ -23,20 +22,12 @@ export class DemoManagementService {
     message: string;
     timestamp: string;
   }> {
-    try {
-      const result = await healthCheck();
-      return {
-        ...result,
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error) {
-      return {
-        healthy: false,
-        status: null,
-        message: `Demo health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        timestamp: new Date().toISOString(),
-      };
-    }
+    return {
+      healthy: true,
+      status: { message: 'Demo sync functionality removed' },
+      message: 'Demo organizations managed locally only',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /**
@@ -52,8 +43,7 @@ export class DemoManagementService {
     try {
       console.log('🔄 Ensuring demo organizations are properly configured...');
 
-      // Run silent synchronization
-      await quickSync();
+      // Note: Demo sync to production has been removed - managing local demo only
 
       // Verify the organizations exist
       const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -104,8 +94,7 @@ export class DemoManagementService {
     try {
       console.log('🔄 Force recreating demo organizations...');
 
-      // Run full synchronization with force recreation
-      await productionDemoSync({ forceRecreate: true, silent: true });
+      // Note: Demo sync to production has been removed - managing local demo only
 
       // Verify the organizations exist
       const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -312,9 +301,8 @@ export class DemoManagementService {
       actions.push(`Health check: ${health.healthy ? 'HEALTHY' : 'UNHEALTHY'}`);
 
       if (!health.healthy) {
-        // Run quick sync to fix issues
-        await quickSync();
-        actions.push('Performed quick synchronization to fix issues');
+        // Note: Demo sync to production has been removed
+        actions.push('Demo sync functionality removed - local management only');
 
         // Re-check health
         const newHealth = await this.checkDemoHealth();

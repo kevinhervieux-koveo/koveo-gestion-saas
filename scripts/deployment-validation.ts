@@ -436,28 +436,6 @@ class DeploymentValidator {
     }
   }
 
-  /**
-   * Check demo organization synchronization
-   */
-  private async checkDemoOrganizationSync(): Promise<void> {
-    console.warn('\n🔍 Checking demo organization synchronization...');
-
-    try {
-      // Import and run demo sync validation
-      const { default: validateDemoSync } = await import('./validate-demo-sync');
-      await validateDemoSync();
-      this.addResult('Demo Organization Sync', 'PASS', 'Demo organizations are properly synchronized');
-    } catch (error) {
-      // Demo sync issues are warnings for deployment, not critical failures
-      this.addResult(
-        'Demo Organization Sync',
-        'WARN',
-        `Demo organization sync has minor issues: ${error}`,
-        false
-      );
-      console.warn('⚠️  Demo organization sync issues detected but not blocking deployment');
-    }
-  }
 
   /**
    *
