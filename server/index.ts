@@ -126,9 +126,34 @@ app.get('/ready', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Root endpoint health check for deployment platforms
-app.get('/', (req, res) => {
-  res.status(200).send('OK');
+// Root endpoint - only respond with OK for health check user agents  
+app.get('/', async (req, res) => {
+  const userAgent = req.headers['user-agent'] || '';
+  const isHealthCheck = 
+    userAgent.includes('GoogleHC') ||
+    userAgent.includes('kube-probe') ||
+    userAgent.includes('ELB') ||
+    userAgent.includes('AWS') ||
+    userAgent.includes('uptime') ||
+    userAgent.includes('health') ||
+    req.headers['x-health-check'] === 'true' ||
+    req.query.health === 'true';
+
+  if (isHealthCheck) {
+    return res.status(200).send('OK');
+  }
+  
+  // For regular browsers, fall through to serve the frontend
+  const path = await import('path');
+  const fs = await import('fs');
+  const distPath = path.resolve('./dist/public');
+  const indexPath = path.resolve(distPath, 'index.html');
+  
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).send('OK'); // Fallback for health checks
+  }
 });
 
 // Production mode: Allow full application after health checks are ready
