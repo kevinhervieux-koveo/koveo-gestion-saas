@@ -25,6 +25,13 @@ import type { Building } from '@shared/schema';
  * @param props.onBuildingSelect - OnBuildingSelect parameter.
  * @returns JSX element.
  */
+/**
+ * BuildingSelectionGrid component.
+ * @param props - Component props.
+ * @param props.buildings - buildings parameter.
+ * @param props.onBuildingSelect - onBuildingSelect parameter.
+ * @returns JSX element.
+ */
 export function BuildingSelectionGrid({
   buildings,
   onBuildingSelect,
