@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Note: static files are handled in index.ts before this function
   }
 
-  // Setup JSON body parser
+  // Setup JSON body parser for entire app
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   log('✅ Body parser middleware configured');
@@ -188,13 +188,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Session setup failed: ${_error}`, 'error');
   }
 
-  // Setup authentication routes FIRST - these must be registered before Vite middleware
+  // Create API router that bypasses Vite's catch-all
+  const apiRouter = express.Router();
+  
+  // Setup authentication routes on API router (routes are /auth/*, mounted at /api)
   try {
-    setupAuthRoutes(app);
-    log('✅ Auth routes registered');
+    setupAuthRoutes(apiRouter);
+    log('✅ Auth routes registered on API router');
   } catch (_error) {
     log(`❌ Auth routes failed: ${_error}`, 'error');
   }
+
+  // Mount API router EARLY to intercept /api/* before Vite processes them
+  app.use('/api', apiRouter);
+  log('✅ API router mounted at /api');
 
   // Production diagnostic endpoint
   try {

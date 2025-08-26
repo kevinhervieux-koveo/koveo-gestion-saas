@@ -335,7 +335,7 @@ export function authorize(permission: string) {
  */
 export function setupAuthRoutes(app: any) {
   // Login route
-  app.post('/api/auth/login', async (req: Request, res: Response) => {
+  app.post('/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -395,7 +395,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Logout route
-  app.post('/api/auth/logout', (req: Request, res: Response) => {
+  app.post('/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
         console.error('Logout _error:', err);
@@ -411,7 +411,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Get current user route
-  app.get('/api/auth/user', requireAuth, async (req: Request, res: Response) => {
+  app.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({
         message: 'Not authenticated',
@@ -477,7 +477,7 @@ export function setupAuthRoutes(app: any) {
   );
 
   // Password Reset Request Route
-  app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
+  app.post('/auth/forgot-password', async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
@@ -565,7 +565,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Password Reset Route
-  app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
+  app.post('/auth/reset-password', async (req: Request, res: Response) => {
     try {
       const { token, password } = req.body;
 
