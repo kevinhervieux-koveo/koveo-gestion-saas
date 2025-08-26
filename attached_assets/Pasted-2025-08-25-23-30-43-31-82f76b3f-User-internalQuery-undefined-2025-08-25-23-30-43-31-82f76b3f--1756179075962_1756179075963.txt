@@ -1,0 +1,128 @@
+2025-08-25 23:30:43.31
+82f76b3f
+User
+internalQuery: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+schema: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+column: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+dataType: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+constraint: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+file: 'parse_relation.c',
+2025-08-25 23:30:43.31
+82f76b3f
+User
+line: '1449',
+2025-08-25 23:30:43.31
+82f76b3f
+User
+routine: 'parserOpenTable'
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:105:14)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async productionDemoSync (file:///home/runner/workspace/dist/index.js:16632:7) {
+2025-08-25 23:30:43.31
+82f76b3f
+User
+'f0b49085-8795-4cc5-8492-593ded278c1a',
+2025-08-25 23:30:43.31
+82f76b3f
+User
+],
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+code: '42P01',
+2025-08-25 23:30:43.31
+82f76b3f
+User
+internalPosition: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+dataType: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+routine: 'parserOpenTable'
+2025-08-25 23:30:43.31
+82f76b3f
+User
+💥 Script execution failed: DrizzleQueryError: Failed query: delete from "money_flow" where "money_flow"."building_id" in ($1, $2)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:41:15)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+'94e643ea-74fc-4fc1-abef-b40439017e47'
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:105:14)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+at async ComprehensiveDemoSyncService.cleanOpenDemoData (file:///home/runner/workspace/dist/index.js:15858:9)
+2025-08-25 23:30:43.31
+82f76b3f
+User
+detail: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+schema: undefined,
+2025-08-25 23:30:43.31
+82f76b3f
+User
+file: 'parse_relation.c',
+2025-08-25 23:30:43.31
+82f76b3f
+User
+}
+2025-08-25 23:30:43.32
+82f76b3f
+User
+npm notice
+2025-08-25 23:30:43.32
+82f76b3f
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-25 23:30:43.32
+82f76b3f
+User
+npm notice To update run: npm install -g npm@11.5.2

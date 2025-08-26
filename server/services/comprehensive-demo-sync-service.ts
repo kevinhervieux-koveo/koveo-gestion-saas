@@ -146,9 +146,8 @@ export class ComprehensiveDemoSyncService {
             .where(inArray(schema.maintenanceRequests.residenceId, residenceIds));
         }
 
-        // Delete bills and money flow
+        // Delete bills
         await db.delete(schema.bills).where(inArray(schema.bills.buildingId, buildingIds));
-        await db.delete(schema.moneyFlow).where(inArray(schema.moneyFlow.buildingId, buildingIds));
 
         // Delete budgets
         await db.delete(schema.budgets).where(inArray(schema.budgets.buildingId, buildingIds));
@@ -494,36 +493,10 @@ export class ComprehensiveDemoSyncService {
       });
     }
 
-    // Sync money flow
-    const demoMoneyFlow = await db.query.moneyFlow.findMany({
-      where: inArray(schema.moneyFlow.buildingId, demoBuildingIds),
-    });
-
-    for (const flow of demoMoneyFlow) {
-      const newBuildingId = buildingMapping.get(flow.buildingId);
-      if (!newBuildingId) {
-        continue;
-      }
-
-      await db.insert(schema.moneyFlow).values({
-        buildingId: newBuildingId,
-        residenceId: flow.residenceId, // Will need to map this too if needed
-        billId: flow.billId, // Will need to map this too if needed
-        type: flow.type,
-        category: flow.category,
-        description: flow.description,
-        amount: flow.amount,
-        transactionDate: flow.transactionDate,
-        referenceNumber: flow.referenceNumber,
-        notes: flow.notes,
-        isReconciled: flow.isReconciled,
-        reconciledDate: flow.reconciledDate,
-        createdBy: openDemoAdmin.userId,
-      });
-    }
+    // Skip money flow sync - table no longer exists
 
     console.log(
-      `  ✅ Synced financial data: ${demoBills.length} bills, ${demoBudgets.length} budgets, ${demoMonthlyBudgets.length} monthly budgets, ${demoMoneyFlow.length} money flow records`
+      `  ✅ Synced financial data: ${demoBills.length} bills, ${demoBudgets.length} budgets, ${demoMonthlyBudgets.length} monthly budgets`
     );
   }
 

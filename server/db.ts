@@ -2,7 +2,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from 'ws';
 
-// Import only tables, not relations to avoid circular dependency issues in production
+// Import only tables that exist, not relations to avoid circular dependency issues in production
 import { 
   users, 
   organizations, 
@@ -18,7 +18,9 @@ import {
   maintenanceRequests,
   permissions,
   userPermissions,
-  rolePermissions
+  rolePermissions,
+  budgets,
+  monthlyBudgets
 } from '@shared/schema';
 
 neonConfig.webSocketConstructor = ws;
@@ -50,6 +52,8 @@ const schema = {
   permissions,
   userPermissions,
   rolePermissions,
+  budgets,
+  monthlyBudgets,
 };
 
 /**
