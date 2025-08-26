@@ -131,12 +131,7 @@ app.get('/', (req, res) => {
   res.status(200).send('OK');
 });
 
-// In production, skip ALL initialization during startup - health checks only
-if (process.env.NODE_ENV === 'production') {
-  app.use('/api/*', (req, res) => {
-    res.status(503).json({ message: 'Service Initializing - Health checks active' });
-  });
-}
+// Production mode: Allow full application after health checks are ready
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -452,18 +447,13 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         // Always ensure port is properly bound
         log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
         
-        // Initialize application in background only for development
-        if (process.env.NODE_ENV !== 'production') {
-          setTimeout(() => {
-            initializeApplication().catch((error) => {
-              log(`Application initialization failed: ${error}`, 'error');
-              // Don't crash - health checks still work
-            });
-          }, 100);
-        } else {
-          // Production: health checks only for now
-          log('🚀 Production mode: Health checks active, minimal initialization');
-        }
+        // Initialize application in background for both dev and production
+        setTimeout(() => {
+          initializeApplication().catch((error) => {
+            log(`Application initialization failed: ${error}`, 'error');
+            // Don't crash - health checks still work
+          });
+        }, 100);
       }
     );
 
