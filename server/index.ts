@@ -84,19 +84,17 @@ app.head('/', (req, res) => {
   res.status(200).end();
 });
 
-// Simple health check endpoint that responds immediately - no database or expensive operations
-app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+// Essential health endpoints BEFORE any middleware - respond immediately
+app.get('/health', (req, res) => res.send('OK'));
+app.get('/healthz', (req, res) => res.send('OK'));
+app.get('/ready', (req, res) => res.send('OK'));
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Koveo Gestion API is running',
+    version: '1.0.0',
+  });
 });
-
-app.get('/healthz', (req, res) => {
-  res.status(200).send('OK');
-});
-
-app.get('/ready', (req, res) => {
-  res.status(200).send('OK');
-});
-
 // NOW add middleware after health checks
 
 // SECURITY: Configure comprehensive security middleware before any other middleware
@@ -129,23 +127,7 @@ app.use('/api/upload', uploadRateLimit);
 app.use('/api/files', uploadRateLimit);
 app.use('/api', generalRateLimit);
 
-// Body parsing middleware (after security)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// Start memory monitoring
-startMemoryMonitoring();
-
-// Detailed API health endpoints (after middleware)
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    message: 'Koveo Gestion API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    port: port,
-  });
-});
+// Remove this duplicate - already defined above
 
 app.get('/api/health/detailed', (req, res) => {
   res.status(200).json({
