@@ -37,7 +37,7 @@ const config = {
         lib: ['ES2022', 'DOM', 'DOM.Iterable'],
         isolatedModules: true,
         skipLibCheck: true,
-        types: ['node', 'jest', '@testing-library/jest-dom']
+        types: ['jest', 'node', '@testing-library/jest-dom']
       }
     }]
   },

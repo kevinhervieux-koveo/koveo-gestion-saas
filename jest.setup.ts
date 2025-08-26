@@ -1,13 +1,14 @@
-import '@testing-library/jest-dom';
+// Jest setup file - global test configuration
+/// <reference types="jest" />
 
 // Mock implementations for browser APIs
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
+(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
 
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+(global as any).IntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
