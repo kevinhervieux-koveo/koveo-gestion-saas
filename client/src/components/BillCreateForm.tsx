@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 interface BillCreateFormProps {
   onClose: () => void;
   selectedBuilding?: any;
+  buildingId?: string;
+  onSuccess?: () => void;
 }
 
 export function BillCreateForm({ onClose, selectedBuilding }: BillCreateFormProps) {
