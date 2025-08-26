@@ -68,22 +68,14 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       
       log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
       
-      // For development, load features immediately in background
-      if (process.env.NODE_ENV === 'development') {
-        log('🔄 Development mode: Loading features in background...');
-        setTimeout(() => {
-          loadFullApplication().catch((error) => {
-            log(`⚠️ Full application load failed: ${error.message}`, 'error');
-            // Continue - health checks still work
-          });
-        }, 100); // Very short delay for development
-      } else {
-        // Load full application features IMMEDIATELY in production
+      // Use the same startup process for both development and production
+      log('🔄 Starting application initialization...');
+      setTimeout(() => {
         loadFullApplication().catch((error) => {
           log(`⚠️ Full application load failed: ${error.message}`, 'error');
           // Continue - health checks still work
         });
-      }
+      }, process.env.NODE_ENV === 'development' ? 100 : 0); // Minimal delay for development, immediate for production
     });
 
     // Configure server timeouts for deployment
@@ -120,17 +112,6 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 // Export server for testing
 export { server };
 
-/**
- * Set up static file serving for production
- */
-async function setupStaticServing(): Promise<void> {
-  try {
-    const { serveStatic } = await import('./vite');
-    serveStatic(app);
-  } catch (error: any) {
-    throw new Error(`Failed to set up static serving: ${error.message}`);
-  }
-}
 
 /**
  * Load full application features after health checks are available
@@ -139,30 +120,22 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Setup Vite middleware first for frontend serving
-    const { setupVite } = await import('./vite');
-    if (process.env.NODE_ENV === 'development') {
-      log('🔄 Setting up Vite for frontend development...');
-      await setupVite(app, server);
-      log('✅ Vite development server configured');
-    } else {
-      log('✅ Static file serving ready for production');
-    }
-    
     // Load API routes FIRST to ensure they have priority over static files
     const { registerRoutes } = await import('./routes-minimal');
     await registerRoutes(app);
     log('✅ Essential application routes loaded');
     
-    // Set up static file serving AFTER API routes are registered
-    if (process.env.NODE_ENV === 'production') {
-      try {
-        const { serveStatic } = await import('./vite');
-        serveStatic(app);
-        log('✅ Static file serving enabled for production');
-      } catch (error: any) {
-        log(`⚠️ Failed to set up static serving: ${error.message}`, 'error');
-      }
+    // Setup frontend serving AFTER API routes are registered
+    if (process.env.NODE_ENV === 'development') {
+      log('🔄 Setting up Vite for frontend development...');
+      const { setupVite } = await import('./vite');
+      await setupVite(app, server);
+      log('✅ Vite development server configured');
+    } else {
+      log('🔄 Setting up static file serving for production...');
+      const { serveStatic } = await import('./vite');
+      serveStatic(app);
+      log('✅ Static file serving enabled for production');
     }
     
     // Start heavy database work in background AFTER routes are ready
