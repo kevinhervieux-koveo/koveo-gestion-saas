@@ -1323,18 +1323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: 'Application running successfully' });
   });
 
-  // Health check endpoints
-  app.get('/health', (req, res) => {
-    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-  });
-
-  app.get('/healthz', (req, res) => {
-    res.json({ status: 'ok' });
-  });
-
-  app.get('/ready', (req, res) => {
-    res.json({ status: 'ready' });
-  });
+  // Health endpoints already defined in main server file - skip duplicates
 
   // Start automatic storage cleanup scheduler
   try {
