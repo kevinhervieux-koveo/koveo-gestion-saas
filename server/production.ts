@@ -24,6 +24,20 @@ app.get('/healthz', (req, res) => res.status(200).send('OK'));
 app.get('/ready', (req, res) => res.status(200).send('OK'));
 app.get('/ping', (req, res) => res.status(200).send('pong'));
 
+// Load API routes FIRST - before static files
+async function loadAPIRoutes() {
+  try {
+    const { registerRoutes } = await import('./routes-minimal');
+    await registerRoutes(app);
+    console.log('✅ API routes loaded');
+  } catch (error: any) {
+    console.error('❌ Failed to load API routes:', error.message);
+  }
+}
+
+// Load API routes immediately
+await loadAPIRoutes();
+
 // API status endpoint
 app.get('/api', (req, res) => {
   res.json({
@@ -33,7 +47,7 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Static file serving - FIRST PRIORITY
+// Static file serving - AFTER API routes
 const publicPath = path.resolve(process.cwd(), 'dist', 'public');
 
 if (fs.existsSync(publicPath)) {
@@ -45,26 +59,21 @@ if (fs.existsSync(publicPath)) {
     immutable: true
   }));
   
-  // Serve other static files
-  app.use(express.static(publicPath, {
-    maxAge: '1h' // Cache other files for 1 hour
-  }));
+  // Serve other static files (but skip API routes)
+  app.use((req, res, next) => {
+    // Skip static serving for API routes
+    if (req.originalUrl.startsWith('/api/')) {
+      return next();
+    }
+    express.static(publicPath, {
+      maxAge: '1h' // Cache other files for 1 hour
+    })(req, res, next);
+  });
   
   console.log('✅ Static file serving configured');
 } else {
   console.error(`❌ Public directory not found: ${publicPath}`);
   process.exit(1);
-}
-
-// Load API routes
-async function loadAPIRoutes() {
-  try {
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    console.log('✅ API routes loaded');
-  } catch (error: any) {
-    console.error('❌ Failed to load API routes:', error.message);
-  }
 }
 
 // SPA fallback - serve index.html for all non-API routes
@@ -89,14 +98,10 @@ app.use((error: any, req: any, res: any, next: any) => {
 });
 
 // Start server
-const server = app.listen(port, '0.0.0.0', async () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Production server running on http://0.0.0.0:${port}`);
   console.log(`📁 Serving from: ${publicPath}`);
-  
-  // Load API routes after server starts
-  await loadAPIRoutes();
-  
-  console.log('🎉 Production server ready!');
+  console.log('🎉 Production server ready with API routes!');
 });
 
 // Graceful shutdown
