@@ -241,7 +241,7 @@ export class ComprehensiveDemoSyncService {
       const [newUser] = await db
         .insert(schema.users)
         .values({
-          username: user.username,
+          username: user.username + '.1', // PRODUCTION FIX: Add number suffix to make usernames unique for Open Demo
           email: user.email.replace('@demo.com', '@opendemo.com'), // Different email domain
           password: user.password,
           firstName: user.firstName,
@@ -262,7 +262,7 @@ export class ComprehensiveDemoSyncService {
         canAccessAllOrganizations: userOrg.canAccessAllOrganizations,
       });
 
-      userMapping.set(userOrg.user.id, newUser.id);
+      userMapping.set(user.id, newUser.id);
     }
 
     console.log(`  ✅ Synced ${demoUserOrgs.length} users`);
