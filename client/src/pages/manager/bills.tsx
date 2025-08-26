@@ -818,7 +818,7 @@ function BillDetail({
     },
   });
 
-  const handleFileUpload = (_event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; /**
      * If function.
      * @param file - File parameter.
@@ -903,7 +903,7 @@ function BillDetail({
             <Input
               type='date'
               value={endDate}
-              onChange={(e) => setEndDate(e.target._value)}
+              onChange={(e) => setEndDate(e.target.value)}
               className='w-48'
             />
             <Button onClick={handleSetEndDate} disabled={updateBillMutation.isPending} size='sm'>
@@ -921,7 +921,7 @@ function BillDetail({
         <div>
           <Label className='text-sm font-medium'>Payment Breakdown</Label>
           <div className='space-y-1 mt-1'>
-            {bill.costs.map((cost, _index) => (
+            {bill.costs.map((cost, index) => (
               <div key={index} className='flex justify-between text-sm'>
                 <span>Payment {index + 1}:</span>
                 <span>${Number(cost).toLocaleString()}</span>

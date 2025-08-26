@@ -51,7 +51,11 @@ export function /**
  */ /**
  * Trial request form function.
  * @param { children } - { children } parameter.
- */
+ */  /**
+   * Trial request form function.
+   * @param { children } - { children } parameter.
+   */
+
 
 TrialRequestForm({ children }: TrialRequestFormProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +121,11 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
      */ /**
      * If function.
      * @param errors[field] - errors[field] parameter.
-     */
+     */  /**
+   * If function.
+   * @param errors[field] - errors[field] parameter.
+   */
+
 
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -146,7 +154,11 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
        */ /**
        * If function.
        * @param !response.ok - !response.ok parameter.
-       */
+       */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
 
       if (!response.ok) {
         throw new Error('Failed to submit request');
@@ -174,7 +186,11 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
         message: '',
       });
       setIsOpen(false);
-    } catch (_error) {
+    }  /**
+   * Catch function.
+   * @param _error - Error object.
+   */
+ catch (_error) {
       /**
        * Catch function.
        * @param error - Error object.

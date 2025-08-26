@@ -76,7 +76,21 @@ export function  /**
    * @param buttonClassName - buttonClassName parameter.
    * @param children - children parameter.
    * @param } - } parameter.
+   */  /**
+   * Object uploader function.
+   * @param {
+  maxNumberOfFiles = 1 - {
+  maxNumberOfFiles = 1 parameter.
+   * @param maxFileSize = 10485760 - maxFileSize = 10485760 parameter.
+   * @param // 10MB default
+  onGetUploadParameters - // 10MB default
+  onGetUploadParameters parameter.
+   * @param onComplete - onComplete parameter.
+   * @param buttonClassName - buttonClassName parameter.
+   * @param children - children parameter.
+   * @param } - } parameter.
    */
+
  ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default

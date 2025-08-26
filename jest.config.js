@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
-  // preset: 'ts-jest',
-  // extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  preset: 'ts-jest',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts', '<rootDir>/tests/setup/jest-dom.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js', '<rootDir>/tests/mocks/importMetaMock.js'],

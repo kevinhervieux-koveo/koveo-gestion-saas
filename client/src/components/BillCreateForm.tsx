@@ -94,6 +94,13 @@ const billCreateSchema = z.object({
  * @param props.onSuccess - Callback function called when bill is successfully created.
  * @returns JSX element for bill creation form.
  */
+/**
+ * BillCreateForm component.
+ * @param props - Component props.
+ * @param props.buildingId - Unique identifier for the building.
+ * @param props.onSuccess - Callback function called when operation succeeds.
+ * @returns JSX element.
+ */
 export function BillCreateForm({
   buildingId,
   onSuccess,
@@ -138,7 +145,11 @@ export function BillCreateForm({
           ...billData,
           costs: [parseFloat(billData.totalAmount)],
         }),
-      });
+      });  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
+   */
+
 
       if (!response.ok) {
         throw new Error('Failed to create bill');
@@ -174,7 +185,11 @@ export function BillCreateForm({
           status: 'draft',
           notes: 'Draft bill created for AI analysis',
         }),
-      });
+      });  /**
+   * If function.
+   * @param !createResponse.ok - !createResponse.ok parameter.
+   */
+
 
       if (!createResponse.ok) {
         throw new Error('Failed to create draft bill');
@@ -190,7 +205,11 @@ export function BillCreateForm({
         method: 'POST',
         credentials: 'include',
         body: formData,
-      });
+      });  /**
+   * If function.
+   * @param !uploadResponse.ok - !uploadResponse.ok parameter.
+   */
+
 
       if (!uploadResponse.ok) {
         throw new Error('Failed to upload and analyze document');
@@ -216,7 +235,11 @@ export function BillCreateForm({
      */ /**
      * If function.
      * @param file - File parameter.
-     */
+     */  /**
+   * If function.
+   * @param file - file parameter.
+   */
+
 
     if (file) {
       setUploadedFile(file);
@@ -231,7 +254,11 @@ export function BillCreateForm({
      */ /**
      * If function.
      * @param aiAnalysisData - AiAnalysisData parameter.
-     */
+     */  /**
+   * If function.
+   * @param aiAnalysisData - aiAnalysisData parameter.
+   */
+
 
     if (aiAnalysisData) {
       form.setValue('title', aiAnalysisData.title);
@@ -244,7 +271,11 @@ export function BillCreateForm({
        */ /**
        * If function.
        * @param aiAnalysisData.issueDate - AiAnalysisData.issueDate parameter.
-       */
+       */  /**
+   * If function.
+   * @param aiAnalysisData.issueDate - aiAnalysisData.issueDate parameter.
+   */
+
 
       if (aiAnalysisData.issueDate) {
         form.setValue('startDate', aiAnalysisData.issueDate);

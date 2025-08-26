@@ -949,8 +949,8 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
       coveragePercentage: Math.round((testedComponents / componentFiles.length) * 100),
       untestedComponents,
     };
-  } catch (____error) {
-    console.warn(`🧩 Component coverage analysis failed: ${_error}`);
+  } catch (error) {
+    console.warn(`🧩 Component coverage analysis failed: ${error}`);
     return {
       totalComponents: 0,
       testedComponents: 0,
@@ -1009,8 +1009,8 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
       }),
       totalVulnerabilities: vulnerabilities.length,
     };
-  } catch (____error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${_error}${COLORS.RESET}`);
+  } catch (error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Vulnerability analysis failed: ${error}${COLORS.RESET}`);
     return {
       vulnerabilities: [],
       totalVulnerabilities: 0,
@@ -1095,8 +1095,8 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
       duplicatePatterns,
       refactoringSuggestions,
     };
-  } catch (____error) {
-    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${_error}${COLORS.RESET}`);
+  } catch (error) {
+    console.warn(`${COLORS.YELLOW}⚠️  Redundancy analysis failed: ${error}${COLORS.RESET}`);
     return {
       totalComponents: 0,
       componentsWithRedundancy: 0,
