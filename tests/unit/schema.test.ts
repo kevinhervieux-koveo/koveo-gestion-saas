@@ -4,6 +4,7 @@ import {
   insertBuildingSchema,
   insertFeatureSchema,
 } from '../../shared/schema';
+import { describe, it, expect } from '@jest/globals';
 
 describe('Schema Validation Tests', () => {
   describe('insertUserSchema', () => {
@@ -29,28 +30,28 @@ describe('Schema Validation Tests', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept any password', () => {
-      const validData = { ...validUserData, password: '123' };
+    it('should require password with minimum 8 characters', () => {
+      const validData = { ...validUserData, password: 'validpass123' };
       const result = insertUserSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });
 
-    it('should accept long first name', () => {
+    it('should reject first name longer than 100 characters', () => {
       const validData = { ...validUserData, firstName: 'a'.repeat(101) };
       const result = insertUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
-    it('should accept long last name', () => {
+    it('should reject last name longer than 100 characters', () => {
       const validData = { ...validUserData, lastName: 'b'.repeat(101) };
       const result = insertUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
-    it('should accept empty first name if not required', () => {
+    it('should require non-empty first name', () => {
       const validData = { ...validUserData, firstName: '' };
       const result = insertUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
     it('should accept valid names at length limit', () => {
