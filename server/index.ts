@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
+import { createUltraHealthEndpoints } from './ultra-health';
 
 // Defer heavy imports until after server starts
 import * as path from 'path';
@@ -42,6 +43,26 @@ export { app };
 
 // CRITICAL: Ultra-fast health check endpoints MUST come FIRST
 // These endpoints respond immediately without any middleware
+
+// Add request timeout middleware to prevent hanging requests
+app.use((req, res, next) => {
+  req.setTimeout(5000, () => {
+    if (!res.headersSent) {
+      res.status(408).send('Request Timeout');
+    }
+  });
+  next();
+});
+
+// Dedicated deployment health check route (fastest possible)
+app.get('/_health', (req, res) => {
+  res.set('Connection', 'close');
+  res.status(200).send('OK');
+});
+
+// Add ultra-fast health endpoints for deployment platforms
+createUltraHealthEndpoints(app);
+
 app.get('/', createRootHandler());
 app.head('/', (req, res) => {
   res.status(200).end();
@@ -152,8 +173,10 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
     );
 
     // Configure server timeouts for better deployment reliability
-    server.keepAliveTimeout = 120000; // 2 minutes
-    server.headersTimeout = 125000; // Slightly longer than keepAliveTimeout
+    server.keepAliveTimeout = 30000; // 30 seconds for deployment
+    server.headersTimeout = 35000; // Slightly longer than keepAliveTimeout
+    server.requestTimeout = 10000; // 10 second request timeout
+    server.timeout = 15000; // 15 second socket timeout
 
     // Handle server errors gracefully without crashing in production
     server.on('error', (_error: unknown) => {
