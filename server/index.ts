@@ -83,30 +83,36 @@ if (isProduction) {
 export { app };
 
 // CRITICAL: Health check endpoints MUST come before any middleware to ensure they always work
-// Simple root endpoint that always responds with 200 for deployment platform health checks
+// Ultra-fast root endpoint that responds immediately - optimized for deployment platforms
 app.get('/', (req, res, next) => {
-  // For deployment platform health checks, always return OK immediately
-  // Check various patterns used by health check systems
+  // Always return OK immediately for ANY root request to prevent timeouts
+  // This ensures deployment health checks never timeout during startup
   const userAgent = req.get('User-Agent') || '';
-  const isHealthCheck =
-    userAgent.includes('GoogleHC') ||
-    userAgent.includes('uptime') ||
-    userAgent.includes('health') ||
-    userAgent.includes('kube-probe') ||
-    userAgent.includes('ELB') ||
-    userAgent.includes('AWS') ||
-    userAgent.includes('Pingdom') ||
-    userAgent.includes('StatusCake') ||
-    req.headers['x-health-check'] === 'true' ||
-    req.query.health === 'true';
-
-  // Always respond to root health checks immediately
-  if (req.path === '/' && (isHealthCheck || !userAgent || userAgent === '')) {
+  
+  // For any health check pattern or empty user agent, respond immediately
+  if (userAgent.includes('GoogleHC') ||
+      userAgent.includes('uptime') ||
+      userAgent.includes('health') ||
+      userAgent.includes('kube-probe') ||
+      userAgent.includes('ELB') ||
+      userAgent.includes('AWS') ||
+      userAgent.includes('Pingdom') ||
+      userAgent.includes('StatusCake') ||
+      req.headers['x-health-check'] === 'true' ||
+      req.query.health === 'true' ||
+      !userAgent) {
+    
+    // Set ultra-fast response headers to prevent any delays
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Connection': 'close',
+      'Content-Type': 'text/plain'
+    });
     res.status(200).send('OK');
     return;
   }
 
-  // For regular browser requests, continue to static file serving
+  // For regular browser requests, continue to frontend serving
   next();
 });
 
@@ -115,14 +121,17 @@ app.head('/', (req, res) => {
   res.status(200).end();
 });
 
-// CRITICAL: Health endpoints MUST be first - respond immediately for deployment platforms
+// CRITICAL: Ultra-fast health endpoints - respond immediately for deployment platforms
 app.get('/health', (req, res) => {
+  res.set('Connection', 'close');
   res.status(200).send('OK');
 });
 app.get('/healthz', (req, res) => {
+  res.set('Connection', 'close');
   res.status(200).send('OK'); 
 });
 app.get('/ready', (req, res) => {
+  res.set('Connection', 'close');
   res.status(200).send('OK');
 });
 
@@ -766,17 +775,22 @@ async function initializeApplication() {
 
     log(`✅ Core application initialized on port ${port}`);
 
-    // Start all database and background operations after core app is ready
-    // Skip heavy operations in production for stability
-    if (process.env.NODE_ENV !== 'production') {
-      setTimeout(() => {
+    // DEPLOYMENT FIX: Move ALL heavy operations away from startup to prevent health check timeout
+    // Start background operations with significant delay to allow health checks to pass
+    const initDelay = process.env.NODE_ENV === 'production' ? 30000 : 5000; // 30s in prod, 5s in dev
+    
+    setTimeout(() => {
+      log('🔄 Starting background initialization (delayed for health checks)');
+      if (process.env.NODE_ENV !== 'production') {
         initializeEmailServiceInBackground();
         initializeDatabaseOptimizationsInBackground();
         initializeBackgroundJobsInBackground();
-      }, 100);
-    } else {
-      log('🚀 Production mode: Core application ready without heavy background processes');
-    }
+      } else {
+        log('🚀 Production mode: Background processes starting after health check grace period');
+        // Even in production, start minimal background processes after delay
+        initializeEmailServiceInBackground();
+      }
+    }, initDelay);
   } catch (_error) {
     log(`⚠️ Application initialization failed: ${_error}`, 'error');
     // Don't crash - health checks will still work
