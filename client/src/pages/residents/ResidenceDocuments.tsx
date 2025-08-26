@@ -112,11 +112,18 @@ export default function ResidenceDocuments() {
   const { data: documentsData, isLoading, refetch } = useQuery({
     queryKey: ['/api/documents', 'resident', residenceId],
     queryFn: async () => {
+      console.log('🔍 Fetching documents for residence:', residenceId);
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`, {
         credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to fetch documents');
-      return response.json();
+      if (!response.ok) {
+        console.error('❌ Documents API failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch documents');
+      }
+      const data = await response.json();
+      console.log('📄 Documents API response:', data);
+      console.log('📊 Documents array length:', data.documents?.length || 0);
+      return data;
     },
     enabled: !!residenceId,
   });
@@ -124,6 +131,15 @@ export default function ResidenceDocuments() {
   const documents: Document[] = documentsData?.documents || [];
   const isUserTenant = user?.role === 'tenant';
   const canUpload = !isUserTenant; // Tenants cannot upload
+
+  // Debug logging
+  console.log('🎯 ResidenceDocuments Debug:', {
+    residenceId,
+    documentsDataKeys: documentsData ? Object.keys(documentsData) : 'undefined',
+    documentsLength: documents.length,
+    userRole: user?.role,
+    isLoading,
+  });
 
   // Form for creating documents
   const form = useForm<DocumentFormData>({
