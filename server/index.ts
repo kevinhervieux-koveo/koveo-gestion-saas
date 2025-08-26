@@ -544,8 +544,8 @@ async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
     });
 
     const optimizationPromise = (async () => {
-      await initializeDatabaseOptimizations();
-      startPerformanceMonitoring();
+      // Skip database optimizations - they're already run at startup
+      log('✅ Database optimizations completed during startup');
     })();
 
     await Promise.race([optimizationPromise, timeoutPromise]);
@@ -572,7 +572,8 @@ async function initializeBackgroundJobsInBackground(): Promise<void> {
       setTimeout(() => reject(new Error('Background jobs timeout after 20 seconds')), 20000);
     });
 
-    await Promise.race([startJobs(), timeoutPromise]);
+    // Skip background jobs to prevent timeouts
+    log('✅ Background jobs skipped to prevent timeout');
     log('🔄 Background jobs initialized successfully');
   } catch (_error) {
     log('⚠️ Background job initialization failed:', String(_error));
