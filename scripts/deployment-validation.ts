@@ -87,7 +87,7 @@ class DeploymentValidator {
       await db.execute('SELECT 1');
 
       this.addResult('Database Connection', 'PASS', 'Database connection successful');
-    } catch (_error) {
+    } catch (error) {
       this.addResult('Database Connection', 'FAIL', `Database connection failed: ${error}`, true);
     }
   }
@@ -202,7 +202,7 @@ class DeploymentValidator {
           true
         );
       }
-    } catch (_error) {
+    } catch (error) {
       this.addResult(
         'Package.json Parsing',
         'FAIL',
@@ -303,7 +303,7 @@ class DeploymentValidator {
       } else {
         this.addResult('Server Entry Point', 'FAIL', 'Server entry point missing', true);
       }
-    } catch (_error) {
+    } catch (error) {
       this.addResult('Server Startup', 'FAIL', `Server startup test failed: ${error}`, true);
     }
   }
@@ -374,7 +374,7 @@ class DeploymentValidator {
       } else {
         this.addResult('Critical Tests', 'PASS', 'All critical deployment tests passed');
       }
-    } catch (_error) {
+    } catch (error) {
       this.addResult('Critical Tests', 'FAIL', `Test execution failed: ${error}`, true);
     }
   }
@@ -434,6 +434,27 @@ class DeploymentValidator {
   }
 
   /**
+   * Check demo organization synchronization
+   */
+  private async checkDemoOrganizationSync(): Promise<void> {
+    console.warn('\n🔍 Checking demo organization synchronization...');
+
+    try {
+      // Import and run demo sync validation
+      const { default: validateDemoSync } = await import('./validate-demo-sync');
+      await validateDemoSync();
+      this.addResult('Demo Organization Sync', 'PASS', 'Demo organizations are properly synchronized');
+    } catch (error) {
+      this.addResult(
+        'Demo Organization Sync',
+        'FAIL',
+        `Demo organization sync failed: ${error}`,
+        true
+      );
+    }
+  }
+
+  /**
    *
    */
   async validate(): Promise<void> {
@@ -449,6 +470,7 @@ class DeploymentValidator {
     this.checkBuildArtifacts();
     await this.checkDatabaseConnection();
     await this.checkServerStartup();
+    await this.checkDemoOrganizationSync();
 
     // Run test suite (if available)
     try {
@@ -466,7 +488,7 @@ class DeploymentValidator {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new DeploymentValidator();
   validator.validate().catch((error) => {
-    console.error('💥 Validation failed with _error:', _error);
+    console.error('💥 Validation failed with error:', error);
     process.exit(1);
   });
 }

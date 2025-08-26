@@ -97,7 +97,7 @@ async function ensureContactsData(demoOrgId: string, openDemoOrgId: string) {
           phone: '+1 (514) 555-0124',
           entity: 'building' as const,
           entityId: building.id,
-          contactCategory: 'management' as const,
+          contactCategory: 'manager' as const,
           isActive: true,
         },
         {
@@ -106,7 +106,7 @@ async function ensureContactsData(demoOrgId: string, openDemoOrgId: string) {
           phone: '+1 (514) 555-0125',
           entity: 'building' as const,
           entityId: building.id,
-          contactCategory: 'security' as const,
+          contactCategory: 'emergency' as const,
           isActive: true,
         },
       ];
