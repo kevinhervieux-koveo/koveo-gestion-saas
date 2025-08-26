@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
-  preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
@@ -23,13 +23,14 @@ const config = {
     '!**/*.d.ts',
     '!**/node_modules/**'
   ],
+  preset: 'ts-jest',
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: {
         jsx: 'react-jsx',
         jsxImportSource: 'react',
-        module: 'ESNext',
-        moduleResolution: 'bundler',
+        module: 'CommonJS',
+        moduleResolution: 'node',
         allowSyntheticDefaultImports: true,
         esModuleInterop: true,
         target: 'ES2022',
