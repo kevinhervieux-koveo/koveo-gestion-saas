@@ -71,9 +71,6 @@
     "build:complete": "npx tsx scripts/build.ts",
     "post-build": "bash scripts/post-build.sh",
     "demo:create": "npx tsx scripts/create-comprehensive-demo.ts",
-    "demo:sync": "npx tsx scripts/sync-demo-organizations.ts",
-    "demo:validate": "npx tsx scripts/validate-demo-sync.ts",
-    "deploy:with-demo": "bash scripts/deploy-with-demo-data.sh",
     "deploy:hooks": "npx tsx scripts/deployment-hooks.ts"
   },
   "dependencies": {
