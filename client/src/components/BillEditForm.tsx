@@ -101,6 +101,14 @@ const billFormSchema = z.object({
  * @param props.onCancel - Callback function called when operation is cancelled.
  * @returns JSX element.
  */
+/**
+ * BillEditForm component.
+ * @param props - Component props.
+ * @param props.bill - bill parameter.
+ * @param props.onSuccess - Callback function called when operation succeeds.
+ * @param props.onCancel - Callback function called when operation is cancelled.
+ * @returns JSX element.
+ */
 export function BillEditForm({
   bill,
   onSuccess,
@@ -153,7 +161,11 @@ export function BillEditForm({
    */  /**
    * If function.
    * @param !response.ok - !response.ok parameter.
+   */  /**
+   * If function.
+   * @param !response.ok - !response.ok parameter.
    */
+
 
 
 

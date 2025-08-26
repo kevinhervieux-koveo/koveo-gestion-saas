@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",
+    "@eslint/js": "^9.34.0",
     "@google-cloud/storage": "^7.17.0",
     "@google/genai": "^1.15.0",
     "@hookform/resolvers": "^5.2.1",
