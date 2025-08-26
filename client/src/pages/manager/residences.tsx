@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
@@ -96,6 +96,15 @@ Residences() {
   const [editingResidence, setEditingResidence] = useState<Residence | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Check for URL parameters and set building filter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingIdFromUrl = urlParams.get('buildingId');
+    if (buildingIdFromUrl && buildingIdFromUrl !== selectedBuilding) {
+      setSelectedBuilding(buildingIdFromUrl);
+    }
+  }, [selectedBuilding]);
 
   // Fetch residences with search and filters
   const {

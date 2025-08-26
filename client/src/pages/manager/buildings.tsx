@@ -160,7 +160,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
                 Documents
               </Button>
             </Link>
-            <Link href={`/manager/buildings/${building.id}/residences`}>
+            <Link href={`/manager/residences?buildingId=${building.id}`}>
               <Button size='sm' variant='outline' className='flex-1'>
                 Residences
               </Button>
