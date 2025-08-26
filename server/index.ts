@@ -477,8 +477,8 @@ async function initializeApplicationAsync() {
       log('🔄 Starting background initialization (delayed for health checks)');
       if (process.env.NODE_ENV !== 'production') {
         initializeEmailServiceInBackground();
-        initializeDatabaseOptimizationsInBackground();
-        initializeBackgroundJobsInBackground();
+        // Skip database optimizations and background jobs to prevent timeout
+        log('🚀 Skipping heavy background operations to prevent timeout');
       } else {
         log('🚀 Production mode: Background processes starting after health check grace period');
         // Even in production, start minimal background processes after delay
