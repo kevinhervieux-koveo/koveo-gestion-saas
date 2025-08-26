@@ -1,5 +1,5 @@
 // Jest setup file - global test configuration
-/// <reference types="jest" />
+// Note: @testing-library/jest-dom will be imported by individual test files if needed
 
 // Mock implementations for browser APIs
 (global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -13,6 +13,13 @@
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
+
+// Add TextEncoder/TextDecoder polyfills for Node.js environment
+if (typeof TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  (global as any).TextEncoder = TextEncoder;
+  (global as any).TextDecoder = TextDecoder;
+}
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
