@@ -33,6 +33,7 @@ export class DemoManagementService {
   /**
    * Ensure demo organizations exist and are properly configured.
    * This is a safe operation that can be called during application startup.
+   * DISABLED: Demo organization creation has been disabled per user request.
    */
   public static async ensureDemoOrganizations(): Promise<{
     success: boolean;
@@ -40,45 +41,13 @@ export class DemoManagementService {
     demoOrgId?: string;
     openDemoOrgId?: string;
   }> {
-    try {
-      console.log('🔄 Ensuring demo organizations are properly configured...');
-
-      // Note: Demo sync to production has been removed - managing local demo only
-
-      // Verify the organizations exist
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const db = drizzle({ client: pool, schema });
-
-      const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
-      });
-
-      const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
-      });
-
-      await pool.end();
-
-      if (!demoOrg || !openDemoOrg) {
-        throw new Error('Demo organizations were not created successfully');
-      }
-
-      console.log('✅ Demo organizations are properly configured');
-
-      return {
-        success: true,
-        message: 'Demo organizations are properly configured and ready for use',
-        demoOrgId: demoOrg.id,
-        openDemoOrgId: openDemoOrg.id,
-      };
-    } catch (error) {
-      console.error('❌ Failed to ensure demo organizations:', error);
-
-      return {
-        success: false,
-        message: `Failed to ensure demo organizations: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    }
+    // Demo organizations functionality disabled per user request
+    console.log('✅ Demo organizations functionality disabled (skipped)');
+    
+    return {
+      success: true,
+      message: 'Demo organizations functionality disabled - skipping database operations',
+    };
   }
 
   /**
@@ -202,31 +171,12 @@ export class DemoManagementService {
 
   /**
    * Initialize demo organizations during application startup.
-   * This should be called once when the application starts.
-   * PRODUCTION FIX: This now creates organizations if they don't exist.
+   * DISABLED: Demo organization functionality has been disabled per user request.
    */
   public static async initializeDemoOrganizations(): Promise<void> {
-    try {
-      console.log('🚀 Initializing demo organizations...');
-
-      // PRODUCTION FIX: First ensure basic organizations exist
-      await this.createBasicOrganizationsIfMissing();
-
-      const result = await this.ensureDemoOrganizations();
-
-      if (result.success) {
-        console.log('✅ Demo organizations initialized successfully');
-      } else {
-        console.warn(
-          '⚠️  Demo organizations initialization completed with warnings:',
-          result.message
-        );
-      }
-    } catch (error) {
-      console.error('❌ Demo organizations initialization failed:', error);
-      // Don't throw error to prevent application startup failure
-      // Demo organizations are not critical for main application functionality
-    }
+    console.log('✅ Demo organizations initialization skipped (disabled)');
+    // Demo organizations functionality disabled per user request
+    return;
   }
 
   /**
