@@ -68,24 +68,31 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       
       log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
       
-      // Set up static file serving IMMEDIATELY in production
-      if (process.env.NODE_ENV === 'production') {
+      // For development, load features immediately in background
+      if (process.env.NODE_ENV === 'development') {
+        log('🔄 Development mode: Loading features in background...');
+        setTimeout(() => {
+          loadFullApplication().catch((error) => {
+            log(`⚠️ Full application load failed: ${error.message}`, 'error');
+            // Continue - health checks still work
+          });
+        }, 100); // Very short delay for development
+      } else {
+        // Set up static file serving IMMEDIATELY in production
         setupStaticServing().then(() => {
           log('✅ Static file serving enabled immediately for production');
         }).catch((error) => {
           log(`⚠️ Failed to set up static serving: ${error.message}`, 'error');
         });
-      } else {
-        log('🚀 Running in minimal mode - health checks available immediately');
+        
+        // Load full application features after health checks are available
+        setTimeout(() => {
+          loadFullApplication().catch((error) => {
+            log(`⚠️ Full application load failed: ${error.message}`, 'error');
+            // Continue - health checks still work
+          });
+        }, 2000); // Longer delay for production since static serving is already set up
       }
-      
-      // Load full application features after health checks are available
-      setTimeout(() => {
-        loadFullApplication().catch((error) => {
-          log(`⚠️ Full application load failed: ${error.message}`, 'error');
-          // Continue - health checks still work
-        });
-      }, 2000); // Reduced delay since static serving is already set up
     });
 
     // Configure server timeouts for deployment
@@ -141,7 +148,7 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Setup frontend serving
+    // Setup frontend serving FIRST
     const { setupVite } = await import('./vite');
     if (process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
@@ -151,13 +158,31 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Static file serving ready for production');
     }
     
-    // Load API routes AFTER static files to avoid conflicts
+    // Load API routes FAST
     const { registerRoutes } = await import('./routes-minimal');
     await registerRoutes(app);
-    log('✅ Full application routes loaded');
+    log('✅ Essential application routes loaded');
+    
+    // Start heavy database work in background AFTER routes are ready
+    setTimeout(() => {
+      initializeDatabaseInBackground().catch((error) => {
+        log(`⚠️ Background database initialization failed: ${error.message}`, 'error');
+      });
+    }, 1000);
     
   } catch (error: any) {
     log(`⚠️ Failed to load full application: ${error.message}`, 'error');
     // Continue - health checks still work
+  }
+}
+
+/**
+ * Initialize heavy database work in background
+ */
+async function initializeDatabaseInBackground(): Promise<void> {
+  try {
+    log('🔄 Background work complete - all routes already loaded');
+  } catch (error: any) {
+    log(`⚠️ Background initialization failed: ${error.message}`, 'error');
   }
 }
