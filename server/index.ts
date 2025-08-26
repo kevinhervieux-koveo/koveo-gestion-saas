@@ -48,7 +48,7 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Frontend will be set up after server starts
+// Static file serving will be set up immediately when server starts
 
 // Export app for testing
 export { app };
@@ -67,7 +67,17 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       log(`   - http://0.0.0.0:${port}/status`);
       
       log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
-      log('🚀 Running in minimal mode - health checks available immediately');
+      
+      // Set up static file serving IMMEDIATELY in production
+      if (process.env.NODE_ENV === 'production') {
+        setupStaticServing().then(() => {
+          log('✅ Static file serving enabled immediately for production');
+        }).catch((error) => {
+          log(`⚠️ Failed to set up static serving: ${error.message}`, 'error');
+        });
+      } else {
+        log('🚀 Running in minimal mode - health checks available immediately');
+      }
       
       // Load full application features after health checks are available
       setTimeout(() => {
@@ -75,7 +85,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           log(`⚠️ Full application load failed: ${error.message}`, 'error');
           // Continue - health checks still work
         });
-      }, 5000); // 5 second delay to ensure health checks work first
+      }, 2000); // Reduced delay since static serving is already set up
     });
 
     // Configure server timeouts for deployment
@@ -113,22 +123,32 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 export { server };
 
 /**
+ * Set up static file serving for production
+ */
+async function setupStaticServing(): Promise<void> {
+  try {
+    const { serveStatic } = await import('./vite');
+    serveStatic(app);
+  } catch (error: any) {
+    throw new Error(`Failed to set up static serving: ${error.message}`);
+  }
+}
+
+/**
  * Load full application features after health checks are available
  */
 async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Setup frontend serving FIRST in production to avoid route conflicts
-    const { setupVite, serveStatic } = await import('./vite');
+    // Setup frontend serving
+    const { setupVite } = await import('./vite');
     if (process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
       await setupVite(app, server);
       log('✅ Vite development server configured');
     } else {
-      log('🔄 Setting up static file serving...');
-      serveStatic(app);
-      log('✅ Static file serving configured');
+      log('✅ Static file serving ready for production');
     }
     
     // Load API routes AFTER static files to avoid conflicts
