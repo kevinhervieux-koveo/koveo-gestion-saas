@@ -26,18 +26,16 @@ export class ComprehensiveDemoSyncService {
    * Get the Demo organization.
    */
   private static async getDemoOrg() {
-    return await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
-    });
+    const result = await db.select().from(schema.organizations).where(eq(schema.organizations.name, this.DEMO_ORG_NAME)).limit(1);
+    return result[0];
   }
 
   /**
    * Get the Open Demo organization.
    */
   private static async getOpenDemoOrg() {
-    return await db.query.organizations.findFirst({
-      where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
-    });
+    const result = await db.select().from(schema.organizations).where(eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME)).limit(1);
+    return result[0];
   }
 
   /**
@@ -231,31 +229,29 @@ export class ComprehensiveDemoSyncService {
   ): Promise<Map<string, string>> {
     console.log('  👥 Syncing users...');
 
-    // Get Demo users
-    const demoUserOrgs = await db.query.userOrganizations.findMany({
-      where: eq(schema.userOrganizations.organizationId, demoOrgId),
-      with: {
-        user: true,
-      },
-    });
+    // Get Demo users (using simple query to avoid relations)
+    const demoUserOrgs = await db.select().from(schema.userOrganizations).where(eq(schema.userOrganizations.organizationId, demoOrgId));
 
     const userMapping = new Map<string, string>();
 
     // Create users in Open Demo
     for (const userOrg of demoUserOrgs) {
+      // Get user details separately
+      const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userOrg.userId));
+      
       const [newUser] = await db
         .insert(schema.users)
         .values({
-          username: userOrg.user.username,
-          email: userOrg.user.email.replace('@demo.com', '@opendemo.com'), // Different email domain
-          password: userOrg.user.password,
-          firstName: userOrg.user.firstName,
-          lastName: userOrg.user.lastName,
-          phone: userOrg.user.phone,
-          profileImage: userOrg.user.profileImage,
-          language: userOrg.user.language,
-          role: userOrg.user.role,
-          isActive: userOrg.user.isActive,
+          username: user.username,
+          email: user.email.replace('@demo.com', '@opendemo.com'), // Different email domain
+          password: user.password,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          profileImage: user.profileImage,
+          language: user.language,
+          role: user.role,
+          isActive: user.isActive,
         })
         .returning();
 

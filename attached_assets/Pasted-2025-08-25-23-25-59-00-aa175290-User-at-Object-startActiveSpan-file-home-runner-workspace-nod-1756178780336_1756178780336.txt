@@ -1,0 +1,127 @@
+2025-08-25 23:25:59.00
+aa175290
+User
+at Object.startActiveSpan (file:///home/runner/workspace/node_modules/drizzle-orm/tracing.js:8:14)
+2025-08-25 23:25:59.00
+aa175290
+User
+at QueryPromise.execute (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:113:19)
+2025-08-25 23:25:59.00
+aa175290
+User
+2025-08-25 23:25:59.00
+aa175290
+User
+❌ Duplication failed: TypeError: Cannot read properties of undefined (reading 'referencedTable')
+2025-08-25 23:25:59.00
+aa175290
+User
+at normalizeRelation (file:///home/runner/workspace/node_modules/drizzle-orm/relations.js:212:75)
+2025-08-25 23:25:59.00
+aa175290
+User
+at PgDialect.buildRelationalQueryWithoutPK (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/dialect.js:1006:36)
+2025-08-25 23:25:59.00
+aa175290
+User
+at QueryPromise._getQuery (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:84:25)
+2025-08-25 23:25:59.00
+aa175290
+User
+at QueryPromise._toSQL (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:99:24)
+2025-08-25 23:25:59.00
+aa175290
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:62:42
+2025-08-25 23:25:59.00
+aa175290
+User
+at Object.startActiveSpan (file:///home/runner/workspace/node_modules/drizzle-orm/tracing.js:8:14)
+2025-08-25 23:25:59.00
+aa175290
+User
+at QueryPromise._prepare (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:61:19)
+2025-08-25 23:25:59.00
+aa175290
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:114:19
+2025-08-25 23:25:59.00
+aa175290
+User
+at Object.startActiveSpan (file:///home/runner/workspace/node_modules/drizzle-orm/tracing.js:8:14)
+2025-08-25 23:25:59.00
+aa175290
+User
+at QueryPromise.execute (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:113:19)
+2025-08-25 23:25:59.00
+aa175290
+User
+👥 Syncing users...
+2025-08-25 23:25:59.20
+aa175290
+User
+Script execution failed: TypeError: Cannot read properties of undefined (reading 'referencedTable')
+2025-08-25 23:25:59.20
+aa175290
+User
+at normalizeRelation (file:///home/runner/workspace/node_modules/drizzle-orm/relations.js:212:75)
+2025-08-25 23:25:59.20
+aa175290
+User
+at PgDialect.buildRelationalQueryWithoutPK (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/dialect.js:1006:36)
+2025-08-25 23:25:59.20
+aa175290
+User
+at QueryPromise._getQuery (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:84:25)
+2025-08-25 23:25:59.20
+aa175290
+User
+at QueryPromise._toSQL (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:99:24)
+2025-08-25 23:25:59.20
+aa175290
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:62:42
+2025-08-25 23:25:59.20
+aa175290
+User
+at Object.startActiveSpan (file:///home/runner/workspace/node_modules/drizzle-orm/tracing.js:8:14)
+2025-08-25 23:25:59.20
+aa175290
+User
+at QueryPromise._prepare (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:61:19)
+2025-08-25 23:25:59.20
+aa175290
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:114:19
+2025-08-25 23:25:59.20
+aa175290
+User
+at Object.startActiveSpan (file:///home/runner/workspace/node_modules/drizzle-orm/tracing.js:8:14)
+2025-08-25 23:25:59.20
+aa175290
+User
+at QueryPromise.execute (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/query-builders/query.js:113:19)
+2025-08-25 23:26:06.60
+aa175290
+User
+npm notice
+2025-08-25 23:26:06.60
+aa175290
+User
+npm notice New major version of npm available! 10.8.2 -> 11.5.2
+2025-08-25 23:26:06.60
+aa175290
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-25 23:26:06.60
+aa175290
+User
+npm notice To update run: npm install -g npm@11.5.2
+2025-08-25 23:26:06.60
+aa175290
+User
+npm notice
+2025-08-25 23:26:08.10
+aa175290
+System
+command finished with error [npm run start]: exit status 1
