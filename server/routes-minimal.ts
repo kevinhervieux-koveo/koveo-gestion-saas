@@ -1368,7 +1368,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Initialize demo organizations for production (non-blocking)
+  // Demo organizations initialization disabled per user request
+  // TODO: Re-enable when database authentication issues are resolved
+  /*
   try {
     // Run demo initialization in background to avoid blocking server startup
     DemoManagementService.initializeDemoOrganizations()
@@ -1378,6 +1380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
   }
+  */
+  log('✅ Demo organizations initialization skipped (disabled)');
 
   // Root route handler for SPA (production only - Vite handles development)
   const path = await import('path');
