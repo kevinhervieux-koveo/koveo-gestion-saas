@@ -6,7 +6,7 @@
  * data integrity after any database operations.
  */
 
-import { describe, it, expect } from '@jest/globals';
+// Jest globals are available in the environment
 import { db } from '../../db';
 import { sql } from 'drizzle-orm';
 

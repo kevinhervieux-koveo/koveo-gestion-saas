@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+// Jest globals are available in the environment
 import { db } from '../db';
 import { monthlyBudgetService } from '../services/monthly-budget-service';
 import { moneyFlowAutomationService } from '../services/money-flow-automation';
@@ -21,7 +21,7 @@ describe('Monthly Budget Service', () => {
         constructionDate: new Date('2020-01-01'),
         totalUnits: 10,
         totalFloors: 2,
-        buildingType: 'residential',
+        buildingType: 'apartment',
         isActive: true,
       })
       .returning();
@@ -371,7 +371,7 @@ describe('Monthly Budget Service', () => {
           constructionDate: new Date('2023-01-01'),
           totalUnits: 5,
           totalFloors: 1,
-          buildingType: 'residential',
+          buildingType: 'apartment',
           isActive: true,
         })
         .returning();

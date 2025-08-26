@@ -5,7 +5,7 @@
  * and business rules to ensure data consistency and integrity.
  */
 
-import { describe, it, expect } from '@jest/globals';
+// Jest globals are available in the environment
 import { db } from '../../db';
 import { sql } from 'drizzle-orm';
 
