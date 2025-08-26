@@ -586,12 +586,8 @@ export function registerUserRoutes(app: Express): void {
             .where(eq(schema.userResidences.userId, currentUser.id)),
           db
             .select()
-            .from(schema.documents)
-            .innerJoin(
-              schema.documentResident,
-              eq(schema.documents.id, schema.documentResident.documentId)
-            )
-            .where(eq(schema.documentResident.userId, currentUser.id)),
+            .from(schema.documentsResidents)
+            .where(eq(schema.documentsResidents.uploadedBy, currentUser.id)),
           db
             .select()
             .from(schema.notifications)
@@ -599,7 +595,7 @@ export function registerUserRoutes(app: Express): void {
           db
             .select()
             .from(schema.maintenanceRequests)
-            .where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+            .where(eq(schema.maintenanceRequests.submittedBy, currentUser.id)),
         ]);
 
       const exportData = {
@@ -607,7 +603,7 @@ export function registerUserRoutes(app: Express): void {
         organizations,
         residences,
         bills: bills.map((b) => b.bills),
-        documents: documents.map((d) => d.documents),
+        documents: documents,
         notifications,
         maintenanceRequests,
         exportDate: new Date().toISOString(),
@@ -660,14 +656,14 @@ export function registerUserRoutes(app: Express): void {
           .where(eq(schema.userOrganizations.userId, currentUser.id)),
         db.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
         db
-          .delete(schema.documentResident)
-          .where(eq(schema.documentResident.userId, currentUser.id)),
+          .delete(schema.documentsResidents)
+          .where(eq(schema.documentsResidents.uploadedBy, currentUser.id)),
 
         // Delete user-created content
         db.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
         db
           .delete(schema.maintenanceRequests)
-          .where(eq(schema.maintenanceRequests.requestedByUserId, currentUser.id)),
+          .where(eq(schema.maintenanceRequests.submittedBy, currentUser.id)),
 
         // Delete invitations
         db.delete(schema.invitations).where(eq(schema.invitations.email, currentUser.email)),
