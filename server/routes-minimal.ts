@@ -1354,9 +1354,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Initialize demo organizations for production
+  // Initialize demo organizations for production (non-blocking)
   try {
-    DemoManagementService.initializeDemoOrganizations();
+    // Run demo initialization in background to avoid blocking server startup
+    DemoManagementService.initializeDemoOrganizations()
+      .then(() => log('✅ Demo organizations initialized successfully'))
+      .catch((error) => log(`⚠️ Demo initialization failed (non-critical): ${error.message}`, 'warn'));
     log('✅ Demo organizations initialization started');
   } catch (_error) {
     log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
