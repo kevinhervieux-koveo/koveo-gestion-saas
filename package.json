@@ -34,7 +34,7 @@
     "build:client": "vite build",
     "build:server": "npx tsx scripts/build-server.ts",
     "db:push": "npx drizzle-kit push",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "PORT=${PORT:-5000} node server/index.js",
     "test": "npx jest --passWithNoTests",
     "test:watch": "npx jest --watch --passWithNoTests",
     "test:coverage": "npx jest --coverage --passWithNoTests",
