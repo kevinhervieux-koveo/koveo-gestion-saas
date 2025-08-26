@@ -30,8 +30,6 @@ app.use((req, res, next) => {
 
 // Ultra-fast health endpoints FIRST - these respond immediately
 createUltraHealthEndpoints(app);
-app.get('/', createRootHandler());
-app.head('/', (req, res) => res.status(200).end());
 app.get('/health', createFastHealthCheck());
 app.get('/healthz', createFastHealthCheck());
 app.get('/ready', createFastHealthCheck());
@@ -49,6 +47,8 @@ app.get('/api', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Frontend will be set up after server starts
 
 // Export app for testing
 export { app };
@@ -119,15 +119,22 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Only load full features in development
+    // Setup frontend serving first
+    const { setupVite, serveStatic } = await import('./vite');
     if (process.env.NODE_ENV === 'development') {
-      // Load routes and features
-      const { registerRoutes } = await import('./routes-minimal');
-      await registerRoutes(app);
-      log('✅ Full application routes loaded');
+      log('🔄 Setting up Vite for frontend development...');
+      await setupVite(app, server);
+      log('✅ Vite development server configured');
     } else {
-      log('🚀 Production mode - keeping minimal footprint for stability');
+      log('🔄 Setting up static file serving...');
+      serveStatic(app);
+      log('✅ Static file serving configured');
     }
+    
+    // Load routes and features
+    const { registerRoutes } = await import('./routes-minimal');
+    await registerRoutes(app);
+    log('✅ Full application routes loaded');
     
   } catch (error: any) {
     log(`⚠️ Failed to load full application: ${error.message}`, 'error');
