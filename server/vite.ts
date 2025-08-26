@@ -53,7 +53,7 @@ export async function setupVite(app: Express, server: Server) {
     configFile: false,
     customLogger: {
       ...viteLogger,
-      _error: (msg, _options) => {
+      error: (msg, _options) => {
         viteLogger.error(msg, _options);
         process.exit(1);
       },
@@ -75,8 +75,8 @@ export async function setupVite(app: Express, server: Server) {
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ 'Content-Type': 'text/html' }).end(page);
     } catch (___e) {
-      vite.ssrFixStacktrace(e as Error);
-      next(e);
+      vite.ssrFixStacktrace(___e as Error);
+      next(___e);
     }
   });
 }
@@ -91,7 +91,7 @@ export async function setupVite(app: Express, server: Server) {
  * @returns Function result.
  */
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, 'public');
+  const distPath = path.resolve(process.cwd(), 'dist', 'public');
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
