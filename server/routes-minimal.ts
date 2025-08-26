@@ -169,11 +169,10 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Apply production optimizations first
+  // Apply production optimizations (but not static file serving here)
   if (process.env.NODE_ENV === 'production') {
     configureProductionServer(app);
-    applyProductionOptimizations(app);
-    handleLargeFileErrors(app);
+    // Note: static files are handled in index.ts before this function
   }
 
   // Setup JSON body parser FIRST
@@ -1370,6 +1369,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
   }
+
+  // Root route handler for SPA (works in both dev and production)
+  const path = await import('path');
+  const fs = await import('fs');
+  
+  app.get('/', (req, res) => {
+    try {
+      // In development, serve from client directory
+      // In production, serve from dist/public
+      const isDev = process.env.NODE_ENV === 'development';
+      const indexPath = isDev 
+        ? path.resolve(process.cwd(), 'client/index.html')
+        : path.resolve(process.cwd(), 'dist/public/index.html');
+      
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Application not built - run npm run build first');
+      }
+    } catch (error) {
+      res.status(500).send('Error loading application');
+    }
+  });
+
+  // Catch-all route for SPA routing (must be last, works in both modes)
+  app.get('*', (req, res) => {
+    // Skip API routes and health checks
+    if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
+        req.path.startsWith('/health') || req.path.startsWith('/ping') || 
+        req.path.startsWith('/status') || req.path.startsWith('/ready')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    
+    try {
+      const isDev = process.env.NODE_ENV === 'development';
+      const indexPath = isDev 
+        ? path.resolve(process.cwd(), 'client/index.html')
+        : path.resolve(process.cwd(), 'dist/public/index.html');
+      
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Application not built');
+      }
+    } catch (error) {
+      res.status(500).send('Error loading application');
+    }
+  });
 
   // Create and return HTTP server
   const server = createServer(app);
