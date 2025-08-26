@@ -102,15 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-      }); /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-
-      /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
+        credentials: 'include',
+      });
 
       if (!response.ok) {
         const error = await response.json();
@@ -136,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
