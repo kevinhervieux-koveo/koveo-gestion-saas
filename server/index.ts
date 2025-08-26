@@ -882,7 +882,7 @@ async function initializeProductionMinimal(): Promise<void> {
     log("🚀 Starting minimal production initialization...");
     
     // Just register essential routes without heavy operations
-    const { default: registerRoutes } = await import("./routes-minimal.js");
+    const { registerRoutes } = await import("./routes-minimal.js");
     await registerRoutes(app);
     log("✅ Essential routes registered");
     

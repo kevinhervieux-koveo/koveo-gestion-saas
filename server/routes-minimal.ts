@@ -13,7 +13,6 @@ import { registerDemandRoutes } from './api/demands';
 import { registerBillRoutes } from './api/bills';
 import { registerBugRoutes } from './api/bugs';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
-import { registerMoneyFlowRoutes } from './api/money-flow';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
 import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerFeatureManagementRoutes } from './api/feature-management';
@@ -335,13 +334,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Bills routes failed: ${_error}`, 'error');
   }
 
-  // Register money flow automation routes
-  try {
-    registerMoneyFlowRoutes(app);
-    log('✅ Money flow automation routes registered');
-  } catch (_error) {
-    log(`❌ Money flow automation routes failed: ${_error}`, 'error');
-  }
 
   // Register delayed update monitoring routes
   try {
