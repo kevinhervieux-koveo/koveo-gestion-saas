@@ -373,7 +373,7 @@ export async function canUserAccessResidence(
         return false;
       }
 
-      return await canUserAccessOrganization(userId, residence.building.organizationId);
+      return await canUserAccessOrganization(userId, residence.building?.organizationId || '');
     }
 
     // Tenants/residents can only access their own residences
@@ -542,7 +542,7 @@ export function requireResidenceAccess(param: string = 'residenceId') {
  */
 export async function filterOrganizationsByAccess(
   userId: string,
-  organizations: unknown[]
+  organizations: any[]
 ): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return organizations.filter((org) => accessibleOrgIds.includes(org.id));
@@ -561,7 +561,7 @@ export async function filterOrganizationsByAccess(
  */
 export async function filterBuildingsByAccess(
   userId: string,
-  buildings: unknown[]
+  buildings: any[]
 ): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return buildings.filter((building) => accessibleOrgIds.includes(building.organizationId));
@@ -580,7 +580,7 @@ export async function filterBuildingsByAccess(
  */
 export async function filterResidencesByAccess(
   userId: string,
-  residences: unknown[]
+  residences: any[]
 ): Promise<any[]> {
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, userId),
@@ -600,12 +600,12 @@ export async function filterResidencesByAccess(
     });
 
     const accessibleBuildingIds = accessibleBuildings.map((b) => b.id);
-    return residences.filter((residence) => accessibleBuildingIds.includes(residence.buildingId));
+    return residences.filter((residence: any) => accessibleBuildingIds.includes(residence.buildingId));
   }
 
   // For tenants/residents, only show their own residences
   const accessibleResidenceIds = await getUserAccessibleResidences(userId);
-  return residences.filter((residence) => accessibleResidenceIds.includes(residence.id));
+  return residences.filter((residence: any) => accessibleResidenceIds.includes(residence.id));
 }
 
 /**
