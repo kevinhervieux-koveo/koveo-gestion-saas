@@ -78,20 +78,11 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           });
         }, 100); // Very short delay for development
       } else {
-        // Set up static file serving IMMEDIATELY in production
-        setupStaticServing().then(() => {
-          log('✅ Static file serving enabled immediately for production');
-        }).catch((error) => {
-          log(`⚠️ Failed to set up static serving: ${error.message}`, 'error');
+        // Load full application features IMMEDIATELY in production
+        loadFullApplication().catch((error) => {
+          log(`⚠️ Full application load failed: ${error.message}`, 'error');
+          // Continue - health checks still work
         });
-        
-        // Load full application features after health checks are available
-        setTimeout(() => {
-          loadFullApplication().catch((error) => {
-            log(`⚠️ Full application load failed: ${error.message}`, 'error');
-            // Continue - health checks still work
-          });
-        }, 2000); // Longer delay for production since static serving is already set up
       }
     });
 
@@ -158,10 +149,21 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Static file serving ready for production');
     }
     
-    // Load API routes AFTER Vite but with explicit priority for /api/* paths
+    // Load API routes FIRST to ensure they have priority over static files
     const { registerRoutes } = await import('./routes-minimal');
     await registerRoutes(app);
     log('✅ Essential application routes loaded');
+    
+    // Set up static file serving AFTER API routes are registered
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        const { serveStatic } = await import('./vite');
+        serveStatic(app);
+        log('✅ Static file serving enabled for production');
+      } catch (error: any) {
+        log(`⚠️ Failed to set up static serving: ${error.message}`, 'error');
+      }
+    }
     
     // Start heavy database work in background AFTER routes are ready
     setTimeout(() => {
