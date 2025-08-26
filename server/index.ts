@@ -8,11 +8,12 @@ import { createUltraHealthEndpoints } from './ultra-health';
 import { log } from './vite';
 
 const app = express();
-const port = parseInt(process.env.PORT || '5000', 10);
+// Configure port for Replit environment - use 80 for preview compatibility
+const port = parseInt(process.env.PORT || '80', 10);
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
-  console.error(`Invalid port: ${process.env.PORT || '5000'}. Using default 5000.`);
+  console.error(`Invalid port: ${process.env.PORT || '80'}. Using default 80.`);
 }
 
 // Trust proxy for deployment

@@ -1379,53 +1379,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
   }
 
-  // Root route handler for SPA (works in both dev and production)
+  // Root route handler for SPA (production only - Vite handles development)
   const path = await import('path');
   const fs = await import('fs');
   
-  app.get('/', (req, res) => {
-    try {
-      // In development, serve from client directory
-      // In production, serve from dist/public
-      const isDev = process.env.NODE_ENV === 'development';
-      const indexPath = isDev 
-        ? path.resolve(process.cwd(), 'client/index.html')
-        : path.resolve(process.cwd(), 'dist/public/index.html');
-      
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send('Application not built - run npm run build first');
+  // Only register manual root handler in production - Vite handles it in development
+  if (process.env.NODE_ENV === 'production') {
+    app.get('/', (req, res) => {
+      try {
+        const indexPath = path.resolve(process.cwd(), 'dist/public/index.html');
+        
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('Application not built - run npm run build first');
+        }
+      } catch (error) {
+        res.status(500).send('Error loading application');
       }
-    } catch (error) {
-      res.status(500).send('Error loading application');
-    }
-  });
+    });
+  }
 
-  // Catch-all route for SPA routing (must be last, works in both modes)
-  app.get('*', (req, res) => {
-    // Skip API routes and health checks
-    if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
-        req.path.startsWith('/health') || req.path.startsWith('/ping') || 
-        req.path.startsWith('/status') || req.path.startsWith('/ready')) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-    
-    try {
-      const isDev = process.env.NODE_ENV === 'development';
-      const indexPath = isDev 
-        ? path.resolve(process.cwd(), 'client/index.html')
-        : path.resolve(process.cwd(), 'dist/public/index.html');
-      
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send('Application not built');
+  // Development catch-all for unmatched routes that aren't handled by Vite
+  if (process.env.NODE_ENV === 'development') {
+    app.get('*', (req, res, next) => {
+      // Skip API routes, health checks, and Vite-specific routes
+      if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
+          req.path.startsWith('/health') || req.path.startsWith('/ping') || 
+          req.path.startsWith('/status') || req.path.startsWith('/ready') ||
+          req.path.startsWith('/src/') || req.path.startsWith('/@') ||
+          req.path.startsWith('/node_modules/') || req.path.includes('.js') ||
+          req.path.includes('.ts') || req.path.includes('.tsx') || req.path.includes('.css') ||
+          req.path.includes('.json') || req.path.includes('.map')) {
+        return next(); // Let other middleware handle these
       }
-    } catch (error) {
-      res.status(500).send('Error loading application');
-    }
-  });
+      
+      // For unmatched routes in development, let Vite's middleware handle it
+      // This allows Vite to serve the index.html for SPA routing
+      next();
+    });
+  } else {
+    // Production catch-all
+    app.get('*', (req, res) => {
+      // Skip API routes and health checks
+      if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
+          req.path.startsWith('/health') || req.path.startsWith('/ping') || 
+          req.path.startsWith('/status') || req.path.startsWith('/ready')) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      
+      try {
+        const indexPath = path.resolve(process.cwd(), 'dist/public/index.html');
+        
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('Application not built');
+        }
+      } catch (error) {
+        res.status(500).send('Error loading application');
+      }
+    });
+  }
 
   // Create and return HTTP server
   const server = createServer(app);

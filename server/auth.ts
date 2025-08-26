@@ -425,7 +425,7 @@ export function setupAuthRoutes(app: any) {
 
   // Register route (admin only for now)
   app.post(
-    '/api/auth/register',
+    '/auth/register',
     requireAuth,
     requireRole(['admin']),
     async (req: Request, res: Response) => {
@@ -684,16 +684,14 @@ declare global {
   }
 }
 
-// Extend session interface
-declare module 'express-session' {
-  /**
-   * Extended session data interface for Quebec property management system.
-   * Includes user authentication data and cached permissions for performance.
-   */
-  interface SessionData {
-    userId?: string;
-    userRole?: string;
-    role?: string;
-    permissions?: string[];
+// Extend session interface using namespace instead of module declaration
+declare global {
+  namespace Express {
+    interface SessionData {
+      userId?: string;
+      userRole?: string;
+      role?: string;
+      permissions?: string[];
+    }
   }
 }
