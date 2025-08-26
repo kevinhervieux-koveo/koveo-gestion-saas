@@ -79,7 +79,7 @@ export interface Translations {
   continuousImprovementDescription: string;
   documentationPillar: string;
   documentationDescription: string;
-  active: string;
+  activePillar: string;
   systemHealth: string;
   completedToday: string;
   activeSuggestions: string;
