@@ -82,7 +82,7 @@ export function createRootHandler() {
       req.query.health === 'true' ||
       !userAgent;
 
-    if (isHealthCheck || (req.path === '/' && req.method === 'GET')) {
+    if (isHealthCheck) {
       // Ultra-fast health check response - minimal headers
       res.set({
         'Connection': 'close',

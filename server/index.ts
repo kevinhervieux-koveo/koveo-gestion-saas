@@ -134,15 +134,17 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         // Always ensure port is properly bound
         log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
         
-        // For deployment: Only initialize background features if explicitly requested
-        // This keeps the server ultra-lightweight for health checks
-        if (process.env.ENABLE_FULL_FEATURES === 'true') {
+        // For development: Load full features. For deployment: minimal mode
+        const isDevelopment = process.env.NODE_ENV !== 'production';
+        const enableFullFeatures = process.env.ENABLE_FULL_FEATURES === 'true' || isDevelopment;
+        
+        if (enableFullFeatures) {
           setTimeout(() => {
             initializeApplicationAsync().catch((error) => {
-              log(`⚠️ Background features failed: ${error.message}`, 'error');
+              log(`⚠️ Application initialization failed: ${error.message}`, 'error');
               // Continue - health checks still work
             });
-          }, 60000); // Very long delay for full features
+          }, isDevelopment ? 3000 : 60000); // Faster in development
         } else {
           log('🚀 Running in minimal mode for deployment - health checks only');
         }
