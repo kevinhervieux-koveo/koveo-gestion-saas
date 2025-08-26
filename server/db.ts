@@ -27,12 +27,9 @@ export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  * Provides type-safe database operations for the Quebec property management system.
  * Includes all tables for users, organizations, buildings, features, and development framework.
  */
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle({ client: pool });
 
 // For production debugging - log schema loading
 if (process.env.NODE_ENV === 'production') {
-  console.log('📊 Database schema loaded with tables:', Object.keys(schema).length);
-  if (Object.keys(schema).length === 0) {
-    console.error('❌ Critical: No schema tables found!');
-  }
+  console.log('📊 Database initialized without schema to avoid relation errors');
 }
