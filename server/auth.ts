@@ -528,8 +528,12 @@ export function setupAuthRoutes(app: any) {
         // Use the actual Replit development URL
         frontendUrl = `${req.protocol}://${host}`;
       } else {
-        // Use production URL from environment variable or fallback
-        frontendUrl = process.env.FRONTEND_URL || `https://${host}`;
+        // Use production URL - prioritize koveo-gestion.com for production
+        if (host.includes('koveo-gestion.com')) {
+          frontendUrl = `https://${host}`;
+        } else {
+          frontendUrl = process.env.FRONTEND_URL || 'https://koveo-gestion.com';
+        }
       }
 
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
