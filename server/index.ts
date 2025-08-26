@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
+import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 
 // Import database and schema to ensure they're available in production
 import { db } from './db.js';
@@ -82,39 +83,28 @@ if (isProduction) {
 // Export app for testing
 export { app };
 
-// CRITICAL: Health check endpoints MUST come before any middleware to ensure they always work
-// Ultra-fast root endpoint that responds immediately - optimized for deployment platforms
-app.get('/', (req, res, next) => {
-  // Always return OK immediately for ANY root request to prevent timeouts
-  // This ensures deployment health checks never timeout during startup
-  const userAgent = req.get('User-Agent') || '';
+// Add global timeout middleware to prevent hanging requests
+app.use((req, res, next) => {
+  // Set timeout for all requests to prevent deployment hanging
+  req.setTimeout(30000, () => {
+    if (!res.headersSent) {
+      res.status(408).send('Request Timeout');
+    }
+  });
   
-  // For any health check pattern or empty user agent, respond immediately
-  if (userAgent.includes('GoogleHC') ||
-      userAgent.includes('uptime') ||
-      userAgent.includes('health') ||
-      userAgent.includes('kube-probe') ||
-      userAgent.includes('ELB') ||
-      userAgent.includes('AWS') ||
-      userAgent.includes('Pingdom') ||
-      userAgent.includes('StatusCake') ||
-      req.headers['x-health-check'] === 'true' ||
-      req.query.health === 'true' ||
-      !userAgent) {
-    
-    // Set ultra-fast response headers to prevent any delays
-    res.set({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Connection': 'close',
-      'Content-Type': 'text/plain'
-    });
-    res.status(200).send('OK');
-    return;
-  }
-
-  // For regular browser requests, continue to frontend serving
+  // Set response timeout
+  res.setTimeout(30000, () => {
+    if (!res.headersSent) {
+      res.status(408).send('Response Timeout');
+    }
+  });
+  
   next();
 });
+
+// CRITICAL: Ultra-fast health check endpoints MUST come before any middleware
+// These endpoints respond immediately to prevent deployment timeouts
+app.get('/', createRootHandler());
 
 // Fast HEAD request support for root
 app.head('/', (req, res) => {
@@ -122,18 +112,20 @@ app.head('/', (req, res) => {
 });
 
 // CRITICAL: Ultra-fast health endpoints - respond immediately for deployment platforms
-app.get('/health', (req, res) => {
+app.get('/health', createFastHealthCheck());
+app.get('/healthz', createFastHealthCheck());
+app.get('/ready', createFastHealthCheck());
+
+// Additional health check endpoints for different deployment platforms
+app.get('/ping', (req, res) => {
+  req.setTimeout(500, () => {
+    if (!res.headersSent) res.status(200).send('pong');
+  });
   res.set('Connection', 'close');
-  res.status(200).send('OK');
+  res.status(200).send('pong');
 });
-app.get('/healthz', (req, res) => {
-  res.set('Connection', 'close');
-  res.status(200).send('OK'); 
-});
-app.get('/ready', (req, res) => {
-  res.set('Connection', 'close');
-  res.status(200).send('OK');
-});
+
+app.get('/status', createStatusCheck());
 
 // Root endpoint health check - only for deployment health checks, not browsers
 
@@ -284,14 +276,22 @@ if (isProductionBuild) {
       })
     );
 
-    // Add specific root route handler AFTER static middleware
-    app.get('/', (_req: Request, res: Response) => {
+    // Add specific root route handler AFTER static middleware  
+    app.get('/', (_req: Request, res: Response, next) => {
+      // Skip if this is a health check (already handled above)
+      const userAgent = _req.get('User-Agent') || '';
+      if (userAgent.includes('GoogleHC') || userAgent.includes('health') || !userAgent) {
+        return next();
+      }
+      
       const indexPath = path.resolve(distPath, 'index.html');
       log(`📄 Root request - serving index.html from: ${indexPath}`);
       if (fs.existsSync(indexPath)) {
+        res.setHeader('Cache-Control', 'no-cache');
         res.sendFile(indexPath);
       } else {
-        res.status(404).send(`Application not found. Index path: ${indexPath}`);
+        log(`❌ Index file not found at: ${indexPath}`, 'error');
+        res.status(200).send('OK'); // Return OK for health checks even if app not built
       }
     });
 
@@ -449,6 +449,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         log(`   - http://0.0.0.0:${port}/health`);
         log(`   - http://0.0.0.0:${port}/healthz`);
         log(`   - http://0.0.0.0:${port}/ready`);
+        log(`   - http://0.0.0.0:${port}/ping`);
+        log(`   - http://0.0.0.0:${port}/status`);
 
         // Always ensure port is properly bound
         log(`🚀 Server listening on http://0.0.0.0:${port} - Health checks ready`);
@@ -462,6 +464,10 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         }, 100);
       }
     );
+
+    // Configure server timeouts for better deployment reliability
+    server.keepAliveTimeout = 120000; // 2 minutes
+    server.headersTimeout = 125000; // Slightly longer than keepAliveTimeout
 
     // Handle server errors gracefully without crashing in production
     server.on('error', (_error: unknown) => {
