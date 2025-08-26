@@ -4,7 +4,7 @@ import {
   useCreateUpdateMutation as useUpdateMutation,
   useDeleteMutation,
 } from '@/lib/common-hooks';
-import type { ColumnConfig as TableColumn, TableAction, BulkAction } from '@/components/ui/data-table';
+import type { ColumnConfig, TableAction, BulkAction } from '@/components/ui/data-table';
 import { DataTable } from '@/components/ui/data-table';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +67,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   const { t } = useLanguage();
 
   const updateUserMutation = useUpdateMutation(
-    (_data) => `/api/users/${user?.id}`,
+    `/api/users/${user?.id}`,
     {
       successMessage: 'User updated successfully',
       invalidateQueries: ['/api/users'],
@@ -153,13 +153,13 @@ export function UserListComponent({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // API mutations using our reusable hooks
-  const deleteUserMutation = useDeleteMutation((userId) => `/api/users/${userId}`, {
+  const deleteUserMutation = useDeleteMutation(`/api/users/`, {
     successMessage: 'User deleted successfully',
     invalidateQueries: ['/api/users'],
   });
 
   const resetPasswordMutation = useUpdateMutation(
-    (userId: string) => `/api/users/${userId}/reset-password`,
+    `/api/users/reset-password`,
     {
       successMessage: 'Password reset email sent successfully',
       invalidateQueries: ['/api/users'],
@@ -221,7 +221,7 @@ export function UserListComponent({
   };
 
   // Table column configuration
-  const columns: TableColumn<User>[] = [
+  const columns: ColumnConfig<User>[] = [
     {
       _key: 'avatar',
       label: '',

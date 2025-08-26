@@ -23,7 +23,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 /*
- * Column configuration for the data table
+ * Column configuration for the _data table
 
 /*
  * ColumnConfig type definition.
@@ -88,7 +88,7 @@ export interface BulkAction<T> {
  * Props for the DataTable component
 
 interface DataTableProps<T> {
-  data: T[];
+  _data: T[];
   columns: TableColumn<T>[];
   actions?: TableAction<T>[];
   bulkActions?: BulkAction<T>[];
@@ -108,11 +108,11 @@ interface DataTableProps<T> {
  * Provides standardized table functionality with selection, actions,
  * responsive design, and bulk operations to reduce table code duplication.
  * 
- * @param props - Table configuration and data
- * @returns Standardized data table component
+ * @param props - Table configuration and _data
+ * @returns Standardized _data table component
  */
 export function DataTable<T extends Record<string, unknown>>({
-  data: _data,
+  _data: __data,
   columns,
   actions = [],
   bulkActions = [],
@@ -141,7 +141,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
 
     if (checked) {
-      const newSelection = new Set(_data.map(item => String(item[keyAccessor])));
+      const newSelection = new Set(__data.map(item => String(item[keyAccessor])));
       setSelection(newSelection);
     } else {
       setSelection(new Set());
@@ -176,7 +176,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
     const value = item[column.accessor];
     
-    // Handle common data types
+    // Handle common _data types
 
 
 
@@ -204,7 +204,7 @@ export function DataTable<T extends Record<string, unknown>>({
     return String(value || '');
   };
 
-  const selectedItemsData = data.filter(item => 
+  const selectedItemsData = _data.filter(item => 
     selection.has(String(item[keyAccessor]))
   );
 
@@ -248,7 +248,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 {selectable && (
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={data.length > 0 && selection.size === data.length}
+                      checked={_data.length > 0 && selection.size === _data.length}
                       onCheckedChange={handleSelectAll}
                       aria-label="Select all items"
                     />
@@ -279,16 +279,16 @@ export function DataTable<T extends Record<string, unknown>>({
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : data.length === 0 ? (
+              ) : _data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="text-center py-8">
                     <div className="text-muted-foreground">
-                      {emptyMessage || 'No data available'}
+                      {emptyMessage || 'No _data available'}
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((item) => {
+                _data.map((item) => {
                   const itemKey = String(item[keyAccessor]);
                   return (
                     <TableRow key={itemKey} className="group">
@@ -321,21 +321,11 @@ export function DataTable<T extends Record<string, unknown>>({
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               {actions.map((action, _index) => (
-                                <React.Fragment key={index}>
+                                <React.Fragment key={_index}>
                                   {action.separator && <DropdownMenuSeparator />}
                                   <DropdownMenuItem
                                     onClick={() => action.onClick(item)}
-                                    disabled={action.disabled ? action.
-   * Disable .
-   * @returns false}
-                                    className= result.
-
-   * Disable .
-   * @returns false}
-                                    className= result.
-
-
-disabled(item) : false}
+                                    disabled={action.disabled ? action.disabled(item) : false}
                                     className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
                                   >
                                     {action.icon && <action.icon className="h-4 w-4 mr-2" />}
@@ -357,4 +347,4 @@ disabled(item) : false}
       </CardContent>
     </Card>
   );
-} */
+}
