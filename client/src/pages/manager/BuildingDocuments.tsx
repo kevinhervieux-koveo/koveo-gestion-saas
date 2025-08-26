@@ -633,63 +633,47 @@ export default function BuildingDocuments() {
                     </Badge>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
-                      </div>
-                      
-                      {document.fileName && (
-                        <div className="text-muted-foreground">
-                          File: {document.fileName}
-                        </div>
-                      )}
-
-                      {document.fileSize && (
-                        <div className="text-muted-foreground">
-                          Size: {document.fileSize}
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                          {BUILDING_DOCUMENT_CATEGORIES.find(cat => cat._value === document.type)?.label || document.type} document
+                        </p>
                         <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
                           {document.isVisibleToTenants ? 'Visible to tenants' : 'Manager only'}
                         </Badge>
                       </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-4">
-                      {document.fileUrl && (
+                      
+                      <div className="flex gap-2">
+                        {document.fileUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(document)}
+                            className="flex-1"
+                            data-testid={`button-download-${document.id}`}
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(document)}
-                          className="flex-1"
-                          data-testid={`button-download-${document.id}`}
+                          onClick={() => handleEditDocument(document)}
+                          data-testid={`button-edit-${document.id}`}
                         >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download
+                          <Edit className="w-3 h-3" />
                         </Button>
-                      )}
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditDocument(document)}
-                        data-testid={`button-edit-${document.id}`}
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteDocument(document)}
-                        className="text-red-600 hover:text-red-700"
-                        data-testid={`button-delete-${document.id}`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteDocument(document)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-${document.id}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

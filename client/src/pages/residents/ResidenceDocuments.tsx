@@ -450,54 +450,34 @@ export default function ResidenceDocuments() {
                       </Badge>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
-                        </div>
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          {RESIDENCE_DOCUMENT_CATEGORIES.find(cat => cat._value === document.type)?.label || document.type} document
+                        </p>
                         
-                        {document.fileName && (
-                          <div className="text-muted-foreground">
-                            File: {document.fileName}
-                          </div>
-                        )}
-
-                        {document.fileSize && (
-                          <div className="text-muted-foreground">
-                            Size: {document.fileSize}
-                          </div>
-                        )}
-
-                        {document.isVisibleToTenants && (
-                          <Badge variant="secondary" className="text-xs">
-                            Visible to tenants
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2 mt-4">
                         {document.fileUrl && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleDownload(document)}
-                            className="flex-1"
+                            className="w-full"
                             data-testid={`button-download-${document.id}`}
                           >
                             <Download className="w-3 h-3 mr-1" />
-                            Download
+                            View Document
                           </Button>
                         )}
 
                         {canUpload && (
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteDocument(document)}
-                            className="text-red-600 hover:text-red-700"
+                            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
                             data-testid={`button-delete-${document.id}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete
                           </Button>
                         )}
                       </div>
