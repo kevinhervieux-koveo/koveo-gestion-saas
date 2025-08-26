@@ -144,10 +144,38 @@ async function loadFullApplication(): Promise<void> {
       await setupVite(app, server);
       log('✅ Vite development server configured');
     } else {
-      log('🔄 Setting up static file serving for production...');
-      const { serveStatic } = await import('./vite');
-      serveStatic(app);
-      log('✅ Static file serving enabled for production');
+      log('🔄 Setting up production server with proper API routing...');
+      
+      // Use production server logic which handles API routes correctly
+      const path = await import('path');
+      const fs = await import('fs');
+      const express = await import('express');
+      
+      const distPath = path.resolve(process.cwd(), 'dist', 'public');
+      
+      if (!fs.existsSync(distPath)) {
+        throw new Error(`Could not find the build directory: ${distPath}`);
+      }
+
+      // Serve static files BUT skip API routes to prevent conflicts
+      app.use((req, res, next) => {
+        // Skip static serving for API routes
+        if (req.originalUrl.startsWith('/api/')) {
+          return next();
+        }
+        express.static(distPath)(req, res, next);
+      });
+
+      // SPA fallback - serve index.html for non-API routes
+      app.use('*', (req, res, next) => {
+        // Skip API routes - let them be handled by API middleware
+        if (req.originalUrl.startsWith('/api/')) {
+          return next();
+        }
+        res.sendFile(path.resolve(distPath, 'index.html'));
+      });
+      
+      log('✅ Production static file serving enabled with API route protection');
     }
     
     // Start heavy database work in background AFTER routes are ready
