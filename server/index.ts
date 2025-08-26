@@ -126,35 +126,7 @@ app.get('/ready', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Root endpoint - only respond with OK for health check user agents  
-app.get('/', async (req, res) => {
-  const userAgent = req.headers['user-agent'] || '';
-  const isHealthCheck = 
-    userAgent.includes('GoogleHC') ||
-    userAgent.includes('kube-probe') ||
-    userAgent.includes('ELB') ||
-    userAgent.includes('AWS') ||
-    userAgent.includes('uptime') ||
-    userAgent.includes('health') ||
-    req.headers['x-health-check'] === 'true' ||
-    req.query.health === 'true';
-
-  if (isHealthCheck) {
-    return res.status(200).send('OK');
-  }
-  
-  // For regular browsers, fall through to serve the frontend
-  const path = await import('path');
-  const fs = await import('fs');
-  const distPath = path.resolve('./dist/public');
-  const indexPath = path.resolve(distPath, 'index.html');
-  
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(200).send('OK'); // Fallback for health checks
-  }
-});
+// Root endpoint health check - only for deployment health checks, not browsers
 
 // Production mode: Allow full application after health checks are ready
 app.get('/api/health', (req, res) => {
@@ -747,17 +719,7 @@ async function initializeApplication() {
           })
         );
 
-        // Add SPA fallback routing AFTER static files (with priority for root route)
-        app.get('/', (_req: Request, res: Response) => {
-          const indexPath = path.resolve(distPath, 'index.html');
-          log(`📄 Root request - serving index.html from: ${indexPath}`);
-          if (fs.existsSync(indexPath)) {
-            res.sendFile(indexPath);
-          } else {
-            res.status(404).send(`Application not found. Index path: ${indexPath}`);
-          }
-        });
-
+        // SPA fallback for production static serving - skip API routes
         app.get('*', (_req: Request, res: Response, next) => {
           // Skip API routes and health checks - let them fall through to API handlers
           if (
