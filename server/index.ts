@@ -231,7 +231,7 @@ const isProductionBuild =
 
 if (isProductionBuild) {
   log('🏗️ Setting up production static file serving immediately');
-  const distPath = path.resolve(__dirname, 'public');
+  const distPath = path.resolve(process.cwd(), 'dist', 'public');
 
   log(`📁 Looking for build files in: ${distPath}`);
   log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
@@ -670,7 +670,7 @@ async function initializeApplication() {
       }
     } else {
       log('🏗️ Setting up production static file serving');
-      const distPath = path.resolve(__dirname, 'public');
+      const distPath = path.resolve(process.cwd(), 'dist', 'public');
 
       log(`📁 Looking for build files in: ${distPath}`);
       log(`📋 Directory exists: ${fs.existsSync(distPath)}`);
