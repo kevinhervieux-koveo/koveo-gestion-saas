@@ -801,6 +801,12 @@ async function initializeEmailServiceInBackground(): Promise<void> {
  * @returns Function result.
  */
 async function initializeDatabaseOptimizationsInBackground(): Promise<void> {
+  // Skip heavy initialization in production to prevent timeouts
+  if (process.env.NODE_ENV === 'production') {
+    log('🚀 Production mode: Skipping database optimizations for faster startup');
+    return;
+  }
+
   try {
     log('🚀 Starting database optimizations in background...');
 
