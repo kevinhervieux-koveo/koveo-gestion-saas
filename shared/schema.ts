@@ -92,6 +92,7 @@ export type {
   InsertDocumentResident,
 } from './schemas/documents';
 
+
 export type {
   Feature,
   InsertFeature,
@@ -99,6 +100,14 @@ export type {
   InsertActionableItem,
   ImprovementSuggestion,
   InsertImprovementSuggestion,
+  Pillar,
+  InsertPillar,
+  WorkspaceStatus,
+  InsertWorkspaceStatus,
+  QualityMetric,
+  InsertQualityMetric,
+  FrameworkConfiguration,
+  InsertFrameworkConfiguration,
 } from './schemas/development';
 
 export type {
@@ -112,3 +121,12 @@ export type { SslCertificate, InsertSslCertificate } from './schemas/infrastruct
 
 // Export tables for use in storage and API layers
 export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';
+export { 
+  developmentPillars, 
+  workspaceStatus, 
+  qualityMetrics, 
+  frameworkConfiguration,
+  features,
+  actionableItems,
+  improvementSuggestions
+} from './schemas/development';

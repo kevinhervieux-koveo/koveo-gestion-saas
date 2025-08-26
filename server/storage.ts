@@ -15,14 +15,14 @@ import {
   type InsertDocumentBuilding,
   type DocumentResident,
   type InsertDocumentResident,
-  type DevelopmentPillar,
+  type Pillar,
   type InsertPillar,
   type WorkspaceStatus,
   type InsertWorkspaceStatus,
   type QualityMetric,
   type InsertQualityMetric,
   type FrameworkConfiguration,
-  type InsertFrameworkConfig,
+  type InsertFrameworkConfiguration,
   type ImprovementSuggestion,
   type InsertImprovementSuggestion,
   type Feature,
@@ -375,37 +375,37 @@ export interface IStorage {
   /**
    * Retrieves all development pillars from storage.
    *
-   * @returns {Promise<DevelopmentPillar[]>} Array of all development pillar records.
+   * @returns {Promise<Pillar[]>} Array of all development pillar records.
    */
-  getPillars(): Promise<DevelopmentPillar[]>;
+  getPillars(): Promise<Pillar[]>;
 
   /**
    * Retrieves a specific development pillar by its unique identifier.
    *
    * @param {string} _id - The unique pillar identifier.
-   * @returns {Promise<DevelopmentPillar | undefined>} Pillar record or undefined if not found.
+   * @returns {Promise<Pillar | undefined>} Pillar record or undefined if not found.
    */
-  getPillar(_id: string): Promise<DevelopmentPillar | undefined>;
+  getPillar(_id: string): Promise<Pillar | undefined>;
 
   /**
    * Creates a new development pillar in the storage system.
    *
    * @param {InsertPillar} _pillar - Pillar data for creation.
-   * @returns {Promise<DevelopmentPillar>} The created pillar record with generated ID.
+   * @returns {Promise<Pillar>} The created pillar record with generated ID.
    */
-  createPillar(_pillar: InsertPillar): Promise<DevelopmentPillar>;
+  createPillar(_pillar: InsertPillar): Promise<Pillar>;
 
   /**
    * Updates an existing development pillar's information.
    *
    * @param {string} _id - The unique pillar identifier.
-   * @param {Partial<DevelopmentPillar>} _pillar - Partial pillar data containing fields to update.
-   * @returns {Promise<DevelopmentPillar | undefined>} Updated pillar record or undefined if not found.
+   * @param {Partial<Pillar>} _pillar - Partial pillar data containing fields to update.
+   * @returns {Promise<Pillar | undefined>} Updated pillar record or undefined if not found.
    */
   updatePillar(
     _id: string,
-    _pillar: Partial<DevelopmentPillar>
-  ): Promise<DevelopmentPillar | undefined>;
+    _pillar: Partial<Pillar>
+  ): Promise<Pillar | undefined>;
 
   // Workspace Status operations
   /**
@@ -475,10 +475,10 @@ export interface IStorage {
   /**
    * Sets or updates a framework configuration.
    *
-   * @param {InsertFrameworkConfig} _config - Configuration data to set.
+   * @param {InsertFrameworkConfiguration} _config - Configuration data to set.
    * @returns {Promise<FrameworkConfiguration>} The created or updated configuration record.
    */
-  setFrameworkConfig(_config: InsertFrameworkConfig): Promise<FrameworkConfiguration>;
+  setFrameworkConfig(_config: InsertFrameworkConfiguration): Promise<FrameworkConfiguration>;
 
   // Improvement Suggestions operations
   /**
@@ -1403,7 +1403,7 @@ export interface IStorage {
  */
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
-  private pillars: Map<string, DevelopmentPillar>;
+  private pillars: Map<string, Pillar>;
   private workspaceStatuses: Map<string, WorkspaceStatus>;
   private qualityMetrics: Map<string, QualityMetric>;
   private frameworkConfigs: Map<string, FrameworkConfiguration>;
@@ -2122,7 +2122,7 @@ export class MemStorage implements IStorage {
    * Retrieves all development pillars sorted by order.
    * Development pillars track the implementation of core system frameworks.
    *
-   * @returns {Promise<DevelopmentPillar[]>} Array of development pillars sorted by order.
+   * @returns {Promise<Pillar[]>} Array of development pillars sorted by order.
    *
    * @example
    * ```typescript
@@ -2130,7 +2130,7 @@ export class MemStorage implements IStorage {
    * const completedPillars = pillars.filter(p => p.status === 'complete');
    * ```
    */
-  async getPillars(): Promise<DevelopmentPillar[]> {
+  async getPillars(): Promise<Pillar[]> {
     return Array.from(this.pillars.values()).sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
 
@@ -2138,7 +2138,7 @@ export class MemStorage implements IStorage {
    * Retrieves a specific development pillar by ID.
    *
    * @param {string} id - The unique identifier of the development pillar.
-   * @returns {Promise<DevelopmentPillar | undefined>} The pillar record or undefined if not found.
+   * @returns {Promise<Pillar | undefined>} The pillar record or undefined if not found.
    *
    * @example
    * ```typescript
@@ -2148,7 +2148,7 @@ export class MemStorage implements IStorage {
    * }
    * ```
    */
-  async getPillar(id: string): Promise<DevelopmentPillar | undefined> {
+  async getPillar(id: string): Promise<Pillar | undefined> {
     return this.pillars.get(id);
   }
 
@@ -2156,7 +2156,7 @@ export class MemStorage implements IStorage {
    * Creates a new development pillar for system framework tracking.
    *
    * @param {InsertPillar} insertPillar - Pillar data to create.
-   * @returns {Promise<DevelopmentPillar>} The newly created pillar record.
+   * @returns {Promise<Pillar>} The newly created pillar record.
    *
    * @example
    * ```typescript
@@ -2168,9 +2168,9 @@ export class MemStorage implements IStorage {
    * });
    * ```
    */
-  async createPillar(insertPillar: InsertPillar): Promise<DevelopmentPillar> {
+  async createPillar(insertPillar: InsertPillar): Promise<Pillar> {
     const id = randomUUID();
-    const pillar: DevelopmentPillar = {
+    const pillar: Pillar = {
       ...insertPillar,
       status: insertPillar.status || 'pending',
       configuration: insertPillar.configuration || null,
@@ -2186,8 +2186,8 @@ export class MemStorage implements IStorage {
    * Updates an existing development pillar with partial data.
    *
    * @param {string} id - The unique identifier of the pillar to update.
-   * @param {Partial<DevelopmentPillar>} updates - Partial pillar data to update.
-   * @returns {Promise<DevelopmentPillar | undefined>} The updated pillar record or undefined if not found.
+   * @param {Partial<Pillar>} updates - Partial pillar data to update.
+   * @returns {Promise<Pillar | undefined>} The updated pillar record or undefined if not found.
    *
    * @example
    * ```typescript
@@ -2199,8 +2199,8 @@ export class MemStorage implements IStorage {
    */
   async updatePillar(
     id: string,
-    updates: Partial<DevelopmentPillar>
-  ): Promise<DevelopmentPillar | undefined> {
+    updates: Partial<Pillar>
+  ): Promise<Pillar | undefined> {
     const existingPillar = this.pillars.get(id);
     if (!existingPillar) {
       return undefined;
@@ -2337,7 +2337,7 @@ export class MemStorage implements IStorage {
   /**
    *
    */
-  async setFrameworkConfig(insertConfig: InsertFrameworkConfig): Promise<FrameworkConfiguration> {
+  async setFrameworkConfig(insertConfig: InsertFrameworkConfiguration): Promise<FrameworkConfiguration> {
     const id = randomUUID();
     const config: FrameworkConfiguration = {
       ...insertConfig,
