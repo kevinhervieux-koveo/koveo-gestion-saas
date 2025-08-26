@@ -38,6 +38,8 @@ const { invitations, users: schemaUsers, organizations, buildings, residences } 
 
 // Production diagnostic endpoint
 import { createProductionDiagnostic } from './production-check';
+import { applyProductionOptimizations } from './production-optimizations';
+import { configureProductionServer, handleLargeFileErrors } from './production-server';
 
 // Initialize email service
 const emailService = new EmailService();
@@ -167,6 +169,13 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply production optimizations first
+  if (process.env.NODE_ENV === 'production') {
+    configureProductionServer(app);
+    applyProductionOptimizations(app);
+    handleLargeFileErrors(app);
+  }
+
   // Setup JSON body parser FIRST
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
