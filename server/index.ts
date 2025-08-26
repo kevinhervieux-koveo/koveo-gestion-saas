@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from './vite';
 
 // Import database and schema to ensure they're available in production
 import { db } from './db.js';
+import { sql } from 'drizzle-orm';
 import {
   initializeDatabaseOptimizations,
   startPerformanceMonitoring,
@@ -48,8 +49,8 @@ async function initializeDatabase() {
     // Import database here to ensure it's loaded after all modules
     const { db } = await import('./db.js');
     
-    // Test database connection
-    await db.execute({ sql: 'SELECT 1 as test' });
+    // Test database connection using sql template
+    await db.execute(sql`SELECT 1 as test`);
     console.log('✅ Database connection successful');
     
     return db;
