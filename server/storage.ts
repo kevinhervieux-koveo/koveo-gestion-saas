@@ -51,6 +51,12 @@ import {
   featureRequests,
   featureRequestUpvotes,
 } from '@shared/schema';
+import {
+  type Demand,
+  type InsertDemand,
+  type DemandComment,
+  type InsertDemandComment,
+} from '@shared/schemas/operations';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { hashPassword } from './auth';
@@ -2880,6 +2886,7 @@ export class MemStorage implements IStorage {
       password: userData.password,
       username: invitation.email, // Use email as username
       role: invitation.role,
+      language: 'fr', // Default language
       // organizationId not supported in current User schema
     });
 
@@ -2887,7 +2894,7 @@ export class MemStorage implements IStorage {
     const updatedInvitation = await this.updateInvitation(invitation.id, {
       status: 'accepted',
       acceptedAt: new Date(),
-      acceptedByUserId: user.id,
+      acceptedBy: user.id,
       ipAddress: ipAddress || null,
       userAgent: userAgent || null,
     });
@@ -2939,7 +2946,7 @@ export class MemStorage implements IStorage {
   async getInvitationAuditLogs(invitationId: string): Promise<InvitationAuditLog[]> {
     return Array.from(this.invitationAuditLogs.values())
       .filter((log) => log.invitationId === invitationId)
-      .sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
   }
 
   /**
@@ -2951,7 +2958,7 @@ export class MemStorage implements IStorage {
     const newLog: InvitationAuditLog = {
       id,
       ...logEntry,
-      timestamp: new Date(),
+      createdAt: new Date(),
     } as InvitationAuditLog;
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
