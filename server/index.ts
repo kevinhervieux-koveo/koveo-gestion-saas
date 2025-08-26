@@ -8,8 +8,13 @@ import { createUltraHealthEndpoints } from './ultra-health';
 import { log } from './vite';
 
 const app = express();
-// Configure port for deployment - use 5000 as default to match package.json start script
-const port = parseInt(process.env.PORT || '5000', 10);
+// Configure port for deployment - use PORT_PROD in production, PORT in development, fallback to 5000
+const port = parseInt(
+  process.env.NODE_ENV === 'production' 
+    ? (process.env.PORT_PROD || process.env.PORT || '5000')
+    : (process.env.PORT || '5000'), 
+  10
+);
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
