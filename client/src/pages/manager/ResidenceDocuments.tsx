@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, useParams } from 'wouter';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +81,7 @@ interface Document {
 
 export default function ResidenceDocuments() {
   const [, navigate] = useLocation();
+  const params = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -92,9 +93,9 @@ export default function ResidenceDocuments() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Get residenceId from URL
-  const params = new URLSearchParams(window.location.search);
-  const residenceId = params.get('residenceId') || window.location.pathname.split('/').slice(-2, -1)[0];
+  // Get residenceId from URL (both path param and query param)
+  const urlParams = new URLSearchParams(window.location.search);
+  const residenceId = params.residenceId || urlParams.get('residenceId');
 
   // Get current user
   const { data: user } = useQuery({

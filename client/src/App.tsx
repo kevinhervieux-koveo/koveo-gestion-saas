@@ -324,8 +324,12 @@ function Router() {
             {/* Manager routes */}
             <Route path='/manager/buildings' component={ManagerBuildings} />
             <Route path='/manager/buildings/documents' component={() => <BuildingDocuments />} />
+            {/* Support dynamic building ID in URL path */}
+            <Route path='/manager/buildings/:buildingId/documents' component={() => <BuildingDocuments />} />
             <Route path='/manager/residences' component={ManagerResidences} />
             <Route path='/manager/residences/documents' component={() => <ResidenceDocuments />} />
+            {/* Support dynamic residence ID in URL path */}
+            <Route path='/manager/residences/:residenceId/documents' component={() => <ResidenceDocuments />} />
             <Route path='/manager/budget' component={ManagerBudget} />
             <Route path='/manager/bills' component={ManagerBills} />
             <Route path='/manager/demands' component={ManagerDemands} />
@@ -349,6 +353,11 @@ function Router() {
             <Route path='/residents/building' component={ResidentsBuilding} />
             <Route
               path='/residents/building/documents'
+              component={() => <ResidentsBuildingDocuments />}
+            />
+            {/* Support dynamic building ID in URL path */}
+            <Route
+              path='/residents/buildings/:buildingId/documents'
               component={() => <ResidentsBuildingDocuments />}
             />
             <Route path='/residents/demands' component={ResidentsDemands} />
