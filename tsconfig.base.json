@@ -22,7 +22,6 @@
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "skipLibCheck": true,
     "skipDefaultLibCheck": true
   },
   "include": [
