@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import { registerRoutes } from './routes-minimal';
 import { setupVite, serveStatic, log } from './vite';
+
+// Import database and schema to ensure they're available in production
+import { db } from './db.js';
 import {
   initializeDatabaseOptimizations,
   startPerformanceMonitoring,
@@ -36,6 +39,22 @@ if (isNaN(port) || port < 1 || port > 65535) {
 }
 
 const app = express();
+
+// Initialize database connection early to catch any connection issues
+async function initializeDatabase() {
+  try {
+    console.log('🔍 Initializing database connection...');
+    // Test database connection
+    await db.execute({ sql: 'SELECT 1 as test' });
+    console.log('✅ Database connection successful');
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    // Don't exit in production, let the app start but log the error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('⚠️  Continuing startup despite database error in production');
+    }
+  }
+}
 
 // Trust proxy for rate limiting - secure configuration for production
 // Only trust specific proxy headers from known sources
@@ -448,6 +467,9 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 async function initializeApplication() {
   try {
     log('🚀 Starting application initialization...');
+    
+    // Initialize database connection first
+    await initializeDatabase();
 
     // Object Storage routes (must come before other routes for proper file serving)
     try {
