@@ -3,9 +3,6 @@ const config = {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testEnvironment: 'jsdom',
-  testEnvironmentOptions: {
-    customExportConditions: [''],
-  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts', '<rootDir>/tests/setup/jest-dom.ts'],
   setupFiles: ['<rootDir>/tests/polyfills.js', '<rootDir>/tests/mocks/importMetaMock.js'],
   moduleNameMapper: {

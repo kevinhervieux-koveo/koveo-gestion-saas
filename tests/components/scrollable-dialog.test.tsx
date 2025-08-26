@@ -497,7 +497,7 @@ describe('useFormDialog Hook', () => {
           testId="form-dialog"
         >
           <ShortFormContent />
-        </ScrollableDialog>
+        </MockScrollableDialog>
       </div>
     );
   };
@@ -616,7 +616,7 @@ describe('Integration Tests - Real World Scenarios', () => {
                 </div>
               )}
             </div>
-          </ScrollableDialog>
+          </MockScrollableDialog>
         </div>
       );
     };
@@ -654,7 +654,7 @@ describe('Integration Tests - Real World Scenarios', () => {
               </MockButton>
               {showExtraFields && <LongFormContent />}
             </div>
-          </ScrollableDialog>
+          </MockScrollableDialog>
         </div>
       );
     };

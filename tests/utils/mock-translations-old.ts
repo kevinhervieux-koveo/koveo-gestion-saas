@@ -127,7 +127,6 @@ export const mockTranslations = {
 
     // Additional missing translations
     'featureRequest.create': 'Create Feature Request',
-    'idea_box.title': 'Idea Box',
   },
   fr: {
     // Common UI elements
@@ -272,8 +271,6 @@ export const mockTranslations = {
     'translation.keys.validation': 'Validation des clés de traduction',
 
     // Additional missing translations
-    'featureRequest.create': 'Créer une demande de fonctionnalité',
-    'idea_box.title': 'Boîte à idées',
   },
 };
 
