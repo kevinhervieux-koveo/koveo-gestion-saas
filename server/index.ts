@@ -148,12 +148,7 @@ async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
     
-    // Load API routes FIRST - before any catch-all middleware
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    log('✅ Essential application routes loaded');
-    
-    // Setup frontend serving AFTER API routes
+    // Setup Vite middleware FIRST (for frontend and module serving)
     const { setupVite } = await import('./vite');
     if (process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
@@ -162,6 +157,11 @@ async function loadFullApplication(): Promise<void> {
     } else {
       log('✅ Static file serving ready for production');
     }
+    
+    // Load API routes AFTER Vite setup
+    const { registerRoutes } = await import('./routes-minimal');
+    await registerRoutes(app);
+    log('✅ Essential application routes loaded');
     
     // Start heavy database work in background AFTER routes are ready
     setTimeout(() => {
