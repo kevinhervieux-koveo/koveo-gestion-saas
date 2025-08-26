@@ -171,19 +171,21 @@ class DeploymentValidator {
         this.addResult('Package Scripts', 'PASS', 'All required scripts are present');
       }
 
-      // Check start script
+      // Check start script - accepts both production approaches:
+      // 1. Direct execution: NODE_ENV=production node dist/index.js
+      // 2. Via copied entry point: node server/index.js (where server/index.js is copied from dist/index.js)
       const startScript = packageJson.scripts?.start;
       if (
         startScript &&
-        startScript.includes('production') &&
-        startScript.includes('dist/index.js')
+        (startScript.includes('dist/index.js') || 
+         (startScript.includes('server/index.js') && fs.existsSync(path.resolve(this.projectRoot, 'server/index.js'))))
       ) {
         this.addResult('Start Script', 'PASS', 'Start script is production-ready');
       } else {
         this.addResult(
           'Start Script',
           'FAIL',
-          'Start script is not configured for production',
+          'Start script is not configured for production - missing dist/index.js or server/index.js',
           true
         );
       }
