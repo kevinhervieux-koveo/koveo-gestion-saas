@@ -214,10 +214,14 @@ export class DemoManagementService {
   /**
    * Initialize demo organizations during application startup.
    * This should be called once when the application starts.
+   * PRODUCTION FIX: This now creates organizations if they don't exist.
    */
   public static async initializeDemoOrganizations(): Promise<void> {
     try {
       console.log('🚀 Initializing demo organizations...');
+
+      // PRODUCTION FIX: First ensure basic organizations exist
+      await this.createBasicOrganizationsIfMissing();
 
       const result = await this.ensureDemoOrganizations();
 
@@ -233,6 +237,59 @@ export class DemoManagementService {
       console.error('❌ Demo organizations initialization failed:', error);
       // Don't throw error to prevent application startup failure
       // Demo organizations are not critical for main application functionality
+    }
+  }
+
+  /**
+   * PRODUCTION FIX: Create basic demo organizations if they don't exist.
+   * This ensures the database has the required organizations for production.
+   */
+  private static async createBasicOrganizationsIfMissing(): Promise<void> {
+    try {
+      const { Pool } = await import('@neondatabase/serverless');
+      const { drizzle } = await import('drizzle-orm/neon-serverless');
+      const { eq } = await import('drizzle-orm');
+      const schema = await import('../../shared/schema');
+
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      const db = drizzle({ client: pool, schema });
+
+      // Check if Demo organization exists
+      const existingDemo = await db
+        .select()
+        .from(schema.organizations)
+        .where(eq(schema.organizations.name, 'Demo'))
+        .limit(1);
+
+      if (existingDemo.length === 0) {
+        console.log('📝 Creating Demo organization...');
+        await db.insert(schema.organizations).values({
+          name: 'Demo',
+          type: 'demo',
+          isActive: true
+        });
+      }
+
+      // Check if Open Demo organization exists
+      const existingOpenDemo = await db
+        .select()
+        .from(schema.organizations)
+        .where(eq(schema.organizations.name, 'Open Demo'))
+        .limit(1);
+
+      if (existingOpenDemo.length === 0) {
+        console.log('📝 Creating Open Demo organization...');
+        await db.insert(schema.organizations).values({
+          name: 'Open Demo',
+          type: 'demo',
+          isActive: true
+        });
+      }
+
+      console.log('✅ Demo organizations are properly configured');
+    } catch (error) {
+      console.error('⚠️ Failed to create basic demo organizations:', error);
+      // Continue anyway - this is not critical for production functionality
     }
   }
 
