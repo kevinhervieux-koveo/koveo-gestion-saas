@@ -52,7 +52,7 @@ export class DemoManagementService {
 
   /**
    * Force recreation of demo organizations.
-   * This is a more intensive operation that should be used sparingly.
+   * DISABLED: Demo organization functionality has been disabled per user request.
    */
   public static async recreateDemoOrganizations(): Promise<{
     success: boolean;
@@ -60,49 +60,17 @@ export class DemoManagementService {
     demoOrgId?: string;
     openDemoOrgId?: string;
   }> {
-    try {
-      console.log('🔄 Force recreating demo organizations...');
-
-      // Note: Demo sync to production has been removed - managing local demo only
-
-      // Verify the organizations exist
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const db = drizzle({ client: pool, schema });
-
-      const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
-      });
-
-      const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
-      });
-
-      await pool.end();
-
-      if (!demoOrg || !openDemoOrg) {
-        throw new Error('Demo organizations were not recreated successfully');
-      }
-
-      console.log('✅ Demo organizations recreated successfully');
-
-      return {
-        success: true,
-        message: 'Demo organizations recreated successfully with fresh data',
-        demoOrgId: demoOrg.id,
-        openDemoOrgId: openDemoOrg.id,
-      };
-    } catch (error) {
-      console.error('❌ Failed to recreate demo organizations:', error);
-
-      return {
-        success: false,
-        message: `Failed to recreate demo organizations: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    }
+    console.log('✅ Demo organizations recreation skipped (disabled)');
+    
+    return {
+      success: true,
+      message: 'Demo organizations functionality disabled - recreation skipped',
+    };
   }
 
   /**
    * Get demo organization information.
+   * DISABLED: Demo organization functionality has been disabled per user request.
    */
   public static async getDemoOrganizationInfo(): Promise<{
     demo?: any;
@@ -114,49 +82,17 @@ export class DemoManagementService {
       openDemoUsers: number;
     };
   }> {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const db = drizzle({ client: pool, schema });
-
-    try {
-      const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.DEMO_ORG_NAME),
-      });
-
-      const openDemoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, this.OPEN_DEMO_ORG_NAME),
-      });
-
-      // Get statistics
-      let demoBuildings = 0;
-      let demoUsers = 0;
-      let openDemoBuildings = 0;
-      let openDemoUsers = 0;
-
-      if (demoOrg) {
-        const buildings = await db.query.buildings.findMany({
-          where: eq(schema.buildings.organizationId, demoOrg.id),
-        });
-        const users = await db.query.userOrganizations.findMany({
-          where: eq(schema.userOrganizations.organizationId, demoOrg.id),
-        });
-        demoBuildings = buildings.length;
-        demoUsers = users.length;
-      }
-
-      if (openDemoOrg) {
-        const buildings = await db.query.buildings.findMany({
-          where: eq(schema.buildings.organizationId, openDemoOrg.id),
-        });
-        const users = await db.query.userOrganizations.findMany({
-          where: eq(schema.userOrganizations.organizationId, openDemoOrg.id),
-        });
-        openDemoBuildings = buildings.length;
-        openDemoUsers = users.length;
-      }
-
-      return {
-        demo: demoOrg,
-        openDemo: openDemoOrg,
+    console.log('✅ Demo organizations info retrieval skipped (disabled)');
+    
+    return {
+      stats: {
+        demoBuildings: 0,
+        demoUsers: 0,
+        openDemoBuildings: 0,
+        openDemoUsers: 0,
+      },
+    };
+  }
         stats: {
           demoBuildings,
           demoUsers,

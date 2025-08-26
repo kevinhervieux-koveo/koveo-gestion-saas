@@ -253,13 +253,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Feature request routes failed: ${_error}`, 'error');
   }
 
-  // Register demo management API routes
+  // Demo management API routes disabled per user request
+  // TODO: Re-enable when database authentication issues are resolved
+  /*
   try {
     registerDemoManagementRoutes(app);
     log('✅ Demo management routes registered');
   } catch (_error) {
     log(`❌ Demo management routes failed: ${_error}`, 'error');
   }
+  */
+  log('✅ Demo management routes skipped (disabled)');
 
   // Register feature management API routes
   try {
