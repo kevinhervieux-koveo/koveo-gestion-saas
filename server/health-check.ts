@@ -7,7 +7,7 @@ import { type Request, type Response } from 'express';
 export function createFastHealthCheck() {
   return (req: Request, res: Response) => {
     // Set immediate timeout to prevent any hanging
-    req.setTimeout(500, () => {
+    req.setTimeout(200, () => {
       if (!res.headersSent) {
         res.status(200).send('OK');
       }
@@ -22,7 +22,7 @@ export function createFastHealthCheck() {
       'X-Response-Time': Date.now().toString()
     });
 
-    // Send immediate response
+    // Send immediate response - no async operations
     res.status(200).send('OK');
   };
 }
@@ -33,7 +33,7 @@ export function createFastHealthCheck() {
 export function createStatusCheck() {
   return (req: Request, res: Response) => {
     // Set immediate timeout
-    req.setTimeout(500, () => {
+    req.setTimeout(200, () => {
       if (!res.headersSent) {
         res.status(200).json({ status: 'ok' });
       }
@@ -46,12 +46,10 @@ export function createStatusCheck() {
       'Content-Type': 'application/json'
     });
 
-    // Send immediate JSON response
+    // Send immediate JSON response with minimal data
     res.status(200).json({
       status: 'ok',
-      timestamp: Date.now(),
-      uptime: process.uptime(),
-      env: process.env.NODE_ENV || 'development'
+      timestamp: Date.now()
     });
   };
 }
@@ -61,8 +59,8 @@ export function createStatusCheck() {
  */
 export function createRootHandler() {
   return (req: Request, res: Response, next: Function) => {
-    // Set immediate timeout to prevent hanging
-    req.setTimeout(1000, () => {
+    // Set ultra-short timeout for health checks
+    req.setTimeout(100, () => {
       if (!res.headersSent) {
         res.status(200).send('OK');
       }
@@ -85,12 +83,10 @@ export function createRootHandler() {
       !userAgent;
 
     if (isHealthCheck || (req.path === '/' && req.method === 'GET')) {
-      // Ultra-fast health check response
+      // Ultra-fast health check response - minimal headers
       res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Connection': 'close',
-        'Content-Type': 'text/plain',
-        'X-Health-Check': 'OK'
+        'Content-Type': 'text/plain'
       });
       res.status(200).send('OK');
       return;
