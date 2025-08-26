@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLocation } from 'wouter';
+import { Header } from '@/components/layout/header';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,781 +15,711 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { ObjectUploader } from '@/components/ObjectUploader';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import {
+  FileText,
+  Download,
+  Upload,
+  Plus,
+  Trash2,
+  Calendar,
+  User,
+  ArrowLeft,
+  Home,
+  Building,
+  MapPin,
+  Search,
+  Edit,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import {
-  Upload,
-  Download,
-  Edit,
-  Trash2,
-  FileText,
-  Search,
-  Plus,
-  Building,
-  Calendar,
-  Filter,
-  Eye,
-} from 'lucide-react';
-import { Header } from '@/components/layout/header';
-import type { UploadResult } from '@uppy/core';
+import { RESIDENCE_DOCUMENT_CATEGORIES, getDisplayableFileUrl } from '@/lib/documents';
 
-import {
-  getDisplayableFileUrl,
-  RESIDENCE_DOCUMENT_CATEGORIES as DOCUMENT_CATEGORIES,
-  documentApi,
-  getCategoryLabel,
-  createUploadHandler,
-} from '@/lib/documents';
-import { useDeleteMutation, useCreateUpdateMutation, useFormState } from '@/lib/common-hooks';
-
-// Form schema for creating/editing residence documents
 const documentFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
-  type: z.enum([
-    'lease',
-    'inspection',
-    'maintenance',
-    'legal',
-    'insurance',
-    'financial',
-    'communication',
-    'photos',
-    'other',
-  ]),
-  dateReference: z.string().refine(
-    (dateStr) => {
-      const date = new Date(dateStr);
-      return !isNaN(date.getTime());
-    },
-    {
-      message: 'Valid date is required',
-    }
-  ),
-  residenceId: z.string().min(1, 'Residence ID is required'),
+  name: z.string().min(1, 'Document name is required'),
+  type: z.string().min(1, 'Document type is required'),
+  description: z.string().optional(),
+  isVisibleToTenants: z.boolean().default(false),
 });
 
-/**
- *
- */
 type DocumentFormData = z.infer<typeof documentFormSchema>;
 
-/**
- *
- */
-interface ResidenceDocument {
+interface Document {
   id: string;
   name: string;
   type: string;
-  dateReference: string;
-  residenceId: string;
+  uploadDate: string;
+  dateReference?: string;
   fileUrl?: string;
   fileName?: string;
-  fileSize?: number;
+  fileSize?: string;
   mimeType?: string;
   uploadedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
+  isVisibleToTenants: boolean;
+  documentCategory: string;
+  entityType: string;
+  entityId: string;
 }
 
-/**
- *
- */
-interface EditDocumentFormProps {
-  document: ResidenceDocument;
-  onSave: (updatedDocument: ResidenceDocument) => void;
-  onCancel: () => void;
-}
-
-/**
- *
- * @param root0
- * @param root0.document
- * @param root0.onSave
- * @param root0.onCancel
- */
-function EditDocumentForm({ document, onSave, onCancel }: EditDocumentFormProps) {
+export default function ResidenceDocuments() {
+  const [, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingDocumentId, setUploadingDocumentId] = useState<string | null>(null);
+  const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const editForm = useForm<DocumentFormData>({
-    resolver: zodResolver(documentFormSchema),
-    defaultValues: {
-      name: document.name,
-      type: document.type as any,
-      dateReference: document.dateReference.split('T')[0],
-      residenceId: document.residenceId,
+  // Get residenceId from URL
+  const params = new URLSearchParams(window.location.search);
+  const residenceId = params.get('residenceId') || window.location.pathname.split('/').slice(-2, -1)[0];
+
+  // Get current user
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
+  });
+
+  // Get residence info
+  const { data: residence } = useQuery({
+    queryKey: ['/api/residences', residenceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/residences/${residenceId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch residence');
+      return response.json();
+    },
+    enabled: !!residenceId,
+  });
+
+  // Get building info for context
+  const { data: buildingData } = useQuery({
+    queryKey: ['/api/manager/buildings'],
+    queryFn: async () => {
+      const response = await fetch('/api/manager/buildings', {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch buildings');
+      return response.json();
     },
   });
 
-  const handleEditSave = async (data: DocumentFormData) => {
-    try {
-      const response = await apiRequest('PUT', `/api/documents/${document.id}`, {
-        ...data,
-        dateReference: new Date(data.dateReference).toISOString(),
+  const building = buildingData?.buildings?.find((b: any) => b.id === residence?.buildingId);
+
+  // Fetch documents
+  const { data: documentsData, isLoading, refetch } = useQuery({
+    queryKey: ['/api/documents', 'resident', residenceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`, {
+        credentials: 'include',
       });
-      onSave(response as any);
-      toast({
-        title: 'Success',
-        description: 'Document updated successfully',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update document',
-        variant: 'destructive',
-      });
-    }
-  };
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      return response.json();
+    },
+    enabled: !!residenceId,
+  });
 
-  return (
-    <Form {...editForm}>
-      <form onSubmit={editForm.handleSubmit(handleEditSave)} className='space-y-4'>
-        <FormField
-          control={editForm.control}
-          name='name'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={editForm.control}
-          name='type'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Type</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select document type' />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {DOCUMENT_CATEGORIES.map((category) => (
-                    <SelectItem key={category._value} value={category._value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={editForm.control}
-          name='dateReference'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reference Date</FormLabel>
-              <FormControl>
-                <Input type='date' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <DialogFooter>
-          <Button type='button' variant='outline' onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type='submit'>Save Changes</Button>
-        </DialogFooter>
-      </form>
-    </Form>
-  );
-}
+  const documents: Document[] = documentsData?.documents || [];
 
-/**
- *
- */
-interface ResidenceDocumentsProps {
-  residenceId?: string;
-}
+  // Filter documents
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-/**
- *
- * @param root0
- * @param root0.residenceId
- */
-export default function ResidenceDocuments({ residenceId }: ResidenceDocumentsProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // State variables
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<ResidenceDocument | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<any>(null);
-  const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
-
-  // Form setup
+  // Form for creating/editing documents
   const form = useForm<DocumentFormData>({
     resolver: zodResolver(documentFormSchema),
     defaultValues: {
       name: '',
-      type: 'other',
-      dateReference: new Date().toISOString().split('T')[0],
-      residenceId: residenceId || '',
+      type: '',
+      description: '',
+      isVisibleToTenants: false,
     },
   });
 
-  // Fetch residence data
-  const { data: residence } = useQuery({
-    queryKey: ['/api/residences', residenceId],
-    queryFn: () =>
-      residenceId
-        ? (apiRequest('GET', `/api/residences/${residenceId}`) as Promise<any>)
-        : Promise.resolve(null),
-    enabled: !!residenceId,
-  });
-
-  // Fetch building data for residence
-  const { data: building } = useQuery({
-    queryKey: ['/api/buildings', residence?.buildingId],
-    queryFn: () =>
-      residence?.buildingId
-        ? (apiRequest('GET', `/api/buildings/${residence.buildingId}`) as Promise<any>)
-        : Promise.resolve(null),
-    enabled: !!residence?.buildingId,
-  });
-
-  // Fetch documents
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: ['/api/documents', 'residence', residenceId],
-    queryFn: async () => {
-      if (!residenceId) {
-        return [];
-      }
-      const response = await apiRequest('GET', `/api/documents?residenceId=${residenceId}`);
-      return response as ResidenceDocument[];
-    },
-    enabled: !!residenceId,
-  });
-
-  // Calculate available years
-  const availableYears = useMemo(() => {
-    const years = documents
-      .map((doc: ResidenceDocument) => new Date(doc.dateReference).getFullYear().toString())
-      .filter(Boolean);
-    return [...new Set(years)].sort((a, b) => b.localeCompare(a));
-  }, [documents]);
-
-  // Filter documents
-  const filteredDocuments = useMemo(() => {
-    return documents.filter((doc: ResidenceDocument) => {
-      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
-      const matchesYear =
-        selectedYear === 'all' ||
-        new Date(doc.dateReference).getFullYear().toString() === selectedYear;
-      return matchesSearch && matchesCategory && matchesYear;
-    });
-  }, [documents, searchTerm, selectedCategory, selectedYear]);
-
-  // Group documents by category
-  const documentsByCategory = useMemo(() => {
-    const grouped: Record<string, ResidenceDocument[]> = {};
-    DOCUMENT_CATEGORIES.forEach((category) => {
-      grouped[category._value] = filteredDocuments.filter((doc) => doc.type === category._value);
-    });
-    return grouped;
-  }, [filteredDocuments]);
-
-  // Mutations
+  // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormData) => {
-      const documentData: any = {
+      const response = await apiRequest('POST', '/api/documents', {
         ...data,
-        dateReference: new Date(data.dateReference).toISOString(),
-      };
-
-      if (uploadedFile) {
-        documentData.fileUrl = uploadedFile.fileUrl;
-        documentData.fileName = uploadedFile.fileName;
-        documentData.fileSize = uploadedFile.fileSize.toString();
-        documentData.mimeType = uploadedFile.mimeType;
+        documentType: 'resident',
+        residenceId,
+        uploadedBy: user?.id,
+      });
+      return response;
+    },
+    onSuccess: (newDocument) => {
+      if (selectedFile) {
+        setUploadingDocumentId(newDocument.id);
+        uploadFile(newDocument.id);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
+        setIsAddDialogOpen(false);
+        form.reset();
+        toast({
+          title: 'Document created',
+          description: 'Document has been created successfully.',
+        });
       }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to create document',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    },
+  });
 
-      return apiRequest('POST', '/api/documents', documentData);
+  // Update document mutation
+  const updateDocumentMutation = useMutation({
+    mutationFn: async (data: DocumentFormData) => {
+      if (!editingDocument) throw new Error('No document selected');
+      const response = await apiRequest('PUT', `/api/documents/${editingDocument.id}`, data);
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/documents', 'residence', residenceId] });
-      setIsCreateDialogOpen(false);
-      setUploadedFile(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
+      setIsEditDialogOpen(false);
+      setEditingDocument(null);
       form.reset();
       toast({
-        title: 'Success',
-        description: uploadedFile
-          ? 'Document and file uploaded successfully!'
-          : 'Document created successfully.',
+        title: 'Document updated',
+        description: 'Document has been updated successfully.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create document',
+        title: 'Failed to update document',
+        description: error.message || 'Something went wrong',
         variant: 'destructive',
       });
     },
   });
 
+  // Delete document mutation
   const deleteDocumentMutation = useMutation({
-    mutationFn: (documentId: string) => apiRequest('DELETE', `/api/documents/${documentId}`),
+    mutationFn: (documentId: string) => apiRequest('DELETE', `/api/documents/${documentId}?type=resident`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/documents', 'residence', residenceId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
       toast({
-        title: 'Success',
-        description: 'Document deleted successfully',
+        title: 'Document deleted',
+        description: 'Document has been deleted successfully.',
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete document',
+        title: 'Failed to delete document',
+        description: error.message || 'Something went wrong',
         variant: 'destructive',
       });
     },
   });
 
-  // Event handlers
-  const handleCreateDocument = async (data: DocumentFormData) => {
+  const uploadFile = async (documentId: string) => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
+      setIsAddDialogOpen(false);
+      setSelectedFile(null);
+      setUploadingDocumentId(null);
+      form.reset();
+      toast({
+        title: 'Document uploaded',
+        description: 'Document has been uploaded successfully.',
+      });
+    } catch (error: any) {
+      setUploadingDocumentId(null);
+      toast({
+        title: 'Failed to upload file',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCreateDocument = (data: DocumentFormData) => {
     createDocumentMutation.mutate(data);
   };
 
-  const handleNewDocumentUpload = async () => {
-    if (!building || !residence) {
-      return null;
-    }
-
-    const response = await fetch('/api/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        organizationId: building.organizationId,
-        residenceId: residence.id,
-        documentType: 'residence',
-      }),
-    });
-
-    if (!response.ok) {
-      setIsUploadingNewFile(false);
-      throw new Error('Failed to get upload URL');
-    }
-
-    const data = await response.json();
-    return { method: 'PUT' as const, url: data.uploadURL };
+  const handleUpdateDocument = (data: DocumentFormData) => {
+    updateDocumentMutation.mutate(data);
   };
 
-  const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
-    setIsUploadingNewFile(false);
-
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      setUploadedFile({
-        fileUrl: uploadedFile.uploadURL,
-        fileName: uploadedFile.name,
-        fileSize: uploadedFile.size || 0,
-        mimeType: uploadedFile.type || 'application/octet-stream',
-      });
-      toast({
-        title: 'File ready',
-        description: 'File uploaded! Now create the document to save it.',
-      });
-    }
-  };
-
-  const handleDeleteDocument = (document: ResidenceDocument) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
+  const handleDeleteDocument = (document: Document) => {
+    if (confirm('Are you sure you want to delete this document?')) {
       deleteDocumentMutation.mutate(document.id);
     }
   };
 
-  if (!residenceId) {
+  const handleEditDocument = (document: Document) => {
+    setEditingDocument(document);
+    form.reset({
+      name: document.name,
+      type: document.type,
+      description: '', // We don't have description in the document interface
+      isVisibleToTenants: document.isVisibleToTenants,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDownload = (document: Document) => {
+    if (document.fileUrl) {
+      const url = getDisplayableFileUrl(document.fileUrl);
+      window.open(url, '_blank');
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Residence Documents' subtitle='Residence ID is required' />
-        <div className='flex-1 overflow-auto p-6'>
-          <Card>
-            <CardContent className='flex flex-col items-center justify-center py-12'>
-              <Building className='h-12 w-12 text-gray-400 mb-4' />
-              <h3 className='text-lg font-medium text-gray-900 mb-2'>Residence ID Required</h3>
-              <p className='text-gray-500'>Please provide a residence ID to view documents.</p>
-            </CardContent>
-          </Card>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header
+          title="Residence Documents"
+          subtitle="Loading documents..."
+        />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
+    <div className="flex-1 flex flex-col overflow-hidden">
       <Header
-        title={`${residence?.unitNumber || 'Residence'} Documents`}
-        subtitle={`Manage documents for ${residence?.unitNumber || 'this residence'} with category separation and year filtering`}
+        title={`${residence?.unitNumber ? `Unit ${residence.unitNumber}` : 'Residence'} Documents`}
+        subtitle="Manage residence documents and control tenant visibility"
       />
 
-      <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto'>
-          {/* Search and Filter Controls */}
-          <div className='mb-6'>
-            <div className='flex flex-col sm:flex-row gap-4 mb-4'>
-              <div className='relative flex-1'>
-                <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
-                <Input
-                  placeholder='Search documents...'
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-9'
-                />
-              </div>
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Back button */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/manager/residences')}
+            className="mb-4"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Residences
+          </Button>
 
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className='w-full sm:w-48'>
-                  <SelectValue placeholder='Filter by category' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Categories</SelectItem>
-                  {DOCUMENT_CATEGORIES.map((category) => (
-                    <SelectItem key={category._value} value={category._value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className='w-full sm:w-32'>
-                  <SelectValue placeholder='Year' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Years</SelectItem>
-                  {availableYears.map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className='w-full sm:w-auto'>
-                    <Plus className='h-4 w-4 mr-2' />
-                    Add Document
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className='max-w-2xl'>
-                  <DialogHeader>
-                    <DialogTitle>Create New Document</DialogTitle>
-                    <DialogDescription>
-                      Add a new document to this residence. You can attach a file or create a
-                      document entry only.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleCreateDocument)} className='space-y-4'>
-                      <FormField
-                        control={form.control}
-                        name='name'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Document Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder='Enter document name' {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='type'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Document Category</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder='Select document category' />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {DOCUMENT_CATEGORIES.map((category) => (
-                                  <SelectItem key={category._value} value={category._value}>
-                                    {category.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='dateReference'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Reference Date</FormLabel>
-                            <FormControl>
-                              <Input type='date' {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* File Upload Section */}
-                      <div className='space-y-4'>
-                        <Label>Attach File (Optional)</Label>
-                        <div className='border-2 border-dashed border-gray-300 rounded-lg p-4'>
-                          {uploadedFile ? (
-                            <div className='text-center'>
-                              <FileText className='h-8 w-8 text-green-500 mx-auto mb-2' />
-                              <p className='text-sm text-gray-600 mb-2'>
-                                File ready: {uploadedFile.fileName}
-                              </p>
-                              <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={() => setUploadedFile(null)}
-                              >
-                                Remove File
-                              </Button>
-                            </div>
-                          ) : (
-                            <ObjectUploader
-                              onUpload={handleNewDocumentUpload}
-                              onComplete={handleNewDocumentUploadComplete}
-                              disabled={isUploadingNewFile}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      <DialogFooter>
-                        <Button
-                          type='button'
-                          variant='outline'
-                          onClick={() => setIsCreateDialogOpen(false)}
-                          disabled={createDocumentMutation.isPending || isUploadingNewFile}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type='submit'
-                          disabled={createDocumentMutation.isPending || isUploadingNewFile}
-                        >
-                          {createDocumentMutation.isPending || isUploadingNewFile
-                            ? 'Creating...'
-                            : 'Create Document'}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-
-          {/* Documents Display */}
-          {documentsLoading ? (
-            <div className='text-center py-8'>Loading documents...</div>
-          ) : (
-            <div className='space-y-6'>
-              {DOCUMENT_CATEGORIES.map((category) => {
-                const categoryDocuments = documentsByCategory[category._value] || [];
-                if (categoryDocuments.length === 0) {
-                  return null;
-                }
-
-                return (
-                  <Card key={category._value}>
-                    <CardHeader>
-                      <CardTitle className='flex items-center gap-2'>
-                        <FileText className='h-5 w-5' />
-                        {category.label}
-                        <Badge variant='secondary'>{categoryDocuments.length}</Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {categoryDocuments.map((document) => (
-                          <Card
-                            key={document.id}
-                            className='cursor-pointer hover:shadow-md transition-shadow'
-                          >
-                            <CardContent className='p-4'>
-                              <div className='flex items-start justify-between mb-2'>
-                                <h4 className='font-medium text-sm truncate flex-1 mr-2'>
-                                  {document.name}
-                                </h4>
-                                <div className='flex gap-1'>
-                                  <Button
-                                    size='sm'
-                                    variant='ghost'
-                                    onClick={() => {
-                                      setSelectedDocument(document);
-                                      setIsEditMode(false);
-                                      setIsViewDialogOpen(true);
-                                    }}
-                                  >
-                                    <Eye className='h-3 w-3' />
-                                  </Button>
-                                  <Button
-                                    size='sm'
-                                    variant='ghost'
-                                    onClick={() => {
-                                      setSelectedDocument(document);
-                                      setIsEditMode(true);
-                                      setIsViewDialogOpen(true);
-                                    }}
-                                  >
-                                    <Edit className='h-3 w-3' />
-                                  </Button>
-                                  <Button
-                                    size='sm'
-                                    variant='ghost'
-                                    onClick={() => handleDeleteDocument(document)}
-                                    className='text-red-600 hover:text-red-700'
-                                  >
-                                    <Trash2 className='h-3 w-3' />
-                                  </Button>
-                                </div>
-                              </div>
-                              <p className='text-xs text-gray-500 mb-2'>
-                                {new Date(document.dateReference).toLocaleDateString()}
-                              </p>
-                              {document.fileUrl && (
-                                <Badge variant='outline' className='text-xs'>
-                                  Has File
-                                </Badge>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          {/* Residence info */}
+          {residence && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Home className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <h3 className="font-semibold">Unit {residence.unitNumber}</h3>
+                    {building && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Building className="w-3 h-3" />
+                        {building.name} • 
+                        <MapPin className="w-3 h-3 ml-1" />
+                        {building.address}, {building.city}, {building.province}
+                      </p>
+                    )}
+                    {residence.bedrooms && (
+                      <p className="text-sm text-muted-foreground">
+                        {residence.bedrooms} bedrooms • {residence.bathrooms} bathrooms
+                        {residence.squareFootage && ` • ${residence.squareFootage} sq ft`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* View/Edit Document Dialog */}
-          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-            <DialogContent className='max-w-2xl'>
+          {/* Search and filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search documents..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search-documents"
+                    />
+                  </div>
+                </div>
+                <div className="w-full md:w-48">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger data-testid="select-document-category">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {RESIDENCE_DOCUMENT_CATEGORIES.map((category) => (
+                        <SelectItem key={category._value} value={category._value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Controls */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold" data-testid="text-documents-title">
+                Documents ({filteredDocuments.length})
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Manage residence documents and control visibility to tenants
+              </p>
+            </div>
+
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-add-document">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Document
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Document</DialogTitle>
+                </DialogHeader>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleCreateDocument)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Document Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter document name"
+                              {...field}
+                              data-testid="input-document-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Document Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-document-type">
+                                <SelectValue placeholder="Select document type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {RESIDENCE_DOCUMENT_CATEGORIES.map((category) => (
+                                <SelectItem key={category._value} value={category._value}>
+                                  {category.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Enter document description"
+                              {...field}
+                              data-testid="textarea-document-description"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="isVisibleToTenants"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              data-testid="checkbox-visible-to-tenants"
+                            />
+                          </FormControl>
+                          <FormLabel>Visible to tenants</FormLabel>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div>
+                      <Label>File (Optional)</Label>
+                      <Input
+                        type="file"
+                        onChange={handleFileSelect}
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                        data-testid="input-file-upload"
+                      />
+                      {selectedFile && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Selected: {selectedFile.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createDocumentMutation.isPending || uploadingDocumentId !== null}
+                        data-testid="button-submit-document"
+                      >
+                        {uploadingDocumentId ? 'Uploading...' : 'Create Document'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Edit Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>{isEditMode ? 'Edit Document' : 'View Document'}</DialogTitle>
+                <DialogTitle>Edit Document</DialogTitle>
               </DialogHeader>
 
-              {selectedDocument && (
-                <div className='space-y-4'>
-                  {isEditMode ? (
-                    <EditDocumentForm
-                      document={selectedDocument}
-                      onSave={(updated) => {
-                        setSelectedDocument(updated);
-                        setIsEditMode(false);
-                        toast({
-                          title: 'Success',
-                          description: 'Document updated successfully',
-                        });
-                      }}
-                      onCancel={() => setIsEditMode(false)}
-                    />
-                  ) : (
-                    <div className='space-y-4'>
-                      <div>
-                        <Label>Document Name</Label>
-                        <p className='text-sm text-gray-700'>{selectedDocument.name}</p>
-                      </div>
-                      <div>
-                        <Label>Category</Label>
-                        <p className='text-sm text-gray-700'>
-                          {DOCUMENT_CATEGORIES.find((cat) => cat._value === selectedDocument.type)
-                            ?.label || selectedDocument.type}
-                        </p>
-                      </div>
-                      <div>
-                        <Label>Reference Date</Label>
-                        <p className='text-sm text-gray-700'>
-                          {new Date(selectedDocument.dateReference).toLocaleDateString()}
-                        </p>
-                      </div>
-                      {selectedDocument.fileUrl && (
-                        <div>
-                          <Label>Attached File</Label>
-                          <div className='flex items-center gap-2'>
-                            <FileText className='h-4 w-4' />
-                            <span className='text-sm text-gray-700'>
-                              {selectedDocument.fileName}
-                            </span>
-                            <Button
-                              size='sm'
-                              variant='outline'
-                              onClick={() =>
-                                window.open(
-                                  getDisplayableFileUrl(selectedDocument.fileUrl!),
-                                  '_blank'
-                                )
-                              }
-                            >
-                              <Download className='h-3 w-3 mr-1' />
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      <DialogFooter>
-                        <Button variant='outline' onClick={() => setIsEditMode(true)}>
-                          Edit Document
-                        </Button>
-                      </DialogFooter>
-                    </div>
-                  )}
-                </div>
-              )}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleUpdateDocument)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter document name"
+                            {...field}
+                            data-testid="input-edit-document-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-document-type">
+                              <SelectValue placeholder="Select document type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {RESIDENCE_DOCUMENT_CATEGORIES.map((category) => (
+                              <SelectItem key={category._value} value={category._value}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="isVisibleToTenants"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            data-testid="checkbox-edit-visible-to-tenants"
+                          />
+                        </FormControl>
+                        <FormLabel>Visible to tenants</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updateDocumentMutation.isPending}
+                      data-testid="button-update-document"
+                    >
+                      Update Document
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
+
+          {/* Documents Grid */}
+          {filteredDocuments.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
+                <p className="text-gray-500">
+                  {searchTerm || selectedCategory !== 'all'
+                    ? 'No documents match your search criteria.'
+                    : 'No documents have been uploaded for this residence yet.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDocuments.map((document) => (
+                <Card key={document.id} className="hover:shadow-lg transition-shadow" data-testid={`card-document-${document.id}`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4" />
+                      {document.name}
+                    </CardTitle>
+                    <Badge variant="outline" className="w-fit">
+                      {RESIDENCE_DOCUMENT_CATEGORIES.find(cat => cat._value === document.type)?.label || document.type}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        Uploaded: {new Date(document.uploadDate).toLocaleDateString()}
+                      </div>
+                      
+                      {document.fileName && (
+                        <div className="text-muted-foreground">
+                          File: {document.fileName}
+                        </div>
+                      )}
+
+                      {document.fileSize && (
+                        <div className="text-muted-foreground">
+                          Size: {document.fileSize}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
+                          {document.isVisibleToTenants ? 'Visible to tenants' : 'Manager only'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-4">
+                      {document.fileUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(document)}
+                          className="flex-1"
+                          data-testid={`button-download-${document.id}`}
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditDocument(document)}
+                        data-testid={`button-edit-${document.id}`}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteDocument(document)}
+                        className="text-red-600 hover:text-red-700"
+                        data-testid={`button-delete-${document.id}`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

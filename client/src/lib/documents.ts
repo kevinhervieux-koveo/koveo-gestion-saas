@@ -197,7 +197,7 @@ export function createUploadHandler(
          */
 
         const error = new Error(`Upload failed: ${result.failed[0].error}`);
-        onError?.(_error);
+        onError?.(error);
       }
     } catch (_error) {
       /**
@@ -208,7 +208,7 @@ export function createUploadHandler(
        * @param error - Error object.
        */
 
-      onError?.(error as Error);
+      onError?.(_error as Error);
     }
   };
 }
@@ -239,5 +239,5 @@ export function /**
  */
 
 getCategoryLabel(categories: readonly { _value: string; label: string }[], _value: string): string {
-  return categories.find((cat) => cat.value === _value)?.label || value;
+  return categories.find((cat) => cat._value === _value)?.label || _value;
 }
