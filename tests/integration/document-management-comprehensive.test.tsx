@@ -21,17 +21,10 @@ jest.mock('../../client/src/lib/queryClient', () => ({
 }));
 
 // Mock hooks
+const mockUseAuth = jest.fn();
 jest.mock('../../client/src/hooks/use-auth', () => ({
-  useAuth: () => ({
-    user: {
-      id: 'demo-user-123',
-      email: 'demo@example.com',
-      role: 'tenant',
-      firstName: 'Demo',
-      lastName: 'User',
-    },
-    isLoading: false,
-  }),
+  useAuth: () => mockUseAuth(),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 jest.mock('../../client/src/hooks/use-toast', () => ({
@@ -148,6 +141,11 @@ const demoResidenceDocuments = [
   },
 ];
 
+// Import providers
+import { LanguageProvider } from '../../client/src/hooks/use-language';
+import { AuthProvider } from '../../client/src/hooks/use-auth';
+import { MobileMenuProvider } from '../../client/src/hooks/use-mobile-menu';
+
 // Test providers wrapper
 function TestProviders({
   children,
@@ -167,21 +165,15 @@ function TestProviders({
     },
   });
 
-  // Mock user based on role
-  const mockUser = userRole === 'manager' ? demoManagerUser : demoTenantUser;
-  
-  React.useEffect(() => {
-    jest.doMock('../../client/src/hooks/use-auth', () => ({
-      useAuth: () => ({
-        user: mockUser,
-        isLoading: false,
-      }),
-    }));
-  }, [userRole]);
-
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>{children}</Router>
+      <LanguageProvider>
+        <MobileMenuProvider>
+          <Router>
+            <AuthProvider>{children}</AuthProvider>
+          </Router>
+        </MobileMenuProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
@@ -199,12 +191,16 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
     global.open = jest.fn();
     
     // Mock URL search params
-    Object.defineProperty(window, 'location', {
-      value: {
-        search: '?residenceId=residence-demo-101',
-        pathname: '/residents/residence/documents',
-      },
-      writable: true,
+    delete (window as any).location;
+    window.location = {
+      search: '?residenceId=residence-demo-101',
+      pathname: '/residents/residence/documents',
+    } as any;
+
+    // Set default auth mock
+    mockUseAuth.mockReturnValue({
+      user: demoTenantUser,
+      isLoading: false,
     });
   });
 
@@ -214,6 +210,12 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
 
   describe('Tenant User - Residents Residence Documents Page', () => {
     it('should display only tenant-visible documents for demo tenant user', async () => {
+      // Set tenant user
+      mockUseAuth.mockReturnValue({
+        user: demoTenantUser,
+        isLoading: false,
+      });
+
       // Mock API calls
       mockApiRequest
         .mockResolvedValueOnce(demoTenantUser) // auth/user
@@ -243,6 +245,12 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
     });
 
     it('should allow tenant to download visible documents', async () => {
+      // Set tenant user
+      mockUseAuth.mockReturnValue({
+        user: demoTenantUser,
+        isLoading: false,
+      });
+
       mockApiRequest
         .mockResolvedValueOnce(demoTenantUser)
         .mockResolvedValueOnce(demoResidenceData)
@@ -569,13 +577,10 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
         .mockResolvedValueOnce({ documents: demoResidenceDocuments });
 
       // Mock URL params for residence ID
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?residenceId=residence-demo-101',
-          pathname: '/manager/residences/documents',
-        },
-        writable: true,
-      });
+      window.location = {
+        search: '?residenceId=residence-demo-101',
+        pathname: '/manager/residences/documents',
+      } as any;
 
       render(
         <TestProviders userRole="manager">
@@ -712,13 +717,10 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
 
     it('should handle missing residence ID', async () => {
       // Clear URL params
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '',
-          pathname: '/manager/residences/documents',
-        },
-        writable: true,
-      });
+      window.location = {
+        search: '',
+        pathname: '/manager/residences/documents',
+      } as any;
 
       render(
         <TestProviders userRole="manager">
