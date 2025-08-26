@@ -341,6 +341,11 @@ function Router() {
               path='/residents/residence/documents'
               component={() => <ResidentsResidenceDocuments />}
             />
+            {/* Support dynamic residence ID in URL path */}
+            <Route
+              path='/residents/residences/:residenceId/documents'
+              component={() => <ResidentsResidenceDocuments />}
+            />
             <Route path='/residents/building' component={ResidentsBuilding} />
             <Route
               path='/residents/building/documents'
