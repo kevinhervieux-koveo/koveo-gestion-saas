@@ -26,7 +26,7 @@
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql, or, like } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 import * as bcrypt from 'bcryptjs';
 import ws from 'ws';
@@ -45,10 +45,15 @@ const db = drizzle({ client: pool, schema });
 
 /**
  * Main function to create comprehensive demo data.
+ * PRODUCTION FIX: Clean existing demo data first to avoid conflicts.
  */
 async function createComprehensiveDemo(): Promise<void> {
   try {
     console.log('🚀 Creating comprehensive demo organizations and data...\n');
+
+    // Step 0: Clean existing demo data to avoid conflicts
+    console.log('🧹 Cleaning existing demo data...');
+    await cleanExistingDemoData();
 
     // Step 1: Create Organizations
     console.log('📁 Creating organizations...');
@@ -72,7 +77,7 @@ async function createComprehensiveDemo(): Promise<void> {
 
     // Step 6: Create Financial Data
     console.log('\n💰 Creating financial data (bills, budgets, money flow)...');
-    await createFinancialData(buildings, residences, users);
+    await createFinancialData(buildings, residences, users.filter(u => u && u.id));
 
     // Step 7: Create Operations Data
     console.log('\n🔧 Creating operations data (maintenance, demands, notifications)...');
@@ -114,19 +119,49 @@ async function createComprehensiveDemo(): Promise<void> {
 }
 
 /**
+ * PRODUCTION FIX: Clean existing demo data to avoid conflicts.
+ */
+async function cleanExistingDemoData(): Promise<void> {
+  try {
+    console.log('  🗑️  Removing ALL existing demo users...');
+    // Get ALL users with demo emails and delete them
+    const demoUsers = await db.select({ username: schema.users.username })
+      .from(schema.users)
+      .where(like(schema.users.email, '%demo.com%'));
+    
+    if (demoUsers.length > 0) {
+      console.log(`  🗑️  Found ${demoUsers.length} demo users to remove`);
+      await db.delete(schema.users).where(
+        like(schema.users.email, '%demo.com%')
+      );
+    }
+    
+    console.log('  🗑️  Removing existing demo organizations...');
+    await db.delete(schema.organizations).where(
+      schema.organizations.name.in(['Demo', 'Open Demo'])
+    );
+    
+    console.log('  ✅ Cleanup complete');
+  } catch (error) {
+    console.log('  ⚠️  Cleanup warning (non-critical):', (error as Error).message);
+  }
+}
+
+/**
  * Create organizations (Demo and Open Demo).
+ * PRODUCTION FIX: Use 'demo' type instead of 'management_company'.
  */
 async function createOrganizations() {
-  // Delete existing Demo and Open Demo organizations if they exist
-  await db.delete(schema.organizations).where(eq(schema.organizations.name, 'Demo'));
-  await db.delete(schema.organizations).where(eq(schema.organizations.name, 'Open Demo'));
+  // Clean existing demo data first
+  console.log('  🧹 Cleaning existing demo data...');
+  await cleanExistingDemoData();
 
   // Create Demo organization
   const [demoOrg] = await db
     .insert(schema.organizations)
     .values({
       name: 'Demo',
-      type: 'management_company',
+      type: 'demo',
       address: '123 Demo Street',
       city: 'Montreal',
       province: 'QC',
@@ -144,7 +179,7 @@ async function createOrganizations() {
     .insert(schema.organizations)
     .values({
       name: 'Open Demo',
-      type: 'management_company',
+      type: 'demo',
       address: '456 Open Demo Avenue',
       city: 'Montreal',
       province: 'QC',
@@ -464,7 +499,7 @@ async function createFinancialData(
   residences: any[],
   users: any[]
 ): Promise<void> {
-  const adminUser = users.find((u) => u.role === 'admin');
+  const adminUser = users.find((u) => u.role === 'admin' || u.role === 'manager');
   const currentYear = new Date().getFullYear();
 
   for (const building of buildings) {
