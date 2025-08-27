@@ -93,17 +93,6 @@ export class DemoManagementService {
       },
     };
   }
-        stats: {
-          demoBuildings,
-          demoUsers,
-          openDemoBuildings,
-          openDemoUsers,
-        },
-      };
-    } finally {
-      await pool.end();
-    }
-  }
 
   /**
    * Initialize demo organizations during application startup.
@@ -141,6 +130,10 @@ export class DemoManagementService {
         await db.insert(schema.organizations).values({
           name: 'Demo',
           type: 'demo',
+          address: '123 Demo Street',
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: 'H1A 1A1',
           isActive: true
         });
       }
@@ -157,6 +150,10 @@ export class DemoManagementService {
         await db.insert(schema.organizations).values({
           name: 'Open Demo',
           type: 'demo',
+          address: '456 Demo Avenue',
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: 'H1B 1B1',
           isActive: true
         });
       }
