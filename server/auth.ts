@@ -58,16 +58,17 @@ export const sessionConfig = session({
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),
-  secret: process.env.SESSION_SECRET!,
+  secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Automatically set secure in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax',
+    sameSite: 'lax', // Keep 'lax' for compatibility - should work for same-site requests
   },
   name: 'koveo.sid',
+  proxy: process.env.NODE_ENV === 'production', // Trust proxy in production
 });
 
 /**
@@ -386,17 +387,35 @@ export function setupAuthRoutes(app: any) {
       req.session.userRole = user.role;
       req.session.role = user.role;
 
-      // Return user data (without password)
-      const { password: _, ...userData } = user;
-      res.json({
-        user: userData,
-        message: 'Login successful',
+      // Save session explicitly to ensure it's persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({
+            message: 'Session save failed',
+            code: 'SESSION_SAVE_ERROR',
+          });
+        }
+
+        // Return user data (without password)
+        const { password: _, ...userData } = user;
+        res.json({
+          user: userData,
+          message: 'Login successful',
+        });
       });
     } catch (_error) {
-      console.error('Login _error:', _error);
+      console.error('Login error details:', {
+        error: _error,
+        email: req.body?.email,
+        hasPassword: !!req.body?.password,
+        databaseUrl: !!process.env.DATABASE_URL,
+        sessionSecret: !!process.env.SESSION_SECRET,
+      });
       res.status(500).json({
         message: 'Login failed',
         code: 'LOGIN_ERROR',
+        ...(process.env.NODE_ENV === 'development' && { details: _error }),
       });
     }
   });
@@ -412,7 +431,14 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      res.clearCookie('koveo.sid');
+      // Clear cookie with same settings as when it was set
+      const cookieOptions: any = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      };
+
+      res.clearCookie('koveo.sid', cookieOptions);
       res.json({ message: 'Logout successful' });
     });
   });
@@ -428,6 +454,24 @@ export function setupAuthRoutes(app: any) {
 
     const { password: _, ...userData } = req.user;
     res.json(userData);
+  });
+
+  // Debug endpoint to check auth configuration (production only, temporary)
+  app.get('/auth/debug', async (req: Request, res: Response) => {
+    const debugInfo = {
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      userRole: req.session?.userRole,
+      nodeEnv: process.env.NODE_ENV,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasSessionSecret: !!process.env.SESSION_SECRET,
+      cookies: req.headers.cookie ? 'present' : 'missing',
+      sessionStore: req.session?.store?.constructor?.name || 'unknown',
+    };
+    
+    console.log('Auth debug info:', debugInfo);
+    res.json(debugInfo);
   });
 
   // Register route (admin only for now)
