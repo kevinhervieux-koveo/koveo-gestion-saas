@@ -1,0 +1,128 @@
+2025-08-27 19:36:14.48
+f6408b8c
+User
+at QueryOptimizer.areIndexesSetup (file:///home/runner/workspace/dist/index.js:14841:49)
+2025-08-27 19:36:14.48
+f6408b8c
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:36:14.48
+f6408b8c
+User
+at async initializeDatabaseInBackground (file:///home/runner/workspace/dist/index.js:15301:28)
+2025-08-27 19:36:14.48
+f6408b8c
+User
+11:36:14 PM [express] ⚠️ Production mode: Skipping database index creation for safety
+2025-08-27 19:36:14.48
+f6408b8c
+User
+11:36:14 PM [express] ⚠️ Consider running database optimizations in maintenance mode
+2025-08-27 19:36:14.48
+f6408b8c
+User
+11:36:14 PM [express] 🔄 Background work complete - all routes already loaded
+2025-08-27 19:36:41.10
+43ed2951
+User
+11:36:41 PM [express] 📊 Memory usage: 110MB
+2025-08-27 19:36:54.80
+f6408b8c
+User
+Session save error: error: password authentication failed for user 'neondb_owner'
+2025-08-27 19:36:54.80
+f6408b8c
+User
+at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+2025-08-27 19:36:54.80
+f6408b8c
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:36:54.80
+f6408b8c
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 19:36:54.80
+f6408b8c
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 19:36:54.80
+f6408b8c
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7) {
+2025-08-27 19:36:54.80
+f6408b8c
+User
+length: 75,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+severity: 'ERROR',
+2025-08-27 19:36:54.80
+f6408b8c
+User
+code: 'XX000',
+2025-08-27 19:36:54.80
+f6408b8c
+User
+detail: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+hint: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+position: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+internalPosition: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+internalQuery: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+where: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+schema: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+table: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+column: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+dataType: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+constraint: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+file: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+line: undefined,
+2025-08-27 19:36:54.80
+f6408b8c
+User
+routine: undefined
+2025-08-27 19:36:54.80
+f6408b8c
+User
+}
+2025-08-27 19:37:13.74
+f6408b8c
+User
+11:37:13 PM [express] 📊 Memory usage: 123MB

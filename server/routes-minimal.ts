@@ -170,11 +170,15 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Production static file serving - MUST be registered first
-  if (process.env.NODE_ENV === 'production') {
+  // Production static file serving - Force enable for Replit deployments
+  const enableProductionServing = process.env.NODE_ENV === 'production' || process.env.REPLIT_DOMAINS;
+  
+  if (enableProductionServing) {
     const path = await import('path');
     const express = await import('express');
     const distPath = path.resolve(process.cwd(), 'dist', 'public');
+
+    console.log(`🔍 Setting up static file serving from: ${distPath}`);
 
     // Serve static assets with proper caching
     app.use('/assets', express.static(path.resolve(distPath, 'assets'), {
@@ -192,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       index: false
     }));
 
-    console.log('✅ Production static file serving configured');
+    console.log('✅ Production static file serving configured (deployment mode)');
   }
 
   // Apply production optimizations (but not static file serving here)
@@ -1404,18 +1408,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const path = await import('path');
   const fs = await import('fs');
   
-  // Only register manual root handler in production - Vite handles it in development
-  if (process.env.NODE_ENV === 'production') {
+  // Register root handler for deployed production (Replit deployments)
+  if (enableProductionServing) {
+    const path = await import('path');
+    const fs = await import('fs');
+    
     app.get('/', (req, res) => {
       try {
         const indexPath = path.resolve(process.cwd(), 'dist/public/index.html');
         
+        console.log(`🔍 Attempting to serve index.html from: ${indexPath}`);
+        
         if (fs.existsSync(indexPath)) {
+          console.log('✅ index.html found, serving to client');
           res.sendFile(indexPath);
         } else {
+          console.log('❌ index.html not found');
           res.status(404).send('Application not built - run npm run build first');
         }
       } catch (error) {
+        console.error('❌ Error serving index.html:', error);
         res.status(500).send('Error loading application');
       }
     });
@@ -1439,8 +1451,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This allows Vite to serve the index.html for SPA routing
       next();
     });
-  } else {
-    // Production catch-all for SPA
+  } else if (enableProductionServing) {
+    // Production catch-all for SPA when deployed
     app.get('*', (req, res) => {
       // Skip API routes and health checks
       if (req.path.startsWith('/api/') || 

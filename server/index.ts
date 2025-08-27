@@ -237,7 +237,12 @@ async function loadFullApplication(): Promise<void> {
     log('✅ Essential application routes loaded');
     
     // Setup frontend serving AFTER API routes are registered
-    if (process.env.NODE_ENV === 'development' && !process.env.FORCE_PRODUCTION_SERVE) {
+    // Force production serving when deployed (REPLIT_DOMAINS indicates deployment)
+    const isDeployedProduction = process.env.REPLIT_DOMAINS || process.env.FORCE_PRODUCTION_SERVE === 'true';
+    
+    log(`🔍 Environment check: NODE_ENV=${process.env.NODE_ENV}, REPLIT_DOMAINS=${!!process.env.REPLIT_DOMAINS}, isDeployedProduction=${isDeployedProduction}`);
+    
+    if (!isDeployedProduction && process.env.NODE_ENV === 'development') {
       log('🔄 Setting up Vite for frontend development...');
       const { setupVite } = await import('./vite');
       await setupVite(app, server);
@@ -248,7 +253,7 @@ async function loadFullApplication(): Promise<void> {
         res.json({ vite: 'configured', mode: 'development' });
       });
     } else {
-      log('🔄 Setting up production server with proper API routing...');
+      log('🔄 Setting up production static file serving (deployment detected)...');
       
       // Use production server logic which handles API routes correctly
       const path = await import('path');
