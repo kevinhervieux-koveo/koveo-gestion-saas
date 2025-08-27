@@ -12503,8 +12503,8 @@ var init_delayed_update_service = __esm({
         try {
           const { db: db6 } = await Promise.resolve().then(() => (init_db(), db_exports));
           const { bills: bills4 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const { eq: eq22 } = await import("drizzle-orm");
-          const result = await db6.select({ buildingId: bills4.buildingId }).from(bills4).where(eq22(bills4.id, billId)).limit(1);
+          const { eq: eq21 } = await import("drizzle-orm");
+          const result = await db6.select({ buildingId: bills4.buildingId }).from(bills4).where(eq21(bills4.id, billId)).limit(1);
           return result.length > 0 ? result[0].buildingId : null;
         } catch (_error2) {
           console.error(`\u274C Failed to get building ID for bill ${billId}:`, _error2);
@@ -12519,8 +12519,8 @@ var init_delayed_update_service = __esm({
         try {
           const { db: db6 } = await Promise.resolve().then(() => (init_db(), db_exports));
           const { residences: residences4 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const { eq: eq22 } = await import("drizzle-orm");
-          const result = await db6.select({ buildingId: residences4.buildingId }).from(residences4).where(eq22(residences4.id, residenceId)).limit(1);
+          const { eq: eq21 } = await import("drizzle-orm");
+          const result = await db6.select({ buildingId: residences4.buildingId }).from(residences4).where(eq21(residences4.id, residenceId)).limit(1);
           return result.length > 0 ? result[0].buildingId : null;
         } catch (_error2) {
           console.error(`\u274C Failed to get building ID for residence ${residenceId}:`, _error2);
@@ -13996,360 +13996,6 @@ var init_delayed_updates = __esm({
   }
 });
 
-// server/services/demo-management-service.ts
-import { Pool as Pool5 } from "@neondatabase/serverless";
-import { drizzle as drizzle6 } from "drizzle-orm/neon-serverless";
-import { eq as eq15 } from "drizzle-orm";
-var DemoManagementService, demo_management_service_default;
-var init_demo_management_service = __esm({
-  "server/services/demo-management-service.ts"() {
-    init_schema();
-    DemoManagementService = class {
-      static {
-        this.DEMO_ORG_NAME = "Demo";
-      }
-      static {
-        this.OPEN_DEMO_ORG_NAME = "Open Demo";
-      }
-      /**
-       * Check if demo organizations are healthy and properly configured.
-       */
-      static async checkDemoHealth() {
-        return {
-          healthy: true,
-          status: { message: "Demo sync functionality removed" },
-          message: "Demo organizations managed locally only",
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        };
-      }
-      /**
-       * Ensure demo organizations exist and are properly configured.
-       * This is a safe operation that can be called during application startup.
-       */
-      static async ensureDemoOrganizations() {
-        try {
-          console.log("\u{1F504} Ensuring demo organizations are properly configured...");
-          const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
-          const db6 = drizzle6({ client: pool5, schema: schema_exports });
-          const demoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.DEMO_ORG_NAME)
-          });
-          const openDemoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
-          });
-          await pool5.end();
-          if (!demoOrg || !openDemoOrg) {
-            throw new Error("Demo organizations were not created successfully");
-          }
-          console.log("\u2705 Demo organizations are properly configured");
-          return {
-            success: true,
-            message: "Demo organizations are properly configured and ready for use",
-            demoOrgId: demoOrg.id,
-            openDemoOrgId: openDemoOrg.id
-          };
-        } catch (error2) {
-          console.error("\u274C Failed to ensure demo organizations:", error2);
-          return {
-            success: false,
-            message: `Failed to ensure demo organizations: ${error2 instanceof Error ? error2.message : "Unknown error"}`
-          };
-        }
-      }
-      /**
-       * Force recreation of demo organizations.
-       * This is a more intensive operation that should be used sparingly.
-       */
-      static async recreateDemoOrganizations() {
-        try {
-          console.log("\u{1F504} Force recreating demo organizations...");
-          const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
-          const db6 = drizzle6({ client: pool5, schema: schema_exports });
-          const demoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.DEMO_ORG_NAME)
-          });
-          const openDemoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
-          });
-          await pool5.end();
-          if (!demoOrg || !openDemoOrg) {
-            throw new Error("Demo organizations were not recreated successfully");
-          }
-          console.log("\u2705 Demo organizations recreated successfully");
-          return {
-            success: true,
-            message: "Demo organizations recreated successfully with fresh data",
-            demoOrgId: demoOrg.id,
-            openDemoOrgId: openDemoOrg.id
-          };
-        } catch (error2) {
-          console.error("\u274C Failed to recreate demo organizations:", error2);
-          return {
-            success: false,
-            message: `Failed to recreate demo organizations: ${error2 instanceof Error ? error2.message : "Unknown error"}`
-          };
-        }
-      }
-      /**
-       * Get demo organization information.
-       */
-      static async getDemoOrganizationInfo() {
-        const pool5 = new Pool5({ connectionString: process.env.DATABASE_URL });
-        const db6 = drizzle6({ client: pool5, schema: schema_exports });
-        try {
-          const demoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.DEMO_ORG_NAME)
-          });
-          const openDemoOrg = await db6.query.organizations.findFirst({
-            where: eq15(organizations.name, this.OPEN_DEMO_ORG_NAME)
-          });
-          let demoBuildings = 0;
-          let demoUsers = 0;
-          let openDemoBuildings = 0;
-          let openDemoUsers = 0;
-          if (demoOrg) {
-            const buildings7 = await db6.query.buildings.findMany({
-              where: eq15(buildings.organizationId, demoOrg.id)
-            });
-            const users4 = await db6.query.userOrganizations.findMany({
-              where: eq15(userOrganizations.organizationId, demoOrg.id)
-            });
-            demoBuildings = buildings7.length;
-            demoUsers = users4.length;
-          }
-          if (openDemoOrg) {
-            const buildings7 = await db6.query.buildings.findMany({
-              where: eq15(buildings.organizationId, openDemoOrg.id)
-            });
-            const users4 = await db6.query.userOrganizations.findMany({
-              where: eq15(userOrganizations.organizationId, openDemoOrg.id)
-            });
-            openDemoBuildings = buildings7.length;
-            openDemoUsers = users4.length;
-          }
-          return {
-            demo: demoOrg,
-            openDemo: openDemoOrg,
-            stats: {
-              demoBuildings,
-              demoUsers,
-              openDemoBuildings,
-              openDemoUsers
-            }
-          };
-        } finally {
-          await pool5.end();
-        }
-      }
-      /**
-       * Initialize demo organizations during application startup.
-       * This should be called once when the application starts.
-       * PRODUCTION FIX: This now creates organizations if they don't exist.
-       */
-      static async initializeDemoOrganizations() {
-        try {
-          console.log("\u{1F680} Initializing demo organizations...");
-          await this.createBasicOrganizationsIfMissing();
-          const result = await this.ensureDemoOrganizations();
-          if (result.success) {
-            console.log("\u2705 Demo organizations initialized successfully");
-          } else {
-            console.warn(
-              "\u26A0\uFE0F  Demo organizations initialization completed with warnings:",
-              result.message
-            );
-          }
-        } catch (error2) {
-          console.error("\u274C Demo organizations initialization failed:", error2);
-        }
-      }
-      /**
-       * PRODUCTION FIX: Create basic demo organizations if they don't exist.
-       * This ensures the database has the required organizations for production.
-       */
-      static async createBasicOrganizationsIfMissing() {
-        try {
-          const { Pool: Pool6 } = await import("@neondatabase/serverless");
-          const { drizzle: drizzle7 } = await import("drizzle-orm/neon-serverless");
-          const { eq: eq22 } = await import("drizzle-orm");
-          const schema2 = await Promise.resolve().then(() => (init_schema(), schema_exports));
-          const pool5 = new Pool6({ connectionString: process.env.DATABASE_URL });
-          const db6 = drizzle7({ client: pool5, schema: schema2 });
-          const existingDemo = await db6.select().from(schema2.organizations).where(eq22(schema2.organizations.name, "Demo")).limit(1);
-          if (existingDemo.length === 0) {
-            console.log("\u{1F4DD} Creating Demo organization...");
-            await db6.insert(schema2.organizations).values({
-              name: "Demo",
-              type: "demo",
-              isActive: true
-            });
-          }
-          const existingOpenDemo = await db6.select().from(schema2.organizations).where(eq22(schema2.organizations.name, "Open Demo")).limit(1);
-          if (existingOpenDemo.length === 0) {
-            console.log("\u{1F4DD} Creating Open Demo organization...");
-            await db6.insert(schema2.organizations).values({
-              name: "Open Demo",
-              type: "demo",
-              isActive: true
-            });
-          }
-          console.log("\u2705 Demo organizations are properly configured");
-        } catch (error2) {
-          console.error("\u26A0\uFE0F Failed to create basic demo organizations:", error2);
-        }
-      }
-      /**
-       * Scheduled maintenance for demo organizations.
-       * This can be called periodically to ensure demo data stays fresh.
-       */
-      static async scheduledMaintenance() {
-        const actions = [];
-        try {
-          console.log("\u{1F527} Running scheduled demo maintenance...");
-          const health = await this.checkDemoHealth();
-          actions.push(`Health check: ${health.healthy ? "HEALTHY" : "UNHEALTHY"}`);
-          if (!health.healthy) {
-            actions.push("Demo sync functionality removed - local management only");
-            const newHealth = await this.checkDemoHealth();
-            actions.push(`Post-sync health: ${newHealth.healthy ? "HEALTHY" : "STILL_UNHEALTHY"}`);
-          }
-          console.log("\u2705 Scheduled demo maintenance completed");
-          return {
-            success: true,
-            message: "Scheduled maintenance completed successfully",
-            actions
-          };
-        } catch (error2) {
-          console.error("\u274C Scheduled demo maintenance failed:", error2);
-          return {
-            success: false,
-            message: `Scheduled maintenance failed: ${error2 instanceof Error ? error2.message : "Unknown error"}`,
-            actions
-          };
-        }
-      }
-    };
-    demo_management_service_default = DemoManagementService;
-  }
-});
-
-// server/api/demo-management.ts
-function registerDemoManagementRoutes(app2) {
-  app2.get("/api/demo/health", async (req, res) => {
-    try {
-      const health = await demo_management_service_default.checkDemoHealth();
-      res.status(health.healthy ? 200 : 503).json({
-        success: true,
-        data: health
-      });
-    } catch (error2) {
-      console.error("Demo health check failed:", error2);
-      res.status(500).json({
-        success: false,
-        message: "Demo health check failed",
-        error: error2 instanceof Error ? error2.message : "Unknown error"
-      });
-    }
-  });
-  app2.get("/api/demo/status", requireAuth, async (req, res) => {
-    try {
-      const info = await demo_management_service_default.getDemoOrganizationInfo();
-      res.json({
-        success: true,
-        data: info
-      });
-    } catch (error2) {
-      console.error("Failed to get demo status:", error2);
-      res.status(500).json({
-        success: false,
-        message: "Failed to get demo status",
-        error: error2 instanceof Error ? error2.message : "Unknown error"
-      });
-    }
-  });
-  app2.post(
-    "/api/demo/ensure",
-    requireAuth,
-    requireRole(["admin"]),
-    async (req, res) => {
-      try {
-        const result = await demo_management_service_default.ensureDemoOrganizations();
-        res.status(result.success ? 200 : 500).json({
-          success: result.success,
-          message: result.message,
-          data: {
-            demoOrgId: result.demoOrgId,
-            openDemoOrgId: result.openDemoOrgId
-          }
-        });
-      } catch (error2) {
-        console.error("Failed to ensure demo organizations:", error2);
-        res.status(500).json({
-          success: false,
-          message: "Failed to ensure demo organizations",
-          error: error2 instanceof Error ? error2.message : "Unknown error"
-        });
-      }
-    }
-  );
-  app2.post(
-    "/api/demo/recreate",
-    requireAuth,
-    requireRole(["admin"]),
-    async (req, res) => {
-      try {
-        const result = await demo_management_service_default.recreateDemoOrganizations();
-        res.status(result.success ? 200 : 500).json({
-          success: result.success,
-          message: result.message,
-          data: {
-            demoOrgId: result.demoOrgId,
-            openDemoOrgId: result.openDemoOrgId
-          }
-        });
-      } catch (error2) {
-        console.error("Failed to recreate demo organizations:", error2);
-        res.status(500).json({
-          success: false,
-          message: "Failed to recreate demo organizations",
-          error: error2 instanceof Error ? error2.message : "Unknown error"
-        });
-      }
-    }
-  );
-  app2.post(
-    "/api/demo/maintenance",
-    requireAuth,
-    requireRole(["admin"]),
-    async (req, res) => {
-      try {
-        const result = await demo_management_service_default.scheduledMaintenance();
-        res.status(result.success ? 200 : 500).json({
-          success: result.success,
-          message: result.message,
-          data: {
-            actions: result.actions
-          }
-        });
-      } catch (error2) {
-        console.error("Failed to run demo maintenance:", error2);
-        res.status(500).json({
-          success: false,
-          message: "Failed to run demo maintenance",
-          error: error2 instanceof Error ? error2.message : "Unknown error"
-        });
-      }
-    }
-  );
-  console.log("\u2705 Demo management API routes registered");
-}
-var init_demo_management = __esm({
-  "server/api/demo-management.ts"() {
-    init_demo_management_service();
-    init_auth();
-  }
-});
-
 // server/api/feature-management.ts
 import { sql as sql16 } from "drizzle-orm";
 function registerFeatureManagementRoutes(app2) {
@@ -14501,12 +14147,12 @@ var init_feature_management = __esm({
 });
 
 // server/api/ai-monitoring.ts
-import { eq as eq16, desc as desc5, gte as gte5 } from "drizzle-orm";
+import { eq as eq15, desc as desc5, gte as gte5 } from "drizzle-orm";
 async function getAIMetrics(req, res) {
   try {
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
-    let [metrics] = await db3.select().from(aiMetrics).where(eq16(aiMetrics.date, today.toISOString().split("T")[0])).limit(1);
+    let [metrics] = await db3.select().from(aiMetrics).where(eq15(aiMetrics.date, today.toISOString().split("T")[0])).limit(1);
     if (!metrics) {
       const interactions = await db3.select().from(aiInteractions).where(gte5(aiInteractions.timestamp, today));
       const insights = await db3.select().from(aiInsights);
@@ -14565,14 +14211,14 @@ function registerAIMonitoringRoutes(app2) {
   app2.post("/api/ai/insights/:id/apply", requireAuth, async (req, res) => {
     try {
       const insightId = req.params.id;
-      const [insight] = await db3.select().from(aiInsights).where(eq16(aiInsights.id, insightId)).limit(1);
+      const [insight] = await db3.select().from(aiInsights).where(eq15(aiInsights.id, insightId)).limit(1);
       if (!insight) {
         return res.status(404).json({ _error: "Insight not found" });
       }
       const [updatedInsight] = await db3.update(aiInsights).set({
         status: "completed",
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq16(aiInsights.id, insightId)).returning();
+      }).where(eq15(aiInsights.id, insightId)).returning();
       res.json({
         message: "Suggestion applied successfully",
         insight: updatedInsight
@@ -14595,11 +14241,11 @@ var init_ai_monitoring = __esm({
 });
 
 // server/api/common-spaces.ts
-import { eq as eq17, desc as desc6, and as and15, sql as sql18, or as or8, gte as gte6, lte as lte4, inArray as inArray8 } from "drizzle-orm";
+import { eq as eq16, desc as desc6, and as and15, sql as sql18, or as or8, gte as gte6, lte as lte4, inArray as inArray8 } from "drizzle-orm";
 import { z as z15 } from "zod";
 async function getAccessibleBuildingIds(user) {
   if (user.role === "admin" && user.canAccessAllOrganizations) {
-    const allBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(eq17(buildings4.isActive, true));
+    const allBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(eq16(buildings4.isActive, true));
     return allBuildings.map((b) => b.id);
   }
   if (["admin", "manager"].includes(user.role)) {
@@ -14607,12 +14253,12 @@ async function getAccessibleBuildingIds(user) {
       return [];
     }
     const orgBuildings = await db3.select({ id: buildings4.id }).from(buildings4).where(
-      and15(eq17(buildings4.isActive, true), inArray8(buildings4.organizationId, user.organizations))
+      and15(eq16(buildings4.isActive, true), inArray8(buildings4.organizationId, user.organizations))
     );
     return orgBuildings.map((b) => b.id);
   }
   if (["resident", "tenant"].includes(user.role)) {
-    const userBuildingIds = await db3.select({ buildingId: residences.buildingId }).from(userResidences4).innerJoin(residences, eq17(userResidences4.residenceId, residences.id)).where(and15(eq17(userResidences4.userId, user.id), eq17(userResidences4.isActive, true)));
+    const userBuildingIds = await db3.select({ buildingId: residences.buildingId }).from(userResidences4).innerJoin(residences, eq16(userResidences4.residenceId, residences.id)).where(and15(eq16(userResidences4.userId, user.id), eq16(userResidences4.isActive, true)));
     return userBuildingIds.map((b) => b.buildingId);
   }
   return [];
@@ -14626,12 +14272,12 @@ async function getUserBookingHours(userId, commonSpaceId, limitType) {
     startDate = new Date(now.getFullYear(), 0, 1);
   }
   const conditions = [
-    eq17(bookings2.userId, userId),
-    eq17(bookings2.status, "confirmed"),
+    eq16(bookings2.userId, userId),
+    eq16(bookings2.status, "confirmed"),
     gte6(bookings2.startTime, startDate)
   ];
   if (commonSpaceId) {
-    conditions.push(eq17(bookings2.commonSpaceId, commonSpaceId));
+    conditions.push(eq16(bookings2.commonSpaceId, commonSpaceId));
   }
   const userBookings = await db3.select({
     totalHours: sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`
@@ -14641,9 +14287,9 @@ async function getUserBookingHours(userId, commonSpaceId, limitType) {
 async function checkUserTimeLimit(userId, commonSpaceId, newBookingHours) {
   const timeLimits = await db3.select().from(userTimeLimits2).where(
     and15(
-      eq17(userTimeLimits2.userId, userId),
+      eq16(userTimeLimits2.userId, userId),
       or8(
-        eq17(userTimeLimits2.commonSpaceId, commonSpaceId),
+        eq16(userTimeLimits2.commonSpaceId, commonSpaceId),
         sql18`${userTimeLimits2.commonSpaceId} IS NULL`
       )
     )
@@ -14671,8 +14317,8 @@ async function checkUserTimeLimit(userId, commonSpaceId, newBookingHours) {
 }
 async function hasOverlappingBookings(commonSpaceId, startTime, endTime, excludeBookingId) {
   const conditions = [
-    eq17(bookings2.commonSpaceId, commonSpaceId),
-    eq17(bookings2.status, "confirmed"),
+    eq16(bookings2.commonSpaceId, commonSpaceId),
+    eq16(bookings2.status, "confirmed"),
     or8(
       // New booking starts during existing booking
       and15(gte6(bookings2.startTime, startTime), lte4(bookings2.startTime, endTime)),
@@ -14693,8 +14339,8 @@ async function hasOverlappingBookings(commonSpaceId, startTime, endTime, exclude
 async function isUserBlocked(userId, commonSpaceId) {
   const restriction = await db3.select({ isBlocked: userBookingRestrictions2.isBlocked }).from(userBookingRestrictions2).where(
     and15(
-      eq17(userBookingRestrictions2.userId, userId),
-      eq17(userBookingRestrictions2.commonSpaceId, commonSpaceId)
+      eq16(userBookingRestrictions2.userId, userId),
+      eq16(userBookingRestrictions2.commonSpaceId, commonSpaceId)
     )
   ).limit(1);
   return restriction.length > 0 && restriction[0].isBlocked;
@@ -14739,7 +14385,7 @@ function registerCommonSpacesRoutes(app2) {
       if (accessibleBuildingIds.length === 0) {
         return res.json([]);
       }
-      const conditions = [eq17(buildings4.isActive, true)];
+      const conditions = [eq16(buildings4.isActive, true)];
       if (building_id) {
         if (!accessibleBuildingIds.includes(building_id)) {
           return res.status(403).json({
@@ -14747,7 +14393,7 @@ function registerCommonSpacesRoutes(app2) {
             code: "INSUFFICIENT_PERMISSIONS"
           });
         }
-        conditions.push(eq17(commonSpaces2.buildingId, building_id));
+        conditions.push(eq16(commonSpaces2.buildingId, building_id));
       } else {
         conditions.push(inArray8(commonSpaces2.buildingId, accessibleBuildingIds));
       }
@@ -14765,7 +14411,7 @@ function registerCommonSpacesRoutes(app2) {
         bookingRules: commonSpaces2.bookingRules,
         createdAt: commonSpaces2.createdAt,
         updatedAt: commonSpaces2.updatedAt
-      }).from(commonSpaces2).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).leftJoin(users3, eq17(commonSpaces2.contactPersonId, users3.id)).where(and15(...conditions)).orderBy(buildings4.name, commonSpaces2.name);
+      }).from(commonSpaces2).innerJoin(buildings4, eq16(commonSpaces2.buildingId, buildings4.id)).leftJoin(users3, eq16(commonSpaces2.contactPersonId, users3.id)).where(and15(...conditions)).orderBy(buildings4.name, commonSpaces2.name);
       console.warn(`\u2705 Found ${spaces.length} common spaces for user ${user.id}`);
       res.json(spaces);
     } catch (error2) {
@@ -14804,7 +14450,7 @@ function registerCommonSpacesRoutes(app2) {
       const space = await db3.select({
         id: commonSpaces2.id,
         buildingId: commonSpaces2.buildingId
-      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq16(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -14818,7 +14464,7 @@ function registerCommonSpacesRoutes(app2) {
           code: "INSUFFICIENT_PERMISSIONS"
         });
       }
-      const conditions = [eq17(bookings2.commonSpaceId, spaceId)];
+      const conditions = [eq16(bookings2.commonSpaceId, spaceId)];
       if (start_date) {
         conditions.push(gte6(bookings2.startTime, new Date(start_date)));
       }
@@ -14836,7 +14482,7 @@ function registerCommonSpacesRoutes(app2) {
         status: bookings2.status,
         createdAt: bookings2.createdAt,
         updatedAt: bookings2.updatedAt
-      }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
+      }).from(bookings2).innerJoin(users3, eq16(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
       res.json(spaceBookings);
     } catch (error2) {
       console.error("Error fetching bookings:", error2);
@@ -14893,7 +14539,7 @@ function registerCommonSpacesRoutes(app2) {
         buildingId: commonSpaces2.buildingId,
         isReservable: commonSpaces2.isReservable,
         openingHours: commonSpaces2.openingHours
-      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq16(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -14994,7 +14640,7 @@ function registerCommonSpacesRoutes(app2) {
         isReservable: commonSpaces2.isReservable,
         openingHours: commonSpaces2.openingHours,
         capacity: commonSpaces2.capacity
-      }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
+      }).from(commonSpaces2).where(eq16(commonSpaces2.id, spaceId)).limit(1);
       if (space.length === 0) {
         return res.status(404).json({
           message: "Common space not found",
@@ -15010,8 +14656,8 @@ function registerCommonSpacesRoutes(app2) {
         });
       }
       const conditions = [
-        eq17(bookings2.commonSpaceId, spaceId),
-        eq17(bookings2.status, "confirmed"),
+        eq16(bookings2.commonSpaceId, spaceId),
+        eq16(bookings2.status, "confirmed"),
         gte6(bookings2.startTime, new Date(start_date)),
         lte4(bookings2.endTime, new Date(end_date))
       ];
@@ -15024,7 +14670,7 @@ function registerCommonSpacesRoutes(app2) {
         userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
         userEmail: users3.email,
         userRole: users3.role
-      }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
+      }).from(bookings2).innerJoin(users3, eq16(bookings2.userId, users3.id)).where(and15(...conditions)).orderBy(bookings2.startTime);
       const canViewDetails = ["admin", "manager"].includes(user.role);
       const events = spaceBookings.map((booking) => ({
         id: booking.id,
@@ -15090,7 +14736,7 @@ function registerCommonSpacesRoutes(app2) {
         commonSpaceName: commonSpaces2.name,
         buildingName: buildings4.name,
         buildingAddress: buildings4.address
-      }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).where(and15(eq17(bookings2.userId, user.id), eq17(bookings2.status, "confirmed"))).orderBy(desc6(bookings2.startTime));
+      }).from(bookings2).innerJoin(commonSpaces2, eq16(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq16(commonSpaces2.buildingId, buildings4.id)).where(and15(eq16(bookings2.userId, user.id), eq16(bookings2.status, "confirmed"))).orderBy(desc6(bookings2.startTime));
       res.json(userBookings);
     } catch (error2) {
       console.error("Error fetching user bookings:", error2);
@@ -15126,7 +14772,7 @@ function registerCommonSpacesRoutes(app2) {
           commonSpaceId: bookings2.commonSpaceId,
           buildingId: commonSpaces2.buildingId,
           status: bookings2.status
-        }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).where(eq17(bookings2.id, bookingId)).limit(1);
+        }).from(bookings2).innerJoin(commonSpaces2, eq16(bookings2.commonSpaceId, commonSpaces2.id)).where(eq16(bookings2.id, bookingId)).limit(1);
         if (booking.length === 0) {
           return res.status(404).json({
             message: "Booking not found",
@@ -15150,7 +14796,7 @@ function registerCommonSpacesRoutes(app2) {
         await db3.update(bookings2).set({
           status: "cancelled",
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq17(bookings2.id, bookingId));
+        }).where(eq16(bookings2.id, bookingId));
         res.json({
           message: "Booking cancelled successfully"
         });
@@ -15188,7 +14834,7 @@ function registerCommonSpacesRoutes(app2) {
           id: commonSpaces2.id,
           buildingId: commonSpaces2.buildingId,
           name: commonSpaces2.name
-        }).from(commonSpaces2).where(eq17(commonSpaces2.id, spaceId)).limit(1);
+        }).from(commonSpaces2).where(eq16(commonSpaces2.id, spaceId)).limit(1);
         if (space.length === 0) {
           return res.status(404).json({
             message: "Common space not found",
@@ -15210,10 +14856,10 @@ function registerCommonSpacesRoutes(app2) {
           userEmail: users3.email,
           totalHours: sql18`EXTRACT(EPOCH FROM SUM(${bookings2.endTime} - ${bookings2.startTime})) / 3600`,
           totalBookings: sql18`COUNT(${bookings2.id})`
-        }).from(bookings2).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(
+        }).from(bookings2).innerJoin(users3, eq16(bookings2.userId, users3.id)).where(
           and15(
-            eq17(bookings2.commonSpaceId, spaceId),
-            eq17(bookings2.status, "confirmed"),
+            eq16(bookings2.commonSpaceId, spaceId),
+            eq16(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, oneYearAgo)
           )
         ).groupBy(bookings2.userId, users3.firstName, users3.lastName, users3.email).orderBy(
@@ -15227,8 +14873,8 @@ function registerCommonSpacesRoutes(app2) {
           uniqueUsers: sql18`COUNT(DISTINCT ${bookings2.userId})`
         }).from(bookings2).where(
           and15(
-            eq17(bookings2.commonSpaceId, spaceId),
-            eq17(bookings2.status, "confirmed"),
+            eq16(bookings2.commonSpaceId, spaceId),
+            eq16(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, oneYearAgo)
           )
         );
@@ -15282,7 +14928,7 @@ function registerCommonSpacesRoutes(app2) {
         }
         const { userId } = paramValidation.data;
         const { common_space_id, is_blocked, reason } = bodyValidation.data;
-        const targetUser = await db3.select({ id: users3.id }).from(users3).where(eq17(users3.id, userId)).limit(1);
+        const targetUser = await db3.select({ id: users3.id }).from(users3).where(eq16(users3.id, userId)).limit(1);
         if (targetUser.length === 0) {
           return res.status(404).json({
             message: "User not found",
@@ -15292,7 +14938,7 @@ function registerCommonSpacesRoutes(app2) {
         const space = await db3.select({
           id: commonSpaces2.id,
           buildingId: commonSpaces2.buildingId
-        }).from(commonSpaces2).where(eq17(commonSpaces2.id, common_space_id)).limit(1);
+        }).from(commonSpaces2).where(eq16(commonSpaces2.id, common_space_id)).limit(1);
         if (space.length === 0) {
           return res.status(404).json({
             message: "Common space not found",
@@ -15308,8 +14954,8 @@ function registerCommonSpacesRoutes(app2) {
         }
         const existingRestriction = await db3.select({ id: userBookingRestrictions2.id }).from(userBookingRestrictions2).where(
           and15(
-            eq17(userBookingRestrictions2.userId, userId),
-            eq17(userBookingRestrictions2.commonSpaceId, common_space_id)
+            eq16(userBookingRestrictions2.userId, userId),
+            eq16(userBookingRestrictions2.commonSpaceId, common_space_id)
           )
         ).limit(1);
         if (existingRestriction.length > 0) {
@@ -15317,7 +14963,7 @@ function registerCommonSpacesRoutes(app2) {
             isBlocked: is_blocked,
             reason,
             updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq17(userBookingRestrictions2.id, existingRestriction[0].id));
+          }).where(eq16(userBookingRestrictions2.id, existingRestriction[0].id));
         } else {
           await db3.insert(userBookingRestrictions2).values({
             userId,
@@ -15369,14 +15015,14 @@ function registerCommonSpacesRoutes(app2) {
             code: "INSUFFICIENT_PERMISSIONS"
           });
         }
-        const building = await db3.select({ id: buildings4.id, name: buildings4.name }).from(buildings4).where(and15(eq17(buildings4.id, building_id), eq17(buildings4.isActive, true))).limit(1);
+        const building = await db3.select({ id: buildings4.id, name: buildings4.name }).from(buildings4).where(and15(eq16(buildings4.id, building_id), eq16(buildings4.isActive, true))).limit(1);
         if (building.length === 0) {
           return res.status(404).json({
             message: "Building not found or inactive",
             code: "BUILDING_NOT_FOUND"
           });
         }
-        const existingSpace = await db3.select({ id: commonSpaces2.id }).from(commonSpaces2).where(and15(eq17(commonSpaces2.name, name), eq17(commonSpaces2.buildingId, building_id))).limit(1);
+        const existingSpace = await db3.select({ id: commonSpaces2.id }).from(commonSpaces2).where(and15(eq16(commonSpaces2.name, name), eq16(commonSpaces2.buildingId, building_id))).limit(1);
         if (existingSpace.length > 0) {
           return res.status(409).json({
             message: "A common space with this name already exists in this building",
@@ -15450,7 +15096,7 @@ function registerCommonSpacesRoutes(app2) {
         }
         const { userId } = paramValidation.data;
         const { user_id, common_space_id, limit_type, limit_hours } = validationResult.data;
-        const targetUser = await db3.select({ id: users3.id, firstName: users3.firstName, lastName: users3.lastName }).from(users3).where(eq17(users3.id, userId)).limit(1);
+        const targetUser = await db3.select({ id: users3.id, firstName: users3.firstName, lastName: users3.lastName }).from(users3).where(eq16(users3.id, userId)).limit(1);
         if (targetUser.length === 0) {
           return res.status(404).json({
             message: "User not found",
@@ -15462,7 +15108,7 @@ function registerCommonSpacesRoutes(app2) {
             id: commonSpaces2.id,
             name: commonSpaces2.name,
             buildingId: commonSpaces2.buildingId
-          }).from(commonSpaces2).where(eq17(commonSpaces2.id, common_space_id)).limit(1);
+          }).from(commonSpaces2).where(eq16(commonSpaces2.id, common_space_id)).limit(1);
           if (space.length === 0) {
             return res.status(404).json({
               message: "Common space not found",
@@ -15479,16 +15125,16 @@ function registerCommonSpacesRoutes(app2) {
         }
         const existingLimit = await db3.select({ id: userTimeLimits2.id }).from(userTimeLimits2).where(
           and15(
-            eq17(userTimeLimits2.userId, userId),
-            common_space_id ? eq17(userTimeLimits2.commonSpaceId, common_space_id) : sql18`${userTimeLimits2.commonSpaceId} IS NULL`,
-            eq17(userTimeLimits2.limitType, limit_type)
+            eq16(userTimeLimits2.userId, userId),
+            common_space_id ? eq16(userTimeLimits2.commonSpaceId, common_space_id) : sql18`${userTimeLimits2.commonSpaceId} IS NULL`,
+            eq16(userTimeLimits2.limitType, limit_type)
           )
         ).limit(1);
         if (existingLimit.length > 0) {
           await db3.update(userTimeLimits2).set({
             limitHours: limit_hours,
             updatedAt: /* @__PURE__ */ new Date()
-          }).where(eq17(userTimeLimits2.id, existingLimit[0].id));
+          }).where(eq16(userTimeLimits2.id, existingLimit[0].id));
         } else {
           await db3.insert(userTimeLimits2).values({
             userId,
@@ -15542,7 +15188,7 @@ function registerCommonSpacesRoutes(app2) {
           limitHours: userTimeLimits2.limitHours,
           createdAt: userTimeLimits2.createdAt,
           updatedAt: userTimeLimits2.updatedAt
-        }).from(userTimeLimits2).leftJoin(commonSpaces2, eq17(userTimeLimits2.commonSpaceId, commonSpaces2.id)).where(eq17(userTimeLimits2.userId, userId)).orderBy(userTimeLimits2.limitType, userTimeLimits2.commonSpaceId);
+        }).from(userTimeLimits2).leftJoin(commonSpaces2, eq16(userTimeLimits2.commonSpaceId, commonSpaces2.id)).where(eq16(userTimeLimits2.userId, userId)).orderBy(userTimeLimits2.limitType, userTimeLimits2.commonSpaceId);
         const limitsWithUsage = await Promise.all(
           limits.map(async (limit) => {
             const currentHours = await getUserBookingHours(
@@ -15598,10 +15244,10 @@ function registerCommonSpacesRoutes(app2) {
         spaceId: commonSpaces2.id,
         buildingName: buildings4.name,
         buildingId: buildings4.id
-      }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq17(commonSpaces2.buildingId, buildings4.id)).where(
+      }).from(bookings2).innerJoin(commonSpaces2, eq16(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(buildings4, eq16(commonSpaces2.buildingId, buildings4.id)).where(
         and15(
-          eq17(bookings2.userId, user.id),
-          eq17(bookings2.status, "confirmed"),
+          eq16(bookings2.userId, user.id),
+          eq16(bookings2.status, "confirmed"),
           gte6(bookings2.startTime, new Date(start_date)),
           lte4(bookings2.endTime, new Date(end_date))
         )
@@ -15680,7 +15326,7 @@ function registerCommonSpacesRoutes(app2) {
           id: buildings4.id,
           name: buildings4.name,
           address: buildings4.address
-        }).from(buildings4).where(eq17(buildings4.id, buildingId)).limit(1);
+        }).from(buildings4).where(eq16(buildings4.id, buildingId)).limit(1);
         if (building.length === 0) {
           return res.status(404).json({
             message: "Building not found",
@@ -15698,10 +15344,10 @@ function registerCommonSpacesRoutes(app2) {
           userName: sql18`CONCAT(${users3.firstName}, ' ', ${users3.lastName})`,
           userEmail: users3.email,
           userRole: users3.role
-        }).from(bookings2).innerJoin(commonSpaces2, eq17(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(users3, eq17(bookings2.userId, users3.id)).where(
+        }).from(bookings2).innerJoin(commonSpaces2, eq16(bookings2.commonSpaceId, commonSpaces2.id)).innerJoin(users3, eq16(bookings2.userId, users3.id)).where(
           and15(
-            eq17(commonSpaces2.buildingId, buildingId),
-            eq17(bookings2.status, "confirmed"),
+            eq16(commonSpaces2.buildingId, buildingId),
+            eq16(bookings2.status, "confirmed"),
             gte6(bookings2.startTime, new Date(start_date)),
             lte4(bookings2.endTime, new Date(end_date))
           )
@@ -15711,7 +15357,7 @@ function registerCommonSpacesRoutes(app2) {
           name: commonSpaces2.name,
           isReservable: commonSpaces2.isReservable,
           capacity: commonSpaces2.capacity
-        }).from(commonSpaces2).where(eq17(commonSpaces2.buildingId, buildingId)).orderBy(commonSpaces2.name);
+        }).from(commonSpaces2).where(eq16(commonSpaces2.buildingId, buildingId)).orderBy(commonSpaces2.name);
         const spaceUsage = buildingSpaces.map((space) => {
           const spaceBookings = buildingBookings.filter((booking) => booking.spaceId === space.id);
           const totalHours = spaceBookings.reduce((total, booking) => {
@@ -15824,7 +15470,7 @@ var init_common_spaces = __esm({
 
 // server/api/budgets.ts
 import express3 from "express";
-import { and as and16, eq as eq18, gte as gte7, lte as lte5, sql as sql19, asc as asc2 } from "drizzle-orm";
+import { and as and16, eq as eq17, gte as gte7, lte as lte5, sql as sql19, asc as asc2 } from "drizzle-orm";
 var router2, budgets_default;
 var init_budgets = __esm({
   "server/api/budgets.ts"() {
@@ -15843,7 +15489,7 @@ var init_budgets = __esm({
         const startMo = startMonth ? parseInt(startMonth) : 1;
         const endMo = endMonth ? parseInt(endMonth) : 12;
         const building = await db3.query.buildings.findFirst({
-          where: eq18(buildings.id, buildingId),
+          where: eq17(buildings.id, buildingId),
           columns: {
             id: true,
             name: true
@@ -15861,15 +15507,15 @@ var init_budgets = __esm({
             variance: budgets.variance
           }).from(budgets).where(
             and16(
-              eq18(budgets.buildingId, buildingId),
+              eq17(budgets.buildingId, buildingId),
               gte7(budgets.year, start),
               lte5(budgets.year, end),
-              eq18(budgets.isActive, true)
+              eq17(budgets.isActive, true)
             )
           ).orderBy(asc2(budgets.year));
           return res.json({ budgets: yearlyBudgets, type: "yearly" });
         } else {
-          const whereConditions = [eq18(monthlyBudgets.buildingId, buildingId)];
+          const whereConditions = [eq17(monthlyBudgets.buildingId, buildingId)];
           if (groupBy === "monthly" && (startMonth || endMonth)) {
             const startYearMonth = start * 100 + startMo;
             const endYearMonth = end * 100 + endMo;
@@ -15929,7 +15575,7 @@ var init_budgets = __esm({
         const end = endYear ? parseInt(endYear) : currentYear + 25;
         const startMo = startMonth ? parseInt(startMonth) : 1;
         const endMo = endMonth ? parseInt(endMonth) : 12;
-        const whereConditions = [eq18(monthlyBudgets.buildingId, buildingId)];
+        const whereConditions = [eq17(monthlyBudgets.buildingId, buildingId)];
         if (startMonth || endMonth) {
           const startYearMonth = start * 100 + startMo;
           const endYearMonth = end * 100 + endMo;
@@ -15989,7 +15635,7 @@ var init_budgets = __esm({
           bankAccountMinimums
         } = req.body;
         const building = await db3.query.buildings.findFirst({
-          where: eq18(buildings.id, buildingId),
+          where: eq17(buildings.id, buildingId),
           columns: { id: true }
         });
         if (!building) {
@@ -16002,7 +15648,7 @@ var init_budgets = __esm({
           bankAccountStartAmount,
           bankAccountMinimums,
           bankAccountUpdatedAt: /* @__PURE__ */ new Date()
-        }).where(eq18(buildings.id, buildingId));
+        }).where(eq17(buildings.id, buildingId));
         res.json({
           message: "Bank account updated successfully",
           bankAccountNumber,
@@ -16029,7 +15675,7 @@ var init_budgets = __esm({
       try {
         const { buildingId } = req.params;
         const building = await db3.query.buildings.findFirst({
-          where: eq18(buildings.id, buildingId),
+          where: eq17(buildings.id, buildingId),
           columns: {
             id: true,
             bankAccountNumber: true,
@@ -16061,7 +15707,7 @@ var init_budgets = __esm({
 });
 
 // server/services/dynamic-financial-calculator.ts
-import { eq as eq19, and as and17, sql as sql20 } from "drizzle-orm";
+import { eq as eq18, and as and17, sql as sql20 } from "drizzle-orm";
 var bills3, residences2, buildings5, DynamicFinancialCalculator, dynamicFinancialCalculator;
 var init_dynamic_financial_calculator = __esm({
   "server/services/dynamic-financial-calculator.ts"() {
@@ -16103,15 +15749,15 @@ var init_dynamic_financial_calculator = __esm({
       async calculateFinancialData(buildingId, startDate, endDate) {
         const activeBills = await db3.select().from(bills3).where(
           and17(
-            eq19(bills3.buildingId, buildingId),
-            eq19(bills3.paymentType, "recurrent"),
+            eq18(bills3.buildingId, buildingId),
+            eq18(bills3.paymentType, "recurrent"),
             sql20`${bills3.status} IN ('sent', 'draft')`
           )
         );
         const activeResidences = await db3.select().from(residences2).where(
           and17(
-            eq19(residences2.buildingId, buildingId),
-            eq19(residences2.isActive, true),
+            eq18(residences2.buildingId, buildingId),
+            eq18(residences2.isActive, true),
             sql20`${residences2.monthlyFees} > 0`
           )
         );
@@ -16904,14 +16550,14 @@ var residences_exports = {};
 __export(residences_exports, {
   registerResidenceRoutes: () => registerResidenceRoutes
 });
-import { eq as eq20, and as and18, inArray as inArray9, sql as sql21 } from "drizzle-orm";
+import { eq as eq19, and as and18, inArray as inArray9, sql as sql21 } from "drizzle-orm";
 function registerResidenceRoutes(app2) {
   app2.get("/api/user/residences", requireAuth, async (req, res) => {
     try {
       const user = req.user;
       const userResidencesList = await db3.select({
         residenceId: userResidences.residenceId
-      }).from(userResidences).where(and18(eq20(userResidences.userId, user.id), eq20(userResidences.isActive, true)));
+      }).from(userResidences).where(and18(eq19(userResidences.userId, user.id), eq19(userResidences.isActive, true)));
       res.json(userResidencesList);
     } catch (_error2) {
       console.error("Error fetching user residences:", _error2);
@@ -16936,8 +16582,8 @@ function registerResidenceRoutes(app2) {
           startDate: userResidences.startDate,
           endDate: userResidences.endDate,
           isActive: userResidences.isActive
-        }).from(userResidences).innerJoin(users, eq20(userResidences.userId, users.id)).where(
-          and18(eq20(userResidences.residenceId, residenceId), eq20(userResidences.isActive, true))
+        }).from(userResidences).innerJoin(users, eq19(userResidences.userId, users.id)).where(
+          and18(eq19(userResidences.residenceId, residenceId), eq19(userResidences.isActive, true))
         );
         res.json(assignedUsers);
       } catch (_error2) {
@@ -16960,7 +16606,7 @@ function registerResidenceRoutes(app2) {
           email,
           phone,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq20(users.id, userId));
+        }).where(eq19(users.id, userId));
         res.json({ message: "User updated successfully" });
       } catch (_error2) {
         console.error("Error updating assigned user:", _error2);
@@ -16973,25 +16619,25 @@ function registerResidenceRoutes(app2) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
       console.warn(`\u{1F4CA} Fetching residences for user ${user.id} with role ${user.role}`);
-      const conditions = [eq20(residences.isActive, true)];
+      const conditions = [eq19(residences.isActive, true)];
       if (buildingId) {
-        conditions.push(eq20(residences.buildingId, buildingId));
+        conditions.push(eq19(residences.buildingId, buildingId));
       }
       if (floor) {
-        conditions.push(eq20(residences.floor, parseInt(floor)));
+        conditions.push(eq19(residences.floor, parseInt(floor)));
       }
       const accessibleBuildingIds = /* @__PURE__ */ new Set();
       const userOrgs = await db3.select({
         organizationId: organizations.id,
         organizationName: organizations.name,
         canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations
-      }).from(organizations).innerJoin(userOrganizations, eq20(userOrganizations.organizationId, organizations.id)).where(and18(eq20(userOrganizations.userId, user.id), eq20(userOrganizations.isActive, true)));
+      }).from(organizations).innerJoin(userOrganizations, eq19(userOrganizations.organizationId, organizations.id)).where(and18(eq19(userOrganizations.userId, user.id), eq19(userOrganizations.isActive, true)));
       const hasGlobalAccess = user.role === "admin" || userOrgs.some((org) => org.organizationName === "Koveo" || org.canAccessAllOrganizations);
       if (hasGlobalAccess) {
         console.warn(
           `\u{1F31F} Admin user or user with global access detected - granting access to ALL residences`
         );
-        const allBuildings = await db3.select({ id: buildings.id }).from(buildings).where(eq20(buildings.isActive, true));
+        const allBuildings = await db3.select({ id: buildings.id }).from(buildings).where(eq19(buildings.isActive, true));
         allBuildings.forEach((building) => {
           accessibleBuildingIds.add(building.id);
         });
@@ -16999,7 +16645,7 @@ function registerResidenceRoutes(app2) {
         if (user.role === "admin" || user.role === "manager") {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
-            const orgBuildings = await db3.select({ id: buildings.id }).from(buildings).where(and18(inArray9(buildings.organizationId, orgIds), eq20(buildings.isActive, true)));
+            const orgBuildings = await db3.select({ id: buildings.id }).from(buildings).where(and18(inArray9(buildings.organizationId, orgIds), eq19(buildings.isActive, true)));
             orgBuildings.forEach((building) => {
               accessibleBuildingIds.add(building.id);
             });
@@ -17007,10 +16653,10 @@ function registerResidenceRoutes(app2) {
         }
         const userResidenceRecords = await db3.select({
           residenceId: userResidences.residenceId
-        }).from(userResidences).where(and18(eq20(userResidences.userId, user.id), eq20(userResidences.isActive, true)));
+        }).from(userResidences).where(and18(eq19(userResidences.userId, user.id), eq19(userResidences.isActive, true)));
         if (userResidenceRecords.length > 0) {
           const residenceIds2 = userResidenceRecords.map((ur) => ur.residenceId);
-          const residenceBuildings = await db3.select({ id: buildings.id }).from(residences).innerJoin(buildings, eq20(residences.buildingId, buildings.id)).where(and18(inArray9(residences.id, residenceIds2), eq20(buildings.isActive, true)));
+          const residenceBuildings = await db3.select({ id: buildings.id }).from(residences).innerJoin(buildings, eq19(residences.buildingId, buildings.id)).where(and18(inArray9(residences.id, residenceIds2), eq19(buildings.isActive, true)));
           residenceBuildings.forEach((building) => {
             accessibleBuildingIds.add(building.id);
           });
@@ -17026,7 +16672,7 @@ function registerResidenceRoutes(app2) {
         residence: residences,
         building: buildings,
         organization: organizations
-      }).from(residences).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).leftJoin(organizations, eq20(buildings.organizationId, organizations.id)).where(and18(...conditions));
+      }).from(residences).leftJoin(buildings, eq19(residences.buildingId, buildings.id)).leftJoin(organizations, eq19(buildings.organizationId, organizations.id)).where(and18(...conditions));
       let results = await baseQuery;
       if (search) {
         const searchLower = search.toLowerCase();
@@ -17038,10 +16684,10 @@ function registerResidenceRoutes(app2) {
       const tenants = residenceIds.length > 0 ? await db3.select({
         residenceId: userResidences.residenceId,
         tenant: users
-      }).from(userResidences).innerJoin(users, eq20(userResidences.userId, users.id)).where(
+      }).from(userResidences).innerJoin(users, eq19(userResidences.userId, users.id)).where(
         and18(
           inArray9(userResidences.residenceId, residenceIds),
-          eq20(userResidences.isActive, true)
+          eq19(userResidences.isActive, true)
         )
       ) : [];
       const tenantsByResidence = tenants.reduce(
@@ -17079,16 +16725,16 @@ function registerResidenceRoutes(app2) {
         residence: residences,
         building: buildings,
         organization: organizations
-      }).from(residences).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).leftJoin(organizations, eq20(buildings.organizationId, organizations.id)).where(and18(eq20(residences.id, id), eq20(residences.isActive, true)));
+      }).from(residences).leftJoin(buildings, eq19(residences.buildingId, buildings.id)).leftJoin(organizations, eq19(buildings.organizationId, organizations.id)).where(and18(eq19(residences.id, id), eq19(residences.isActive, true)));
       if (result.length === 0) {
         return res.status(404).json({ message: "Residence not found" });
       }
       const residence = result[0];
       if (user.role !== "admin" && !user.canAccessAllOrganizations) {
-        const userHasAccess = await db3.select({ count: sql21`count(*)` }).from(userResidences).leftJoin(residences, eq20(userResidences.residenceId, residences.id)).leftJoin(buildings, eq20(residences.buildingId, buildings.id)).where(
+        const userHasAccess = await db3.select({ count: sql21`count(*)` }).from(userResidences).leftJoin(residences, eq19(userResidences.residenceId, residences.id)).leftJoin(buildings, eq19(residences.buildingId, buildings.id)).where(
           and18(
-            eq20(userResidences.userId, user.id),
-            eq20(buildings.organizationId, residence.organization.id)
+            eq19(userResidences.userId, user.id),
+            eq19(buildings.organizationId, residence.organization.id)
           )
         );
         if (userHasAccess[0].count === 0) {
@@ -17103,7 +16749,7 @@ function registerResidenceRoutes(app2) {
         relationshipType: userResidences.relationshipType,
         startDate: userResidences.startDate,
         endDate: userResidences.endDate
-      }).from(userResidences).leftJoin(users, eq20(userResidences.userId, users.id)).where(and18(eq20(userResidences.residenceId, id), eq20(userResidences.isActive, true)));
+      }).from(userResidences).leftJoin(users, eq19(userResidences.userId, users.id)).where(and18(eq19(userResidences.residenceId, id), eq19(userResidences.isActive, true)));
       res.json({
         ...residence.residence,
         building: residence.building,
@@ -17125,7 +16771,7 @@ function registerResidenceRoutes(app2) {
       const updated = await db3.update(residences).set({
         ...updateData,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq20(residences.id, id)).returning();
+      }).where(eq19(residences.id, id)).returning();
       if (updated.length === 0) {
         return res.status(404).json({ message: "Residence not found" });
       }
@@ -17147,7 +16793,7 @@ function registerResidenceRoutes(app2) {
     async (req, res) => {
       try {
         const { buildingId } = req.params;
-        const building = await db3.select().from(buildings).where(eq20(buildings.id, buildingId)).limit(1);
+        const building = await db3.select().from(buildings).where(eq19(buildings.id, buildingId)).limit(1);
         if (building.length === 0) {
           return res.status(404).json({ message: "Building not found" });
         }
@@ -17157,7 +16803,7 @@ function registerResidenceRoutes(app2) {
         if (totalUnits > 300) {
           return res.status(400).json({ message: "Cannot create more than 300 residences per building" });
         }
-        const existingResidences = await db3.select({ count: sql21`count(*)` }).from(residences).where(eq20(residences.buildingId, buildingId));
+        const existingResidences = await db3.select({ count: sql21`count(*)` }).from(residences).where(eq19(residences.buildingId, buildingId));
         if (existingResidences[0].count > 0) {
           return res.status(400).json({ message: "Residences already exist for this building" });
         }
@@ -17333,7 +16979,7 @@ __export(routes_minimal_exports, {
 });
 import express5 from "express";
 import { createServer } from "http";
-import { eq as eq21, and as and19, gte as gte9, desc as desc8, sql as sql22 } from "drizzle-orm";
+import { eq as eq20, and as and19, gte as gte9, desc as desc8, sql as sql22 } from "drizzle-orm";
 import crypto3 from "crypto";
 function generateSecureToken() {
   return crypto3.randomBytes(32).toString("hex");
@@ -17442,12 +17088,7 @@ async function registerRoutes(app2) {
   } catch (_error2) {
     log(`\u274C Feature request routes failed: ${_error2}`, "error");
   }
-  try {
-    registerDemoManagementRoutes(app2);
-    log("\u2705 Demo management routes registered");
-  } catch (_error2) {
-    log(`\u274C Demo management routes failed: ${_error2}`, "error");
-  }
+  log("\u2705 Demo management routes removed (not registered)");
   try {
     registerFeatureManagementRoutes(app2);
     log("\u2705 Feature management routes registered");
@@ -17591,7 +17232,7 @@ async function registerRoutes(app2) {
           if (typeof isStrategicPath !== "boolean") {
             return res.status(400).json({ message: "isStrategicPath must be a boolean" });
           }
-          const [feature] = await db3.update(features).set({ isStrategicPath, updatedAt: /* @__PURE__ */ new Date() }).where(eq21(features.id, req.params.id)).returning();
+          const [feature] = await db3.update(features).set({ isStrategicPath, updatedAt: /* @__PURE__ */ new Date() }).where(eq20(features.id, req.params.id)).returning();
           if (!feature) {
             return res.status(404).json({ message: "Feature not found" });
           }
@@ -17668,7 +17309,7 @@ async function registerRoutes(app2) {
               });
             }
           }
-          const existingUser = await db3.select().from(schemaUsers).where(eq21(schemaUsers.email, email)).limit(1);
+          const existingUser = await db3.select().from(schemaUsers).where(eq20(schemaUsers.email, email)).limit(1);
           if (existingUser.length > 0) {
             return res.status(409).json({
               message: "User with this email already exists",
@@ -17683,9 +17324,9 @@ async function registerRoutes(app2) {
             organizationId: invitations2.organizationId
           }).from(invitations2).where(
             and19(
-              eq21(invitations2.email, email),
-              eq21(invitations2.organizationId, organizationId),
-              eq21(invitations2.status, "pending"),
+              eq20(invitations2.email, email),
+              eq20(invitations2.organizationId, organizationId),
+              eq20(invitations2.status, "pending"),
               gte9(invitations2.expiresAt, /* @__PURE__ */ new Date())
             )
           ).limit(1);
@@ -17695,9 +17336,9 @@ async function registerRoutes(app2) {
             );
             await db3.delete(invitations2).where(
               and19(
-                eq21(invitations2.email, email),
-                eq21(invitations2.organizationId, organizationId),
-                eq21(invitations2.status, "pending"),
+                eq20(invitations2.email, email),
+                eq20(invitations2.organizationId, organizationId),
+                eq20(invitations2.status, "pending"),
                 gte9(invitations2.expiresAt, /* @__PURE__ */ new Date())
               )
             );
@@ -17758,7 +17399,7 @@ async function registerRoutes(app2) {
             const isDevelopment = process.env.NODE_ENV !== "production";
             const baseUrl = isDevelopment ? "http://localhost:5000" : process.env.FRONTEND_URL || "http://localhost:5000";
             const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
-            const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq21(organizations2.id, organizationId)).limit(1);
+            const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq20(organizations2.id, organizationId)).limit(1);
             const organizationName = organization[0]?.name || "Your Organization";
             console.log("\u{1F4E7} Attempting to send invitation email with params:", {
               to: email,
@@ -17841,7 +17482,7 @@ async function registerRoutes(app2) {
           expiresAt: invitations2.expiresAt,
           invitedByUserId: invitations2.invitedByUserId,
           personalMessage: invitations2.personalMessage
-        }).from(invitations2).where(eq21(invitations2.tokenHash, tokenHash)).limit(1);
+        }).from(invitations2).where(eq20(invitations2.tokenHash, tokenHash)).limit(1);
         console.warn("\u{1F4CA} Database query _result:", { found: invitation.length > 0 });
         if (invitation.length === 0) {
           await createInvitationAuditLog(
@@ -17892,11 +17533,11 @@ async function registerRoutes(app2) {
             isValid: false
           });
         }
-        const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq21(organizations2.id, invitationData.organizationId)).limit(1);
+        const organization = await db3.select({ name: organizations2.name }).from(organizations2).where(eq20(organizations2.id, invitationData.organizationId)).limit(1);
         const inviter = await db3.select({
           firstName: schemaUsers.firstName,
           lastName: schemaUsers.lastName
-        }).from(schemaUsers).where(eq21(schemaUsers.id, invitationData.invitedByUserId)).limit(1);
+        }).from(schemaUsers).where(eq20(schemaUsers.id, invitationData.invitedByUserId)).limit(1);
         await createInvitationAuditLog(
           invitationData.id,
           "validation_success",
@@ -17959,7 +17600,7 @@ async function registerRoutes(app2) {
           });
         }
         const tokenHash = hashToken(token);
-        const invitation = await db3.select().from(invitations2).where(and19(eq21(invitations2.tokenHash, tokenHash), eq21(invitations2.status, "pending"))).limit(1);
+        const invitation = await db3.select().from(invitations2).where(and19(eq20(invitations2.tokenHash, tokenHash), eq20(invitations2.status, "pending"))).limit(1);
         if (invitation.length === 0) {
           await createInvitationAuditLog(
             "unknown",
@@ -17991,7 +17632,7 @@ async function registerRoutes(app2) {
             code: "TOKEN_EXPIRED"
           });
         }
-        const existingUser = await db3.select().from(schemaUsers).where(eq21(schemaUsers.email, invitationData.email)).limit(1);
+        const existingUser = await db3.select().from(schemaUsers).where(eq20(schemaUsers.email, invitationData.email)).limit(1);
         if (existingUser.length > 0) {
           return res.status(409).json({
             message: "User with this email already exists",
@@ -18024,7 +17665,7 @@ async function registerRoutes(app2) {
         await db3.update(invitations2).set({
           status: "accepted",
           acceptedAt: /* @__PURE__ */ new Date()
-        }).where(eq21(invitations2.id, invitationData.id));
+        }).where(eq20(invitations2.id, invitationData.id));
         await createInvitationAuditLog(
           invitationData.id,
           "accepted",
@@ -18086,7 +17727,7 @@ async function registerRoutes(app2) {
       authorize("update:improvement_suggestions"),
       async (req, res) => {
         try {
-          const [suggestion] = await db3.update(improvementSuggestions).set({ status: "Acknowledged" }).where(eq21(improvementSuggestions.id, req.params.id)).returning();
+          const [suggestion] = await db3.update(improvementSuggestions).set({ status: "Acknowledged" }).where(eq20(improvementSuggestions.id, req.params.id)).returning();
           if (!suggestion) {
             return res.status(404).json({ message: "Suggestion not found" });
           }
@@ -18103,7 +17744,7 @@ async function registerRoutes(app2) {
       authorize("delete:improvement_suggestions"),
       async (req, res) => {
         try {
-          const [deletedSuggestion] = await db3.delete(improvementSuggestions).where(eq21(improvementSuggestions.id, req.params.id)).returning({
+          const [deletedSuggestion] = await db3.delete(improvementSuggestions).where(eq20(improvementSuggestions.id, req.params.id)).returning({
             id: improvementSuggestions.id,
             title: improvementSuggestions.title,
             description: improvementSuggestions.description,
@@ -18243,7 +17884,7 @@ async function registerRoutes(app2) {
   try {
     app2.get("/api/user-organizations", requireAuth, async (req, res) => {
       try {
-        const userOrgs = await db3.select().from(userOrganizations).where(eq21(userOrganizations.isActive, true));
+        const userOrgs = await db3.select().from(userOrganizations).where(eq20(userOrganizations.isActive, true));
         res.json(userOrgs);
       } catch (error2) {
         console.error("Error fetching user organizations:", error2);
@@ -18252,7 +17893,7 @@ async function registerRoutes(app2) {
     });
     app2.get("/api/user-residences", requireAuth, async (req, res) => {
       try {
-        const userRes = await db3.select().from(userResidences).where(eq21(userResidences.isActive, true));
+        const userRes = await db3.select().from(userResidences).where(eq20(userResidences.isActive, true));
         res.json(userRes);
       } catch (error2) {
         console.error("Error fetching user residences:", error2);
@@ -18280,12 +17921,7 @@ async function registerRoutes(app2) {
       code: "NOT_FOUND"
     });
   });
-  try {
-    demo_management_service_default.initializeDemoOrganizations().then(() => log("\u2705 Demo organizations initialized successfully")).catch((error2) => log(`\u26A0\uFE0F Demo initialization failed (non-critical): ${error2.message}`, "warn"));
-    log("\u2705 Demo organizations initialization started");
-  } catch (_error2) {
-    log(`\u274C Demo organizations initialization failed: ${_error2}`, "error");
-  }
+  log("\u2705 Demo organizations functionality removed - no initialization needed");
   const path4 = await import("path");
   const fs5 = await import("fs");
   if (process.env.NODE_ENV === "production") {
@@ -18346,7 +17982,6 @@ var init_routes_minimal = __esm({
     init_bugs();
     init_feature_requests();
     init_delayed_updates();
-    init_demo_management();
     init_feature_management();
     init_ai_monitoring();
     init_common_spaces();
@@ -18354,7 +17989,6 @@ var init_routes_minimal = __esm({
     init_dynamic_budgets();
     init_cleanup();
     init_cleanup_scheduler();
-    init_demo_management_service();
     await init_vite();
     init_db();
     init_schema();

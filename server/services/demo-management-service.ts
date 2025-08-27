@@ -41,12 +41,12 @@ export class DemoManagementService {
     demoOrgId?: string;
     openDemoOrgId?: string;
   }> {
-    // Demo organizations functionality disabled per user request
+    // Demo organizations functionality disabled per user request - no database operations
     console.log('✅ Demo organizations functionality disabled (skipped)');
     
     return {
       success: true,
-      message: 'Demo organizations functionality disabled - skipping database operations',
+      message: 'Demo organizations functionality disabled - skipping all database operations',
     };
   }
 
