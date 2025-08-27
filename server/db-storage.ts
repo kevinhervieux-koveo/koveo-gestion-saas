@@ -2,7 +2,8 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
-import { queryCache, cached, CacheInvalidator } from './query-cache';
+import { queryCache, CacheInvalidator } from './query-cache';
+import cached from './query-cache';
 import { trackPerformance } from './performance-monitoring';
 import * as schema from '@shared/schema';
 import type {
@@ -14,14 +15,12 @@ import type {
   InsertBuilding,
   Residence,
   InsertResidence,
-  DevelopmentPillar,
-  InsertPillar,
   WorkspaceStatus,
   InsertWorkspaceStatus,
   QualityMetric,
   InsertQualityMetric,
   FrameworkConfiguration,
-  InsertFrameworkConfig,
+  InsertFrameworkConfiguration,
   ImprovementSuggestion,
   InsertImprovementSuggestion,
   Feature,
