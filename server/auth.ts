@@ -172,19 +172,26 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // Set session role (permissions handled via database)
     req.session.role = user.role;
 
-    // Add organization information to the user object - temporarily simplified due to relations issue
-    const userOrganizations = await db
-      .select({
-        organizationId: schema.userOrganizations.organizationId,
-        canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
-      })
-      .from(schema.userOrganizations)
-      .where(
-        and(
-          eq(schema.userOrganizations.userId, user.id),
-          eq(schema.userOrganizations.isActive, true)
-        )
-      );
+    // Add organization information to the user object - with error handling for resilience
+    let userOrganizations: any[] = [];
+    try {
+      userOrganizations = await db
+        .select({
+          organizationId: schema.userOrganizations.organizationId,
+          canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+        })
+        .from(schema.userOrganizations)
+        .where(
+          and(
+            eq(schema.userOrganizations.userId, user.id),
+            eq(schema.userOrganizations.isActive, true)
+          )
+        );
+    } catch (orgError) {
+      console.error('Organization lookup error (user can still log in):', orgError);
+      // Continue with empty organizations - user can still authenticate
+      userOrganizations = [];
+    }
 
     // Enhanced user object with organization access information
     req.user = {
