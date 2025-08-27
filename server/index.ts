@@ -168,14 +168,17 @@ async function loadFullApplication(): Promise<void> {
         throw new Error(`Could not find the build directory: ${distPath}`);
       }
 
-      // Serve static files BUT skip API routes to prevent conflicts
-      app.use((req, res, next) => {
-        // Skip static serving for API routes
-        if (req.originalUrl.startsWith('/api/')) {
-          return next();
-        }
-        express.static(distPath)(req, res, next);
-      });
+      // Serve static assets from /assets path with proper caching
+      app.use('/assets', express.static(path.resolve(distPath, 'assets'), {
+        maxAge: '1y',
+        etag: false,
+        immutable: true
+      }));
+      
+      // Serve other static files (but skip API routes)
+      app.use(express.static(distPath, {
+        index: false // Don't serve index.html here, handle it below
+      }));
 
       // SPA fallback - serve index.html for non-API routes
       app.use('*', (req, res, next) => {
