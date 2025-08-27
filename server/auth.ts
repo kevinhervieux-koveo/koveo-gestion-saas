@@ -62,13 +62,14 @@ export const sessionConfig = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Automatically set secure in production
+    secure: process.env.NODE_ENV === 'production', // HTTPS required in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax', // Keep 'lax' for compatibility - should work for same-site requests
+    sameSite: 'lax', // Keep lax for same-site compatibility
+    // Don't set domain - let it default to current domain
   },
   name: 'koveo.sid',
-  proxy: process.env.NODE_ENV === 'production', // Trust proxy in production
+  proxy: true, // Always trust proxy for Replit deployment
 });
 
 /**
@@ -467,11 +468,40 @@ export function setupAuthRoutes(app: any) {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasSessionSecret: !!process.env.SESSION_SECRET,
       cookies: req.headers.cookie ? 'present' : 'missing',
+      cookieHeader: req.headers.cookie,
       sessionStore: req.session?.store?.constructor?.name || 'unknown',
+      userAgent: req.headers['user-agent'],
+      host: req.headers.host,
+      protocol: req.protocol,
+      secure: req.secure,
+      trustProxy: !!req.app.get('trust proxy'),
     };
     
     console.log('Auth debug info:', debugInfo);
     res.json(debugInfo);
+  });
+
+  // Test cookie setting endpoint
+  app.post('/auth/test-cookie', (req: Request, res: Response) => {
+    // Set a test session value
+    req.session.testValue = 'test-' + Date.now();
+    
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to save session', details: err.message });
+      }
+      
+      res.json({ 
+        message: 'Test cookie set',
+        sessionId: req.sessionID,
+        testValue: req.session.testValue,
+        cookieSettings: {
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: true,
+          sameSite: 'lax'
+        }
+      });
+    });
   });
 
   // Register route (admin only for now)
