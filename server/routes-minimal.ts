@@ -14,7 +14,7 @@ import { registerBillRoutes } from './api/bills';
 import { registerBugRoutes } from './api/bugs';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerDelayedUpdateRoutes } from './api/delayed-updates';
-import { registerDemoManagementRoutes } from './api/demo-management';
+// Demo management routes removed per user request
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import { registerAIMonitoringRoutes } from './api/ai-monitoring';
 import { registerCommonSpacesRoutes } from './api/common-spaces';
@@ -22,7 +22,7 @@ import budgetRoutes from './api/budgets';
 import dynamicBudgetRoutes from './api/dynamic-budgets';
 import cleanupRoutes from './api/cleanup';
 import { CleanupScheduler } from './services/cleanup-scheduler';
-import DemoManagementService from './services/demo-management-service';
+// Demo management service removed per user request
 import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
@@ -253,17 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Feature request routes failed: ${_error}`, 'error');
   }
 
-  // Demo management API routes disabled per user request
-  // TODO: Re-enable when database authentication issues are resolved
-  /*
-  try {
-    registerDemoManagementRoutes(app);
-    log('✅ Demo management routes registered');
-  } catch (_error) {
-    log(`❌ Demo management routes failed: ${_error}`, 'error');
-  }
-  */
-  log('✅ Demo management routes skipped (disabled)');
+  // Demo management routes completely removed per user request  
+  log('✅ Demo management routes removed (not registered)');
 
   // Register feature management API routes
   try {
@@ -1372,20 +1363,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Demo organizations initialization disabled per user request
-  // TODO: Re-enable when database authentication issues are resolved
-  /*
-  try {
-    // Run demo initialization in background to avoid blocking server startup
-    DemoManagementService.initializeDemoOrganizations()
-      .then(() => log('✅ Demo organizations initialized successfully'))
-      .catch((error) => log(`⚠️ Demo initialization failed (non-critical): ${error.message}`, 'warn'));
-    log('✅ Demo organizations initialization started');
-  } catch (_error) {
-    log(`❌ Demo organizations initialization failed: ${_error}`, 'error');
-  }
-  */
-  log('✅ Demo organizations initialization skipped (disabled)');
+  // Demo organizations functionality completely removed per user request
+  log('✅ Demo organizations functionality removed - no initialization needed');
 
   // Root route handler for SPA (production only - Vite handles development)
   const path = await import('path');

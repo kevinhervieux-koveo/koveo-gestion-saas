@@ -1,0 +1,216 @@
+2025-08-26 20:04:05.27
+95e06c02
+User
+internalQuery: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+where: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+schema: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+table: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+column: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+dataType: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+constraint: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+file: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+line: undefined,
+2025-08-26 20:04:05.27
+95e06c02
+User
+routine: undefined
+2025-08-26 20:04:05.27
+95e06c02
+User
+}
+2025-08-26 20:04:05.27
+95e06c02
+User
+}
+2025-08-26 20:04:05.27
+95e06c02
+User
+🔄 Ensuring demo organizations are properly configured...
+2025-08-26 20:04:05.47
+95e06c02
+User
+❌ Failed to ensure demo organizations: DrizzleQueryError: Failed query: select "id", "name", "type", "address", "city", "province", "postal_code", "phone", "email", "website", "registration_number", "is_active", "created_at", "updated_at" from "organizations" "organizations" where "organizations"."name" = $1 limit $2
+2025-08-26 20:04:05.47
+95e06c02
+User
+params: Demo,1
+2025-08-26 20:04:05.47
+95e06c02
+User
+at NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:41:15)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:109:20)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async DemoManagementService.ensureDemoOrganizations (file:///home/runner/workspace/server/index.js:14034:27)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async DemoManagementService.initializeDemoOrganizations (file:///home/runner/workspace/server/index.js:14153:26) {
+2025-08-26 20:04:05.47
+95e06c02
+User
+query: 'select "id", "name", "type", "address", "city", "province", "postal_code", "phone", "email", "website", "registration_number", "is_active", "created_at", "updated_at" from "organizations" "organizations" where "organizations"."name" = $1 limit $2',
+2025-08-26 20:04:05.47
+95e06c02
+User
+params: [ 'Demo', 1 ],
+2025-08-26 20:04:05.47
+95e06c02
+User
+cause: error: password authentication failed for user 'neondb_owner'
+2025-08-26 20:04:05.47
+95e06c02
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-26 20:04:05.47
+95e06c02
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:110:14
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:109:20)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async DemoManagementService.ensureDemoOrganizations (file:///home/runner/workspace/server/index.js:14034:27)
+2025-08-26 20:04:05.47
+95e06c02
+User
+at async DemoManagementService.initializeDemoOrganizations (file:///home/runner/workspace/server/index.js:14153:26) {
+2025-08-26 20:04:05.47
+95e06c02
+User
+length: 75,
+2025-08-26 20:04:05.47
+95e06c02
+User
+severity: 'ERROR',
+2025-08-26 20:04:05.47
+95e06c02
+User
+code: 'XX000',
+2025-08-26 20:04:05.47
+95e06c02
+User
+detail: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+hint: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+position: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+internalPosition: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+internalQuery: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+where: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+schema: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+table: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+column: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+dataType: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+constraint: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+file: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+line: undefined,
+2025-08-26 20:04:05.47
+95e06c02
+User
+routine: undefined
+2025-08-26 20:04:05.47
+95e06c02
+User
+}
+2025-08-26 20:04:05.47
+95e06c02
+User
+}
+2025-08-26 20:04:05.47
+95e06c02
+User
+⚠️ Demo organizations initialization completed with warnings: Failed to ensure demo organizations: Failed query: select "id", "name", "type", "address", "city", "province", "postal_code", "phone", "email", "website", "registration_number", "is_active", "created_at", "updated_at" from "organizations" "organizations" where "organizations"."name" = $1 limit $2
+2025-08-26 20:04:05.47
+95e06c02
+User
+params: Demo,1
+2025-08-26 20:04:05.47
+95e06c02
+User
+12:04:05 AM [express] ✅ Demo organizations initialized successfully
+2025-08-26 20:04:06.07
+95e06c02
+User
+12:04:06 AM [express] 🔄 Background work complete - all routes already loaded
+2025-08-26 20:04:56.31
+95e06c02
+System
+a port configuration was specified but the required port was never opened
