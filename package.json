@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Professional property management platform for Quebec with bilingual support, tenant portals, and automated communications",
   "type": "module",
+  "main": "dist/index.js",
   "license": "MIT",
   "author": {
     "name": "Koveo Gestion Team",
@@ -30,8 +31,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development npx tsx server/index.ts",
-    "build": "npm run build:client && npm run build:server && mkdir -p dist/server && cp dist/index.js dist/server/index.js",
-    "main": "dist/index.js",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:client": "vite build",
     "build:server": "npx tsx scripts/build-server.ts",
     "db:push": "npx drizzle-kit push",
