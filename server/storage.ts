@@ -1443,22 +1443,22 @@ export class MemStorage implements IStorage {
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
 
-    // Initialize with production user for testing
-    this.initializeProductionUser();
+    // Initialize test user synchronously using pre-hashed password
+    this.initializeTestUser();
   }
 
   /**
-   * Initialize production user for testing login functionality
+   * Initialize test user with pre-hashed password for both dev and production
    */
-  private async initializeProductionUser() {
-    const bcrypt = await import('bcryptjs');
-    const hashedPassword = await bcrypt.hash('Admin123!', 12);
+  private initializeTestUser() {
+    // Pre-hashed password for 'Admin123!' using bcrypt with 12 rounds
+    const preHashedPassword = '$2b$12$2enFyxzC3wmknRDwQNnISOVpE1bsRCLlCtj/t1kc7nOwNoG7p9w26';
     
     const user: User = {
-      id: 'prod-user-1',
+      id: 'test-user-1',
       username: 'kevin.hervieux@koveo-gestion.com',
       email: 'kevin.hervieux@koveo-gestion.com',
-      password: hashedPassword,
+      password: preHashedPassword,
       firstName: 'Kevin',
       lastName: 'Hervieux',
       phone: '',
