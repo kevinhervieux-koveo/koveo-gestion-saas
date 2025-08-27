@@ -16,7 +16,7 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 import { createComprehensiveDemo } from './create-comprehensive-demo';
 import { duplicateDemoToOpenDemo } from './duplicate-demo-to-open-demo';
-import { productionDemoSync, healthCheck } from './production-demo-sync';
+// productionDemoSync, healthCheck imports removed - functionality disabled
 import DemoManagementService from '../server/services/demo-management-service';
 import ws from 'ws';
 

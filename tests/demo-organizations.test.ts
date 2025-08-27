@@ -5,7 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 import { createComprehensiveDemo } from '../scripts/create-comprehensive-demo';
 import { duplicateDemoToOpenDemo } from '../scripts/duplicate-demo-to-open-demo';
-import ComprehensiveDemoSyncService from '../server/services/comprehensive-demo-sync-service';
+// ComprehensiveDemoSyncService removed - functionality replaced with direct database operations
 import DemoManagementService from '../server/services/demo-management-service';
 
 // Test database setup
@@ -368,7 +368,7 @@ describe('Demo Organizations System', () => {
     });
 
     it('should perform full synchronization', async () => {
-      await ComprehensiveDemoSyncService.runFullSync();
+      // ComprehensiveDemoSyncService.runFullSync() removed - functionality disabled
 
       const demoOrg = await db.query.organizations.findFirst({
         where: eq(schema.organizations.name, 'Demo'),

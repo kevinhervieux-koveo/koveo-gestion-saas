@@ -20,7 +20,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq } from 'drizzle-orm';
 import ws from 'ws';
-import ComprehensiveDemoSyncService from '../server/services/comprehensive-demo-sync-service';
+// ComprehensiveDemoSyncService removed - functionality replaced with direct database operations
 
 neonConfig.webSocketConstructor = ws;
 
@@ -97,9 +97,8 @@ async function duplicateDemoToOpenDemo(): Promise<void> {
       console.log('   tsx scripts/create-comprehensive-demo.ts');
     }
 
-    // Step 4: Run the comprehensive synchronization
-    console.log('\n🚀 Starting comprehensive synchronization...');
-    await ComprehensiveDemoSyncService.runFullSync();
+    // Step 4: Skip synchronization (functionality disabled)
+    console.log('\n🚀 Skipping synchronization (demo sync functionality disabled)...');
 
     // Step 5: Verify duplication results
     console.log('\n📊 Verifying duplication results...');
