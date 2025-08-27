@@ -8,17 +8,18 @@ import { createUltraHealthEndpoints } from './ultra-health';
 import { log } from './vite';
 
 const app = express();
-// Configure port for deployment - use PORT_PROD in production, PORT in development, fallback to 5000
+// Configure port with environment-specific defaults
 const port = parseInt(
   process.env.NODE_ENV === 'production' 
-    ? (process.env.PORT_PROD || process.env.PORT || '5000')
-    : (process.env.PORT || '5000'), 
+    ? (process.env.PORT_PROD || process.env.PORT || '80')  // Production: PORT_PROD -> PORT -> 80
+    : (process.env.PORT_DEV || process.env.PORT || '5000'), // Development: PORT_DEV -> PORT -> 5000
   10
 );
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
-  console.error(`Invalid port: ${process.env.PORT || '80'}. Using default 80.`);
+  const fallback = process.env.NODE_ENV === 'production' ? '80' : '5000';
+  console.error(`Invalid port configuration. Using default ${fallback}.`);
 }
 
 // Trust proxy for deployment
