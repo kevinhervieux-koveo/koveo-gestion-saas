@@ -169,6 +169,31 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Production static file serving - MUST be registered first
+  if (process.env.NODE_ENV === 'production') {
+    const path = await import('path');
+    const express = await import('express');
+    const distPath = path.resolve(process.cwd(), 'dist', 'public');
+
+    // Serve static assets with proper caching
+    app.use('/assets', express.static(path.resolve(distPath, 'assets'), {
+      maxAge: '1y',
+      etag: false,
+      immutable: true,
+      setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }));
+
+    // Serve other static files
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      index: false
+    }));
+
+    console.log('✅ Production static file serving configured');
+  }
+
   // Apply production optimizations (but not static file serving here)
   if (process.env.NODE_ENV === 'production') {
     configureProductionServer(app);
@@ -1406,10 +1431,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next();
     });
   } else {
-    // Production catch-all
+    // Production catch-all for SPA
     app.get('*', (req, res) => {
       // Skip API routes and health checks
-      if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
+      if (req.path.startsWith('/api/') || 
           req.path.startsWith('/health') || req.path.startsWith('/ping') || 
           req.path.startsWith('/status') || req.path.startsWith('/ready')) {
         return res.status(404).json({ error: 'Not found' });

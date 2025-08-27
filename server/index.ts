@@ -144,7 +144,7 @@ async function loadFullApplication(): Promise<void> {
     log('✅ Essential application routes loaded');
     
     // Setup frontend serving AFTER API routes are registered
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && !process.env.FORCE_PRODUCTION_SERVE) {
       log('🔄 Setting up Vite for frontend development...');
       const { setupVite } = await import('./vite');
       await setupVite(app, server);
@@ -168,26 +168,8 @@ async function loadFullApplication(): Promise<void> {
         throw new Error(`Could not find the build directory: ${distPath}`);
       }
 
-      // Serve static assets from /assets path with proper caching
-      app.use('/assets', express.static(path.resolve(distPath, 'assets'), {
-        maxAge: '1y',
-        etag: false,
-        immutable: true
-      }));
-      
-      // Serve other static files (but skip API routes)
-      app.use(express.static(distPath, {
-        index: false // Don't serve index.html here, handle it below
-      }));
-
-      // SPA fallback - serve index.html for non-API routes
-      app.use('*', (req, res, next) => {
-        // Skip API routes - let them be handled by API middleware
-        if (req.originalUrl.startsWith('/api/')) {
-          return next();
-        }
-        res.sendFile(path.resolve(distPath, 'index.html'));
-      });
+      // Static file serving is handled in routes-minimal.ts
+      // Remove duplicate handlers to avoid conflicts
       
       log('✅ Production static file serving enabled with API route protection');
     }
