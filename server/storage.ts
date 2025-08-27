@@ -3589,9 +3589,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use database storage if DATABASE_URL is set, otherwise use in-memory storage
-import { OptimizedDatabaseStorage } from './optimized-db-storage';
-
-// Use MemStorage for now to avoid database connection issues in production
-// TODO: Fix OptimizedDatabaseStorage database connection issues
+// Use MemStorage for production stability - avoids database connection issues
 export const storage = new MemStorage();
