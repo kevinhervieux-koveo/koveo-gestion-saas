@@ -125,6 +125,14 @@ const getCorsConfig = (isDevelopment: boolean) => {
     );
   }
 
+  // Always allow Replit domains for production deployments
+  allowedOrigins.push(
+    /^https:\/\/.*\.replit\.com$/,
+    /^https:\/\/.*\.replit\.co$/,
+    /^https:\/\/.*\.replit\.dev$/,
+    /^https:\/\/.*\.replit\.app$/
+  );
+
   return {
     origin: (
       origin: string | undefined,

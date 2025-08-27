@@ -4,6 +4,7 @@ import { sessionConfig, setupAuthRoutes, requireAuth, requireRole, authorize } f
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
+import { configureSecurityMiddleware } from './middleware/security-middleware';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import { registerCompanyHistoryRoutes } from './api/company-history';
@@ -198,6 +199,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (process.env.NODE_ENV === 'production') {
     configureProductionServer(app);
     // Note: static files are handled in index.ts before this function
+  }
+
+  // Apply security middleware (CORS, CSP, etc.)
+  try {
+    configureSecurityMiddleware(app);
+    log('✅ Security middleware configured (CORS and CSP)');
+  } catch (_error) {
+    log(`❌ Security middleware failed: ${_error}`, 'error');
   }
 
   // Setup JSON body parser for entire app
