@@ -42,8 +42,8 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
 // Initialize email service
 const emailService = new EmailService();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle({ client: pool, schema });
+// Use shared database connection from db.ts to avoid multiple pools
+import { db, pool } from './db';
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
@@ -54,7 +54,7 @@ const PostgreSqlStore = connectPg(session);
  */
 export const sessionConfig = session({
   store: new PostgreSqlStore({
-    conString: process.env.DATABASE_URL,
+    pool: pool, // Use shared pool instead of creating new connection
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),

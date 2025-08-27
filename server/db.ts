@@ -33,7 +33,10 @@ if (!process.env.DATABASE_URL) {
  * PostgreSQL connection pool for the Koveo Gestion application.
  * Uses Neon serverless database with connection pooling for optimal performance.
  */
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // Create schema object with only tables (no relations to avoid production errors)
 const schema = {
