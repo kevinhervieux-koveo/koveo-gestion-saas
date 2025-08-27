@@ -1,5 +1,3 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
 import { queryCache, CacheInvalidator } from './query-cache';
@@ -27,9 +25,8 @@ import type {
   InsertFeature,
 } from '@shared/schema';
 import type { IStorage } from './storage';
-
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
+// Use shared database connection to avoid multiple pools in production
+import { db } from './db';
 
 // Database optimizations will be initialized after server startup to prevent deployment timeouts
 // This prevents blocking the server startup process during deployment

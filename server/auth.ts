@@ -54,7 +54,7 @@ const PostgreSqlStore = connectPg(session);
  */
 export const sessionConfig = session({
   store: new PostgreSqlStore({
-    pool: pool, // Use shared pool instead of creating new connection
+    conString: process.env.DATABASE_URL, // Use connection string for session store
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),

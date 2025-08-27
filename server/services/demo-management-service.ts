@@ -115,8 +115,8 @@ export class DemoManagementService {
       const { eq } = await import('drizzle-orm');
       const schema = await import('../../shared/schema');
 
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const db = drizzle({ client: pool, schema });
+      // Use shared database connection to avoid multiple pools
+      const { db } = await import('../db');
 
       // Check if Demo organization exists
       const existingDemo = await db

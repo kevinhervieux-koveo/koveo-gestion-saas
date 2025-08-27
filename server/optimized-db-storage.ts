@@ -3,9 +3,9 @@
  * Replaces decorators with direct implementation for better compatibility.
  */
 
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 import { eq, desc, and, or, gte, lte, count, like, inArray } from 'drizzle-orm';
+// Use shared database connection to avoid multiple pools in production
+import { db } from './db';
 import crypto from 'crypto';
 import * as schema from '@shared/schema';
 import type {
@@ -55,8 +55,7 @@ import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
 import { exists, sql as sqlOp } from 'drizzle-orm';
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
+// Database connection imported from shared db.ts
 
 /**
  * Enhanced database storage with built-in caching and performance monitoring.

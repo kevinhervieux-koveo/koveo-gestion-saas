@@ -4,8 +4,8 @@ import * as schema from '../shared/schema';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { Request, Response, NextFunction } from 'express';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle({ client: pool, schema });
+// Use shared database connection to avoid multiple pools
+import { db } from './db';
 
 /**
  * Authenticated user object with role-based access control information.
