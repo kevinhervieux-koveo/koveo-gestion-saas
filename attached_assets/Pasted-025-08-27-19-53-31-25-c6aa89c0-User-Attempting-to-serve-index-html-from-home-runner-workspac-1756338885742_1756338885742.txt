@@ -1,0 +1,100 @@
+025-08-27 19:53:31.25
+c6aa89c0
+User
+🔍 Attempting to serve index.html from: /home/runner/workspace/dist/public/index.html
+2025-08-27 19:53:31.25
+c6aa89c0
+User
+✅ index.html found, serving to client
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+11:53:31 PM [express] 🔄 Checking database optimization status...
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+11:53:31 PM [express] 🏭 Production mode: Performing safe database checks...
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+Could not check index status: TypeError: Cannot read properties of undefined (reading 'count')
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+at QueryOptimizer.areIndexesSetup (file:///home/runner/workspace/dist/index.js:2301:49)
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+at async initializeDatabaseInBackground (file:///home/runner/workspace/dist/index.js:17595:28)
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+11:53:31 PM [express] ⚠️ Production mode: Skipping database index creation for safety
+2025-08-27 19:53:31.38
+c6aa89c0
+User
+11:53:31 PM [express] ⚠️ Consider running database optimizations in maintenance mode
+2025-08-27 19:53:31.39
+c6aa89c0
+User
+11:53:31 PM [express] 🔄 Background work complete - all routes already loaded
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+error: password authentication failed for user 'neondb_owner'
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 19:53:48.28
+c6aa89c0
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7)
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+error: password authentication failed for user 'neondb_owner'
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 19:53:51.16
+c6aa89c0
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7)
+2025-08-27 19:54:14.70
+f6408b8c
+User
+11:54:14 PM [express] 📊 Memory usage: 118MB
+2025-08-27 19:54:30.72
+c6aa89c0
+User
+11:54:30 PM [express] 📊 Memory usage: 119MB

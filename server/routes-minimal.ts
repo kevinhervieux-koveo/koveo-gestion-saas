@@ -170,8 +170,8 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Production static file serving - Force enable for Replit deployments
-  const enableProductionServing = process.env.NODE_ENV === 'production' || process.env.REPLIT_DOMAINS;
+  // Production static file serving - Only enable for actual production or when explicitly forced
+  const enableProductionServing = (process.env.NODE_ENV === 'production' && process.env.FORCE_PRODUCTION_SERVE === 'true') || false;
   
   if (enableProductionServing) {
     const path = await import('path');
