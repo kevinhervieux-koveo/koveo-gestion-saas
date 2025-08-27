@@ -1,0 +1,124 @@
+2025-08-27 16:22:53.55
+68a2eff4
+User
+8:22:53 PM [express] ✅ User relationship endpoints registered
+2025-08-27 16:22:54.85
+68a2eff4
+User
+✅ Storage cleanup scheduler started - runs every 6 hours
+2025-08-27 16:22:54.85
+68a2eff4
+User
+8:22:54 PM [express] ✅ Storage cleanup scheduler initialized
+2025-08-27 16:22:55.15
+68a2eff4
+User
+🚀 Initializing demo organizations...
+2025-08-27 16:22:55.15
+68a2eff4
+User
+8:22:55 PM [express] ✅ Demo organizations initialization started
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_buildings_active ON buildings(is_active)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_buildings_city ON buildings(city)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_buildings_postal ON buildings(postal_code)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_residences_building_id ON residences(building_id)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_residences_unit ON residences(unit_number)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_residences_active ON residences(is_active)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_residences_floor ON residences(floor)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_residences_user_id ON user_residences(user_id)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_residences_residence_id ON user_residences(residence_id)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_residences_active ON user_residences(is_active)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_residences_relationship ON user_residences(relationship_type)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_residences_dates ON user_residences(start_date, end_date)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_residence_id ON bills(residence_id)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_number ON bills(bill_number)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_status ON bills(status)
+2025-08-27 16:22:55.15
+68a2eff4
+User
+8:22:55 PM [express] ✅ Essential application routes loaded
+2025-08-27 16:22:55.15
+68a2eff4
+User
+8:22:55 PM [express] 🔄 Setting up production server with proper API routing...
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_type ON bills(type)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_due_date ON bills(due_date)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_created_by ON bills(created_by)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_issue_date ON bills(issue_date)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_residence_id ON maintenance_requests(residence_id)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_submitted_by ON maintenance_requests(submitted_by)
+2025-08-27 16:22:55.35
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_assigned_to ON maintenance_requests(assigned_to)
+2025-08-27 16:22:55.45
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_status ON maintenance_requests(status)
+2025-08-27 16:22:56.45
+68a2eff4
+User
+✓ Applied: CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_priority ON maintenance_requests(priority)
