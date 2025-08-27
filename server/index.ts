@@ -213,13 +213,22 @@ async function initializeDatabaseInBackground(): Promise<void> {
   try {
     // Only run database optimizations after server is fully started
     if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
-      log('🔄 Starting background database optimizations...');
+      log('🔄 Checking database optimization status...');
       
       // Import QueryOptimizer dynamically to avoid blocking startup
       const { QueryOptimizer } = await import('./database-optimization');
-      await QueryOptimizer.applyCoreOptimizations();
       
-      log('✅ Database optimizations complete');
+      // Check if indexes are already set up
+      const indexesExist = await QueryOptimizer.areIndexesSetup();
+      
+      if (indexesExist) {
+        log('✅ Database indexes already exist - skipping optimization');
+        log('🚀 Database is ready for high performance queries');
+      } else {
+        log('🔄 Setting up database indexes for first time...');
+        await QueryOptimizer.applyCoreOptimizations();
+        log('✅ Database optimizations complete');
+      }
     }
     
     log('🔄 Background work complete - all routes already loaded');

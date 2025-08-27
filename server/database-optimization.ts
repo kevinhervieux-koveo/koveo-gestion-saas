@@ -350,6 +350,31 @@ export const DatabaseOptimization = {
  */
 export class QueryOptimizer {
   /**
+   * Check if database indexes are already set up
+   */
+  static async areIndexesSetup(): Promise<boolean> {
+    try {
+      // Check for a few key indexes to determine if setup is complete
+      const result = await sql`
+        SELECT COUNT(*) as count
+        FROM pg_indexes 
+        WHERE indexname IN (
+          'idx_users_email',
+          'idx_buildings_org_id', 
+          'idx_residences_building_id',
+          'idx_bills_residence_id'
+        )
+      `;
+      
+      const indexCount = parseInt(result[0].count);
+      return indexCount >= 4; // If we have these key indexes, assume setup is complete
+    } catch (error) {
+      console.warn('Could not check index status:', error);
+      return false;
+    }
+  }
+
+  /**
    * Applies all core database indexes for Quebec property management.
    */
   static async applyCoreOptimizations(): Promise<void> {
