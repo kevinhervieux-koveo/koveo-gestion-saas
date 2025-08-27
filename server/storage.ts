@@ -1455,7 +1455,7 @@ export class MemStorage implements IStorage {
     const preHashedPassword = '$2b$12$2enFyxzC3wmknRDwQNnISOVpE1bsRCLlCtj/t1kc7nOwNoG7p9w26';
     
     const user: User = {
-      id: 'test-user-1',
+      id: '550e8400-e29b-41d4-a716-446655440000',
       username: 'kevin.hervieux@koveo-gestion.com',
       email: 'kevin.hervieux@koveo-gestion.com',
       password: preHashedPassword,
