@@ -1,0 +1,120 @@
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at async duplicateDemoToOpenDemo (file:///home/runner/workspace/server/index.js:15320:21) {
+2025-08-27 16:06:15.65
+68a2eff4
+User
+query: 'select "id", "name", "type", "address", "city", "province", "postal_code", "phone", "email", "website", "registration_number", "is_active", "created_at", "updated_at" from "organizations" "organizations" where "organizations"."name" = $1 limit $2',
+2025-08-27 16:06:15.65
+68a2eff4
+User
+params: [ 'Demo', 1 ],
+2025-08-27 16:06:15.65
+68a2eff4
+User
+cause: error: password authentication failed for user 'neondb_owner'
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:110:14
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at async NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:109:20)
+2025-08-27 16:06:15.65
+68a2eff4
+User
+at async duplicateDemoToOpenDemo (file:///home/runner/workspace/server/index.js:15320:21) {
+2025-08-27 16:06:15.65
+68a2eff4
+User
+length: 75,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+severity: 'ERROR',
+2025-08-27 16:06:15.65
+68a2eff4
+User
+code: 'XX000',
+2025-08-27 16:06:15.65
+68a2eff4
+User
+detail: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+hint: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+position: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+internalPosition: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+internalQuery: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+where: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+schema: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+table: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+column: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+dataType: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+constraint: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+file: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+line: undefined,
+2025-08-27 16:06:15.65
+68a2eff4
+User
+routine: undefined
+2025-08-27 16:06:15.65
+68a2eff4
+User
+}
+2025-08-27 16:06:15.65
+68a2eff4
+User
+}
+2025-08-27 16:06:18.85
+68a2eff4
+System
+command finished with error [npm run start]: exit status 1
