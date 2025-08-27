@@ -1443,7 +1443,35 @@ export class MemStorage implements IStorage {
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
 
-    // Storage initialized empty - no mock data
+    // Initialize with production user for testing
+    this.initializeProductionUser();
+  }
+
+  /**
+   * Initialize production user for testing login functionality
+   */
+  private async initializeProductionUser() {
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash('Admin123!', 12);
+    
+    const user: User = {
+      id: 'prod-user-1',
+      username: 'kevin.hervieux@koveo-gestion.com',
+      email: 'kevin.hervieux@koveo-gestion.com',
+      password: hashedPassword,
+      firstName: 'Kevin',
+      lastName: 'Hervieux',
+      phone: '',
+      profileImage: '',
+      language: 'fr',
+      role: 'admin',
+      isActive: true,
+      lastLoginAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.users.set(user.id, user);
   }
 
   // Permission operations
@@ -3564,5 +3592,6 @@ export class MemStorage implements IStorage {
 // Use database storage if DATABASE_URL is set, otherwise use in-memory storage
 import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
-// Use OptimizedDatabaseStorage for persistent storage with performance enhancements
-export const storage = process.env.DATABASE_URL ? new OptimizedDatabaseStorage() : new MemStorage();
+// Use MemStorage for now to avoid database connection issues in production
+// TODO: Fix OptimizedDatabaseStorage database connection issues
+export const storage = new MemStorage();

@@ -1,0 +1,128 @@
+2025-08-27 19:13:11.81
+f2975812
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 19:13:11.81
+f2975812
+User
+at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:110:14
+2025-08-27 19:13:11.81
+f2975812
+User
+at async NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-08-27 19:13:11.81
+f2975812
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:109:20)
+2025-08-27 19:13:11.81
+f2975812
+User
+at async file:///home/runner/workspace/dist/index.js:3028:26
+2025-08-27 19:13:11.81
+f2975812
+User
+at async OptimizedDatabaseStorage.withOptimizations (file:///home/runner/workspace/dist/index.js:2857:24)
+2025-08-27 19:13:11.81
+f2975812
+User
+at async file:///home/runner/workspace/dist/index.js:7062:20 {
+2025-08-27 19:13:11.81
+f2975812
+User
+length: 75,
+2025-08-27 19:13:11.81
+f2975812
+User
+severity: 'ERROR',
+2025-08-27 19:13:11.81
+f2975812
+User
+code: 'XX000',
+2025-08-27 19:13:11.81
+f2975812
+User
+detail: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+hint: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+position: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+internalPosition: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+internalQuery: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+where: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+schema: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+table: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+column: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+dataType: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+constraint: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+file: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+line: undefined,
+2025-08-27 19:13:11.81
+f2975812
+User
+routine: undefined
+2025-08-27 19:13:11.81
+f2975812
+User
+}
+2025-08-27 19:13:11.81
+f2975812
+User
+},
+2025-08-27 19:13:11.81
+f2975812
+User
+email: 'kevin.hervieux@koveo-gestion.com',
+2025-08-27 19:13:11.81
+f2975812
+User
+hasPassword: true,
+2025-08-27 19:13:11.81
+f2975812
+User
+databaseUrl: true,
+2025-08-27 19:13:11.81
+f2975812
+User
+sessionSecret: true
+2025-08-27 19:13:11.81
+f2975812
+User
+}
+2025-08-27 19:13:21.88
+f2975812
+User
+11:13:21 PM [express] 📊 Memory usage: 121MB
