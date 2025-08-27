@@ -26,7 +26,7 @@
 
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { eq, and, sql, or, like } from 'drizzle-orm';
+import { eq, and, sql, or, like, inArray } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 import * as bcrypt from 'bcryptjs';
 import ws from 'ws';
@@ -138,7 +138,7 @@ async function cleanExistingDemoData(): Promise<void> {
     
     console.log('  🗑️  Removing existing demo organizations...');
     await db.delete(schema.organizations).where(
-      schema.organizations.name.in(['Demo', 'Open Demo'])
+      inArray(schema.organizations.name, ['Demo', 'Open Demo'])
     );
     
     console.log('  ✅ Cleanup complete');
