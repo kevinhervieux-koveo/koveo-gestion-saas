@@ -1955,8 +1955,15 @@ var init_schema = __esm({
 });
 
 // server/database-optimization.ts
+var database_optimization_exports = {};
+__export(database_optimization_exports, {
+  DatabaseMaintenance: () => DatabaseMaintenance,
+  DatabaseOptimization: () => DatabaseOptimization,
+  PaginationHelper: () => PaginationHelper,
+  QueryOptimizer: () => QueryOptimizer
+});
 import { sql as sql9 } from "drizzle-orm";
-var PaginationHelper, DatabaseOptimization, QueryOptimizer;
+var PaginationHelper, DatabaseOptimization, QueryOptimizer, DatabaseMaintenance;
 var init_database_optimization = __esm({
   "server/database-optimization.ts"() {
     PaginationHelper = class {
@@ -2343,6 +2350,56 @@ var init_database_optimization = __esm({
           } catch (_error2) {
             console.warn(`\u26A0 Failed to refresh ${view}:`, _error2);
           }
+        }
+      }
+    };
+    DatabaseMaintenance = class {
+      /**
+       * Performs routine database maintenance for optimal performance.
+       */
+      static async performMaintenance() {
+        console.warn("Starting database maintenance...");
+        try {
+          await sql9`ANALYZE`;
+          console.warn("\u2713 Updated table statistics");
+          await sql9`VACUUM`;
+          console.warn("\u2713 Cleaned up unused space");
+          await sql9`REINDEX DATABASE CONCURRENTLY ${process.env.PGDATABASE}`;
+          console.warn("\u2713 Rebuilt indexes");
+          await QueryOptimizer.refreshMaterializedViews();
+          console.warn("\u2713 Refreshed materialized views");
+        } catch (_error2) {
+          console.warn("Database maintenance completed with warnings:", _error2);
+        }
+        console.warn("Database maintenance complete");
+      }
+      /**
+       * Monitors database performance metrics.
+       */
+      static async getPerformanceMetrics() {
+        try {
+          const metrics = await sql9`
+        SELECT 
+          'connections' as metric,
+          count(*) as value
+        FROM pg_stat_activity
+        UNION ALL
+        SELECT 
+          'slow_queries' as metric,
+          count(*) as value
+        FROM pg_stat_statements
+        WHERE mean_exec_time > 100
+        UNION ALL
+        SELECT 
+          'cache_hit_ratio' as metric,
+          round(100.0 * sum(blks_hit) / (sum(blks_hit) + sum(blks_read)), 2) as value
+        FROM pg_stat_database
+        WHERE datname = current_database()
+      `;
+          return metrics;
+        } catch (_error2) {
+          console.warn("Failed to get performance metrics:", _error2);
+          return [];
         }
       }
     };
@@ -18208,6 +18265,12 @@ async function loadFullApplication() {
 }
 async function initializeDatabaseInBackground() {
   try {
+    if (process.env.NODE_ENV !== "test" && !process.env.DISABLE_DB_OPTIMIZATIONS) {
+      log("\u{1F504} Starting background database optimizations...");
+      const { QueryOptimizer: QueryOptimizer2 } = await Promise.resolve().then(() => (init_database_optimization(), database_optimization_exports));
+      await QueryOptimizer2.applyCoreOptimizations();
+      log("\u2705 Database optimizations complete");
+    }
     log("\u{1F504} Background work complete - all routes already loaded");
   } catch (error2) {
     log(`\u26A0\uFE0F Background initialization failed: ${error2.message}`, "error");

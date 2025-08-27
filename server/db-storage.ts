@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
-import { QueryOptimizer } from './database-optimization';
+// QueryOptimizer will be imported dynamically when needed
 import { queryCache, cached, CacheInvalidator } from './query-cache';
 import { trackPerformance } from './performance-monitoring';
 import * as schema from '@shared/schema';
@@ -32,10 +32,8 @@ import type { IStorage } from './storage';
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
-// Initialize database optimizations on startup (skip in test environment)
-if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
-  QueryOptimizer.applyCoreOptimizations().catch(console._error);
-}
+// Database optimizations will be initialized after server startup to prevent deployment timeouts
+// This prevents blocking the server startup process during deployment
 
 /**
  *

@@ -211,8 +211,20 @@ async function loadFullApplication(): Promise<void> {
  */
 async function initializeDatabaseInBackground(): Promise<void> {
   try {
+    // Only run database optimizations after server is fully started
+    if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
+      log('🔄 Starting background database optimizations...');
+      
+      // Import QueryOptimizer dynamically to avoid blocking startup
+      const { QueryOptimizer } = await import('./database-optimization');
+      await QueryOptimizer.applyCoreOptimizations();
+      
+      log('✅ Database optimizations complete');
+    }
+    
     log('🔄 Background work complete - all routes already loaded');
   } catch (error: any) {
     log(`⚠️ Background initialization failed: ${error.message}`, 'error');
+    // Continue - this shouldn't break the server
   }
 }
