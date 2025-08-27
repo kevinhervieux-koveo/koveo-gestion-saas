@@ -194,9 +194,20 @@ function BookingCalendar({
     // Check opening hours if available
     if (space.openingHours) {
       const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
-      if (!todayHours) {
-        return false;
+      
+      // Handle object format opening hours
+      if (typeof space.openingHours === 'object' && !Array.isArray(space.openingHours)) {
+        const todayHours = space.openingHours[dayName];
+        if (!todayHours) {
+          return false;
+        }
+      }
+      // Handle array format opening hours (fallback)
+      else if (Array.isArray(space.openingHours)) {
+        const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
+        if (!todayHours) {
+          return false;
+        }
       }
     }
 
