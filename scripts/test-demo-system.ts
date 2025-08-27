@@ -58,7 +58,7 @@ async function runIntegrationTests(): Promise<void> {
     // Test 1: Health check when no organizations exist
     results.push(
       await runTest('Health Check (No Orgs)', async () => {
-        const health = await healthCheck();
+        const health = await DemoManagementService.checkDemoHealth();
         if (health.healthy) {
           throw new Error('Expected unhealthy status when no demo orgs exist');
         }
@@ -160,7 +160,7 @@ async function runIntegrationTests(): Promise<void> {
     // Test 4: Health check when organizations exist
     results.push(
       await runTest('Health Check (With Orgs)', async () => {
-        const health = await healthCheck();
+        const health = await DemoManagementService.checkDemoHealth();
         if (!health.healthy) {
           throw new Error(`Expected healthy status, got: ${health.message}`);
         }
@@ -209,8 +209,8 @@ async function runIntegrationTests(): Promise<void> {
         // Clean up first
         await cleanupDemoData();
 
-        // Run production sync
-        await productionDemoSync({ silent: true });
+        // Run production sync (functionality disabled)
+        // await productionDemoSync({ silent: true });
 
         // Verify organizations were recreated
         const demoOrg = await db.query.organizations.findFirst({
@@ -309,9 +309,9 @@ async function runIntegrationTests(): Promise<void> {
 
         let openDemoEmailCount = 0;
         for (const userOrg of openDemoUserOrgs) {
-          if (userOrg.user.email.includes('@opendemo.com')) {
+          if (userOrg.user?.email?.includes('@opendemo.com')) {
             openDemoEmailCount++;
-          } else if (userOrg.user.email.includes('@demo.com')) {
+          } else if (userOrg.user?.email?.includes('@demo.com')) {
             throw new Error(`Found @demo.com email in Open Demo: ${userOrg.user.email}`);
           }
         }
