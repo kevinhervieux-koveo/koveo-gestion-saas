@@ -389,19 +389,19 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
           title={
-            user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
+            user?.role && ['admin', 'manager'].includes(user.role) ? t('residences') : t('myResidence')
           }
           subtitle={
             user?.role && ['admin', 'manager'].includes(user.role)
-              ? 'View and manage organization residences'
-              : 'View your residence information and contacts'
+              ? t('viewManageResidences')
+              : t('viewResidenceInfo')
           }
         />
 
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Loading...</p>
+            <p className='text-gray-600'>{t('loading')}</p>
           </div>
         </div>
       </div>
@@ -417,19 +417,19 @@ export default function Residence() {
           }
           subtitle={
             user?.role && ['admin', 'manager'].includes(user.role)
-              ? 'View and manage organization residences'
-              : 'View your residence information and contacts'
+              ? t('viewManageResidences')
+              : t('viewResidenceInfo')
           }
         />
 
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-            <h3 className='text-lg font-medium mb-2'>No Residences Found</h3>
+            <h3 className='text-lg font-medium mb-2'>{t('noResidencesFound')}</h3>
             <p className='text-gray-600'>
               {user?.role && ['admin', 'manager'].includes(user.role)
-                ? 'No residences found in your organization.'
-                : 'You are not assigned to any residences.'}
+                ? t('noResidencesFoundOrg')
+                : t('notAssignedResidences')}
             </p>
           </div>
         </div>
@@ -499,11 +499,11 @@ export default function Residence() {
                       <Label className='text-sm font-medium mb-2 block'>
                         {user?.role && ['admin', 'manager'].includes(user.role)
                           ? t('residence')
-                          : 'Select Residence'}
+                          : t('selectResidence')}
                       </Label>
                       <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
                         <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select a residence' />
+                          <SelectValue placeholder={t('selectAResidence')} />
                         </SelectTrigger>
                         <SelectContent>
                           {filteredResidences.map((residence) => (

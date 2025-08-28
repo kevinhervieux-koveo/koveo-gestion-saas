@@ -344,6 +344,18 @@ export interface Translations {
   unit: string;
   allFloors: string;
   totalFloors: string;
+  // More residence page translations
+  myResidenceInfo: string;
+  viewResidenceInfo: string;
+  loading: string;
+  noResidencesFound: string;
+  noResidencesFoundOrg: string;
+  notAssignedResidences: string;
+  selectResidence: string;
+  selectAResidence: string;
+  areYouSureDelete: string;
+  parkingSpaces: string;
+  storageSpaces: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -784,6 +796,18 @@ const translations: Record<Language, Translations> = {
     unit: 'Unit',
     allFloors: 'All Floors',
     totalFloors: 'Total Floors',
+    // More residence page translations
+    myResidenceInfo: 'View your residence information and contacts',
+    viewResidenceInfo: 'View your residence information and contacts',
+    loading: 'Loading...',
+    noResidencesFound: 'No Residences Found',
+    noResidencesFoundOrg: 'No residences found in your organization.',
+    notAssignedResidences: 'You are not assigned to any residences.',
+    selectResidence: 'Select Residence',
+    selectAResidence: 'Select a residence',
+    areYouSureDelete: 'Are you sure you want to delete this contact?',
+    parkingSpaces: 'Parking Spaces',
+    storageSpaces: 'Storage Spaces',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1236,6 +1260,18 @@ const translations: Record<Language, Translations> = {
     unit: 'Unité',
     allFloors: 'Tous les étages',
     totalFloors: 'Étages totaux',
+    // More residence page translations
+    myResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    viewResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    loading: 'Chargement...',
+    noResidencesFound: 'Aucune résidence trouvée',
+    noResidencesFoundOrg: 'Aucune résidence trouvée dans votre organisation.',
+    notAssignedResidences: 'Vous n\'êtes assigné à aucune résidence.',
+    selectResidence: 'Sélectionner une résidence',
+    selectAResidence: 'Sélectionner une résidence',
+    areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer ce contact?',
+    parkingSpaces: 'Espaces de stationnement',
+    storageSpaces: 'Espaces de rangement',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
