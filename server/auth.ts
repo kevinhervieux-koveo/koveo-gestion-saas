@@ -11,6 +11,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { EmailService } from './services/email-service';
+import { queryCache } from './query-cache';
 
 /**
  * Check if a user role has a specific permission via database lookup.
@@ -176,7 +177,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       req.session.touch();
     }
 
+    console.log(`🔍 RequireAuth: Loading user with session ID: ${req.session.userId}`);
+    
+    // Clear any cached user data for this ID to ensure fresh load
+    queryCache.invalidate('users', `user:${req.session.userId}`);
+    queryCache.invalidate('users', `user_email:*`);
+    
     const user = await storage.getUser(req.session.userId);
+    console.log(`🔍 RequireAuth: Loaded user:`, user ? { id: user.id, email: user.email, role: user.role } : 'NOT FOUND');
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
         if (err) {
