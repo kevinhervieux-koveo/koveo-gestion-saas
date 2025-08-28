@@ -370,7 +370,21 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
-      const inserted = await db.insert(schema.users).values([insertUser]).returning();
+      // Filter only the fields that exist in the database schema
+      const userData = {
+        username: insertUser.username,
+        email: insertUser.email,
+        password: insertUser.password,
+        firstName: insertUser.firstName,
+        lastName: insertUser.lastName,
+        phone: insertUser.phone || '',
+        profileImage: insertUser.profileImage,
+        language: insertUser.language || 'fr',
+        role: insertUser.role,
+        isActive: insertUser.isActive ?? true,
+      };
+      
+      const inserted = await db.insert(schema.users).values([userData]).returning();
       return inserted;
     });
 
