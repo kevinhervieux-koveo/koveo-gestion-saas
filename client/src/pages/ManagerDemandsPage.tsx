@@ -616,7 +616,7 @@ ManagerDemandsPage() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select status' />
+                          <SelectValue placeholder={t('selectStatus')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -639,7 +639,7 @@ ManagerDemandsPage() {
                     <FormLabel>Review Notes</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder='Add notes about your review decision...'
+                        placeholder={t('addNotesReviewDecision')}
                         className='min-h-[100px]'
                         {...field}
                       />
@@ -657,7 +657,7 @@ ManagerDemandsPage() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select building' />
+                          <SelectValue placeholder={t('selectBuilding')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

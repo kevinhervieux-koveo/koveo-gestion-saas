@@ -302,6 +302,7 @@ export interface Translations {
   // Additional form labels and placeholders
   describeRequestDetail: string;
   submittedBy: string;
+  addNotesReviewDecision: string;
   selectStatus: string;
   addNotesReview: string;
   selectBuilding2: string;
@@ -365,6 +366,16 @@ export interface Translations {
   totalUnits: string;
   managementCompany: string;
   occupancyStats: string;
+  // Documents page translations
+  documentTitle: string;
+  documentDescription: string;
+  selectCategory: string;
+  selectOrganizationOptional: string;
+  selectBuildingOptional: string;
+  selectResidenceOptional: string;
+  searchDocuments: string;
+  filterByCategory: string;
+  noDocumentsFound: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -765,6 +776,7 @@ const translations: Record<Language, Translations> = {
     submittedBy: 'Submitted by',
     selectStatus: 'Select status',
     addNotesReview: 'Add notes about your review decision...',
+    addNotesReviewDecision: 'Add notes about your review decision...',
     selectBuilding2: 'Select building',
     // Status options for manager
     submitted2: 'Submitted',
@@ -826,6 +838,16 @@ const translations: Record<Language, Translations> = {
     totalUnits: 'Total Units',
     managementCompany: 'Management Company',
     occupancyStats: 'Occupancy Stats',
+    // Documents page translations
+    documentTitle: 'Document title',
+    documentDescription: 'Document description',
+    selectCategory: 'Select a category',
+    selectOrganizationOptional: 'Select organization (optional)',
+    selectBuildingOptional: 'Select building (optional)',
+    selectResidenceOptional: 'Select residence (optional)',
+    searchDocuments: 'Search documents...',
+    filterByCategory: 'Filter by category',
+    noDocumentsFound: 'No documents found',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1239,6 +1261,7 @@ const translations: Record<Language, Translations> = {
     selectStatus: 'Sélectionner le statut',
     addNotesReview: 'Ajouter des notes sur votre décision d\'examen...',
     selectBuilding2: 'Sélectionner le bâtiment',
+    addNotesReviewDecision: 'Ajoutez des notes sur votre décision d\\'examen...',
     // Status options for manager
     submitted2: 'Soumis',
     // Document management translations
@@ -1299,6 +1322,16 @@ const translations: Record<Language, Translations> = {
     totalUnits: 'Unités totales',
     managementCompany: 'Compagnie de gestion',
     occupancyStats: 'Statistiques d\'occupation',
+    // Documents page translations
+    documentTitle: 'Titre du document',
+    documentDescription: 'Description du document',
+    selectCategory: 'Sélectionnez une catégorie',
+    selectOrganizationOptional: 'Sélectionnez une organisation (optionnel)',
+    selectBuildingOptional: 'Sélectionnez un bâtiment (optionnel)',
+    selectResidenceOptional: 'Sélectionnez une résidence (optionnel)',
+    searchDocuments: 'Rechercher des documents...',
+    filterByCategory: 'Filtrer par catégorie',
+    noDocumentsFound: 'Aucun document trouvé',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
