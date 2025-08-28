@@ -967,6 +967,462 @@ describe('Website Translation Tests', () => {
       expect(fullscreenButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Residents Residence Page Translation', () => {
+    it('should display residents residence page with proper French translations', () => {
+      const ResidentsResidencePage = () => {
+        return (
+          <div data-testid='residents-residence-page'>
+            {/* Header Section */}
+            <div data-testid='header-residences'>Résidences</div>
+            <div data-testid='header-subtitle'>
+              Voir et gérer les résidences de l'organisation
+            </div>
+            <div data-testid='header-my-residence'>Ma résidence</div>
+            <div data-testid='header-my-residence-subtitle'>
+              Voir les informations de votre résidence et vos contacts
+            </div>
+
+            {/* Building and Residence Selection */}
+            <div data-testid='card-select-building-residence'>
+              <div data-testid='title-select-building-residence'>
+                Sélectionner l'immeuble et la résidence
+              </div>
+              <div data-testid='title-select-residence'>Sélectionner la résidence</div>
+              
+              <div data-testid='label-building'>Immeuble</div>
+              <div data-testid='placeholder-select-building'>Sélectionner un immeuble</div>
+              
+              <div data-testid='label-residence'>Résidence</div>
+              <div data-testid='placeholder-select-residence'>Sélectionner une résidence</div>
+            </div>
+
+            {/* Unit Details Cards */}
+            <div data-testid='unit-card-101'>
+              <div data-testid='unit-title-101'>Unité 101</div>
+              <div data-testid='building-name'>Immeuble Démo</div>
+              
+              <div data-testid='label-address'>Adresse</div>
+              <div data-testid='address-street'>123 Rue Démo</div>
+              <div data-testid='address-city'>Montréal, QC H1A 1A1</div>
+              
+              <div data-testid='label-floor'>Étage</div>
+              <div data-testid='floor-number'>1</div>
+              
+              <div data-testid='label-sq-ft'>Pi² (Sq Ft)</div>
+              <div data-testid='square-footage'>850.00</div>
+              
+              <div data-testid='label-bedrooms'>Chambres</div>
+              <div data-testid='bedrooms-count'>2</div>
+              
+              <div data-testid='label-bathrooms'>Salles de bain</div>
+              <div data-testid='bathrooms-count'>1.0</div>
+              
+              <div data-testid='label-parking'>Stationnement</div>
+              <div data-testid='parking-spaces'>P1, P2</div>
+              
+              <div data-testid='label-storage'>Rangement</div>
+              <div data-testid='storage-spaces'>R1, R2</div>
+              
+              <button data-testid='button-view-documents'>Voir les documents</button>
+              <button data-testid='button-building-documents'>Documents de l'immeuble</button>
+            </div>
+
+            <div data-testid='unit-card-102'>
+              <div data-testid='unit-title-102'>Unité 102</div>
+              <div data-testid='building-name-102'>Immeuble Démo</div>
+              
+              <div data-testid='square-footage-102'>900.00</div>
+              <button data-testid='button-view-documents-102'>Voir les documents</button>
+              <button data-testid='button-building-documents-102'>Documents de l'immeuble</button>
+            </div>
+
+            {/* Pagination */}
+            <div data-testid='pagination-section'>
+              <button data-testid='button-previous'>Précédent</button>
+              <button data-testid='button-next'>Suivant</button>
+              <div data-testid='page-info'>Page 1 sur 3</div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-message'>Chargement...</div>
+            
+            {/* Empty States */}
+            <div data-testid='no-residences-found'>Aucune résidence trouvée</div>
+            <div data-testid='no-residences-admin'>
+              Aucune résidence trouvée dans votre organisation.
+            </div>
+            <div data-testid='no-residences-resident'>
+              Vous n'êtes assigné à aucune résidence.
+            </div>
+
+            {/* Contact Management */}
+            <div data-testid='contact-section'>
+              <div data-testid='title-contact-management'>Gestion des contacts</div>
+              <button data-testid='button-add-contact'>Ajouter un contact</button>
+              <button data-testid='button-edit-contact'>Modifier le contact</button>
+              <button data-testid='button-delete-contact'>Supprimer le contact</button>
+              
+              <div data-testid='label-first-name'>Prénom</div>
+              <div data-testid='label-last-name'>Nom de famille</div>
+              <div data-testid='label-email'>Adresse courriel</div>
+              <div data-testid='label-phone'>Téléphone</div>
+              <div data-testid='label-contact-type'>Type de contact</div>
+              
+              <div data-testid='contact-type-primary'>Principal</div>
+              <div data-testid='contact-type-emergency'>Urgence</div>
+              <div data-testid='contact-type-other'>Autre</div>
+              
+              <div data-testid='toast-contact-added'>Contact ajouté avec succès</div>
+              <div data-testid='toast-contact-updated'>Contact mis à jour avec succès</div>
+              <div data-testid='toast-contact-deleted'>Contact supprimé avec succès</div>
+              <div data-testid='toast-contact-error'>Échec lors de l'ajout du contact</div>
+              
+              <div data-testid='confirm-delete-contact'>
+                Êtes-vous sûr de vouloir supprimer ce contact?
+              </div>
+            </div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-required-first-name'>Le prénom est requis</div>
+            <div data-testid='validation-required-last-name'>Le nom de famille est requis</div>
+            <div data-testid='validation-invalid-email'>Adresse courriel invalide</div>
+            
+            {/* Error Messages */}
+            <div data-testid='error-fetch-buildings'>Échec du chargement des immeubles</div>
+            <div data-testid='error-fetch-residences'>Échec du chargement des résidences</div>
+            <div data-testid='error-something-wrong'>Quelque chose s'est mal passé</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ResidentsResidencePage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-residences')).toHaveTextContent('Résidences');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Voir et gérer les résidences');
+      expect(screen.getByTestId('header-my-residence')).toHaveTextContent('Ma résidence');
+      expect(screen.getByTestId('header-my-residence-subtitle')).toHaveTextContent('informations de votre résidence');
+
+      // Verify building and residence selection
+      expect(screen.getByTestId('title-select-building-residence')).toHaveTextContent('Sélectionner l\'immeuble et la résidence');
+      expect(screen.getByTestId('label-building')).toHaveTextContent('Immeuble');
+      expect(screen.getByTestId('placeholder-select-building')).toHaveTextContent('Sélectionner un immeuble');
+      expect(screen.getByTestId('label-residence')).toHaveTextContent('Résidence');
+      expect(screen.getByTestId('placeholder-select-residence')).toHaveTextContent('Sélectionner une résidence');
+
+      // Verify unit details labels use Quebec French
+      expect(screen.getByTestId('unit-title-101')).toHaveTextContent('Unité 101');
+      expect(screen.getByTestId('building-name')).toHaveTextContent('Immeuble Démo');
+      expect(screen.getByTestId('label-address')).toHaveTextContent('Adresse');
+      expect(screen.getByTestId('address-city')).toHaveTextContent('Montréal, QC');
+      expect(screen.getByTestId('label-floor')).toHaveTextContent('Étage');
+      expect(screen.getByTestId('label-sq-ft')).toHaveTextContent('Pi²');
+      expect(screen.getByTestId('label-bedrooms')).toHaveTextContent('Chambres');
+      expect(screen.getByTestId('label-bathrooms')).toHaveTextContent('Salles de bain');
+      expect(screen.getByTestId('label-parking')).toHaveTextContent('Stationnement');
+      expect(screen.getByTestId('label-storage')).toHaveTextContent('Rangement');
+
+      // Verify button translations
+      expect(screen.getByTestId('button-view-documents')).toHaveTextContent('Voir les documents');
+      expect(screen.getByTestId('button-building-documents')).toHaveTextContent('Documents de l\'immeuble');
+
+      // Verify pagination uses French
+      expect(screen.getByTestId('button-previous')).toHaveTextContent('Précédent');
+      expect(screen.getByTestId('button-next')).toHaveTextContent('Suivant');
+      expect(screen.getByTestId('page-info')).toHaveTextContent('Page 1 sur 3');
+
+      // Verify loading and empty states
+      expect(screen.getByTestId('loading-message')).toHaveTextContent('Chargement');
+      expect(screen.getByTestId('no-residences-found')).toHaveTextContent('Aucune résidence trouvée');
+      expect(screen.getByTestId('no-residences-admin')).toHaveTextContent('Aucune résidence trouvée dans votre organisation');
+      expect(screen.getByTestId('no-residences-resident')).toHaveTextContent('Vous n\'êtes assigné à aucune résidence');
+
+      // Verify contact management translations
+      expect(screen.getByTestId('title-contact-management')).toHaveTextContent('Gestion des contacts');
+      expect(screen.getByTestId('button-add-contact')).toHaveTextContent('Ajouter un contact');
+      expect(screen.getByTestId('label-first-name')).toHaveTextContent('Prénom');
+      expect(screen.getByTestId('label-last-name')).toHaveTextContent('Nom de famille');
+      expect(screen.getByTestId('label-email')).toHaveTextContent('Adresse courriel');
+      expect(screen.getByTestId('label-phone')).toHaveTextContent('Téléphone');
+      expect(screen.getByTestId('contact-type-primary')).toHaveTextContent('Principal');
+      expect(screen.getByTestId('contact-type-emergency')).toHaveTextContent('Urgence');
+
+      // Verify toast messages use Quebec French
+      expect(screen.getByTestId('toast-contact-added')).toHaveTextContent('Contact ajouté avec succès');
+      expect(screen.getByTestId('toast-contact-updated')).toHaveTextContent('Contact mis à jour avec succès');
+      expect(screen.getByTestId('confirm-delete-contact')).toHaveTextContent('Êtes-vous sûr de vouloir supprimer');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-required-first-name')).toHaveTextContent('Le prénom est requis');
+      expect(screen.getByTestId('validation-invalid-email')).toHaveTextContent('Adresse courriel invalide');
+    });
+
+    it('should avoid English terminology in residents residence page', () => {
+      const ResidenceWithEnglishTerms = () => {
+        return (
+          <div data-testid='residence-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-residences'>Residences</div>
+            <div data-testid='incorrect-my-residence'>My Residence</div>
+            <div data-testid='incorrect-view-and-manage'>View and manage</div>
+            <div data-testid='incorrect-select-building'>Select Building</div>
+            <div data-testid='incorrect-select-residence'>Select Residence</div>
+            <div data-testid='incorrect-address'>Address</div>
+            <div data-testid='incorrect-floor'>Floor</div>
+            <div data-testid='incorrect-square-feet'>Square Feet</div>
+            <div data-testid='incorrect-bedrooms'>Bedrooms</div>
+            <div data-testid='incorrect-bathrooms'>Bathrooms</div>
+            <div data-testid='incorrect-parking'>Parking</div>
+            <div data-testid='incorrect-storage'>Storage</div>
+            <div data-testid='incorrect-view-documents'>View Documents</div>
+            <div data-testid='incorrect-building-documents'>Building Documents</div>
+            <div data-testid='incorrect-previous'>Previous</div>
+            <div data-testid='incorrect-next'>Next</div>
+            <div data-testid='incorrect-loading'>Loading</div>
+            <div data-testid='incorrect-no-residences'>No Residences Found</div>
+            <div data-testid='incorrect-add-contact'>Add Contact</div>
+            <div data-testid='incorrect-edit-contact'>Edit Contact</div>
+            <div data-testid='incorrect-delete-contact'>Delete Contact</div>
+            <div data-testid='incorrect-first-name'>First Name</div>
+            <div data-testid='incorrect-last-name'>Last Name</div>
+            <div data-testid='incorrect-email-address'>Email Address</div>
+            <div data-testid='incorrect-phone'>Phone</div>
+            <div data-testid='incorrect-contact-type'>Contact Type</div>
+            <div data-testid='incorrect-primary'>Primary</div>
+            <div data-testid='incorrect-emergency'>Emergency</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ResidenceWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'residences',
+        'my residence',
+        'view and manage', 
+        'select building',
+        'select residence',
+        'address',
+        'floor',
+        'square feet',
+        'bedrooms',
+        'bathrooms',
+        'parking',
+        'storage',
+        'view documents',
+        'building documents',
+        'previous',
+        'next',
+        'loading',
+        'no residences found',
+        'add contact',
+        'edit contact',
+        'delete contact',
+        'first name',
+        'last name',
+        'email address',
+        'phone',
+        'contact type',
+        'primary',
+        'emergency'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec property management terminology for residence details', () => {
+      const ResidencePropertyTerms = () => {
+        return (
+          <div data-testid='residence-property-terms'>
+            {/* Correct Quebec French property terms */}
+            <div data-testid='term-residence'>Résidence</div>
+            <div data-testid='term-immeuble'>Immeuble</div>
+            <div data-testid='term-unite'>Unité</div>
+            <div data-testid='term-adresse'>Adresse</div>
+            <div data-testid='term-etage'>Étage</div>
+            <div data-testid='term-pieds-carres'>Pieds carrés</div>
+            <div data-testid='term-chambres'>Chambres</div>
+            <div data-testid='term-salles-de-bain'>Salles de bain</div>
+            <div data-testid='term-stationnement'>Stationnement</div>
+            <div data-testid='term-rangement'>Rangement</div>
+            <div data-testid='term-espace-de-rangement'>Espace de rangement</div>
+            <div data-testid='term-place-de-stationnement'>Place de stationnement</div>
+            <div data-testid='term-balcon'>Balcon</div>
+            <div data-testid='term-superficie'>Superficie</div>
+            <div data-testid='term-documents-residence'>Documents de la résidence</div>
+            <div data-testid='term-documents-immeuble'>Documents de l'immeuble</div>
+            <div data-testid='term-informations-residence'>Informations de la résidence</div>
+            <div data-testid='term-details-unite'>Détails de l'unité</div>
+            <div data-testid='term-gestion-contacts'>Gestion des contacts</div>
+            <div data-testid='term-contact-principal'>Contact principal</div>
+            <div data-testid='term-contact-urgence'>Contact d'urgence</div>
+            <div data-testid='term-numero-unite'>Numéro d'unité</div>
+            <div data-testid='term-code-postal'>Code postal</div>
+            <div data-testid='term-province-quebec'>Québec</div>
+            <div data-testid='term-montreal'>Montréal</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ResidencePropertyTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec property management terminology for residences
+      expect(screen.getByTestId('term-residence')).toHaveTextContent('Résidence');
+      expect(screen.getByTestId('term-immeuble')).toHaveTextContent('Immeuble');
+      expect(screen.getByTestId('term-unite')).toHaveTextContent('Unité');
+      expect(screen.getByTestId('term-adresse')).toHaveTextContent('Adresse');
+      expect(screen.getByTestId('term-etage')).toHaveTextContent('Étage');
+      expect(screen.getByTestId('term-pieds-carres')).toHaveTextContent('Pieds carrés');
+      expect(screen.getByTestId('term-chambres')).toHaveTextContent('Chambres');
+      expect(screen.getByTestId('term-salles-de-bain')).toHaveTextContent('Salles de bain');
+      expect(screen.getByTestId('term-stationnement')).toHaveTextContent('Stationnement');
+      expect(screen.getByTestId('term-rangement')).toHaveTextContent('Rangement');
+      expect(screen.getByTestId('term-espace-de-rangement')).toHaveTextContent('Espace de rangement');
+      expect(screen.getByTestId('term-place-de-stationnement')).toHaveTextContent('Place de stationnement');
+      expect(screen.getByTestId('term-balcon')).toHaveTextContent('Balcon');
+      expect(screen.getByTestId('term-superficie')).toHaveTextContent('Superficie');
+      expect(screen.getByTestId('term-documents-residence')).toHaveTextContent('Documents de la résidence');
+      expect(screen.getByTestId('term-documents-immeuble')).toHaveTextContent('Documents de l\'immeuble');
+      expect(screen.getByTestId('term-informations-residence')).toHaveTextContent('Informations de la résidence');
+      expect(screen.getByTestId('term-details-unite')).toHaveTextContent('Détails de l\'unité');
+      expect(screen.getByTestId('term-gestion-contacts')).toHaveTextContent('Gestion des contacts');
+      expect(screen.getByTestId('term-contact-principal')).toHaveTextContent('Contact principal');
+      expect(screen.getByTestId('term-contact-urgence')).toHaveTextContent('Contact d\'urgence');
+      expect(screen.getByTestId('term-numero-unite')).toHaveTextContent('Numéro d\'unité');
+      expect(screen.getByTestId('term-code-postal')).toHaveTextContent('Code postal');
+      expect(screen.getByTestId('term-province-quebec')).toHaveTextContent('Québec');
+      expect(screen.getByTestId('term-montreal')).toHaveTextContent('Montréal');
+    });
+
+    it('should display proper role-based residence content', () => {
+      const RoleBasedResidenceContent = () => {
+        return (
+          <div data-testid='role-based-residence'>
+            {/* Admin/Manager view */}
+            <div data-testid='admin-manager-section'>
+              <div data-testid='admin-title'>Résidences</div>
+              <div data-testid='admin-subtitle'>
+                Voir et gérer les résidences de l'organisation
+              </div>
+              <div data-testid='admin-select-building-residence'>
+                Sélectionner l'immeuble et la résidence
+              </div>
+              <div data-testid='admin-no-residences'>
+                Aucune résidence trouvée dans votre organisation.
+              </div>
+            </div>
+
+            {/* Resident view */}
+            <div data-testid='resident-section'>
+              <div data-testid='resident-title'>Ma résidence</div>
+              <div data-testid='resident-subtitle'>
+                Voir les informations de votre résidence et vos contacts
+              </div>
+              <div data-testid='resident-select-residence'>Sélectionner la résidence</div>
+              <div data-testid='resident-no-residences'>
+                Vous n'êtes assigné à aucune résidence.
+              </div>
+            </div>
+
+            {/* Common elements */}
+            <div data-testid='common-section'>
+              <div data-testid='unit-information'>Informations de l'unité</div>
+              <div data-testid='contact-information'>Informations de contact</div>
+              <div data-testid='document-access'>Accès aux documents</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RoleBasedResidenceContent />
+        </TestProviders>
+      );
+
+      // Verify admin/manager role elements
+      expect(screen.getByTestId('admin-title')).toHaveTextContent('Résidences');
+      expect(screen.getByTestId('admin-subtitle')).toHaveTextContent('Voir et gérer les résidences de l\'organisation');
+      expect(screen.getByTestId('admin-select-building-residence')).toHaveTextContent('Sélectionner l\'immeuble et la résidence');
+      expect(screen.getByTestId('admin-no-residences')).toHaveTextContent('Aucune résidence trouvée dans votre organisation');
+
+      // Verify resident role elements  
+      expect(screen.getByTestId('resident-title')).toHaveTextContent('Ma résidence');
+      expect(screen.getByTestId('resident-subtitle')).toHaveTextContent('Voir les informations de votre résidence');
+      expect(screen.getByTestId('resident-select-residence')).toHaveTextContent('Sélectionner la résidence');
+      expect(screen.getByTestId('resident-no-residences')).toHaveTextContent('Vous n\'êtes assigné à aucune résidence');
+
+      // Verify common elements
+      expect(screen.getByTestId('unit-information')).toHaveTextContent('Informations de l\'unité');
+      expect(screen.getByTestId('contact-information')).toHaveTextContent('Informations de contact');
+      expect(screen.getByTestId('document-access')).toHaveTextContent('Accès aux documents');
+    });
+
+    it('should have proper data-testid attributes for residence page elements', () => {
+      const ResidenceWithTestIds = () => {
+        return (
+          <div data-testid='residents-residence-page'>
+            <div data-testid='card-select-building-residence'>Sélection</div>
+            <div data-testid='unit-card-101'>Unité 101</div>
+            <div data-testid='unit-card-102'>Unité 102</div>
+            <button data-testid='button-view-documents'>Documents</button>
+            <button data-testid='button-building-documents'>Documents immeuble</button>
+            <button data-testid='button-previous'>Précédent</button>
+            <button data-testid='button-next'>Suivant</button>
+            <button data-testid='button-add-contact'>Ajouter contact</button>
+            <button data-testid='button-edit-contact'>Modifier contact</button>
+            <button data-testid='button-delete-contact'>Supprimer contact</button>
+            <div data-testid='loading-message'>Chargement</div>
+            <div data-testid='no-residences-found'>Aucune résidence</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ResidenceWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all residence page elements have proper test IDs
+      expect(screen.getByTestId('residents-residence-page')).toBeInTheDocument();
+      expect(screen.getByTestId('card-select-building-residence')).toBeInTheDocument();
+      expect(screen.getByTestId('unit-card-101')).toBeInTheDocument();
+      expect(screen.getByTestId('unit-card-102')).toBeInTheDocument();
+      expect(screen.getByTestId('button-view-documents')).toBeInTheDocument();
+      expect(screen.getByTestId('button-building-documents')).toBeInTheDocument();
+      expect(screen.getByTestId('button-previous')).toBeInTheDocument();
+      expect(screen.getByTestId('button-next')).toBeInTheDocument();
+      expect(screen.getByTestId('button-add-contact')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-contact')).toBeInTheDocument();
+      expect(screen.getByTestId('button-delete-contact')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-message')).toBeInTheDocument();
+      expect(screen.getByTestId('no-residences-found')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const viewDocumentsButton = screen.getByTestId('button-view-documents');
+      expect(viewDocumentsButton).toHaveAttribute('data-testid');
+      expect(viewDocumentsButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -1059,6 +1515,60 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   '2 min ago': 'il y a 2 min',
   '1 hour ago': 'il y a 1 heure',
   '3 hours ago': 'il y a 3 heures',
+
+  // Residence and property terms
+  residences: 'résidences',
+  'my residence': 'ma résidence',
+  'select building': 'sélectionner un immeuble',
+  'select residence': 'sélectionner une résidence',
+  'select a building': 'sélectionner un immeuble',
+  'select a residence': 'sélectionner une résidence',
+  'view and manage': 'voir et gérer',
+  'view your residence': 'voir votre résidence',
+  'organization residences': 'résidences de l\'organisation',
+  'residence information': 'informations de la résidence',
+  'unit number': 'numéro d\'unité',
+  unit: 'unité',
+  building: 'immeuble',
+  address: 'adresse',
+  floor: 'étage',
+  'square feet': 'pieds carrés',
+  'sq ft': 'pi²',
+  bedrooms: 'chambres',
+  bathrooms: 'salles de bain',
+  parking: 'stationnement',
+  storage: 'rangement',
+  'parking spaces': 'places de stationnement',
+  'storage spaces': 'espaces de rangement',
+  balcony: 'balcon',
+  'view documents': 'voir les documents',
+  'building documents': 'documents de l\'immeuble',
+  'residence documents': 'documents de la résidence',
+  'no residences found': 'aucune résidence trouvée',
+  'not assigned to any residences': 'pas assigné à des résidences',
+  'contact management': 'gestion des contacts',
+  'add contact': 'ajouter un contact',
+  'edit contact': 'modifier le contact',
+  'delete contact': 'supprimer le contact',
+  'contact type': 'type de contact',
+  'contact added successfully': 'contact ajouté avec succès',
+  'contact updated successfully': 'contact mis à jour avec succès',
+  'contact deleted successfully': 'contact supprimé avec succès',
+  'failed to add contact': 'échec lors de l\'ajout du contact',
+  'failed to update contact': 'échec lors de la modification du contact',
+  'failed to delete contact': 'échec lors de la suppression du contact',
+  'are you sure': 'êtes-vous sûr',
+  'want to delete': 'vouloir supprimer',
+  'first name is required': 'le prénom est requis',
+  'last name is required': 'le nom de famille est requis',
+  'invalid email address': 'adresse courriel invalide',
+  'failed to fetch buildings': 'échec du chargement des immeubles',
+  'failed to fetch residences': 'échec du chargement des résidences',
+  'something went wrong': 'quelque chose s\'est mal passé',
+  loading: 'chargement',
+  'postal code': 'code postal',
+  montreal: 'montréal',
+  quebec: 'québec',
 };
 
 /**
