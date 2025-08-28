@@ -20,7 +20,7 @@ import { relations } from 'drizzle-orm';
  * Enum defining user roles in the Quebec property management system.
  * Determines user permissions and access levels across the application.
  */
-export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident']);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']);
 
 /**
  * Enum defining invitation status values for user invitation system.
@@ -268,7 +268,7 @@ export const insertUserSchema = z.object({
   ),
   profileImage: z.string().optional(),
   language: z.string().default('fr'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']).default('tenant'),
 });
 
 export const insertOrganizationSchema = z.object({
@@ -287,7 +287,7 @@ export const insertOrganizationSchema = z.object({
 export const insertUserOrganizationSchema = z.object({
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
-  organizationRole: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
+  organizationRole: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']).default('tenant'),
   canAccessAllOrganizations: z.boolean().default(false),
 });
 
@@ -295,7 +295,7 @@ export const insertInvitationSchema = z.object({
   organizationId: z.string().uuid().optional(),
   residenceId: z.union([z.string().uuid(), z.null()]).optional(),
   email: z.string().email(),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
   invitedByUserId: z.string().uuid(),
   expiresAt: z.union([
     z.date(),
@@ -337,7 +337,7 @@ export const insertPermissionSchema = z.object({
 });
 
 export const insertRolePermissionSchema = z.object({
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
   permissionId: z.string().uuid(),
 });
 

@@ -74,9 +74,9 @@ export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Demo roles and users available for testing
+  // Demo roles and users available for testing - only showing Demo organization users
   const demoRoles = {
-    manager: {
+    demo_manager: {
       displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
       description:
         language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management',
@@ -86,20 +86,20 @@ export default function LoginPage() {
           : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
       users: [
         {
-          email: 'demo.manager@example.com',
-          name: language === 'fr' ? 'Gestionnaire Démo' : 'Demo Manager',
-          building: language === 'fr' ? 'Accès complet gestionnaire' : 'Full manager access',
+          email: 'marie.dubois@demo.com',
+          name: language === 'fr' ? 'Marie Dubois' : 'Marie Dubois',
+          building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'demo.manager.open@example.com',
-          name: language === 'fr' ? 'Gestionnaire Ouvert' : 'Open Demo Manager',
-          building: language === 'fr' ? 'Accès gestionnaire ouvert' : 'Open manager access',
+          email: 'pierre.gagnon@demo.com',
+          name: language === 'fr' ? 'Pierre Gagnon' : 'Pierre Gagnon',
+          building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
       ],
     },
-    tenant: {
+    demo_tenant: {
       displayName: language === 'fr' ? 'Locataire' : 'Tenant',
       description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
       detailedDescription:
@@ -108,20 +108,20 @@ export default function LoginPage() {
           : 'Access to essential tenant features: maintenance requests, documents, communication with management.',
       users: [
         {
-          email: 'demo.tenant@example.com',
-          name: language === 'fr' ? 'Locataire Démo' : 'Demo Tenant',
-          building: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
-          password: DEMO_CREDENTIALS.TENANT_DEMO_PASSWORD,
+          email: 'jean.tremblay@demo.com',
+          name: language === 'fr' ? 'Jean Tremblay' : 'Jean Tremblay',
+          building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
+          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'demo.tenant.open@example.com',
-          name: language === 'fr' ? 'Locataire Ouvert' : 'Open Demo Tenant',
-          building: language === 'fr' ? 'Accès locataire ouvert' : 'Open tenant access',
+          email: 'lucie.roy@demo.com',
+          name: language === 'fr' ? 'Lucie Roy' : 'Lucie Roy',
+          building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
       ],
     },
-    resident: {
+    demo_resident: {
       displayName: language === 'fr' ? 'Résident' : 'Resident',
       description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
       detailedDescription:
@@ -130,15 +130,15 @@ export default function LoginPage() {
           : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
       users: [
         {
-          email: 'demo.resident@example.com',
-          name: language === 'fr' ? 'Résident Démo' : 'Demo Resident',
-          building: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
+          email: 'sophie.martin@demo.com',
+          name: language === 'fr' ? 'Sophie Martin' : 'Sophie Martin',
+          building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'demo.resident.open@example.com',
-          name: language === 'fr' ? 'Résident Ouvert' : 'Open Demo Resident',
-          building: language === 'fr' ? 'Accès résident ouvert' : 'Open resident access',
+          email: 'michel.cote@demo.com',
+          name: language === 'fr' ? 'Michel Côté' : 'Michel Côté',
+          building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
       ],
