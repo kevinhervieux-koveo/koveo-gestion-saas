@@ -1162,22 +1162,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log('✅ User data validation successful for:', normalizedEmail);
 
-        // Use database transaction to ensure atomicity
-        const result = await db.transaction(async (tx) => {
+        // Create user and related records (Neon HTTP doesn't support transactions)
+        let newUser: any;
+        try {
           // Create user
-          const newUser = await storage.createUser(createUserData);
+          newUser = await storage.createUser(createUserData);
+          console.log('✅ User created successfully:', newUser.id);
 
           // Create user-organization relationship
-          await tx.insert(schema.userOrganizations).values({
+          await db.insert(schema.userOrganizations).values({
             userId: newUser.id,
             organizationId: invitationData.organizationId,
             isActive: true,
             canAccessAllOrganizations: false,
           });
+          console.log('✅ User-organization relationship created');
 
           // If invitation includes a residence assignment, create user-residence relationship
           if (invitationData.residenceId && ['tenant', 'resident'].includes(invitationData.role)) {
-            await tx.insert(schema.userResidences).values({
+            await db.insert(schema.userResidences).values({
               userId: newUser.id,
               residenceId: invitationData.residenceId,
               relationshipType: invitationData.role === 'tenant' ? 'tenant' : 'resident',
@@ -1186,12 +1189,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             console.log(
-              `User ${newUser.id} assigned to residence ${invitationData.residenceId} as ${invitationData.role}`
+              `✅ User ${newUser.id} assigned to residence ${invitationData.residenceId} as ${invitationData.role}`
             );
           }
 
           // Mark invitation as accepted
-          await tx
+          await db
             .update(invitations)
             .set({
               status: 'accepted',
@@ -1199,11 +1202,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               acceptedBy: newUser.id,
             })
             .where(eq(invitations.id, invitationData.id));
+          console.log('✅ Invitation marked as accepted');
 
-          return newUser;
-        });
-
-        const newUser = result;
+        } catch (error) {
+          console.error('❌ Error during user creation process:', error);
+          
+          // If user was created but other operations failed, try to clean up
+          if (newUser?.id) {
+            try {
+              console.log('🧹 Attempting cleanup of partially created user:', newUser.id);
+              await db.delete(schemaUsers).where(eq(schemaUsers.id, newUser.id));
+              console.log('✅ User cleanup completed');
+            } catch (cleanupError) {
+              console.error('❌ Failed to cleanup user:', cleanupError);
+            }
+          }
+          throw error;
+        }
 
         // Log successful user creation
         logUserCreation({
