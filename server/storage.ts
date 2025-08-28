@@ -678,16 +678,16 @@ export class MemStorage implements IStorage {
 }
 
 // Import the database storage implementation
-import { OptimizedDatabaseStorage } from './optimized-db-storage';
+import { DatabaseStorage } from './db-storage';
 
 // Production fallback storage - try database first, fall back to memory if authentication fails
 class ProductionFallbackStorage implements IStorage {
-  private dbStorage: OptimizedDatabaseStorage;
+  private dbStorage: DatabaseStorage;
   private memStorage: MemStorage;
   private usingFallback: boolean = false;
 
   constructor() {
-    this.dbStorage = new OptimizedDatabaseStorage();
+    this.dbStorage = new DatabaseStorage();
     this.memStorage = new MemStorage();
   }
 
@@ -1089,4 +1089,4 @@ class ProductionFallbackStorage implements IStorage {
 }
 
 // Always use database storage - no fallbacks
-export const storage = new OptimizedDatabaseStorage();
+export const storage = new DatabaseStorage();

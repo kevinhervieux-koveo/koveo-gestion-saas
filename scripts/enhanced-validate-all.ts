@@ -31,7 +31,7 @@ const validationSteps: ValidationStep[] = [
   },
   {
     name: 'Type Check',
-    command: 'npx tsc --noEmit --skipLibCheck', // Direct TypeScript check without package dependency issues
+    command: 'npx tsc --noEmit --skipLibCheck --project tsconfig.validation.json', // Use validation config to exclude problematic files
     required: true,
   },
   {

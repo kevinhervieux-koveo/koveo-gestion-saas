@@ -49,7 +49,7 @@ import type {
   InsertBug,
 } from '@shared/schema';
 import type { IStorage } from './storage';
-import type { DevelopmentPillar } from '../shared/schemas/development';
+import type { Pillar } from '../shared/schemas/development';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
 import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
