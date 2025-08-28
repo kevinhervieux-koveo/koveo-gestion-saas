@@ -349,7 +349,7 @@ export function authorize(permission: string) {
  */
 export function setupAuthRoutes(app: any) {
   // Login route
-  app.post('/auth/login', async (req: Request, res: Response) => {
+  app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -430,7 +430,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Logout route
-  app.post('/auth/logout', (req: Request, res: Response) => {
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
         console.error('Logout _error:', err);
@@ -453,7 +453,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Get current user route
-  app.get('/auth/user', async (req: Request, res: Response) => {
+  app.get('/api/auth/user', async (req: Request, res: Response) => {
     try {
       // 🚨 EMERGENCY PRODUCTION SESSION CHECK - Support emergency login sessions
       if (process.env.NODE_ENV === 'production' && 
@@ -513,7 +513,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Debug endpoint to check auth configuration (production only, temporary)
-  app.get('/auth/debug', async (req: Request, res: Response) => {
+  app.get('/api/auth/debug', async (req: Request, res: Response) => {
     const debugInfo = {
       hasSession: !!req.session,
       sessionId: req.sessionID,
@@ -537,7 +537,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Test cookie setting endpoint
-  app.post('/auth/test-cookie', (req: Request, res: Response) => {
+  app.post('/api/auth/test-cookie', (req: Request, res: Response) => {
     // Set a test session value
     req.session.testValue = 'test-' + Date.now();
     
@@ -613,7 +613,7 @@ export function setupAuthRoutes(app: any) {
   );
 
   // Password Reset Request Route
-  app.post('/auth/forgot-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
@@ -705,7 +705,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Password Reset Route
-  app.post('/auth/reset-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
     try {
       const { token, password } = req.body;
 
