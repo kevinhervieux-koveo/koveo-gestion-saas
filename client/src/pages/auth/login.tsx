@@ -376,9 +376,6 @@ export default function LoginPage() {
                               <p className='text-xs text-green-600 dark:text-green-400 mt-1'>
                                 {user.email}
                               </p>
-                              <p className='text-xs text-blue-600 dark:text-blue-400 font-mono mt-1'>
-                                Password: {user.password}
-                              </p>
                             </div>
                             <Building className='w-4 h-4 text-green-600 dark:text-green-400' />
                           </div>
