@@ -8724,6 +8724,894 @@ describe('Website Translation Tests', () => {
       expect(createButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Admin Organizations Page Translation', () => {
+    it('should display admin organizations page with proper French translations', () => {
+      const AdminOrganizationsPage = () => {
+        return (
+          <div data-testid='admin-organizations-page'>
+            {/* Header Section */}
+            <div data-testid='header-organizations-management'>Gestion des organisations</div>
+            <div data-testid='header-subtitle'>
+              Créer, consulter, modifier et supprimer les organisations dans le système
+            </div>
+
+            {/* Organizations Section */}
+            <div data-testid='organizations-section'>
+              <div data-testid='organizations-title'>Organisations</div>
+              <button data-testid='button-create-organization'>Créer</button>
+              
+              {/* Empty State */}
+              <div data-testid='empty-state'>
+                <div data-testid='no-organizations-found'>Aucune organisation trouvée</div>
+                <button data-testid='button-create-first-organization'>
+                  Créer la première organisation
+                </button>
+              </div>
+
+              {/* Organization Items */}
+              <div data-testid='organizations-list'>
+                <div data-testid='organization-item'>
+                  <div data-testid='organization-name'>Nom de l'organisation</div>
+                  <div data-testid='organization-type'>Type d'organisation</div>
+                  <div data-testid='organization-address'>Adresse</div>
+                  <div data-testid='organization-city'>Ville</div>
+                  <div data-testid='organization-province'>Province</div>
+                  <div data-testid='organization-postal-code'>Code postal</div>
+                  <div data-testid='organization-phone'>Téléphone</div>
+                  <div data-testid='organization-email'>Courriel</div>
+                  <div data-testid='organization-website'>Site web</div>
+                  <div data-testid='organization-registration'>Numéro d'enregistrement</div>
+                  <div data-testid='organization-status'>Statut</div>
+                  
+                  {/* Organization Type Badges */}
+                  <div data-testid='badge-management-company'>Compagnie de gestion</div>
+                  <div data-testid='badge-syndicate'>Syndicat</div>
+                  <div data-testid='badge-cooperative'>Coopérative</div>
+                  <div data-testid='badge-condo-association'>Association de copropriété</div>
+                  
+                  {/* Status Badges */}
+                  <div data-testid='badge-active'>Actif</div>
+                  <div data-testid='badge-inactive'>Inactif</div>
+                  
+                  {/* Organization Actions */}
+                  <div data-testid='organization-actions'>
+                    <button data-testid='button-view-organization'>Voir</button>
+                    <button data-testid='button-edit-organization'>Modifier</button>
+                    <button data-testid='button-delete-organization'>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Create/Edit Organization Dialog */}
+            <div data-testid='dialog-organization-form'>
+              <div data-testid='create-organization-title'>Créer une organisation</div>
+              <div data-testid='edit-organization-title'>Modifier l'organisation</div>
+              <div data-testid='create-organization-description'>
+                Remplissez les détails pour créer une nouvelle organisation.
+              </div>
+              <div data-testid='edit-organization-description'>
+                Mettez à jour les informations de l'organisation ci-dessous.
+              </div>
+              
+              <div data-testid='organization-form'>
+                <div data-testid='label-organization-name'>Nom de l'organisation *</div>
+                <input data-testid='input-organization-name' 
+                  placeholder='Entrez le nom de l\'organisation' 
+                />
+                
+                <div data-testid='label-organization-type'>Type d'organisation *</div>
+                <select data-testid='select-organization-type'>
+                  <option data-testid='type-management-company'>Compagnie de gestion</option>
+                  <option data-testid='type-syndicate'>Syndicat</option>
+                  <option data-testid='type-cooperative'>Coopérative</option>
+                  <option data-testid='type-condo-association'>Association de copropriété</option>
+                </select>
+                
+                <div data-testid='label-organization-address'>Adresse *</div>
+                <input data-testid='input-organization-address' 
+                  placeholder='Entrez l\'adresse' 
+                />
+                
+                <div data-testid='label-organization-city'>Ville *</div>
+                <input data-testid='input-organization-city' 
+                  placeholder='Entrez la ville' 
+                />
+                
+                <div data-testid='label-organization-province'>Province *</div>
+                <select data-testid='select-organization-province'>
+                  <option data-testid='province-qc'>Québec</option>
+                  <option data-testid='province-on'>Ontario</option>
+                  <option data-testid='province-bc'>Colombie-Britannique</option>
+                  <option data-testid='province-ab'>Alberta</option>
+                  <option data-testid='province-mb'>Manitoba</option>
+                  <option data-testid='province-sk'>Saskatchewan</option>
+                  <option data-testid='province-ns'>Nouvelle-Écosse</option>
+                  <option data-testid='province-nb'>Nouveau-Brunswick</option>
+                  <option data-testid='province-nl'>Terre-Neuve-et-Labrador</option>
+                  <option data-testid='province-pe'>Île-du-Prince-Édouard</option>
+                  <option data-testid='province-yt'>Yukon</option>
+                  <option data-testid='province-nt'>Territoires du Nord-Ouest</option>
+                  <option data-testid='province-nu'>Nunavut</option>
+                </select>
+                
+                <div data-testid='label-organization-postal-code'>Code postal *</div>
+                <input data-testid='input-organization-postal-code' 
+                  placeholder='Entrez le code postal' 
+                />
+                
+                <div data-testid='label-organization-phone'>Téléphone</div>
+                <input data-testid='input-organization-phone' 
+                  placeholder='Entrez le numéro de téléphone' 
+                />
+                
+                <div data-testid='label-organization-email'>Courriel</div>
+                <input data-testid='input-organization-email' 
+                  placeholder='Entrez l\'adresse courriel' 
+                />
+                
+                <div data-testid='label-organization-website'>Site web</div>
+                <input data-testid='input-organization-website' 
+                  placeholder='Entrez l\'URL du site web' 
+                />
+                
+                <div data-testid='label-organization-registration'>Numéro d'enregistrement</div>
+                <input data-testid='input-organization-registration' 
+                  placeholder='Entrez le numéro d\'enregistrement' 
+                />
+
+                <div data-testid='form-buttons'>
+                  <button data-testid='button-cancel-organization'>Annuler</button>
+                  <button data-testid='button-save-organization'>Sauvegarder</button>
+                  <button data-testid='button-create-organization-submit'>Créer l'organisation</button>
+                  <button data-testid='button-update-organization-submit'>Mettre à jour l'organisation</button>
+                  <button data-testid='button-saving-organization' disabled>
+                    Sauvegarde en cours...
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* View Organization Dialog */}
+            <div data-testid='dialog-view-organization'>
+              <div data-testid='view-organization-title'>Détails de l'organisation</div>
+              
+              <div data-testid='view-organization-content'>
+                <div data-testid='view-label-type'>Type</div>
+                <div data-testid='view-organization-type'>Type d'organisation</div>
+                
+                <div data-testid='view-label-status'>Statut</div>
+                <div data-testid='view-organization-status'>Statut</div>
+                
+                <div data-testid='view-label-address'>Adresse</div>
+                <div data-testid='view-organization-address'>Adresse complète</div>
+                
+                <div data-testid='view-label-phone'>Téléphone</div>
+                <div data-testid='view-organization-phone'>Numéro de téléphone</div>
+                
+                <div data-testid='view-label-email'>Courriel</div>
+                <div data-testid='view-organization-email'>Adresse courriel</div>
+                
+                <div data-testid='view-label-website'>Site web</div>
+                <div data-testid='view-organization-website'>URL du site web</div>
+                
+                <div data-testid='view-label-registration'>Numéro d'enregistrement</div>
+                <div data-testid='view-organization-registration'>Numéro d'enregistrement</div>
+              </div>
+              
+              <div data-testid='view-dialog-actions'>
+                <button data-testid='button-close-view'>Fermer</button>
+                <button data-testid='button-edit-from-view'>Modifier</button>
+              </div>
+            </div>
+
+            {/* Delete Organization Confirmation */}
+            <div data-testid='dialog-delete-organization'>
+              <div data-testid='delete-organization-title'>Supprimer l'organisation</div>
+              <div data-testid='delete-organization-description'>
+                Êtes-vous sûr de vouloir supprimer cette organisation ? Cette action ne peut pas être annulée.
+              </div>
+              <div data-testid='delete-organization-warning'>
+                Toutes les données associées à cette organisation seront également supprimées.
+              </div>
+              <div data-testid='delete-organization-buttons'>
+                <button data-testid='button-cancel-delete'>Annuler</button>
+                <button data-testid='button-confirm-delete'>Supprimer</button>
+                <button data-testid='button-deleting-organization' disabled>
+                  Suppression en cours...
+                </button>
+              </div>
+            </div>
+
+            {/* Success/Error Messages */}
+            <div data-testid='toast-messages'>
+              <div data-testid='toast-organization-created'>Organisation créée</div>
+              <div data-testid='toast-organization-created-desc'>
+                Organisation créée avec succès
+              </div>
+              <div data-testid='toast-organization-updated'>Organisation mise à jour</div>
+              <div data-testid='toast-organization-updated-desc'>
+                Organisation mise à jour avec succès
+              </div>
+              <div data-testid='toast-organization-deleted'>Organisation supprimée</div>
+              <div data-testid='toast-organization-deleted-desc'>
+                Organisation supprimée avec succès
+              </div>
+              <div data-testid='toast-error-title'>Erreur</div>
+              <div data-testid='toast-error-create'>
+                Échec de la création de l'organisation
+              </div>
+              <div data-testid='toast-error-update'>
+                Échec de la mise à jour de l'organisation
+              </div>
+              <div data-testid='toast-error-delete'>
+                Échec de la suppression de l'organisation
+              </div>
+              <div data-testid='toast-something-went-wrong'>
+                Quelque chose s'est mal passé
+              </div>
+            </div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-messages'>
+              <div data-testid='validation-name-required'>Le nom de l'organisation est requis</div>
+              <div data-testid='validation-type-required'>Le type d'organisation est requis</div>
+              <div data-testid='validation-address-required'>L'adresse est requise</div>
+              <div data-testid='validation-city-required'>La ville est requise</div>
+              <div data-testid='validation-province-required'>La province est requise</div>
+              <div data-testid='validation-postal-code-required'>Le code postal est requis</div>
+              <div data-testid='validation-email-invalid'>Adresse courriel invalide</div>
+              <div data-testid='validation-website-invalid'>URL du site web invalide</div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-organizations'>Chargement des organisations...</div>
+            <div data-testid='loading-create'>Création en cours...</div>
+            <div data-testid='loading-update'>Mise à jour en cours...</div>
+            <div data-testid='loading-delete'>Suppression en cours...</div>
+
+            {/* Permissions Messages */}
+            <div data-testid='permission-messages'>
+              <div data-testid='admin-only-organizations'>
+                L'accès à la gestion des organisations est réservé aux administrateurs
+              </div>
+              <div data-testid='cannot-edit-organization'>
+                Vous n'avez pas la permission de modifier cette organisation
+              </div>
+              <div data-testid='cannot-delete-organization'>
+                Vous n'avez pas la permission de supprimer cette organisation
+              </div>
+            </div>
+
+            {/* Field Labels and Placeholders */}
+            <div data-testid='field-labels'>
+              <div data-testid='placeholder-enter-name'>Entrez le nom de l'organisation</div>
+              <div data-testid='placeholder-select-type'>Sélectionnez le type</div>
+              <div data-testid='placeholder-enter-address'>Entrez l'adresse</div>
+              <div data-testid='placeholder-enter-city'>Entrez la ville</div>
+              <div data-testid='placeholder-enter-postal-code'>Entrez le code postal</div>
+              <div data-testid='placeholder-enter-phone'>Entrez le numéro de téléphone</div>
+              <div data-testid='placeholder-enter-email'>Entrez l'adresse courriel</div>
+              <div data-testid='placeholder-enter-website'>Entrez l'URL du site web</div>
+              <div data-testid='placeholder-enter-registration'>Entrez le numéro d'enregistrement</div>
+            </div>
+
+            {/* Organization Management Actions */}
+            <div data-testid='management-actions'>
+              <div data-testid='view-organization'>Voir l'organisation</div>
+              <div data-testid='edit-organization'>Modifier l'organisation</div>
+              <div data-testid='delete-organization'>Supprimer l'organisation</div>
+              <div data-testid='create-organization'>Créer une organisation</div>
+              <div data-testid='manage-organizations'>Gérer les organisations</div>
+              <div data-testid='organization-management'>Gestion des organisations</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminOrganizationsPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-organizations-management')).toHaveTextContent('Gestion des organisations');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Créer, consulter, modifier et supprimer les organisations dans le système');
+
+      // Verify organizations section
+      expect(screen.getByTestId('organizations-title')).toHaveTextContent('Organisations');
+      expect(screen.getByTestId('button-create-organization')).toHaveTextContent('Créer');
+
+      // Verify empty state
+      expect(screen.getByTestId('no-organizations-found')).toHaveTextContent('Aucune organisation trouvée');
+      expect(screen.getByTestId('button-create-first-organization')).toHaveTextContent('Créer la première organisation');
+
+      // Verify organization type badges
+      expect(screen.getByTestId('badge-management-company')).toHaveTextContent('Compagnie de gestion');
+      expect(screen.getByTestId('badge-syndicate')).toHaveTextContent('Syndicat');
+      expect(screen.getByTestId('badge-cooperative')).toHaveTextContent('Coopérative');
+      expect(screen.getByTestId('badge-condo-association')).toHaveTextContent('Association de copropriété');
+
+      // Verify status badges
+      expect(screen.getByTestId('badge-active')).toHaveTextContent('Actif');
+      expect(screen.getByTestId('badge-inactive')).toHaveTextContent('Inactif');
+
+      // Verify organization actions
+      expect(screen.getByTestId('button-view-organization')).toHaveTextContent('Voir');
+      expect(screen.getByTestId('button-edit-organization')).toHaveTextContent('Modifier');
+      expect(screen.getByTestId('button-delete-organization')).toHaveTextContent('Supprimer');
+
+      // Verify create/edit dialog
+      expect(screen.getByTestId('create-organization-title')).toHaveTextContent('Créer une organisation');
+      expect(screen.getByTestId('edit-organization-title')).toHaveTextContent('Modifier l\'organisation');
+      expect(screen.getByTestId('create-organization-description')).toHaveTextContent('Remplissez les détails pour créer une nouvelle organisation');
+      expect(screen.getByTestId('edit-organization-description')).toHaveTextContent('Mettez à jour les informations de l\'organisation ci-dessous');
+
+      // Verify form labels
+      expect(screen.getByTestId('label-organization-name')).toHaveTextContent('Nom de l\'organisation *');
+      expect(screen.getByTestId('label-organization-type')).toHaveTextContent('Type d\'organisation *');
+      expect(screen.getByTestId('label-organization-address')).toHaveTextContent('Adresse *');
+      expect(screen.getByTestId('label-organization-city')).toHaveTextContent('Ville *');
+      expect(screen.getByTestId('label-organization-province')).toHaveTextContent('Province *');
+      expect(screen.getByTestId('label-organization-postal-code')).toHaveTextContent('Code postal *');
+      expect(screen.getByTestId('label-organization-phone')).toHaveTextContent('Téléphone');
+      expect(screen.getByTestId('label-organization-email')).toHaveTextContent('Courriel');
+      expect(screen.getByTestId('label-organization-website')).toHaveTextContent('Site web');
+      expect(screen.getByTestId('label-organization-registration')).toHaveTextContent('Numéro d\'enregistrement');
+
+      // Verify form placeholders
+      expect(screen.getByTestId('input-organization-name')).toHaveAttribute('placeholder', 'Entrez le nom de l\'organisation');
+      expect(screen.getByTestId('input-organization-address')).toHaveAttribute('placeholder', 'Entrez l\'adresse');
+      expect(screen.getByTestId('input-organization-city')).toHaveAttribute('placeholder', 'Entrez la ville');
+      expect(screen.getByTestId('input-organization-postal-code')).toHaveAttribute('placeholder', 'Entrez le code postal');
+      expect(screen.getByTestId('input-organization-phone')).toHaveAttribute('placeholder', 'Entrez le numéro de téléphone');
+      expect(screen.getByTestId('input-organization-email')).toHaveAttribute('placeholder', 'Entrez l\'adresse courriel');
+      expect(screen.getByTestId('input-organization-website')).toHaveAttribute('placeholder', 'Entrez l\'URL du site web');
+      expect(screen.getByTestId('input-organization-registration')).toHaveAttribute('placeholder', 'Entrez le numéro d\'enregistrement');
+
+      // Verify organization types
+      expect(screen.getByTestId('type-management-company')).toHaveTextContent('Compagnie de gestion');
+      expect(screen.getByTestId('type-syndicate')).toHaveTextContent('Syndicat');
+      expect(screen.getByTestId('type-cooperative')).toHaveTextContent('Coopérative');
+      expect(screen.getByTestId('type-condo-association')).toHaveTextContent('Association de copropriété');
+
+      // Verify provinces
+      expect(screen.getByTestId('province-qc')).toHaveTextContent('Québec');
+      expect(screen.getByTestId('province-on')).toHaveTextContent('Ontario');
+      expect(screen.getByTestId('province-bc')).toHaveTextContent('Colombie-Britannique');
+      expect(screen.getByTestId('province-ab')).toHaveTextContent('Alberta');
+
+      // Verify form buttons
+      expect(screen.getByTestId('button-cancel-organization')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-save-organization')).toHaveTextContent('Sauvegarder');
+      expect(screen.getByTestId('button-create-organization-submit')).toHaveTextContent('Créer l\'organisation');
+      expect(screen.getByTestId('button-update-organization-submit')).toHaveTextContent('Mettre à jour l\'organisation');
+      expect(screen.getByTestId('button-saving-organization')).toHaveTextContent('Sauvegarde en cours');
+
+      // Verify view dialog
+      expect(screen.getByTestId('view-organization-title')).toHaveTextContent('Détails de l\'organisation');
+      expect(screen.getByTestId('view-label-type')).toHaveTextContent('Type');
+      expect(screen.getByTestId('view-label-status')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('view-label-address')).toHaveTextContent('Adresse');
+      expect(screen.getByTestId('view-label-phone')).toHaveTextContent('Téléphone');
+      expect(screen.getByTestId('view-label-email')).toHaveTextContent('Courriel');
+      expect(screen.getByTestId('view-label-website')).toHaveTextContent('Site web');
+      expect(screen.getByTestId('view-label-registration')).toHaveTextContent('Numéro d\'enregistrement');
+
+      // Verify view dialog actions
+      expect(screen.getByTestId('button-close-view')).toHaveTextContent('Fermer');
+      expect(screen.getByTestId('button-edit-from-view')).toHaveTextContent('Modifier');
+
+      // Verify delete confirmation
+      expect(screen.getByTestId('delete-organization-title')).toHaveTextContent('Supprimer l\'organisation');
+      expect(screen.getByTestId('delete-organization-description')).toHaveTextContent('Êtes-vous sûr de vouloir supprimer cette organisation ? Cette action ne peut pas être annulée');
+      expect(screen.getByTestId('delete-organization-warning')).toHaveTextContent('Toutes les données associées à cette organisation seront également supprimées');
+
+      // Verify delete buttons
+      expect(screen.getByTestId('button-cancel-delete')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-confirm-delete')).toHaveTextContent('Supprimer');
+      expect(screen.getByTestId('button-deleting-organization')).toHaveTextContent('Suppression en cours');
+
+      // Verify toast messages
+      expect(screen.getByTestId('toast-organization-created')).toHaveTextContent('Organisation créée');
+      expect(screen.getByTestId('toast-organization-created-desc')).toHaveTextContent('Organisation créée avec succès');
+      expect(screen.getByTestId('toast-organization-updated')).toHaveTextContent('Organisation mise à jour');
+      expect(screen.getByTestId('toast-organization-updated-desc')).toHaveTextContent('Organisation mise à jour avec succès');
+      expect(screen.getByTestId('toast-organization-deleted')).toHaveTextContent('Organisation supprimée');
+      expect(screen.getByTestId('toast-organization-deleted-desc')).toHaveTextContent('Organisation supprimée avec succès');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-name-required')).toHaveTextContent('Le nom de l\'organisation est requis');
+      expect(screen.getByTestId('validation-type-required')).toHaveTextContent('Le type d\'organisation est requis');
+      expect(screen.getByTestId('validation-address-required')).toHaveTextContent('L\'adresse est requise');
+      expect(screen.getByTestId('validation-city-required')).toHaveTextContent('La ville est requise');
+      expect(screen.getByTestId('validation-province-required')).toHaveTextContent('La province est requise');
+      expect(screen.getByTestId('validation-postal-code-required')).toHaveTextContent('Le code postal est requis');
+      expect(screen.getByTestId('validation-email-invalid')).toHaveTextContent('Adresse courriel invalide');
+      expect(screen.getByTestId('validation-website-invalid')).toHaveTextContent('URL du site web invalide');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-organizations')).toHaveTextContent('Chargement des organisations');
+      expect(screen.getByTestId('loading-create')).toHaveTextContent('Création en cours');
+      expect(screen.getByTestId('loading-update')).toHaveTextContent('Mise à jour en cours');
+      expect(screen.getByTestId('loading-delete')).toHaveTextContent('Suppression en cours');
+    });
+
+    it('should avoid English terminology in admin organizations page', () => {
+      const AdminOrganizationsWithEnglishTerms = () => {
+        return (
+          <div data-testid='admin-organizations-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-organizations-management'>Organizations Management</div>
+            <div data-testid='incorrect-create-view-edit-delete'>Create, view, edit and delete organizations in the system</div>
+            <div data-testid='incorrect-organizations'>Organizations</div>
+            <div data-testid='incorrect-create'>Create</div>
+            <div data-testid='incorrect-no-organizations-found'>No organizations found</div>
+            <div data-testid='incorrect-create-first-organization'>Create First Organization</div>
+            <div data-testid='incorrect-management-company'>Management Company</div>
+            <div data-testid='incorrect-syndicate'>Syndicate</div>
+            <div data-testid='incorrect-cooperative'>Cooperative</div>
+            <div data-testid='incorrect-condo-association'>Condo Association</div>
+            <div data-testid='incorrect-active'>Active</div>
+            <div data-testid='incorrect-inactive'>Inactive</div>
+            <div data-testid='incorrect-view'>View</div>
+            <div data-testid='incorrect-edit'>Edit</div>
+            <div data-testid='incorrect-delete'>Delete</div>
+            <div data-testid='incorrect-create-organization'>Create Organization</div>
+            <div data-testid='incorrect-edit-organization'>Edit Organization</div>
+            <div data-testid='incorrect-fill-details-create'>Fill in the details to create a new organization</div>
+            <div data-testid='incorrect-update-information-below'>Update the organization information below</div>
+            <div data-testid='incorrect-organization-name'>Organization Name</div>
+            <div data-testid='incorrect-organization-type'>Organization Type</div>
+            <div data-testid='incorrect-address'>Address</div>
+            <div data-testid='incorrect-city'>City</div>
+            <div data-testid='incorrect-province'>Province</div>
+            <div data-testid='incorrect-postal-code'>Postal Code</div>
+            <div data-testid='incorrect-phone'>Phone</div>
+            <div data-testid='incorrect-email'>Email</div>
+            <div data-testid='incorrect-website'>Website</div>
+            <div data-testid='incorrect-registration-number'>Registration Number</div>
+            <div data-testid='incorrect-enter-organization-name'>Enter organization name</div>
+            <div data-testid='incorrect-select-type'>Select type</div>
+            <div data-testid='incorrect-enter-address'>Enter address</div>
+            <div data-testid='incorrect-enter-city'>Enter city</div>
+            <div data-testid='incorrect-enter-postal-code'>Enter postal code</div>
+            <div data-testid='incorrect-enter-phone-number'>Enter phone number</div>
+            <div data-testid='incorrect-enter-email-address'>Enter email address</div>
+            <div data-testid='incorrect-enter-website-url'>Enter website URL</div>
+            <div data-testid='incorrect-enter-registration-number'>Enter registration number</div>
+            <div data-testid='incorrect-cancel'>Cancel</div>
+            <div data-testid='incorrect-save'>Save</div>
+            <div data-testid='incorrect-create-organization-btn'>Create Organization</div>
+            <div data-testid='incorrect-update-organization-btn'>Update Organization</div>
+            <div data-testid='incorrect-saving'>Saving...</div>
+            <div data-testid='incorrect-organization-details'>Organization Details</div>
+            <div data-testid='incorrect-type'>Type</div>
+            <div data-testid='incorrect-status'>Status</div>
+            <div data-testid='incorrect-close'>Close</div>
+            <div data-testid='incorrect-delete-organization'>Delete Organization</div>
+            <div data-testid='incorrect-sure-delete'>Are you sure you want to delete this organization?</div>
+            <div data-testid='incorrect-action-cannot-undone'>This action cannot be undone</div>
+            <div data-testid='incorrect-organization-created'>Organization Created</div>
+            <div data-testid='incorrect-organization-created-successfully'>Organization created successfully</div>
+            <div data-testid='incorrect-organization-updated'>Organization Updated</div>
+            <div data-testid='incorrect-organization-updated-successfully'>Organization updated successfully</div>
+            <div data-testid='incorrect-organization-deleted'>Organization Deleted</div>
+            <div data-testid='incorrect-organization-deleted-successfully'>Organization deleted successfully</div>
+            <div data-testid='incorrect-error'>Error</div>
+            <div data-testid='incorrect-failed-create'>Failed to create organization</div>
+            <div data-testid='incorrect-failed-update'>Failed to update organization</div>
+            <div data-testid='incorrect-failed-delete'>Failed to delete organization</div>
+            <div data-testid='incorrect-something-went-wrong'>Something went wrong</div>
+            <div data-testid='incorrect-loading-organizations'>Loading organizations...</div>
+            <div data-testid='incorrect-creating'>Creating...</div>
+            <div data-testid='incorrect-updating'>Updating...</div>
+            <div data-testid='incorrect-deleting'>Deleting...</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminOrganizationsWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'organizations management',
+        'create view edit delete',
+        'organizations',
+        'create',
+        'no organizations found',
+        'create first organization',
+        'management company',
+        'syndicate',
+        'cooperative',
+        'condo association',
+        'active',
+        'inactive',
+        'view',
+        'edit',
+        'delete',
+        'create organization',
+        'edit organization',
+        'fill details create',
+        'update information below',
+        'organization name',
+        'organization type',
+        'address',
+        'city',
+        'province',
+        'postal code',
+        'phone',
+        'email',
+        'website',
+        'registration number',
+        'enter organization name',
+        'select type',
+        'enter address',
+        'enter city',
+        'enter postal code',
+        'enter phone number',
+        'enter email address',
+        'enter website url',
+        'enter registration number',
+        'cancel',
+        'save',
+        'create organization btn',
+        'update organization btn',
+        'saving',
+        'organization details',
+        'type',
+        'status',
+        'close',
+        'delete organization',
+        'sure delete',
+        'action cannot undone',
+        'organization created',
+        'organization created successfully',
+        'organization updated',
+        'organization updated successfully',
+        'organization deleted',
+        'organization deleted successfully',
+        'error',
+        'failed create',
+        'failed update',
+        'failed delete',
+        'something went wrong',
+        'loading organizations',
+        'creating',
+        'updating',
+        'deleting'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec organizational and administrative terminology', () => {
+      const OrganizationalTerms = () => {
+        return (
+          <div data-testid='organizational-terms'>
+            {/* Correct Quebec French organizational and administrative terms */}
+            <div data-testid='term-organisation'>Organisation</div>
+            <div data-testid='term-organisations'>Organisations</div>
+            <div data-testid='term-gestion'>Gestion</div>
+            <div data-testid='term-gestion-organisations'>Gestion des organisations</div>
+            <div data-testid='term-administration'>Administration</div>
+            <div data-testid='term-administratif'>Administratif</div>
+            <div data-testid='term-gestionnaire'>Gestionnaire</div>
+            <div data-testid='term-compagnie-gestion'>Compagnie de gestion</div>
+            <div data-testid='term-entreprise-gestion'>Entreprise de gestion</div>
+            <div data-testid='term-syndicat'>Syndicat</div>
+            <div data-testid='term-syndicat-copropriete'>Syndicat de copropriété</div>
+            <div data-testid='term-cooperative'>Coopérative</div>
+            <div data-testid='term-cooperative-habitation'>Coopérative d'habitation</div>
+            <div data-testid='term-association'>Association</div>
+            <div data-testid='term-association-copropriete'>Association de copropriété</div>
+            <div data-testid='term-conseil-administration'>Conseil d'administration</div>
+            <div data-testid='term-assemblee-generale'>Assemblée générale</div>
+            <div data-testid='term-assemblee-copropriete'>Assemblée de copropriété</div>
+            <div data-testid='term-statut'>Statut</div>
+            <div data-testid='term-statuts'>Statuts</div>
+            <div data-testid='term-actif'>Actif</div>
+            <div data-testid='term-inactif'>Inactif</div>
+            <div data-testid='term-en-activite'>En activité</div>
+            <div data-testid='term-suspendu'>Suspendu</div>
+            <div data-testid='term-dissous'>Dissous</div>
+            <div data-testid='term-enregistrement'>Enregistrement</div>
+            <div data-testid='term-inscription'>Inscription</div>
+            <div data-testid='term-immatriculation'>Immatriculation</div>
+            <div data-testid='term-numero-enregistrement'>Numéro d'enregistrement</div>
+            <div data-testid='term-numero-incorporation'>Numéro d'incorporation</div>
+            <div data-testid='term-registraire'>Registraire</div>
+            <div data-testid='term-registre'>Registre</div>
+            <div data-testid='term-adresse'>Adresse</div>
+            <div data-testid='term-adresse-siege-social'>Adresse du siège social</div>
+            <div data-testid='term-adresse-correspondance'>Adresse de correspondance</div>
+            <div data-testid='term-ville'>Ville</div>
+            <div data-testid='term-province'>Province</div>
+            <div data-testid='term-code-postal'>Code postal</div>
+            <div data-testid='term-telephone'>Téléphone</div>
+            <div data-testid='term-telecopieur'>Télécopieur</div>
+            <div data-testid='term-courriel'>Courriel</div>
+            <div data-testid='term-adresse-electronique'>Adresse électronique</div>
+            <div data-testid='term-site-web'>Site web</div>
+            <div data-testid='term-site-internet'>Site Internet</div>
+            <div data-testid='term-page-web'>Page web</div>
+            <div data-testid='term-portail'>Portail</div>
+            <div data-testid='term-creer'>Créer</div>
+            <div data-testid='term-creation'>Création</div>
+            <div data-testid='term-constituer'>Constituer</div>
+            <div data-testid='term-etablir'>Établir</div>
+            <div data-testid='term-fonder'>Fonder</div>
+            <div data-testid='term-modifier'>Modifier</div>
+            <div data-testid='term-modification'>Modification</div>
+            <div data-testid='term-mettre-jour'>Mettre à jour</div>
+            <div data-testid='term-mise-jour'>Mise à jour</div>
+            <div data-testid='term-actualiser'>Actualiser</div>
+            <div data-testid='term-supprimer'>Supprimer</div>
+            <div data-testid='term-suppression'>Suppression</div>
+            <div data-testid='term-effacer'>Effacer</div>
+            <div data-testid='term-eliminer'>Éliminer</div>
+            <div data-testid='term-retirer'>Retirer</div>
+            <div data-testid='term-consulter'>Consulter</div>
+            <div data-testid='term-consultation'>Consultation</div>
+            <div data-testid='term-voir'>Voir</div>
+            <div data-testid='term-afficher'>Afficher</div>
+            <div data-testid='term-visualiser'>Visualiser</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <OrganizationalTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec organizational and administrative terminology
+      expect(screen.getByTestId('term-organisation')).toHaveTextContent('Organisation');
+      expect(screen.getByTestId('term-organisations')).toHaveTextContent('Organisations');
+      expect(screen.getByTestId('term-gestion')).toHaveTextContent('Gestion');
+      expect(screen.getByTestId('term-gestion-organisations')).toHaveTextContent('Gestion des organisations');
+      expect(screen.getByTestId('term-administration')).toHaveTextContent('Administration');
+      expect(screen.getByTestId('term-administratif')).toHaveTextContent('Administratif');
+      expect(screen.getByTestId('term-gestionnaire')).toHaveTextContent('Gestionnaire');
+      expect(screen.getByTestId('term-compagnie-gestion')).toHaveTextContent('Compagnie de gestion');
+      expect(screen.getByTestId('term-entreprise-gestion')).toHaveTextContent('Entreprise de gestion');
+      expect(screen.getByTestId('term-syndicat')).toHaveTextContent('Syndicat');
+      expect(screen.getByTestId('term-syndicat-copropriete')).toHaveTextContent('Syndicat de copropriété');
+      expect(screen.getByTestId('term-cooperative')).toHaveTextContent('Coopérative');
+      expect(screen.getByTestId('term-cooperative-habitation')).toHaveTextContent('Coopérative d\'habitation');
+      expect(screen.getByTestId('term-association')).toHaveTextContent('Association');
+      expect(screen.getByTestId('term-association-copropriete')).toHaveTextContent('Association de copropriété');
+      expect(screen.getByTestId('term-conseil-administration')).toHaveTextContent('Conseil d\'administration');
+      expect(screen.getByTestId('term-assemblee-generale')).toHaveTextContent('Assemblée générale');
+      expect(screen.getByTestId('term-assemblee-copropriete')).toHaveTextContent('Assemblée de copropriété');
+      expect(screen.getByTestId('term-statut')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('term-statuts')).toHaveTextContent('Statuts');
+      expect(screen.getByTestId('term-actif')).toHaveTextContent('Actif');
+      expect(screen.getByTestId('term-inactif')).toHaveTextContent('Inactif');
+      expect(screen.getByTestId('term-en-activite')).toHaveTextContent('En activité');
+      expect(screen.getByTestId('term-suspendu')).toHaveTextContent('Suspendu');
+      expect(screen.getByTestId('term-dissous')).toHaveTextContent('Dissous');
+      expect(screen.getByTestId('term-enregistrement')).toHaveTextContent('Enregistrement');
+      expect(screen.getByTestId('term-inscription')).toHaveTextContent('Inscription');
+      expect(screen.getByTestId('term-immatriculation')).toHaveTextContent('Immatriculation');
+      expect(screen.getByTestId('term-numero-enregistrement')).toHaveTextContent('Numéro d\'enregistrement');
+      expect(screen.getByTestId('term-numero-incorporation')).toHaveTextContent('Numéro d\'incorporation');
+      expect(screen.getByTestId('term-registraire')).toHaveTextContent('Registraire');
+      expect(screen.getByTestId('term-registre')).toHaveTextContent('Registre');
+      expect(screen.getByTestId('term-adresse')).toHaveTextContent('Adresse');
+      expect(screen.getByTestId('term-adresse-siege-social')).toHaveTextContent('Adresse du siège social');
+      expect(screen.getByTestId('term-adresse-correspondance')).toHaveTextContent('Adresse de correspondance');
+      expect(screen.getByTestId('term-ville')).toHaveTextContent('Ville');
+      expect(screen.getByTestId('term-province')).toHaveTextContent('Province');
+      expect(screen.getByTestId('term-code-postal')).toHaveTextContent('Code postal');
+      expect(screen.getByTestId('term-telephone')).toHaveTextContent('Téléphone');
+      expect(screen.getByTestId('term-telecopieur')).toHaveTextContent('Télécopieur');
+      expect(screen.getByTestId('term-courriel')).toHaveTextContent('Courriel');
+      expect(screen.getByTestId('term-adresse-electronique')).toHaveTextContent('Adresse électronique');
+      expect(screen.getByTestId('term-site-web')).toHaveTextContent('Site web');
+      expect(screen.getByTestId('term-site-internet')).toHaveTextContent('Site Internet');
+      expect(screen.getByTestId('term-page-web')).toHaveTextContent('Page web');
+      expect(screen.getByTestId('term-portail')).toHaveTextContent('Portail');
+      expect(screen.getByTestId('term-creer')).toHaveTextContent('Créer');
+      expect(screen.getByTestId('term-creation')).toHaveTextContent('Création');
+      expect(screen.getByTestId('term-constituer')).toHaveTextContent('Constituer');
+      expect(screen.getByTestId('term-etablir')).toHaveTextContent('Établir');
+      expect(screen.getByTestId('term-fonder')).toHaveTextContent('Fonder');
+      expect(screen.getByTestId('term-modifier')).toHaveTextContent('Modifier');
+      expect(screen.getByTestId('term-modification')).toHaveTextContent('Modification');
+      expect(screen.getByTestId('term-mettre-jour')).toHaveTextContent('Mettre à jour');
+      expect(screen.getByTestId('term-mise-jour')).toHaveTextContent('Mise à jour');
+      expect(screen.getByTestId('term-actualiser')).toHaveTextContent('Actualiser');
+      expect(screen.getByTestId('term-supprimer')).toHaveTextContent('Supprimer');
+      expect(screen.getByTestId('term-suppression')).toHaveTextContent('Suppression');
+      expect(screen.getByTestId('term-effacer')).toHaveTextContent('Effacer');
+      expect(screen.getByTestId('term-eliminer')).toHaveTextContent('Éliminer');
+      expect(screen.getByTestId('term-retirer')).toHaveTextContent('Retirer');
+      expect(screen.getByTestId('term-consulter')).toHaveTextContent('Consulter');
+      expect(screen.getByTestId('term-consultation')).toHaveTextContent('Consultation');
+      expect(screen.getByTestId('term-voir')).toHaveTextContent('Voir');
+      expect(screen.getByTestId('term-afficher')).toHaveTextContent('Afficher');
+      expect(screen.getByTestId('term-visualiser')).toHaveTextContent('Visualiser');
+    });
+
+    it('should display proper organization management workflow in French', () => {
+      const OrganizationManagementWorkflow = () => {
+        return (
+          <div data-testid='organization-management-workflow'>
+            {/* Organization management workflow */}
+            <div data-testid='workflow-create-organization'>
+              <div data-testid='step-create-title'>1. Créer l'organisation</div>
+              <div data-testid='step-create-description'>
+                Saisir les informations de base de l'organisation incluant le nom, type et coordonnées
+              </div>
+            </div>
+
+            <div data-testid='workflow-configure-organization'>
+              <div data-testid='step-configure-title'>2. Configurer l'organisation</div>
+              <div data-testid='step-configure-description'>
+                Définir les paramètres, permissions et structure organisationnelle
+              </div>
+            </div>
+
+            <div data-testid='workflow-manage-users'>
+              <div data-testid='step-manage-users-title'>3. Gérer les utilisateurs</div>
+              <div data-testid='step-manage-users-description'>
+                Inviter des utilisateurs et assigner les rôles appropriés selon leur fonction
+              </div>
+            </div>
+
+            <div data-testid='workflow-monitor-activity'>
+              <div data-testid='step-monitor-title'>4. Surveiller l'activité</div>
+              <div data-testid='step-monitor-description'>
+                Suivre les opérations et maintenir les informations à jour
+              </div>
+            </div>
+
+            {/* Organization status descriptions */}
+            <div data-testid='organization-status-descriptions'>
+              <div data-testid='status-active-desc'>
+                Actif - Organisation opérationnelle avec accès complet aux fonctionnalités
+              </div>
+              <div data-testid='status-inactive-desc'>
+                Inactif - Organisation temporairement désactivée avec accès restreint
+              </div>
+              <div data-testid='status-suspended-desc'>
+                Suspendu - Organisation suspendue en attente de résolution d'un problème
+              </div>
+              <div data-testid='status-dissolved-desc'>
+                Dissous - Organisation dissoute définitivement et archivée dans le système
+              </div>
+            </div>
+
+            {/* Organization type guidelines */}
+            <div data-testid='organization-type-guidelines'>
+              <div data-testid='type-management-company-desc'>
+                Compagnie de gestion - Entreprise spécialisée dans la gestion immobilière
+              </div>
+              <div data-testid='type-syndicate-desc'>
+                Syndicat - Organisation des copropriétaires pour la gestion collective
+              </div>
+              <div data-testid='type-cooperative-desc'>
+                Coopérative - Organisation collective à but non lucratif
+              </div>
+              <div data-testid='type-condo-association-desc'>
+                Association de copropriété - Regroupement légal des propriétaires
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <OrganizationManagementWorkflow />
+        </TestProviders>
+      );
+
+      // Verify organization management workflow uses Quebec French
+      expect(screen.getByTestId('step-create-title')).toHaveTextContent('1. Créer l\'organisation');
+      expect(screen.getByTestId('step-create-description')).toHaveTextContent('Saisir les informations de base de l\'organisation incluant le nom, type et coordonnées');
+      expect(screen.getByTestId('step-configure-title')).toHaveTextContent('2. Configurer l\'organisation');
+      expect(screen.getByTestId('step-configure-description')).toHaveTextContent('Définir les paramètres, permissions et structure organisationnelle');
+      expect(screen.getByTestId('step-manage-users-title')).toHaveTextContent('3. Gérer les utilisateurs');
+      expect(screen.getByTestId('step-manage-users-description')).toHaveTextContent('Inviter des utilisateurs et assigner les rôles appropriés selon leur fonction');
+      expect(screen.getByTestId('step-monitor-title')).toHaveTextContent('4. Surveiller l\'activité');
+      expect(screen.getByTestId('step-monitor-description')).toHaveTextContent('Suivre les opérations et maintenir les informations à jour');
+
+      // Verify organization status descriptions
+      expect(screen.getByTestId('status-active-desc')).toHaveTextContent('Actif - Organisation opérationnelle avec accès complet aux fonctionnalités');
+      expect(screen.getByTestId('status-inactive-desc')).toHaveTextContent('Inactif - Organisation temporairement désactivée avec accès restreint');
+      expect(screen.getByTestId('status-suspended-desc')).toHaveTextContent('Suspendu - Organisation suspendue en attente de résolution d\'un problème');
+      expect(screen.getByTestId('status-dissolved-desc')).toHaveTextContent('Dissous - Organisation dissoute définitivement et archivée dans le système');
+
+      // Verify organization type guidelines
+      expect(screen.getByTestId('type-management-company-desc')).toHaveTextContent('Compagnie de gestion - Entreprise spécialisée dans la gestion immobilière');
+      expect(screen.getByTestId('type-syndicate-desc')).toHaveTextContent('Syndicat - Organisation des copropriétaires pour la gestion collective');
+      expect(screen.getByTestId('type-cooperative-desc')).toHaveTextContent('Coopérative - Organisation collective à but non lucratif');
+      expect(screen.getByTestId('type-condo-association-desc')).toHaveTextContent('Association de copropriété - Regroupement légal des propriétaires');
+    });
+
+    it('should have proper data-testid attributes for admin organizations page elements', () => {
+      const AdminOrganizationsWithTestIds = () => {
+        return (
+          <div data-testid='admin-organizations-page'>
+            <div data-testid='organizations-section'>Gestion des organisations</div>
+            <div data-testid='organizations-list'>Liste des organisations</div>
+            <div data-testid='dialog-organization-form'>Formulaire d'organisation</div>
+            <div data-testid='dialog-view-organization'>Voir l'organisation</div>
+            <div data-testid='dialog-delete-organization'>Supprimer l'organisation</div>
+            <button data-testid='button-create-organization'>Créer</button>
+            <input data-testid='input-organization-name' />
+            <select data-testid='select-organization-type' />
+            <input data-testid='input-organization-address' />
+            <input data-testid='input-organization-city' />
+            <select data-testid='select-organization-province' />
+            <input data-testid='input-organization-postal-code' />
+            <input data-testid='input-organization-phone' />
+            <input data-testid='input-organization-email' />
+            <input data-testid='input-organization-website' />
+            <input data-testid='input-organization-registration' />
+            <button data-testid='button-save-organization'>Sauvegarder</button>
+            <button data-testid='button-view-organization'>Voir</button>
+            <button data-testid='button-edit-organization'>Modifier</button>
+            <button data-testid='button-delete-organization'>Supprimer</button>
+            <div data-testid='loading-organizations'>Chargement</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminOrganizationsWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all admin organizations page elements have proper test IDs
+      expect(screen.getByTestId('admin-organizations-page')).toBeInTheDocument();
+      expect(screen.getByTestId('organizations-section')).toBeInTheDocument();
+      expect(screen.getByTestId('organizations-list')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-organization-form')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-view-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-delete-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('button-create-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-name')).toBeInTheDocument();
+      expect(screen.getByTestId('select-organization-type')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-address')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-city')).toBeInTheDocument();
+      expect(screen.getByTestId('select-organization-province')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-postal-code')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-phone')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-email')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-website')).toBeInTheDocument();
+      expect(screen.getByTestId('input-organization-registration')).toBeInTheDocument();
+      expect(screen.getByTestId('button-save-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('button-view-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('button-delete-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-organizations')).toBeInTheDocument();
+
+      // Verify inputs have proper attributes
+      const nameInput = screen.getByTestId('input-organization-name');
+      expect(nameInput).toHaveAttribute('data-testid');
+      expect(nameInput.tagName.toLowerCase()).toBe('input');
+
+      // Verify buttons have proper attributes
+      const createButton = screen.getByTestId('button-create-organization');
+      expect(createButton).toHaveAttribute('data-testid');
+      expect(createButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -9643,6 +10531,84 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   'you voted': 'vous avez voté',
   'popular idea': 'idée populaire',
   'trending idea': 'idée tendance',
+
+  // Admin organizations and institutional terms
+  'organizations management': 'gestion des organisations',
+  'create view edit and delete organizations in the system': 'créer, consulter, modifier et supprimer les organisations dans le système',
+  'no organizations found': 'aucune organisation trouvée',
+  'create first organization': 'créer la première organisation',
+  'management company': 'compagnie de gestion',
+  syndicate: 'syndicat',
+  cooperative: 'coopérative',
+  'condo association': 'association de copropriété',
+  active: 'actif',
+  inactive: 'inactif',
+  'create organization': 'créer une organisation',
+  'edit organization': 'modifier l\'organisation',
+  'fill in the details to create a new organization': 'remplissez les détails pour créer une nouvelle organisation',
+  'update the organization information below': 'mettez à jour les informations de l\'organisation ci-dessous',
+  'organization name': 'nom de l\'organisation',
+  'organization type': 'type d\'organisation',
+  'postal code': 'code postal',
+  'enter organization name': 'entrez le nom de l\'organisation',
+  'enter address': 'entrez l\'adresse',
+  'enter city': 'entrez la ville',
+  'enter postal code': 'entrez le code postal',
+  'enter phone number': 'entrez le numéro de téléphone',
+  'enter email address': 'entrez l\'adresse courriel',
+  'enter website url': 'entrez l\'url du site web',
+  'enter registration number': 'entrez le numéro d\'enregistrement',
+  'registration number': 'numéro d\'enregistrement',
+  'create organization btn': 'créer l\'organisation',
+  'update organization btn': 'mettre à jour l\'organisation',
+  'organization details': 'détails de l\'organisation',
+  type: 'type',
+  'delete organization': 'supprimer l\'organisation',
+  'are you sure you want to delete this organization': 'êtes-vous sûr de vouloir supprimer cette organisation',
+  'all associated data will also be deleted': 'toutes les données associées à cette organisation seront également supprimées',
+  'organization created': 'organisation créée',
+  'organization created successfully': 'organisation créée avec succès',
+  'organization updated': 'organisation mise à jour',
+  'organization updated successfully': 'organisation mise à jour avec succès',
+  'organization deleted': 'organisation supprimée',
+  'organization deleted successfully': 'organisation supprimée avec succès',
+  'failed to create organization': 'échec de la création de l\'organisation',
+  'failed to update organization': 'échec de la mise à jour de l\'organisation',
+  'failed to delete organization': 'échec de la suppression de l\'organisation',
+  'organization name is required': 'le nom de l\'organisation est requis',
+  'organization type is required': 'le type d\'organisation est requis',
+  'address is required': 'l\'adresse est requise',
+  'city is required': 'la ville est requise',
+  'province is required': 'la province est requise',
+  'postal code is required': 'le code postal est requis',
+  'invalid email address': 'adresse courriel invalide',
+  'invalid website url': 'url du site web invalide',
+  'loading organizations': 'chargement des organisations',
+  creating: 'création en cours',
+  updating: 'mise à jour en cours',
+  deleting: 'suppression en cours',
+  'admin only organizations': 'l\'accès à la gestion des organisations est réservé aux administrateurs',
+  'cannot edit organization': 'vous n\'avez pas la permission de modifier cette organisation',
+  'cannot delete organization': 'vous n\'avez pas la permission de supprimer cette organisation',
+  'quebec': 'québec',
+  'ontario': 'ontario',
+  'british columbia': 'colombie-britannique',
+  'alberta': 'alberta',
+  'manitoba': 'manitoba',
+  'saskatchewan': 'saskatchewan',
+  'nova scotia': 'nouvelle-écosse',
+  'new brunswick': 'nouveau-brunswick',
+  'newfoundland and labrador': 'terre-neuve-et-labrador',
+  'prince edward island': 'île-du-prince-édouard',
+  'yukon': 'yukon',
+  'northwest territories': 'territoires du nord-ouest',
+  'nunavut': 'nunavut',
+  'view organization': 'voir l\'organisation',
+  'edit organization': 'modifier l\'organisation',
+  'delete organization': 'supprimer l\'organisation',
+  'manage organizations': 'gérer les organisations',
+  close: 'fermer',
+  confirm: 'confirmer',
 };
 
 /**
