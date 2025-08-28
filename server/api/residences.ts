@@ -29,14 +29,48 @@ export function registerResidenceRoutes(app: Express) {
       const user = req.user;
       console.log(`🏠 [USER RESIDENCES] Fetching residences for user ${user.id} (${user.email})`);
 
-      // Use raw SQL to avoid Drizzle UUID type issues
-      const result = await db.execute(sql`
-        SELECT residence_id as "residenceId"
-        FROM user_residences 
-        WHERE user_id = ${user.id} AND is_active = true
-      `);
+      let userResidencesList = [];
 
-      const userResidencesList = result.rows;
+      // Special handling for hardcoded demo users to work around Drizzle UUID issues
+      if (user.role?.startsWith('demo_')) {
+        console.log(`🏠 [USER RESIDENCES] Hardcoded demo user detected, using direct database query`);
+        
+        // For hardcoded demo users, try alternative approaches
+        try {
+          // Approach 1: Use string literals to avoid type casting issues
+          const result = await db.execute(sql.raw(`
+            SELECT residence_id as "residenceId"
+            FROM user_residences 
+            WHERE user_id::text = '${user.id}' AND is_active = true
+          `));
+          userResidencesList = result.rows;
+        } catch (sqlError) {
+          console.log(`🏠 [USER RESIDENCES] SQL approach failed, trying Drizzle with string cast:`, sqlError.message);
+          
+          // Approach 2: If SQL fails, try Drizzle with explicit string handling
+          try {
+            const drizzleResult = await db
+              .select({
+                residenceId: userResidences.residenceId,
+              })
+              .from(userResidences)
+              .where(sql`user_id::text = ${user.id} AND is_active = true`);
+            userResidencesList = drizzleResult;
+          } catch (drizzleError) {
+            console.error(`🏠 [USER RESIDENCES] Both approaches failed for demo user:`, drizzleError.message);
+            userResidencesList = [];
+          }
+        }
+      } else {
+        // Regular database users - use standard raw SQL approach
+        const result = await db.execute(sql`
+          SELECT residence_id as "residenceId"
+          FROM user_residences 
+          WHERE user_id = ${user.id} AND is_active = true
+        `);
+        userResidencesList = result.rows;
+      }
+
       console.log(`🏠 [USER RESIDENCES] Found ${userResidencesList.length} residences:`, userResidencesList);
       res.json(userResidencesList);
     } catch (_error) {
