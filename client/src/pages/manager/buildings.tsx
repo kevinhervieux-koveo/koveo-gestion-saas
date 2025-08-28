@@ -470,7 +470,7 @@ export default function Buildings() {
 
   // Mutations
   const createBuildingMutation = useMutation({
-    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/buildings', data),
+    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/admin/buildings', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsAddDialogOpen(false);
@@ -491,7 +491,7 @@ export default function Buildings() {
 
   const updateBuildingMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: BuildingFormData }) =>
-      apiRequest('PUT', `/api/buildings/${id}`, data),
+      apiRequest('PUT', `/api/admin/buildings/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsEditDialogOpen(false);
