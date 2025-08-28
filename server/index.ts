@@ -318,13 +318,24 @@ async function initializeDatabaseInBackground(): Promise<void> {
       // Import QueryOptimizer dynamically to avoid blocking startup
       const { QueryOptimizer } = await import('./database-optimization');
       
-      // Check if indexes are already set up with timeout protection
-      const indexCheckPromise = QueryOptimizer.areIndexesSetup();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database check timeout')), 30000)
-      );
-      
-      const indexesExist = await Promise.race([indexCheckPromise, timeoutPromise]) as boolean;
+      // Check if indexes are already set up with timeout protection and error handling
+      let indexesExist = false;
+      try {
+        const indexCheckPromise = QueryOptimizer.areIndexesSetup();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database check timeout')), 10000)
+        );
+        
+        indexesExist = await Promise.race([indexCheckPromise, timeoutPromise]) as boolean;
+      } catch (dbError: any) {
+        if (process.env.NODE_ENV === 'production') {
+          log(`⚠️ Production: Database connection failed, skipping optimization: ${dbError.message}`);
+          return; // Exit early, don't attempt any database operations
+        } else {
+          log(`⚠️ Development: Database check failed: ${dbError.message}`);
+          // In development, continue to try optimization
+        }
+      }
       
       if (indexesExist) {
         log('✅ Database indexes already exist - skipping optimization');

@@ -32,11 +32,50 @@ if (!process.env.DATABASE_URL) {
 /**
  * PostgreSQL connection pool for the Koveo Gestion application.
  * Uses Neon serverless database with connection pooling for optimal performance.
+ * Includes production error handling for authentication issues.
  */
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Add connection retry and error handling for production
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 });
+
+// Add error handling for pool connection issues
+pool.on('error', (err) => {
+  console.warn('Database pool error:', err.message);
+  // Don't crash the application on pool errors
+});
+
+// Test database connection on startup with retry logic
+let dbConnectionRetries = 0;
+const maxRetries = 3;
+
+async function testDatabaseConnection() {
+  try {
+    const client = await pool.connect();
+    console.log('✅ Database connection successful');
+    client.release();
+    return true;
+  } catch (error: any) {
+    dbConnectionRetries++;
+    console.warn(`⚠️ Database connection attempt ${dbConnectionRetries}/${maxRetries} failed:`, error.message);
+    
+    if (dbConnectionRetries < maxRetries) {
+      setTimeout(testDatabaseConnection, 2000); // Retry after 2 seconds
+    } else {
+      console.error('❌ Database connection failed after all retries. Application will continue but some features may not work.');
+    }
+    return false;
+  }
+}
+
+// Test connection on startup
+if (process.env.NODE_ENV === 'production') {
+  testDatabaseConnection();
+}
 
 // Create schema object with only tables (no relations to avoid production errors)
 const schema = {

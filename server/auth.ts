@@ -51,13 +51,28 @@ const PostgreSqlStore = connectPg(session);
 /**
  * Session configuration for Quebec-compliant user authentication.
  * Uses PostgreSQL session store for scalability and Law 25 compliance.
+ * Includes fallback for database connection issues in production.
  */
+function createSessionStore() {
+  try {
+    return new PostgreSqlStore({
+      pool: pool, // Use shared pool instead of connection string to avoid auth issues
+      tableName: 'user_sessions',
+      createTableIfMissing: true,
+      errorLog: (error: any) => {
+        console.warn('Session store error:', error.message);
+        // Don't crash the application on session store errors
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to create PostgreSQL session store, falling back to memory store:', error);
+    // In production, if DB fails, use memory store to keep app running
+    return undefined; // Will use default memory store
+  }
+}
+
 export const sessionConfig = session({
-  store: new PostgreSqlStore({
-    pool: pool, // Use shared pool instead of connection string to avoid auth issues
-    tableName: 'user_sessions',
-    createTableIfMissing: true,
-  }),
+  store: createSessionStore(),
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
   resave: false,
   saveUninitialized: false,

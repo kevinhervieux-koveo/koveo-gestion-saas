@@ -366,7 +366,14 @@ export class QueryOptimizer {
         )
       `;
       
-      const indexCount = parseInt(result[0].count);
+      // Handle both array and direct result formats
+      const row = Array.isArray(result) ? result[0] : result;
+      if (!row || typeof row.count === 'undefined') {
+        console.warn('Unexpected result format from index check query:', result);
+        return false;
+      }
+      
+      const indexCount = parseInt(String(row.count));
       return indexCount >= 4; // If we have these key indexes, assume setup is complete
     } catch (error) {
       console.warn('Could not check index status:', error);
