@@ -144,6 +144,7 @@ export default function /**
  */
 
 ResidentDemandsPage() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

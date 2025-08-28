@@ -261,10 +261,8 @@ export interface Translations {
   submitted: string;
   underReview: string;
   approved: string;
-  inProgress: string;
   completed: string;
   rejected: string;
-  cancelled: string;
   // Status label translations
   draft: string;
   maintenance: string;
@@ -275,11 +273,9 @@ export interface Translations {
   // Dialog and form translations
   createNewBill: string;
   billCreationForm: string;
-  cancel: string;
   createBill: string;
   createNewDemand: string;
   submitNewRequest: string;
-  myDemands: string;
   submitAndTrackRequests: string;
   newDemand: string;
   selectType: string;
@@ -303,21 +299,11 @@ export interface Translations {
   describeRequestDetail: string;
   submittedBy: string;
   addNotesReviewDecision: string;
-  selectStatus: string;
   addNotesReview: string;
   selectBuilding2: string;
   // Status options for manager
   submitted2: string;
   // Document management translations
-  documentTitle: string;
-  documentDescription: string;
-  selectCategory: string;
-  selectOrganizationOptional: string;
-  selectBuildingOptional: string;
-  selectResidenceOptional: string;
-  searchDocuments: string;
-  filterByCategory: string;
-  noDocumentsFound: string;
   // Type placeholders
   typePlaceholder: string;
   buildingPlaceholder: string;
@@ -330,7 +316,6 @@ export interface Translations {
   manageOrganizationsUsers: string;
   organizationOverview: string;
   viewManageOrganizations: string;
-  residences: string;
   viewManageResidences: string;
   selectBuildingResidence: string;
   building2: string;
@@ -367,25 +352,14 @@ export interface Translations {
   managementCompany: string;
   occupancyStats: string;
   // Documents page translations
-  documentTitle: string;
-  documentDescription: string;
-  selectCategory: string;
-  selectOrganizationOptional: string;
-  selectBuildingOptional: string;
-  selectResidenceOptional: string;
-  searchDocuments: string;
-  filterByCategory: string;
-  noDocumentsFound: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
   residents: string;
   myResidence: string;
   myBuilding: string;
-  myDemands: string;
   commonSpaces: string;
   buildings: string;
-  residences: string;
   budget: string;
   bills: string;
   demands: string;
@@ -733,10 +707,8 @@ const translations: Record<Language, Translations> = {
     submitted: 'Submitted',
     underReview: 'Under Review',
     approved: 'Approved',
-    inProgress: 'In Progress',
     completed: 'Completed',
     rejected: 'Rejected',
-    cancelled: 'Cancelled',
     // Additional status labels
     draft: 'Draft',
     maintenance: 'Maintenance',
@@ -747,11 +719,9 @@ const translations: Record<Language, Translations> = {
     // Dialog and form translations
     createNewBill: 'Create New Bill',
     billCreationForm: 'Bill creation form for {building}',
-    cancel: 'Cancel',
     createBill: 'Create Bill',
     createNewDemand: 'Create New Demand',
     submitNewRequest: 'Submit a new request or complaint',
-    myDemands: 'My Demands',
     submitAndTrackRequests: 'Submit and track your requests',
     newDemand: 'New Demand',
     selectType: 'Select type',
@@ -774,22 +744,12 @@ const translations: Record<Language, Translations> = {
     // Additional form labels and placeholders
     describeRequestDetail: 'Describe your request in detail...',
     submittedBy: 'Submitted by',
-    selectStatus: 'Select status',
     addNotesReview: 'Add notes about your review decision...',
     addNotesReviewDecision: 'Add notes about your review decision...',
     selectBuilding2: 'Select building',
     // Status options for manager
     submitted2: 'Submitted',
     // Document management translations
-    documentTitle: 'Document title',
-    documentDescription: 'Document description',
-    selectCategory: 'Select a category',
-    selectOrganizationOptional: 'Select organization (optional)',
-    selectBuildingOptional: 'Select building (optional)',
-    selectResidenceOptional: 'Select residence (optional)',
-    searchDocuments: 'Search documents...',
-    filterByCategory: 'Filter by category',
-    noDocumentsFound: 'No documents found',
     // Type placeholders
     typePlaceholder: 'Type',
     buildingPlaceholder: 'Building',
@@ -802,7 +762,6 @@ const translations: Record<Language, Translations> = {
     manageOrganizationsUsers: 'Manage organizations, users, and system settings',
     organizationOverview: 'Organization Overview',
     viewManageOrganizations: 'View and manage all organizations',
-    residences: 'Residences',
     viewManageResidences: 'View and manage organization residences',
     selectBuildingResidence: 'Select Building & Residence',
     building2: 'Building',
@@ -839,25 +798,14 @@ const translations: Record<Language, Translations> = {
     managementCompany: 'Management Company',
     occupancyStats: 'Occupancy Stats',
     // Documents page translations
-    documentTitle: 'Document title',
-    documentDescription: 'Document description',
-    selectCategory: 'Select a category',
-    selectOrganizationOptional: 'Select organization (optional)',
-    selectBuildingOptional: 'Select building (optional)',
-    selectResidenceOptional: 'Select residence (optional)',
-    searchDocuments: 'Search documents...',
-    filterByCategory: 'Filter by category',
-    noDocumentsFound: 'No documents found',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
     residents: 'Residents',
     myResidence: 'My Residence',
     myBuilding: 'My Building',
-    myDemands: 'My Demands',
     commonSpaces: 'Common Spaces',
     buildings: 'Buildings',
-    residences: 'Residences',
     budget: 'Budget',
     bills: 'Bills',
     demands: 'Demands',
@@ -963,7 +911,7 @@ const translations: Record<Language, Translations> = {
     maintenancePlanningDesc: 'Smart scheduling and tracking',
     processManagement: 'Process Management',
     processManagementDesc: 'Organized workflow tools',
-    featureLaw25Compliance: 'Quebec Law 25 Compliance',
+    law25Compliance: 'Quebec Law 25 Compliance',
     law25ComplianceDesc: 'Built-in privacy protection',
     featuresOverviewDesc:
       'Discover how our comprehensive platform can streamline your property management',
@@ -1217,10 +1165,8 @@ const translations: Record<Language, Translations> = {
     submitted: 'Soumis',
     underReview: 'En cours d\'examen',
     approved: 'Approuvé',
-    inProgress: 'En cours',
     completed: 'Terminé',
     rejected: 'Rejeté',
-    cancelled: 'Annulé',
     // Additional status labels
     draft: 'Brouillon',
     maintenance: 'Entretien',
@@ -1231,11 +1177,9 @@ const translations: Record<Language, Translations> = {
     // Dialog and form translations
     createNewBill: 'Créer une nouvelle facture',
     billCreationForm: 'Formulaire de création de facture pour {building}',
-    cancel: 'Annuler',
     createBill: 'Créer la facture',
     createNewDemand: 'Créer une nouvelle demande',
     submitNewRequest: 'Soumettre une nouvelle demande ou plainte',
-    myDemands: 'Mes demandes',
     submitAndTrackRequests: 'Soumettre et suivre vos demandes',
     newDemand: 'Nouvelle demande',
     selectType: 'Sélectionner le type',
@@ -1258,22 +1202,12 @@ const translations: Record<Language, Translations> = {
     // Additional form labels and placeholders
     describeRequestDetail: 'Décrivez votre demande en détail...',
     submittedBy: 'Soumis par',
-    selectStatus: 'Sélectionner le statut',
     addNotesReview: 'Ajouter des notes sur votre décision d\'examen...',
     selectBuilding2: 'Sélectionner le bâtiment',
     addNotesReviewDecision: 'Ajoutez des notes sur votre décision d\'examen...',
     // Status options for manager
     submitted2: 'Soumis',
     // Document management translations
-    documentTitle: 'Titre du document',
-    documentDescription: 'Description du document',
-    selectCategory: 'Sélectionner une catégorie',
-    selectOrganizationOptional: 'Sélectionner une organisation (optionnel)',
-    selectBuildingOptional: 'Sélectionner un bâtiment (optionnel)',
-    selectResidenceOptional: 'Sélectionner une résidence (optionnel)',
-    searchDocuments: 'Rechercher des documents...',
-    filterByCategory: 'Filtrer par catégorie',
-    noDocumentsFound: 'Aucun document trouvé',
     // Type placeholders
     typePlaceholder: 'Type',
     buildingPlaceholder: 'Bâtiment',
@@ -1286,7 +1220,6 @@ const translations: Record<Language, Translations> = {
     manageOrganizationsUsers: 'Gérer les organisations, utilisateurs et paramètres système',
     organizationOverview: 'Aperçu de l\'organisation',
     viewManageOrganizations: 'Voir et gérer toutes les organisations',
-    residences: 'Résidences',
     viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
     selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
     building2: 'Bâtiment',
@@ -1323,25 +1256,14 @@ const translations: Record<Language, Translations> = {
     managementCompany: 'Compagnie de gestion',
     occupancyStats: 'Statistiques d\'occupation',
     // Documents page translations
-    documentTitle: 'Titre du document',
-    documentDescription: 'Description du document',
-    selectCategory: 'Sélectionnez une catégorie',
-    selectOrganizationOptional: 'Sélectionnez une organisation (optionnel)',
-    selectBuildingOptional: 'Sélectionnez un bâtiment (optionnel)',
-    selectResidenceOptional: 'Sélectionnez une résidence (optionnel)',
-    searchDocuments: 'Rechercher des documents...',
-    filterByCategory: 'Filtrer par catégorie',
-    noDocumentsFound: 'Aucun document trouvé',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
     residents: 'Résidents',
     myResidence: 'Ma résidence',
     myBuilding: 'Mon bâtiment',
-    myDemands: 'Mes demandes',
     commonSpaces: 'Espaces communs',
     buildings: 'Bâtiments',
-    residences: 'Résidences',
     budget: 'Budget',
     bills: 'Factures',
     demands: 'Demandes',
@@ -1450,7 +1372,7 @@ const translations: Record<Language, Translations> = {
     maintenancePlanningDesc: 'Planification et suivi intelligents',
     processManagement: 'Gestion des processus',
     processManagementDesc: 'Outils de flux de travail organisés',
-    featureLaw25Compliance: 'Conformité Loi 25 du Québec',
+    law25Compliance: 'Conformité Loi 25 du Québec',
     law25ComplianceDesc: 'Protection de la vie privée intégrée',
     featuresOverviewDesc:
       'Découvrez comment notre plateforme complète peut rationaliser votre gestion immobilière',
