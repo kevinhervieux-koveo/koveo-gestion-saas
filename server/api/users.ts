@@ -1001,4 +1001,105 @@ export function registerUserRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * POST /api/users/demo - Creates a demo user directly without invitation
+   */
+  app.post('/api/users/demo', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can create demo users
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const { firstName, lastName, role, organizationId, residenceId } = req.body;
+
+      // Validate demo role
+      if (!['demo_manager', 'demo_tenant', 'demo_resident'].includes(role)) {
+        return res.status(400).json({
+          message: 'Invalid demo role',
+          code: 'INVALID_ROLE',
+        });
+      }
+
+      // Validate required fields
+      if (!firstName || !lastName || !organizationId) {
+        return res.status(400).json({
+          message: 'First name, last name, and organization are required',
+          code: 'MISSING_REQUIRED_FIELDS',
+        });
+      }
+
+      // Generate demo email
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@demo.com`;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          message: 'Demo user with this name already exists',
+          code: 'USER_EXISTS',
+        });
+      }
+
+      // Create demo user with default password
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash('Demo@123456', 12);
+
+      const userData = {
+        firstName: sanitizeName(firstName),
+        lastName: sanitizeName(lastName),
+        email: normalizeEmail(email),
+        username: generateUsernameFromEmail(email),
+        password: hashedPassword,
+        role: role as any,
+        organizationId,
+        residenceId: residenceId || null,
+        isActive: true,
+      };
+
+      const newUser = await storage.createUser(userData as InsertUser);
+
+      // Log the user creation
+      await logUserCreation({
+        userId: newUser.id,
+        createdBy: currentUser.id,
+        method: 'demo_creation',
+        organizationId,
+        residenceId: residenceId || null,
+        role,
+      });
+
+      // Clear cache
+      queryCache.clearUserCache();
+
+      res.status(201).json({
+        message: 'Demo user created successfully',
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          role: newUser.role,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to create demo user:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to create demo user',
+      });
+    }
+  });
 }
