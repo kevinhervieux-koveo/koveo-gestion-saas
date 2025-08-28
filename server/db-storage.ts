@@ -64,6 +64,7 @@ export class DatabaseStorage implements IStorage {
       // First test: Can Drizzle read ANY users at all?
       const allUsersTest = await db.select().from(schema.users).limit(3);
       console.log(`🔍 [AUTH DEBUG] Drizzle can read ${allUsersTest.length} total users from database`);
+      console.log(`🔍 [AUTH DEBUG] Available user IDs:`, allUsersTest.map(u => `${u.id} (${u.email})`));
       
       // Second test: Try the specific user query
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
