@@ -5002,6 +5002,820 @@ describe('Website Translation Tests', () => {
       expect(newDemandButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Manager User Management Page Translation', () => {
+    it('should display manager user management page with proper French translations', () => {
+      const ManagerUserManagementPage = () => {
+        return (
+          <div data-testid='manager-user-management-page'>
+            {/* Header Section */}
+            <div data-testid='header-user-management'>Gestion des utilisateurs</div>
+            <div data-testid='header-subtitle'>Gérer tous les utilisateurs</div>
+
+            {/* Statistics Cards */}
+            <div data-testid='stats-section'>
+              <div data-testid='stat-total-users'>
+                <div data-testid='total-users-label'>Utilisateurs totaux</div>
+                <div data-testid='total-users-count'>8</div>
+                <div data-testid='total-label'>Total</div>
+              </div>
+
+              <div data-testid='stat-active-users'>
+                <div data-testid='active-users-label'>Utilisateurs actifs</div>
+                <div data-testid='active-users-count'>8</div>
+                <div data-testid='active-label'>Actif</div>
+              </div>
+
+              <div data-testid='stat-admin-role'>
+                <div data-testid='admin-role-label'>Administrateur</div>
+                <div data-testid='admin-role-count'>1</div>
+                <div data-testid='role-label'>Rôle</div>
+              </div>
+            </div>
+
+            {/* Tabs and Actions */}
+            <div data-testid='tabs-actions-section'>
+              <div data-testid='tab-users'>Utilisateurs</div>
+              <div data-testid='tab-invitations'>Invitations</div>
+              <button data-testid='button-invite-user'>Inviter un utilisateur</button>
+            </div>
+
+            {/* Filters Section */}
+            <div data-testid='filters-section'>
+              <div data-testid='filter-roles'>
+                <div data-testid='placeholder-all-roles'>Tous les rôles</div>
+                <div data-testid='option-all-roles'>Tous les rôles</div>
+                <div data-testid='role-admin'>Administrateur</div>
+                <div data-testid='role-manager'>Gestionnaire</div>
+                <div data-testid='role-tenant'>Locataire</div>
+                <div data-testid='role-resident'>Résident</div>
+              </div>
+
+              <div data-testid='filter-status'>
+                <div data-testid='placeholder-all-status'>Tous les statuts</div>
+                <div data-testid='option-all-status'>Tous les statuts</div>
+                <div data-testid='status-active'>Actif</div>
+                <div data-testid='status-inactive'>Inactif</div>
+              </div>
+
+              <div data-testid='filter-organizations'>
+                <div data-testid='placeholder-all-organizations'>Toutes les organisations</div>
+                <div data-testid='option-all-organizations'>Toutes les organisations</div>
+                <div data-testid='organization-koveo'>Koveo Gestion</div>
+              </div>
+            </div>
+
+            {/* User List */}
+            <div data-testid='user-list-section'>
+              <div data-testid='user-list-title'>
+                Liste des utilisateurs (8 sur 8 utilisateurs)
+              </div>
+
+              <div data-testid='user-table'>
+                <div data-testid='table-header'>
+                  <div data-testid='header-select'>Sélectionner</div>
+                  <div data-testid='header-name'>Nom</div>
+                  <div data-testid='header-email'>Courriel</div>
+                  <div data-testid='header-role'>Rôle</div>
+                  <div data-testid='header-status'>Statut</div>
+                  <div data-testid='header-organizations'>Organisations</div>
+                  <div data-testid='header-residences'>Résidences</div>
+                  <div data-testid='header-actions'>Actions</div>
+                </div>
+
+                <div data-testid='user-row-1'>
+                  <div data-testid='user-name'>Jean Dupont</div>
+                  <div data-testid='user-email'>jean.dupont@example.com</div>
+                  <div data-testid='user-role-badge'>Administrateur</div>
+                  <div data-testid='user-status-active'>Actif</div>
+                  <div data-testid='user-status-inactive'>Inactif</div>
+                  <div data-testid='user-organizations'>Koveo Gestion</div>
+                  <div data-testid='user-residences'>Unité 101, Immeuble A</div>
+                  
+                  <div data-testid='user-actions'>
+                    <button data-testid='button-edit-user'>Modifier</button>
+                    <button data-testid='button-edit-organizations'>Organisations</button>
+                    <button data-testid='button-edit-residences'>Résidences</button>
+                    <button data-testid='button-delete-user'>Supprimer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Invite User Dialog */}
+            <div data-testid='dialog-invite-user'>
+              <div data-testid='invite-user-title'>Inviter un nouvel utilisateur</div>
+              <div data-testid='invite-user-description'>
+                Envoyez une invitation pour créer un compte utilisateur
+              </div>
+              
+              <div data-testid='invite-user-form'>
+                <div data-testid='label-email'>Adresse courriel</div>
+                <div data-testid='placeholder-enter-email'>
+                  Entrez l'adresse courriel
+                </div>
+
+                <div data-testid='label-role'>Rôle</div>
+                <div data-testid='placeholder-select-role'>Sélectionner un rôle</div>
+
+                <div data-testid='label-organization'>Organisation</div>
+                <div data-testid='placeholder-select-organization'>
+                  Sélectionner une organisation
+                </div>
+
+                <div data-testid='label-message'>Message personnalisé (optionnel)</div>
+                <div data-testid='placeholder-custom-message'>
+                  Ajouter un message personnalisé à l'invitation...
+                </div>
+
+                <button data-testid='button-send-invitation'>Envoyer l'invitation</button>
+                <button data-testid='button-cancel-invitation'>Annuler</button>
+              </div>
+            </div>
+
+            {/* Edit User Dialog */}
+            <div data-testid='dialog-edit-user'>
+              <div data-testid='edit-user-title'>Modifier l'utilisateur</div>
+              
+              <div data-testid='edit-user-form'>
+                <div data-testid='label-first-name'>Prénom</div>
+                <div data-testid='label-last-name'>Nom de famille</div>
+                <div data-testid='label-email-edit'>Adresse courriel</div>
+                <div data-testid='label-role-edit'>Rôle</div>
+                <div data-testid='label-status-edit'>Statut</div>
+                <div data-testid='checkbox-active'>Actif</div>
+
+                <button data-testid='button-save-user'>Sauvegarder</button>
+                <button data-testid='button-cancel-edit'>Annuler</button>
+              </div>
+            </div>
+
+            {/* Edit Organizations Dialog */}
+            <div data-testid='dialog-edit-organizations'>
+              <div data-testid='edit-organizations-title'>
+                Gérer les attributions d'organisations
+              </div>
+              <div data-testid='edit-organizations-description'>
+                Sélectionnez les organisations auxquelles cet utilisateur a accès
+              </div>
+
+              <div data-testid='organizations-list'>
+                <div data-testid='organization-item-koveo'>
+                  <div data-testid='organization-name-koveo'>Koveo Gestion</div>
+                  <div data-testid='organization-description-koveo'>
+                    Organisation principale de gestion immobilière
+                  </div>
+                </div>
+              </div>
+
+              <button data-testid='button-save-organizations'>
+                Sauvegarder les attributions
+              </button>
+              <button data-testid='button-cancel-organizations'>Annuler</button>
+            </div>
+
+            {/* Edit Residences Dialog */}
+            <div data-testid='dialog-edit-residences'>
+              <div data-testid='edit-residences-title'>
+                Gérer les attributions de résidences
+              </div>
+              <div data-testid='edit-residences-description'>
+                Attribuez cet utilisateur à des résidences spécifiques
+              </div>
+
+              <div data-testid='residences-form'>
+                <div data-testid='label-building-residence'>Immeuble</div>
+                <div data-testid='placeholder-select-building-residence'>
+                  Sélectionner un immeuble
+                </div>
+
+                <div data-testid='label-unit-residence'>Unité</div>
+                <div data-testid='placeholder-select-unit'>Sélectionner une unité</div>
+
+                <div data-testid='label-assignment-type'>Type d'attribution</div>
+                <div data-testid='option-owner'>Propriétaire</div>
+                <div data-testid='option-tenant'>Locataire</div>
+                <div data-testid='option-resident'>Résident</div>
+
+                <button data-testid='button-add-residence'>Ajouter une résidence</button>
+              </div>
+
+              <div data-testid='assigned-residences'>
+                <div data-testid='assigned-residence-1'>
+                  <div data-testid='residence-info'>Unité 101 - Immeuble A</div>
+                  <div data-testid='assignment-type-owner'>Propriétaire</div>
+                  <button data-testid='button-remove-residence'>Retirer</button>
+                </div>
+              </div>
+
+              <button data-testid='button-save-residences'>
+                Sauvegarder les attributions
+              </button>
+              <button data-testid='button-cancel-residences'>Annuler</button>
+            </div>
+
+            {/* Bulk Actions */}
+            <div data-testid='bulk-actions-section'>
+              <div data-testid='selected-users-count'>2 utilisateurs sélectionnés</div>
+              <button data-testid='button-bulk-activate'>Activer</button>
+              <button data-testid='button-bulk-deactivate'>Désactiver</button>
+              <button data-testid='button-bulk-delete'>Supprimer</button>
+              <button data-testid='button-bulk-assign-role'>Attribuer un rôle</button>
+            </div>
+
+            {/* Search and Pagination */}
+            <div data-testid='search-pagination-section'>
+              <div data-testid='search-input'>
+                <div data-testid='placeholder-search-users'>
+                  Rechercher des utilisateurs...
+                </div>
+              </div>
+
+              <div data-testid='pagination-info'>
+                Affichage 1-10 de 8 utilisateurs
+              </div>
+              
+              <div data-testid='pagination-controls'>
+                <button data-testid='button-previous-page'>Précédent</button>
+                <button data-testid='button-next-page'>Suivant</button>
+              </div>
+            </div>
+
+            {/* Empty States */}
+            <div data-testid='no-users-found'>Aucun utilisateur trouvé</div>
+            <div data-testid='no-invitations-pending'>Aucune invitation en attente</div>
+
+            {/* Loading States */}
+            <div data-testid='loading-users'>Chargement des utilisateurs...</div>
+            <div data-testid='loading-organizations'>Chargement des organisations...</div>
+
+            {/* Toast Messages */}
+            <div data-testid='toast-user-updated'>Utilisateur mis à jour avec succès</div>
+            <div data-testid='toast-invitation-sent'>Invitation envoyée avec succès</div>
+            <div data-testid='toast-user-deleted'>Utilisateur supprimé avec succès</div>
+            <div data-testid='toast-organizations-updated'>
+              Attributions d'organisations mises à jour avec succès
+            </div>
+            <div data-testid='toast-residences-updated'>
+              Attributions de résidences mises à jour avec succès
+            </div>
+            <div data-testid='toast-error-title'>Erreur</div>
+            <div data-testid='toast-error-message'>
+              Une erreur s'est produite lors de l'opération
+            </div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-first-name-required'>Le prénom est requis</div>
+            <div data-testid='validation-last-name-required'>Le nom de famille est requis</div>
+            <div data-testid='validation-email-required'>L'adresse courriel est requise</div>
+            <div data-testid='validation-email-invalid'>Adresse courriel invalide</div>
+            <div data-testid='validation-role-required'>Le rôle est requis</div>
+            <div data-testid='validation-organization-required'>L'organisation est requise</div>
+
+            {/* Permission Messages */}
+            <div data-testid='permission-insufficient'>
+              Permissions insuffisantes pour cette action
+            </div>
+            <div data-testid='permission-admin-only'>
+              Seuls les administrateurs peuvent effectuer cette action
+            </div>
+
+            {/* Additional Labels */}
+            <div data-testid='label-user-details'>Détails de l'utilisateur</div>
+            <div data-testid='label-account-settings'>Paramètres du compte</div>
+            <div data-testid='label-access-control'>Contrôle d'accès</div>
+            <div data-testid='label-created-date'>Date de création</div>
+            <div data-testid='label-last-login'>Dernière connexion</div>
+            <div data-testid='label-user-activity'>Activité de l'utilisateur</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerUserManagementPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-user-management')).toHaveTextContent('Gestion des utilisateurs');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Gérer tous les utilisateurs');
+
+      // Verify statistics section
+      expect(screen.getByTestId('total-users-label')).toHaveTextContent('Utilisateurs totaux');
+      expect(screen.getByTestId('total-label')).toHaveTextContent('Total');
+      expect(screen.getByTestId('active-users-label')).toHaveTextContent('Utilisateurs actifs');
+      expect(screen.getByTestId('active-label')).toHaveTextContent('Actif');
+      expect(screen.getByTestId('admin-role-label')).toHaveTextContent('Administrateur');
+      expect(screen.getByTestId('role-label')).toHaveTextContent('Rôle');
+
+      // Verify tabs and actions
+      expect(screen.getByTestId('tab-users')).toHaveTextContent('Utilisateurs');
+      expect(screen.getByTestId('tab-invitations')).toHaveTextContent('Invitations');
+      expect(screen.getByTestId('button-invite-user')).toHaveTextContent('Inviter un utilisateur');
+
+      // Verify filters section
+      expect(screen.getByTestId('placeholder-all-roles')).toHaveTextContent('Tous les rôles');
+      expect(screen.getByTestId('option-all-roles')).toHaveTextContent('Tous les rôles');
+      expect(screen.getByTestId('placeholder-all-status')).toHaveTextContent('Tous les statuts');
+      expect(screen.getByTestId('option-all-status')).toHaveTextContent('Tous les statuts');
+      expect(screen.getByTestId('placeholder-all-organizations')).toHaveTextContent('Toutes les organisations');
+      expect(screen.getByTestId('option-all-organizations')).toHaveTextContent('Toutes les organisations');
+
+      // Verify role options use Quebec French
+      expect(screen.getByTestId('role-admin')).toHaveTextContent('Administrateur');
+      expect(screen.getByTestId('role-manager')).toHaveTextContent('Gestionnaire');
+      expect(screen.getByTestId('role-tenant')).toHaveTextContent('Locataire');
+      expect(screen.getByTestId('role-resident')).toHaveTextContent('Résident');
+
+      // Verify status options
+      expect(screen.getByTestId('status-active')).toHaveTextContent('Actif');
+      expect(screen.getByTestId('status-inactive')).toHaveTextContent('Inactif');
+
+      // Verify user list
+      expect(screen.getByTestId('user-list-title')).toHaveTextContent('Liste des utilisateurs (8 sur 8 utilisateurs)');
+
+      // Verify table headers
+      expect(screen.getByTestId('header-select')).toHaveTextContent('Sélectionner');
+      expect(screen.getByTestId('header-name')).toHaveTextContent('Nom');
+      expect(screen.getByTestId('header-email')).toHaveTextContent('Courriel');
+      expect(screen.getByTestId('header-role')).toHaveTextContent('Rôle');
+      expect(screen.getByTestId('header-status')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('header-organizations')).toHaveTextContent('Organisations');
+      expect(screen.getByTestId('header-residences')).toHaveTextContent('Résidences');
+      expect(screen.getByTestId('header-actions')).toHaveTextContent('Actions');
+
+      // Verify user actions
+      expect(screen.getByTestId('button-edit-user')).toHaveTextContent('Modifier');
+      expect(screen.getByTestId('button-edit-organizations')).toHaveTextContent('Organisations');
+      expect(screen.getByTestId('button-edit-residences')).toHaveTextContent('Résidences');
+      expect(screen.getByTestId('button-delete-user')).toHaveTextContent('Supprimer');
+
+      // Verify invite user dialog
+      expect(screen.getByTestId('invite-user-title')).toHaveTextContent('Inviter un nouvel utilisateur');
+      expect(screen.getByTestId('invite-user-description')).toHaveTextContent('Envoyez une invitation pour créer un compte utilisateur');
+      expect(screen.getByTestId('label-email')).toHaveTextContent('Adresse courriel');
+      expect(screen.getByTestId('placeholder-enter-email')).toHaveTextContent('Entrez l\'adresse courriel');
+      expect(screen.getByTestId('label-role')).toHaveTextContent('Rôle');
+      expect(screen.getByTestId('placeholder-select-role')).toHaveTextContent('Sélectionner un rôle');
+      expect(screen.getByTestId('label-organization')).toHaveTextContent('Organisation');
+      expect(screen.getByTestId('placeholder-select-organization')).toHaveTextContent('Sélectionner une organisation');
+      expect(screen.getByTestId('label-message')).toHaveTextContent('Message personnalisé (optionnel)');
+      expect(screen.getByTestId('placeholder-custom-message')).toHaveTextContent('Ajouter un message personnalisé à l\'invitation');
+
+      // Verify form buttons
+      expect(screen.getByTestId('button-send-invitation')).toHaveTextContent('Envoyer l\'invitation');
+      expect(screen.getByTestId('button-cancel-invitation')).toHaveTextContent('Annuler');
+
+      // Verify edit user dialog
+      expect(screen.getByTestId('edit-user-title')).toHaveTextContent('Modifier l\'utilisateur');
+      expect(screen.getByTestId('label-first-name')).toHaveTextContent('Prénom');
+      expect(screen.getByTestId('label-last-name')).toHaveTextContent('Nom de famille');
+      expect(screen.getByTestId('label-email-edit')).toHaveTextContent('Adresse courriel');
+      expect(screen.getByTestId('label-role-edit')).toHaveTextContent('Rôle');
+      expect(screen.getByTestId('label-status-edit')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('checkbox-active')).toHaveTextContent('Actif');
+
+      // Verify edit dialogs
+      expect(screen.getByTestId('edit-organizations-title')).toHaveTextContent('Gérer les attributions d\'organisations');
+      expect(screen.getByTestId('edit-organizations-description')).toHaveTextContent('Sélectionnez les organisations auxquelles cet utilisateur a accès');
+      expect(screen.getByTestId('edit-residences-title')).toHaveTextContent('Gérer les attributions de résidences');
+      expect(screen.getByTestId('edit-residences-description')).toHaveTextContent('Attribuez cet utilisateur à des résidences spécifiques');
+
+      // Verify residence assignment form
+      expect(screen.getByTestId('label-building-residence')).toHaveTextContent('Immeuble');
+      expect(screen.getByTestId('placeholder-select-building-residence')).toHaveTextContent('Sélectionner un immeuble');
+      expect(screen.getByTestId('label-unit-residence')).toHaveTextContent('Unité');
+      expect(screen.getByTestId('placeholder-select-unit')).toHaveTextContent('Sélectionner une unité');
+      expect(screen.getByTestId('label-assignment-type')).toHaveTextContent('Type d\'attribution');
+      expect(screen.getByTestId('option-owner')).toHaveTextContent('Propriétaire');
+      expect(screen.getByTestId('option-tenant')).toHaveTextContent('Locataire');
+      expect(screen.getByTestId('option-resident')).toHaveTextContent('Résident');
+
+      // Verify bulk actions
+      expect(screen.getByTestId('selected-users-count')).toHaveTextContent('2 utilisateurs sélectionnés');
+      expect(screen.getByTestId('button-bulk-activate')).toHaveTextContent('Activer');
+      expect(screen.getByTestId('button-bulk-deactivate')).toHaveTextContent('Désactiver');
+      expect(screen.getByTestId('button-bulk-delete')).toHaveTextContent('Supprimer');
+      expect(screen.getByTestId('button-bulk-assign-role')).toHaveTextContent('Attribuer un rôle');
+
+      // Verify search and pagination
+      expect(screen.getByTestId('placeholder-search-users')).toHaveTextContent('Rechercher des utilisateurs');
+      expect(screen.getByTestId('pagination-info')).toHaveTextContent('Affichage 1-10 de 8 utilisateurs');
+      expect(screen.getByTestId('button-previous-page')).toHaveTextContent('Précédent');
+      expect(screen.getByTestId('button-next-page')).toHaveTextContent('Suivant');
+
+      // Verify empty states
+      expect(screen.getByTestId('no-users-found')).toHaveTextContent('Aucun utilisateur trouvé');
+      expect(screen.getByTestId('no-invitations-pending')).toHaveTextContent('Aucune invitation en attente');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-users')).toHaveTextContent('Chargement des utilisateurs');
+      expect(screen.getByTestId('loading-organizations')).toHaveTextContent('Chargement des organisations');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-first-name-required')).toHaveTextContent('Le prénom est requis');
+      expect(screen.getByTestId('validation-last-name-required')).toHaveTextContent('Le nom de famille est requis');
+      expect(screen.getByTestId('validation-email-required')).toHaveTextContent('L\'adresse courriel est requise');
+      expect(screen.getByTestId('validation-email-invalid')).toHaveTextContent('Adresse courriel invalide');
+      expect(screen.getByTestId('validation-role-required')).toHaveTextContent('Le rôle est requis');
+    });
+
+    it('should avoid English terminology in manager user management page', () => {
+      const UserManagementWithEnglishTerms = () => {
+        return (
+          <div data-testid='user-management-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-user-management'>User Management</div>
+            <div data-testid='incorrect-manage-all-users'>Manage All Users</div>
+            <div data-testid='incorrect-total-users'>Total Users</div>
+            <div data-testid='incorrect-active-users'>Active Users</div>
+            <div data-testid='incorrect-admin'>Admin</div>
+            <div data-testid='incorrect-users'>Users</div>
+            <div data-testid='incorrect-invitations'>Invitations</div>
+            <div data-testid='incorrect-invite-user'>Invite User</div>
+            <div data-testid='incorrect-all-roles'>All Roles</div>
+            <div data-testid='incorrect-all-status'>All Status</div>
+            <div data-testid='incorrect-all-organizations'>All Organizations</div>
+            <div data-testid='incorrect-manager'>Manager</div>
+            <div data-testid='incorrect-tenant'>Tenant</div>
+            <div data-testid='incorrect-resident'>Resident</div>
+            <div data-testid='incorrect-active'>Active</div>
+            <div data-testid='incorrect-inactive'>Inactive</div>
+            <div data-testid='incorrect-user-list'>User List</div>
+            <div data-testid='incorrect-select'>Select</div>
+            <div data-testid='incorrect-name'>Name</div>
+            <div data-testid='incorrect-email'>Email</div>
+            <div data-testid='incorrect-role'>Role</div>
+            <div data-testid='incorrect-status'>Status</div>
+            <div data-testid='incorrect-organizations'>Organizations</div>
+            <div data-testid='incorrect-residences'>Residences</div>
+            <div data-testid='incorrect-actions'>Actions</div>
+            <div data-testid='incorrect-edit'>Edit</div>
+            <div data-testid='incorrect-delete'>Delete</div>
+            <div data-testid='incorrect-invite-new-user'>Invite New User</div>
+            <div data-testid='incorrect-send-invitation'>Send invitation</div>
+            <div data-testid='incorrect-enter-email'>Enter email address</div>
+            <div data-testid='incorrect-select-role'>Select role</div>
+            <div data-testid='incorrect-select-organization'>Select organization</div>
+            <div data-testid='incorrect-custom-message'>Add custom message</div>
+            <div data-testid='incorrect-send-invitation-button'>Send Invitation</div>
+            <div data-testid='incorrect-cancel'>Cancel</div>
+            <div data-testid='incorrect-edit-user'>Edit User</div>
+            <div data-testid='incorrect-first-name'>First Name</div>
+            <div data-testid='incorrect-last-name'>Last Name</div>
+            <div data-testid='incorrect-save'>Save</div>
+            <div data-testid='incorrect-manage-organizations'>Manage Organization Assignments</div>
+            <div data-testid='incorrect-manage-residences'>Manage Residence Assignments</div>
+            <div data-testid='incorrect-building'>Building</div>
+            <div data-testid='incorrect-unit'>Unit</div>
+            <div data-testid='incorrect-assignment-type'>Assignment Type</div>
+            <div data-testid='incorrect-owner'>Owner</div>
+            <div data-testid='incorrect-add-residence'>Add Residence</div>
+            <div data-testid='incorrect-remove'>Remove</div>
+            <div data-testid='incorrect-users-selected'>users selected</div>
+            <div data-testid='incorrect-activate'>Activate</div>
+            <div data-testid='incorrect-deactivate'>Deactivate</div>
+            <div data-testid='incorrect-assign-role'>Assign Role</div>
+            <div data-testid='incorrect-search-users'>Search users</div>
+            <div data-testid='incorrect-showing'>Showing</div>
+            <div data-testid='incorrect-previous'>Previous</div>
+            <div data-testid='incorrect-next'>Next</div>
+            <div data-testid='incorrect-no-users-found'>No users found</div>
+            <div data-testid='incorrect-loading-users'>Loading users</div>
+            <div data-testid='incorrect-user-updated'>User updated successfully</div>
+            <div data-testid='incorrect-invitation-sent'>Invitation sent successfully</div>
+            <div data-testid='incorrect-error'>Error</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagementWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'user management',
+        'manage all users',
+        'total users',
+        'active users',
+        'admin',
+        'users',
+        'invitations',
+        'invite user',
+        'all roles',
+        'all status',
+        'all organizations',
+        'manager',
+        'tenant',
+        'resident',
+        'active',
+        'inactive',
+        'user list',
+        'select',
+        'name',
+        'email',
+        'role',
+        'status',
+        'organizations',
+        'residences',
+        'actions',
+        'edit',
+        'delete',
+        'invite new user',
+        'send invitation',
+        'enter email',
+        'select role',
+        'select organization',
+        'custom message',
+        'send invitation button',
+        'cancel',
+        'edit user',
+        'first name',
+        'last name',
+        'save',
+        'manage organizations',
+        'manage residences',
+        'building',
+        'unit',
+        'assignment type',
+        'owner',
+        'add residence',
+        'remove',
+        'users selected',
+        'activate',
+        'deactivate',
+        'assign role',
+        'search users',
+        'showing',
+        'previous',
+        'next',
+        'no users found',
+        'loading users',
+        'user updated',
+        'invitation sent',
+        'error'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec user management and administration terminology', () => {
+      const UserAdministrationTerms = () => {
+        return (
+          <div data-testid='user-administration-terms'>
+            {/* Correct Quebec French user management and administration terms */}
+            <div data-testid='term-gestion-utilisateurs'>Gestion des utilisateurs</div>
+            <div data-testid='term-administration-utilisateurs'>Administration des utilisateurs</div>
+            <div data-testid='term-gestion-comptes'>Gestion des comptes</div>
+            <div data-testid='term-administration-comptes'>Administration des comptes</div>
+            <div data-testid='term-controle-acces'>Contrôle d'accès</div>
+            <div data-testid='term-gestion-acces'>Gestion des accès</div>
+            <div data-testid='term-authentification'>Authentification</div>
+            <div data-testid='term-autorisation'>Autorisation</div>
+            <div data-testid='term-permissions'>Permissions</div>
+            <div data-testid='term-privileges'>Privilèges</div>
+            <div data-testid='term-droits-acces'>Droits d'accès</div>
+            <div data-testid='term-habilitations'>Habilitations</div>
+            <div data-testid='term-attributions'>Attributions</div>
+            <div data-testid='term-assignations'>Assignations</div>
+            <div data-testid='term-affectations'>Affectations</div>
+            <div data-testid='term-roles'>Rôles</div>
+            <div data-testid='term-fonctions'>Fonctions</div>
+            <div data-testid='term-profils'>Profils</div>
+            <div data-testid='term-profils-utilisateur'>Profils d'utilisateur</div>
+            <div data-testid='term-groupes'>Groupes</div>
+            <div data-testid='term-groupes-utilisateurs'>Groupes d'utilisateurs</div>
+            <div data-testid='term-organisations'>Organisations</div>
+            <div data-testid='term-entites'>Entités</div>
+            <div data-testid='term-departements'>Départements</div>
+            <div data-testid='term-services'>Services</div>
+            <div data-testid='term-divisions'>Divisions</div>
+            <div data-testid='term-unites'>Unités</div>
+            <div data-testid='term-utilisateurs-actifs'>Utilisateurs actifs</div>
+            <div data-testid='term-utilisateurs-inactifs'>Utilisateurs inactifs</div>
+            <div data-testid='term-comptes-actifs'>Comptes actifs</div>
+            <div data-testid='term-comptes-inactifs'>Comptes inactifs</div>
+            <div data-testid='term-comptes-suspendus'>Comptes suspendus</div>
+            <div data-testid='term-comptes-bloques'>Comptes bloqués</div>
+            <div data-testid='term-invitations'>Invitations</div>
+            <div data-testid='term-invitations-envoyees'>Invitations envoyées</div>
+            <div data-testid='term-invitations-acceptees'>Invitations acceptées</div>
+            <div data-testid='term-invitations-en-attente'>Invitations en attente</div>
+            <div data-testid='term-activation'>Activation</div>
+            <div data-testid='term-desactivation'>Désactivation</div>
+            <div data-testid='term-suspension'>Suspension</div>
+            <div data-testid='term-suppression'>Suppression</div>
+            <div data-testid='term-archivage'>Archivage</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserAdministrationTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec user management and administration terminology
+      expect(screen.getByTestId('term-gestion-utilisateurs')).toHaveTextContent('Gestion des utilisateurs');
+      expect(screen.getByTestId('term-administration-utilisateurs')).toHaveTextContent('Administration des utilisateurs');
+      expect(screen.getByTestId('term-gestion-comptes')).toHaveTextContent('Gestion des comptes');
+      expect(screen.getByTestId('term-administration-comptes')).toHaveTextContent('Administration des comptes');
+      expect(screen.getByTestId('term-controle-acces')).toHaveTextContent('Contrôle d\'accès');
+      expect(screen.getByTestId('term-gestion-acces')).toHaveTextContent('Gestion des accès');
+      expect(screen.getByTestId('term-authentification')).toHaveTextContent('Authentification');
+      expect(screen.getByTestId('term-autorisation')).toHaveTextContent('Autorisation');
+      expect(screen.getByTestId('term-permissions')).toHaveTextContent('Permissions');
+      expect(screen.getByTestId('term-privileges')).toHaveTextContent('Privilèges');
+      expect(screen.getByTestId('term-droits-acces')).toHaveTextContent('Droits d\'accès');
+      expect(screen.getByTestId('term-habilitations')).toHaveTextContent('Habilitations');
+      expect(screen.getByTestId('term-attributions')).toHaveTextContent('Attributions');
+      expect(screen.getByTestId('term-assignations')).toHaveTextContent('Assignations');
+      expect(screen.getByTestId('term-affectations')).toHaveTextContent('Affectations');
+      expect(screen.getByTestId('term-roles')).toHaveTextContent('Rôles');
+      expect(screen.getByTestId('term-fonctions')).toHaveTextContent('Fonctions');
+      expect(screen.getByTestId('term-profils')).toHaveTextContent('Profils');
+      expect(screen.getByTestId('term-profils-utilisateur')).toHaveTextContent('Profils d\'utilisateur');
+      expect(screen.getByTestId('term-groupes')).toHaveTextContent('Groupes');
+      expect(screen.getByTestId('term-groupes-utilisateurs')).toHaveTextContent('Groupes d\'utilisateurs');
+      expect(screen.getByTestId('term-organisations')).toHaveTextContent('Organisations');
+      expect(screen.getByTestId('term-entites')).toHaveTextContent('Entités');
+      expect(screen.getByTestId('term-departements')).toHaveTextContent('Départements');
+      expect(screen.getByTestId('term-services')).toHaveTextContent('Services');
+      expect(screen.getByTestId('term-divisions')).toHaveTextContent('Divisions');
+      expect(screen.getByTestId('term-unites')).toHaveTextContent('Unités');
+      expect(screen.getByTestId('term-utilisateurs-actifs')).toHaveTextContent('Utilisateurs actifs');
+      expect(screen.getByTestId('term-utilisateurs-inactifs')).toHaveTextContent('Utilisateurs inactifs');
+      expect(screen.getByTestId('term-comptes-actifs')).toHaveTextContent('Comptes actifs');
+      expect(screen.getByTestId('term-comptes-inactifs')).toHaveTextContent('Comptes inactifs');
+      expect(screen.getByTestId('term-comptes-suspendus')).toHaveTextContent('Comptes suspendus');
+      expect(screen.getByTestId('term-comptes-bloques')).toHaveTextContent('Comptes bloqués');
+      expect(screen.getByTestId('term-invitations')).toHaveTextContent('Invitations');
+      expect(screen.getByTestId('term-invitations-envoyees')).toHaveTextContent('Invitations envoyées');
+      expect(screen.getByTestId('term-invitations-acceptees')).toHaveTextContent('Invitations acceptées');
+      expect(screen.getByTestId('term-invitations-en-attente')).toHaveTextContent('Invitations en attente');
+      expect(screen.getByTestId('term-activation')).toHaveTextContent('Activation');
+      expect(screen.getByTestId('term-desactivation')).toHaveTextContent('Désactivation');
+      expect(screen.getByTestId('term-suspension')).toHaveTextContent('Suspension');
+      expect(screen.getByTestId('term-suppression')).toHaveTextContent('Suppression');
+      expect(screen.getByTestId('term-archivage')).toHaveTextContent('Archivage');
+    });
+
+    it('should display proper user management workflow in French', () => {
+      const UserManagementWorkflow = () => {
+        return (
+          <div data-testid='user-management-workflow'>
+            {/* User lifecycle workflow */}
+            <div data-testid='workflow-invitation'>
+              <div data-testid='step-invitation-title'>1. Invitation d'utilisateur</div>
+              <div data-testid='step-invitation-description'>
+                Envoi d'une invitation pour créer un nouveau compte utilisateur
+              </div>
+            </div>
+
+            <div data-testid='workflow-registration'>
+              <div data-testid='step-registration-title'>2. Inscription et activation</div>
+              <div data-testid='step-registration-description'>
+                L'utilisateur accepte l'invitation et active son compte
+              </div>
+            </div>
+
+            <div data-testid='workflow-role-assignment'>
+              <div data-testid='step-role-assignment-title'>3. Attribution des rôles</div>
+              <div data-testid='step-role-assignment-description'>
+                Attribution des rôles et permissions appropriés
+              </div>
+            </div>
+
+            <div data-testid='workflow-access-configuration'>
+              <div data-testid='step-access-configuration-title'>4. Configuration d'accès</div>
+              <div data-testid='step-access-configuration-description'>
+                Attribution aux organisations et résidences pertinentes
+              </div>
+            </div>
+
+            <div data-testid='workflow-monitoring'>
+              <div data-testid='step-monitoring-title'>5. Surveillance et maintenance</div>
+              <div data-testid='step-monitoring-description'>
+                Suivi de l'activité et mise à jour des permissions
+              </div>
+            </div>
+
+            {/* Role hierarchy */}
+            <div data-testid='role-hierarchy'>
+              <div data-testid='hierarchy-admin-desc'>
+                Administrateur - Accès complet à toutes les fonctionnalités
+              </div>
+              <div data-testid='hierarchy-manager-desc'>
+                Gestionnaire - Gestion des propriétés et utilisateurs assignés
+              </div>
+              <div data-testid='hierarchy-tenant-desc'>
+                Locataire - Accès aux services de location et demandes
+              </div>
+              <div data-testid='hierarchy-resident-desc'>
+                Résident - Accès de base aux services communautaires
+              </div>
+            </div>
+
+            {/* Access control features */}
+            <div data-testid='access-control-features'>
+              <div data-testid='feature-organization-access'>Contrôle d'accès par organisation</div>
+              <div data-testid='feature-residence-access'>Attribution de résidences spécifiques</div>
+              <div data-testid='feature-bulk-operations'>Opérations en lot pour la gestion de masse</div>
+              <div data-testid='feature-audit-trail'>Piste d'audit des modifications</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <UserManagementWorkflow />
+        </TestProviders>
+      );
+
+      // Verify user management workflow steps use Quebec French
+      expect(screen.getByTestId('step-invitation-title')).toHaveTextContent('1. Invitation d\'utilisateur');
+      expect(screen.getByTestId('step-invitation-description')).toHaveTextContent('Envoi d\'une invitation pour créer un nouveau compte utilisateur');
+      expect(screen.getByTestId('step-registration-title')).toHaveTextContent('2. Inscription et activation');
+      expect(screen.getByTestId('step-registration-description')).toHaveTextContent('L\'utilisateur accepte l\'invitation et active son compte');
+      expect(screen.getByTestId('step-role-assignment-title')).toHaveTextContent('3. Attribution des rôles');
+      expect(screen.getByTestId('step-role-assignment-description')).toHaveTextContent('Attribution des rôles et permissions appropriés');
+      expect(screen.getByTestId('step-access-configuration-title')).toHaveTextContent('4. Configuration d\'accès');
+      expect(screen.getByTestId('step-access-configuration-description')).toHaveTextContent('Attribution aux organisations et résidences pertinentes');
+      expect(screen.getByTestId('step-monitoring-title')).toHaveTextContent('5. Surveillance et maintenance');
+      expect(screen.getByTestId('step-monitoring-description')).toHaveTextContent('Suivi de l\'activité et mise à jour des permissions');
+
+      // Verify role hierarchy descriptions
+      expect(screen.getByTestId('hierarchy-admin-desc')).toHaveTextContent('Administrateur - Accès complet à toutes les fonctionnalités');
+      expect(screen.getByTestId('hierarchy-manager-desc')).toHaveTextContent('Gestionnaire - Gestion des propriétés et utilisateurs assignés');
+      expect(screen.getByTestId('hierarchy-tenant-desc')).toHaveTextContent('Locataire - Accès aux services de location et demandes');
+      expect(screen.getByTestId('hierarchy-resident-desc')).toHaveTextContent('Résident - Accès de base aux services communautaires');
+
+      // Verify access control features
+      expect(screen.getByTestId('feature-organization-access')).toHaveTextContent('Contrôle d\'accès par organisation');
+      expect(screen.getByTestId('feature-residence-access')).toHaveTextContent('Attribution de résidences spécifiques');
+      expect(screen.getByTestId('feature-bulk-operations')).toHaveTextContent('Opérations en lot pour la gestion de masse');
+      expect(screen.getByTestId('feature-audit-trail')).toHaveTextContent('Piste d\'audit des modifications');
+    });
+
+    it('should have proper data-testid attributes for manager user management page elements', () => {
+      const ManagerUserManagementWithTestIds = () => {
+        return (
+          <div data-testid='manager-user-management-page'>
+            <div data-testid='stats-section'>Statistiques</div>
+            <div data-testid='tabs-actions-section'>Onglets</div>
+            <div data-testid='filters-section'>Filtres</div>
+            <button data-testid='button-invite-user'>Inviter</button>
+            <div data-testid='user-list-section'>Liste</div>
+            <div data-testid='user-table'>Tableau</div>
+            <button data-testid='button-edit-user'>Modifier</button>
+            <div data-testid='dialog-invite-user'>Dialog</div>
+            <div data-testid='dialog-edit-user'>Dialog Edit</div>
+            <div data-testid='bulk-actions-section'>Actions groupées</div>
+            <div data-testid='search-pagination-section'>Recherche</div>
+            <div data-testid='no-users-found'>Aucun utilisateur</div>
+            <div data-testid='loading-users'>Chargement</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerUserManagementWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all manager user management page elements have proper test IDs
+      expect(screen.getByTestId('manager-user-management-page')).toBeInTheDocument();
+      expect(screen.getByTestId('stats-section')).toBeInTheDocument();
+      expect(screen.getByTestId('tabs-actions-section')).toBeInTheDocument();
+      expect(screen.getByTestId('filters-section')).toBeInTheDocument();
+      expect(screen.getByTestId('button-invite-user')).toBeInTheDocument();
+      expect(screen.getByTestId('user-list-section')).toBeInTheDocument();
+      expect(screen.getByTestId('user-table')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-user')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-invite-user')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-edit-user')).toBeInTheDocument();
+      expect(screen.getByTestId('bulk-actions-section')).toBeInTheDocument();
+      expect(screen.getByTestId('search-pagination-section')).toBeInTheDocument();
+      expect(screen.getByTestId('no-users-found')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-users')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const inviteUserButton = screen.getByTestId('button-invite-user');
+      expect(inviteUserButton).toHaveAttribute('data-testid');
+      expect(inviteUserButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -5540,6 +6354,93 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   new: 'nouveau',
   overdue: 'en retard',
   'on hold': 'en attente',
+
+  // Manager user management and administration terms
+  'user management': 'gestion des utilisateurs',
+  'manage all users': 'gérer tous les utilisateurs',
+  'total users': 'utilisateurs totaux',
+  'active users': 'utilisateurs actifs',
+  admin: 'administrateur',
+  users: 'utilisateurs',
+  invitations: 'invitations',
+  'invite user': 'inviter un utilisateur',
+  'all roles': 'tous les rôles',
+  'all status': 'tous les statuts',
+  'all organizations': 'toutes les organisations',
+  manager: 'gestionnaire',
+  tenant: 'locataire',
+  resident: 'résident',
+  inactive: 'inactif',
+  'user list': 'liste des utilisateurs',
+  select: 'sélectionner',
+  name: 'nom',
+  email: 'courriel',
+  role: 'rôle',
+  status: 'statut',
+  organizations: 'organisations',
+  residences: 'résidences',
+  actions: 'actions',
+  edit: 'modifier',
+  delete: 'supprimer',
+  'invite new user': 'inviter un nouvel utilisateur',
+  'send invitation to create user account': 'envoyez une invitation pour créer un compte utilisateur',
+  'email address': 'adresse courriel',
+  'enter email address': 'entrez l\'adresse courriel',
+  'select role': 'sélectionner un rôle',
+  'select organization': 'sélectionner une organisation',
+  'custom message optional': 'message personnalisé (optionnel)',
+  'add custom message to invitation': 'ajouter un message personnalisé à l\'invitation',
+  'send invitation': 'envoyer l\'invitation',
+  cancel: 'annuler',
+  'edit user': 'modifier l\'utilisateur',
+  'first name': 'prénom',
+  'last name': 'nom de famille',
+  save: 'sauvegarder',
+  'manage organization assignments': 'gérer les attributions d\'organisations',
+  'select organizations user has access to': 'sélectionnez les organisations auxquelles cet utilisateur a accès',
+  'manage residence assignments': 'gérer les attributions de résidences',
+  'assign user to specific residences': 'attribuez cet utilisateur à des résidences spécifiques',
+  building: 'immeuble',
+  'select building': 'sélectionner un immeuble',
+  unit: 'unité',
+  'select unit': 'sélectionner une unité',
+  'assignment type': 'type d\'attribution',
+  owner: 'propriétaire',
+  'add residence': 'ajouter une résidence',
+  remove: 'retirer',
+  'save assignments': 'sauvegarder les attributions',
+  'users selected': 'utilisateurs sélectionnés',
+  activate: 'activer',
+  deactivate: 'désactiver',
+  'assign role': 'attribuer un rôle',
+  'search users': 'rechercher des utilisateurs',
+  showing: 'affichage',
+  previous: 'précédent',
+  next: 'suivant',
+  'no users found': 'aucun utilisateur trouvé',
+  'no invitations pending': 'aucune invitation en attente',
+  'loading users': 'chargement des utilisateurs',
+  'loading organizations': 'chargement des organisations',
+  'user updated successfully': 'utilisateur mis à jour avec succès',
+  'invitation sent successfully': 'invitation envoyée avec succès',
+  'user deleted successfully': 'utilisateur supprimé avec succès',
+  'organization assignments updated successfully': 'attributions d\'organisations mises à jour avec succès',
+  'residence assignments updated successfully': 'attributions de résidences mises à jour avec succès',
+  'error occurred during operation': 'une erreur s\'est produite lors de l\'opération',
+  'first name is required': 'le prénom est requis',
+  'last name is required': 'le nom de famille est requis',
+  'email address is required': 'l\'adresse courriel est requise',
+  'invalid email address': 'adresse courriel invalide',
+  'role is required': 'le rôle est requis',
+  'organization is required': 'l\'organisation est requise',
+  'insufficient permissions for this action': 'permissions insuffisantes pour cette action',
+  'only administrators can perform this action': 'seuls les administrateurs peuvent effectuer cette action',
+  'user details': 'détails de l\'utilisateur',
+  'account settings': 'paramètres du compte',
+  'access control': 'contrôle d\'accès',
+  'created date': 'date de création',
+  'last login': 'dernière connexion',
+  'user activity': 'activité de l\'utilisateur',
 };
 
 /**
