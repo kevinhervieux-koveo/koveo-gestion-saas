@@ -120,7 +120,7 @@ export type {
 export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
-export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';
+export { bugs, featureRequests, featureRequestUpvotes, maintenanceRequests, notifications } from './schemas/operations';
 export { 
   developmentPillars, 
   workspaceStatus, 
