@@ -42,7 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.pathname.includes('/forgot-password') ||
     window.location.pathname.includes('/reset-password') ||
     window.location.pathname.includes('/accept-invitation') ||
-    window.location.pathname === '/';
+    window.location.pathname === '/' ||
+    window.location.pathname === '/features' ||
+    window.location.pathname === '/pricing' ||
+    window.location.pathname === '/security' ||
+    window.location.pathname === '/story' ||
+    window.location.pathname === '/privacy-policy' ||
+    window.location.pathname === '/terms-of-service';
 
   // Query to get current user (always enabled, but we handle public pages differently)
   const {
@@ -90,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (userData === null && !isPublicPage && !isLoading) {
       console.warn('Session expired, redirecting to login page');
-      setLocation('/auth/login');
+      setLocation('/login');
     }
   }, [userData, isPublicPage, isLoading, setLocation]);
 

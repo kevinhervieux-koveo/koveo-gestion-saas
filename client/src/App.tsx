@@ -244,9 +244,13 @@ function Router() {
   const isPublicPage = [
     '/',
     '/login',
+    '/auth/login',
     '/forgot-password',
+    '/auth/forgot-password',
     '/reset-password',
+    '/auth/reset-password',
     '/accept-invitation',
+    '/auth/accept-invitation',
     '/register',
     '/features',
     '/pricing',
@@ -269,9 +273,13 @@ function Router() {
           <Route path='/privacy-policy' component={PrivacyPolicyPage} />
           <Route path='/terms-of-service' component={TermsOfServicePage} />
           <Route path='/login' component={isAuthenticated ? LoginRedirect : LoginPage} />
+          <Route path='/auth/login' component={isAuthenticated ? LoginRedirect : LoginPage} />
           <Route path='/forgot-password' component={ForgotPasswordPage} />
+          <Route path='/auth/forgot-password' component={ForgotPasswordPage} />
           <Route path='/reset-password' component={ResetPasswordPage} />
+          <Route path='/auth/reset-password' component={ResetPasswordPage} />
           <Route path='/accept-invitation' component={InvitationAcceptancePage} />
+          <Route path='/auth/accept-invitation' component={InvitationAcceptancePage} />
           <Route path='/register' component={InvitationAcceptancePage} />
         </Switch>
       </Suspense>
@@ -304,6 +312,7 @@ function Router() {
           <Switch>
             {/* Login page - redirect authenticated users to dashboard */}
             <Route path='/login' component={LoginRedirect} />
+            <Route path='/auth/login' component={LoginRedirect} />
 
             {/* Main Dashboard */}
             <Route path='/dashboard/quick-actions' component={DashboardPage} />
