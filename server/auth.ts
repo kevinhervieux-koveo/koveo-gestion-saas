@@ -399,6 +399,7 @@ export function setupAuthRoutes(app: any) {
   app.post('/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
+      console.log(`🔍 [AUTH ROUTE] Login attempt for: ${email}`);
 
       if (!email || !password) {
         return res.status(400).json({
@@ -407,7 +408,7 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-
+      console.log(`🔍 [AUTH ROUTE] Calling storage.getUserByEmail for: ${email.toLowerCase()}`);
       // Normal database lookup for all users
       const user = await storage.getUserByEmail(email.toLowerCase());
       
@@ -426,9 +427,13 @@ export function setupAuthRoutes(app: any) {
       }
 
       // Use bcrypt for password verification
+      console.log(`🔍 [AUTH DEBUG] Verifying password for user: ${user.firstName} ${user.lastName}`);
+      console.log(`🔍 [AUTH DEBUG] Password hash: ${user.password.substring(0, 20)}...`);
       const isValidPassword = await verifyPassword(password, user.password);
+      console.log(`🔍 [AUTH DEBUG] Password verification result: ${isValidPassword}`);
 
       if (!isValidPassword) {
+        console.log(`❌ [AUTH DEBUG] Password verification failed for: ${user.email}`);
         return res.status(401).json({
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS',
