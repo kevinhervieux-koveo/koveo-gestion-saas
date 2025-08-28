@@ -1501,6 +1501,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Additional user relationship endpoints for user management
   try {
+    // GET /api/users/me/organizations - Get organizations for the current user
+    app.get('/api/users/me/organizations', requireAuth, async (req: any, res: any) => {
+      try {
+        const currentUser = req.user || req.session?.user;
+        if (!currentUser) {
+          return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        console.log(`📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`);
+
+        let organizationsQuery;
+
+        if (currentUser.role === 'admin') {
+          // Admin can see all organizations
+          organizationsQuery = db
+            .select({
+              id: schema.organizations.id,
+              name: schema.organizations.name,
+              type: schema.organizations.type,
+            })
+            .from(schema.organizations)
+            .where(eq(schema.organizations.isActive, true))
+            .orderBy(schema.organizations.name);
+        } else {
+          // Other users see organizations they have access to through user_organizations
+          organizationsQuery = db
+            .select({
+              id: schema.organizations.id,
+              name: schema.organizations.name,
+              type: schema.organizations.type,
+            })
+            .from(schema.organizations)
+            .innerJoin(schema.userOrganizations, eq(schema.organizations.id, schema.userOrganizations.organizationId))
+            .where(
+              and(
+                eq(schema.organizations.isActive, true),
+                eq(schema.userOrganizations.userId, currentUser.id),
+                eq(schema.userOrganizations.isActive, true)
+              )
+            )
+            .orderBy(schema.organizations.name);
+        }
+
+        const accessibleOrganizations = await organizationsQuery;
+        console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
+
+        res.json(accessibleOrganizations);
+      } catch (error) {
+        console.error('Error fetching user organizations:', error);
+        res.status(500).json({ message: 'Failed to fetch user organizations' });
+      }
+    });
+
     // GET /api/user-organizations - Get all user-organization relationships
     app.get('/api/user-organizations', requireAuth, async (req: any, res: any) => {
       try {
