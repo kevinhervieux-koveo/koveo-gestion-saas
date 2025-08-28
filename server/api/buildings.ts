@@ -180,6 +180,12 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       console.warn(`📊 Fetching buildings for user ${user.id} with role ${user.role}`);
+      console.warn(`🔍 [BUILDINGS DEBUG] User object:`, {
+        id: user.id,
+        role: user.role,
+        organizations: user.organizations,
+        canAccessAllOrganizations: user.canAccessAllOrganizations
+      });
 
       let buildingsQuery;
 
@@ -210,7 +216,7 @@ export function registerBuildingRoutes(app: Express): void {
           .orderBy(organizations.name, buildings.name);
       } else {
         // Manager or admin without global access: only buildings from their organizations
-        console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} organizations:`, user.organizations);
+        console.warn(`🔍 [BUILDINGS DEBUG] Taking ELSE path - User ${user.id} organizations:`, user.organizations);
         if (!user.organizations || user.organizations.length === 0) {
           console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
           
