@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import {
-  useCreateUpdateMutation as useUpdateMutation,
   useDeleteMutation,
 } from '@/lib/common-hooks';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import type { ColumnConfig, TableAction, BulkAction } from '@/components/ui/data-table';
 import { DataTable } from '@/components/ui/data-table';
 import { useAuth } from '@/hooks/use-auth';
@@ -24,7 +25,6 @@ import { BaseDialog } from '@/components/ui/base-dialog';
 import { StandardForm, type FormFieldConfig } from '@/components/ui/standard-form';
 // import { useApiMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/use-api-handler';
 import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Props for the UserListComponent.
@@ -65,18 +65,16 @@ interface EditUserDialogProps {
  */
 function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogProps) {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
-  const updateUserMutation = useUpdateMutation(
-    `/api/users/${user?.id}`,
-    {
-      successMessage: 'User updated successfully',
-      invalidateQueries: ['/api/users'],
-      onSuccessCallback: () => {
-        onOpenChange(false);
-        onSuccess();
-      },
+  const updateUserMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('PUT', `/api/users/${user?.id}`, data),
+    onSuccess: () => {
+      onOpenChange(false);
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     }
-  );
+  });
 
   const formFields: FormFieldConfig[] = [
     {
@@ -153,18 +151,18 @@ export function UserListComponent({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // API mutations using our reusable hooks
-  const deleteUserMutation = useDeleteMutation(`/api/users/`, {
+  const deleteUserMutation = useDeleteMutation({
+    deleteFn: (id: string) => apiRequest('DELETE', `/api/users/${id}`),
     successMessage: 'User deleted successfully',
-    invalidateQueries: ['/api/users'],
+    queryKeysToInvalidate: ['/api/users']
   });
 
-  const resetPasswordMutation = useUpdateMutation(
-    `/api/users/reset-password`,
-    {
-      successMessage: 'Password reset email sent successfully',
-      invalidateQueries: ['/api/users'],
+  const resetPasswordMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/users/reset-password', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     }
-  );
+  });
 
   const canEditUser = hasRole(['admin']);
   const canDeleteUser = hasRole(['admin']);

@@ -282,7 +282,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * @param value - The new value for the field.
    * @param _value
    */
-  const updateFormData = (field: string, _value: string | boolean | unknown) => {
+  const updateFormData = (field: string, value: string | boolean | unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
@@ -592,14 +592,14 @@ ${formData.additionalNotes || 'No additional notes'}
 
         draftKeys.forEach((key) => {
           try {
-            const draftData = JSON.parse(window.localStorage.getItem(_key) || '{}');
+            const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
-              window.localStorage.removeItem(_key);
-              console.warn('Cleared invalid draft:', _key);
+              window.localStorage.removeItem(key);
+              console.warn('Cleared invalid draft:', key);
             }
           } catch (_error) {
             // Invalid JSON, remove it
-            window.localStorage.removeItem(_key);
+            window.localStorage.removeItem(key);
           }
         });
       } catch (_error) {
@@ -689,7 +689,7 @@ ${formData.additionalNotes || 'No additional notes'}
                       id='featureName'
                       placeholder='Enter feature name'
                       value={formData.featureName || ''}
-                      onChange={(e) => updateFormData('featureName', e.target._value)}
+                      onChange={(e) => updateFormData('featureName', e.target.value)}
                     />
                   </div>
                   <div>

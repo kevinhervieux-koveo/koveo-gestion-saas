@@ -1,4 +1,3 @@
-/// <reference types='../../../types/browser-apis' />
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { FileText, Upload, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
-import type { Bill } from '../../../shared/schema';
+import type { Bill } from '@shared/schema';
 
 // Unified form schema
 const billFormSchema = z.object({

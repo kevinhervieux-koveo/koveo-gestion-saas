@@ -188,10 +188,10 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
 
   const handleEditSave = async (data: any) => {
     try {
-      const response = (await apiRequest('PUT', `/api/documents/${document.id}`, {
+      const response = await apiRequest('PUT', `/api/documents/${document.id}`, {
         ...data,
         dateReference: new Date(data.dateReference).toISOString(),
-      })) as Document;
+      }) as unknown as Document;
       onSave(response);
       toast({
         title: 'Success',
