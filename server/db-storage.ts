@@ -385,17 +385,41 @@ export class DatabaseStorage implements IStorage {
   /**
    * Retrieves residences for a specific user.
    * @param userId - The unique user identifier.
-   * @returns Promise that resolves to array of residence IDs the user is associated with.
+   * @returns Promise that resolves to array of full residence objects with building information.
    */
   // getUserResidences with caching
-  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
+  async getUserResidences(userId: string): Promise<Residence[]> {
     const result = await db
       .select({
-        residenceId: schema.userResidences.residenceId,
+        id: schema.residences.id,
+        unitNumber: schema.residences.unitNumber,
+        floor: schema.residences.floor,
+        squareFootage: schema.residences.squareFootage,
+        bedrooms: schema.residences.bedrooms,
+        bathrooms: schema.residences.bathrooms,
+        balcony: schema.residences.balcony,
+        parkingSpaceNumbers: schema.residences.parkingSpaceNumbers,
+        storageSpaceNumbers: schema.residences.storageSpaceNumbers,
+        isActive: schema.residences.isActive,
+        buildingId: schema.residences.buildingId,
+        building: {
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          province: schema.buildings.province,
+          postalCode: schema.buildings.postalCode,
+        }
       })
       .from(schema.userResidences)
+      .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+      .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
       .where(
-        and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
+        and(
+          eq(schema.userResidences.userId, userId), 
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        )
       );
 
     return result;
