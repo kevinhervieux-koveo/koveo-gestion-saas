@@ -341,7 +341,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getUser(id: string): Promise<User | undefined> {
     return this.withOptimizations('getUser', `user:${id}`, 'users', async () => {
+      console.log(`🔍 Storage.getUser: Querying database for user ID: ${id}`);
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
+      console.log(`🔍 Storage.getUser: Database returned ${result.length} results for ID ${id}`);
+      if (result.length > 0) {
+        console.log(`🔍 Storage.getUser: Found user:`, { id: result[0].id, email: result[0].email, role: result[0].role });
+      } else {
+        console.log(`❌ Storage.getUser: No user found in database for ID ${id}`);
+      }
       return result[0];
     });
   }

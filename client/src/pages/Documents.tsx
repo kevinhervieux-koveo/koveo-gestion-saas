@@ -455,7 +455,7 @@ Documents() {
                     <FormItem>
                       <FormLabel>Title</FormLabel>
                       <FormControl>
-                        <Input placeholder='Document title' {...field} />
+                        <Input placeholder={t('documentTitle')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -469,7 +469,7 @@ Documents() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder='Document description' {...field} />
+                        <Textarea placeholder={t('documentDescription')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -485,7 +485,7 @@ Documents() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='Select a category' />
+                            <SelectValue placeholder={t('selectCategory')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -511,7 +511,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select organization (optional)' />
+                              <SelectValue placeholder={t('selectOrganizationOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -538,7 +538,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select building (optional)' />
+                              <SelectValue placeholder={t('selectBuildingOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -565,7 +565,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select residence (optional)' />
+                              <SelectValue placeholder={t('selectResidenceOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -615,7 +615,7 @@ Documents() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder='Search documents...'
+            placeholder={t('searchDocuments')}
             iconColor='gray'
             data-testid='documents-search'
           />
@@ -627,7 +627,7 @@ Documents() {
             { value: 'all', label: 'All Categories' },
             ...DOCUMENT_CATEGORIES.map((cat) => ({ value: cat.value, label: cat.label })),
           ]}
-          placeholder='Filter by category'
+          placeholder={t('filterByCategory')}
           width='w-48'
           data-testid='category-filter'
         />
@@ -763,7 +763,7 @@ Documents() {
       {filteredDocuments.length === 0 && (
         <div className='text-center py-12'>
           <FileText className='w-12 h-12 text-gray-400 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>No documents found</h3>
+          <h3 className='text-lg font-medium text-gray-900 mb-2'>{t('noDocumentsFound')}</h3>
           <p className='text-gray-600'>
             {searchTerm || selectedCategory
               ? 'Try adjusting your search or filter criteria.'
@@ -793,7 +793,7 @@ Documents() {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder='Document title' {...field} />
+                      <Input placeholder={t('documentTitle')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -807,7 +807,7 @@ Documents() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder='Document description' {...field} />
+                      <Textarea placeholder={t('documentDescription')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -823,7 +823,7 @@ Documents() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select a category' />
+                          <SelectValue placeholder={t('selectCategory')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

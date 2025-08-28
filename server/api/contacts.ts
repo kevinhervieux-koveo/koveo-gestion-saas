@@ -1,9 +1,8 @@
 import { Express } from 'express';
 import { db } from '../db';
-import { contacts, residences, buildings, organizations } from '../../shared/schema';
+import { contacts, residences, buildings, organizations, insertContactSchema } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
-import { insertContactSchema } from '../../shared/schemas/property';
 
 /**
  * Register contact routes for managing entity contacts.

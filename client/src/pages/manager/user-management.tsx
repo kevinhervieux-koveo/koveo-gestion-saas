@@ -18,6 +18,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -32,7 +40,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Users, UserPlus, Shield, Mail, Edit, Home } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, Edit, Home, Trash2 } from 'lucide-react';
 import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,6 +57,12 @@ const editUserSchema = z.object({
   isActive: z.boolean(),
 });
 
+// Form validation schema for deleting users
+const deleteUserSchema = z.object({
+  confirmEmail: z.string().email('Invalid email address'),
+  reason: z.string().optional(),
+});
+
 /**
  * User Management Page for Management Menu
  * Consolidates user management functionalities for managers and admins.
@@ -62,6 +76,7 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editingUserOrganizations, setEditingUserOrganizations] = useState<User | null>(null);
   const [editingUserResidences, setEditingUserResidences] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -184,6 +199,15 @@ export default function UserManagement() {
     },
   });
 
+  // Delete user form
+  const deleteForm = useForm<z.infer<typeof deleteUserSchema>>({
+    resolver: zodResolver(deleteUserSchema),
+    defaultValues: {
+      confirmEmail: '',
+      reason: '',
+    },
+  });
+
   // Reset form when editing user changes
   React.useEffect(() => {
     if (editingUser) {
@@ -197,6 +221,16 @@ export default function UserManagement() {
     }
   }, [editingUser, editForm]);
 
+  // Reset delete form when deleting user changes
+  React.useEffect(() => {
+    if (deletingUser) {
+      deleteForm.reset({
+        confirmEmail: '',
+        reason: '',
+      });
+    }
+  }, [deletingUser, deleteForm]);
+
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
       return;
@@ -206,6 +240,17 @@ export default function UserManagement() {
 
   const openEditDialog = (user: User) => {
     setEditingUser(user);
+  };
+
+  const openDeleteDialog = (user: User) => {
+    setDeletingUser(user);
+  };
+
+  const handleDeleteUser = async (values: z.infer<typeof deleteUserSchema>) => {
+    if (!deletingUser) {
+      return;
+    }
+    await deleteUserMutation.mutateAsync({ userId: deletingUser.id, data: values });
   };
 
   // Organization editing mutation
@@ -272,9 +317,38 @@ export default function UserManagement() {
     },
   });
 
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async ({ userId, data }: { userId: string; data: z.infer<typeof deleteUserSchema> }) => {
+      const response = await apiRequest('POST', `/api/users/${userId}/delete-account`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Account deleted',
+        description: 'User account and all associated data have been permanently deleted.',
+      });
+      setDeletingUser(null);
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      // Force refetch to ensure UI updates
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Deletion failed',
+        description: error.message || 'Failed to delete account',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Permission checks
   const canEditOrganizations = currentUser?.role === 'admin';
   const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+  const canDeleteUsers = currentUser?.role === 'admin';
 
   // Filter configuration
   const filterConfig = {
@@ -766,6 +840,18 @@ export default function UserManagement() {
                                       Residences
                                     </Button>
                                   )}
+
+                                  {canDeleteUsers && (
+                                    <Button
+                                      size='sm'
+                                      variant='destructive'
+                                      onClick={() => openDeleteDialog(user)}
+                                      data-testid={`button-delete-user-${user.id}`}
+                                    >
+                                      <Trash2 className='h-3 w-3 mr-1' />
+                                      Delete
+                                    </Button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -1022,6 +1108,98 @@ export default function UserManagement() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Delete User Confirmation Dialog */}
+        <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
+          <AlertDialogContent className='sm:max-w-[500px]'>
+            <AlertDialogHeader>
+              <AlertDialogTitle className='text-red-600'>Delete User Account</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete{' '}
+                <strong>
+                  {deletingUser?.firstName} {deletingUser?.lastName}
+                </strong>{' '}
+                and all associated data. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
+              <p className='text-red-700 dark:text-red-300 text-sm'>
+                <strong>Warning:</strong> This will delete all user data including:
+              </p>
+              <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
+                <li>Profile information and account access</li>
+                <li>Organization and residence assignments</li>
+                <li>Bills, documents, and maintenance requests</li>
+                <li>Notifications and activity history</li>
+              </ul>
+            </div>
+
+            <Form {...deleteForm}>
+              <form onSubmit={deleteForm.handleSubmit(handleDeleteUser)} className='space-y-4'>
+                <FormField
+                  control={deleteForm.control}
+                  name='confirmEmail'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Confirm by typing the user's email address:{' '}
+                        <span className='font-mono text-sm'>{deletingUser?.email}</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type='email'
+                          placeholder={deletingUser?.email}
+                          data-testid='input-confirm-delete-email'
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={deleteForm.control}
+                  name='reason'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reason for deletion (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder='Enter reason for deletion...'
+                          data-testid='input-delete-reason'
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <AlertDialogFooter>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => setDeletingUser(null)}
+                    disabled={deleteUserMutation.isPending}
+                    data-testid='button-cancel-delete'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type='submit'
+                    variant='destructive'
+                    disabled={deleteUserMutation.isPending}
+                    data-testid='button-confirm-delete'
+                  >
+                    {deleteUserMutation.isPending ? 'Deleting...' : 'Delete Account'}
+                  </Button>
+                </AlertDialogFooter>
+              </form>
+            </Form>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

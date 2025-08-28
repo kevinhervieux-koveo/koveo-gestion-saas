@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Language, translations } from '@/lib/i18n';
 
 /**
@@ -8,6 +8,7 @@ import { Language, translations } from '@/lib/i18n';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: (_key: keyof typeof translations.en) => string;
 }
 
@@ -54,14 +55,32 @@ export function /**
  */
 
 LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguage] = useState<Language>('en');
+  // Initialize language from localStorage or default to French for Quebec
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('koveo-language') as Language;
+      return savedLanguage || 'fr'; // Default to French for Quebec
+    }
+    return 'fr';
+  });
+
+  // Save language preference to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('koveo-language', language);
+    }
+  }, [language]);
+
+  const toggleLanguage = () => {
+    setLanguage(current => current === 'en' ? 'fr' : 'en');
+  };
 
   const t = (_key: keyof typeof translations.en): string => {
     return translations[language][_key] || _key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

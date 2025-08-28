@@ -4,10 +4,16 @@
  * Authentication Security Test Script.
  *
  * Tests authentication and authorization systems for Quebec Law 25 compliance.
+ * Runs in safe mode to prevent production database modifications.
  */
 
 import { spawn } from 'child_process';
 import { setTimeout } from 'timers/promises';
+
+// Set safe environment to prevent database modifications
+process.env.NODE_ENV = 'test';
+process.env.SKIP_DB_OPERATIONS = 'true';
+delete process.env.DATABASE_URL; // Remove production database URL for safety
 
 /**
  * Interface for authentication test results.
@@ -26,11 +32,13 @@ class AuthSecurityTester {
   private serverProcess: any;
 
   /**
-   *
+   * Run authentication tests in safe mode
    */
   async runAuthTests(): Promise<void> {
-    console.warn('🔑 Testing Authentication Security Systems');
-    console.warn('==========================================\n');
+    console.warn('🔑 Testing Authentication Security Systems (Safe Mode)');
+    console.warn('====================================================\n');
+    console.warn('🛡️  Running in safe test environment (DATABASE_URL removed)');
+    console.warn('⚠️  Tests will use mock data to prevent production database changes\n');
 
     try {
       // Start server for testing

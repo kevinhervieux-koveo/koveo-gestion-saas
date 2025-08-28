@@ -11,6 +11,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { EmailService } from './services/email-service';
+import { queryCache } from './query-cache';
 
 /**
  * Check if a user role has a specific permission via database lookup.
@@ -20,6 +21,25 @@ import { EmailService } from './services/email-service';
  */
 async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
   try {
+    console.log(`🔍 Checking permission: role="${userRole}", permission="${permissionName}"`);
+    
+    // First check if permission exists at all
+    const permissionExists = await db
+      .select()
+      .from(schema.permissions)
+      .where(eq(schema.permissions.name, permissionName))
+      .limit(1);
+    
+    console.log(`🔍 Permission "${permissionName}" exists: ${permissionExists.length > 0}`);
+    
+    // Check role permissions
+    const rolePermissions = await db
+      .select()
+      .from(schema.rolePermissions)
+      .where(eq(schema.rolePermissions.role, userRole as any));
+    
+    console.log(`🔍 Role "${userRole}" has ${rolePermissions.length} permissions`);
+    
     const result = await db
       .select()
       .from(schema.rolePermissions)
@@ -31,6 +51,21 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
         )
       )
       .limit(1);
+
+    console.log(`🔍 Permission check result: ${result.length > 0 ? 'GRANTED' : 'DENIED'}, found ${result.length} matching records`);
+    
+    if (result.length === 0) {
+      console.log(`❌ No permission found for role "${userRole}" and permission "${permissionName}"`);
+      // Debug: list all admin permissions
+      if (userRole === 'admin') {
+        const adminPerms = await db
+          .select({ name: schema.permissions.name })
+          .from(schema.rolePermissions)
+          .leftJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
+          .where(eq(schema.rolePermissions.role, 'admin'));
+        console.log(`🔍 Admin permissions:`, adminPerms.map(p => p.name));
+      }
+    }
 
     return result.length > 0;
   } catch (error) {
@@ -63,12 +98,13 @@ function createSessionStore() {
 export const sessionConfig = session({
   store: createSessionStore(),
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-  resave: false,
+  resave: true, // Save session even when not modified to extend expiry
   saveUninitialized: false,
+  rolling: true, // Reset expiry on each request
   cookie: {
     secure: process.env.NODE_ENV === 'production', // HTTPS required in production
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
     sameSite: 'lax', // Keep lax for same-site compatibility
     // Don't set domain - let it default to current domain
   },
@@ -162,8 +198,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
+    // Touch session to extend expiry on activity
+    if (req.session && req.session.touch) {
+      req.session.touch();
+    }
 
+    console.log(`🔍 RequireAuth: Loading user with session ID: ${req.session.userId}`);
+    
+    // Clear any cached user data for this ID to ensure fresh load
+    queryCache.invalidate('users', `user:${req.session.userId}`);
+    queryCache.invalidate('users', `user_email:*`);
+    
     const user = await storage.getUser(req.session.userId);
+    console.log(`🔍 RequireAuth: Loaded user:`, user ? { id: user.id, email: user.email, role: user.role } : 'NOT FOUND');
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
         if (err) {

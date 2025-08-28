@@ -1,6 +1,7 @@
 import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
+import { translations } from '@/lib/i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -73,18 +74,9 @@ export function Sidebar() {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section._key);
 
-    // Translation mapping for section names
-    const getTranslatedSectionName = (name: string) => {
-      const translations: Record<string, { fr: string; en: string }> = {
-        Dashboard: { fr: 'Tableau de bord', en: 'Dashboard' },
-        Residents: { fr: 'Résidents', en: 'Residents' },
-        Manager: { fr: 'Gestionnaire', en: 'Manager' },
-        Admin: { fr: 'Administration', en: 'Admin' },
-        Settings: { fr: 'Paramètres', en: 'Settings' },
-      };
-
-      const translation = translations[name];
-      return translation ? translation[language] : name;
+    // Use translation keys from i18n system
+    const getTranslatedSectionName = (nameKey: string) => {
+      return t(nameKey as keyof typeof translations.en);
     };
 
     return (
@@ -98,7 +90,7 @@ export function Sidebar() {
       >
         <div className='flex items-center space-x-3'>
           <SectionIcon className='w-5 h-5' />
-          <span>{getTranslatedSectionName(section.name)}</span>
+          <span>{getTranslatedSectionName(section.nameKey)}</span>
         </div>
         {isExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
       </button>
@@ -109,42 +101,13 @@ export function Sidebar() {
     const ItemIcon = item.icon;
     const isActive = location === item.href;
 
-    // Translation mapping for navigation items
-    const getTranslatedName = (name: string) => {
-      const translations: Record<string, { fr: string; en: string }> = {
-        Dashboard: { fr: 'Tableau de bord', en: 'Dashboard' },
-        'Quick Actions': { fr: 'Actions Rapides', en: 'Quick Actions' },
-        Calendar: { fr: 'Calendrier', en: 'Calendar' },
-        'My Residence': { fr: 'Ma résidence', en: 'My Residence' },
-        'My Building': { fr: 'Mon bâtiment', en: 'My Building' },
-        'My Demands': { fr: 'Mes demandes', en: 'My Demands' },
-        Buildings: { fr: 'Bâtiments', en: 'Buildings' },
-        Residences: { fr: 'Résidences', en: 'Residences' },
-        Budget: { fr: 'Budget', en: 'Budget' },
-        Bills: { fr: 'Factures', en: 'Bills' },
-        Demands: { fr: 'Demandes', en: 'Demands' },
-        'User Management': { fr: 'Gestion des utilisateurs', en: 'User Management' },
-        Organizations: { fr: 'Organisations', en: 'Organizations' },
-        Documentation: { fr: 'Documentation', en: 'Documentation' },
-        Pillars: { fr: 'Piliers', en: 'Pillars' },
-        Roadmap: { fr: 'Feuille de route', en: 'Roadmap' },
-        'Quality Assurance': { fr: 'Assurance qualité', en: 'Quality Assurance' },
-        'Law 25 Compliance': { fr: 'Conformité Loi 25', en: 'Law 25 Compliance' },
-        Suggestions: { fr: 'Suggestions', en: 'Suggestions' },
-        'RBAC Permissions': { fr: 'Permissions RBAC', en: 'RBAC Permissions' },
-        Settings: { fr: 'Paramètres', en: 'Settings' },
-        'Bug Reports': { fr: 'Rapports de bogues', en: 'Bug Reports' },
-        'Idea Box': { fr: 'Boîte à idées', en: 'Idea Box' },
-        'Common Spaces': { fr: 'Espaces Communs', en: 'Common Spaces' },
-        'Manage Common Spaces': { fr: 'Gestion Espaces Communs', en: 'Manage Common Spaces' },
-      };
-
-      const translation = translations[name];
-      return translation ? translation[language] : name;
+    // Use translation keys from i18n system
+    const getTranslatedName = (nameKey: string) => {
+      return t(nameKey as keyof typeof translations.en);
     };
 
     return (
-      <Link key={item.name} href={item.href}>
+      <Link key={item.nameKey} href={item.href}>
         <div
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
             isActive
@@ -154,7 +117,7 @@ export function Sidebar() {
           onClick={handleNavItemClick}
         >
           <ItemIcon className='w-4 h-4' />
-          <span>{getTranslatedName(item.name)}</span>
+          <span>{getTranslatedName(item.nameKey)}</span>
         </div>
       </Link>
     );
@@ -237,7 +200,7 @@ export function Sidebar() {
               className='w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors'
             >
               <LogOut className='w-5 h-5' />
-              <span>{language === 'fr' ? 'Déconnexion' : 'Logout'}</span>
+              <span>{t('logout')}</span>
             </button>
           </div>
         </nav>

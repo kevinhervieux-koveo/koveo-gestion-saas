@@ -13,7 +13,7 @@
  * - monitoring: Quality metrics, predictions, and AI monitoring.
  */
 
-// Re-export all enums
+// Re-export all enums and schemas
 export * from './schemas/core';
 export * from './schemas/property';
 export * from './schemas/financial';
@@ -120,7 +120,7 @@ export type {
 export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
-export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';
+export { bugs, featureRequests, featureRequestUpvotes, maintenanceRequests, notifications } from './schemas/operations';
 export { 
   developmentPillars, 
   workspaceStatus, 

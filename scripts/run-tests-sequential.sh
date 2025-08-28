@@ -5,8 +5,16 @@
 
 set -e  # Exit on any error
 
-echo "🚀 Starting Sequential Test Suite..."
-echo "========================================"
+echo "🚀 Starting Sequential Test Suite (Safe Mode)..."
+echo "================================================"
+
+# Set safe environment variables to prevent database modifications
+export NODE_ENV=test
+export SKIP_DB_OPERATIONS=true
+unset DATABASE_URL  # Remove production database URL for safety
+
+echo "🛡️  Running in safe test environment (DATABASE_URL removed)"
+echo "⚠️  Tests will use mock data to prevent production database changes"
 
 # Colors for output
 RED='\033[0;31m'

@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/hooks/use-language';
 import type { Building } from './DemandCard';
 
 // Filter state interface
@@ -90,11 +91,13 @@ export function DemandFilters({
   handlers,
   userRole = 'resident',
   buildings = [],
-  searchPlaceholder = 'Search demands...',
+  searchPlaceholder,
   className = '',
 }: DemandFiltersProps) {
+  const { t } = useLanguage();
   const statusOptions = userRole === 'manager' ? MANAGER_STATUS_OPTIONS : STATUS_OPTIONS;
   const showBuildingFilter = userRole === 'manager' && handlers.onBuildingChange;
+  const placeholder = searchPlaceholder || t('searchDemands');
 
   return (
     <div className={`flex items-center gap-4 flex-wrap ${className}`}>
@@ -102,7 +105,7 @@ export function DemandFilters({
       <div className='relative flex-1 max-w-sm'>
         <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
         <Input
-          placeholder={searchPlaceholder}
+          placeholder={placeholder}
           value={filters.searchTerm}
           onChange={(e) => handlers.onSearchChange(e.target.value)}
           className='pl-10'
@@ -113,7 +116,7 @@ export function DemandFilters({
       {/* Status Filter */}
       <Select value={filters.statusFilter} onValueChange={handlers.onStatusChange}>
         <SelectTrigger className='w-40' data-testid='filter-status'>
-          <SelectValue placeholder='Status' />
+          <SelectValue placeholder={t('formStatus')} />
         </SelectTrigger>
         <SelectContent>
           {statusOptions.map((option) => (
@@ -127,7 +130,7 @@ export function DemandFilters({
       {/* Type Filter */}
       <Select value={filters.typeFilter} onValueChange={handlers.onTypeChange}>
         <SelectTrigger className='w-40' data-testid='filter-type'>
-          <SelectValue placeholder='Type' />
+          <SelectValue placeholder={t('formType')} />
         </SelectTrigger>
         <SelectContent>
           {TYPE_OPTIONS.map((option) => (
@@ -142,10 +145,10 @@ export function DemandFilters({
       {showBuildingFilter && (
         <Select value={filters.buildingFilter || 'all'} onValueChange={handlers.onBuildingChange}>
           <SelectTrigger className='w-40' data-testid='filter-building'>
-            <SelectValue placeholder='Building' />
+            <SelectValue placeholder={t('building')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='all'>All Buildings</SelectItem>
+            <SelectItem value='all'>{t('allBuildings')}</SelectItem>
             {buildings.map((building) => (
               <SelectItem key={building.id} value={building.id}>
                 {building.name}

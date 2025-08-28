@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  *
@@ -40,6 +41,7 @@ interface BuildingWithStats extends BuildingType {
  */
 export default function MyBuilding() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -78,7 +80,7 @@ export default function MyBuilding() {
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View buildings you have access to' />
+        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <div className='text-center py-8'>
@@ -94,13 +96,13 @@ export default function MyBuilding() {
   if (buildings.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View buildings you have access to' />
+        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
                 <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Buildings Found</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBuildingsFound')}</h3>
                 <p className='text-gray-500'>You don't have access to any buildings yet.</p>
               </CardContent>
             </Card>
@@ -130,7 +132,7 @@ export default function MyBuilding() {
                 <CardContent className='space-y-4'>
                   <div className='grid grid-cols-1 gap-3'>
                     <div>
-                      <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                      <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
                       <div className='flex items-start gap-2'>
                         <MapPin className='w-3 h-3 mt-0.5' />
                         <div>
@@ -144,12 +146,12 @@ export default function MyBuilding() {
 
                     <div className='grid grid-cols-2 gap-3'>
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Building Type</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('buildingType')}</Label>
                         <p className='text-sm text-gray-700 capitalize'>{building.buildingType}</p>
                       </div>
                       {building.yearBuilt && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>Year Built</Label>
+                          <Label className='text-xs font-medium text-gray-500'>{t('yearBuilt')}</Label>
                           <div className='flex items-center gap-1'>
                             <Calendar className='w-3 h-3' />
                             <span className='text-sm text-gray-700'>{building.yearBuilt}</span>
@@ -157,7 +159,7 @@ export default function MyBuilding() {
                         </div>
                       )}
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Total Units</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('totalUnits')}</Label>
                         <div className='flex items-center gap-1'>
                           <Home className='w-3 h-3' />
                           <span className='text-sm text-gray-700'>{building.totalUnits}</span>
@@ -165,7 +167,7 @@ export default function MyBuilding() {
                       </div>
                       {building.totalFloors && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>Floors</Label>
+                          <Label className='text-xs font-medium text-gray-500'>{t('totalFloors')}</Label>
                           <p className='text-sm text-gray-700'>{building.totalFloors}</p>
                         </div>
                       )}
@@ -201,7 +203,7 @@ export default function MyBuilding() {
                     {building.managementCompany && (
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>
-                          Management Company
+                          {t('managementCompany')}
                         </Label>
                         <p className='text-sm text-gray-700'>{building.managementCompany}</p>
                       </div>
@@ -285,7 +287,7 @@ export default function MyBuilding() {
                       className='w-full justify-start'
                     >
                       <FileText className='w-4 h-4 mr-2' />
-                      View Documents
+                      {t('viewDocuments2')}
                     </Button>
                   </div>
                 </CardContent>

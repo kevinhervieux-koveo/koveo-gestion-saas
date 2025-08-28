@@ -7,6 +7,15 @@ import { requireAuth } from '../auth';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+import { 
+  sanitizeString, 
+  sanitizeName, 
+  normalizeEmail, 
+  validatePasswordStrength,
+  generateUsernameFromEmail
+} from '../utils/input-sanitization';
+import { logUserCreation } from '../utils/user-creation-logger';
+import { queryCache } from '../query-cache';
 
 /**
  * Registers all user-related API endpoints.
@@ -128,7 +137,55 @@ export function registerUserRoutes(app: Express): void {
    */
   app.post('/api/users', async (req, res) => {
     try {
-      const validatedData = insertUserSchema.parse(req.body);
+      // Enhanced password validation using utility
+      if (req.body.password) {
+        const passwordValidation = validatePasswordStrength(req.body.password);
+        if (!passwordValidation.isValid) {
+          return res.status(400).json({
+            error: 'Validation error',
+            message: passwordValidation.message,
+            code: 'WEAK_PASSWORD',
+          });
+        }
+      }
+
+      // Sanitize and normalize all input data
+      const normalizedData = {
+        ...req.body,
+        email: normalizeEmail(req.body.email || ''),
+        firstName: sanitizeName(req.body.firstName || ''),
+        lastName: sanitizeName(req.body.lastName || ''),
+        phone: req.body.phone ? sanitizeString(req.body.phone) : '',
+        language: req.body.language || 'fr',
+      };
+
+      // Generate unique username if not provided
+      if (!normalizedData.username && normalizedData.email) {
+        const baseUsername = generateUsernameFromEmail(normalizedData.email);
+        let username = baseUsername;
+        
+        // Ensure username uniqueness
+        let usernameCounter = 1;
+        let existingUsername = await db
+          .select({ username: schema.users.username })
+          .from(schema.users)
+          .where(eq(schema.users.username, username))
+          .limit(1);
+        
+        while (existingUsername.length > 0) {
+          username = `${baseUsername}${usernameCounter}`;
+          usernameCounter++;
+          existingUsername = await db
+            .select({ username: schema.users.username })
+            .from(schema.users)
+            .where(eq(schema.users.username, username))
+            .limit(1);
+        }
+        
+        normalizedData.username = username;
+      }
+
+      const validatedData = insertUserSchema.parse(normalizedData);
 
       // Check if user with email already exists
       const existingUser = await storage.getUserByEmail(validatedData.email);
@@ -141,10 +198,34 @@ export function registerUserRoutes(app: Express): void {
 
       const user = await storage.createUser(validatedData);
 
+      // Log successful user creation
+      logUserCreation({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        method: 'direct',
+        success: true,
+        timestamp: new Date(),
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
+      // Log failed user creation attempt
+      logUserCreation({
+        email: req.body.email || 'unknown',
+        role: req.body.role || 'unknown',
+        method: 'direct',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
@@ -739,6 +820,131 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update profile',
+      });
+    }
+  });
+
+  /**
+   * POST /api/users/:id/delete-account - Admin endpoint to delete any user account.
+   */
+  app.post('/api/users/:id/delete-account', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: targetUserId } = req.params;
+      
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins can delete other users' accounts
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only administrators can delete user accounts',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      if (!targetUserId) {
+        return res.status(400).json({
+          message: 'User ID is required',
+          code: 'INVALID_REQUEST',
+        });
+      }
+
+      // Verify target user exists
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      const { confirmEmail, reason } = req.body;
+
+      // Verify email confirmation
+      if (confirmEmail !== targetUser.email) {
+        return res.status(400).json({
+          message: 'Email confirmation does not match',
+          code: 'EMAIL_MISMATCH',
+        });
+      }
+
+      // Delete all related data in the correct order to handle foreign key constraints
+      const deletionPromises = [
+        // Delete user relationships
+        db
+          .delete(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.userId, targetUserId)),
+        db.delete(schema.userResidences).where(eq(schema.userResidences.userId, targetUserId)),
+        db
+          .delete(schema.documentsResidents)
+          .where(eq(schema.documentsResidents.uploadedBy, targetUserId)),
+
+        // Delete invitations
+        db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
+      ];
+
+      // Try to delete from optional tables that might not exist
+      const optionalDeletions = [
+        async () => {
+          try {
+            await db.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId));
+          } catch (error: any) {
+            if (error.cause?.code === '42P01') {
+              console.log('Notifications table not found, skipping...');
+            } else {
+              throw error;
+            }
+          }
+        },
+        async () => {
+          try {
+            await db
+              .delete(schema.maintenanceRequests)
+              .where(eq(schema.maintenanceRequests.submittedBy, targetUserId));
+          } catch (error: any) {
+            if (error.cause?.code === '42P01') {
+              console.log('Maintenance requests table not found, skipping...');
+            } else {
+              throw error;
+            }
+          }
+        },
+      ];
+
+      // Execute core deletions first
+      await Promise.all(deletionPromises);
+
+      // Execute optional deletions
+      await Promise.all(optionalDeletions.map(fn => fn()));
+
+      // Finally, delete the user account
+      await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
+
+      // Clear all caches to ensure the user list updates immediately
+      queryCache.invalidate('users', 'all_users');
+      queryCache.invalidate('users', `user:${targetUserId}`);
+      queryCache.invalidate('users', `user_email:${targetUser.email}`);
+
+      // Log the deletion for audit purposes
+      console.log(
+        `User account deleted by admin ${currentUser.email} (${currentUser.id}): ${targetUser.email} (${targetUserId}). Reason: ${reason || 'Not provided'}`
+      );
+
+      res.json({
+        message: 'User account and all associated data have been permanently deleted',
+        deletedUserId: targetUserId,
+        deletedUserEmail: targetUser.email,
+      });
+    } catch (error) {
+      console.error('Failed to delete user account:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete user account',
       });
     }
   });

@@ -343,7 +343,12 @@ function BuildingForm({
                   <FormItem>
                     <FormLabel>Total Units</FormLabel>
                     <FormControl>
-                      <Input type='number' placeholder='Enter total units' {...field} />
+                      <Input 
+                        type='number' 
+                        placeholder='Enter total units' 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -470,7 +475,7 @@ export default function Buildings() {
 
   // Mutations
   const createBuildingMutation = useMutation({
-    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/buildings', data),
+    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/admin/buildings', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsAddDialogOpen(false);
@@ -491,7 +496,7 @@ export default function Buildings() {
 
   const updateBuildingMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: BuildingFormData }) =>
-      apiRequest('PUT', `/api/buildings/${id}`, data),
+      apiRequest('PUT', `/api/admin/buildings/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsEditDialogOpen(false);

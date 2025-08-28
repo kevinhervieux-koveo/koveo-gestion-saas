@@ -199,7 +199,7 @@ export class MemStorage implements IStorage {
   }
 
   private initializeTestUser() {
-    const preHashedPassword = '$2b$12$2enFyxzC3wmknRDwQNnISOVpE1bsRCLlCtj/t1kc7nOwNoG7p9w26';
+    const preHashedPassword = '$2b$12$MdgAKqapGQDuM.z4QtxH.eJld2LR0fFMSOCiNR4MiLDYzPscRjIO.';
     
     const user: User = {
       id: '550e8400-e29b-41d4-a716-446655440000',
@@ -764,19 +764,12 @@ class ProductionFallbackStorage implements IStorage {
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-    } catch {
-      return this.memStorage.getUserByEmail(email);
-    }
+    const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
+    return user;
   }
 
   async getUsers(): Promise<User[]> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.getUsers());
-    } catch {
-      return this.memStorage.getUsers();
-    }
+    return await this.safeDbOperation(() => this.dbStorage.getUsers());
   }
 
   async getUsersByOrganizations(userId: string): Promise<User[]> {
@@ -788,11 +781,7 @@ class ProductionFallbackStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.getUser(id));
-    } catch {
-      return this.memStorage.getUser(id);
-    }
+    return await this.safeDbOperation(() => this.dbStorage.getUser(id));
   }
 
   async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
@@ -820,11 +809,7 @@ class ProductionFallbackStorage implements IStorage {
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.updateUser(id, updates));
-    } catch {
-      return this.memStorage.updateUser(id, updates);
-    }
+    return await this.safeDbOperation(() => this.dbStorage.updateUser(id, updates));
   }
 
   // Password reset operations

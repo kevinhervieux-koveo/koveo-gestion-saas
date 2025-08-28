@@ -30,7 +30,7 @@ const createValidationSchema = (language: 'en' | 'fr') => {
       sin: 'Please enter a valid Social Insurance Number',
     },
     fr: {
-      required: 'Ce champ est requis',
+      required: 'Ce champ est obligatoire',
       minLength: (min: number) => `Doit contenir au moins ${min} caractères`,
       maxLength: (max: number) => `Ne doit pas dépasser ${max} caractères`,
       email: 'Veuillez entrer une adresse courriel valide',

@@ -9,6 +9,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_URL_DEV: z.string().optional(),
   SESSION_SECRET: z.string().optional(),
 
   // Email configuration
@@ -53,7 +54,9 @@ export const config = {
 
   // Database configuration
   database: {
-    url: env.DATABASE_URL,
+    url: env.NODE_ENV === 'development' 
+      ? env.DATABASE_URL_DEV || env.DATABASE_URL
+      : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },

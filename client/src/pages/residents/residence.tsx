@@ -54,6 +54,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
@@ -113,6 +114,7 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
  */
 export default function Residence() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
@@ -387,19 +389,19 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
           title={
-            user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
+            user?.role && ['admin', 'manager'].includes(user.role) ? t('residences') : t('myResidence')
           }
           subtitle={
             user?.role && ['admin', 'manager'].includes(user.role)
-              ? 'View and manage organization residences'
-              : 'View your residence information and contacts'
+              ? t('viewManageResidences')
+              : t('viewResidenceInfo')
           }
         />
 
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Loading...</p>
+            <p className='text-gray-600'>{t('loading')}</p>
           </div>
         </div>
       </div>
@@ -415,19 +417,19 @@ export default function Residence() {
           }
           subtitle={
             user?.role && ['admin', 'manager'].includes(user.role)
-              ? 'View and manage organization residences'
-              : 'View your residence information and contacts'
+              ? t('viewManageResidences')
+              : t('viewResidenceInfo')
           }
         />
 
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-            <h3 className='text-lg font-medium mb-2'>No Residences Found</h3>
+            <h3 className='text-lg font-medium mb-2'>{t('noResidencesFound')}</h3>
             <p className='text-gray-600'>
               {user?.role && ['admin', 'manager'].includes(user.role)
-                ? 'No residences found in your organization.'
-                : 'You are not assigned to any residences.'}
+                ? t('noResidencesFoundOrg')
+                : t('notAssignedResidences')}
             </p>
           </div>
         </div>
@@ -458,7 +460,7 @@ export default function Residence() {
                 <CardTitle className='flex items-center gap-2'>
                   <Home className='w-5 h-5' />
                   {user?.role && ['admin', 'manager'].includes(user.role)
-                    ? 'Select Building & Residence'
+                    ? t('selectBuildingResidence')
                     : 'Select Residence'}
                 </CardTitle>
               </CardHeader>
@@ -469,7 +471,7 @@ export default function Residence() {
                     ['admin', 'manager'].includes(user.role) &&
                     buildings.length > 0 && (
                       <div className='flex-1'>
-                        <Label className='text-sm font-medium mb-2 block'>Building</Label>
+                        <Label className='text-sm font-medium mb-2 block'>{t('building2')}</Label>
                         <Select
                           value={selectedBuildingId}
                           onValueChange={(value) => {
@@ -478,7 +480,7 @@ export default function Residence() {
                           }}
                         >
                           <SelectTrigger className='w-full'>
-                            <SelectValue placeholder='Select a building' />
+                            <SelectValue placeholder={t('selectABuilding')} />
                           </SelectTrigger>
                           <SelectContent>
                             {buildings.map((building: any) => (
@@ -496,12 +498,12 @@ export default function Residence() {
                     <div className='flex-1'>
                       <Label className='text-sm font-medium mb-2 block'>
                         {user?.role && ['admin', 'manager'].includes(user.role)
-                          ? 'Residence'
-                          : 'Select Residence'}
+                          ? t('residence')
+                          : t('selectResidence')}
                       </Label>
                       <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
                         <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select a residence' />
+                          <SelectValue placeholder={t('selectAResidence')} />
                         </SelectTrigger>
                         <SelectContent>
                           {filteredResidences.map((residence) => (

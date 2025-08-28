@@ -76,20 +76,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false, // Prevent unnecessary refetches on focus
+    staleTime: 30 * 60 * 1000, // 30 minutes - longer to prevent frequent re-auth
+    gcTime: 60 * 60 * 1000, // 1 hour
+    refetchOnWindowFocus: true, // Check auth when user returns to tab
     refetchOnMount: true, // Always check on mount to handle page refreshes
+    refetchInterval: 15 * 60 * 1000, // Check every 15 minutes if user is active
   });
 
   useEffect(() => {
     setUser(userData || null);
 
-    // If user is null (unauthorized) and we're not on a public page, redirect to home
+    // If user is null (unauthorized) and we're not on a public page, redirect to login
 
     if (userData === null && !isPublicPage && !isLoading) {
-      console.warn('Unauthorized access detected, redirecting to home page');
-      setLocation('/');
+      console.warn('Session expired, redirecting to login page');
+      setLocation('/auth/login');
     }
   }, [userData, isPublicPage, isLoading, setLocation]);
 

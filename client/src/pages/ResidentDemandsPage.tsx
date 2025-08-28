@@ -45,6 +45,7 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
 import { DemandFilters } from '@/components/common/DemandFilters';
+import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
 // Types
@@ -143,6 +144,7 @@ export default function /**
  */
 
 ResidentDemandsPage() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -376,7 +378,7 @@ ResidentDemandsPage() {
                     <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select type' />
+                          <SelectValue placeholder={t('selectType')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -399,7 +401,7 @@ ResidentDemandsPage() {
                     <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select building' />
+                          <SelectValue placeholder={t('selectBuilding')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -422,7 +424,7 @@ ResidentDemandsPage() {
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder='Describe your request in detail...'
+                        placeholder={t('describeRequestDetail')}
                         className='min-h-[100px]'
                         {...field}
                         value={field.value as string}
@@ -522,7 +524,7 @@ ResidentDemandsPage() {
         {currentDemands.length === 0 ? (
           <Card>
             <CardContent className='p-6 text-center'>
-              <p className='text-muted-foreground'>No demands found</p>
+              <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
             </CardContent>
           </Card>
         ) : (

@@ -252,12 +252,20 @@ export const userPermissions = pgTable('user_permissions', {
 
 // Insert schemas - manual Zod schemas to avoid drizzle-zod compatibility issues
 export const insertUserSchema = z.object({
-  username: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().min(1).max(100, 'First name must be at most 100 characters'),
-  lastName: z.string().min(1).max(100, 'Last name must be at most 100 characters'),
-  phone: z.string().optional(),
+  username: z.string().min(1).max(50, 'Username must be between 1-50 characters'),
+  email: z.string().email('Must be a valid email address').toLowerCase(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      'Password must contain uppercase, lowercase, number, and special character'
+    ),
+  firstName: z.string().min(1).max(100, 'First name must be 1-100 characters').trim(),
+  lastName: z.string().min(1).max(100, 'Last name must be 1-100 characters').trim(),
+  phone: z.string().optional().refine(
+    (phone) => !phone || /^(\+1\s?)?(\([0-9]{3}\)|[0-9]{3})[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}$/.test(phone),
+    'Phone must be a valid North American format (e.g., 514-123-4567 or (514) 123-4567)'
+  ),
   profileImage: z.string().optional(),
   language: z.string().default('fr'),
   role: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
@@ -285,7 +293,7 @@ export const insertUserOrganizationSchema = z.object({
 
 export const insertInvitationSchema = z.object({
   organizationId: z.string().uuid().optional(),
-  residenceId: z.string().uuid().nullable().optional(),
+  residenceId: z.union([z.string().uuid(), z.null()]).optional(),
   email: z.string().email(),
   role: z.enum(['admin', 'manager', 'tenant', 'resident']),
   invitedByUserId: z.string().uuid(),

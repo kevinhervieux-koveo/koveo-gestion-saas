@@ -43,16 +43,16 @@ export default function Dashboard() {
     if (user.role === 'admin') {
       actions.push(
         {
-          title: 'System Management',
-          description: 'Manage organizations, users, and system settings',
+          title: t('systemManagement'),
+          description: t('manageOrganizationsUsers'),
           icon: Settings,
           path: '/admin/organizations',
           color: 'bg-red-500',
           testId: 'card-admin',
         },
         {
-          title: 'Organization Overview',
-          description: 'View and manage all organizations',
+          title: t('organizationOverview'),
+          description: t('viewManageOrganizations'),
           icon: Building,
           path: '/admin/organizations',
           color: 'bg-blue-500',
@@ -137,8 +137,8 @@ export default function Dashboard() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`Welcome back, ${user?.firstName || 'User'}`}
-        subtitle='Your personalized dashboard - quick access to everything you need'
+        title={`${t('welcomeBack')}, ${user?.firstName || 'User'}`}
+        subtitle={t('personalizedDashboard')}
       />
 
       <div className='flex-1 overflow-auto p-6'>

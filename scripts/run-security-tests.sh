@@ -5,8 +5,15 @@
 
 set -e  # Exit on any error
 
-echo "🔒 Quebec Property Management - Security Testing Suite"
-echo "===================================================="
+echo "🔒 Quebec Property Management - Security Testing Suite (Safe Mode)"
+echo "=================================================================="
+
+# Set safe environment variables to prevent database modifications
+export NODE_ENV=test
+export SKIP_DB_OPERATIONS=true
+unset DATABASE_URL  # Remove production database URL for safety
+
+echo "🛡️  Running security tests in safe environment (DATABASE_URL removed)"
 
 # Colors for output
 RED='\033[0;31m'

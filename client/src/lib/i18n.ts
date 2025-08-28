@@ -236,6 +236,145 @@ export interface Translations {
   cancelling: string;
   daysRemaining: string;
   hoursRemaining: string;
+  // Form and UI translations
+  formStatus: string;
+  formType: string;
+  building: string;
+  allBuildings: string;
+  searchDemands: string;
+  title: string;
+  vendor: string;
+  category: string;
+  selectCategory: string;
+  billTitle: string;
+  companyOrServiceProvider: string;
+  selectPaymentType: string;
+  selectSchedule: string;
+  selectStatus: string;
+  // Page content translations
+  loadingDemands: string;
+  searchDemandsUsers: string;
+  submitAndTrack: string;
+  reviewDemand: string;
+  failedToReviewDemand: string;
+  error: string;
+  submitted: string;
+  underReview: string;
+  approved: string;
+  completed: string;
+  rejected: string;
+  // Status label translations
+  draft: string;
+  maintenance: string;
+  complaint: string;
+  information: string;
+  other: string;
+  allStatus: string;
+  // Dialog and form translations
+  createNewBill: string;
+  billCreationForm: string;
+  createBill: string;
+  createNewDemand: string;
+  submitNewRequest: string;
+  submitAndTrackRequests: string;
+  newDemand: string;
+  selectType: string;
+  selectBuilding: string;
+  addNewDocument: string;
+  addDocument: string;
+  documentName: string;
+  enterDocumentName: string;
+  documentType: string;
+  selectDocumentType: string;
+  enterDocumentDescription: string;
+  backToResidences: string;
+  documents: string;
+  documentsAvailableToTenants: string;
+  allResidenceDocuments: string;
+  loadingDemands2: string;
+  noDemandsFound: string;
+  success: string;
+  updateStatusAndNotes: string;
+  // Additional form labels and placeholders
+  describeRequestDetail: string;
+  submittedBy: string;
+  addNotesReviewDecision: string;
+  addNotesReview: string;
+  selectBuilding2: string;
+  // Status options for manager
+  submitted2: string;
+  // Document management translations
+  // Type placeholders
+  typePlaceholder: string;
+  buildingPlaceholder: string;
+  // Dashboard and major page content
+  welcomeBack: string;
+  personalizedDashboard: string;
+  quickAccessEverything: string;
+  adminDashboard: string;
+  systemManagement: string;
+  manageOrganizationsUsers: string;
+  organizationOverview: string;
+  viewManageOrganizations: string;
+  viewManageResidences: string;
+  selectBuildingResidence: string;
+  building2: string;
+  residence: string;
+  selectABuilding: string;
+  address: string;
+  floor: string;
+  sqFt: string;
+  bedrooms: string;
+  bathrooms: string;
+  viewDocuments2: string;
+  unit: string;
+  allFloors: string;
+  totalFloors: string;
+  // More residence page translations
+  myResidenceInfo: string;
+  viewResidenceInfo: string;
+  loading: string;
+  noResidencesFound: string;
+  noResidencesFoundOrg: string;
+  notAssignedResidences: string;
+  selectResidence: string;
+  selectAResidence: string;
+  areYouSureDelete: string;
+  parkingSpaces: string;
+  storageSpaces: string;
+  // Building page translations
+  myBuildings: string;
+  viewBuildingsAccess: string;
+  noBuildingsFound: string;
+  buildingType: string;
+  yearBuilt: string;
+  totalUnits: string;
+  managementCompany: string;
+  occupancyStats: string;
+  // Documents page translations
+  // Navigation translations
+  quickActions: string;
+  calendar: string;
+  residents: string;
+  myResidence: string;
+  myBuilding: string;
+  commonSpaces: string;
+  buildings: string;
+  budget: string;
+  bills: string;
+  demands: string;
+  navUserManagement: string;
+  manageCommonSpaces: string;
+  organizations: string;
+  documentation: string;
+  pillars: string;
+  roadmap: string;
+  navQualityAssurance: string;
+  navLaw25Compliance: string;
+  rbacPermissions: string;
+  settings: string;
+  bugReports: string;
+  ideaBox: string;
   // Home page translations
   modernPropertyManagement: string;
   forQuebec: string;
@@ -543,6 +682,145 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Cancelling',
     daysRemaining: 'days remaining',
     hoursRemaining: 'hours remaining',
+    // Form and UI translations
+    formStatus: 'Status',
+    formType: 'Type',
+    building: 'Building',
+    allBuildings: 'All Buildings',
+    searchDemands: 'Search demands...',
+    title: 'Title',
+    vendor: 'Vendor',
+    category: 'Category',
+    selectCategory: 'Select category',
+    billTitle: 'Bill title',
+    companyOrServiceProvider: 'Company or service provider',
+    selectPaymentType: 'Select payment type',
+    selectSchedule: 'Select schedule',
+    selectStatus: 'Select status',
+    // Page content translations
+    loadingDemands: 'Loading demands...',
+    searchDemandsUsers: 'Search demands, users...',
+    submitAndTrack: 'Submit and track maintenance requests',
+    reviewDemand: 'Review Demand',
+    failedToReviewDemand: 'Failed to review demand',
+    error: 'Error',
+    submitted: 'Submitted',
+    underReview: 'Under Review',
+    approved: 'Approved',
+    completed: 'Completed',
+    rejected: 'Rejected',
+    // Additional status labels
+    draft: 'Draft',
+    maintenance: 'Maintenance',
+    complaint: 'Complaint',
+    information: 'Information',
+    other: 'Other',
+    allStatus: 'All Status',
+    // Dialog and form translations
+    createNewBill: 'Create New Bill',
+    billCreationForm: 'Bill creation form for {building}',
+    createBill: 'Create Bill',
+    createNewDemand: 'Create New Demand',
+    submitNewRequest: 'Submit a new request or complaint',
+    submitAndTrackRequests: 'Submit and track your requests',
+    newDemand: 'New Demand',
+    selectType: 'Select type',
+    selectBuilding: 'Select building',
+    addNewDocument: 'Add New Document',
+    addDocument: 'Add Document',
+    documentName: 'Document Name',
+    enterDocumentName: 'Enter document name',
+    documentType: 'Document Type',
+    selectDocumentType: 'Select document type',
+    enterDocumentDescription: 'Enter document description',
+    backToResidences: 'Back to Residences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents available to tenants',
+    allResidenceDocuments: 'All residence documents',
+    loadingDemands2: 'Loading demands...',
+    noDemandsFound: 'No demands found',
+    success: 'Success',
+    updateStatusAndNotes: 'Update the status and add review notes',
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Describe your request in detail...',
+    submittedBy: 'Submitted by',
+    addNotesReview: 'Add notes about your review decision...',
+    addNotesReviewDecision: 'Add notes about your review decision...',
+    selectBuilding2: 'Select building',
+    // Status options for manager
+    submitted2: 'Submitted',
+    // Document management translations
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Building',
+    // Dashboard and major page content
+    welcomeBack: 'Welcome back',
+    personalizedDashboard: 'Your personalized dashboard - quick access to everything you need',
+    quickAccessEverything: 'quick access to everything you need',
+    adminDashboard: 'Admin Dashboard',
+    systemManagement: 'System Management',
+    manageOrganizationsUsers: 'Manage organizations, users, and system settings',
+    organizationOverview: 'Organization Overview',
+    viewManageOrganizations: 'View and manage all organizations',
+    viewManageResidences: 'View and manage organization residences',
+    selectBuildingResidence: 'Select Building & Residence',
+    building2: 'Building',
+    residence: 'Residence',
+    selectABuilding: 'Select a building',
+    address: 'Address',
+    floor: 'Floor',
+    sqFt: 'Sq Ft',
+    bedrooms: 'Bedrooms',
+    bathrooms: 'Bathrooms',
+    viewDocuments2: 'View Documents',
+    unit: 'Unit',
+    allFloors: 'All Floors',
+    totalFloors: 'Total Floors',
+    // More residence page translations
+    myResidenceInfo: 'View your residence information and contacts',
+    viewResidenceInfo: 'View your residence information and contacts',
+    loading: 'Loading...',
+    noResidencesFound: 'No Residences Found',
+    noResidencesFoundOrg: 'No residences found in your organization.',
+    notAssignedResidences: 'You are not assigned to any residences.',
+    selectResidence: 'Select Residence',
+    selectAResidence: 'Select a residence',
+    areYouSureDelete: 'Are you sure you want to delete this contact?',
+    parkingSpaces: 'Parking Spaces',
+    storageSpaces: 'Storage Spaces',
+    // Building page translations
+    myBuildings: 'My Buildings',
+    viewBuildingsAccess: 'View buildings you have access to',
+    noBuildingsFound: 'No Buildings Found',
+    buildingType: 'Building Type',
+    yearBuilt: 'Year Built',
+    totalUnits: 'Total Units',
+    managementCompany: 'Management Company',
+    occupancyStats: 'Occupancy Stats',
+    // Documents page translations
+    // Navigation translations
+    quickActions: 'Quick Actions',
+    calendar: 'Calendar',
+    residents: 'Residents',
+    myResidence: 'My Residence',
+    myBuilding: 'My Building',
+    commonSpaces: 'Common Spaces',
+    buildings: 'Buildings',
+    budget: 'Budget',
+    bills: 'Bills',
+    demands: 'Demands',
+    navUserManagement: 'User Management',
+    manageCommonSpaces: 'Manage Common Spaces',
+    organizations: 'Organizations',
+    documentation: 'Documentation',
+    pillars: 'Pillars',
+    roadmap: 'Roadmap',
+    navQualityAssurance: 'Quality Assurance',
+    navLaw25Compliance: 'Law 25 Compliance',
+    rbacPermissions: 'RBAC Permissions',
+    settings: 'Settings',
+    bugReports: 'Bug Reports',
+    ideaBox: 'Idea Box',
     // Home page translations
     modernPropertyManagement: 'Modern Property Management',
     forQuebec: 'for Quebec',
@@ -862,6 +1140,145 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Annulation',
     daysRemaining: 'jours restants',
     hoursRemaining: 'heures restantes',
+    // Form and UI translations
+    formStatus: 'Statut',
+    formType: 'Type',
+    building: 'Bâtiment',
+    allBuildings: 'Tous les bâtiments',
+    searchDemands: 'Rechercher des demandes...',
+    title: 'Titre',
+    vendor: 'Fournisseur',
+    category: 'Catégorie',
+    selectCategory: 'Sélectionner une catégorie',
+    billTitle: 'Titre de la facture',
+    companyOrServiceProvider: 'Entreprise ou fournisseur de service',
+    selectPaymentType: 'Sélectionner le type de paiement',
+    selectSchedule: 'Sélectionner l\'horaire',
+    selectStatus: 'Sélectionner le statut',
+    // Page content translations
+    loadingDemands: 'Chargement des demandes...',
+    searchDemandsUsers: 'Rechercher demandes, utilisateurs...',
+    submitAndTrack: 'Soumettre et suivre les demandes de maintenance',
+    reviewDemand: 'Examiner la demande',
+    failedToReviewDemand: 'Échec de l\'examen de la demande',
+    error: 'Erreur',
+    submitted: 'Soumis',
+    underReview: 'En cours d\'examen',
+    approved: 'Approuvé',
+    completed: 'Terminé',
+    rejected: 'Rejeté',
+    // Additional status labels
+    draft: 'Brouillon',
+    maintenance: 'Entretien',
+    complaint: 'Plainte',
+    information: 'Information',
+    other: 'Autre',
+    allStatus: 'Tous les statuts',
+    // Dialog and form translations
+    createNewBill: 'Créer une nouvelle facture',
+    billCreationForm: 'Formulaire de création de facture pour {building}',
+    createBill: 'Créer la facture',
+    createNewDemand: 'Créer une nouvelle demande',
+    submitNewRequest: 'Soumettre une nouvelle demande ou plainte',
+    submitAndTrackRequests: 'Soumettre et suivre vos demandes',
+    newDemand: 'Nouvelle demande',
+    selectType: 'Sélectionner le type',
+    selectBuilding: 'Sélectionner le bâtiment',
+    addNewDocument: 'Ajouter un nouveau document',
+    addDocument: 'Ajouter un document',
+    documentName: 'Nom du document',
+    enterDocumentName: 'Saisir le nom du document',
+    documentType: 'Type de document',
+    selectDocumentType: 'Sélectionner le type de document',
+    enterDocumentDescription: 'Saisir la description du document',
+    backToResidences: 'Retour aux résidences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents disponibles aux locataires',
+    allResidenceDocuments: 'Tous les documents de résidence',
+    loadingDemands2: 'Chargement des demandes...',
+    noDemandsFound: 'Aucune demande trouvée',
+    success: 'Succès',
+    updateStatusAndNotes: 'Mettre à jour le statut et ajouter des notes d\'examen',
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Décrivez votre demande en détail...',
+    submittedBy: 'Soumis par',
+    addNotesReview: 'Ajouter des notes sur votre décision d\'examen...',
+    selectBuilding2: 'Sélectionner le bâtiment',
+    addNotesReviewDecision: 'Ajoutez des notes sur votre décision d\'examen...',
+    // Status options for manager
+    submitted2: 'Soumis',
+    // Document management translations
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Bâtiment',
+    // Dashboard and major page content
+    welcomeBack: 'Bienvenue',
+    personalizedDashboard: 'Votre tableau de bord personnalisé - accès rapide à tout ce dont vous avez besoin',
+    quickAccessEverything: 'accès rapide à tout ce dont vous avez besoin',
+    adminDashboard: 'Tableau de bord administrateur',
+    systemManagement: 'Gestion du système',
+    manageOrganizationsUsers: 'Gérer les organisations, utilisateurs et paramètres système',
+    organizationOverview: 'Aperçu de l\'organisation',
+    viewManageOrganizations: 'Voir et gérer toutes les organisations',
+    viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
+    selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
+    building2: 'Bâtiment',
+    residence: 'Résidence',
+    selectABuilding: 'Sélectionner un bâtiment',
+    address: 'Adresse',
+    floor: 'Étage',
+    sqFt: 'Pi²',
+    bedrooms: 'Chambres',
+    bathrooms: 'Salles de bain',
+    viewDocuments2: 'Voir les documents',
+    unit: 'Unité',
+    allFloors: 'Tous les étages',
+    totalFloors: 'Étages totaux',
+    // More residence page translations
+    myResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    viewResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    loading: 'Chargement...',
+    noResidencesFound: 'Aucune résidence trouvée',
+    noResidencesFoundOrg: 'Aucune résidence trouvée dans votre organisation.',
+    notAssignedResidences: 'Vous n\'êtes assigné à aucune résidence.',
+    selectResidence: 'Sélectionner une résidence',
+    selectAResidence: 'Sélectionner une résidence',
+    areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer ce contact?',
+    parkingSpaces: 'Espaces de stationnement',
+    storageSpaces: 'Espaces de rangement',
+    // Building page translations
+    myBuildings: 'Mes bâtiments',
+    viewBuildingsAccess: 'Voir les bâtiments auxquels vous avez accès',
+    noBuildingsFound: 'Aucun bâtiment trouvé',
+    buildingType: 'Type de bâtiment',
+    yearBuilt: 'Année de construction',
+    totalUnits: 'Unités totales',
+    managementCompany: 'Compagnie de gestion',
+    occupancyStats: 'Statistiques d\'occupation',
+    // Documents page translations
+    // Navigation translations
+    quickActions: 'Actions rapides',
+    calendar: 'Calendrier',
+    residents: 'Résidents',
+    myResidence: 'Ma résidence',
+    myBuilding: 'Mon bâtiment',
+    commonSpaces: 'Espaces communs',
+    buildings: 'Bâtiments',
+    budget: 'Budget',
+    bills: 'Factures',
+    demands: 'Demandes',
+    navUserManagement: 'Gestion des utilisateurs',
+    manageCommonSpaces: 'Gérer les espaces communs',
+    organizations: 'Organisations',
+    documentation: 'Documentation',
+    pillars: 'Piliers',
+    roadmap: 'Feuille de route',
+    navQualityAssurance: 'Assurance qualité',
+    navLaw25Compliance: 'Conformité Loi 25',
+    rbacPermissions: 'Permissions RBAC',
+    settings: 'Paramètres',
+    bugReports: 'Rapports de bogues',
+    ideaBox: 'Boîte à idées',
     // Home page translations
     modernPropertyManagement: 'Gestion Immobilière Moderne',
     forQuebec: 'pour le Québec',
