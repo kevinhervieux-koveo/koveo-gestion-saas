@@ -356,6 +356,15 @@ export interface Translations {
   areYouSureDelete: string;
   parkingSpaces: string;
   storageSpaces: string;
+  // Building page translations
+  myBuildings: string;
+  viewBuildingsAccess: string;
+  noBuildingsFound: string;
+  buildingType: string;
+  yearBuilt: string;
+  totalUnits: string;
+  managementCompany: string;
+  occupancyStats: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -808,6 +817,15 @@ const translations: Record<Language, Translations> = {
     areYouSureDelete: 'Are you sure you want to delete this contact?',
     parkingSpaces: 'Parking Spaces',
     storageSpaces: 'Storage Spaces',
+    // Building page translations
+    myBuildings: 'My Buildings',
+    viewBuildingsAccess: 'View buildings you have access to',
+    noBuildingsFound: 'No Buildings Found',
+    buildingType: 'Building Type',
+    yearBuilt: 'Year Built',
+    totalUnits: 'Total Units',
+    managementCompany: 'Management Company',
+    occupancyStats: 'Occupancy Stats',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1272,6 +1290,15 @@ const translations: Record<Language, Translations> = {
     areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer ce contact?',
     parkingSpaces: 'Espaces de stationnement',
     storageSpaces: 'Espaces de rangement',
+    // Building page translations
+    myBuildings: 'Mes bâtiments',
+    viewBuildingsAccess: 'Voir les bâtiments auxquels vous avez accès',
+    noBuildingsFound: 'Aucun bâtiment trouvé',
+    buildingType: 'Type de bâtiment',
+    yearBuilt: 'Année de construction',
+    totalUnits: 'Unités totales',
+    managementCompany: 'Compagnie de gestion',
+    occupancyStats: 'Statistiques d\'occupation',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
