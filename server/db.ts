@@ -1,6 +1,5 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from 'ws';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
 import { 
@@ -23,64 +22,29 @@ import {
   monthlyBudgets
 } from '@shared/schema';
 
-neonConfig.webSocketConstructor = ws;
-
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
+console.log('🔗 Connecting to database with URL:', process.env.DATABASE_URL?.substring(0, 50) + '...');
+
 /**
- * PostgreSQL connection pool for the Koveo Gestion application.
- * Uses Neon serverless database with connection pooling for optimal performance.
- * Includes production error handling for authentication issues.
+ * Neon serverless database connection using HTTP.
+ * Uses the same pattern as your successful test code.
+ * Optimized for serverless environments like Replit deployments.
  */
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  // Add connection retry and error handling for production
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+export const sql = neon(process.env.DATABASE_URL);
 
-// Add error handling for pool connection issues
-pool.on('error', (err) => {
-  // Suppress authentication errors in production to prevent log spam
-  if (process.env.NODE_ENV === 'production' && err.message.includes('password authentication failed')) {
-    // Silently handle authentication errors in production
-    return;
-  }
-  console.warn('Database pool error:', err.message);
-  // Don't crash the application on pool errors
-});
-
-// Test database connection on startup with retry logic
-let dbConnectionRetries = 0;
-const maxRetries = 3;
-
-async function testDatabaseConnection() {
+// Test connection
+(async () => {
   try {
-    const client = await pool.connect();
-    console.log('✅ Database connection successful');
-    client.release();
-    return true;
+    const result = await sql`SELECT version()`;
+    console.log('✅ Database connection successful:', result[0].version.substring(0, 50) + '...');
   } catch (error: any) {
-    dbConnectionRetries++;
-    console.warn(`⚠️ Database connection attempt ${dbConnectionRetries}/${maxRetries} failed:`, error.message);
-    
-    if (dbConnectionRetries < maxRetries) {
-      setTimeout(testDatabaseConnection, 2000); // Retry after 2 seconds
-    } else {
-      console.error('❌ Database connection failed after all retries. Application will continue but some features may not work.');
-    }
-    return false;
+    console.error('❌ Database connection failed:', error.message);
   }
-}
+})();
 
-// Test connection on startup
-if (process.env.NODE_ENV === 'production') {
-  testDatabaseConnection();
-}
 
 // Create schema object with only tables (no relations to avoid production errors)
 const schema = {
@@ -106,11 +70,12 @@ const schema = {
 /**
  * Drizzle ORM database instance with table definitions only.
  * Provides type-safe database operations for the Quebec property management system.
- * Relations excluded in production to prevent initialization errors.
+ * Uses HTTP connection for better compatibility with serverless environments.
  */
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(sql, { schema });
 
-// For production debugging - log schema loading
-if (process.env.NODE_ENV === 'production') {
-  console.log('📊 Database initialized with', Object.keys(schema).length, 'tables (relations excluded for stability)');
-}
+// Log schema loading
+console.log('📊 Database initialized with', Object.keys(schema).length, 'tables');
+
+// For compatibility, export sql as pool for session store
+export const pool = sql;
