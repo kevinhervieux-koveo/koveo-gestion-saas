@@ -63,12 +63,13 @@ function createSessionStore() {
 export const sessionConfig = session({
   store: createSessionStore(),
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-  resave: false,
+  resave: true, // Save session even when not modified to extend expiry
   saveUninitialized: false,
+  rolling: true, // Reset expiry on each request
   cookie: {
     secure: process.env.NODE_ENV === 'production', // HTTPS required in production
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
     sameSite: 'lax', // Keep lax for same-site compatibility
     // Don't set domain - let it default to current domain
   },
@@ -162,6 +163,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
+    // Touch session to extend expiry on activity
+    if (req.session && req.session.touch) {
+      req.session.touch();
+    }
 
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
