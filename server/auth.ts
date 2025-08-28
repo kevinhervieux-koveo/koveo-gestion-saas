@@ -55,18 +55,11 @@ const PostgreSqlStore = connectPg(session);
  */
 function createSessionStore() {
   try {
-    // In production, use connection string directly instead of shared pool
-    // This avoids conflicts with Neon serverless pool configuration
+    // In production, disable session store entirely to avoid authentication conflicts
+    // This will use the default memory store which doesn't require database access
     if (process.env.NODE_ENV === 'production') {
-      return new PostgreSqlStore({
-        conString: process.env.DATABASE_URL,
-        tableName: 'user_sessions',
-        createTableIfMissing: true,
-        errorLog: (error: any) => {
-          console.warn('Session store error (production):', error.message);
-          // Don't crash the application on session store errors
-        }
-      });
+      console.log('🔧 Production mode: Using memory session store to avoid database authentication conflicts');
+      return undefined; // Use default memory store
     } else {
       // In development, try to use the shared pool but with better error handling
       return new PostgreSqlStore({
