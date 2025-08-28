@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { config } from './config/index.js';
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
 import { 
@@ -22,18 +23,21 @@ import {
   monthlyBudgets
 } from '@shared/schema';
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = config.database.url;
+
+if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
-console.log('🔗 Connecting to database with URL:', process.env.DATABASE_URL?.substring(0, 50) + '...');
+console.log('🔗 Connecting to database with URL:', databaseUrl.substring(0, 50) + '...');
+console.log('🌍 Environment:', config.server.nodeEnv);
 
 /**
  * Neon serverless database connection using HTTP.
  * Uses the same pattern as your successful test code.
  * Optimized for serverless environments like Replit deployments.
  */
-export const sql = neon(process.env.DATABASE_URL);
+export const sql = neon(databaseUrl);
 
 // Test connection
 (async () => {
