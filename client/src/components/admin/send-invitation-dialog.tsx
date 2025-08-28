@@ -49,18 +49,14 @@ const invitationSchema = z
   })
   .refine(
     (data) => {
-      // If role is tenant or resident and a specific building is selected, residence must be assigned
-      if (
-        ['tenant', 'resident'].includes(data.role) &&
-        data.buildingId &&
-        data.buildingId !== 'none'
-      ) {
+      // Tenants and residents must have a residence assigned
+      if (['tenant', 'resident'].includes(data.role)) {
         return !!data.residenceId;
       }
       return true;
     },
     {
-      message: 'Residence must be assigned for tenants and residents when a building is selected',
+      message: 'Residence must be assigned for tenants and residents',
       path: ['residenceId'],
     }
   );
@@ -269,11 +265,24 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     return buildings.filter((building) => building.organizationId === selectedOrgId);
   };
 
-  const getFilteredResidences = (selectedBuildingId: string) => {
-    if (!residences || !selectedBuildingId) {
+  const getFilteredResidences = (selectedBuildingId: string, selectedOrgId: string) => {
+    if (!residences) {
       return [];
     }
-    return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    
+    // If a specific building is selected, show only residences from that building
+    if (selectedBuildingId && selectedBuildingId !== 'none') {
+      return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    }
+    
+    // If no building selected but organization is selected, show all residences from that organization
+    if (selectedOrgId && (!selectedBuildingId || selectedBuildingId === 'none')) {
+      const orgBuildings = buildings?.filter(building => building.organizationId === selectedOrgId) || [];
+      const orgBuildingIds = orgBuildings.map(building => building.id);
+      return residences.filter((residence) => orgBuildingIds.includes(residence.buildingId));
+    }
+    
+    return [];
   };
 
   // Single invitation mutation
@@ -471,9 +480,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               />
             )}
 
-            {['tenant', 'resident'].includes(singleForm.watch('role')) &&
-              singleForm.watch('buildingId') &&
-              singleForm.watch('buildingId') !== 'none' && (
+            {['tenant', 'resident'].includes(singleForm.watch('role')) && (
                 <FormField
                   control={singleForm.control}
                   name='residenceId'
@@ -487,7 +494,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         >
                           <option value=''>{'Select residence'}</option>
-                          {getFilteredResidences(singleForm.watch('buildingId')).map(
+                          {getFilteredResidences(singleForm.watch('buildingId'), singleForm.watch('organizationId')).map(
                             (residence) => (
                               <option key={residence.id} value={residence.id}>
                                 {'Unit'} {residence.unitNumber}
@@ -498,7 +505,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         </select>
                       </FormControl>
                       <FormDescription>
-                        {'Residence required for tenants and residents'}
+                        {'All tenants and residents must have a residence assigned'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

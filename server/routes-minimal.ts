@@ -629,11 +629,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Validate residence assignment for tenants and residents
           if (['tenant', 'resident'].includes(role as string)) {
-            // Only require residence if a specific building is selected
-            if (buildingId && buildingId !== 'none' && !residenceId) {
+            // Tenants and residents must have a residence assigned
+            if (!residenceId) {
               return res.status(400).json({
-                message:
-                  'Residence must be assigned for tenants and residents when a building is selected',
+                message: 'Residence must be assigned for tenants and residents',
                 code: 'RESIDENCE_REQUIRED',
               });
             }
