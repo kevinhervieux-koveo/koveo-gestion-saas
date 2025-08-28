@@ -86,11 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUser(userData || null);
 
-    // If user is null (unauthorized) and we're not on a public page, redirect to home
+    // If user is null (unauthorized) and we're not on a public page, redirect to login
 
     if (userData === null && !isPublicPage && !isLoading) {
-      console.warn('Unauthorized access detected, redirecting to home page');
-      setLocation('/');
+      console.warn('Session expired, redirecting to login page');
+      setLocation('/auth/login');
     }
   }, [userData, isPublicPage, isLoading, setLocation]);
 

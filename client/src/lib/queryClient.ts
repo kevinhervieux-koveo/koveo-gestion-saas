@@ -127,6 +127,19 @@ export const queryClient = new QueryClient({
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
     onError: (error) => {
+      // Handle session expiry globally - redirect to login
+      if (error.message.includes('401') || error.message.includes('Authentication required')) {
+        // Check if we're not already on login or public pages
+        const currentPath = window.location.pathname;
+        const isPublicPath = ['/', '/auth/login', '/auth/register', '/features', '/pricing', '/security', '/story'].includes(currentPath);
+        
+        if (!isPublicPath) {
+          console.warn('Session expired during API call, redirecting to login');
+          window.location.href = '/auth/login';
+          return;
+        }
+      }
+
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
         // Skip logging authentication timing errors and common API errors to reduce console noise
@@ -161,6 +174,19 @@ export const queryClient = new QueryClient({
   // Limit mutation cache size
   mutationCache: new MutationCache({
     onError: (error) => {
+      // Handle session expiry globally for mutations - redirect to login
+      if (error.message.includes('401') || error.message.includes('Authentication required')) {
+        // Check if we're not already on login or public pages
+        const currentPath = window.location.pathname;
+        const isPublicPath = ['/', '/auth/login', '/auth/register', '/features', '/pricing', '/security', '/story'].includes(currentPath);
+        
+        if (!isPublicPath) {
+          console.warn('Session expired during mutation, redirecting to login');
+          window.location.href = '/auth/login';
+          return;
+        }
+      }
+
       // Only log mutation errors in development
       if (process.env.NODE_ENV === 'development') {
         console.error('Mutation error:', error);
