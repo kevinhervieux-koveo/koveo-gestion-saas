@@ -1,5 +1,7 @@
+import React from 'react';
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { MemoryRouter } from 'wouter/memory';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '@/hooks/use-language';
