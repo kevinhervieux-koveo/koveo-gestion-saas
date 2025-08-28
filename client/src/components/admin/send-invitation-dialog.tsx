@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -33,11 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// Checkbox component import removed (unused)
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { UserPlus, Users, Mail, X, Plus, Shield } from 'lucide-react';
+import { UserPlus, Mail, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Form validation schema
@@ -53,46 +49,14 @@ const invitationSchema = z
   })
   .refine(
     (data) => {
-      // If role is tenant or resident and a specific building is selected, residence must be assigned
-      if (
-        ['tenant', 'resident'].includes(data.role) &&
-        data.buildingId &&
-        data.buildingId !== 'none'
-      ) {
+      // Tenants and residents must have a residence assigned
+      if (['tenant', 'resident'].includes(data.role)) {
         return !!data.residenceId;
       }
       return true;
     },
     {
-      message: 'Residence must be assigned for tenants and residents when a building is selected',
-      path: ['residenceId'],
-    }
-  );
-
-const bulkInvitationSchema = z
-  .object({
-    emails: z.array(z.string().email()).min(1).max(20),
-    role: z.enum(['admin', 'manager', 'tenant', 'resident']),
-    organizationId: z.string().min(1, 'Organization is required'),
-    buildingId: z.string().optional(),
-    residenceId: z.string().optional(),
-    personalMessage: z.string().optional(),
-    expiryDays: z.number().min(1).max(30),
-  })
-  .refine(
-    (data) => {
-      // If role is tenant or resident and a specific building is selected, residence must be assigned
-      if (
-        ['tenant', 'resident'].includes(data.role) &&
-        data.buildingId &&
-        data.buildingId !== 'none'
-      ) {
-        return !!data.residenceId;
-      }
-      return true;
-    },
-    {
-      message: 'Residence must be assigned for tenants and residents when a building is selected',
+      message: 'Residence must be assigned for tenants and residents',
       path: ['residenceId'],
     }
   );
@@ -102,11 +66,6 @@ const bulkInvitationSchema = z
  * Inferred from the invitation Zod schema.
  */
 type InvitationFormData = z.infer<typeof invitationSchema>;
-/**
- * Form data type for bulk invitations.
- * Inferred from the bulk invitation Zod schema.
- */
-type BulkInvitationFormData = z.infer<typeof bulkInvitationSchema>;
 
 /**
  * Props for the SendInvitationDialog component.
@@ -179,7 +138,7 @@ interface Residence {
 /**
  * Send Invitation Dialog Component.
  *
- * Allows sending single or bulk invitations with comprehensive options
+ * Allows sending single invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
  * @param props - Component props.
  * @param props.open - Whether dialog is open.
@@ -191,8 +150,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const { t } = useLanguage();
   const { user: currentUser, hasRole } = useAuth();
   const { toast } = useToast();
-  const [invitationMode, setInvitationMode] = useState<'single' | 'bulk'>('single');
-  const [bulkEmails, setBulkEmails] = useState<string[]>(['']);
 
   // Single invitation form
   const singleForm = useForm<InvitationFormData>({
@@ -208,25 +165,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
   });
 
-  // Bulk invitation form
-  const bulkForm = useForm<BulkInvitationFormData>({
-    resolver: zodResolver(bulkInvitationSchema),
-    defaultValues: {
-      emails: [],
-      role: 'tenant',
-      organizationId: '',
-      buildingId: '',
-      residenceId: '',
-      expiryDays: 7,
-      personalMessage: '',
-    },
-  });
-
   // Fetch organizations (filtered by user access)
   const { data: organizations } = useQuery<Organization[]>({
-    queryKey: ['/api/users/me/organizations'],
+    queryKey: ['/api/organizations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users/me/organizations');
+      const response = await apiRequest('GET', '/api/organizations');
       return response.json();
     },
     enabled: open,
@@ -322,11 +265,24 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     return buildings.filter((building) => building.organizationId === selectedOrgId);
   };
 
-  const getFilteredResidences = (selectedBuildingId: string) => {
-    if (!residences || !selectedBuildingId) {
+  const getFilteredResidences = (selectedBuildingId: string, selectedOrgId: string) => {
+    if (!residences) {
       return [];
     }
-    return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    
+    // If a specific building is selected, show only residences from that building
+    if (selectedBuildingId && selectedBuildingId !== 'none') {
+      return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    }
+    
+    // If no building selected but organization is selected, show all residences from that organization
+    if (selectedOrgId && (!selectedBuildingId || selectedBuildingId === 'none')) {
+      const orgBuildings = buildings?.filter(building => building.organizationId === selectedOrgId) || [];
+      const orgBuildingIds = orgBuildings.map(building => building.id);
+      return residences.filter((residence) => orgBuildingIds.includes(residence.buildingId));
+    }
+    
+    return [];
   };
 
   // Single invitation mutation
@@ -364,73 +320,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
   });
 
-  // Bulk invitation mutation
-  const bulkInvitationMutation = useMutation({
-    mutationFn: async (data: BulkInvitationFormData) => {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
-
-      const invitations = data.emails.map((email) => ({
-        email,
-        role: data.role,
-        organizationId: data.organizationId,
-        residenceId: data.residenceId || null,
-        invitedByUserId: currentUser?.id,
-        expiresAt: expiresAt.toISOString(),
-        personalMessage: data.personalMessage || null,
-      }));
-
-      const response = await apiRequest('POST', '/api/invitations/bulk', {
-        invitations,
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      const successCount = data.results?.length || 0;
-      const _errorCount = data.errors?.length || 0;
-
-      toast({
-        title: t('bulkInvitationsSent'),
-        description: `${successCount} ${t('bulkInvitationsSuccess')}`,
-      });
-
-      bulkForm.reset();
-      setBulkEmails(['']);
-      onSuccess();
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
   const onSingleSubmit = (_data: InvitationFormData) => {
     singleInvitationMutation.mutate(_data);
-  };
-
-  const onBulkSubmit = (_data: BulkInvitationFormData) => {
-    const validEmails = bulkEmails.filter((email) => email.trim() !== '');
-    bulkInvitationMutation.mutate({ ..._data, emails: validEmails });
-  };
-
-  const addEmailField = () => {
-    if (bulkEmails.length < 20) {
-      setBulkEmails([...bulkEmails, '']);
-    }
-  };
-
-  const removeEmailField = (index: number) => {
-    setBulkEmails(bulkEmails.filter((_, i) => i !== index));
-  };
-
-  const updateEmail = (index: number, email: string) => {
-    const newEmails = [...bulkEmails];
-    newEmails[index] = email;
-    setBulkEmails(newEmails);
   };
 
   const canInviteRole = (role: string) => {
@@ -459,503 +350,221 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
           <DialogDescription>{t('inviteUserDescription')}</DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={invitationMode}
-          onValueChange={(_value) => setInvitationMode(_value as 'single' | 'bulk')}
-        >
-          <TabsList className='grid w-full grid-cols-2'>
-            <TabsTrigger value='single' className='flex items-center gap-2'>
-              <Mail className='h-4 w-4' />
-              {t('singleInvitation')}
-            </TabsTrigger>
-            <TabsTrigger value='bulk' className='flex items-center gap-2'>
-              <Users className='h-4 w-4' />
-              {t('bulkInvitations')}
-            </TabsTrigger>
-          </TabsList>
+        <Form {...singleForm}>
+          <form onSubmit={singleForm.handleSubmit(onSingleSubmit)} className='space-y-4'>
+            <FormField
+              control={singleForm.control}
+              name='email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('emailAddress')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('enterEmailAddress')} type='email' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Single Invitation Tab */}
-          <TabsContent value='single' className='space-y-4'>
-            <Form {...singleForm}>
-              <form onSubmit={singleForm.handleSubmit(onSingleSubmit)} className='space-y-4'>
+            <FormField
+              control={singleForm.control}
+              name='role'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('role')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('selectRole')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          <div className='flex items-center gap-2'>
+                            <Shield className='h-4 w-4' />
+                            {role === 'admin'
+                              ? t('admin')
+                              : role === 'manager'
+                                ? t('manager')
+                                : role === 'resident'
+                                  ? t('resident')
+                                  : t('tenant')}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={singleForm.control}
+              name='organizationId'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('organization')} *</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        // Reset building and residence when organization changes
+                        singleForm.setValue('buildingId', '');
+                        singleForm.setValue('residenceId', '');
+                      }}
+                      disabled={currentUser?.role === 'manager'}
+                      className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      <option value=''>{t('selectOrganization')}</option>
+                      {getFilteredOrganizations().map((org) => {
+                        if (!org?.id || !org?.name) {
+                          return null;
+                        }
+
+                        const canInvite = canInviteToOrganization(org.id);
+
+                        return (
+                          <option key={org.id} value={org.id} disabled={!canInvite}>
+                            {org.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </FormControl>
+                  <FormDescription>
+                    {currentUser?.role === 'manager'
+                      ? 'Managers can only invite to their organization'
+                      : 'Select target organization'}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {singleForm.watch('organizationId') && (
+              <FormField
+                control={singleForm.control}
+                name='buildingId'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {'Building'} ({t('optional')})
+                    </FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                          // Reset residence when building changes
+                          singleForm.setValue('residenceId', '');
+                        }}
+                        className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                      >
+                        <option value=''>{'Select building'}</option>
+                        <option value='none'>{'No specific building'}</option>
+                        {getFilteredBuildings(singleForm.watch('organizationId')).map(
+                          (building) => (
+                            <option key={building.id} value={building.id}>
+                              {building.name} - {building.address}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {['tenant', 'resident'].includes(singleForm.watch('role')) && (
                 <FormField
                   control={singleForm.control}
-                  name='email'
+                  name='residenceId'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('emailAddress')}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t('enterEmailAddress')} type='email' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={singleForm.control}
-                  name='role'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('role')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectRole')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              <div className='flex items-center gap-2'>
-                                <Shield className='h-4 w-4' />
-                                {role === 'admin'
-                                  ? t('admin')
-                                  : role === 'manager'
-                                    ? t('manager')
-                                    : role === 'resident'
-                                      ? t('resident')
-                                      : t('tenant')}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={singleForm.control}
-                  name='organizationId'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('organization')} *</FormLabel>
+                      <FormLabel>{'Residence'} *</FormLabel>
                       <FormControl>
                         <select
                           {...field}
-                          onChange={(e) => {
-                            field.onChange(e.target.value);
-                            // Reset building and residence when organization changes
-                            singleForm.setValue('buildingId', '');
-                            singleForm.setValue('residenceId', '');
-                          }}
-                          disabled={currentUser?.role === 'manager'}
+                          onChange={field.onChange}
                           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         >
-                          <option value=''>{t('selectOrganization')}</option>
-                          {getFilteredOrganizations().map((org) => {
-                            if (!org?.id || !org?.name) {
-                              return null;
-                            }
-
-                            const canInvite = canInviteToOrganization(org.id);
-
-                            return (
-                              <option key={org.id} value={org.id} disabled={!canInvite}>
-                                {org.name}
+                          <option value=''>{'Select residence'}</option>
+                          {getFilteredResidences(singleForm.watch('buildingId'), singleForm.watch('organizationId')).map(
+                            (residence) => (
+                              <option key={residence.id} value={residence.id}>
+                                {'Unit'} {residence.unitNumber}
+                                {residence.floor && ` - ${'Floor'} ${residence.floor}`}
                               </option>
-                            );
-                          })}
+                            )
+                          )}
                         </select>
                       </FormControl>
                       <FormDescription>
-                        {currentUser?.role === 'manager'
-                          ? 'Managers can only invite to their organization'
-                          : 'Select target organization'}
+                        {'All tenants and residents must have a residence assigned'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
 
-                {singleForm.watch('organizationId') && (
-                  <FormField
-                    control={singleForm.control}
-                    name='buildingId'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {'Building'} ({t('optional')})
-                        </FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e.target.value);
-                              // Reset residence when building changes
-                              singleForm.setValue('residenceId', '');
-                            }}
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            <option value=''>{'Select building'}</option>
-                            <option value='none'>{'No specific building'}</option>
-                            {getFilteredBuildings(singleForm.watch('organizationId')).map(
-                              (building) => (
-                                <option key={building.id} value={building.id}>
-                                  {building.name} - {building.address}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {['tenant', 'resident'].includes(singleForm.watch('role')) &&
-                  singleForm.watch('buildingId') &&
-                  singleForm.watch('buildingId') !== 'none' && (
-                    <FormField
-                      control={singleForm.control}
-                      name='residenceId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{'Residence'} *</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              onChange={field.onChange}
-                              className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                            >
-                              <option value=''>{'Select residence'}</option>
-                              {getFilteredResidences(singleForm.watch('buildingId')).map(
-                                (residence) => (
-                                  <option key={residence.id} value={residence.id}>
-                                    {'Unit'} {residence.unitNumber}
-                                    {residence.floor && ` - ${'Floor'} ${residence.floor}`}
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          </FormControl>
-                          <FormDescription>
-                            {'Residence required for tenants and residents'}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                <FormField
-                  control={singleForm.control}
-                  name='expiryDays'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('expiresIn')}</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          value={field.value.toString()}
-                          className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                        >
-                          <option value='1'>1 {t('day')}</option>
-                          <option value='3'>3 {t('days')}</option>
-                          <option value='7'>7 {t('days')}</option>
-                          <option value='14'>14 {t('days')}</option>
-                          <option value='30'>30 {t('days')}</option>
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={singleForm.control}
-                  name='personalMessage'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t('personalMessage')} ({t('optional')})
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={t('personalMessagePlaceholder')}
-                          className='min-h-[80px]'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>{t('personalMessageDescription')}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <DialogFooter>
-                  <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-                    {t('cancel')}
-                  </Button>
-                  <Button type='submit' disabled={singleInvitationMutation.isPending}>
-                    {singleInvitationMutation.isPending ? t('sending') : t('sendInvitation')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </TabsContent>
-
-          {/* Bulk Invitations Tab */}
-          <TabsContent value='bulk' className='space-y-4'>
-            <Card>
-              <CardContent className='p-4'>
-                <div className='space-y-3'>
-                  <div className='flex items-center justify-between'>
-                    <h4 className='font-medium'>{t('emailAddresses')}</h4>
-                    <Badge variant='secondary'>
-                      {bulkEmails.filter((e) => e.trim()).length} / 20
-                    </Badge>
-                  </div>
-
-                  {bulkEmails.map((email, _index) => (
-                    <div key={_index} className='flex gap-2'>
-                      <Input
-                        placeholder={t('enterEmailAddress')}
-                        type='email'
-                        value={email}
-                        onChange={(e) => updateEmail(_index, e.target.value)}
-                        className='flex-1'
-                      />
-                      {bulkEmails.length > 1 && (
-                        <Button
-                          type='button'
-                          variant='outline'
-                          size='sm'
-                          onClick={() => removeEmailField(_index)}
-                        >
-                          <X className='h-4 w-4' />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-
-                  {bulkEmails.length < 20 && (
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={addEmailField}
-                      className='w-full'
+            <FormField
+              control={singleForm.control}
+              name='expiryDays'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('expiresIn')}</FormLabel>
+                  <FormControl>
+                    <select
+                      value={field.value.toString()}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                     >
-                      <Plus className='h-4 w-4 mr-2' />
-                      {t('addEmailAddress')}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      <option value='1'>1 {t('day')}</option>
+                      <option value='3'>3 {t('days')}</option>
+                      <option value='7'>7 {t('days')}</option>
+                      <option value='14'>14 {t('days')}</option>
+                      <option value='30'>30 {t('days')}</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <Form {...bulkForm}>
-              <form onSubmit={bulkForm.handleSubmit(onBulkSubmit)} className='space-y-4'>
-                <div className='grid grid-cols-2 gap-4'>
-                  <FormField
-                    control={bulkForm.control}
-                    name='role'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('role')}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableRoles.map((role) => (
-                              <SelectItem key={role} value={role}>
-                                {role === 'admin'
-                                  ? t('admin')
-                                  : role === 'manager'
-                                    ? t('manager')
-                                    : role === 'resident'
-                                      ? t('resident')
-                                      : t('tenant')}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={bulkForm.control}
-                    name='expiryDays'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('expiresIn')}</FormLabel>
-                        <Select
-                          onValueChange={(_value) => field.onChange(parseInt(_value))}
-                          defaultValue={field.value.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value='7'>7 {t('days')}</SelectItem>
-                            <SelectItem value='14'>14 {t('days')}</SelectItem>
-                            <SelectItem value='30'>30 {t('days')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={bulkForm.control}
-                  name='organizationId'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('organization')} *</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e.target.value);
-                            // Reset building and residence when organization changes
-                            bulkForm.setValue('buildingId', '');
-                            bulkForm.setValue('residenceId', '');
-                          }}
-                          disabled={currentUser?.role === 'manager'}
-                          className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                        >
-                          <option value=''>{t('selectOrganization')}</option>
-                          {getFilteredOrganizations().map((org) => {
-                            if (!org?.id || !org?.name) {
-                              return null;
-                            }
-
-                            return (
-                              <option key={org.id} value={org.id}>
-                                {org.name}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {bulkForm.watch('organizationId') && (
-                  <FormField
-                    control={bulkForm.control}
-                    name='buildingId'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {'Building'} ({t('optional')})
-                        </FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e.target.value);
-                              // Reset residence when building changes
-                              bulkForm.setValue('residenceId', '');
-                            }}
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            <option value=''>{'Select building'}</option>
-                            <option value='none'>{'No specific building'}</option>
-                            {getFilteredBuildings(bulkForm.watch('organizationId')).map(
-                              (building) => (
-                                <option key={building.id} value={building.id}>
-                                  {building.name} - {building.address}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {['tenant', 'resident'].includes(bulkForm.watch('role')) &&
-                  bulkForm.watch('buildingId') &&
-                  bulkForm.watch('buildingId') !== 'none' && (
-                    <FormField
-                      control={bulkForm.control}
-                      name='residenceId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{'Residence'} *</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              onChange={field.onChange}
-                              className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                            >
-                              <option value=''>{'Select residence'}</option>
-                              {getFilteredResidences(bulkForm.watch('buildingId')).map(
-                                (residence) => (
-                                  <option key={residence.id} value={residence.id}>
-                                    {'Unit'} {residence.unitNumber}
-                                    {residence.floor && ` - ${'Floor'} ${residence.floor}`}
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          </FormControl>
-                          <FormDescription>
-                            {'Residence required for tenants and residents'}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            <FormField
+              control={singleForm.control}
+              name='personalMessage'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('personalMessage')} ({t('optional')})</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Add a personal welcome message..."
+                      {...field}
+                      rows={3}
                     />
-                  )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <FormField
-                  control={bulkForm.control}
-                  name='personalMessage'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t('personalMessage')} ({t('optional')})
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={t('bulkPersonalMessagePlaceholder')}
-                          className='min-h-[80px]'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <DialogFooter>
-                  <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-                    {t('cancel')}
-                  </Button>
-                  <Button
-                    type='submit'
-                    disabled={
-                      bulkInvitationMutation.isPending ||
-                      bulkEmails.filter((e) => e.trim()).length === 0
-                    }
-                  >
-                    {bulkInvitationMutation.isPending ? t('sending') : t('sendInvitations')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </TabsContent>
-        </Tabs>
+            <DialogFooter>
+              <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+                {t('cancel')}
+              </Button>
+              <Button type='submit' disabled={singleInvitationMutation.isPending}>
+                {singleInvitationMutation.isPending ? t('sending') : t('sendInvitation')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

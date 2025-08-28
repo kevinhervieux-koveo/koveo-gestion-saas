@@ -133,7 +133,7 @@ export default function InvitationAcceptancePage() {
 
   // Handle completion - redirect to login
   const handleGoToLogin = useCallback(() => {
-    setLocation('/');
+    setLocation('/login');
   }, [setLocation]);
 
   // Success screen after completion
