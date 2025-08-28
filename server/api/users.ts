@@ -7,6 +7,14 @@ import { requireAuth } from '../auth';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+import { 
+  sanitizeString, 
+  sanitizeName, 
+  normalizeEmail, 
+  validatePasswordStrength,
+  generateUsernameFromEmail
+} from '../utils/input-sanitization';
+import { logUserCreation } from '../utils/user-creation-logger';
 
 /**
  * Registers all user-related API endpoints.
@@ -128,7 +136,55 @@ export function registerUserRoutes(app: Express): void {
    */
   app.post('/api/users', async (req, res) => {
     try {
-      const validatedData = insertUserSchema.parse(req.body);
+      // Enhanced password validation using utility
+      if (req.body.password) {
+        const passwordValidation = validatePasswordStrength(req.body.password);
+        if (!passwordValidation.isValid) {
+          return res.status(400).json({
+            error: 'Validation error',
+            message: passwordValidation.message,
+            code: 'WEAK_PASSWORD',
+          });
+        }
+      }
+
+      // Sanitize and normalize all input data
+      const normalizedData = {
+        ...req.body,
+        email: normalizeEmail(req.body.email || ''),
+        firstName: sanitizeName(req.body.firstName || ''),
+        lastName: sanitizeName(req.body.lastName || ''),
+        phone: req.body.phone ? sanitizeString(req.body.phone) : '',
+        language: req.body.language || 'fr',
+      };
+
+      // Generate unique username if not provided
+      if (!normalizedData.username && normalizedData.email) {
+        const baseUsername = generateUsernameFromEmail(normalizedData.email);
+        let username = baseUsername;
+        
+        // Ensure username uniqueness
+        let usernameCounter = 1;
+        let existingUsername = await db
+          .select({ username: schema.users.username })
+          .from(schema.users)
+          .where(eq(schema.users.username, username))
+          .limit(1);
+        
+        while (existingUsername.length > 0) {
+          username = `${baseUsername}${usernameCounter}`;
+          usernameCounter++;
+          existingUsername = await db
+            .select({ username: schema.users.username })
+            .from(schema.users)
+            .where(eq(schema.users.username, username))
+            .limit(1);
+        }
+        
+        normalizedData.username = username;
+      }
+
+      const validatedData = insertUserSchema.parse(normalizedData);
 
       // Check if user with email already exists
       const existingUser = await storage.getUserByEmail(validatedData.email);
@@ -141,10 +197,34 @@ export function registerUserRoutes(app: Express): void {
 
       const user = await storage.createUser(validatedData);
 
+      // Log successful user creation
+      logUserCreation({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        method: 'direct',
+        success: true,
+        timestamp: new Date(),
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
+      // Log failed user creation attempt
+      logUserCreation({
+        email: req.body.email || 'unknown',
+        role: req.body.role || 'unknown',
+        method: 'direct',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',

@@ -33,6 +33,15 @@ import crypto from 'crypto';
 import { EmailService } from './services/email-service';
 import { hashPassword } from './auth';
 import { storage } from './storage';
+import { 
+  sanitizeString, 
+  sanitizeName, 
+  normalizeEmail, 
+  validatePasswordStrength,
+  generateUsernameFromEmail,
+  isValidQuebecPostalCode
+} from './utils/input-sanitization';
+import { logUserCreation } from './utils/user-creation-logger';
 
 // Import required tables from schema
 const { invitations, users: schemaUsers, organizations, buildings, residences } = schema;
@@ -1079,47 +1088,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // Enhanced password validation using utility
+        const passwordValidation = validatePasswordStrength(password);
+        if (!passwordValidation.isValid) {
+          return res.status(400).json({
+            message: passwordValidation.message,
+            code: 'WEAK_PASSWORD',
+          });
+        }
+
+        // Sanitize and normalize all input data
+        const sanitizedFirstName = sanitizeName(firstName);
+        const sanitizedLastName = sanitizeName(lastName);
+        const sanitizedPhone = phone ? sanitizeString(phone) : '';
+        const normalizedEmail = normalizeEmail(invitationData.email);
+
+        // Validate Quebec postal code if provided
+        if (postalCode && !isValidQuebecPostalCode(postalCode)) {
+          return res.status(400).json({
+            message: 'Invalid Quebec postal code format',
+            code: 'INVALID_POSTAL_CODE',
+          });
+        }
+
         // Create user with bcrypt hashed password
         const hashedPassword = await hashPassword(password);
 
-        // Generate username from email (part before @)
-        const username = invitationData.email.split('@')[0].toLowerCase();
-
-        const newUser = await storage.createUser({
-          username,
-          email: invitationData.email.toLowerCase(),
-          password: hashedPassword,
-          firstName,
-          lastName,
-          role: invitationData.role,
-          phone: phone || '',
-          language: language || 'fr',
-        });
-
-        // Create user-organization relationship
-        await db.insert(schema.userOrganizations).values({
-          userId: newUser.id,
-          organizationId: invitationData.organizationId,
-          isActive: true,
-          canAccessAllOrganizations: false,
-        });
-
-        // If invitation includes a building/residence assignment, create those relationships
-        if (invitationData.buildingId && ['tenant', 'resident'].includes(invitationData.role)) {
-          // For now, we'll just log this - residence assignment might need additional logic
-          console.warn(
-            `User ${newUser.id} assigned to building ${invitationData.buildingId} for role ${invitationData.role}`
-          );
+        // Generate unique username from email using utility
+        const baseUsername = generateUsernameFromEmail(normalizedEmail);
+        let username = baseUsername;
+        
+        // Ensure username uniqueness by checking existing users
+        let usernameCounter = 1;
+        let existingUsername = await db
+          .select({ username: schemaUsers.username })
+          .from(schemaUsers)
+          .where(eq(schemaUsers.username, username))
+          .limit(1);
+        
+        while (existingUsername.length > 0) {
+          username = `${emailPart}${usernameCounter}`;
+          usernameCounter++;
+          existingUsername = await db
+            .select({ username: schemaUsers.username })
+            .from(schemaUsers)
+            .where(eq(schemaUsers.username, username))
+            .limit(1);
         }
 
-        // Mark invitation as accepted
-        await db
-          .update(invitations)
-          .set({
-            status: 'accepted',
-            acceptedAt: new Date(),
-          })
-          .where(eq(invitations.id, invitationData.id));
+        // Validate user data against schema before creation
+        const createUserData = {
+          username,
+          email: normalizedEmail,
+          password: hashedPassword,
+          firstName: sanitizedFirstName,
+          lastName: sanitizedLastName,
+          role: invitationData.role,
+          phone: sanitizedPhone,
+          language: language || 'fr',
+        };
+
+        // Validate using insertUserSchema
+        try {
+          insertUserSchema.parse(createUserData);
+        } catch (validationError: any) {
+          return res.status(400).json({
+            message: 'Invalid user data',
+            code: 'VALIDATION_ERROR',
+            details: validationError.issues,
+          });
+        }
+
+        // Use database transaction to ensure atomicity
+        const result = await db.transaction(async (tx) => {
+          // Create user
+          const newUser = await storage.createUser(createUserData);
+
+          // Create user-organization relationship
+          await tx.insert(schema.userOrganizations).values({
+            userId: newUser.id,
+            organizationId: invitationData.organizationId,
+            isActive: true,
+            canAccessAllOrganizations: false,
+          });
+
+          // If invitation includes a residence assignment, create user-residence relationship
+          if (invitationData.residenceId && ['tenant', 'resident'].includes(invitationData.role)) {
+            // Import the userResidences table from property schema
+            const { userResidences } = await import('../../shared/schemas/property');
+            
+            await tx.insert(userResidences).values({
+              userId: newUser.id,
+              residenceId: invitationData.residenceId,
+              relationshipType: invitationData.role === 'tenant' ? 'tenant' : 'resident',
+              isActive: true,
+              isPrimary: true,
+              startDate: new Date(),
+            });
+
+            console.log(
+              `User ${newUser.id} assigned to residence ${invitationData.residenceId} as ${invitationData.role}`
+            );
+          }
+
+          // Mark invitation as accepted
+          await tx
+            .update(invitations)
+            .set({
+              status: 'accepted',
+              acceptedAt: new Date(),
+              acceptedBy: newUser.id,
+            })
+            .where(eq(invitations.id, invitationData.id));
+
+          return newUser;
+        });
+
+        const newUser = result;
+
+        // Log successful user creation
+        logUserCreation({
+          userId: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+          method: 'invitation',
+          success: true,
+          timestamp: new Date(),
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+        });
 
         await createInvitationAuditLog(
           invitationData.id,
@@ -1143,6 +1240,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirectTo: '/login',
         });
       } catch (_error) {
+        // Log failed user creation attempt
+        logUserCreation({
+          email: invitationData?.email || 'unknown',
+          role: invitationData?.role || 'unknown',
+          method: 'invitation',
+          success: false,
+          error: _error instanceof Error ? _error.message : 'Unknown error',
+          timestamp: new Date(),
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+        });
+
         console.error('Error accepting invitation:', _error);
         res.status(500).json({
           message: 'Failed to create account',
