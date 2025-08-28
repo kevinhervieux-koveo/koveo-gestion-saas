@@ -257,7 +257,7 @@ export const insertUserSchema = z.object({
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
       'Password must contain uppercase, lowercase, number, and special character'
     ),
   firstName: z.string().min(1).max(100, 'First name must be 1-100 characters').trim(),
