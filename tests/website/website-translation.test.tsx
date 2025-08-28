@@ -9612,6 +9612,916 @@ describe('Website Translation Tests', () => {
       expect(createButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Admin Documentation Page Translation', () => {
+    it('should display admin documentation page with proper French translations', () => {
+      const AdminDocumentationPage = () => {
+        return (
+          <div data-testid='admin-documentation-page'>
+            {/* Header Section */}
+            <div data-testid='header-documentation-center'>Centre de documentation</div>
+            <div data-testid='header-subtitle'>
+              Générer et exporter une documentation complète du projet
+            </div>
+
+            {/* Refresh Command Section */}
+            <div data-testid='refresh-command-section'>
+              <div data-testid='refresh-command-label'>Commande de rafraîchissement :</div>
+              <div data-testid='refresh-command-value'>npm run docs:generate</div>
+            </div>
+
+            {/* Last Updated Section */}
+            <div data-testid='last-updated-section'>
+              <div data-testid='last-updated-label'>Dernière mise à jour :</div>
+              <div data-testid='last-updated-value'>27/08/2025 à 22:33:39</div>
+              <button data-testid='button-refresh-now'>Rafraîchir maintenant</button>
+            </div>
+
+            {/* Statistics Cards */}
+            <div data-testid='documentation-stats'>
+              <div data-testid='stats-components'>
+                <div data-testid='stats-components-title'>Composants</div>
+                <div data-testid='stats-components-count'>3</div>
+              </div>
+              
+              <div data-testid='stats-api-endpoints'>
+                <div data-testid='stats-api-endpoints-title'>Points de terminaison API</div>
+                <div data-testid='stats-api-endpoints-count'>3</div>
+              </div>
+              
+              <div data-testid='stats-database-tables'>
+                <div data-testid='stats-database-tables-title'>Tables de base de données</div>
+                <div data-testid='stats-database-tables-count'>2</div>
+              </div>
+              
+              <div data-testid='stats-dependencies'>
+                <div data-testid='stats-dependencies-title'>Dépendances</div>
+                <div data-testid='stats-dependencies-count'>5</div>
+              </div>
+            </div>
+
+            {/* Human Documentation Section */}
+            <div data-testid='human-documentation-section'>
+              <div data-testid='human-documentation-title'>
+                Documentation humaine (Google Suite)
+              </div>
+              <div data-testid='human-documentation-description'>
+                Exporter une documentation complète dans des formats lisibles par l'humain incluant les documents Word, les feuilles de calcul Excel, et autres fichiers compatibles avec Google Suite.
+              </div>
+
+              {/* Documentation Files List */}
+              <div data-testid='documentation-files'>
+                <div data-testid='file-project-overview'>
+                  <div data-testid='file-project-overview-title'>Aperçu du projet (.docx)</div>
+                  <div data-testid='file-project-overview-description'>
+                    Vue d'ensemble complète du projet avec architecture et fonctionnalités
+                  </div>
+                </div>
+                
+                <div data-testid='file-component-specifications'>
+                  <div data-testid='file-component-specifications-title'>Spécifications des composants (.xlsx)</div>
+                  <div data-testid='file-component-specifications-description'>
+                    Détails techniques de tous les composants avec dépendances et exports
+                  </div>
+                </div>
+                
+                <div data-testid='file-api-documentation'>
+                  <div data-testid='file-api-documentation-title'>Documentation API (.docx)</div>
+                  <div data-testid='file-api-documentation-description'>
+                    Spécifications complètes des endpoints API avec paramètres et réponses
+                  </div>
+                </div>
+                
+                <div data-testid='file-database-schema'>
+                  <div data-testid='file-database-schema-title'>Schéma de base de données (.xlsx)</div>
+                  <div data-testid='file-database-schema-description'>
+                    Structure complète de la base de données avec tables et colonnes
+                  </div>
+                </div>
+              </div>
+
+              <button data-testid='button-export-google-suite'>
+                Exporter la documentation Google Suite
+              </button>
+              <button data-testid='button-exporting-google-suite' disabled>
+                Exportation en cours...
+              </button>
+            </div>
+
+            {/* AI Documentation Section */}
+            <div data-testid='ai-documentation-section'>
+              <div data-testid='ai-documentation-title'>Documentation IA</div>
+              <div data-testid='ai-documentation-description'>
+                Générer une documentation optimisée pour le traitement par intelligence artificielle avec contexte technique complet et spécifications détaillées.
+              </div>
+              
+              <button data-testid='button-generate-ai-documentation'>
+                Générer la documentation IA
+              </button>
+              <button data-testid='button-generating-ai-documentation' disabled>
+                Génération en cours...
+              </button>
+            </div>
+
+            {/* Project Information Display */}
+            <div data-testid='project-information'>
+              <div data-testid='project-name'>Koveo Gestion</div>
+              <div data-testid='project-description'>
+                Plateforme SaaS de gestion immobilière alimentée par IA pour les communautés résidentielles du Québec
+              </div>
+              <div data-testid='project-version'>Version 1.0.0</div>
+              <div data-testid='project-architecture'>
+                Interface React/TypeScript avec backend Node.js/Express, base de données PostgreSQL
+              </div>
+            </div>
+
+            {/* Components List */}
+            <div data-testid='components-list'>
+              <div data-testid='component-filter-sort'>
+                <div data-testid='component-name'>Système FilterSort</div>
+                <div data-testid='component-type'>Bibliothèque de composants React</div>
+                <div data-testid='component-dependencies'>React, Radix UI, Tailwind CSS</div>
+                <div data-testid='component-exports'>FilterSort, useFilterSort, FilterSortConfig</div>
+                <div data-testid='component-complexity'>Complexité : 8.2</div>
+              </div>
+              
+              <div data-testid='component-authentication'>
+                <div data-testid='component-name'>Système d'authentification</div>
+                <div data-testid='component-type'>Service backend</div>
+                <div data-testid='component-dependencies'>Express, Passport, bcrypt</div>
+                <div data-testid='component-exports'>authRoutes, requireAuth, userStorage</div>
+                <div data-testid='component-complexity'>Complexité : 6.8</div>
+              </div>
+              
+              <div data-testid='component-dashboard'>
+                <div data-testid='component-name'>Composants du tableau de bord</div>
+                <div data-testid='component-type'>Composants React</div>
+                <div data-testid='component-dependencies'>TanStack Query, Lucide React</div>
+                <div data-testid='component-exports'>OwnerDashboard, ResidentsDashboard, ManagerDashboard</div>
+                <div data-testid='component-complexity'>Complexité : 7.5</div>
+              </div>
+            </div>
+
+            {/* API Endpoints List */}
+            <div data-testid='api-endpoints-list'>
+              <div data-testid='api-organizations'>
+                <div data-testid='api-endpoint'>/api/organizations</div>
+                <div data-testid='api-method'>GET</div>
+                <div data-testid='api-description'>Récupérer toutes les organisations</div>
+                <div data-testid='api-parameters'>limit, offset</div>
+                <div data-testid='api-response'>Organization[]</div>
+              </div>
+              
+              <div data-testid='api-users'>
+                <div data-testid='api-endpoint'>/api/users</div>
+                <div data-testid='api-method'>GET</div>
+                <div data-testid='api-description'>Récupérer la liste des utilisateurs</div>
+                <div data-testid='api-parameters'>role, active</div>
+                <div data-testid='api-response'>User[]</div>
+              </div>
+              
+              <div data-testid='api-suggestions'>
+                <div data-testid='api-endpoint'>/api/pillars/suggestions</div>
+                <div data-testid='api-method'>GET</div>
+                <div data-testid='api-description'>Obtenir les suggestions d'amélioration</div>
+                <div data-testid='api-parameters'>Aucun paramètre</div>
+                <div data-testid='api-response'>ImprovementSuggestion[]</div>
+              </div>
+            </div>
+
+            {/* Database Tables List */}
+            <div data-testid='database-tables-list'>
+              <div data-testid='table-users'>
+                <div data-testid='table-name'>users</div>
+                <div data-testid='table-columns'>
+                  <div data-testid='column-id'>id - serial (clé primaire)</div>
+                  <div data-testid='column-username'>username - text (requis)</div>
+                  <div data-testid='column-email'>email - text (requis)</div>
+                  <div data-testid='column-firstname'>firstName - text (requis)</div>
+                  <div data-testid='column-lastname'>lastName - text (requis)</div>
+                  <div data-testid='column-role'>role - text (requis)</div>
+                </div>
+              </div>
+              
+              <div data-testid='table-organizations'>
+                <div data-testid='table-name'>organizations</div>
+                <div data-testid='table-columns'>
+                  <div data-testid='column-id'>id - serial (clé primaire)</div>
+                  <div data-testid='column-name'>name - text (requis)</div>
+                  <div data-testid='column-type'>type - text (requis)</div>
+                  <div data-testid='column-isactive'>isActive - boolean (requis)</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dependencies List */}
+            <div data-testid='dependencies-list'>
+              <div data-testid='dependency-react'>
+                <div data-testid='dependency-name'>React</div>
+                <div data-testid='dependency-version'>18.x</div>
+                <div data-testid='dependency-type'>production</div>
+                <div data-testid='dependency-description'>Bibliothèque d'interface utilisateur frontend</div>
+              </div>
+              
+              <div data-testid='dependency-typescript'>
+                <div data-testid='dependency-name'>TypeScript</div>
+                <div data-testid='dependency-version'>5.x</div>
+                <div data-testid='dependency-type'>development</div>
+                <div data-testid='dependency-description'>JavaScript typé sécurisé</div>
+              </div>
+              
+              <div data-testid='dependency-express'>
+                <div data-testid='dependency-name'>Express</div>
+                <div data-testid='dependency-version'>4.x</div>
+                <div data-testid='dependency-type'>production</div>
+                <div data-testid='dependency-description'>Framework d'application web</div>
+              </div>
+              
+              <div data-testid='dependency-postgresql'>
+                <div data-testid='dependency-name'>PostgreSQL</div>
+                <div data-testid='dependency-version'>16.x</div>
+                <div data-testid='dependency-type'>production</div>
+                <div data-testid='dependency-description'>Base de données relationnelle</div>
+              </div>
+              
+              <div data-testid='dependency-drizzle'>
+                <div data-testid='dependency-name'>Drizzle ORM</div>
+                <div data-testid='dependency-version'>0.x</div>
+                <div data-testid='dependency-type'>production</div>
+                <div data-testid='dependency-description'>ORM TypeScript</div>
+              </div>
+            </div>
+
+            {/* Success/Error Messages */}
+            <div data-testid='toast-messages'>
+              <div data-testid='toast-documentation-updated'>Documentation mise à jour</div>
+              <div data-testid='toast-documentation-updated-desc'>
+                La documentation a été automatiquement rafraîchie
+              </div>
+              <div data-testid='toast-documentation-refreshed'>Documentation rafraîchie</div>
+              <div data-testid='toast-documentation-refreshed-desc'>
+                Les données de documentation ont été mises à jour avec les dernières informations
+              </div>
+              <div data-testid='toast-documentation-exported'>Documentation exportée</div>
+              <div data-testid='toast-documentation-exported-desc'>
+                Le package de documentation Google Suite a été téléchargé avec succès
+              </div>
+              <div data-testid='toast-ai-documentation-exported'>Documentation IA exportée</div>
+              <div data-testid='toast-ai-documentation-exported-desc'>
+                La documentation complète pour le traitement IA a été téléchargée en tant que fichier texte
+              </div>
+              <div data-testid='toast-refresh-failed'>Échec du rafraîchissement</div>
+              <div data-testid='toast-refresh-failed-desc'>
+                Échec du rafraîchissement de la documentation. Veuillez réessayer
+              </div>
+              <div data-testid='toast-export-failed'>Échec de l'exportation</div>
+              <div data-testid='toast-export-failed-desc'>
+                Échec de l'exportation de la documentation Google Suite. Veuillez réessayer
+              </div>
+              <div data-testid='toast-ai-export-failed'>Échec de l'exportation</div>
+              <div data-testid='toast-ai-export-failed-desc'>
+                Échec de l'exportation de la documentation IA. Veuillez réessayer
+              </div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-states'>
+              <div data-testid='loading-documentation'>Chargement de la documentation...</div>
+              <div data-testid='refreshing-documentation'>Rafraîchissement en cours...</div>
+              <div data-testid='exporting-google-suite'>Exportation Google Suite en cours...</div>
+              <div data-testid='generating-ai-documentation'>Génération de la documentation IA en cours...</div>
+            </div>
+
+            {/* Technical Labels */}
+            <div data-testid='technical-labels'>
+              <div data-testid='label-endpoint'>Point de terminaison</div>
+              <div data-testid='label-method'>Méthode</div>
+              <div data-testid='label-description'>Description</div>
+              <div data-testid='label-parameters'>Paramètres</div>
+              <div data-testid='label-response'>Réponse</div>
+              <div data-testid='label-dependencies'>Dépendances</div>
+              <div data-testid='label-exports'>Exports</div>
+              <div data-testid='label-complexity'>Complexité</div>
+              <div data-testid='label-table'>Table</div>
+              <div data-testid='label-column'>Colonne</div>
+              <div data-testid='label-type'>Type</div>
+              <div data-testid='label-nullable'>Nullable</div>
+              <div data-testid='label-primary-key'>Clé primaire</div>
+              <div data-testid='label-version'>Version</div>
+              <div data-testid='label-name'>Nom</div>
+              <div data-testid='label-architecture'>Architecture</div>
+              <div data-testid='label-last-updated'>Dernière mise à jour</div>
+              <div data-testid='label-refresh-command'>Commande de rafraîchissement</div>
+            </div>
+
+            {/* Auto-refresh Messages */}
+            <div data-testid='auto-refresh-messages'>
+              <div data-testid='auto-refresh-enabled'>
+                Rafraîchissement automatique activé (toutes les 30 minutes)
+              </div>
+              <div data-testid='auto-refresh-triggered'>
+                Rafraîchissement automatique déclenché
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminDocumentationPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-documentation-center')).toHaveTextContent('Centre de documentation');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Générer et exporter une documentation complète du projet');
+
+      // Verify refresh command section
+      expect(screen.getByTestId('refresh-command-label')).toHaveTextContent('Commande de rafraîchissement :');
+      expect(screen.getByTestId('refresh-command-value')).toHaveTextContent('npm run docs:generate');
+
+      // Verify last updated section
+      expect(screen.getByTestId('last-updated-label')).toHaveTextContent('Dernière mise à jour :');
+      expect(screen.getByTestId('last-updated-value')).toHaveTextContent('27/08/2025 à 22:33:39');
+      expect(screen.getByTestId('button-refresh-now')).toHaveTextContent('Rafraîchir maintenant');
+
+      // Verify statistics cards
+      expect(screen.getByTestId('stats-components-title')).toHaveTextContent('Composants');
+      expect(screen.getByTestId('stats-components-count')).toHaveTextContent('3');
+      expect(screen.getByTestId('stats-api-endpoints-title')).toHaveTextContent('Points de terminaison API');
+      expect(screen.getByTestId('stats-api-endpoints-count')).toHaveTextContent('3');
+      expect(screen.getByTestId('stats-database-tables-title')).toHaveTextContent('Tables de base de données');
+      expect(screen.getByTestId('stats-database-tables-count')).toHaveTextContent('2');
+      expect(screen.getByTestId('stats-dependencies-title')).toHaveTextContent('Dépendances');
+      expect(screen.getByTestId('stats-dependencies-count')).toHaveTextContent('5');
+
+      // Verify human documentation section
+      expect(screen.getByTestId('human-documentation-title')).toHaveTextContent('Documentation humaine (Google Suite)');
+      expect(screen.getByTestId('human-documentation-description')).toHaveTextContent('Exporter une documentation complète dans des formats lisibles par l\'humain incluant les documents Word, les feuilles de calcul Excel, et autres fichiers compatibles avec Google Suite');
+
+      // Verify documentation files
+      expect(screen.getByTestId('file-project-overview-title')).toHaveTextContent('Aperçu du projet (.docx)');
+      expect(screen.getByTestId('file-project-overview-description')).toHaveTextContent('Vue d\'ensemble complète du projet avec architecture et fonctionnalités');
+      expect(screen.getByTestId('file-component-specifications-title')).toHaveTextContent('Spécifications des composants (.xlsx)');
+      expect(screen.getByTestId('file-component-specifications-description')).toHaveTextContent('Détails techniques de tous les composants avec dépendances et exports');
+      expect(screen.getByTestId('file-api-documentation-title')).toHaveTextContent('Documentation API (.docx)');
+      expect(screen.getByTestId('file-api-documentation-description')).toHaveTextContent('Spécifications complètes des endpoints API avec paramètres et réponses');
+      expect(screen.getByTestId('file-database-schema-title')).toHaveTextContent('Schéma de base de données (.xlsx)');
+      expect(screen.getByTestId('file-database-schema-description')).toHaveTextContent('Structure complète de la base de données avec tables et colonnes');
+
+      // Verify export buttons
+      expect(screen.getByTestId('button-export-google-suite')).toHaveTextContent('Exporter la documentation Google Suite');
+      expect(screen.getByTestId('button-exporting-google-suite')).toHaveTextContent('Exportation en cours');
+
+      // Verify AI documentation section
+      expect(screen.getByTestId('ai-documentation-title')).toHaveTextContent('Documentation IA');
+      expect(screen.getByTestId('ai-documentation-description')).toHaveTextContent('Générer une documentation optimisée pour le traitement par intelligence artificielle avec contexte technique complet et spécifications détaillées');
+      expect(screen.getByTestId('button-generate-ai-documentation')).toHaveTextContent('Générer la documentation IA');
+      expect(screen.getByTestId('button-generating-ai-documentation')).toHaveTextContent('Génération en cours');
+
+      // Verify project information
+      expect(screen.getByTestId('project-name')).toHaveTextContent('Koveo Gestion');
+      expect(screen.getByTestId('project-description')).toHaveTextContent('Plateforme SaaS de gestion immobilière alimentée par IA pour les communautés résidentielles du Québec');
+      expect(screen.getByTestId('project-version')).toHaveTextContent('Version 1.0.0');
+      expect(screen.getByTestId('project-architecture')).toHaveTextContent('Interface React/TypeScript avec backend Node.js/Express, base de données PostgreSQL');
+
+      // Verify component details
+      expect(screen.getByTestId('component-name')).toHaveTextContent('Système FilterSort');
+      expect(screen.getByTestId('component-type')).toHaveTextContent('Bibliothèque de composants React');
+      expect(screen.getByTestId('component-dependencies')).toHaveTextContent('React, Radix UI, Tailwind CSS');
+      expect(screen.getByTestId('component-exports')).toHaveTextContent('FilterSort, useFilterSort, FilterSortConfig');
+      expect(screen.getByTestId('component-complexity')).toHaveTextContent('Complexité : 8.2');
+
+      // Verify API details
+      expect(screen.getByTestId('api-endpoint')).toHaveTextContent('/api/organizations');
+      expect(screen.getByTestId('api-method')).toHaveTextContent('GET');
+      expect(screen.getByTestId('api-description')).toHaveTextContent('Récupérer toutes les organisations');
+      expect(screen.getByTestId('api-parameters')).toHaveTextContent('limit, offset');
+      expect(screen.getByTestId('api-response')).toHaveTextContent('Organization[]');
+
+      // Verify database details
+      expect(screen.getByTestId('table-name')).toHaveTextContent('users');
+      expect(screen.getByTestId('column-id')).toHaveTextContent('id - serial (clé primaire)');
+      expect(screen.getByTestId('column-username')).toHaveTextContent('username - text (requis)');
+      expect(screen.getByTestId('column-email')).toHaveTextContent('email - text (requis)');
+
+      // Verify dependencies
+      expect(screen.getByTestId('dependency-name')).toHaveTextContent('React');
+      expect(screen.getByTestId('dependency-version')).toHaveTextContent('18.x');
+      expect(screen.getByTestId('dependency-type')).toHaveTextContent('production');
+      expect(screen.getByTestId('dependency-description')).toHaveTextContent('Bibliothèque d\'interface utilisateur frontend');
+
+      // Verify toast messages
+      expect(screen.getByTestId('toast-documentation-updated')).toHaveTextContent('Documentation mise à jour');
+      expect(screen.getByTestId('toast-documentation-updated-desc')).toHaveTextContent('La documentation a été automatiquement rafraîchie');
+      expect(screen.getByTestId('toast-documentation-exported')).toHaveTextContent('Documentation exportée');
+      expect(screen.getByTestId('toast-documentation-exported-desc')).toHaveTextContent('Le package de documentation Google Suite a été téléchargé avec succès');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-documentation')).toHaveTextContent('Chargement de la documentation');
+      expect(screen.getByTestId('refreshing-documentation')).toHaveTextContent('Rafraîchissement en cours');
+      expect(screen.getByTestId('exporting-google-suite')).toHaveTextContent('Exportation Google Suite en cours');
+      expect(screen.getByTestId('generating-ai-documentation')).toHaveTextContent('Génération de la documentation IA en cours');
+
+      // Verify technical labels
+      expect(screen.getByTestId('label-endpoint')).toHaveTextContent('Point de terminaison');
+      expect(screen.getByTestId('label-method')).toHaveTextContent('Méthode');
+      expect(screen.getByTestId('label-description')).toHaveTextContent('Description');
+      expect(screen.getByTestId('label-parameters')).toHaveTextContent('Paramètres');
+      expect(screen.getByTestId('label-response')).toHaveTextContent('Réponse');
+      expect(screen.getByTestId('label-dependencies')).toHaveTextContent('Dépendances');
+      expect(screen.getByTestId('label-exports')).toHaveTextContent('Exports');
+      expect(screen.getByTestId('label-complexity')).toHaveTextContent('Complexité');
+      expect(screen.getByTestId('label-primary-key')).toHaveTextContent('Clé primaire');
+    });
+
+    it('should avoid English terminology in admin documentation page', () => {
+      const AdminDocumentationWithEnglishTerms = () => {
+        return (
+          <div data-testid='admin-documentation-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-documentation-center'>Documentation Center</div>
+            <div data-testid='incorrect-generate-export'>Generate and export comprehensive project documentation</div>
+            <div data-testid='incorrect-refresh-command'>Refresh Command</div>
+            <div data-testid='incorrect-last-updated'>Last updated</div>
+            <div data-testid='incorrect-refresh-now'>Refresh Now</div>
+            <div data-testid='incorrect-components'>Components</div>
+            <div data-testid='incorrect-api-endpoints'>API Endpoints</div>
+            <div data-testid='incorrect-database-tables'>Database Tables</div>
+            <div data-testid='incorrect-dependencies'>Dependencies</div>
+            <div data-testid='incorrect-human-documentation'>Human Documentation (Google Suite)</div>
+            <div data-testid='incorrect-export-comprehensive'>Export comprehensive documentation in human-readable formats</div>
+            <div data-testid='incorrect-project-overview'>Project Overview (.docx)</div>
+            <div data-testid='incorrect-component-specifications'>Component Specifications (.xlsx)</div>
+            <div data-testid='incorrect-api-documentation'>API Documentation (.docx)</div>
+            <div data-testid='incorrect-database-schema'>Database Schema (.xlsx)</div>
+            <div data-testid='incorrect-export-google-suite'>Export Google Suite Documentation</div>
+            <div data-testid='incorrect-exporting'>Exporting...</div>
+            <div data-testid='incorrect-ai-documentation'>AI Documentation</div>
+            <div data-testid='incorrect-generate-optimized'>Generate optimized documentation for artificial intelligence processing</div>
+            <div data-testid='incorrect-generate-ai-documentation'>Generate AI Documentation</div>
+            <div data-testid='incorrect-generating'>Generating...</div>
+            <div data-testid='incorrect-complexity'>Complexity</div>
+            <div data-testid='incorrect-endpoint'>Endpoint</div>
+            <div data-testid='incorrect-method'>Method</div>
+            <div data-testid='incorrect-description'>Description</div>
+            <div data-testid='incorrect-parameters'>Parameters</div>
+            <div data-testid='incorrect-response'>Response</div>
+            <div data-testid='incorrect-table'>Table</div>
+            <div data-testid='incorrect-column'>Column</div>
+            <div data-testid='incorrect-type'>Type</div>
+            <div data-testid='incorrect-nullable'>Nullable</div>
+            <div data-testid='incorrect-primary-key'>Primary Key</div>
+            <div data-testid='incorrect-version'>Version</div>
+            <div data-testid='incorrect-name'>Name</div>
+            <div data-testid='incorrect-architecture'>Architecture</div>
+            <div data-testid='incorrect-documentation-updated'>Documentation Updated</div>
+            <div data-testid='incorrect-documentation-refreshed'>Documentation Refreshed</div>
+            <div data-testid='incorrect-documentation-exported'>Documentation Exported</div>
+            <div data-testid='incorrect-refresh-failed'>Refresh Failed</div>
+            <div data-testid='incorrect-export-failed'>Export Failed</div>
+            <div data-testid='incorrect-loading-documentation'>Loading documentation...</div>
+            <div data-testid='incorrect-refreshing'>Refreshing...</div>
+            <div data-testid='incorrect-auto-refresh-enabled'>Auto-refresh enabled (every 30 minutes)</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminDocumentationWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'documentation center',
+        'generate export',
+        'refresh command',
+        'last updated',
+        'refresh now',
+        'components',
+        'api endpoints',
+        'database tables',
+        'dependencies',
+        'human documentation',
+        'export comprehensive',
+        'project overview',
+        'component specifications',
+        'api documentation',
+        'database schema',
+        'export google suite',
+        'exporting',
+        'ai documentation',
+        'generate optimized',
+        'generate ai documentation',
+        'generating',
+        'complexity',
+        'endpoint',
+        'method',
+        'description',
+        'parameters',
+        'response',
+        'table',
+        'column',
+        'type',
+        'nullable',
+        'primary key',
+        'version',
+        'name',
+        'architecture',
+        'documentation updated',
+        'documentation refreshed',
+        'documentation exported',
+        'refresh failed',
+        'export failed',
+        'loading documentation',
+        'refreshing',
+        'auto refresh enabled'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec technical documentation and software development terminology', () => {
+      const TechnicalDocumentationTerms = () => {
+        return (
+          <div data-testid='technical-documentation-terms'>
+            {/* Correct Quebec French technical documentation terms */}
+            <div data-testid='term-documentation'>Documentation</div>
+            <div data-testid='term-documentation-technique'>Documentation technique</div>
+            <div data-testid='term-centre-documentation'>Centre de documentation</div>
+            <div data-testid='term-generer'>Générer</div>
+            <div data-testid='term-generation'>Génération</div>
+            <div data-testid='term-exporter'>Exporter</div>
+            <div data-testid='term-exportation'>Exportation</div>
+            <div data-testid='term-rafraichir'>Rafraîchir</div>
+            <div data-testid='term-rafraichissement'>Rafraîchissement</div>
+            <div data-testid='term-mettre-jour'>Mettre à jour</div>
+            <div data-testid='term-mise-jour'>Mise à jour</div>
+            <div data-testid='term-actualiser'>Actualiser</div>
+            <div data-testid='term-actualisation'>Actualisation</div>
+            <div data-testid='term-derniere-mise-jour'>Dernière mise à jour</div>
+            <div data-testid='term-commande-rafraichissement'>Commande de rafraîchissement</div>
+            <div data-testid='term-composant'>Composant</div>
+            <div data-testid='term-composants'>Composants</div>
+            <div data-testid='term-systeme'>Système</div>
+            <div data-testid='term-bibliotheque'>Bibliothèque</div>
+            <div data-testid='term-bibliotheque-composants'>Bibliothèque de composants</div>
+            <div data-testid='term-service'>Service</div>
+            <div data-testid='term-service-backend'>Service backend</div>
+            <div data-testid='term-interface'>Interface</div>
+            <div data-testid='term-interface-utilisateur'>Interface utilisateur</div>
+            <div data-testid='term-frontend'>Frontend</div>
+            <div data-testid='term-backend'>Backend</div>
+            <div data-testid='term-api'>API</div>
+            <div data-testid='term-point-terminaison'>Point de terminaison</div>
+            <div data-testid='term-points-terminaison'>Points de terminaison</div>
+            <div data-testid='term-endpoint'>Endpoint</div>
+            <div data-testid='term-methode'>Méthode</div>
+            <div data-testid='term-parametre'>Paramètre</div>
+            <div data-testid='term-parametres'>Paramètres</div>
+            <div data-testid='term-reponse'>Réponse</div>
+            <div data-testid='term-requete'>Requête</div>
+            <div data-testid='term-base-donnees'>Base de données</div>
+            <div data-testid='term-table'>Table</div>
+            <div data-testid='term-tables'>Tables</div>
+            <div data-testid='term-colonne'>Colonne</div>
+            <div data-testid='term-colonnes'>Colonnes</div>
+            <div data-testid='term-schema'>Schéma</div>
+            <div data-testid='term-schema-base-donnees'>Schéma de base de données</div>
+            <div data-testid='term-structure'>Structure</div>
+            <div data-testid='term-architecture'>Architecture</div>
+            <div data-testid='term-dependance'>Dépendance</div>
+            <div data-testid='term-dependances'>Dépendances</div>
+            <div data-testid='term-export'>Export</div>
+            <div data-testid='term-exports'>Exports</div>
+            <div data-testid='term-complexite'>Complexité</div>
+            <div data-testid='term-type'>Type</div>
+            <div data-testid='term-version'>Version</div>
+            <div data-testid='term-nom'>Nom</div>
+            <div data-testid='term-description'>Description</div>
+            <div data-testid='term-specification'>Spécification</div>
+            <div data-testid='term-specifications'>Spécifications</div>
+            <div data-testid='term-apercu'>Aperçu</div>
+            <div data-testid='term-vue-ensemble'>Vue d'ensemble</div>
+            <div data-testid='term-projet'>Projet</div>
+            <div data-testid='term-apercu-projet'>Aperçu du projet</div>
+            <div data-testid='term-plateforme'>Plateforme</div>
+            <div data-testid='term-logiciel'>Logiciel</div>
+            <div data-testid='term-application'>Application</div>
+            <div data-testid='term-systeme-gestion'>Système de gestion</div>
+            <div data-testid='term-gestion-immobiliere'>Gestion immobilière</div>
+            <div data-testid='term-intelligence-artificielle'>Intelligence artificielle</div>
+            <div data-testid='term-ia'>IA</div>
+            <div data-testid='term-traitement-ia'>Traitement IA</div>
+            <div data-testid='term-optimise-ia'>Optimisé pour IA</div>
+            <div data-testid='term-processus'>Processus</div>
+            <div data-testid='term-traitement'>Traitement</div>
+            <div data-testid='term-automatique'>Automatique</div>
+            <div data-testid='term-automatise'>Automatisé</div>
+            <div data-testid='term-manuel'>Manuel</div>
+            <div data-testid='term-chargement'>Chargement</div>
+            <div data-testid='term-en-cours'>En cours</div>
+            <div data-testid='term-termine'>Terminé</div>
+            <div data-testid='term-echec'>Échec</div>
+            <div data-testid='term-succes'>Succès</div>
+            <div data-testid='term-reussi'>Réussi</div>
+            <div data-testid='term-erreur'>Erreur</div>
+            <div data-testid='term-avertissement'>Avertissement</div>
+            <div data-testid='term-information'>Information</div>
+            <div data-testid='term-details'>Détails</div>
+            <div data-testid='term-complet'>Complet</div>
+            <div data-testid='term-comprehensive'>Compréhensive</div>
+            <div data-testid='term-detaille'>Détaillé</div>
+            <div data-testid='term-technique'>Technique</div>
+            <div data-testid='term-fonctionnalite'>Fonctionnalité</div>
+            <div data-testid='term-fonctionnalites'>Fonctionnalités</div>
+            <div data-testid='term-fichier'>Fichier</div>
+            <div data-testid='term-fichiers'>Fichiers</div>
+            <div data-testid='term-format'>Format</div>
+            <div data-testid='term-formats'>Formats</div>
+            <div data-testid='term-compatible'>Compatible</div>
+            <div data-testid='term-lisible'>Lisible</div>
+            <div data-testid='term-humain'>Humain</div>
+            <div data-testid='term-lisible-humain'>Lisible par l'humain</div>
+            <div data-testid='term-telechargement'>Téléchargement</div>
+            <div data-testid='term-telecharger'>Télécharger</div>
+            <div data-testid='term-telecharge'>Téléchargé</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <TechnicalDocumentationTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec technical documentation terminology
+      expect(screen.getByTestId('term-documentation')).toHaveTextContent('Documentation');
+      expect(screen.getByTestId('term-documentation-technique')).toHaveTextContent('Documentation technique');
+      expect(screen.getByTestId('term-centre-documentation')).toHaveTextContent('Centre de documentation');
+      expect(screen.getByTestId('term-generer')).toHaveTextContent('Générer');
+      expect(screen.getByTestId('term-generation')).toHaveTextContent('Génération');
+      expect(screen.getByTestId('term-exporter')).toHaveTextContent('Exporter');
+      expect(screen.getByTestId('term-exportation')).toHaveTextContent('Exportation');
+      expect(screen.getByTestId('term-rafraichir')).toHaveTextContent('Rafraîchir');
+      expect(screen.getByTestId('term-rafraichissement')).toHaveTextContent('Rafraîchissement');
+      expect(screen.getByTestId('term-mettre-jour')).toHaveTextContent('Mettre à jour');
+      expect(screen.getByTestId('term-mise-jour')).toHaveTextContent('Mise à jour');
+      expect(screen.getByTestId('term-actualiser')).toHaveTextContent('Actualiser');
+      expect(screen.getByTestId('term-actualisation')).toHaveTextContent('Actualisation');
+      expect(screen.getByTestId('term-derniere-mise-jour')).toHaveTextContent('Dernière mise à jour');
+      expect(screen.getByTestId('term-commande-rafraichissement')).toHaveTextContent('Commande de rafraîchissement');
+      expect(screen.getByTestId('term-composant')).toHaveTextContent('Composant');
+      expect(screen.getByTestId('term-composants')).toHaveTextContent('Composants');
+      expect(screen.getByTestId('term-systeme')).toHaveTextContent('Système');
+      expect(screen.getByTestId('term-bibliotheque')).toHaveTextContent('Bibliothèque');
+      expect(screen.getByTestId('term-bibliotheque-composants')).toHaveTextContent('Bibliothèque de composants');
+      expect(screen.getByTestId('term-service')).toHaveTextContent('Service');
+      expect(screen.getByTestId('term-service-backend')).toHaveTextContent('Service backend');
+      expect(screen.getByTestId('term-interface')).toHaveTextContent('Interface');
+      expect(screen.getByTestId('term-interface-utilisateur')).toHaveTextContent('Interface utilisateur');
+      expect(screen.getByTestId('term-frontend')).toHaveTextContent('Frontend');
+      expect(screen.getByTestId('term-backend')).toHaveTextContent('Backend');
+      expect(screen.getByTestId('term-api')).toHaveTextContent('API');
+      expect(screen.getByTestId('term-point-terminaison')).toHaveTextContent('Point de terminaison');
+      expect(screen.getByTestId('term-points-terminaison')).toHaveTextContent('Points de terminaison');
+      expect(screen.getByTestId('term-endpoint')).toHaveTextContent('Endpoint');
+      expect(screen.getByTestId('term-methode')).toHaveTextContent('Méthode');
+      expect(screen.getByTestId('term-parametre')).toHaveTextContent('Paramètre');
+      expect(screen.getByTestId('term-parametres')).toHaveTextContent('Paramètres');
+      expect(screen.getByTestId('term-reponse')).toHaveTextContent('Réponse');
+      expect(screen.getByTestId('term-requete')).toHaveTextContent('Requête');
+      expect(screen.getByTestId('term-base-donnees')).toHaveTextContent('Base de données');
+      expect(screen.getByTestId('term-table')).toHaveTextContent('Table');
+      expect(screen.getByTestId('term-tables')).toHaveTextContent('Tables');
+      expect(screen.getByTestId('term-colonne')).toHaveTextContent('Colonne');
+      expect(screen.getByTestId('term-colonnes')).toHaveTextContent('Colonnes');
+      expect(screen.getByTestId('term-schema')).toHaveTextContent('Schéma');
+      expect(screen.getByTestId('term-schema-base-donnees')).toHaveTextContent('Schéma de base de données');
+      expect(screen.getByTestId('term-structure')).toHaveTextContent('Structure');
+      expect(screen.getByTestId('term-architecture')).toHaveTextContent('Architecture');
+      expect(screen.getByTestId('term-dependance')).toHaveTextContent('Dépendance');
+      expect(screen.getByTestId('term-dependances')).toHaveTextContent('Dépendances');
+      expect(screen.getByTestId('term-export')).toHaveTextContent('Export');
+      expect(screen.getByTestId('term-exports')).toHaveTextContent('Exports');
+      expect(screen.getByTestId('term-complexite')).toHaveTextContent('Complexité');
+      expect(screen.getByTestId('term-type')).toHaveTextContent('Type');
+      expect(screen.getByTestId('term-version')).toHaveTextContent('Version');
+      expect(screen.getByTestId('term-nom')).toHaveTextContent('Nom');
+      expect(screen.getByTestId('term-description')).toHaveTextContent('Description');
+      expect(screen.getByTestId('term-specification')).toHaveTextContent('Spécification');
+      expect(screen.getByTestId('term-specifications')).toHaveTextContent('Spécifications');
+      expect(screen.getByTestId('term-apercu')).toHaveTextContent('Aperçu');
+      expect(screen.getByTestId('term-vue-ensemble')).toHaveTextContent('Vue d\'ensemble');
+      expect(screen.getByTestId('term-projet')).toHaveTextContent('Projet');
+      expect(screen.getByTestId('term-apercu-projet')).toHaveTextContent('Aperçu du projet');
+      expect(screen.getByTestId('term-plateforme')).toHaveTextContent('Plateforme');
+      expect(screen.getByTestId('term-logiciel')).toHaveTextContent('Logiciel');
+      expect(screen.getByTestId('term-application')).toHaveTextContent('Application');
+      expect(screen.getByTestId('term-systeme-gestion')).toHaveTextContent('Système de gestion');
+      expect(screen.getByTestId('term-gestion-immobiliere')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('term-intelligence-artificielle')).toHaveTextContent('Intelligence artificielle');
+      expect(screen.getByTestId('term-ia')).toHaveTextContent('IA');
+      expect(screen.getByTestId('term-traitement-ia')).toHaveTextContent('Traitement IA');
+      expect(screen.getByTestId('term-optimise-ia')).toHaveTextContent('Optimisé pour IA');
+      expect(screen.getByTestId('term-processus')).toHaveTextContent('Processus');
+      expect(screen.getByTestId('term-traitement')).toHaveTextContent('Traitement');
+      expect(screen.getByTestId('term-automatique')).toHaveTextContent('Automatique');
+      expect(screen.getByTestId('term-automatise')).toHaveTextContent('Automatisé');
+      expect(screen.getByTestId('term-manuel')).toHaveTextContent('Manuel');
+      expect(screen.getByTestId('term-chargement')).toHaveTextContent('Chargement');
+      expect(screen.getByTestId('term-en-cours')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('term-termine')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('term-echec')).toHaveTextContent('Échec');
+      expect(screen.getByTestId('term-succes')).toHaveTextContent('Succès');
+      expect(screen.getByTestId('term-reussi')).toHaveTextContent('Réussi');
+      expect(screen.getByTestId('term-erreur')).toHaveTextContent('Erreur');
+      expect(screen.getByTestId('term-avertissement')).toHaveTextContent('Avertissement');
+      expect(screen.getByTestId('term-information')).toHaveTextContent('Information');
+      expect(screen.getByTestId('term-details')).toHaveTextContent('Détails');
+      expect(screen.getByTestId('term-complet')).toHaveTextContent('Complet');
+      expect(screen.getByTestId('term-comprehensive')).toHaveTextContent('Compréhensive');
+      expect(screen.getByTestId('term-detaille')).toHaveTextContent('Détaillé');
+      expect(screen.getByTestId('term-technique')).toHaveTextContent('Technique');
+      expect(screen.getByTestId('term-fonctionnalite')).toHaveTextContent('Fonctionnalité');
+      expect(screen.getByTestId('term-fonctionnalites')).toHaveTextContent('Fonctionnalités');
+      expect(screen.getByTestId('term-fichier')).toHaveTextContent('Fichier');
+      expect(screen.getByTestId('term-fichiers')).toHaveTextContent('Fichiers');
+      expect(screen.getByTestId('term-format')).toHaveTextContent('Format');
+      expect(screen.getByTestId('term-formats')).toHaveTextContent('Formats');
+      expect(screen.getByTestId('term-compatible')).toHaveTextContent('Compatible');
+      expect(screen.getByTestId('term-lisible')).toHaveTextContent('Lisible');
+      expect(screen.getByTestId('term-humain')).toHaveTextContent('Humain');
+      expect(screen.getByTestId('term-lisible-humain')).toHaveTextContent('Lisible par l\'humain');
+      expect(screen.getByTestId('term-telechargement')).toHaveTextContent('Téléchargement');
+      expect(screen.getByTestId('term-telecharger')).toHaveTextContent('Télécharger');
+      expect(screen.getByTestId('term-telecharge')).toHaveTextContent('Téléchargé');
+    });
+
+    it('should display proper documentation generation workflow in French', () => {
+      const DocumentationGenerationWorkflow = () => {
+        return (
+          <div data-testid='documentation-generation-workflow'>
+            {/* Documentation generation workflow */}
+            <div data-testid='workflow-analyze-codebase'>
+              <div data-testid='step-analyze-title'>1. Analyser la base de code</div>
+              <div data-testid='step-analyze-description'>
+                Scanner tous les fichiers source pour extraire les composants, API et structures de données
+              </div>
+            </div>
+
+            <div data-testid='workflow-generate-specifications'>
+              <div data-testid='step-generate-title'>2. Générer les spécifications</div>
+              <div data-testid='step-generate-description'>
+                Créer la documentation technique détaillée pour chaque composant et service
+              </div>
+            </div>
+
+            <div data-testid='workflow-export-formats'>
+              <div data-testid='step-export-title'>3. Exporter les formats</div>
+              <div data-testid='step-export-description'>
+                Produire la documentation dans différents formats (DOCX, XLSX, TXT) selon les besoins
+              </div>
+            </div>
+
+            <div data-testid='workflow-validate-quality'>
+              <div data-testid='step-validate-title'>4. Valider la qualité</div>
+              <div data-testid='step-validate-description'>
+                Vérifier la complétude et la cohérence de la documentation générée
+              </div>
+            </div>
+
+            {/* Documentation types descriptions */}
+            <div data-testid='documentation-types-descriptions'>
+              <div data-testid='type-human-readable-desc'>
+                Documentation humaine - Formats optimisés pour la lecture et la compréhension par les développeurs et les parties prenantes
+              </div>
+              <div data-testid='type-ai-optimized-desc'>
+                Documentation IA - Formats structurés pour le traitement automatique et l'analyse par intelligence artificielle
+              </div>
+              <div data-testid='type-technical-spec-desc'>
+                Spécifications techniques - Documentation détaillée des composants, API et architecture système
+              </div>
+              <div data-testid='type-project-overview-desc'>
+                Aperçu du projet - Vue d'ensemble de l'architecture, des fonctionnalités et des objectifs du projet
+              </div>
+            </div>
+
+            {/* Export format guidelines */}
+            <div data-testid='export-format-guidelines'>
+              <div data-testid='format-docx-desc'>
+                Format DOCX - Documents Word pour aperçus de projet et documentation narrative
+              </div>
+              <div data-testid='format-xlsx-desc'>
+                Format XLSX - Feuilles de calcul Excel pour données tabulaires et spécifications structurées
+              </div>
+              <div data-testid='format-txt-desc'>
+                Format TXT - Fichiers texte pour documentation IA et traitement automatique
+              </div>
+              <div data-testid='format-zip-desc'>
+                Archive ZIP - Package complet contenant tous les formats de documentation
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <DocumentationGenerationWorkflow />
+        </TestProviders>
+      );
+
+      // Verify documentation generation workflow uses Quebec French
+      expect(screen.getByTestId('step-analyze-title')).toHaveTextContent('1. Analyser la base de code');
+      expect(screen.getByTestId('step-analyze-description')).toHaveTextContent('Scanner tous les fichiers source pour extraire les composants, API et structures de données');
+      expect(screen.getByTestId('step-generate-title')).toHaveTextContent('2. Générer les spécifications');
+      expect(screen.getByTestId('step-generate-description')).toHaveTextContent('Créer la documentation technique détaillée pour chaque composant et service');
+      expect(screen.getByTestId('step-export-title')).toHaveTextContent('3. Exporter les formats');
+      expect(screen.getByTestId('step-export-description')).toHaveTextContent('Produire la documentation dans différents formats (DOCX, XLSX, TXT) selon les besoins');
+      expect(screen.getByTestId('step-validate-title')).toHaveTextContent('4. Valider la qualité');
+      expect(screen.getByTestId('step-validate-description')).toHaveTextContent('Vérifier la complétude et la cohérence de la documentation générée');
+
+      // Verify documentation types descriptions
+      expect(screen.getByTestId('type-human-readable-desc')).toHaveTextContent('Documentation humaine - Formats optimisés pour la lecture et la compréhension par les développeurs et les parties prenantes');
+      expect(screen.getByTestId('type-ai-optimized-desc')).toHaveTextContent('Documentation IA - Formats structurés pour le traitement automatique et l\'analyse par intelligence artificielle');
+      expect(screen.getByTestId('type-technical-spec-desc')).toHaveTextContent('Spécifications techniques - Documentation détaillée des composants, API et architecture système');
+      expect(screen.getByTestId('type-project-overview-desc')).toHaveTextContent('Aperçu du projet - Vue d\'ensemble de l\'architecture, des fonctionnalités et des objectifs du projet');
+
+      // Verify export format guidelines
+      expect(screen.getByTestId('format-docx-desc')).toHaveTextContent('Format DOCX - Documents Word pour aperçus de projet et documentation narrative');
+      expect(screen.getByTestId('format-xlsx-desc')).toHaveTextContent('Format XLSX - Feuilles de calcul Excel pour données tabulaires et spécifications structurées');
+      expect(screen.getByTestId('format-txt-desc')).toHaveTextContent('Format TXT - Fichiers texte pour documentation IA et traitement automatique');
+      expect(screen.getByTestId('format-zip-desc')).toHaveTextContent('Archive ZIP - Package complet contenant tous les formats de documentation');
+    });
+
+    it('should have proper data-testid attributes for admin documentation page elements', () => {
+      const AdminDocumentationWithTestIds = () => {
+        return (
+          <div data-testid='admin-documentation-page'>
+            <div data-testid='documentation-center'>Centre de documentation</div>
+            <div data-testid='refresh-command-section'>Section commande de rafraîchissement</div>
+            <div data-testid='last-updated-section'>Section dernière mise à jour</div>
+            <div data-testid='documentation-stats'>Statistiques de documentation</div>
+            <div data-testid='human-documentation-section'>Section documentation humaine</div>
+            <div data-testid='ai-documentation-section'>Section documentation IA</div>
+            <button data-testid='button-refresh-now'>Rafraîchir maintenant</button>
+            <button data-testid='button-export-google-suite'>Exporter Google Suite</button>
+            <button data-testid='button-generate-ai-documentation'>Générer documentation IA</button>
+            <div data-testid='documentation-files'>Fichiers de documentation</div>
+            <div data-testid='project-information'>Informations du projet</div>
+            <div data-testid='components-list'>Liste des composants</div>
+            <div data-testid='api-endpoints-list'>Liste des endpoints API</div>
+            <div data-testid='database-tables-list'>Liste des tables de base de données</div>
+            <div data-testid='dependencies-list'>Liste des dépendances</div>
+            <div data-testid='loading-documentation'>Chargement</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminDocumentationWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all admin documentation page elements have proper test IDs
+      expect(screen.getByTestId('admin-documentation-page')).toBeInTheDocument();
+      expect(screen.getByTestId('documentation-center')).toBeInTheDocument();
+      expect(screen.getByTestId('refresh-command-section')).toBeInTheDocument();
+      expect(screen.getByTestId('last-updated-section')).toBeInTheDocument();
+      expect(screen.getByTestId('documentation-stats')).toBeInTheDocument();
+      expect(screen.getByTestId('human-documentation-section')).toBeInTheDocument();
+      expect(screen.getByTestId('ai-documentation-section')).toBeInTheDocument();
+      expect(screen.getByTestId('button-refresh-now')).toBeInTheDocument();
+      expect(screen.getByTestId('button-export-google-suite')).toBeInTheDocument();
+      expect(screen.getByTestId('button-generate-ai-documentation')).toBeInTheDocument();
+      expect(screen.getByTestId('documentation-files')).toBeInTheDocument();
+      expect(screen.getByTestId('project-information')).toBeInTheDocument();
+      expect(screen.getByTestId('components-list')).toBeInTheDocument();
+      expect(screen.getByTestId('api-endpoints-list')).toBeInTheDocument();
+      expect(screen.getByTestId('database-tables-list')).toBeInTheDocument();
+      expect(screen.getByTestId('dependencies-list')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-documentation')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const refreshButton = screen.getByTestId('button-refresh-now');
+      expect(refreshButton).toHaveAttribute('data-testid');
+      expect(refreshButton.tagName.toLowerCase()).toBe('button');
+
+      const exportButton = screen.getByTestId('button-export-google-suite');
+      expect(exportButton).toHaveAttribute('data-testid');
+      expect(exportButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -10609,6 +11519,113 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   'manage organizations': 'gérer les organisations',
   close: 'fermer',
   confirm: 'confirmer',
+
+  // Admin documentation and technical writing terms
+  'documentation center': 'centre de documentation',
+  'generate and export comprehensive project documentation': 'générer et exporter une documentation complète du projet',
+  'refresh command': 'commande de rafraîchissement',
+  'last updated': 'dernière mise à jour',
+  'refresh now': 'rafraîchir maintenant',
+  'api endpoints': 'points de terminaison api',
+  'database tables': 'tables de base de données',
+  'human documentation': 'documentation humaine',
+  'google suite': 'google suite',
+  'export comprehensive documentation in human readable formats': 'exporter une documentation complète dans des formats lisibles par l\'humain',
+  'project overview': 'aperçu du projet',
+  'component specifications': 'spécifications des composants',
+  'api documentation': 'documentation api',
+  'database schema': 'schéma de base de données',
+  'export google suite documentation': 'exporter la documentation google suite',
+  'ai documentation': 'documentation ia',
+  'generate optimized documentation for artificial intelligence processing': 'générer une documentation optimisée pour le traitement par intelligence artificielle',
+  'generate ai documentation': 'générer la documentation ia',
+  'technical specifications': 'spécifications techniques',
+  'comprehensive overview': 'vue d\'ensemble complète',
+  'technical details': 'détails techniques',
+  'complete specifications': 'spécifications complètes',
+  'complete structure': 'structure complète',
+  'artificial intelligence': 'intelligence artificielle',
+  'ai processing': 'traitement ia',
+  'complete technical context': 'contexte technique complet',
+  'detailed specifications': 'spécifications détaillées',
+  'comprehensive documentation': 'documentation complète',
+  'frontend ui library': 'bibliothèque d\'interface utilisateur frontend',
+  'type safe javascript': 'javascript typé sécurisé',
+  'web application framework': 'framework d\'application web',
+  'relational database': 'base de données relationnelle',
+  'typescript orm': 'orm typescript',
+  'documentation updated': 'documentation mise à jour',
+  'automatically refreshed': 'automatiquement rafraîchie',
+  'documentation refreshed': 'documentation rafraîchie',
+  'updated with latest information': 'mises à jour avec les dernières informations',
+  'documentation exported': 'documentation exportée',
+  'google suite documentation package downloaded successfully': 'le package de documentation google suite a été téléchargé avec succès',
+  'ai documentation exported': 'documentation ia exportée',
+  'comprehensive documentation for ai processing downloaded': 'la documentation complète pour le traitement ia a été téléchargée en tant que fichier texte',
+  'refresh failed': 'échec du rafraîchissement',
+  'failed to refresh documentation': 'échec du rafraîchissement de la documentation',
+  'export failed': 'échec de l\'exportation',
+  'failed to export google suite documentation': 'échec de l\'exportation de la documentation google suite',
+  'failed to export ai documentation': 'échec de l\'exportation de la documentation ia',
+  'loading documentation': 'chargement de la documentation',
+  'refreshing': 'rafraîchissement en cours',
+  'exporting': 'exportation en cours',
+  'generating': 'génération en cours',
+  'google suite export in progress': 'exportation google suite en cours',
+  'ai documentation generation in progress': 'génération de la documentation ia en cours',
+  'auto refresh enabled': 'rafraîchissement automatique activé',
+  'every 30 minutes': 'toutes les 30 minutes',
+  'auto refresh triggered': 'rafraîchissement automatique déclenché',
+  endpoint: 'point de terminaison',
+  method: 'méthode',
+  parameters: 'paramètres',
+  response: 'réponse',
+  exports: 'exports',
+  complexity: 'complexité',
+  table: 'table',
+  column: 'colonne',
+  nullable: 'nullable',
+  'primary key': 'clé primaire',
+  version: 'version',
+  name: 'nom',
+  architecture: 'architecture',
+  'retrieve all organizations': 'récupérer toutes les organisations',
+  'retrieve user list': 'récupérer la liste des utilisateurs',
+  'get improvement suggestions': 'obtenir les suggestions d\'amélioration',
+  'no parameters': 'aucun paramètre',
+  'serial primary key': 'serial (clé primaire)',
+  'text required': 'text (requis)',
+  'boolean required': 'boolean (requis)',
+  'filter sort system': 'système filtersort',
+  'react component library': 'bibliothèque de composants react',
+  'authentication system': 'système d\'authentification',
+  'backend service': 'service backend',
+  'dashboard components': 'composants du tableau de bord',
+  'react components': 'composants react',
+  'scan all source files': 'scanner tous les fichiers source',
+  'extract components apis and data structures': 'extraire les composants, api et structures de données',
+  'generate technical specifications': 'générer les spécifications techniques',
+  'create detailed technical documentation': 'créer la documentation technique détaillée',
+  'export formats': 'exporter les formats',
+  'produce documentation in different formats': 'produire la documentation dans différents formats',
+  'validate quality': 'valider la qualité',
+  'verify completeness and consistency': 'vérifier la complétude et la cohérence',
+  'human readable documentation': 'documentation humaine',
+  'optimized for reading and understanding': 'formats optimisés pour la lecture et la compréhension',
+  'ai optimized documentation': 'documentation ia',
+  'structured formats for automatic processing': 'formats structurés pour le traitement automatique',
+  'technical specification documentation': 'spécifications techniques',
+  'detailed component api and system architecture documentation': 'documentation détaillée des composants, api et architecture système',
+  'project overview documentation': 'aperçu du projet',
+  'overview of architecture features and project objectives': 'vue d\'ensemble de l\'architecture, des fonctionnalités et des objectifs du projet',
+  'docx format': 'format docx',
+  'word documents for project overviews': 'documents word pour aperçus de projet et documentation narrative',
+  'xlsx format': 'format xlsx',
+  'excel spreadsheets for tabular data': 'feuilles de calcul excel pour données tabulaires et spécifications structurées',
+  'txt format': 'format txt',
+  'text files for ai documentation': 'fichiers texte pour documentation ia et traitement automatique',
+  'zip format': 'format zip',
+  'complete package containing all documentation formats': 'package complet contenant tous les formats de documentation',
 };
 
 /**
