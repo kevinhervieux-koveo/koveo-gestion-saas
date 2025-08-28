@@ -15,6 +15,7 @@ import {
   generateUsernameFromEmail
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
+import { queryCache } from '../query-cache';
 
 /**
  * Registers all user-related API endpoints.
@@ -923,6 +924,11 @@ export function registerUserRoutes(app: Express): void {
 
       // Finally, delete the user account
       await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
+
+      // Clear all caches to ensure the user list updates immediately
+      queryCache.invalidate('users', 'all_users');
+      queryCache.invalidate('users', `user:${targetUserId}`);
+      queryCache.invalidate('users', `user_email:${targetUser.email}`);
 
       // Log the deletion for audit purposes
       console.log(

@@ -329,9 +329,12 @@ export default function UserManagement() {
         description: 'User account and all associated data have been permanently deleted.',
       });
       setDeletingUser(null);
+      // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      // Force refetch to ensure UI updates
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
