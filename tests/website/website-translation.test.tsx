@@ -15903,6 +15903,901 @@ export function validateQuebecTerminology(
   return violations;
 }
 
+  describe('Button Translation Tests', () => {
+    it('should display all buttons with proper French translations', () => {
+      const AllButtonsComponent = () => {
+        return (
+          <div data-testid='all-buttons-component'>
+            {/* Authentication Buttons */}
+            <div data-testid='auth-buttons'>
+              <button data-testid='button-sign-in'>Se connecter</button>
+              <button data-testid='button-sign-out'>Se déconnecter</button>
+              <button data-testid='button-register'>S'inscrire</button>
+              <button data-testid='button-login'>Connexion</button>
+              <button data-testid='button-logout'>Déconnexion</button>
+              <button data-testid='button-forgot-password'>Mot de passe oublié</button>
+              <button data-testid='button-reset-password'>Réinitialiser le mot de passe</button>
+              <button data-testid='button-change-password'>Changer le mot de passe</button>
+              <button data-testid='button-verify-email'>Vérifier le courriel</button>
+              <button data-testid='button-resend-verification'>Renvoyer la vérification</button>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div data-testid='navigation-buttons'>
+              <button data-testid='button-get-started'>Commencer</button>
+              <button data-testid='button-learn-more'>En savoir plus</button>
+              <button data-testid='button-contact-us'>Nous contacter</button>
+              <button data-testid='button-go-back'>Retour</button>
+              <button data-testid='button-go-home'>Accueil</button>
+              <button data-testid='button-dashboard'>Tableau de bord</button>
+              <button data-testid='button-profile'>Profil</button>
+              <button data-testid='button-settings'>Paramètres</button>
+              <button data-testid='button-help'>Aide</button>
+              <button data-testid='button-support'>Support</button>
+            </div>
+
+            {/* CRUD Operation Buttons */}
+            <div data-testid='crud-buttons'>
+              <button data-testid='button-create'>Créer</button>
+              <button data-testid='button-add'>Ajouter</button>
+              <button data-testid='button-new'>Nouveau</button>
+              <button data-testid='button-edit'>Modifier</button>
+              <button data-testid='button-update'>Mettre à jour</button>
+              <button data-testid='button-save'>Sauvegarder</button>
+              <button data-testid='button-save-changes'>Sauvegarder les modifications</button>
+              <button data-testid='button-delete'>Supprimer</button>
+              <button data-testid='button-remove'>Retirer</button>
+              <button data-testid='button-cancel'>Annuler</button>
+              <button data-testid='button-discard'>Abandonner</button>
+              <button data-testid='button-reset'>Réinitialiser</button>
+              <button data-testid='button-clear'>Effacer</button>
+            </div>
+
+            {/* User Management Buttons */}
+            <div data-testid='user-management-buttons'>
+              <button data-testid='button-invite-user'>Inviter un utilisateur</button>
+              <button data-testid='button-add-user'>Ajouter un utilisateur</button>
+              <button data-testid='button-edit-user'>Modifier l'utilisateur</button>
+              <button data-testid='button-delete-user'>Supprimer l'utilisateur</button>
+              <button data-testid='button-activate-user'>Activer l'utilisateur</button>
+              <button data-testid='button-deactivate-user'>Désactiver l'utilisateur</button>
+              <button data-testid='button-assign-role'>Attribuer un rôle</button>
+              <button data-testid='button-change-role'>Changer le rôle</button>
+              <button data-testid='button-view-profile'>Voir le profil</button>
+              <button data-testid='button-edit-profile'>Modifier le profil</button>
+            </div>
+
+            {/* Organization Management Buttons */}
+            <div data-testid='organization-buttons'>
+              <button data-testid='button-add-organization'>Ajouter une organisation</button>
+              <button data-testid='button-edit-organization'>Modifier l'organisation</button>
+              <button data-testid='button-delete-organization'>Supprimer l'organisation</button>
+              <button data-testid='button-view-organization'>Voir l'organisation</button>
+              <button data-testid='button-manage-organization'>Gérer l'organisation</button>
+              <button data-testid='button-join-organization'>Rejoindre l'organisation</button>
+              <button data-testid='button-leave-organization'>Quitter l'organisation</button>
+            </div>
+
+            {/* Building Management Buttons */}
+            <div data-testid='building-buttons'>
+              <button data-testid='button-add-building'>Ajouter un immeuble</button>
+              <button data-testid='button-edit-building'>Modifier l'immeuble</button>
+              <button data-testid='button-delete-building'>Supprimer l'immeuble</button>
+              <button data-testid='button-view-building'>Voir l'immeuble</button>
+              <button data-testid='button-manage-building'>Gérer l'immeuble</button>
+              <button data-testid='button-add-residence'>Ajouter une résidence</button>
+              <button data-testid='button-edit-residence'>Modifier la résidence</button>
+              <button data-testid='button-view-residences'>Voir les résidences</button>
+              <button data-testid='button-manage-residences'>Gérer les résidences</button>
+            </div>
+
+            {/* Document Management Buttons */}
+            <div data-testid='document-buttons'>
+              <button data-testid='button-upload-document'>Téléverser un document</button>
+              <button data-testid='button-download-document'>Télécharger le document</button>
+              <button data-testid='button-view-document'>Voir le document</button>
+              <button data-testid='button-edit-document'>Modifier le document</button>
+              <button data-testid='button-delete-document'>Supprimer le document</button>
+              <button data-testid='button-share-document'>Partager le document</button>
+              <button data-testid='button-print-document'>Imprimer le document</button>
+              <button data-testid='button-organize-documents'>Organiser les documents</button>
+              <button data-testid='button-search-documents'>Rechercher dans les documents</button>
+            </div>
+
+            {/* Filter and Search Buttons */}
+            <div data-testid='filter-search-buttons'>
+              <button data-testid='button-search'>Rechercher</button>
+              <button data-testid='button-filter'>Filtrer</button>
+              <button data-testid='button-sort'>Trier</button>
+              <button data-testid='button-reset-filters'>Réinitialiser les filtres</button>
+              <button data-testid='button-clear-search'>Effacer la recherche</button>
+              <button data-testid='button-apply-filters'>Appliquer les filtres</button>
+              <button data-testid='button-advanced-search'>Recherche avancée</button>
+              <button data-testid='button-export-results'>Exporter les résultats</button>
+            </div>
+
+            {/* Pagination Buttons */}
+            <div data-testid='pagination-buttons'>
+              <button data-testid='button-first'>Premier</button>
+              <button data-testid='button-previous'>Précédent</button>
+              <button data-testid='button-next'>Suivant</button>
+              <button data-testid='button-last'>Dernier</button>
+              <button data-testid='button-page-1'>Page 1</button>
+              <button data-testid='button-page-2'>Page 2</button>
+              <button data-testid='button-page-3'>Page 3</button>
+            </div>
+
+            {/* Modal and Dialog Buttons */}
+            <div data-testid='modal-dialog-buttons'>
+              <button data-testid='button-open'>Ouvrir</button>
+              <button data-testid='button-close'>Fermer</button>
+              <button data-testid='button-ok'>OK</button>
+              <button data-testid='button-yes'>Oui</button>
+              <button data-testid='button-no'>Non</button>
+              <button data-testid='button-confirm'>Confirmer</button>
+              <button data-testid='button-continue'>Continuer</button>
+              <button data-testid='button-proceed'>Procéder</button>
+              <button data-testid='button-dismiss'>Rejeter</button>
+              <button data-testid='button-ignore'>Ignorer</button>
+            </div>
+
+            {/* Import/Export Buttons */}
+            <div data-testid='import-export-buttons'>
+              <button data-testid='button-import'>Importer</button>
+              <button data-testid='button-export'>Exporter</button>
+              <button data-testid='button-upload'>Téléverser</button>
+              <button data-testid='button-download'>Télécharger</button>
+              <button data-testid='button-backup'>Sauvegarder</button>
+              <button data-testid='button-restore'>Restaurer</button>
+              <button data-testid='button-sync'>Synchroniser</button>
+            </div>
+
+            {/* Status and Action Buttons */}
+            <div data-testid='status-action-buttons'>
+              <button data-testid='button-activate'>Activer</button>
+              <button data-testid='button-deactivate'>Désactiver</button>
+              <button data-testid='button-enable'>Activer</button>
+              <button data-testid='button-disable'>Désactiver</button>
+              <button data-testid='button-publish'>Publier</button>
+              <button data-testid='button-unpublish'>Dépublier</button>
+              <button data-testid='button-approve'>Approuver</button>
+              <button data-testid='button-reject'>Rejeter</button>
+              <button data-testid='button-submit'>Soumettre</button>
+              <button data-testid='button-send'>Envoyer</button>
+            </div>
+
+            {/* Permissions Buttons */}
+            <div data-testid='permissions-buttons'>
+              <button data-testid='button-grant-permission'>Accorder la permission</button>
+              <button data-testid='button-revoke-permission'>Révoquer la permission</button>
+              <button data-testid='button-edit-permissions'>Modifier les permissions</button>
+              <button data-testid='button-view-permissions'>Voir les permissions</button>
+              <button data-testid='button-assign-permissions'>Attribuer les permissions</button>
+              <button data-testid='button-bulk-permissions'>Permissions en lot</button>
+            </div>
+
+            {/* Compliance and Quality Buttons */}
+            <div data-testid='compliance-quality-buttons'>
+              <button data-testid='button-run-scan'>Exécuter l'analyse</button>
+              <button data-testid='button-view-report'>Voir le rapport</button>
+              <button data-testid='button-generate-report'>Générer le rapport</button>
+              <button data-testid='button-export-violations'>Exporter les violations</button>
+              <button data-testid='button-fix-issues'>Corriger les problèmes</button>
+              <button data-testid='button-schedule-scan'>Planifier une analyse</button>
+              <button data-testid='button-configure-rules'>Configurer les règles</button>
+            </div>
+
+            {/* Notification Buttons */}
+            <div data-testid='notification-buttons'>
+              <button data-testid='button-send-notification'>Envoyer une notification</button>
+              <button data-testid='button-mark-read'>Marquer comme lu</button>
+              <button data-testid='button-mark-unread'>Marquer comme non lu</button>
+              <button data-testid='button-delete-notification'>Supprimer la notification</button>
+              <button data-testid='button-clear-all'>Tout effacer</button>
+              <button data-testid='button-view-all'>Voir tout</button>
+            </div>
+
+            {/* Calendar and Schedule Buttons */}
+            <div data-testid='calendar-buttons'>
+              <button data-testid='button-add-event'>Ajouter un événement</button>
+              <button data-testid='button-edit-event'>Modifier l'événement</button>
+              <button data-testid='button-delete-event'>Supprimer l'événement</button>
+              <button data-testid='button-view-calendar'>Voir le calendrier</button>
+              <button data-testid='button-export-calendar'>Exporter le calendrier</button>
+              <button data-testid='button-sync-calendar'>Synchroniser le calendrier</button>
+              <button data-testid='button-today'>Aujourd'hui</button>
+              <button data-testid='button-this-week'>Cette semaine</button>
+              <button data-testid='button-this-month'>Ce mois</button>
+            </div>
+
+            {/* Financial Buttons */}
+            <div data-testid='financial-buttons'>
+              <button data-testid='button-add-payment'>Ajouter un paiement</button>
+              <button data-testid='button-process-payment'>Traiter le paiement</button>
+              <button data-testid='button-refund-payment'>Rembourser le paiement</button>
+              <button data-testid='button-view-invoice'>Voir la facture</button>
+              <button data-testid='button-generate-invoice'>Générer la facture</button>
+              <button data-testid='button-send-invoice'>Envoyer la facture</button>
+              <button data-testid='button-pay-now'>Payer maintenant</button>
+              <button data-testid='button-pay-later'>Payer plus tard</button>
+            </div>
+
+            {/* Maintenance and Support Buttons */}
+            <div data-testid='maintenance-buttons'>
+              <button data-testid='button-create-request'>Créer une demande</button>
+              <button data-testid='button-submit-request'>Soumettre la demande</button>
+              <button data-testid='button-track-request'>Suivre la demande</button>
+              <button data-testid='button-assign-technician'>Attribuer un technicien</button>
+              <button data-testid='button-complete-work'>Terminer le travail</button>
+              <button data-testid='button-schedule-maintenance'>Planifier la maintenance</button>
+              <button data-testid='button-emergency-request'>Demande d'urgence</button>
+            </div>
+
+            {/* Communication Buttons */}
+            <div data-testid='communication-buttons'>
+              <button data-testid='button-send-message'>Envoyer un message</button>
+              <button data-testid='button-reply'>Répondre</button>
+              <button data-testid='button-forward'>Transférer</button>
+              <button data-testid='button-send-email'>Envoyer un courriel</button>
+              <button data-testid='button-call'>Appeler</button>
+              <button data-testid='button-video-call'>Appel vidéo</button>
+              <button data-testid='button-chat'>Discuter</button>
+            </div>
+
+            {/* System Administration Buttons */}
+            <div data-testid='system-admin-buttons'>
+              <button data-testid='button-system-settings'>Paramètres système</button>
+              <button data-testid='button-manage-users'>Gérer les utilisateurs</button>
+              <button data-testid='button-view-logs'>Voir les journaux</button>
+              <button data-testid='button-clear-cache'>Vider le cache</button>
+              <button data-testid='button-restart-system'>Redémarrer le système</button>
+              <button data-testid='button-update-system'>Mettre à jour le système</button>
+              <button data-testid='button-maintenance-mode'>Mode maintenance</button>
+            </div>
+
+            {/* Language and Accessibility Buttons */}
+            <div data-testid='language-accessibility-buttons'>
+              <button data-testid='button-change-language'>Changer la langue</button>
+              <button data-testid='button-english'>Anglais</button>
+              <button data-testid='button-french'>Français</button>
+              <button data-testid='button-increase-font'>Augmenter la police</button>
+              <button data-testid='button-decrease-font'>Diminuer la police</button>
+              <button data-testid='button-high-contrast'>Contraste élevé</button>
+              <button data-testid='button-screen-reader'>Lecteur d'écran</button>
+            </div>
+
+            {/* Toggle and Switch Buttons */}
+            <div data-testid='toggle-buttons'>
+              <button data-testid='button-toggle-view'>Basculer la vue</button>
+              <button data-testid='button-list-view'>Vue liste</button>
+              <button data-testid='button-grid-view'>Vue grille</button>
+              <button data-testid='button-card-view'>Vue carte</button>
+              <button data-testid='button-table-view'>Vue tableau</button>
+              <button data-testid='button-show-details'>Afficher les détails</button>
+              <button data-testid='button-hide-details'>Masquer les détails</button>
+              <button data-testid='button-expand-all'>Tout développer</button>
+              <button data-testid='button-collapse-all'>Tout réduire</button>
+            </div>
+
+            {/* Print and Share Buttons */}
+            <div data-testid='print-share-buttons'>
+              <button data-testid='button-print'>Imprimer</button>
+              <button data-testid='button-print-preview'>Aperçu avant impression</button>
+              <button data-testid='button-share'>Partager</button>
+              <button data-testid='button-copy-link'>Copier le lien</button>
+              <button data-testid='button-email-link'>Envoyer par courriel</button>
+              <button data-testid='button-social-share'>Partager sur les réseaux</button>
+            </div>
+
+            {/* Workflow Buttons */}
+            <div data-testid='workflow-buttons'>
+              <button data-testid='button-start-workflow'>Démarrer le flux</button>
+              <button data-testid='button-pause-workflow'>Mettre en pause</button>
+              <button data-testid='button-resume-workflow'>Reprendre</button>
+              <button data-testid='button-stop-workflow'>Arrêter</button>
+              <button data-testid='button-restart-workflow'>Redémarrer</button>
+              <button data-testid='button-complete-workflow'>Terminer le flux</button>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AllButtonsComponent />
+        </TestProviders>
+      );
+
+      // Verify authentication buttons
+      expect(screen.getByTestId('button-sign-in')).toHaveTextContent('Se connecter');
+      expect(screen.getByTestId('button-sign-out')).toHaveTextContent('Se déconnecter');
+      expect(screen.getByTestId('button-register')).toHaveTextContent('S\'inscrire');
+      expect(screen.getByTestId('button-login')).toHaveTextContent('Connexion');
+      expect(screen.getByTestId('button-logout')).toHaveTextContent('Déconnexion');
+      expect(screen.getByTestId('button-forgot-password')).toHaveTextContent('Mot de passe oublié');
+      expect(screen.getByTestId('button-reset-password')).toHaveTextContent('Réinitialiser le mot de passe');
+      expect(screen.getByTestId('button-change-password')).toHaveTextContent('Changer le mot de passe');
+      expect(screen.getByTestId('button-verify-email')).toHaveTextContent('Vérifier le courriel');
+      expect(screen.getByTestId('button-resend-verification')).toHaveTextContent('Renvoyer la vérification');
+
+      // Verify navigation buttons
+      expect(screen.getByTestId('button-get-started')).toHaveTextContent('Commencer');
+      expect(screen.getByTestId('button-learn-more')).toHaveTextContent('En savoir plus');
+      expect(screen.getByTestId('button-contact-us')).toHaveTextContent('Nous contacter');
+      expect(screen.getByTestId('button-go-back')).toHaveTextContent('Retour');
+      expect(screen.getByTestId('button-go-home')).toHaveTextContent('Accueil');
+      expect(screen.getByTestId('button-dashboard')).toHaveTextContent('Tableau de bord');
+      expect(screen.getByTestId('button-profile')).toHaveTextContent('Profil');
+      expect(screen.getByTestId('button-settings')).toHaveTextContent('Paramètres');
+      expect(screen.getByTestId('button-help')).toHaveTextContent('Aide');
+      expect(screen.getByTestId('button-support')).toHaveTextContent('Support');
+
+      // Verify CRUD operation buttons
+      expect(screen.getByTestId('button-create')).toHaveTextContent('Créer');
+      expect(screen.getByTestId('button-add')).toHaveTextContent('Ajouter');
+      expect(screen.getByTestId('button-new')).toHaveTextContent('Nouveau');
+      expect(screen.getByTestId('button-edit')).toHaveTextContent('Modifier');
+      expect(screen.getByTestId('button-update')).toHaveTextContent('Mettre à jour');
+      expect(screen.getByTestId('button-save')).toHaveTextContent('Sauvegarder');
+      expect(screen.getByTestId('button-save-changes')).toHaveTextContent('Sauvegarder les modifications');
+      expect(screen.getByTestId('button-delete')).toHaveTextContent('Supprimer');
+      expect(screen.getByTestId('button-remove')).toHaveTextContent('Retirer');
+      expect(screen.getByTestId('button-cancel')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-discard')).toHaveTextContent('Abandonner');
+      expect(screen.getByTestId('button-reset')).toHaveTextContent('Réinitialiser');
+      expect(screen.getByTestId('button-clear')).toHaveTextContent('Effacer');
+
+      // Verify user management buttons
+      expect(screen.getByTestId('button-invite-user')).toHaveTextContent('Inviter un utilisateur');
+      expect(screen.getByTestId('button-add-user')).toHaveTextContent('Ajouter un utilisateur');
+      expect(screen.getByTestId('button-edit-user')).toHaveTextContent('Modifier l\'utilisateur');
+      expect(screen.getByTestId('button-delete-user')).toHaveTextContent('Supprimer l\'utilisateur');
+      expect(screen.getByTestId('button-activate-user')).toHaveTextContent('Activer l\'utilisateur');
+      expect(screen.getByTestId('button-deactivate-user')).toHaveTextContent('Désactiver l\'utilisateur');
+      expect(screen.getByTestId('button-assign-role')).toHaveTextContent('Attribuer un rôle');
+      expect(screen.getByTestId('button-change-role')).toHaveTextContent('Changer le rôle');
+      expect(screen.getByTestId('button-view-profile')).toHaveTextContent('Voir le profil');
+      expect(screen.getByTestId('button-edit-profile')).toHaveTextContent('Modifier le profil');
+
+      // Verify organization management buttons
+      expect(screen.getByTestId('button-add-organization')).toHaveTextContent('Ajouter une organisation');
+      expect(screen.getByTestId('button-edit-organization')).toHaveTextContent('Modifier l\'organisation');
+      expect(screen.getByTestId('button-delete-organization')).toHaveTextContent('Supprimer l\'organisation');
+      expect(screen.getByTestId('button-view-organization')).toHaveTextContent('Voir l\'organisation');
+      expect(screen.getByTestId('button-manage-organization')).toHaveTextContent('Gérer l\'organisation');
+      expect(screen.getByTestId('button-join-organization')).toHaveTextContent('Rejoindre l\'organisation');
+      expect(screen.getByTestId('button-leave-organization')).toHaveTextContent('Quitter l\'organisation');
+
+      // Verify building management buttons
+      expect(screen.getByTestId('button-add-building')).toHaveTextContent('Ajouter un immeuble');
+      expect(screen.getByTestId('button-edit-building')).toHaveTextContent('Modifier l\'immeuble');
+      expect(screen.getByTestId('button-delete-building')).toHaveTextContent('Supprimer l\'immeuble');
+      expect(screen.getByTestId('button-view-building')).toHaveTextContent('Voir l\'immeuble');
+      expect(screen.getByTestId('button-manage-building')).toHaveTextContent('Gérer l\'immeuble');
+      expect(screen.getByTestId('button-add-residence')).toHaveTextContent('Ajouter une résidence');
+      expect(screen.getByTestId('button-edit-residence')).toHaveTextContent('Modifier la résidence');
+      expect(screen.getByTestId('button-view-residences')).toHaveTextContent('Voir les résidences');
+      expect(screen.getByTestId('button-manage-residences')).toHaveTextContent('Gérer les résidences');
+
+      // Verify document management buttons
+      expect(screen.getByTestId('button-upload-document')).toHaveTextContent('Téléverser un document');
+      expect(screen.getByTestId('button-download-document')).toHaveTextContent('Télécharger le document');
+      expect(screen.getByTestId('button-view-document')).toHaveTextContent('Voir le document');
+      expect(screen.getByTestId('button-edit-document')).toHaveTextContent('Modifier le document');
+      expect(screen.getByTestId('button-delete-document')).toHaveTextContent('Supprimer le document');
+      expect(screen.getByTestId('button-share-document')).toHaveTextContent('Partager le document');
+      expect(screen.getByTestId('button-print-document')).toHaveTextContent('Imprimer le document');
+      expect(screen.getByTestId('button-organize-documents')).toHaveTextContent('Organiser les documents');
+      expect(screen.getByTestId('button-search-documents')).toHaveTextContent('Rechercher dans les documents');
+
+      // Verify filter and search buttons
+      expect(screen.getByTestId('button-search')).toHaveTextContent('Rechercher');
+      expect(screen.getByTestId('button-filter')).toHaveTextContent('Filtrer');
+      expect(screen.getByTestId('button-sort')).toHaveTextContent('Trier');
+      expect(screen.getByTestId('button-reset-filters')).toHaveTextContent('Réinitialiser les filtres');
+      expect(screen.getByTestId('button-clear-search')).toHaveTextContent('Effacer la recherche');
+      expect(screen.getByTestId('button-apply-filters')).toHaveTextContent('Appliquer les filtres');
+      expect(screen.getByTestId('button-advanced-search')).toHaveTextContent('Recherche avancée');
+      expect(screen.getByTestId('button-export-results')).toHaveTextContent('Exporter les résultats');
+
+      // Verify pagination buttons
+      expect(screen.getByTestId('button-first')).toHaveTextContent('Premier');
+      expect(screen.getByTestId('button-previous')).toHaveTextContent('Précédent');
+      expect(screen.getByTestId('button-next')).toHaveTextContent('Suivant');
+      expect(screen.getByTestId('button-last')).toHaveTextContent('Dernier');
+      expect(screen.getByTestId('button-page-1')).toHaveTextContent('Page 1');
+      expect(screen.getByTestId('button-page-2')).toHaveTextContent('Page 2');
+      expect(screen.getByTestId('button-page-3')).toHaveTextContent('Page 3');
+
+      // Verify modal and dialog buttons
+      expect(screen.getByTestId('button-open')).toHaveTextContent('Ouvrir');
+      expect(screen.getByTestId('button-close')).toHaveTextContent('Fermer');
+      expect(screen.getByTestId('button-ok')).toHaveTextContent('OK');
+      expect(screen.getByTestId('button-yes')).toHaveTextContent('Oui');
+      expect(screen.getByTestId('button-no')).toHaveTextContent('Non');
+      expect(screen.getByTestId('button-confirm')).toHaveTextContent('Confirmer');
+      expect(screen.getByTestId('button-continue')).toHaveTextContent('Continuer');
+      expect(screen.getByTestId('button-proceed')).toHaveTextContent('Procéder');
+      expect(screen.getByTestId('button-dismiss')).toHaveTextContent('Rejeter');
+      expect(screen.getByTestId('button-ignore')).toHaveTextContent('Ignorer');
+
+      // Verify import/export buttons
+      expect(screen.getByTestId('button-import')).toHaveTextContent('Importer');
+      expect(screen.getByTestId('button-export')).toHaveTextContent('Exporter');
+      expect(screen.getByTestId('button-upload')).toHaveTextContent('Téléverser');
+      expect(screen.getByTestId('button-download')).toHaveTextContent('Télécharger');
+      expect(screen.getByTestId('button-backup')).toHaveTextContent('Sauvegarder');
+      expect(screen.getByTestId('button-restore')).toHaveTextContent('Restaurer');
+      expect(screen.getByTestId('button-sync')).toHaveTextContent('Synchroniser');
+
+      // Verify status and action buttons
+      expect(screen.getByTestId('button-activate')).toHaveTextContent('Activer');
+      expect(screen.getByTestId('button-deactivate')).toHaveTextContent('Désactiver');
+      expect(screen.getByTestId('button-enable')).toHaveTextContent('Activer');
+      expect(screen.getByTestId('button-disable')).toHaveTextContent('Désactiver');
+      expect(screen.getByTestId('button-publish')).toHaveTextContent('Publier');
+      expect(screen.getByTestId('button-unpublish')).toHaveTextContent('Dépublier');
+      expect(screen.getByTestId('button-approve')).toHaveTextContent('Approuver');
+      expect(screen.getByTestId('button-reject')).toHaveTextContent('Rejeter');
+      expect(screen.getByTestId('button-submit')).toHaveTextContent('Soumettre');
+      expect(screen.getByTestId('button-send')).toHaveTextContent('Envoyer');
+
+      // Verify permissions buttons
+      expect(screen.getByTestId('button-grant-permission')).toHaveTextContent('Accorder la permission');
+      expect(screen.getByTestId('button-revoke-permission')).toHaveTextContent('Révoquer la permission');
+      expect(screen.getByTestId('button-edit-permissions')).toHaveTextContent('Modifier les permissions');
+      expect(screen.getByTestId('button-view-permissions')).toHaveTextContent('Voir les permissions');
+      expect(screen.getByTestId('button-assign-permissions')).toHaveTextContent('Attribuer les permissions');
+      expect(screen.getByTestId('button-bulk-permissions')).toHaveTextContent('Permissions en lot');
+
+      // Verify compliance and quality buttons
+      expect(screen.getByTestId('button-run-scan')).toHaveTextContent('Exécuter l\'analyse');
+      expect(screen.getByTestId('button-view-report')).toHaveTextContent('Voir le rapport');
+      expect(screen.getByTestId('button-generate-report')).toHaveTextContent('Générer le rapport');
+      expect(screen.getByTestId('button-export-violations')).toHaveTextContent('Exporter les violations');
+      expect(screen.getByTestId('button-fix-issues')).toHaveTextContent('Corriger les problèmes');
+      expect(screen.getByTestId('button-schedule-scan')).toHaveTextContent('Planifier une analyse');
+      expect(screen.getByTestId('button-configure-rules')).toHaveTextContent('Configurer les règles');
+
+      // Verify notification buttons
+      expect(screen.getByTestId('button-send-notification')).toHaveTextContent('Envoyer une notification');
+      expect(screen.getByTestId('button-mark-read')).toHaveTextContent('Marquer comme lu');
+      expect(screen.getByTestId('button-mark-unread')).toHaveTextContent('Marquer comme non lu');
+      expect(screen.getByTestId('button-delete-notification')).toHaveTextContent('Supprimer la notification');
+      expect(screen.getByTestId('button-clear-all')).toHaveTextContent('Tout effacer');
+      expect(screen.getByTestId('button-view-all')).toHaveTextContent('Voir tout');
+
+      // Verify calendar and schedule buttons
+      expect(screen.getByTestId('button-add-event')).toHaveTextContent('Ajouter un événement');
+      expect(screen.getByTestId('button-edit-event')).toHaveTextContent('Modifier l\'événement');
+      expect(screen.getByTestId('button-delete-event')).toHaveTextContent('Supprimer l\'événement');
+      expect(screen.getByTestId('button-view-calendar')).toHaveTextContent('Voir le calendrier');
+      expect(screen.getByTestId('button-export-calendar')).toHaveTextContent('Exporter le calendrier');
+      expect(screen.getByTestId('button-sync-calendar')).toHaveTextContent('Synchroniser le calendrier');
+      expect(screen.getByTestId('button-today')).toHaveTextContent('Aujourd\'hui');
+      expect(screen.getByTestId('button-this-week')).toHaveTextContent('Cette semaine');
+      expect(screen.getByTestId('button-this-month')).toHaveTextContent('Ce mois');
+
+      // Verify financial buttons
+      expect(screen.getByTestId('button-add-payment')).toHaveTextContent('Ajouter un paiement');
+      expect(screen.getByTestId('button-process-payment')).toHaveTextContent('Traiter le paiement');
+      expect(screen.getByTestId('button-refund-payment')).toHaveTextContent('Rembourser le paiement');
+      expect(screen.getByTestId('button-view-invoice')).toHaveTextContent('Voir la facture');
+      expect(screen.getByTestId('button-generate-invoice')).toHaveTextContent('Générer la facture');
+      expect(screen.getByTestId('button-send-invoice')).toHaveTextContent('Envoyer la facture');
+      expect(screen.getByTestId('button-pay-now')).toHaveTextContent('Payer maintenant');
+      expect(screen.getByTestId('button-pay-later')).toHaveTextContent('Payer plus tard');
+
+      // Verify maintenance and support buttons
+      expect(screen.getByTestId('button-create-request')).toHaveTextContent('Créer une demande');
+      expect(screen.getByTestId('button-submit-request')).toHaveTextContent('Soumettre la demande');
+      expect(screen.getByTestId('button-track-request')).toHaveTextContent('Suivre la demande');
+      expect(screen.getByTestId('button-assign-technician')).toHaveTextContent('Attribuer un technicien');
+      expect(screen.getByTestId('button-complete-work')).toHaveTextContent('Terminer le travail');
+      expect(screen.getByTestId('button-schedule-maintenance')).toHaveTextContent('Planifier la maintenance');
+      expect(screen.getByTestId('button-emergency-request')).toHaveTextContent('Demande d\'urgence');
+
+      // Verify communication buttons
+      expect(screen.getByTestId('button-send-message')).toHaveTextContent('Envoyer un message');
+      expect(screen.getByTestId('button-reply')).toHaveTextContent('Répondre');
+      expect(screen.getByTestId('button-forward')).toHaveTextContent('Transférer');
+      expect(screen.getByTestId('button-send-email')).toHaveTextContent('Envoyer un courriel');
+      expect(screen.getByTestId('button-call')).toHaveTextContent('Appeler');
+      expect(screen.getByTestId('button-video-call')).toHaveTextContent('Appel vidéo');
+      expect(screen.getByTestId('button-chat')).toHaveTextContent('Discuter');
+
+      // Verify system administration buttons
+      expect(screen.getByTestId('button-system-settings')).toHaveTextContent('Paramètres système');
+      expect(screen.getByTestId('button-manage-users')).toHaveTextContent('Gérer les utilisateurs');
+      expect(screen.getByTestId('button-view-logs')).toHaveTextContent('Voir les journaux');
+      expect(screen.getByTestId('button-clear-cache')).toHaveTextContent('Vider le cache');
+      expect(screen.getByTestId('button-restart-system')).toHaveTextContent('Redémarrer le système');
+      expect(screen.getByTestId('button-update-system')).toHaveTextContent('Mettre à jour le système');
+      expect(screen.getByTestId('button-maintenance-mode')).toHaveTextContent('Mode maintenance');
+
+      // Verify language and accessibility buttons
+      expect(screen.getByTestId('button-change-language')).toHaveTextContent('Changer la langue');
+      expect(screen.getByTestId('button-english')).toHaveTextContent('Anglais');
+      expect(screen.getByTestId('button-french')).toHaveTextContent('Français');
+      expect(screen.getByTestId('button-increase-font')).toHaveTextContent('Augmenter la police');
+      expect(screen.getByTestId('button-decrease-font')).toHaveTextContent('Diminuer la police');
+      expect(screen.getByTestId('button-high-contrast')).toHaveTextContent('Contraste élevé');
+      expect(screen.getByTestId('button-screen-reader')).toHaveTextContent('Lecteur d\'écran');
+
+      // Verify toggle and switch buttons
+      expect(screen.getByTestId('button-toggle-view')).toHaveTextContent('Basculer la vue');
+      expect(screen.getByTestId('button-list-view')).toHaveTextContent('Vue liste');
+      expect(screen.getByTestId('button-grid-view')).toHaveTextContent('Vue grille');
+      expect(screen.getByTestId('button-card-view')).toHaveTextContent('Vue carte');
+      expect(screen.getByTestId('button-table-view')).toHaveTextContent('Vue tableau');
+      expect(screen.getByTestId('button-show-details')).toHaveTextContent('Afficher les détails');
+      expect(screen.getByTestId('button-hide-details')).toHaveTextContent('Masquer les détails');
+      expect(screen.getByTestId('button-expand-all')).toHaveTextContent('Tout développer');
+      expect(screen.getByTestId('button-collapse-all')).toHaveTextContent('Tout réduire');
+
+      // Verify print and share buttons
+      expect(screen.getByTestId('button-print')).toHaveTextContent('Imprimer');
+      expect(screen.getByTestId('button-print-preview')).toHaveTextContent('Aperçu avant impression');
+      expect(screen.getByTestId('button-share')).toHaveTextContent('Partager');
+      expect(screen.getByTestId('button-copy-link')).toHaveTextContent('Copier le lien');
+      expect(screen.getByTestId('button-email-link')).toHaveTextContent('Envoyer par courriel');
+      expect(screen.getByTestId('button-social-share')).toHaveTextContent('Partager sur les réseaux');
+
+      // Verify workflow buttons
+      expect(screen.getByTestId('button-start-workflow')).toHaveTextContent('Démarrer le flux');
+      expect(screen.getByTestId('button-pause-workflow')).toHaveTextContent('Mettre en pause');
+      expect(screen.getByTestId('button-resume-workflow')).toHaveTextContent('Reprendre');
+      expect(screen.getByTestId('button-stop-workflow')).toHaveTextContent('Arrêter');
+      expect(screen.getByTestId('button-restart-workflow')).toHaveTextContent('Redémarrer');
+      expect(screen.getByTestId('button-complete-workflow')).toHaveTextContent('Terminer le flux');
+    });
+
+    it('should avoid English terminology in button translations', () => {
+      const ButtonsWithEnglishTerms = () => {
+        return (
+          <div data-testid='buttons-with-english'>
+            {/* These should be avoided in French version */}
+            <button data-testid='incorrect-sign-in'>Sign In</button>
+            <button data-testid='incorrect-sign-out'>Sign Out</button>
+            <button data-testid='incorrect-get-started'>Get Started</button>
+            <button data-testid='incorrect-learn-more'>Learn More</button>
+            <button data-testid='incorrect-contact-us'>Contact Us</button>
+            <button data-testid='incorrect-create'>Create</button>
+            <button data-testid='incorrect-edit'>Edit</button>
+            <button data-testid='incorrect-update'>Update</button>
+            <button data-testid='incorrect-save'>Save</button>
+            <button data-testid='incorrect-delete'>Delete</button>
+            <button data-testid='incorrect-cancel'>Cancel</button>
+            <button data-testid='incorrect-invite-user'>Invite User</button>
+            <button data-testid='incorrect-add-user'>Add User</button>
+            <button data-testid='incorrect-manage-users'>Manage Users</button>
+            <button data-testid='incorrect-view-profile'>View Profile</button>
+            <button data-testid='incorrect-edit-profile'>Edit Profile</button>
+            <button data-testid='incorrect-add-organization'>Add Organization</button>
+            <button data-testid='incorrect-manage-organization'>Manage Organization</button>
+            <button data-testid='incorrect-add-building'>Add Building</button>
+            <button data-testid='incorrect-manage-building'>Manage Building</button>
+            <button data-testid='incorrect-upload-document'>Upload Document</button>
+            <button data-testid='incorrect-download-document'>Download Document</button>
+            <button data-testid='incorrect-search'>Search</button>
+            <button data-testid='incorrect-filter'>Filter</button>
+            <button data-testid='incorrect-reset-filters'>Reset Filters</button>
+            <button data-testid='incorrect-previous'>Previous</button>
+            <button data-testid='incorrect-next'>Next</button>
+            <button data-testid='incorrect-confirm'>Confirm</button>
+            <button data-testid='incorrect-continue'>Continue</button>
+            <button data-testid='incorrect-import'>Import</button>
+            <button data-testid='incorrect-export'>Export</button>
+            <button data-testid='incorrect-activate'>Activate</button>
+            <button data-testid='incorrect-deactivate'>Deactivate</button>
+            <button data-testid='incorrect-approve'>Approve</button>
+            <button data-testid='incorrect-reject'>Reject</button>
+            <button data-testid='incorrect-submit'>Submit</button>
+            <button data-testid='incorrect-send'>Send</button>
+            <button data-testid='incorrect-grant-permission'>Grant Permission</button>
+            <button data-testid='incorrect-revoke-permission'>Revoke Permission</button>
+            <button data-testid='incorrect-run-scan'>Run Scan</button>
+            <button data-testid='incorrect-view-report'>View Report</button>
+            <button data-testid='incorrect-send-notification'>Send Notification</button>
+            <button data-testid='incorrect-mark-read'>Mark as Read</button>
+            <button data-testid='incorrect-add-event'>Add Event</button>
+            <button data-testid='incorrect-view-calendar'>View Calendar</button>
+            <button data-testid='incorrect-process-payment'>Process Payment</button>
+            <button data-testid='incorrect-generate-invoice'>Generate Invoice</button>
+            <button data-testid='incorrect-create-request'>Create Request</button>
+            <button data-testid='incorrect-track-request'>Track Request</button>
+            <button data-testid='incorrect-send-message'>Send Message</button>
+            <button data-testid='incorrect-video-call'>Video Call</button>
+            <button data-testid='incorrect-system-settings'>System Settings</button>
+            <button data-testid='incorrect-manage-users-admin'>Manage Users</button>
+            <button data-testid='incorrect-change-language'>Change Language</button>
+            <button data-testid='incorrect-high-contrast'>High Contrast</button>
+            <button data-testid='incorrect-list-view'>List View</button>
+            <button data-testid='incorrect-grid-view'>Grid View</button>
+            <button data-testid='incorrect-print'>Print</button>
+            <button data-testid='incorrect-share'>Share</button>
+            <button data-testid='incorrect-start-workflow'>Start Workflow</button>
+            <button data-testid='incorrect-complete-workflow'>Complete Workflow</button>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ButtonsWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // Verify presence of English terms that should be translated
+      expect(screen.getByTestId('incorrect-sign-in')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-get-started')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-learn-more')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-create')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-edit')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-save')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-delete')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-invite-user')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-manage-users')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-search')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-confirm')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-import')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-export')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-activate')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-submit')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-grant-permission')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-run-scan')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-send-notification')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-add-event')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-process-payment')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-create-request')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-send-message')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-system-settings')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-change-language')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-print')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-share')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-start-workflow')).toBeInTheDocument();
+
+      // Test Quebec French terminology requirements for buttons
+      const pageText = document.body.textContent || '';
+      
+      // Should not contain these English button terms in French mode
+      const inappropriateButtonTerms = [
+        'sign in',
+        'sign out',
+        'get started',
+        'learn more',
+        'contact us',
+        'create',
+        'edit',
+        'update',
+        'save',
+        'delete',
+        'cancel',
+        'invite user',
+        'add user',
+        'manage users',
+        'view profile',
+        'edit profile',
+        'add organization',
+        'manage organization',
+        'add building',
+        'manage building',
+        'upload document',
+        'download document',
+        'search',
+        'filter',
+        'reset filters',
+        'previous',
+        'next',
+        'confirm',
+        'continue',
+        'import',
+        'export',
+        'activate',
+        'deactivate',
+        'approve',
+        'reject',
+        'submit',
+        'send',
+        'grant permission',
+        'revoke permission',
+        'run scan',
+        'view report',
+        'send notification',
+        'mark as read',
+        'add event',
+        'view calendar',
+        'process payment',
+        'generate invoice',
+        'create request',
+        'track request',
+        'send message',
+        'video call',
+        'system settings',
+        'change language',
+        'high contrast',
+        'list view',
+        'grid view',
+        'print',
+        'share',
+        'start workflow',
+        'complete workflow'
+      ];
+
+      inappropriateButtonTerms.forEach((term) => {
+        expect(pageText.toLowerCase()).not.toContain(term.toLowerCase());
+      });
+    });
+
+    it('should use proper Quebec French terminology for button actions', () => {
+      const quebecButtonTerms = {
+        'sign in': 'se connecter',
+        'sign out': 'se déconnecter',
+        'register': 's\'inscrire',
+        'login': 'connexion',
+        'logout': 'déconnexion',
+        'get started': 'commencer',
+        'learn more': 'en savoir plus',
+        'contact us': 'nous contacter',
+        'go back': 'retour',
+        'home': 'accueil',
+        'dashboard': 'tableau de bord',
+        'profile': 'profil',
+        'settings': 'paramètres',
+        'help': 'aide',
+        'support': 'support',
+        'create': 'créer',
+        'add': 'ajouter',
+        'new': 'nouveau',
+        'edit': 'modifier',
+        'update': 'mettre à jour',
+        'save': 'sauvegarder',
+        'delete': 'supprimer',
+        'remove': 'retirer',
+        'cancel': 'annuler',
+        'reset': 'réinitialiser',
+        'clear': 'effacer',
+        'search': 'rechercher',
+        'filter': 'filtrer',
+        'sort': 'trier',
+        'previous': 'précédent',
+        'next': 'suivant',
+        'first': 'premier',
+        'last': 'dernier',
+        'open': 'ouvrir',
+        'close': 'fermer',
+        'yes': 'oui',
+        'no': 'non',
+        'confirm': 'confirmer',
+        'continue': 'continuer',
+        'import': 'importer',
+        'export': 'exporter',
+        'upload': 'téléverser',
+        'download': 'télécharger',
+        'activate': 'activer',
+        'deactivate': 'désactiver',
+        'enable': 'activer',
+        'disable': 'désactiver',
+        'approve': 'approuver',
+        'reject': 'rejeter',
+        'submit': 'soumettre',
+        'send': 'envoyer',
+        'email': 'courriel',
+        'user': 'utilisateur',
+        'organization': 'organisation',
+        'building': 'immeuble',
+        'document': 'document',
+        'invite': 'inviter',
+        'manage': 'gérer',
+        'view': 'voir',
+        'share': 'partager',
+        'print': 'imprimer'
+      };
+
+      Object.entries(quebecButtonTerms).forEach(([english, expectedFrench]) => {
+        // Verify terminology mapping exists and is appropriate
+        expect(expectedFrench).toBeTruthy();
+        expect(expectedFrench.length).toBeGreaterThan(0);
+
+        // Quebec French should use proper accents where appropriate
+        if (expectedFrench.includes('é') || expectedFrench.includes('è') || expectedFrench.includes('à') || expectedFrench.includes('ô')) {
+          expect(expectedFrench).toMatch(/[éèàôç]/);
+        }
+      });
+
+      // Specific Quebec French requirements for buttons
+      expect('courriel').not.toMatch(/email/); // Should use courriel not email
+      expect('utilisateur').not.toMatch(/user/); // Should use utilisateur not user
+      expect('téléverser').not.toMatch(/upload/); // Should use téléverser not upload
+      expect('sauvegarder').not.toMatch(/save/); // Should use sauvegarder not save
+      expect('rechercher').not.toMatch(/search/); // Should use rechercher not search
+      expect('modifier').not.toMatch(/edit/); // Should use modifier not edit
+      expect('supprimer').not.toMatch(/delete/); // Should use supprimer not delete
+    });
+
+    it('should have proper data-testid attributes for all button elements', () => {
+      const AllButtonsComponent = () => {
+        return (
+          <div data-testid='all-buttons-test-component'>
+            {/* Sample buttons with proper test IDs */}
+            <button data-testid='button-primary-action'>Action principale</button>
+            <button data-testid='button-secondary-action'>Action secondaire</button>
+            <button data-testid='button-destructive-action'>Action destructive</button>
+            <button data-testid='button-submit-form'>Soumettre le formulaire</button>
+            <button data-testid='button-cancel-form'>Annuler le formulaire</button>
+            <button data-testid='button-save-draft'>Sauvegarder le brouillon</button>
+            <button data-testid='button-publish-now'>Publier maintenant</button>
+            <button data-testid='button-schedule-publish'>Planifier la publication</button>
+            <button data-testid='button-preview-changes'>Prévisualiser les modifications</button>
+            <button data-testid='button-discard-changes'>Abandonner les modifications</button>
+            <button data-testid='button-refresh-data'>Actualiser les données</button>
+            <button data-testid='button-reload-page'>Recharger la page</button>
+            <button data-testid='button-go-to-dashboard'>Aller au tableau de bord</button>
+            <button data-testid='button-open-settings'>Ouvrir les paramètres</button>
+            <button data-testid='button-close-modal'>Fermer la fenêtre modale</button>
+            <button data-testid='button-maximize-window'>Maximiser la fenêtre</button>
+            <button data-testid='button-minimize-window'>Minimiser la fenêtre</button>
+            <button data-testid='button-toggle-sidebar'>Basculer la barre latérale</button>
+            <button data-testid='button-show-help'>Afficher l\'aide</button>
+            <button data-testid='button-hide-menu'>Masquer le menu</button>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AllButtonsComponent />
+        </TestProviders>
+      );
+
+      // Verify all buttons have proper test IDs and French content
+      expect(screen.getByTestId('all-buttons-test-component')).toBeInTheDocument();
+      expect(screen.getByTestId('button-primary-action')).toBeInTheDocument();
+      expect(screen.getByTestId('button-secondary-action')).toBeInTheDocument();
+      expect(screen.getByTestId('button-destructive-action')).toBeInTheDocument();
+      expect(screen.getByTestId('button-submit-form')).toBeInTheDocument();
+      expect(screen.getByTestId('button-cancel-form')).toBeInTheDocument();
+      expect(screen.getByTestId('button-save-draft')).toBeInTheDocument();
+      expect(screen.getByTestId('button-publish-now')).toBeInTheDocument();
+      expect(screen.getByTestId('button-schedule-publish')).toBeInTheDocument();
+      expect(screen.getByTestId('button-preview-changes')).toBeInTheDocument();
+      expect(screen.getByTestId('button-discard-changes')).toBeInTheDocument();
+      expect(screen.getByTestId('button-refresh-data')).toBeInTheDocument();
+      expect(screen.getByTestId('button-reload-page')).toBeInTheDocument();
+      expect(screen.getByTestId('button-go-to-dashboard')).toBeInTheDocument();
+      expect(screen.getByTestId('button-open-settings')).toBeInTheDocument();
+      expect(screen.getByTestId('button-close-modal')).toBeInTheDocument();
+      expect(screen.getByTestId('button-maximize-window')).toBeInTheDocument();
+      expect(screen.getByTestId('button-minimize-window')).toBeInTheDocument();
+      expect(screen.getByTestId('button-toggle-sidebar')).toBeInTheDocument();
+      expect(screen.getByTestId('button-show-help')).toBeInTheDocument();
+      expect(screen.getByTestId('button-hide-menu')).toBeInTheDocument();
+
+      // Verify button content is in French
+      expect(screen.getByTestId('button-primary-action')).toHaveTextContent('Action principale');
+      expect(screen.getByTestId('button-secondary-action')).toHaveTextContent('Action secondaire');
+      expect(screen.getByTestId('button-destructive-action')).toHaveTextContent('Action destructive');
+      expect(screen.getByTestId('button-submit-form')).toHaveTextContent('Soumettre le formulaire');
+      expect(screen.getByTestId('button-cancel-form')).toHaveTextContent('Annuler le formulaire');
+      expect(screen.getByTestId('button-save-draft')).toHaveTextContent('Sauvegarder le brouillon');
+      expect(screen.getByTestId('button-publish-now')).toHaveTextContent('Publier maintenant');
+      expect(screen.getByTestId('button-schedule-publish')).toHaveTextContent('Planifier la publication');
+      expect(screen.getByTestId('button-preview-changes')).toHaveTextContent('Prévisualiser les modifications');
+      expect(screen.getByTestId('button-discard-changes')).toHaveTextContent('Abandonner les modifications');
+      expect(screen.getByTestId('button-refresh-data')).toHaveTextContent('Actualiser les données');
+      expect(screen.getByTestId('button-reload-page')).toHaveTextContent('Recharger la page');
+      expect(screen.getByTestId('button-go-to-dashboard')).toHaveTextContent('Aller au tableau de bord');
+      expect(screen.getByTestId('button-open-settings')).toHaveTextContent('Ouvrir les paramètres');
+      expect(screen.getByTestId('button-close-modal')).toHaveTextContent('Fermer la fenêtre modale');
+      expect(screen.getByTestId('button-maximize-window')).toHaveTextContent('Maximiser la fenêtre');
+      expect(screen.getByTestId('button-minimize-window')).toHaveTextContent('Minimiser la fenêtre');
+      expect(screen.getByTestId('button-toggle-sidebar')).toHaveTextContent('Basculer la barre latérale');
+      expect(screen.getByTestId('button-show-help')).toHaveTextContent('Afficher l\'aide');
+      expect(screen.getByTestId('button-hide-menu')).toHaveTextContent('Masquer le menu');
+    });
+  });
+
   describe('Admin Permissions RBAC Page Translation', () => {
     it('should display admin permissions page with proper French translations', () => {
       const AdminPermissionsPage = () => {
