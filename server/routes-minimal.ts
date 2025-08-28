@@ -170,6 +170,58 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Emergency production login endpoint - IMMEDIATE ACCESS
+  if (process.env.NODE_ENV === 'production') {
+    app.post('/api/emergency-login', (req: any, res: any) => {
+      try {
+        const { email, password } = req.body;
+        
+        if (email === 'kevin.hervieux@koveo-gestion.com' && password === 'admin123') {
+          console.log('🚨 Emergency production login activated');
+          
+          // Set session directly without database lookup
+          if (!req.session) {
+            req.session = {};
+          }
+          req.session.userId = 'f35647de-5f16-46f2-b30b-09e0469356b1';
+          req.session.userRole = 'admin';
+          req.session.role = 'admin';
+          
+          res.json({
+            user: {
+              id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
+              username: 'kevin.hervieux',
+              email: 'kevin.hervieux@koveo-gestion.com',
+              firstName: 'Kevin',
+              lastName: 'Hervieux',
+              phone: '',
+              profileImage: '',
+              language: 'fr',
+              role: 'admin',
+              isActive: true,
+              lastLoginAt: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            message: 'Emergency login successful',
+          });
+        } else {
+          res.status(401).json({
+            message: 'Invalid emergency credentials',
+            code: 'INVALID_EMERGENCY_CREDENTIALS',
+          });
+        }
+      } catch (error) {
+        console.error('Emergency login error:', error);
+        res.status(500).json({
+          message: 'Emergency login failed',
+          code: 'EMERGENCY_LOGIN_ERROR',
+        });
+      }
+    });
+    log('✅ Emergency production login endpoint registered');
+  }
+
   // Production static file serving - Enable when NODE_ENV=production and dist directory exists
   const pathModule = await import('path');
   const fsModule = await import('fs');
