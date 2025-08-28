@@ -23,6 +23,23 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
   try {
     console.log(`🔍 Checking permission: role="${userRole}", permission="${permissionName}"`);
     
+    // First check if permission exists at all
+    const permissionExists = await db
+      .select()
+      .from(schema.permissions)
+      .where(eq(schema.permissions.name, permissionName))
+      .limit(1);
+    
+    console.log(`🔍 Permission "${permissionName}" exists: ${permissionExists.length > 0}`);
+    
+    // Check role permissions
+    const rolePermissions = await db
+      .select()
+      .from(schema.rolePermissions)
+      .where(eq(schema.rolePermissions.role, userRole as any));
+    
+    console.log(`🔍 Role "${userRole}" has ${rolePermissions.length} permissions`);
+    
     const result = await db
       .select()
       .from(schema.rolePermissions)
@@ -39,6 +56,15 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
     
     if (result.length === 0) {
       console.log(`❌ No permission found for role "${userRole}" and permission "${permissionName}"`);
+      // Debug: list all admin permissions
+      if (userRole === 'admin') {
+        const adminPerms = await db
+          .select({ name: schema.permissions.name })
+          .from(schema.rolePermissions)
+          .leftJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
+          .where(eq(schema.rolePermissions.role, 'admin'));
+        console.log(`🔍 Admin permissions:`, adminPerms.map(p => p.name));
+      }
     }
 
     return result.length > 0;
