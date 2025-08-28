@@ -44,7 +44,8 @@ import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
-import { DemandFilters } from '@/components/common/DemandFilters';\nimport { useLanguage } from '@/hooks/use-language';
+import { DemandFilters } from '@/components/common/DemandFilters';
+import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
 // Types
