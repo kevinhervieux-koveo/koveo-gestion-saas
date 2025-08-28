@@ -172,9 +172,9 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       // Role-based access control for buildings
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (!['admin', 'manager', 'demo_manager', 'demo_tenant', 'demo_resident', 'tenant', 'resident'].includes(user.role)) {
         return res.status(403).json({
-          message: 'Access denied. Admin or Manager role required.',
+          message: 'Access denied. Insufficient permissions.',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
@@ -210,12 +210,61 @@ export function registerBuildingRoutes(app: Express): void {
           .orderBy(organizations.name, buildings.name);
       } else {
         // Manager or admin without global access: only buildings from their organizations
+        console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} organizations:`, user.organizations);
         if (!user.organizations || user.organizations.length === 0) {
-          return res.json([]); // No organizations = no buildings
-        }
-
-        buildingsQuery = db
-          .select({
+          console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
+          
+          // For tenant/resident roles: Get buildings through their residences
+          if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
+            const userResidences = await db
+              .select({
+                buildingId: residences.buildingId,
+              })
+              .from(userResidences)
+              .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+              .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+            
+            console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidences.length} residences for user ${user.id}`);
+            
+            if (userResidences.length === 0) {
+              return res.json([]); // No residences = no buildings
+            }
+            
+            const accessibleBuildingIds = [...new Set(userResidences.map(ur => ur.buildingId))];
+            console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
+            
+            buildingsQuery = db
+              .select({
+                id: buildings.id,
+                name: buildings.name,
+                address: buildings.address,
+                city: buildings.city,
+                province: buildings.province,
+                postalCode: buildings.postalCode,
+                buildingType: buildings.buildingType,
+                yearBuilt: buildings.yearBuilt,
+                totalUnits: buildings.totalUnits,
+                totalFloors: buildings.totalFloors,
+                parkingSpaces: buildings.parkingSpaces,
+                storageSpaces: buildings.storageSpaces,
+                organizationId: buildings.organizationId,
+                isActive: buildings.isActive,
+                createdAt: buildings.createdAt,
+                organizationName: organizations.name,
+              })
+              .from(buildings)
+              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+              .where(
+                and(eq(buildings.isActive, true), inArray(buildings.id, accessibleBuildingIds))
+              )
+              .orderBy(organizations.name, buildings.name);
+          } else {
+            return res.json([]); // No organizations = no buildings for managers/admins
+          }
+        } else {
+          // User has organizations - use organization-based access
+          buildingsQuery = db
+            .select({
             id: buildings.id,
             name: buildings.name,
             address: buildings.address,
@@ -238,7 +287,8 @@ export function registerBuildingRoutes(app: Express): void {
           .where(
             and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
           )
-          .orderBy(organizations.name, buildings.name);
+            .orderBy(organizations.name, buildings.name);
+        }
       }
 
       const result = await buildingsQuery;
