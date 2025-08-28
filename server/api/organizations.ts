@@ -539,9 +539,14 @@ export function registerOrganizationRoutes(app: Express): void {
         .delete(userOrganizations)
         .where(eq(userOrganizations.organizationId, organizationId));
 
-      // 5. Find and soft delete orphaned users (users with no active organization relationships)
+      // 5. Find and delete orphaned users (users with no active organization relationships)
       const orphanedUsers = await db
-        .select({ id: users.id })
+        .select({ 
+          id: users.id, 
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName 
+        })
         .from(users)
         .leftJoin(
           userOrganizations,
@@ -551,10 +556,17 @@ export function registerOrganizationRoutes(app: Express): void {
 
       if (orphanedUsers.length > 0) {
         const orphanedUserIds = orphanedUsers.map((u) => u.id);
-        await db
-          .update(users)
-          .set({ isActive: false, updatedAt: new Date() })
-          .where(inArray(users.id, orphanedUserIds));
+        
+        // Hard delete orphaned users since they have no organization assignments
+        const deletedUsers = await db
+          .delete(users)
+          .where(inArray(users.id, orphanedUserIds))
+          .returning({ 
+            id: users.id, 
+            email: users.email 
+          });
+        
+        console.log(`🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map(u => u.email).join(', ')}`);
       }
 
       // 6. Finally, soft delete the organization
