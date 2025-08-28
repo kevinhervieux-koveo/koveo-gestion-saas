@@ -15,6 +15,133 @@ import { ObjectStorageService } from '../objectStorage';
 import crypto from 'crypto';
 
 /**
+ * Handles creating or deleting residences when building totalUnits changes
+ */
+async function handleResidenceChanges(
+  buildingId: string,
+  organizationId: string,
+  newTotalUnits: number,
+  currentResidenceCount: number,
+  totalFloors?: number
+): Promise<void> {
+  try {
+    const objectStorageService = new ObjectStorageService();
+    
+    if (newTotalUnits > currentResidenceCount) {
+      // Need to create more residences
+      const residencesToCreate = newTotalUnits - currentResidenceCount;
+      console.warn(`📈 Creating ${residencesToCreate} new residences for building ${buildingId}`);
+      
+      // Get existing residence numbers to avoid conflicts
+      const existingResidences = await db
+        .select({ unitNumber: residences.unitNumber })
+        .from(residences)
+        .where(eq(residences.buildingId, buildingId));
+      
+      const existingUnitNumbers = new Set(existingResidences.map(r => r.unitNumber));
+      
+      const floors = totalFloors || 1;
+      const unitsPerFloor = Math.ceil(newTotalUnits / floors);
+      
+      const newResidences = [];
+      let unitCounter = 1;
+      
+      for (let residenceIndex = 0; residenceIndex < residencesToCreate; residenceIndex++) {
+        // Find next available unit number
+        while (existingUnitNumbers.has(unitCounter.toString())) {
+          unitCounter++;
+        }
+        
+        const floor = Math.ceil(unitCounter / unitsPerFloor);
+        const unitNumber = unitCounter.toString();
+        
+        newResidences.push({
+          buildingId,
+          unitNumber,
+          floor: floor,
+          isActive: true,
+        });
+        
+        existingUnitNumbers.add(unitNumber);
+        unitCounter++;
+      }
+      
+      // Create residences in batch
+      if (newResidences.length > 0) {
+        const createdResidences = await db
+          .insert(residences)
+          .values(newResidences)
+          .returning();
+        
+        // Create object storage hierarchy for each new residence
+        for (const residence of createdResidences) {
+          try {
+            await objectStorageService.createResidenceHierarchy(
+              organizationId,
+              buildingId,
+              residence.id
+            );
+          } catch (storageError) {
+            console.error(`⚠️ Error creating storage hierarchy for residence ${residence.id}:`, storageError);
+            // Don't fail the whole operation for storage errors
+          }
+        }
+        
+        console.warn(`✅ Created ${createdResidences.length} new residences for building ${buildingId}`);
+      }
+    } else if (newTotalUnits < currentResidenceCount) {
+      // Need to delete some residences
+      const residencesToDelete = currentResidenceCount - newTotalUnits;
+      console.warn(`📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`);
+      
+      // Get residences that can be safely deleted (no active user relationships)
+      const deletableResidences = await db
+        .select({ id: residences.id, unitNumber: residences.unitNumber })
+        .from(residences)
+        .leftJoin(userResidences, and(
+          eq(userResidences.residenceId, residences.id),
+          eq(userResidences.isActive, true)
+        ))
+        .where(and(
+          eq(residences.buildingId, buildingId),
+          eq(residences.isActive, true),
+          isNull(userResidences.id) // No active user relationships
+        ))
+        .orderBy(sql`${residences.unitNumber}::integer DESC`) // Delete highest unit numbers first
+        .limit(residencesToDelete);
+      
+      if (deletableResidences.length > 0) {
+        const residenceIdsToDelete = deletableResidences.map(r => r.id);
+        
+        // Soft delete residences (mark as inactive)
+        await db
+          .update(residences)
+          .set({ 
+            isActive: false, 
+            updatedAt: new Date() 
+          })
+          .where(inArray(residences.id, residenceIdsToDelete));
+        
+        console.warn(`✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`);
+        
+        // Log which residences couldn't be deleted due to user relationships
+        const protectedCount = residencesToDelete - deletableResidences.length;
+        if (protectedCount > 0) {
+          console.warn(`⚠️ Could not delete ${protectedCount} residences - they have active user relationships`);
+        }
+      } else {
+        console.warn(`⚠️ No residences can be deleted - all have active user relationships`);
+      }
+    } else {
+      console.warn(`✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`);
+    }
+  } catch (error) {
+    console.error(`❌ Error handling residence changes for building ${buildingId}:`, error);
+    // Don't throw the error to avoid breaking the building update
+  }
+}
+
+/**
  *
  * @param app
  */
@@ -800,6 +927,18 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
+      // Check current number of active residences
+      const currentResidences = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(residences)
+        .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
+
+      const currentResidenceCount = currentResidences[0]?.count || 0;
+      const newTotalUnits = buildingData.totalUnits || 0;
+      const previousTotalUnits = existingBuilding[0].totalUnits || 0;
+
+      console.warn(`🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`);
+
       // Update building
       const updatedBuilding = await db
         .update(buildings)
@@ -811,7 +950,7 @@ export function registerBuildingRoutes(app: Express): void {
           postalCode: buildingData.postalCode || '',
           buildingType: buildingData.buildingType || 'condo',
           yearBuilt: buildingData.yearBuilt,
-          totalUnits: buildingData.totalUnits || 0,
+          totalUnits: newTotalUnits,
           totalFloors: buildingData.totalFloors,
           parkingSpaces: buildingData.parkingSpaces,
           storageSpaces: buildingData.storageSpaces,
@@ -822,6 +961,9 @@ export function registerBuildingRoutes(app: Express): void {
         })
         .where(eq(buildings.id, buildingId))
         .returning();
+
+      // Handle residence creation/deletion based on totalUnits change
+      await handleResidenceChanges(buildingId, buildingData.organizationId, newTotalUnits, currentResidenceCount, buildingData.totalFloors);
 
       console.warn(`✅ Building updated successfully: ${buildingId}`);
 
