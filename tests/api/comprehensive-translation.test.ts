@@ -24,6 +24,7 @@ const mockTranslations = {
     },
     validation: {
       required: 'This field is required',
+      emailRequired: 'Email address is required',
       email: 'Please enter a valid email address',
       password: 'Password must be at least 8 characters',
     },
@@ -43,6 +44,7 @@ const mockTranslations = {
     },
     validation: {
       required: 'Ce champ est obligatoire',
+      emailRequired: 'L\'adresse courriel est obligatoire',
       email: 'Veuillez entrer une adresse courriel valide',
       password: 'Le mot de passe doit contenir au moins 8 caractères',
     },
@@ -137,7 +139,7 @@ class MockAPIClient {
     const errors: string[] = [];
 
     if (!userData.email) {
-      errors.push(this.getTranslation('validation.required'));
+      errors.push(this.getTranslation('validation.emailRequired'));
     } else if (!userData.email.includes('@')) {
       errors.push(this.getTranslation('validation.email'));
     }
