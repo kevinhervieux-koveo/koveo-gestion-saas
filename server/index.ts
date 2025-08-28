@@ -237,9 +237,13 @@ async function loadFullApplication(): Promise<void> {
     log('✅ Essential application routes loaded');
     
     // Setup frontend serving AFTER API routes are registered
-    // In Replit development environment, use Vite regardless of REPLIT_DOMAINS
-    // Only use production serving if explicitly forced or in actual production deployment
-    const isActualProduction = process.env.NODE_ENV === 'production' && process.env.FORCE_PRODUCTION_SERVE === 'true';
+    // Use production serving when NODE_ENV=production and we have a built dist directory
+    // Or when explicitly forced with FORCE_PRODUCTION_SERVE
+    const fs = await import('fs');
+    const path = await import('path');
+    const hasProductionBuild = fs.existsSync(path.resolve(process.cwd(), 'dist', 'public'));
+    const isActualProduction = process.env.NODE_ENV === 'production' && 
+      (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
     const isViteDevMode = !isActualProduction;
     
     log(`🔍 Environment check: NODE_ENV=${process.env.NODE_ENV}, REPLIT_DOMAINS=${!!process.env.REPLIT_DOMAINS}, isViteDevMode=${isViteDevMode}`);

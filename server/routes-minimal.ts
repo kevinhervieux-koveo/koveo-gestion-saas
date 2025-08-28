@@ -170,18 +170,21 @@ async function createInvitationAuditLog(
  * @returns Function result.
  */
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Production static file serving - Only enable for actual production or when explicitly forced
-  const enableProductionServing = (process.env.NODE_ENV === 'production' && process.env.FORCE_PRODUCTION_SERVE === 'true') || false;
+  // Production static file serving - Enable when NODE_ENV=production and dist directory exists
+  const pathModule = await import('path');
+  const fsModule = await import('fs');
+  const hasProductionBuild = fsModule.existsSync(pathModule.resolve(process.cwd(), 'dist', 'public'));
+  const enableProductionServing = process.env.NODE_ENV === 'production' && 
+    (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
   
   if (enableProductionServing) {
-    const path = await import('path');
     const express = await import('express');
-    const distPath = path.resolve(process.cwd(), 'dist', 'public');
+    const distPath = pathModule.resolve(process.cwd(), 'dist', 'public');
 
     console.log(`🔍 Setting up static file serving from: ${distPath}`);
 
     // Serve static assets with proper caching
-    app.use('/assets', express.static(path.resolve(distPath, 'assets'), {
+    app.use('/assets', express.static(pathModule.resolve(distPath, 'assets'), {
       maxAge: '1y',
       etag: false,
       immutable: true,
@@ -1405,21 +1408,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   log('✅ Demo organizations functionality removed - no initialization needed');
 
   // Root route handler for SPA (production only - Vite handles development)
-  const path = await import('path');
-  const fs = await import('fs');
   
   // Register root handler for deployed production (Replit deployments)
   if (enableProductionServing) {
-    const path = await import('path');
-    const fs = await import('fs');
     
     app.get('/', (req, res) => {
       try {
-        const indexPath = path.resolve(process.cwd(), 'dist/public/index.html');
+        const indexPath = pathModule.resolve(process.cwd(), 'dist/public/index.html');
         
         console.log(`🔍 Attempting to serve index.html from: ${indexPath}`);
         
-        if (fs.existsSync(indexPath)) {
+        if (fsModule.existsSync(indexPath)) {
           console.log('✅ index.html found, serving to client');
           res.sendFile(indexPath);
         } else {
@@ -1462,9 +1461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       try {
-        const indexPath = path.resolve(process.cwd(), 'dist/public/index.html');
+        const indexPath = pathModule.resolve(process.cwd(), 'dist/public/index.html');
         
-        if (fs.existsSync(indexPath)) {
+        if (fsModule.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {
           res.status(404).send('Application not built');
