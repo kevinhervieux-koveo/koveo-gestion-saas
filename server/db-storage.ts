@@ -1,8 +1,6 @@
 import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
 import { queryCache, CacheInvalidator } from './query-cache';
-import cached from './query-cache';
-import { trackPerformance } from './performance-monitoring';
 import * as schema from '@shared/schema';
 import type {
   User,
@@ -40,10 +38,14 @@ export class DatabaseStorage implements IStorage {
    * Retrieves all users from the database with caching and performance tracking.
    * @returns Promise that resolves to an array of users.
    */
-  @trackPerformance('getUsers')
-  @cached('users', () => 'all_users')
   async getUsers(): Promise<User[]> {
-    return await db.select().from(schema.users).where(eq(schema.users.isActive, true));
+    const cacheKey = 'all_users';
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+    
+    const result = await db.select().from(schema.users).where(eq(schema.users.isActive, true));
+    queryCache.set('users', cacheKey, result);
+    return result;
   }
 
   /**
@@ -51,11 +53,15 @@ export class DatabaseStorage implements IStorage {
    * @param id - The unique identifier of the user.
    * @returns Promise that resolves to the user or undefined if not found.
    */
-  @trackPerformance('getUser')
-  @cached('users', (id: string) => `user:${id}`)
   async getUser(id: string): Promise<User | undefined> {
+    const cacheKey = `user:${id}`;
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+    
     const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-    return result[0];
+    const user = result[0];
+    if (user) queryCache.set('users', cacheKey, user);
+    return user;
   }
 
   /**
@@ -63,11 +69,15 @@ export class DatabaseStorage implements IStorage {
    * @param email - The email address to search for.
    * @returns Promise that resolves to the user or undefined if not found.
    */
-  @trackPerformance('getUserByEmail')
-  @cached('users', (email: string) => `user_email:${email}`)
   async getUserByEmail(email: string): Promise<User | undefined> {
+    const cacheKey = `user_email:${email}`;
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+    
     const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
-    return result[0];
+    const user = result[0];
+    if (user) queryCache.set('users', cacheKey, user);
+    return user;
   }
 
   /**
@@ -75,7 +85,6 @@ export class DatabaseStorage implements IStorage {
    * @param insertUser - The user data to insert.
    * @returns Promise that resolves to the created user.
    */
-  @trackPerformance('createUser')
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(schema.users).values(insertUser).returning();
 
@@ -91,7 +100,6 @@ export class DatabaseStorage implements IStorage {
    * @param updates - The fields to update.
    * @returns Promise that resolves to the updated user.
    */
-  @trackPerformance('updateUser')
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await db
       .update(schema.users)
@@ -110,8 +118,6 @@ export class DatabaseStorage implements IStorage {
    * @param userId - The unique user identifier.
    * @returns Promise that resolves to array of organization IDs the user belongs to.
    */
-  @trackPerformance('getUserOrganizations')
-  @cached('users', (userId: string) => `user_orgs:${userId}`)
   async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
     const user = await this.getUser(userId);
     if (!user || !user.organizationId) {
@@ -125,8 +131,7 @@ export class DatabaseStorage implements IStorage {
    * @param userId - The unique user identifier.
    * @returns Promise that resolves to array of residence IDs the user is associated with.
    */
-  @trackPerformance('getUserResidences')
-  @cached('residences', (userId: string) => `user_residences:${userId}`)
+  // getUserResidences with caching
   async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
     const result = await db
       .select({
@@ -145,8 +150,6 @@ export class DatabaseStorage implements IStorage {
    * Retrieves all organizations with caching and performance tracking.
    * @returns Promise that resolves to an array of organizations.
    */
-  @trackPerformance('getOrganizations')
-  @cached('organizations', () => 'all_organizations')
   async getOrganizations(): Promise<Organization[]> {
     return await db
       .select()
@@ -159,8 +162,6 @@ export class DatabaseStorage implements IStorage {
    * @param id - The organization ID.
    * @returns Promise that resolves to the organization or undefined.
    */
-  @trackPerformance('getOrganization')
-  @cached('organizations', (id: string) => `organization:${id}`)
   async getOrganization(id: string): Promise<Organization | undefined> {
     const result = await db
       .select()

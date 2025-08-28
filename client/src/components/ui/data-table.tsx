@@ -111,6 +111,9 @@ interface DataTableProps<T> {
  * @param props - Table configuration and _data
  * @returns Standardized _data table component
  */
+// Re-export types for easier importing
+export type { ColumnConfig, TableColumn, TableAction, BulkAction };
+
 export function DataTable<T extends Record<string, unknown>>({
   _data: __data,
   columns,

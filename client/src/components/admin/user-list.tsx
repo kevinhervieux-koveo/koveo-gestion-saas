@@ -84,9 +84,9 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       label: t('role'),
       type: 'select',
       options: [
-        { value: 'admin', label: t('admin') },
-        { value: 'manager', label: t('manager') },
-        { value: 'tenant', label: t('tenant') },
+        { _value: 'admin', label: t('admin') },
+        { _value: 'manager', label: t('manager') },
+        { _value: 'tenant', label: t('tenant') },
       ],
     },
     {

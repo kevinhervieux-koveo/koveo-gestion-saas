@@ -227,7 +227,7 @@ export function BuildingForm({
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target._value)
+                            e.target.value === '' ? undefined : Number(e.target.value)
                           )
                         }
                       />
@@ -249,7 +249,7 @@ export function BuildingForm({
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target._value)
+                            e.target.value === '' ? undefined : Number(e.target.value)
                           )
                         }
                       />
@@ -271,7 +271,7 @@ export function BuildingForm({
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target._value)
+                            e.target.value === '' ? undefined : Number(e.target.value)
                           )
                         }
                       />
@@ -296,7 +296,7 @@ export function BuildingForm({
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target._value)
+                            e.target.value === '' ? undefined : Number(e.target.value)
                           )
                         }
                       />
@@ -318,7 +318,7 @@ export function BuildingForm({
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === '' ? undefined : Number(e.target._value)
+                            e.target.value === '' ? undefined : Number(e.target.value)
                           )
                         }
                       />
