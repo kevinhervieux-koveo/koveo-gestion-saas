@@ -824,6 +824,98 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * POST /api/users/:id/delete-account - Admin endpoint to delete any user account.
+   */
+  app.post('/api/users/:id/delete-account', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: targetUserId } = req.params;
+      
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins can delete other users' accounts
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only administrators can delete user accounts',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      if (!targetUserId) {
+        return res.status(400).json({
+          message: 'User ID is required',
+          code: 'INVALID_REQUEST',
+        });
+      }
+
+      // Verify target user exists
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      const { confirmEmail, reason } = req.body;
+
+      // Verify email confirmation
+      if (confirmEmail !== targetUser.email) {
+        return res.status(400).json({
+          message: 'Email confirmation does not match',
+          code: 'EMAIL_MISMATCH',
+        });
+      }
+
+      // Delete all related data in the correct order to handle foreign key constraints
+      await Promise.all([
+        // Delete user relationships
+        db
+          .delete(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.userId, targetUserId)),
+        db.delete(schema.userResidences).where(eq(schema.userResidences.userId, targetUserId)),
+        db
+          .delete(schema.documentsResidents)
+          .where(eq(schema.documentsResidents.uploadedBy, targetUserId)),
+
+        // Delete user-created content
+        db.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId)),
+        db
+          .delete(schema.maintenanceRequests)
+          .where(eq(schema.maintenanceRequests.submittedBy, targetUserId)),
+
+        // Delete invitations
+        db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
+      ]);
+
+      // Finally, delete the user account
+      await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
+
+      // Log the deletion for audit purposes
+      console.log(
+        `User account deleted by admin ${currentUser.email} (${currentUser.id}): ${targetUser.email} (${targetUserId}). Reason: ${reason || 'Not provided'}`
+      );
+
+      res.json({
+        message: 'User account and all associated data have been permanently deleted',
+        deletedUserId: targetUserId,
+        deletedUserEmail: targetUser.email,
+      });
+    } catch (error) {
+      console.error('Failed to delete user account:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete user account',
+      });
+    }
+  });
+
+  /**
    * POST /api/users/me/change-password - Change current user's password.
    */
   app.post('/api/users/me/change-password', requireAuth, async (req: any, res) => {
