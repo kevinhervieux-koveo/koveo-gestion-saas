@@ -55,23 +55,16 @@ const PostgreSqlStore = connectPg(session);
  */
 function createSessionStore() {
   try {
-    // In production, disable session store entirely to avoid authentication conflicts
-    // This will use the default memory store which doesn't require database access
-    if (process.env.NODE_ENV === 'production') {
-      console.log('🔧 Production mode: Using memory session store to avoid database authentication conflicts');
-      return undefined; // Use default memory store
-    } else {
-      // In development, try to use the shared pool but with better error handling
-      return new PostgreSqlStore({
-        pool: pool,
-        tableName: 'user_sessions',
-        createTableIfMissing: true,
-        errorLog: (error: any) => {
-          console.warn('Session store error (development):', error.message);
-          // Don't crash the application on session store errors
-        }
-      });
-    }
+    // Use PostgreSQL session store in all environments for consistency
+    return new PostgreSqlStore({
+      pool: pool,
+      tableName: 'user_sessions',
+      createTableIfMissing: true,
+      errorLog: (error: any) => {
+        console.warn('Session store error:', error.message);
+        // Don't crash the application on session store errors
+      }
+    });
   } catch (error) {
     console.warn('Failed to create PostgreSQL session store, falling back to memory store:', error);
     // In production, if DB fails, use memory store to keep app running
@@ -181,6 +174,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
+
     const user = await storage.getUser(req.session.userId);
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
@@ -378,102 +372,9 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // 🚨 EMERGENCY PRODUCTION BYPASS - Immediate admin access
-      if (process.env.NODE_ENV === 'production' && 
-          email === 'kevin.hervieux@koveo-gestion.com' && 
-          password === 'admin123') {
-        console.log('🚨 Production emergency authentication activated for admin user');
-        
-        // Set session directly without database lookup
-        if (!req.session) {
-          req.session = {} as any;
-        }
-        (req.session as any).userId = 'f35647de-5f16-46f2-b30b-09e0469356b1';
-        (req.session as any).userRole = 'admin';
-        (req.session as any).role = 'admin';
-        
-        return res.json({
-          user: {
-            id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
-            username: 'kevin.hervieux',
-            email: 'kevin.hervieux@koveo-gestion.com',
-            firstName: 'Kevin',
-            lastName: 'Hervieux',
-            phone: '',
-            profileImage: '',
-            language: 'fr',
-            role: 'admin',
-            isActive: true,
-            lastLoginAt: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          message: 'Emergency authentication successful',
-        });
-      }
 
-      let user;
-      
-      // Production emergency authentication bypass for database authentication issues
-      if (process.env.NODE_ENV === 'production' && 
-          email.toLowerCase() === 'kevin.hervieux@koveo-gestion.com' && 
-          password === 'admin123') {
-        
-        console.log('🚨 Production emergency authentication activated for admin user');
-        
-        // Create emergency admin user object
-        user = {
-          id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
-          username: 'kevin.hervieux',
-          email: 'kevin.hervieux@koveo-gestion.com',
-          password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda', // admin123 hash
-          firstName: 'Kevin',
-          lastName: 'Hervieux',
-          phone: '',
-          profileImage: '',
-          language: 'fr' as const,
-          role: 'admin' as const,
-          isActive: true,
-          lastLoginAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      } else {
-        // Normal database lookup
-        try {
-          user = await storage.getUserByEmail(email.toLowerCase());
-        } catch (dbError: any) {
-          console.error('Database error during getUserByEmail:', dbError.message);
-          
-          // If database fails and this is the admin user, use emergency bypass
-          if (process.env.NODE_ENV === 'production' && 
-              email.toLowerCase() === 'kevin.hervieux@koveo-gestion.com' && 
-              password === 'admin123') {
-            
-            console.log('🚨 Database failed, activating emergency authentication for admin user');
-            
-            user = {
-              id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
-              username: 'kevin.hervieux',
-              email: 'kevin.hervieux@koveo-gestion.com',
-              password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda',
-              firstName: 'Kevin',
-              lastName: 'Hervieux',
-              phone: '',
-              profileImage: '',
-              language: 'fr' as const,
-              role: 'admin' as const,
-              isActive: true,
-              lastLoginAt: null,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            };
-          } else {
-            // Re-throw error for non-admin users or development
-            throw dbError;
-          }
-        }
-      }
+      // Normal database lookup for all users
+      const user = await storage.getUserByEmail(email.toLowerCase());
       
       if (!user) {
         return res.status(401).json({

@@ -1103,7 +1103,5 @@ class ProductionFallbackStorage implements IStorage {
   async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{ success: boolean; message: string; data?: any }> { return { success: true, message: 'Fallback mode' }; }
 }
 
-// Use production fallback storage in production, database storage otherwise
-export const storage = process.env.NODE_ENV === 'production' 
-  ? new ProductionFallbackStorage() 
-  : new OptimizedDatabaseStorage();
+// Use database storage in all environments for proper functionality
+export const storage = new OptimizedDatabaseStorage();
