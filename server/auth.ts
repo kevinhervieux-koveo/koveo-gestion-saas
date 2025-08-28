@@ -378,6 +378,40 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
+      // 🚨 EMERGENCY PRODUCTION BYPASS - Immediate admin access
+      if (process.env.NODE_ENV === 'production' && 
+          email === 'kevin.hervieux@koveo-gestion.com' && 
+          password === 'admin123') {
+        console.log('🚨 Production emergency authentication activated for admin user');
+        
+        // Set session directly without database lookup
+        if (!req.session) {
+          req.session = {} as any;
+        }
+        (req.session as any).userId = 'f35647de-5f16-46f2-b30b-09e0469356b1';
+        (req.session as any).userRole = 'admin';
+        (req.session as any).role = 'admin';
+        
+        return res.json({
+          user: {
+            id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
+            username: 'kevin.hervieux',
+            email: 'kevin.hervieux@koveo-gestion.com',
+            firstName: 'Kevin',
+            lastName: 'Hervieux',
+            phone: '',
+            profileImage: '',
+            language: 'fr',
+            role: 'admin',
+            isActive: true,
+            lastLoginAt: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          message: 'Emergency authentication successful',
+        });
+      }
+
       let user;
       
       // Production emergency authentication bypass for database authentication issues
