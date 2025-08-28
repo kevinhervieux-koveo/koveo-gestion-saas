@@ -1,6 +1,7 @@
 import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
+import { translations } from '@/lib/i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ export function Sidebar() {
 
     // Use translation keys from i18n system
     const getTranslatedSectionName = (nameKey: string) => {
-      return t(nameKey);
+      return t(nameKey as keyof typeof translations.en);
     };
 
     return (
@@ -102,7 +103,7 @@ export function Sidebar() {
 
     // Use translation keys from i18n system
     const getTranslatedName = (nameKey: string) => {
-      return t(nameKey);
+      return t(nameKey as keyof typeof translations.en);
     };
 
     return (
