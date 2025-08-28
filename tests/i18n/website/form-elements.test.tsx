@@ -1,7 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { QueryClient } from '@tanstack/react-query';
 import HomePage from '@/pages/home';
 import { TestProviders } from './test-providers';

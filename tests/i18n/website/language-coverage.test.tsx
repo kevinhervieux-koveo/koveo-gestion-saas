@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { QueryClient } from '@tanstack/react-query';
-import '@testing-library/jest-dom';
 import { translations } from '@/lib/i18n';
 
 /**
