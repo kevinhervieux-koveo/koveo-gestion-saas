@@ -13,7 +13,7 @@
  * - monitoring: Quality metrics, predictions, and AI monitoring.
  */
 
-// Re-export all enums
+// Re-export all enums and schemas
 export * from './schemas/core';
 export * from './schemas/property';
 export * from './schemas/financial';
