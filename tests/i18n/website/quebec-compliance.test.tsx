@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import { QueryClient } from '@tanstack/react-query';
 import HomePage from '@/pages/home';
@@ -27,7 +27,10 @@ describe('Quebec Legal Compliance', () => {
       setItem: jest.fn(),
       clear: jest.fn(),
     };
-    global.localStorage = localStorageMock as any;
+    Object.defineProperty(global, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
   });
 
   afterEach(() => {

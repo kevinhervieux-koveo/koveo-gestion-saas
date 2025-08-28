@@ -1,16 +1,6 @@
 // Import jest-dom matchers for React Testing Library
 import '@testing-library/jest-dom';
-import { jest } from '@jest/globals';
-
-// Explicitly import Jest DOM matchers for TypeScript
-import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
-
-declare global {
-  namespace jest {
-    interface Matchers<R = void>
-      extends TestingLibraryMatchers<typeof expect.stringContaining, R> {}
-  }
-}
+import { jest, beforeAll, afterEach, afterAll, expect } from '@jest/globals';
 
 // React 19 compatibility - configure React testing environment
 import { configure } from '@testing-library/react';

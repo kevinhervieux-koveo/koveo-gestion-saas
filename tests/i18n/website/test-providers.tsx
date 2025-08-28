@@ -1,6 +1,6 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'wouter/memory';
+import { Router } from 'wouter';
 import { LanguageProvider } from '@/hooks/use-language';
 
 /**
@@ -22,9 +22,9 @@ export function TestProviders({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialLocation]}>
+      <Router>
         <LanguageProvider>{children}</LanguageProvider>
-      </MemoryRouter>
+      </Router>
     </QueryClientProvider>
   );
 }
