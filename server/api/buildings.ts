@@ -222,7 +222,7 @@ export function registerBuildingRoutes(app: Express): void {
           
           // For tenant/resident roles: Get buildings through their residences
           if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-            const userResidences = await db
+            const userResidencesList = await db
               .select({
                 buildingId: residences.buildingId,
               })
@@ -230,13 +230,13 @@ export function registerBuildingRoutes(app: Express): void {
               .innerJoin(residences, eq(userResidences.residenceId, residences.id))
               .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
             
-            console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidences.length} residences for user ${user.id}`);
+            console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`);
             
-            if (userResidences.length === 0) {
+            if (userResidencesList.length === 0) {
               return res.json([]); // No residences = no buildings
             }
             
-            const accessibleBuildingIds = [...new Set(userResidences.map(ur => ur.buildingId))];
+            const accessibleBuildingIds = [...new Set(userResidencesList.map(ur => ur.buildingId))];
             console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
             
             buildingsQuery = db

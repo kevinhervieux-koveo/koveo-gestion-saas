@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, count, sql } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, sql, inArray } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
 import { queryCache, CacheInvalidator } from './query-cache';
 import * as schema from '@shared/schema';
@@ -46,6 +46,155 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select().from(schema.users).where(eq(schema.users.isActive, true));
     queryCache.set('users', cacheKey, result);
     return result;
+  }
+
+  /**
+   * Retrieves users that belong to the same organizations as the given user.
+   * @param userId - The ID of the user whose organizations we'll use to find other users.
+   * @returns Promise that resolves to an array of users from the same organizations.
+   */
+  async getUsersByOrganizations(userId: string): Promise<User[]> {
+    const cacheKey = `users_by_orgs:${userId}`;
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+    
+    try {
+      // Check if this is a demo user first
+      const demoOrgId = '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o';
+      const demoUserIds = [
+        'd6f5c19e-8d7f-42ad-8b84-bd011a96c456', // Sophie Martin
+        '95cbf06e-56d2-440e-8a0e-5d719dc39f05', // Jean Tremblay
+        'c7fd7220-5f9f-4c30-b961-354c71db68b2', // Marie Dubois
+        'de954cad-779d-4580-9a48-1e728bf434a0', // Lucie Roy
+        '36f50561-effc-4ca5-bc42-aa35b8a78c4a', // Pierre Gagnon
+        '7540faaa-ee1f-46dc-ad29-4ccdd64a1f59', // Michel Côté
+      ];
+      
+      if (demoUserIds.includes(userId)) {
+        // For demo users, return all demo users from the same demo organization
+        const demoUsers = [
+          {
+            id: 'd6f5c19e-8d7f-42ad-8b84-bd011a96c456',
+            username: 'sophie.demo.resident',
+            email: 'sophie.martin@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Sophie',
+            lastName: 'Martin',
+            phone: '514-555-0103',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_resident',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: '95cbf06e-56d2-440e-8a0e-5d719dc39f05',
+            username: 'jean.demo.tenant',
+            email: 'jean.tremblay@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Jean',
+            lastName: 'Tremblay',
+            phone: '514-555-0101',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: 'de954cad-779d-4580-9a48-1e728bf434a0',
+            username: 'lucie.demo.tenant',
+            email: 'lucie.roy@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Lucie',
+            lastName: 'Roy',
+            phone: '514-555-0102',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: 'c7fd7220-5f9f-4c30-b961-354c71db68b2',
+            username: 'marie.demo.manager',
+            email: 'marie.dubois@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Marie',
+            lastName: 'Dubois',
+            phone: '514-555-0104',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_manager',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+        ];
+        
+        queryCache.set('users', cacheKey, demoUsers);
+        return demoUsers;
+      }
+      
+      // First get the user's organizations
+      const userOrgs = await db
+        .select({ organizationId: schema.userOrganizations.organizationId })
+        .from(schema.userOrganizations)
+        .where(and(eq(schema.userOrganizations.userId, userId), eq(schema.userOrganizations.isActive, true)));
+      
+      if (userOrgs.length === 0) {
+        return []; // User has no organizations
+      }
+      
+      const orgIds = userOrgs.map(org => org.organizationId);
+      
+      // Get all users from those organizations
+      const result = await db
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          password: schema.users.password,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          lastLoginAt: schema.users.lastLoginAt,
+          organizationId: schema.users.organizationId,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt,
+        })
+        .from(schema.users)
+        .innerJoin(schema.userOrganizations, eq(schema.users.id, schema.userOrganizations.userId))
+        .where(
+          and(
+            eq(schema.users.isActive, true),
+            eq(schema.userOrganizations.isActive, true),
+            inArray(schema.userOrganizations.organizationId, orgIds)
+          )
+        )
+        .groupBy(schema.users.id); // Remove duplicates if user is in multiple matching orgs
+      
+      queryCache.set('users', cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error(`Failed to get users by organizations for user ${userId}:`, error);
+      return [];
+    }
   }
 
   /**

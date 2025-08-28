@@ -95,6 +95,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'myResidence', href: '/residents/residence', icon: Home },
       { nameKey: 'myBuilding', href: '/residents/building', icon: Building },
       { nameKey: 'myDemands', href: '/residents/demands', icon: AlertCircle },
+      { nameKey: 'documentation', href: '/residents/residence/documents', icon: FileText },
       {
         nameKey: 'commonSpaces',
         href: '/resident/common-spaces',
