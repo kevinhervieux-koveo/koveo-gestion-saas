@@ -242,7 +242,7 @@ export function useSearchFilter<T = Record<string, unknown>>(
   const [filters, setFilters] = useState<T>(initialFilters);
 
   const updateFilter = useCallback((_key: keyof T, _value: T[keyof T]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [_key]: _value }));
   }, []);
 
   const clearFilters = useCallback(() => {
