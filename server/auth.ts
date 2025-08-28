@@ -20,6 +20,8 @@ import { EmailService } from './services/email-service';
  */
 async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
   try {
+    console.log(`🔍 Checking permission: role="${userRole}", permission="${permissionName}"`);
+    
     const result = await db
       .select()
       .from(schema.rolePermissions)
@@ -31,6 +33,12 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
         )
       )
       .limit(1);
+
+    console.log(`🔍 Permission check result: ${result.length > 0 ? 'GRANTED' : 'DENIED'}, found ${result.length} matching records`);
+    
+    if (result.length === 0) {
+      console.log(`❌ No permission found for role "${userRole}" and permission "${permissionName}"`);
+    }
 
     return result.length > 0;
   } catch (error) {
