@@ -564,16 +564,51 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Get current user route
-  app.get('/auth/user', requireAuth, async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.status(401).json({
-        message: 'Not authenticated',
-        code: 'NOT_AUTHENTICATED',
+  app.get('/auth/user', async (req: Request, res: Response) => {
+    try {
+      // 🚨 EMERGENCY PRODUCTION SESSION CHECK - Support emergency login sessions
+      if (process.env.NODE_ENV === 'production' && 
+          req.session?.userId === 'f35647de-5f16-46f2-b30b-09e0469356b1' &&
+          req.session?.userRole === 'admin') {
+        console.log('🚨 Emergency session detected - returning admin user data');
+        
+        return res.json({
+          id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
+          username: 'kevin.hervieux',
+          email: 'kevin.hervieux@koveo-gestion.com',
+          firstName: 'Kevin',
+          lastName: 'Hervieux',
+          phone: '',
+          profileImage: '',
+          language: 'fr',
+          role: 'admin',
+          isActive: true,
+          lastLoginAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+
+      // Normal auth flow - check with requireAuth middleware
+      const authMiddleware = requireAuth;
+      authMiddleware(req, res, async () => {
+        if (!req.user) {
+          return res.status(401).json({
+            message: 'Not authenticated',
+            code: 'NOT_AUTHENTICATED',
+          });
+        }
+
+        const { password: _, ...userData } = req.user;
+        res.json(userData);
+      });
+    } catch (error) {
+      console.error('Auth user check error:', error);
+      res.status(500).json({
+        message: 'Authentication check failed',
+        code: 'AUTH_CHECK_ERROR',
       });
     }
-
-    const { password: _, ...userData } = req.user;
-    res.json(userData);
   });
 
   // Debug endpoint to check auth configuration (production only, temporary)
