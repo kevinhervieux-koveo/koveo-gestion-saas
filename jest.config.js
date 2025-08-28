@@ -3,6 +3,8 @@ const config = {
   testEnvironment: 'jsdom',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // Ensure tests run in safe environment
+  globalSetup: '<rootDir>/jest.global-setup.js',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',

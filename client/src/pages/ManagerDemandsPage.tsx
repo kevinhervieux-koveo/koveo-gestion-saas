@@ -149,17 +149,10 @@ const getStatusLabel = (status: string, t: (key: string) => string) => {
 };
 
 /**
- *
+ * Manager demands page function.
  */
 export default function ManagerDemandsPage() {
   const { t } = useLanguage();
-/**
- * Manager demands page function.
- */ /**
- * Manager demands page function.
- */
-
-ManagerDemandsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
