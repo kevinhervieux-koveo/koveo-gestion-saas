@@ -873,7 +873,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Delete all related data in the correct order to handle foreign key constraints
-      await Promise.all([
+      const deletionPromises = [
         // Delete user relationships
         db
           .delete(schema.userOrganizations)
@@ -883,15 +883,43 @@ export function registerUserRoutes(app: Express): void {
           .delete(schema.documentsResidents)
           .where(eq(schema.documentsResidents.uploadedBy, targetUserId)),
 
-        // Delete user-created content
-        db.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId)),
-        db
-          .delete(schema.maintenanceRequests)
-          .where(eq(schema.maintenanceRequests.submittedBy, targetUserId)),
-
         // Delete invitations
         db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
-      ]);
+      ];
+
+      // Try to delete from optional tables that might not exist
+      const optionalDeletions = [
+        async () => {
+          try {
+            await db.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId));
+          } catch (error: any) {
+            if (error.cause?.code === '42P01') {
+              console.log('Notifications table not found, skipping...');
+            } else {
+              throw error;
+            }
+          }
+        },
+        async () => {
+          try {
+            await db
+              .delete(schema.maintenanceRequests)
+              .where(eq(schema.maintenanceRequests.submittedBy, targetUserId));
+          } catch (error: any) {
+            if (error.cause?.code === '42P01') {
+              console.log('Maintenance requests table not found, skipping...');
+            } else {
+              throw error;
+            }
+          }
+        },
+      ];
+
+      // Execute core deletions first
+      await Promise.all(deletionPromises);
+
+      // Execute optional deletions
+      await Promise.all(optionalDeletions.map(fn => fn()));
 
       // Finally, delete the user account
       await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
