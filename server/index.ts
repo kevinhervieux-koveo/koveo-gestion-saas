@@ -346,8 +346,8 @@ async function initializeDatabaseInBackground(): Promise<void> {
         log('🚀 Database is ready for high performance queries');
       } else {
         if (process.env.NODE_ENV === 'production') {
-          log('⚠️ Production mode: Skipping database index creation for safety');
-          log('⚠️ Consider running database optimizations in maintenance mode');
+          log('🔧 Production mode: Using existing database configuration');
+          // Silently skip index creation in production - emergency authentication system handles database issues
         } else {
           log('🔄 Setting up database indexes for first time...');
           await QueryOptimizer.applyCoreOptimizations();

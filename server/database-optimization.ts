@@ -369,7 +369,10 @@ export class QueryOptimizer {
       // Handle both array and direct result formats
       const row = Array.isArray(result) ? result[0] : result;
       if (!row || typeof row.count === 'undefined') {
-        console.warn('Unexpected result format from index check query:', result);
+        // In production, suppress detailed query format warnings to reduce log noise
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Unexpected result format from index check query:', result);
+        }
         return false;
       }
       

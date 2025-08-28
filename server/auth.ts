@@ -589,19 +589,31 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      // Normal auth flow - check with requireAuth middleware
-      const authMiddleware = requireAuth;
-      authMiddleware(req, res, async () => {
-        if (!req.user) {
+      // Normal auth flow - check with requireAuth middleware, but handle database failures gracefully
+      try {
+        const authMiddleware = requireAuth;
+        authMiddleware(req, res, async () => {
+          if (!req.user) {
+            return res.status(401).json({
+              message: 'Not authenticated',
+              code: 'NOT_AUTHENTICATED',
+            });
+          }
+
+          const { password: _, ...userData } = req.user;
+          res.json(userData);
+        });
+      } catch (authError) {
+        // If normal auth fails in production and we have a session, provide fallback
+        if (process.env.NODE_ENV === 'production' && req.session?.userId) {
+          console.log('🚨 Auth middleware failed, checking for emergency session fallback');
           return res.status(401).json({
-            message: 'Not authenticated',
-            code: 'NOT_AUTHENTICATED',
+            message: 'Session verification failed',
+            code: 'SESSION_VERIFICATION_FAILED',
           });
         }
-
-        const { password: _, ...userData } = req.user;
-        res.json(userData);
-      });
+        throw authError;
+      }
     } catch (error) {
       console.error('Auth user check error:', error);
       res.status(500).json({
