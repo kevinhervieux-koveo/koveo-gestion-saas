@@ -506,7 +506,7 @@ export function registerOrganizationRoutes(app: Express): void {
       // Since Neon HTTP driver doesn't support transactions, we'll do cascading delete manually
       // in the correct order to maintain referential integrity
 
-      // 1. Get all buildings in this organization
+      // 1. Get all buildings in this organization (including already inactive ones)
       const orgBuildings = await db
         .select({ id: buildings.id })
         .from(buildings)
@@ -515,17 +515,23 @@ export function registerOrganizationRoutes(app: Express): void {
       if (orgBuildings.length > 0) {
         const orgBuildingIds = orgBuildings.map(b => b.id);
         
-        // 2. Soft delete residences first (children of buildings)
-        await db
+        // 2. Soft delete residences first (children of buildings) - get ALL residences in these buildings
+        const affectedResidences = await db
           .update(residences)
           .set({ isActive: false, updatedAt: new Date() })
-          .where(inArray(residences.buildingId, orgBuildingIds));
+          .where(inArray(residences.buildingId, orgBuildingIds))
+          .returning({ id: residences.id, unitNumber: residences.unitNumber });
+        
+        console.log(`🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`);
         
         // 3. Soft delete buildings
-        await db
+        const affectedBuildings = await db
           .update(buildings)
           .set({ isActive: false, updatedAt: new Date() })
-          .where(inArray(buildings.id, orgBuildingIds));
+          .where(inArray(buildings.id, orgBuildingIds))
+          .returning({ id: buildings.id, name: buildings.name });
+        
+        console.log(`🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map(b => b.name).join(', ')}`);
       }
       
       // 4. Delete user-organization relationships
