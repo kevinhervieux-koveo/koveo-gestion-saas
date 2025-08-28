@@ -228,7 +228,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     // Add organization information to the user object - with error handling for resilience
     let userOrganizations: any[] = [];
-    console.warn(`🔍 [AUTH ORG DEBUG] Looking up organizations for user ${user.id} (${user.email})`);
     try {
       userOrganizations = await db
         .select({
@@ -242,7 +241,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
             eq(schema.userOrganizations.isActive, true)
           )
         );
-      console.warn(`🔍 [AUTH ORG DEBUG] Found ${userOrganizations.length} organization relationships for user ${user.id}`);
     } catch (orgError) {
       console.error('Organization lookup error (user can still log in):', orgError);
       // Continue with empty organizations - user can still authenticate
@@ -250,11 +248,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     // Enhanced user object with organization access information
-    const organizationIds = userOrganizations.map((uo) => uo.organizationId);
-    console.warn(`🔍 [AUTH ORG DEBUG] User ${user.id} final organizations:`, organizationIds);
     req.user = {
       ...user,
-      organizations: organizationIds,
+      organizations: userOrganizations.map((uo) => uo.organizationId),
       canAccessAllOrganizations: userOrganizations.some((uo) => uo.canAccessAllOrganizations),
     } as any;
 

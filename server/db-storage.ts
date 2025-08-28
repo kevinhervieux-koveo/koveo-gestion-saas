@@ -58,25 +58,14 @@ export class DatabaseStorage implements IStorage {
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
     
-    console.log(`🔍 [AUTH DEBUG] Looking for user with ID: ${id}`);
-    
     try {
-      // First test: Can Drizzle read ANY users at all?
-      const allUsersTest = await db.select().from(schema.users).limit(3);
-      console.log(`🔍 [AUTH DEBUG] Drizzle can read ${allUsersTest.length} total users from database`);
-      console.log(`🔍 [AUTH DEBUG] Available user IDs:`, allUsersTest.map(u => `${u.id} (${u.email})`));
-      
-      // Second test: Try the specific user query
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-      console.log(`🔍 [AUTH DEBUG] Drizzle query returned ${result.length} users for ID lookup`);
       
       let user = result[0];
       if (user) {
-        console.log(`✅ [AUTH DEBUG] Found user by ID: ${user.firstName} ${user.lastName} (${user.role})`);
         queryCache.set('users', cacheKey, user);
         return user;
       } else {
-        console.log(`❌ [AUTH DEBUG] No user found with ID: ${id}`);
         
         // Fallback to hardcoded demo users by ID
         console.log(`🔧 [AUTH DEBUG] Checking hardcoded demo users for ID: ${id}`);
