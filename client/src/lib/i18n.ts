@@ -236,6 +236,31 @@ export interface Translations {
   cancelling: string;
   daysRemaining: string;
   hoursRemaining: string;
+  // Navigation translations
+  quickActions: string;
+  calendar: string;
+  residents: string;
+  myResidence: string;
+  myBuilding: string;
+  myDemands: string;
+  commonSpaces: string;
+  buildings: string;
+  residences: string;
+  budget: string;
+  bills: string;
+  demands: string;
+  navUserManagement: string;
+  manageCommonSpaces: string;
+  organizations: string;
+  documentation: string;
+  pillars: string;
+  roadmap: string;
+  navQualityAssurance: string;
+  navLaw25Compliance: string;
+  rbacPermissions: string;
+  settings: string;
+  bugReports: string;
+  ideaBox: string;
   // Home page translations
   modernPropertyManagement: string;
   forQuebec: string;
@@ -543,6 +568,31 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Cancelling',
     daysRemaining: 'days remaining',
     hoursRemaining: 'hours remaining',
+    // Navigation translations
+    quickActions: 'Quick Actions',
+    calendar: 'Calendar',
+    residents: 'Residents',
+    myResidence: 'My Residence',
+    myBuilding: 'My Building',
+    myDemands: 'My Demands',
+    commonSpaces: 'Common Spaces',
+    buildings: 'Buildings',
+    residences: 'Residences',
+    budget: 'Budget',
+    bills: 'Bills',
+    demands: 'Demands',
+    navUserManagement: 'User Management',
+    manageCommonSpaces: 'Manage Common Spaces',
+    organizations: 'Organizations',
+    documentation: 'Documentation',
+    pillars: 'Pillars',
+    roadmap: 'Roadmap',
+    navQualityAssurance: 'Quality Assurance',
+    navLaw25Compliance: 'Law 25 Compliance',
+    rbacPermissions: 'RBAC Permissions',
+    settings: 'Settings',
+    bugReports: 'Bug Reports',
+    ideaBox: 'Idea Box',
     // Home page translations
     modernPropertyManagement: 'Modern Property Management',
     forQuebec: 'for Quebec',
@@ -633,7 +683,7 @@ const translations: Record<Language, Translations> = {
     maintenancePlanningDesc: 'Smart scheduling and tracking',
     processManagement: 'Process Management',
     processManagementDesc: 'Organized workflow tools',
-    law25Compliance: 'Quebec Law 25 Compliance',
+    featureLaw25Compliance: 'Quebec Law 25 Compliance',
     law25ComplianceDesc: 'Built-in privacy protection',
     featuresOverviewDesc:
       'Discover how our comprehensive platform can streamline your property management',
@@ -862,6 +912,31 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Annulation',
     daysRemaining: 'jours restants',
     hoursRemaining: 'heures restantes',
+    // Navigation translations
+    quickActions: 'Actions rapides',
+    calendar: 'Calendrier',
+    residents: 'Résidents',
+    myResidence: 'Ma résidence',
+    myBuilding: 'Mon bâtiment',
+    myDemands: 'Mes demandes',
+    commonSpaces: 'Espaces communs',
+    buildings: 'Bâtiments',
+    residences: 'Résidences',
+    budget: 'Budget',
+    bills: 'Factures',
+    demands: 'Demandes',
+    navUserManagement: 'Gestion des utilisateurs',
+    manageCommonSpaces: 'Gérer les espaces communs',
+    organizations: 'Organisations',
+    documentation: 'Documentation',
+    pillars: 'Piliers',
+    roadmap: 'Feuille de route',
+    navQualityAssurance: 'Assurance qualité',
+    navLaw25Compliance: 'Conformité Loi 25',
+    rbacPermissions: 'Permissions RBAC',
+    settings: 'Paramètres',
+    bugReports: 'Rapports de bogues',
+    ideaBox: 'Boîte à idées',
     // Home page translations
     modernPropertyManagement: 'Gestion Immobilière Moderne',
     forQuebec: 'pour le Québec',
@@ -955,7 +1030,7 @@ const translations: Record<Language, Translations> = {
     maintenancePlanningDesc: 'Planification et suivi intelligents',
     processManagement: 'Gestion des processus',
     processManagementDesc: 'Outils de flux de travail organisés',
-    law25Compliance: 'Conformité Loi 25 du Québec',
+    featureLaw25Compliance: 'Conformité Loi 25 du Québec',
     law25ComplianceDesc: 'Protection de la vie privée intégrée',
     featuresOverviewDesc:
       'Découvrez comment notre plateforme complète peut rationaliser votre gestion immobilière',
