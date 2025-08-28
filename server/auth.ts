@@ -256,7 +256,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     // Special handling for hardcoded demo users - ensure they have proper organization access
     if (user.role?.startsWith('demo_') && user.organizationId && (!req.user.organizations || req.user.organizations.length === 0)) {
-      console.log(`🔧 [AUTH] Adding organization access for hardcoded demo user: ${user.email}, organizationId: ${user.organizationId}`);
+      console.log(`🔧 [AUTH] Adding organization access for hardcoded demo user: ${user.email}`);
       req.user.organizations = [user.organizationId];
       req.user.canAccessAllOrganizations = false;
     }
