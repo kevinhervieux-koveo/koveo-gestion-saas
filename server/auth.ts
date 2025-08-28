@@ -102,8 +102,8 @@ export const sessionConfig = session({
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS required in production
-    httpOnly: true,
+    secure: false, // Disable secure for Replit development environment
+    httpOnly: false, // Disable httpOnly to allow JavaScript access for debugging
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
     sameSite: 'lax', // Keep lax for same-site compatibility
     // Don't set domain - let it default to current domain
