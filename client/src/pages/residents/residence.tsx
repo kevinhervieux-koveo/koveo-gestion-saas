@@ -54,6 +54,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
 
@@ -113,6 +114,7 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
  */
 export default function Residence() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
