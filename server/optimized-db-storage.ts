@@ -384,8 +384,25 @@ export class OptimizedDatabaseStorage implements IStorage {
         isActive: insertUser.isActive ?? true,
       };
       
-      const inserted = await db.insert(schema.users).values([userData]).returning();
-      return inserted;
+      console.log('🔍 Creating user with data:', {
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        language: userData.language,
+        hasPassword: !!userData.password,
+      });
+      
+      try {
+        const inserted = await db.insert(schema.users).values([userData]).returning();
+        console.log('✅ User created successfully with ID:', inserted[0]?.id);
+        return inserted;
+      } catch (error) {
+        console.error('❌ Database insertion failed:', error);
+        console.error('📊 Failed user data:', userData);
+        throw error;
+      }
     });
 
     // Invalidate related caches
