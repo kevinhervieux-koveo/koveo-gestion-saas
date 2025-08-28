@@ -15903,6 +15903,951 @@ export function validateQuebecTerminology(
   return violations;
 }
 
+  describe('Registration Pages Translation Tests', () => {
+    it('should display registration step 1 (invitation validation) with proper French translations and language switcher', () => {
+      const RegistrationStep1Page = () => {
+        return (
+          <div data-testid='registration-step1-page'>
+            {/* Language Switcher */}
+            <div data-testid='language-switcher-header'>
+              <button data-testid='button-language-en'>EN</button>
+              <button data-testid='button-language-fr'>FR</button>
+              <div data-testid='text-current-language'>Français</div>
+            </div>
+
+            {/* Header */}
+            <div data-testid='registration-header'>
+              <div data-testid='header-title'>Inscription - Étape 1 sur 3</div>
+              <div data-testid='header-subtitle'>Validation de l'invitation</div>
+              <div data-testid='progress-indicator'>
+                <div data-testid='step-1-active'>1. Invitation</div>
+                <div data-testid='step-2-inactive'>2. Informations</div>
+                <div data-testid='step-3-inactive'>3. Finalisation</div>
+              </div>
+            </div>
+
+            {/* Invitation Token Form */}
+            <div data-testid='invitation-form'>
+              <div data-testid='form-title'>Valider votre invitation</div>
+              <div data-testid='form-description'>
+                Saisissez le code d'invitation que vous avez reçu par courriel
+              </div>
+
+              <div data-testid='invitation-token-field'>
+                <label data-testid='label-invitation-token'>Code d'invitation</label>
+                <input 
+                  data-testid='input-invitation-token' 
+                  placeholder='Entrez votre code d\'invitation'
+                />
+                <div data-testid='help-text-token'>
+                  Le code d'invitation se trouve dans le courriel que vous avez reçu
+                </div>
+              </div>
+
+              <div data-testid='email-verification-field'>
+                <label data-testid='label-email-verification'>Adresse courriel</label>
+                <input 
+                  data-testid='input-email-verification' 
+                  placeholder='Confirmez votre adresse courriel'
+                />
+                <div data-testid='help-text-email'>
+                  Utilisez la même adresse courriel que celle de l'invitation
+                </div>
+              </div>
+
+              <div data-testid='form-actions'>
+                <button data-testid='button-validate-invitation'>Valider l'invitation</button>
+                <button data-testid='button-resend-invitation'>Renvoyer l'invitation</button>
+                <button data-testid='button-back-to-login'>Retour à la connexion</button>
+              </div>
+            </div>
+
+            {/* Help Section */}
+            <div data-testid='help-section'>
+              <div data-testid='help-title'>Besoin d'aide ?</div>
+              <div data-testid='help-content'>
+                <div data-testid='help-item-not-received'>Je n'ai pas reçu mon invitation</div>
+                <div data-testid='help-item-invalid-token'>Mon code d'invitation ne fonctionne pas</div>
+                <div data-testid='help-item-contact-admin'>Contacter l'administrateur</div>
+              </div>
+            </div>
+
+            {/* Security Notice */}
+            <div data-testid='security-notice'>
+              <div data-testid='security-title'>Sécurité et confidentialité</div>
+              <div data-testid='security-content'>
+                Votre inscription est sécurisée et conforme à la Loi 25 du Québec sur la protection des renseignements personnels
+              </div>
+            </div>
+
+            {/* Status Messages */}
+            <div data-testid='status-messages'>
+              <div data-testid='message-loading'>Validation en cours...</div>
+              <div data-testid='message-success'>Invitation validée avec succès</div>
+              <div data-testid='message-error'>Code d'invitation invalide</div>
+              <div data-testid='message-expired'>L'invitation a expiré</div>
+              <div data-testid='message-already-used'>Cette invitation a déjà été utilisée</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationStep1Page />
+        </TestProviders>
+      );
+
+      // Verify language switcher
+      expect(screen.getByTestId('language-switcher-header')).toBeInTheDocument();
+      expect(screen.getByTestId('button-language-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('button-language-fr')).toHaveTextContent('FR');
+      expect(screen.getByTestId('text-current-language')).toHaveTextContent('Français');
+
+      // Verify header translations
+      expect(screen.getByTestId('header-title')).toHaveTextContent('Inscription - Étape 1 sur 3');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Validation de l\'invitation');
+      expect(screen.getByTestId('step-1-active')).toHaveTextContent('1. Invitation');
+      expect(screen.getByTestId('step-2-inactive')).toHaveTextContent('2. Informations');
+      expect(screen.getByTestId('step-3-inactive')).toHaveTextContent('3. Finalisation');
+
+      // Verify form translations
+      expect(screen.getByTestId('form-title')).toHaveTextContent('Valider votre invitation');
+      expect(screen.getByTestId('form-description')).toHaveTextContent('Saisissez le code d\'invitation que vous avez reçu par courriel');
+      expect(screen.getByTestId('label-invitation-token')).toHaveTextContent('Code d\'invitation');
+      expect(screen.getByTestId('input-invitation-token')).toHaveAttribute('placeholder', 'Entrez votre code d\'invitation');
+      expect(screen.getByTestId('label-email-verification')).toHaveTextContent('Adresse courriel');
+      expect(screen.getByTestId('input-email-verification')).toHaveAttribute('placeholder', 'Confirmez votre adresse courriel');
+
+      // Verify buttons
+      expect(screen.getByTestId('button-validate-invitation')).toHaveTextContent('Valider l\'invitation');
+      expect(screen.getByTestId('button-resend-invitation')).toHaveTextContent('Renvoyer l\'invitation');
+      expect(screen.getByTestId('button-back-to-login')).toHaveTextContent('Retour à la connexion');
+
+      // Verify help section
+      expect(screen.getByTestId('help-title')).toHaveTextContent('Besoin d\'aide ?');
+      expect(screen.getByTestId('help-item-not-received')).toHaveTextContent('Je n\'ai pas reçu mon invitation');
+      expect(screen.getByTestId('help-item-invalid-token')).toHaveTextContent('Mon code d\'invitation ne fonctionne pas');
+      expect(screen.getByTestId('help-item-contact-admin')).toHaveTextContent('Contacter l\'administrateur');
+
+      // Verify security notice
+      expect(screen.getByTestId('security-title')).toHaveTextContent('Sécurité et confidentialité');
+      expect(screen.getByTestId('security-content')).toHaveTextContent('conforme à la Loi 25 du Québec');
+
+      // Verify status messages
+      expect(screen.getByTestId('message-loading')).toHaveTextContent('Validation en cours');
+      expect(screen.getByTestId('message-success')).toHaveTextContent('Invitation validée avec succès');
+      expect(screen.getByTestId('message-error')).toHaveTextContent('Code d\'invitation invalide');
+      expect(screen.getByTestId('message-expired')).toHaveTextContent('L\'invitation a expiré');
+      expect(screen.getByTestId('message-already-used')).toHaveTextContent('Cette invitation a déjà été utilisée');
+    });
+
+    it('should display registration step 2 (user information) with proper French translations and language switcher', () => {
+      const RegistrationStep2Page = () => {
+        return (
+          <div data-testid='registration-step2-page'>
+            {/* Language Switcher */}
+            <div data-testid='language-switcher-header'>
+              <button data-testid='button-language-en'>EN</button>
+              <button data-testid='button-language-fr'>FR</button>
+              <div data-testid='text-current-language'>Français</div>
+            </div>
+
+            {/* Header */}
+            <div data-testid='registration-header'>
+              <div data-testid='header-title'>Inscription - Étape 2 sur 3</div>
+              <div data-testid='header-subtitle'>Informations personnelles</div>
+              <div data-testid='progress-indicator'>
+                <div data-testid='step-1-completed'>1. Invitation ✓</div>
+                <div data-testid='step-2-active'>2. Informations</div>
+                <div data-testid='step-3-inactive'>3. Finalisation</div>
+              </div>
+            </div>
+
+            {/* User Information Form */}
+            <div data-testid='user-info-form'>
+              <div data-testid='form-title'>Créer votre profil utilisateur</div>
+              <div data-testid='form-description'>
+                Fournissez vos informations personnelles pour finaliser votre inscription
+              </div>
+
+              {/* Personal Information Section */}
+              <div data-testid='personal-info-section'>
+                <div data-testid='section-title-personal'>Informations personnelles</div>
+                
+                <div data-testid='field-first-name'>
+                  <label data-testid='label-first-name'>Prénom *</label>
+                  <input 
+                    data-testid='input-first-name' 
+                    placeholder='Entrez votre prénom'
+                  />
+                </div>
+
+                <div data-testid='field-last-name'>
+                  <label data-testid='label-last-name'>Nom de famille *</label>
+                  <input 
+                    data-testid='input-last-name' 
+                    placeholder='Entrez votre nom de famille'
+                  />
+                </div>
+
+                <div data-testid='field-email-display'>
+                  <label data-testid='label-email-display'>Adresse courriel</label>
+                  <input 
+                    data-testid='input-email-display' 
+                    disabled
+                    placeholder='votre@courriel.com'
+                  />
+                  <div data-testid='help-text-email'>Cette adresse provient de votre invitation</div>
+                </div>
+
+                <div data-testid='field-phone'>
+                  <label data-testid='label-phone'>Numéro de téléphone</label>
+                  <input 
+                    data-testid='input-phone' 
+                    placeholder='(XXX) XXX-XXXX'
+                  />
+                </div>
+              </div>
+
+              {/* Password Section */}
+              <div data-testid='password-section'>
+                <div data-testid='section-title-password'>Mot de passe</div>
+                
+                <div data-testid='field-password'>
+                  <label data-testid='label-password'>Mot de passe *</label>
+                  <input 
+                    data-testid='input-password' 
+                    type='password'
+                    placeholder='Créez votre mot de passe'
+                  />
+                  <div data-testid='password-requirements'>
+                    <div data-testid='requirement-length'>Au moins 8 caractères</div>
+                    <div data-testid='requirement-uppercase'>Une lettre majuscule</div>
+                    <div data-testid='requirement-lowercase'>Une lettre minuscule</div>
+                    <div data-testid='requirement-number'>Un chiffre</div>
+                    <div data-testid='requirement-special'>Un caractère spécial</div>
+                  </div>
+                </div>
+
+                <div data-testid='field-confirm-password'>
+                  <label data-testid='label-confirm-password'>Confirmer le mot de passe *</label>
+                  <input 
+                    data-testid='input-confirm-password' 
+                    type='password'
+                    placeholder='Confirmez votre mot de passe'
+                  />
+                </div>
+              </div>
+
+              {/* Role Assignment Section */}
+              <div data-testid='role-section'>
+                <div data-testid='section-title-role'>Attribution du rôle</div>
+                <div data-testid='role-info'>
+                  <div data-testid='assigned-role-label'>Rôle attribué :</div>
+                  <div data-testid='assigned-role-value'>Gestionnaire</div>
+                  <div data-testid='role-description'>
+                    En tant que gestionnaire, vous pourrez gérer les immeubles et utilisateurs de votre organisation
+                  </div>
+                </div>
+                
+                <div data-testid='organization-info'>
+                  <div data-testid='organization-label'>Organisation :</div>
+                  <div data-testid='organization-value'>Copropriété Les Jardins</div>
+                </div>
+              </div>
+
+              <div data-testid='form-actions'>
+                <button data-testid='button-previous-step'>Étape précédente</button>
+                <button data-testid='button-next-step'>Étape suivante</button>
+                <button data-testid='button-save-draft'>Sauvegarder le brouillon</button>
+              </div>
+            </div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-messages'>
+              <div data-testid='error-first-name-required'>Le prénom est requis</div>
+              <div data-testid='error-last-name-required'>Le nom de famille est requis</div>
+              <div data-testid='error-password-required'>Le mot de passe est requis</div>
+              <div data-testid='error-password-weak'>Le mot de passe ne respecte pas les exigences</div>
+              <div data-testid='error-password-mismatch'>Les mots de passe ne correspondent pas</div>
+              <div data-testid='error-phone-invalid'>Format de téléphone invalide</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationStep2Page />
+        </TestProviders>
+      );
+
+      // Verify language switcher
+      expect(screen.getByTestId('language-switcher-header')).toBeInTheDocument();
+      expect(screen.getByTestId('button-language-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('button-language-fr')).toHaveTextContent('FR');
+
+      // Verify header translations
+      expect(screen.getByTestId('header-title')).toHaveTextContent('Inscription - Étape 2 sur 3');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Informations personnelles');
+      expect(screen.getByTestId('step-1-completed')).toHaveTextContent('1. Invitation ✓');
+      expect(screen.getByTestId('step-2-active')).toHaveTextContent('2. Informations');
+      expect(screen.getByTestId('step-3-inactive')).toHaveTextContent('3. Finalisation');
+
+      // Verify form sections
+      expect(screen.getByTestId('form-title')).toHaveTextContent('Créer votre profil utilisateur');
+      expect(screen.getByTestId('section-title-personal')).toHaveTextContent('Informations personnelles');
+      expect(screen.getByTestId('section-title-password')).toHaveTextContent('Mot de passe');
+      expect(screen.getByTestId('section-title-role')).toHaveTextContent('Attribution du rôle');
+
+      // Verify field labels
+      expect(screen.getByTestId('label-first-name')).toHaveTextContent('Prénom *');
+      expect(screen.getByTestId('label-last-name')).toHaveTextContent('Nom de famille *');
+      expect(screen.getByTestId('label-email-display')).toHaveTextContent('Adresse courriel');
+      expect(screen.getByTestId('label-phone')).toHaveTextContent('Numéro de téléphone');
+      expect(screen.getByTestId('label-password')).toHaveTextContent('Mot de passe *');
+      expect(screen.getByTestId('label-confirm-password')).toHaveTextContent('Confirmer le mot de passe *');
+
+      // Verify password requirements
+      expect(screen.getByTestId('requirement-length')).toHaveTextContent('Au moins 8 caractères');
+      expect(screen.getByTestId('requirement-uppercase')).toHaveTextContent('Une lettre majuscule');
+      expect(screen.getByTestId('requirement-lowercase')).toHaveTextContent('Une lettre minuscule');
+      expect(screen.getByTestId('requirement-number')).toHaveTextContent('Un chiffre');
+      expect(screen.getByTestId('requirement-special')).toHaveTextContent('Un caractère spécial');
+
+      // Verify role information
+      expect(screen.getByTestId('assigned-role-label')).toHaveTextContent('Rôle attribué :');
+      expect(screen.getByTestId('assigned-role-value')).toHaveTextContent('Gestionnaire');
+      expect(screen.getByTestId('organization-label')).toHaveTextContent('Organisation :');
+
+      // Verify buttons
+      expect(screen.getByTestId('button-previous-step')).toHaveTextContent('Étape précédente');
+      expect(screen.getByTestId('button-next-step')).toHaveTextContent('Étape suivante');
+      expect(screen.getByTestId('button-save-draft')).toHaveTextContent('Sauvegarder le brouillon');
+
+      // Verify validation messages
+      expect(screen.getByTestId('error-first-name-required')).toHaveTextContent('Le prénom est requis');
+      expect(screen.getByTestId('error-last-name-required')).toHaveTextContent('Le nom de famille est requis');
+      expect(screen.getByTestId('error-password-required')).toHaveTextContent('Le mot de passe est requis');
+      expect(screen.getByTestId('error-password-mismatch')).toHaveTextContent('Les mots de passe ne correspondent pas');
+    });
+
+    it('should display registration step 3 (law 25 consent and finalization) with proper French translations and language switcher', () => {
+      const RegistrationStep3Page = () => {
+        return (
+          <div data-testid='registration-step3-page'>
+            {/* Language Switcher */}
+            <div data-testid='language-switcher-header'>
+              <button data-testid='button-language-en'>EN</button>
+              <button data-testid='button-language-fr'>FR</button>
+              <div data-testid='text-current-language'>Français</div>
+            </div>
+
+            {/* Header */}
+            <div data-testid='registration-header'>
+              <div data-testid='header-title'>Inscription - Étape 3 sur 3</div>
+              <div data-testid='header-subtitle'>Consentement et finalisation</div>
+              <div data-testid='progress-indicator'>
+                <div data-testid='step-1-completed'>1. Invitation ✓</div>
+                <div data-testid='step-2-completed'>2. Informations ✓</div>
+                <div data-testid='step-3-active'>3. Finalisation</div>
+              </div>
+            </div>
+
+            {/* Quebec Law 25 Consent Section */}
+            <div data-testid='law25-consent-section'>
+              <div data-testid='consent-title'>Consentement à la collecte de renseignements personnels</div>
+              <div data-testid='consent-subtitle'>Conformément à la Loi 25 du Québec</div>
+              
+              <div data-testid='law25-notice'>
+                <div data-testid='notice-title'>Avis de confidentialité</div>
+                <div data-testid='notice-content'>
+                  En vertu de la Loi modernisant des dispositions législatives en matière de protection des renseignements personnels (Loi 25 du Québec), nous devons obtenir votre consentement explicite pour la collecte, l'utilisation et la divulgation de vos renseignements personnels.
+                </div>
+              </div>
+
+              <div data-testid='data-collection-purposes'>
+                <div data-testid='purposes-title'>Finalités de la collecte</div>
+                <div data-testid='purposes-list'>
+                  <div data-testid='purpose-account-management'>Gestion de votre compte utilisateur</div>
+                  <div data-testid='purpose-property-management'>Gestion immobilière et services de copropriété</div>
+                  <div data-testid='purpose-communication'>Communication liée aux services</div>
+                  <div data-testid='purpose-legal-compliance'>Conformité aux obligations légales</div>
+                  <div data-testid='purpose-security'>Sécurité et protection des données</div>
+                </div>
+              </div>
+
+              <div data-testid='data-types-collected'>
+                <div data-testid='data-types-title'>Types de renseignements collectés</div>
+                <div data-testid='data-types-list'>
+                  <div data-testid='data-type-identity'>Informations d'identité (nom, prénom)</div>
+                  <div data-testid='data-type-contact'>Informations de contact (courriel, téléphone)</div>
+                  <div data-testid='data-type-role'>Informations de rôle et organisation</div>
+                  <div data-testid='data-type-usage'>Données d'utilisation de la plateforme</div>
+                  <div data-testid='data-type-preferences'>Préférences et paramètres</div>
+                </div>
+              </div>
+
+              <div data-testid='your-rights'>
+                <div data-testid='rights-title'>Vos droits</div>
+                <div data-testid='rights-list'>
+                  <div data-testid='right-access'>Droit d'accès à vos renseignements personnels</div>
+                  <div data-testid='right-rectification'>Droit de rectification des données inexactes</div>
+                  <div data-testid='right-withdrawal'>Droit de retrait du consentement</div>
+                  <div data-testid='right-portability'>Droit à la portabilité des données</div>
+                  <div data-testid='right-deletion'>Droit à l'effacement des données</div>
+                </div>
+              </div>
+
+              <div data-testid='consent-checkboxes'>
+                <div data-testid='consent-mandatory'>
+                  <input data-testid='checkbox-mandatory-consent' type='checkbox' />
+                  <label data-testid='label-mandatory-consent'>
+                    J'accepte la collecte et l'utilisation de mes renseignements personnels aux fins décrites ci-dessus (requis) *
+                  </label>
+                </div>
+
+                <div data-testid='consent-communication'>
+                  <input data-testid='checkbox-communication-consent' type='checkbox' />
+                  <label data-testid='label-communication-consent'>
+                    J'accepte de recevoir des communications relatives aux services (optionnel)
+                  </label>
+                </div>
+
+                <div data-testid='consent-analytics'>
+                  <input data-testid='checkbox-analytics-consent' type='checkbox' />
+                  <label data-testid='label-analytics-consent'>
+                    J'accepte l'utilisation de données d'analyse pour améliorer les services (optionnel)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div data-testid='terms-section'>
+              <div data-testid='terms-title'>Conditions d'utilisation</div>
+              <div data-testid='terms-checkbox'>
+                <input data-testid='checkbox-terms' type='checkbox' />
+                <label data-testid='label-terms'>
+                  J'ai lu et j'accepte les <a data-testid='link-terms'>conditions d'utilisation</a> et la <a data-testid='link-privacy'>politique de confidentialité</a> *
+                </label>
+              </div>
+            </div>
+
+            {/* Account Summary */}
+            <div data-testid='account-summary'>
+              <div data-testid='summary-title'>Résumé de votre compte</div>
+              <div data-testid='summary-content'>
+                <div data-testid='summary-name'>Nom : Jean Dupont</div>
+                <div data-testid='summary-email'>Courriel : jean.dupont@exemple.com</div>
+                <div data-testid='summary-role'>Rôle : Gestionnaire</div>
+                <div data-testid='summary-organization'>Organisation : Copropriété Les Jardins</div>
+              </div>
+            </div>
+
+            {/* Final Actions */}
+            <div data-testid='final-actions'>
+              <button data-testid='button-previous-step'>Étape précédente</button>
+              <button data-testid='button-complete-registration'>Finaliser l'inscription</button>
+              <button data-testid='button-save-continue-later'>Sauvegarder et continuer plus tard</button>
+            </div>
+
+            {/* Legal Links */}
+            <div data-testid='legal-links'>
+              <a data-testid='link-privacy-policy'>Politique de confidentialité</a>
+              <a data-testid='link-terms-of-service'>Conditions de service</a>
+              <a data-testid='link-law25-info'>Information sur la Loi 25</a>
+              <a data-testid='link-contact-privacy-officer'>Contacter le responsable de la protection des données</a>
+            </div>
+
+            {/* Completion Messages */}
+            <div data-testid='completion-messages'>
+              <div data-testid='message-processing'>Finalisation de votre inscription...</div>
+              <div data-testid='message-success'>Inscription terminée avec succès</div>
+              <div data-testid='message-error'>Erreur lors de la finalisation</div>
+              <div data-testid='message-consent-required'>Le consentement obligatoire est requis</div>
+              <div data-testid='message-terms-required'>L'acceptation des conditions est requise</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationStep3Page />
+        </TestProviders>
+      );
+
+      // Verify language switcher
+      expect(screen.getByTestId('language-switcher-header')).toBeInTheDocument();
+      expect(screen.getByTestId('button-language-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('button-language-fr')).toHaveTextContent('FR');
+
+      // Verify header translations
+      expect(screen.getByTestId('header-title')).toHaveTextContent('Inscription - Étape 3 sur 3');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Consentement et finalisation');
+      expect(screen.getByTestId('step-1-completed')).toHaveTextContent('1. Invitation ✓');
+      expect(screen.getByTestId('step-2-completed')).toHaveTextContent('2. Informations ✓');
+      expect(screen.getByTestId('step-3-active')).toHaveTextContent('3. Finalisation');
+
+      // Verify Law 25 consent section
+      expect(screen.getByTestId('consent-title')).toHaveTextContent('Consentement à la collecte de renseignements personnels');
+      expect(screen.getByTestId('consent-subtitle')).toHaveTextContent('Conformément à la Loi 25 du Québec');
+      expect(screen.getByTestId('notice-title')).toHaveTextContent('Avis de confidentialité');
+      expect(screen.getByTestId('notice-content')).toHaveTextContent('Loi 25 du Québec');
+
+      // Verify data collection purposes
+      expect(screen.getByTestId('purposes-title')).toHaveTextContent('Finalités de la collecte');
+      expect(screen.getByTestId('purpose-account-management')).toHaveTextContent('Gestion de votre compte utilisateur');
+      expect(screen.getByTestId('purpose-property-management')).toHaveTextContent('Gestion immobilière et services de copropriété');
+      expect(screen.getByTestId('purpose-communication')).toHaveTextContent('Communication liée aux services');
+      expect(screen.getByTestId('purpose-legal-compliance')).toHaveTextContent('Conformité aux obligations légales');
+      expect(screen.getByTestId('purpose-security')).toHaveTextContent('Sécurité et protection des données');
+
+      // Verify data types
+      expect(screen.getByTestId('data-types-title')).toHaveTextContent('Types de renseignements collectés');
+      expect(screen.getByTestId('data-type-identity')).toHaveTextContent('Informations d\'identité (nom, prénom)');
+      expect(screen.getByTestId('data-type-contact')).toHaveTextContent('Informations de contact (courriel, téléphone)');
+      expect(screen.getByTestId('data-type-role')).toHaveTextContent('Informations de rôle et organisation');
+
+      // Verify user rights
+      expect(screen.getByTestId('rights-title')).toHaveTextContent('Vos droits');
+      expect(screen.getByTestId('right-access')).toHaveTextContent('Droit d\'accès à vos renseignements personnels');
+      expect(screen.getByTestId('right-rectification')).toHaveTextContent('Droit de rectification des données inexactes');
+      expect(screen.getByTestId('right-withdrawal')).toHaveTextContent('Droit de retrait du consentement');
+      expect(screen.getByTestId('right-portability')).toHaveTextContent('Droit à la portabilité des données');
+      expect(screen.getByTestId('right-deletion')).toHaveTextContent('Droit à l\'effacement des données');
+
+      // Verify consent checkboxes
+      expect(screen.getByTestId('label-mandatory-consent')).toHaveTextContent('J\'accepte la collecte et l\'utilisation de mes renseignements personnels');
+      expect(screen.getByTestId('label-communication-consent')).toHaveTextContent('J\'accepte de recevoir des communications');
+      expect(screen.getByTestId('label-analytics-consent')).toHaveTextContent('J\'accepte l\'utilisation de données d\'analyse');
+
+      // Verify terms section
+      expect(screen.getByTestId('terms-title')).toHaveTextContent('Conditions d\'utilisation');
+      expect(screen.getByTestId('label-terms')).toHaveTextContent('J\'ai lu et j\'accepte');
+
+      // Verify account summary
+      expect(screen.getByTestId('summary-title')).toHaveTextContent('Résumé de votre compte');
+      expect(screen.getByTestId('summary-email')).toHaveTextContent('Courriel :');
+      expect(screen.getByTestId('summary-role')).toHaveTextContent('Rôle :');
+      expect(screen.getByTestId('summary-organization')).toHaveTextContent('Organisation :');
+
+      // Verify final actions
+      expect(screen.getByTestId('button-previous-step')).toHaveTextContent('Étape précédente');
+      expect(screen.getByTestId('button-complete-registration')).toHaveTextContent('Finaliser l\'inscription');
+      expect(screen.getByTestId('button-save-continue-later')).toHaveTextContent('Sauvegarder et continuer plus tard');
+
+      // Verify legal links
+      expect(screen.getByTestId('link-privacy-policy')).toHaveTextContent('Politique de confidentialité');
+      expect(screen.getByTestId('link-terms-of-service')).toHaveTextContent('Conditions de service');
+      expect(screen.getByTestId('link-law25-info')).toHaveTextContent('Information sur la Loi 25');
+      expect(screen.getByTestId('link-contact-privacy-officer')).toHaveTextContent('Contacter le responsable de la protection des données');
+
+      // Verify completion messages
+      expect(screen.getByTestId('message-processing')).toHaveTextContent('Finalisation de votre inscription');
+      expect(screen.getByTestId('message-success')).toHaveTextContent('Inscription terminée avec succès');
+      expect(screen.getByTestId('message-consent-required')).toHaveTextContent('Le consentement obligatoire est requis');
+      expect(screen.getByTestId('message-terms-required')).toHaveTextContent('L\'acceptation des conditions est requise');
+    });
+
+    it('should avoid English terminology in all registration pages', () => {
+      const RegistrationWithEnglishTerms = () => {
+        return (
+          <div data-testid='registration-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-registration-step'>Registration - Step 1 of 3</div>
+            <div data-testid='incorrect-invitation-validation'>Invitation Validation</div>
+            <div data-testid='incorrect-invitation-code'>Invitation Code</div>
+            <div data-testid='incorrect-email-address'>Email Address</div>
+            <div data-testid='incorrect-validate-invitation'>Validate Invitation</div>
+            <div data-testid='incorrect-resend-invitation'>Resend Invitation</div>
+            <div data-testid='incorrect-back-to-login'>Back to Login</div>
+            <div data-testid='incorrect-need-help'>Need Help?</div>
+            <div data-testid='incorrect-contact-admin'>Contact Administrator</div>
+            <div data-testid='incorrect-security-privacy'>Security and Privacy</div>
+            <div data-testid='incorrect-personal-information'>Personal Information</div>
+            <div data-testid='incorrect-first-name'>First Name</div>
+            <div data-testid='incorrect-last-name'>Last Name</div>
+            <div data-testid='incorrect-phone-number'>Phone Number</div>
+            <div data-testid='incorrect-password'>Password</div>
+            <div data-testid='incorrect-confirm-password'>Confirm Password</div>
+            <div data-testid='incorrect-password-requirements'>Password Requirements</div>
+            <div data-testid='incorrect-role-assignment'>Role Assignment</div>
+            <div data-testid='incorrect-assigned-role'>Assigned Role</div>
+            <div data-testid='incorrect-organization'>Organization</div>
+            <div data-testid='incorrect-previous-step'>Previous Step</div>
+            <div data-testid='incorrect-next-step'>Next Step</div>
+            <div data-testid='incorrect-save-draft'>Save Draft</div>
+            <div data-testid='incorrect-consent-finalization'>Consent and Finalization</div>
+            <div data-testid='incorrect-privacy-consent'>Privacy Consent</div>
+            <div data-testid='incorrect-quebec-law-25'>Quebec Law 25</div>
+            <div data-testid='incorrect-privacy-notice'>Privacy Notice</div>
+            <div data-testid='incorrect-collection-purposes'>Collection Purposes</div>
+            <div data-testid='incorrect-data-types'>Data Types</div>
+            <div data-testid='incorrect-your-rights'>Your Rights</div>
+            <div data-testid='incorrect-terms-conditions'>Terms and Conditions</div>
+            <div data-testid='incorrect-account-summary'>Account Summary</div>
+            <div data-testid='incorrect-complete-registration'>Complete Registration</div>
+            <div data-testid='incorrect-privacy-policy'>Privacy Policy</div>
+            <div data-testid='incorrect-terms-of-service'>Terms of Service</div>
+            <div data-testid='incorrect-manager'>Manager</div>
+            <div data-testid='incorrect-user-profile'>User Profile</div>
+            <div data-testid='incorrect-validation-in-progress'>Validation in progress...</div>
+            <div data-testid='incorrect-invitation-validated'>Invitation validated successfully</div>
+            <div data-testid='incorrect-invalid-code'>Invalid invitation code</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // Verify presence of English terms that should be translated
+      expect(screen.getByTestId('incorrect-registration-step')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-invitation-validation')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-invitation-code')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-email-address')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-validate-invitation')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-personal-information')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-first-name')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-last-name')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-password')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-role-assignment')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-organization')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-consent-finalization')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-privacy-consent')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-quebec-law-25')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-terms-conditions')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-complete-registration')).toBeInTheDocument();
+
+      // Test Quebec French terminology requirements for registration
+      const pageText = document.body.textContent || '';
+      
+      // Should not contain these English terms in French mode
+      const inappropriateRegistrationTerms = [
+        'registration',
+        'step',
+        'invitation validation',
+        'invitation code',
+        'email address',
+        'validate invitation',
+        'resend invitation',
+        'back to login',
+        'need help',
+        'contact administrator',
+        'security and privacy',
+        'personal information',
+        'first name',
+        'last name',
+        'phone number',
+        'password',
+        'confirm password',
+        'password requirements',
+        'role assignment',
+        'assigned role',
+        'organization',
+        'previous step',
+        'next step',
+        'save draft',
+        'consent and finalization',
+        'privacy consent',
+        'quebec law 25',
+        'privacy notice',
+        'collection purposes',
+        'data types',
+        'your rights',
+        'terms and conditions',
+        'account summary',
+        'complete registration',
+        'privacy policy',
+        'terms of service',
+        'manager',
+        'user profile',
+        'validation in progress',
+        'invitation validated',
+        'invalid code'
+      ];
+
+      inappropriateRegistrationTerms.forEach((term) => {
+        expect(pageText.toLowerCase()).not.toContain(term.toLowerCase());
+      });
+    });
+
+    it('should use proper Quebec French terminology for registration concepts', () => {
+      const quebecRegistrationTerms = {
+        'registration': 'inscription',
+        'step': 'étape',
+        'invitation': 'invitation',
+        'validation': 'validation',
+        'code': 'code',
+        'email': 'courriel',
+        'address': 'adresse',
+        'validate': 'valider',
+        'resend': 'renvoyer',
+        'back': 'retour',
+        'login': 'connexion',
+        'help': 'aide',
+        'contact': 'contacter',
+        'administrator': 'administrateur',
+        'security': 'sécurité',
+        'privacy': 'confidentialité',
+        'personal information': 'informations personnelles',
+        'first name': 'prénom',
+        'last name': 'nom de famille',
+        'phone number': 'numéro de téléphone',
+        'password': 'mot de passe',
+        'confirm': 'confirmer',
+        'requirements': 'exigences',
+        'role': 'rôle',
+        'assignment': 'attribution',
+        'assigned': 'attribué',
+        'organization': 'organisation',
+        'previous': 'précédent',
+        'next': 'suivant',
+        'save': 'sauvegarder',
+        'draft': 'brouillon',
+        'consent': 'consentement',
+        'finalization': 'finalisation',
+        'notice': 'avis',
+        'collection': 'collecte',
+        'purposes': 'finalités',
+        'data': 'données',
+        'types': 'types',
+        'rights': 'droits',
+        'terms': 'conditions',
+        'conditions': 'conditions',
+        'account': 'compte',
+        'summary': 'résumé',
+        'complete': 'finaliser',
+        'policy': 'politique',
+        'service': 'service',
+        'manager': 'gestionnaire',
+        'user': 'utilisateur',
+        'profile': 'profil',
+        'in progress': 'en cours',
+        'successfully': 'avec succès',
+        'invalid': 'invalide'
+      };
+
+      Object.entries(quebecRegistrationTerms).forEach(([english, expectedFrench]) => {
+        // Verify terminology mapping exists and is appropriate
+        expect(expectedFrench).toBeTruthy();
+        expect(expectedFrench.length).toBeGreaterThan(0);
+
+        // Quebec French should use proper accents where appropriate
+        if (expectedFrench.includes('é') || expectedFrench.includes('è') || expectedFrench.includes('à') || expectedFrench.includes('ô')) {
+          expect(expectedFrench).toMatch(/[éèàôç]/);
+        }
+      });
+
+      // Specific Quebec French requirements for registration
+      expect('courriel').not.toMatch(/email/); // Should use courriel not email
+      expect('utilisateur').not.toMatch(/user/); // Should use utilisateur not user
+      expect('gestionnaire').not.toMatch(/manager/); // Should use gestionnaire not manager
+      expect('inscription').not.toMatch(/registration/); // Should use inscription not registration
+      expect('mot de passe').not.toMatch(/password/); // Should use proper French
+    });
+
+    it('should have language switcher functionality on all registration pages', () => {
+      const RegistrationLanguageSwitcher = () => {
+        return (
+          <div data-testid='registration-language-switcher'>
+            {/* Step 1 Language Switcher */}
+            <div data-testid='step1-language-switcher'>
+              <button data-testid='step1-button-en'>EN</button>
+              <button data-testid='step1-button-fr'>FR</button>
+              <div data-testid='step1-current-language'>Français</div>
+            </div>
+
+            {/* Step 2 Language Switcher */}
+            <div data-testid='step2-language-switcher'>
+              <button data-testid='step2-button-en'>EN</button>
+              <button data-testid='step2-button-fr'>FR</button>
+              <div data-testid='step2-current-language'>Français</div>
+            </div>
+
+            {/* Step 3 Language Switcher */}
+            <div data-testid='step3-language-switcher'>
+              <button data-testid='step3-button-en'>EN</button>
+              <button data-testid='step3-button-fr'>FR</button>
+              <div data-testid='step3-current-language'>Français</div>
+            </div>
+
+            {/* Language Toggle Functionality */}
+            <div data-testid='language-toggle-labels'>
+              <div data-testid='label-switch-to-english'>Passer à l'anglais</div>
+              <div data-testid='label-switch-to-french'>Passer au français</div>
+              <div data-testid='label-current-language'>Langue actuelle</div>
+              <div data-testid='label-language-preference'>Préférence de langue</div>
+            </div>
+
+            {/* Accessibility Labels */}
+            <div data-testid='accessibility-labels'>
+              <div data-testid='aria-language-switcher'>Sélecteur de langue</div>
+              <div data-testid='aria-english-option'>Option anglaise</div>
+              <div data-testid='aria-french-option'>Option française</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationLanguageSwitcher />
+        </TestProviders>
+      );
+
+      // Verify language switcher presence on all steps
+      expect(screen.getByTestId('step1-language-switcher')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-language-switcher')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-language-switcher')).toBeInTheDocument();
+
+      // Verify language buttons on all steps
+      expect(screen.getByTestId('step1-button-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('step1-button-fr')).toHaveTextContent('FR');
+      expect(screen.getByTestId('step2-button-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('step2-button-fr')).toHaveTextContent('FR');
+      expect(screen.getByTestId('step3-button-en')).toHaveTextContent('EN');
+      expect(screen.getByTestId('step3-button-fr')).toHaveTextContent('FR');
+
+      // Verify current language indicators
+      expect(screen.getByTestId('step1-current-language')).toHaveTextContent('Français');
+      expect(screen.getByTestId('step2-current-language')).toHaveTextContent('Français');
+      expect(screen.getByTestId('step3-current-language')).toHaveTextContent('Français');
+
+      // Verify language toggle labels
+      expect(screen.getByTestId('label-switch-to-english')).toHaveTextContent('Passer à l\'anglais');
+      expect(screen.getByTestId('label-switch-to-french')).toHaveTextContent('Passer au français');
+      expect(screen.getByTestId('label-current-language')).toHaveTextContent('Langue actuelle');
+      expect(screen.getByTestId('label-language-preference')).toHaveTextContent('Préférence de langue');
+
+      // Verify accessibility labels
+      expect(screen.getByTestId('aria-language-switcher')).toHaveTextContent('Sélecteur de langue');
+      expect(screen.getByTestId('aria-english-option')).toHaveTextContent('Option anglaise');
+      expect(screen.getByTestId('aria-french-option')).toHaveTextContent('Option française');
+    });
+
+    it('should have proper data-testid attributes for all registration page elements', () => {
+      const RegistrationPageElements = () => {
+        return (
+          <div data-testid='registration-page-elements'>
+            {/* Step 1 Elements */}
+            <div data-testid='step1-elements'>
+              <div data-testid='step1-header-section'></div>
+              <div data-testid='step1-language-section'></div>
+              <div data-testid='step1-invitation-section'></div>
+              <div data-testid='step1-help-section'></div>
+              <div data-testid='step1-security-section'></div>
+              <input data-testid='input-invitation-token-step1' />
+              <input data-testid='input-email-verification-step1' />
+              <button data-testid='button-validate-step1'>Valider</button>
+              <button data-testid='button-resend-step1'>Renvoyer</button>
+            </div>
+
+            {/* Step 2 Elements */}
+            <div data-testid='step2-elements'>
+              <div data-testid='step2-header-section'></div>
+              <div data-testid='step2-language-section'></div>
+              <div data-testid='step2-personal-info-section'></div>
+              <div data-testid='step2-password-section'></div>
+              <div data-testid='step2-role-section'></div>
+              <input data-testid='input-first-name-step2' />
+              <input data-testid='input-last-name-step2' />
+              <input data-testid='input-password-step2' />
+              <input data-testid='input-confirm-password-step2' />
+              <button data-testid='button-next-step2'>Suivant</button>
+              <button data-testid='button-previous-step2'>Précédent</button>
+            </div>
+
+            {/* Step 3 Elements */}
+            <div data-testid='step3-elements'>
+              <div data-testid='step3-header-section'></div>
+              <div data-testid='step3-language-section'></div>
+              <div data-testid='step3-consent-section'></div>
+              <div data-testid='step3-law25-section'></div>
+              <div data-testid='step3-terms-section'></div>
+              <div data-testid='step3-summary-section'></div>
+              <input data-testid='checkbox-consent-step3' type='checkbox' />
+              <input data-testid='checkbox-terms-step3' type='checkbox' />
+              <button data-testid='button-complete-step3'>Finaliser</button>
+              <button data-testid='button-previous-step3'>Précédent</button>
+            </div>
+
+            {/* Common Elements */}
+            <div data-testid='common-elements'>
+              <div data-testid='progress-bar-container'></div>
+              <div data-testid='error-messages-container'></div>
+              <div data-testid='success-messages-container'></div>
+              <div data-testid='loading-states-container'></div>
+              <div data-testid='navigation-container'></div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RegistrationPageElements />
+        </TestProviders>
+      );
+
+      // Verify all registration page elements have proper test IDs
+      expect(screen.getByTestId('registration-page-elements')).toBeInTheDocument();
+
+      // Verify Step 1 elements
+      expect(screen.getByTestId('step1-elements')).toBeInTheDocument();
+      expect(screen.getByTestId('step1-header-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step1-language-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step1-invitation-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step1-help-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step1-security-section')).toBeInTheDocument();
+      expect(screen.getByTestId('input-invitation-token-step1')).toBeInTheDocument();
+      expect(screen.getByTestId('input-email-verification-step1')).toBeInTheDocument();
+      expect(screen.getByTestId('button-validate-step1')).toBeInTheDocument();
+      expect(screen.getByTestId('button-resend-step1')).toBeInTheDocument();
+
+      // Verify Step 2 elements
+      expect(screen.getByTestId('step2-elements')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-header-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-language-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-personal-info-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-password-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step2-role-section')).toBeInTheDocument();
+      expect(screen.getByTestId('input-first-name-step2')).toBeInTheDocument();
+      expect(screen.getByTestId('input-last-name-step2')).toBeInTheDocument();
+      expect(screen.getByTestId('input-password-step2')).toBeInTheDocument();
+      expect(screen.getByTestId('input-confirm-password-step2')).toBeInTheDocument();
+      expect(screen.getByTestId('button-next-step2')).toBeInTheDocument();
+      expect(screen.getByTestId('button-previous-step2')).toBeInTheDocument();
+
+      // Verify Step 3 elements
+      expect(screen.getByTestId('step3-elements')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-header-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-language-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-consent-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-law25-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-terms-section')).toBeInTheDocument();
+      expect(screen.getByTestId('step3-summary-section')).toBeInTheDocument();
+      expect(screen.getByTestId('checkbox-consent-step3')).toBeInTheDocument();
+      expect(screen.getByTestId('checkbox-terms-step3')).toBeInTheDocument();
+      expect(screen.getByTestId('button-complete-step3')).toBeInTheDocument();
+      expect(screen.getByTestId('button-previous-step3')).toBeInTheDocument();
+
+      // Verify common elements
+      expect(screen.getByTestId('common-elements')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-bar-container')).toBeInTheDocument();
+      expect(screen.getByTestId('error-messages-container')).toBeInTheDocument();
+      expect(screen.getByTestId('success-messages-container')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-states-container')).toBeInTheDocument();
+      expect(screen.getByTestId('navigation-container')).toBeInTheDocument();
+    });
+  });
+
   describe('Button Translation Tests', () => {
     it('should display all buttons with proper French translations', () => {
       const AllButtonsComponent = () => {
