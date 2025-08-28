@@ -293,7 +293,7 @@ export const insertUserOrganizationSchema = z.object({
 
 export const insertInvitationSchema = z.object({
   organizationId: z.string().uuid().optional(),
-  residenceId: z.string().uuid().optional(),
+  residenceId: z.union([z.string().uuid(), z.null()]).optional(),
   email: z.string().email(),
   role: z.enum(['admin', 'manager', 'tenant', 'resident']),
   invitedByUserId: z.string().uuid(),
