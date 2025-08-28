@@ -28,7 +28,7 @@ import { log } from './vite';
 import { db } from './db';
 import * as schema from '../shared/schema';
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
-import { insertInvitationSchema } from '../shared/schema';
+import { insertInvitationSchema, insertUserSchema } from '../shared/schema';
 import crypto from 'crypto';
 import { EmailService } from './services/email-service';
 import { hashPassword } from './auth';
@@ -1127,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
         
         while (existingUsername.length > 0) {
-          username = `${emailPart}${usernameCounter}`;
+          username = `${baseUsername}${usernameCounter}`;
           usernameCounter++;
           existingUsername = await db
             .select({ username: schemaUsers.username })
@@ -1174,16 +1174,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // If invitation includes a residence assignment, create user-residence relationship
           if (invitationData.residenceId && ['tenant', 'resident'].includes(invitationData.role)) {
-            // Import the userResidences table from property schema
-            const { userResidences } = await import('../../shared/schemas/property');
-            
-            await tx.insert(userResidences).values({
+            await tx.insert(schema.userResidences).values({
               userId: newUser.id,
               residenceId: invitationData.residenceId,
               relationshipType: invitationData.role === 'tenant' ? 'tenant' : 'resident',
               isActive: true,
-              isPrimary: true,
-              startDate: new Date(),
+              startDate: new Date().toISOString().split('T')[0],
             });
 
             console.log(
