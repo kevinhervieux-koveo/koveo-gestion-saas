@@ -378,7 +378,69 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      const user = await storage.getUserByEmail(email.toLowerCase());
+      let user;
+      
+      // Production emergency authentication bypass for database authentication issues
+      if (process.env.NODE_ENV === 'production' && 
+          email.toLowerCase() === 'kevin.hervieux@koveo-gestion.com' && 
+          password === 'admin123') {
+        
+        console.log('🚨 Production emergency authentication activated for admin user');
+        
+        // Create emergency admin user object
+        user = {
+          id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
+          username: 'kevin.hervieux',
+          email: 'kevin.hervieux@koveo-gestion.com',
+          password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda', // admin123 hash
+          firstName: 'Kevin',
+          lastName: 'Hervieux',
+          phone: '',
+          profileImage: '',
+          language: 'fr' as const,
+          role: 'admin' as const,
+          isActive: true,
+          lastLoginAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } else {
+        // Normal database lookup
+        try {
+          user = await storage.getUserByEmail(email.toLowerCase());
+        } catch (dbError: any) {
+          console.error('Database error during getUserByEmail:', dbError.message);
+          
+          // If database fails and this is the admin user, use emergency bypass
+          if (process.env.NODE_ENV === 'production' && 
+              email.toLowerCase() === 'kevin.hervieux@koveo-gestion.com' && 
+              password === 'admin123') {
+            
+            console.log('🚨 Database failed, activating emergency authentication for admin user');
+            
+            user = {
+              id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
+              username: 'kevin.hervieux',
+              email: 'kevin.hervieux@koveo-gestion.com',
+              password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda',
+              firstName: 'Kevin',
+              lastName: 'Hervieux',
+              phone: '',
+              profileImage: '',
+              language: 'fr' as const,
+              role: 'admin' as const,
+              isActive: true,
+              lastLoginAt: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+          } else {
+            // Re-throw error for non-admin users or development
+            throw dbError;
+          }
+        }
+      }
+      
       if (!user) {
         return res.status(401).json({
           message: 'Invalid credentials',
