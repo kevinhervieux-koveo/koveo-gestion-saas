@@ -46,14 +46,20 @@ export default function MyBuilding() {
   const itemsPerPage = 10;
 
   // Fetch buildings accessible to the user
-  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{
+  const { data: buildingsData, isLoading: isLoadingBuildings, error: buildingsError } = useQuery<{
     buildings: BuildingWithStats[];
+    meta?: any;
   }>({
     queryKey: ['/api/manager/buildings'],
     queryFn: () => apiRequest('GET', '/api/manager/buildings'),
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
+
+  // Debug logging
+  console.log('Buildings data:', buildingsData);
+  console.log('Buildings array:', buildings);
+  console.log('Buildings error:', buildingsError);
 
   // Pagination calculations
   const totalPages = Math.ceil(buildings.length / itemsPerPage);
