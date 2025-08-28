@@ -76,8 +76,8 @@ describe('Website Translation Tests', () => {
       const englishKeys = Object.keys(translations.en);
       const frenchKeys = Object.keys(translations.fr);
 
-      const missingFrenchKeys = englishKeys.filter((key) => !frenchKeys.includes(_key));
-      const extraFrenchKeys = frenchKeys.filter((key) => !englishKeys.includes(_key));
+      const missingFrenchKeys = englishKeys.filter((key) => !frenchKeys.includes(key));
+      const extraFrenchKeys = frenchKeys.filter((key) => !englishKeys.includes(key));
 
       expect(missingFrenchKeys).toEqual([]);
       expect(extraFrenchKeys).toEqual([]);
@@ -86,9 +86,9 @@ describe('Website Translation Tests', () => {
 
     it('should use Quebec French terminology correctly', () => {
       const quebecTerms = [
-        { _key: 'emailAddress', french: translations.fr.emailAddress },
-        { _key: 'sendWelcomeEmail', french: translations.fr.sendWelcomeEmail },
-        { _key: 'userManagement', french: translations.fr.userManagement },
+        { key: 'emailAddress', french: translations.fr.emailAddress },
+        { key: 'sendWelcomeEmail', french: translations.fr.sendWelcomeEmail },
+        { key: 'userManagement', french: translations.fr.userManagement },
       ];
 
       quebecTerms.forEach(({ key, french }) => {
@@ -8800,7 +8800,7 @@ describe('Website Translation Tests', () => {
               <div data-testid='organization-form'>
                 <div data-testid='label-organization-name'>Nom de l'organisation *</div>
                 <input data-testid='input-organization-name' 
-                  placeholder='Entrez le nom de l\'organisation' 
+                  placeholder="Entrez le nom de l'organisation" 
                 />
                 
                 <div data-testid='label-organization-type'>Type d'organisation *</div>
@@ -8813,12 +8813,12 @@ describe('Website Translation Tests', () => {
                 
                 <div data-testid='label-organization-address'>Adresse *</div>
                 <input data-testid='input-organization-address' 
-                  placeholder='Entrez l\'adresse' 
+                  placeholder="Entrez l'adresse" 
                 />
                 
                 <div data-testid='label-organization-city'>Ville *</div>
                 <input data-testid='input-organization-city' 
-                  placeholder='Entrez la ville' 
+                  placeholder="Entrez la ville" 
                 />
                 
                 <div data-testid='label-organization-province'>Province *</div>
@@ -8840,7 +8840,7 @@ describe('Website Translation Tests', () => {
                 
                 <div data-testid='label-organization-postal-code'>Code postal *</div>
                 <input data-testid='input-organization-postal-code' 
-                  placeholder='Entrez le code postal' 
+                  placeholder="Entrez le code postal" 
                 />
                 
                 <div data-testid='label-organization-phone'>Téléphone</div>
@@ -8850,17 +8850,17 @@ describe('Website Translation Tests', () => {
                 
                 <div data-testid='label-organization-email'>Courriel</div>
                 <input data-testid='input-organization-email' 
-                  placeholder='Entrez l\'adresse courriel' 
+                  placeholder='Entrez l&apos;adresse courriel' 
                 />
                 
                 <div data-testid='label-organization-website'>Site web</div>
                 <input data-testid='input-organization-website' 
-                  placeholder='Entrez l\'URL du site web' 
+                  placeholder='Entrez l&apos;URL du site web' 
                 />
                 
                 <div data-testid='label-organization-registration'>Numéro d'enregistrement</div>
                 <input data-testid='input-organization-registration' 
-                  placeholder='Entrez le numéro d\'enregistrement' 
+                  placeholder='Entrez le numéro d&apos;enregistrement' 
                 />
 
                 <div data-testid='form-buttons'>
@@ -15939,7 +15939,7 @@ export function validateQuebecTerminology(
                 <label data-testid='label-invitation-token'>Code d'invitation</label>
                 <input 
                   data-testid='input-invitation-token' 
-                  placeholder='Entrez votre code d\'invitation'
+                  placeholder="Entrez votre code d'invitation"
                 />
                 <div data-testid='help-text-token'>
                   Le code d'invitation se trouve dans le courriel que vous avez reçu
