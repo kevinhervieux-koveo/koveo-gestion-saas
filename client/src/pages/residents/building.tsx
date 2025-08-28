@@ -51,15 +51,14 @@ export default function MyBuilding() {
     meta?: any;
   }>({
     queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest('GET', '/api/manager/buildings'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      return response.json();
+    },
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
 
-  // Debug logging
-  console.log('Buildings data:', buildingsData);
-  console.log('Buildings array:', buildings);
-  console.log('Buildings error:', buildingsError);
 
   // Pagination calculations
   const totalPages = Math.ceil(buildings.length / itemsPerPage);
