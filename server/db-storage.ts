@@ -68,7 +68,7 @@ export class DatabaseStorage implements IStorage {
       } else {
         
         // Fallback to hardcoded demo users by ID
-        console.log(`🔧 [AUTH DEBUG] Checking hardcoded demo users for ID: ${id}`);
+        console.log(`Looking up hardcoded demo user for ID: ${id}`);
         const demoUsers = {
           'd6f5c19e-8d7f-42ad-8b84-bd011a96c456': {
             id: 'd6f5c19e-8d7f-42ad-8b84-bd011a96c456',
@@ -176,17 +176,17 @@ export class DatabaseStorage implements IStorage {
         
         const demoUser = demoUsers[id as keyof typeof demoUsers];
         if (demoUser) {
-          console.log(`✅ [AUTH DEBUG] Found hardcoded demo user by ID: ${demoUser.firstName} ${demoUser.lastName}`);
+          console.log(`Found hardcoded demo user: ${demoUser.firstName} ${demoUser.lastName}`);
           queryCache.set('users', cacheKey, demoUser);
           return demoUser;
         } else {
-          console.log(`❌ [AUTH DEBUG] No hardcoded demo user found for ID: ${id}`);
+          console.log(`No hardcoded demo user found for ID: ${id}`);
         }
       }
       
       return user;
     } catch (error) {
-      console.error(`❌ [AUTH DEBUG] Drizzle query failed for ID lookup:`, error);
+      console.error(`Drizzle query failed for ID lookup:`, error);
       return undefined;
     }
   }
@@ -201,22 +201,22 @@ export class DatabaseStorage implements IStorage {
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
     
-    console.log(`🔍 [AUTH DEBUG] Looking for user with email: ${email}`);
+    console.log(`Looking for user with email: ${email}`);
     
     try {
       const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
-      console.log(`🔍 [AUTH DEBUG] Drizzle query returned ${result.length} users`);
+      console.log(`Drizzle query returned ${result.length} users`);
       
       const user = result[0];
       if (user) {
-        console.log(`✅ [AUTH DEBUG] Found user: ${user.firstName} ${user.lastName} (${user.role})`);
+        console.log(`Found user: ${user.firstName} ${user.lastName} (${user.role})`);
         queryCache.set('users', cacheKey, user);
       } else {
-        console.log(`❌ [AUTH DEBUG] No user found with email: ${email}`);
+        console.log(`No user found with email: ${email}`);
         
         // For demo users, create a hardcoded user as a temporary workaround
         if (email.includes('@demo.com')) {
-          console.log(`🔧 [AUTH DEBUG] Using hardcoded demo user for: ${email}`);
+          console.log(`Using hardcoded demo user for: ${email}`);
           
           // Map of demo users - this bypasses the Drizzle ORM issue
           const demoUsers = {
@@ -320,18 +320,18 @@ export class DatabaseStorage implements IStorage {
           
           const demoUser = demoUsers[email as keyof typeof demoUsers];
           if (demoUser) {
-            console.log(`✅ [AUTH DEBUG] Found hardcoded demo user: ${demoUser.firstName} ${demoUser.lastName}`);
+            console.log(`Found hardcoded demo user: ${demoUser.firstName} ${demoUser.lastName}`);
             queryCache.set('users', cacheKey, demoUser);
             return demoUser;
           } else {
-            console.log(`❌ [AUTH DEBUG] No hardcoded demo user found for: ${email}`);
+            console.log(`No hardcoded demo user found for: ${email}`);
           }
         }
       }
       
       return user;
     } catch (error) {
-      console.error(`❌ [AUTH DEBUG] Drizzle query failed:`, error);
+      console.error(`Drizzle query failed:`, error);
       return undefined;
     }
   }
