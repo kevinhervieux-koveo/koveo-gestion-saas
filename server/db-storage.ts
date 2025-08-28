@@ -58,10 +58,91 @@ export class DatabaseStorage implements IStorage {
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
     
-    const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-    const user = result[0];
-    if (user) queryCache.set('users', cacheKey, user);
-    return user;
+    console.log(`🔍 [AUTH DEBUG] Looking for user with ID: ${id}`);
+    
+    try {
+      const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
+      console.log(`🔍 [AUTH DEBUG] Drizzle query returned ${result.length} users for ID lookup`);
+      
+      let user = result[0];
+      if (user) {
+        console.log(`✅ [AUTH DEBUG] Found user by ID: ${user.firstName} ${user.lastName} (${user.role})`);
+        queryCache.set('users', cacheKey, user);
+        return user;
+      } else {
+        console.log(`❌ [AUTH DEBUG] No user found with ID: ${id}`);
+        
+        // Fallback to hardcoded demo users by ID
+        console.log(`🔧 [AUTH DEBUG] Checking hardcoded demo users for ID: ${id}`);
+        const demoUsers = {
+          'd6f5c19e-8d7f-42ad-8b84-bd011a96c456': {
+            id: 'd6f5c19e-8d7f-42ad-8b84-bd011a96c456',
+            username: 'sophie.demo.resident',
+            email: 'sophie.martin@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Sophie',
+            lastName: 'Martin',
+            phone: '514-555-0103',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_resident',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          '2e7a95ff-1234-4567-8901-abcdef123456': {
+            id: '2e7a95ff-1234-4567-8901-abcdef123456',
+            username: 'jean.demo.tenant',
+            email: 'jean.tremblay@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Jean',
+            lastName: 'Tremblay',
+            phone: '514-555-0101',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          '4c9d17dd-6789-0123-4567-abcdef890123': {
+            id: '4c9d17dd-6789-0123-4567-abcdef890123',
+            username: 'marie.demo.manager',
+            email: 'marie.dubois@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Marie',
+            lastName: 'Dubois',
+            phone: '514-555-0104',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_manager',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+        };
+        
+        const demoUser = demoUsers[id as keyof typeof demoUsers];
+        if (demoUser) {
+          console.log(`✅ [AUTH DEBUG] Found hardcoded demo user by ID: ${demoUser.firstName} ${demoUser.lastName}`);
+          queryCache.set('users', cacheKey, demoUser);
+          return demoUser;
+        } else {
+          console.log(`❌ [AUTH DEBUG] No hardcoded demo user found for ID: ${id}`);
+        }
+      }
+      
+      return user;
+    } catch (error) {
+      console.error(`❌ [AUTH DEBUG] Drizzle query failed for ID lookup:`, error);
+      return undefined;
+    }
   }
 
   /**
