@@ -764,8 +764,15 @@ class ProductionFallbackStorage implements IStorage {
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-    return user;
+    console.log('🔍 ProductionFallbackStorage.getUserByEmail called with:', email);
+    try {
+      const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
+      console.log('🔍 ProductionFallbackStorage result:', user ? 'FOUND' : 'NOT FOUND');
+      return user;
+    } catch (error) {
+      console.error('🔍 ProductionFallbackStorage error:', error);
+      throw error;
+    }
   }
 
   async getUsers(): Promise<User[]> {
