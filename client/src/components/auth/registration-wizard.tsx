@@ -132,9 +132,6 @@ export function RegistrationWizard({
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      // Mark final step as complete
-      updateStepCompletion(currentStep.id, true);
-
       // Combine all wizard data
       const completeData = {
         ...wizardData,
@@ -142,8 +139,13 @@ export function RegistrationWizard({
       };
 
       await onComplete(completeData);
+      
+      // Only mark final step as complete after successful submission
+      updateStepCompletion(currentStep.id, true);
     } catch (_error) {
       console.error('Wizard completion _error:', _error);
+      // Reset step completion on error to allow retry
+      updateStepCompletion(currentStep.id, false);
       setIsSubmitting(false);
     }
   };

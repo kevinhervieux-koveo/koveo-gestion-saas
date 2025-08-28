@@ -87,6 +87,8 @@ export default function InvitationAcceptancePage() {
         throw new Error('Consentements obligatoires requis');
       }
 
+      console.log('🔍 Starting token validation for:', tokenData.token.substring(0, 8) + '...');
+
       // Accept the invitation with all collected data
       const response = await fetch(`/api/invitations/accept/${tokenData.token}`, {
         method: 'POST',
@@ -97,25 +99,27 @@ export default function InvitationAcceptancePage() {
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           password: passwordData.password,
-          phone: profileData.phone,
-          language: profileData.language,
-          dateOfBirth: profileData.dateOfBirth,
-          // Privacy consents as flat properties (matching server expectations)
+          phone: profileData.phone || '',
+          language: profileData.language || 'fr',
+          // Only send privacy consents as flat properties (matching server expectations)
           dataCollectionConsent: privacyData.dataCollectionConsent,
           marketingConsent: privacyData.marketingConsent,
           analyticsConsent: privacyData.analyticsConsent,
           thirdPartyConsent: privacyData.thirdPartyConsent,
           acknowledgedRights: privacyData.acknowledgedRights,
-          consentDate: privacyData.consentDate,
         }),
       });
 
+      console.log('📡 API response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('📄 API response data:', errorData);
         throw new Error(errorData.message || 'Erreur lors de la création du compte');
       }
 
       const result = await response.json();
+      console.log('✅ Token validation successful, updating wizard state');
       setCompletedUser(result.user);
       setIsCompleted(true);
     } catch (_error: unknown) {
@@ -123,6 +127,8 @@ export default function InvitationAcceptancePage() {
       setError(
         (_error as Error).message || 'Une erreur est survenue lors de la création de votre compte'
       );
+      // Re-throw the error so the wizard can handle it properly
+      throw _error;
     }
   }, []);
 
@@ -133,7 +139,7 @@ export default function InvitationAcceptancePage() {
 
   // Handle completion - redirect to login
   const handleGoToLogin = useCallback(() => {
-    setLocation('/');
+    setLocation('/auth/login');
   }, [setLocation]);
 
   // Success screen after completion

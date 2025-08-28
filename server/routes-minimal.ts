@@ -1144,20 +1144,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: sanitizedFirstName,
           lastName: sanitizedLastName,
           role: invitationData.role,
-          phone: sanitizedPhone,
+          phone: sanitizedPhone || '',
           language: language || 'fr',
         };
 
-        // Validate using insertUserSchema
-        try {
-          insertUserSchema.parse(createUserData);
-        } catch (validationError: any) {
+        // Validate using insertUserSchema - use safeParse to avoid throwing errors
+        const validationResult = insertUserSchema.safeParse(createUserData);
+        if (!validationResult.success) {
+          console.log('❌ User data validation failed:', validationResult.error.issues);
+          console.log('📝 Attempted user data:', createUserData);
           return res.status(400).json({
-            message: 'Invalid user data',
+            message: 'Invalid user data: ' + validationResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', '),
             code: 'VALIDATION_ERROR',
-            details: validationError.issues,
+            details: validationResult.error.issues,
           });
         }
+
+        console.log('✅ User data validation successful for:', normalizedEmail);
 
         // Use database transaction to ensure atomicity
         const result = await db.transaction(async (tx) => {
@@ -1236,10 +1239,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirectTo: '/login',
         });
       } catch (_error) {
-        // Log failed user creation attempt
+        // Log failed user creation attempt with proper variable scope
+        const invitationEmail = req.body.email || 'unknown';
+        const invitationRole = req.body.role || 'unknown';
+        
         logUserCreation({
-          email: invitationData?.email || 'unknown',
-          role: invitationData?.role || 'unknown',
+          email: invitationEmail,
+          role: invitationRole,
           method: 'invitation',
           success: false,
           error: _error instanceof Error ? _error.message : 'Unknown error',
