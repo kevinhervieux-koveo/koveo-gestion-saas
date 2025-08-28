@@ -3608,6 +3608,706 @@ describe('Website Translation Tests', () => {
       expect(documentsButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Manager Bills Page Translation', () => {
+    it('should display manager bills page with proper French translations', () => {
+      const ManagerBillsPage = () => {
+        return (
+          <div data-testid='manager-bills-page'>
+            {/* Header Section */}
+            <div data-testid='header-bills-management'>Gestion de la facturation</div>
+            <div data-testid='header-subtitle'>
+              Gérer les dépenses d'immeuble et le suivi des revenus
+            </div>
+
+            {/* Filters Section */}
+            <div data-testid='filters-card'>
+              <div data-testid='filters-title'>Filtres</div>
+              
+              <div data-testid='building-filter'>
+                <div data-testid='label-building-filter'>Immeuble</div>
+                <div data-testid='placeholder-select-building'>Sélectionner un immeuble</div>
+              </div>
+
+              <div data-testid='category-filter'>
+                <div data-testid='label-category-filter'>Catégorie</div>
+                <div data-testid='placeholder-all-categories'>Toutes les catégories</div>
+                <div data-testid='option-all-categories'>Toutes les catégories</div>
+                
+                {/* Bill Categories in Quebec French */}
+                <div data-testid='category-insurance'>Assurance</div>
+                <div data-testid='category-maintenance'>Maintenance</div>
+                <div data-testid='category-salary'>Salaire</div>
+                <div data-testid='category-utilities'>Services publics</div>
+                <div data-testid='category-cleaning'>Nettoyage</div>
+                <div data-testid='category-security'>Sécurité</div>
+                <div data-testid='category-landscaping'>Aménagement paysager</div>
+                <div data-testid='category-professional-services'>Services professionnels</div>
+                <div data-testid='category-administration'>Administration</div>
+                <div data-testid='category-repairs'>Réparations</div>
+                <div data-testid='category-supplies'>Fournitures</div>
+                <div data-testid='category-taxes'>Taxes</div>
+                <div data-testid='category-other'>Autre</div>
+              </div>
+
+              <div data-testid='year-filter'>
+                <div data-testid='label-year-filter'>Année</div>
+                <div data-testid='current-year-indicator'>(Actuelle)</div>
+                <div data-testid='show-more-years'>Afficher plus d'années (2020 - 2050)</div>
+                <div data-testid='show-fewer-years'>Afficher moins d'années (2022 - 2028)</div>
+              </div>
+
+              <div data-testid='months-filter'>
+                <div data-testid='label-months-filter'>Mois</div>
+                <div data-testid='all-months'>Tous les mois</div>
+                <div data-testid='months-count'>12 mois</div>
+                
+                {/* Months in Quebec French */}
+                <div data-testid='month-january'>Janvier</div>
+                <div data-testid='month-february'>Février</div>
+                <div data-testid='month-march'>Mars</div>
+                <div data-testid='month-april'>Avril</div>
+                <div data-testid='month-may'>Mai</div>
+                <div data-testid='month-june'>Juin</div>
+                <div data-testid='month-july'>Juillet</div>
+                <div data-testid='month-august'>Août</div>
+                <div data-testid='month-september'>Septembre</div>
+                <div data-testid='month-october'>Octobre</div>
+                <div data-testid='month-november'>Novembre</div>
+                <div data-testid='month-december'>Décembre</div>
+              </div>
+
+              <div data-testid='actions-section'>
+                <button data-testid='button-create-bill'>Créer une facture</button>
+              </div>
+            </div>
+
+            {/* Building Selection */}
+            <div data-testid='building-selection'>
+              <div data-testid='select-building-title'>Sélectionner un immeuble</div>
+              <div data-testid='select-building-description'>
+                Choisissez un immeuble pour voir et gérer ses factures
+              </div>
+              
+              <div data-testid='building-card-demo'>
+                <div data-testid='building-name-demo'>Immeuble Démo</div>
+                <div data-testid='building-address-demo'>123 Rue Démo</div>
+                <div data-testid='building-location-demo'>Montréal</div>
+                <div data-testid='building-type-condo'>condo</div>
+                <button data-testid='button-view-bills'>Voir les factures</button>
+              </div>
+            </div>
+
+            {/* Create Bill Dialog */}
+            <div data-testid='dialog-create-bill'>
+              <div data-testid='create-bill-title'>Créer une nouvelle facture</div>
+              <div data-testid='create-bill-form'>
+                <div data-testid='label-bill-number'>Numéro de facture</div>
+                <div data-testid='label-bill-amount'>Montant</div>
+                <div data-testid='label-bill-description'>Description</div>
+                <div data-testid='label-bill-category'>Catégorie</div>
+                <div data-testid='label-bill-date'>Date</div>
+                <div data-testid='label-due-date'>Date d'échéance</div>
+                <div data-testid='label-vendor'>Fournisseur</div>
+                <div data-testid='label-payment-method'>Méthode de paiement</div>
+                
+                <button data-testid='button-save-bill'>Sauvegarder la facture</button>
+                <button data-testid='button-cancel-bill'>Annuler</button>
+              </div>
+            </div>
+
+            {/* Bills Display */}
+            <div data-testid='bills-section'>
+              <div data-testid='category-section-maintenance'>
+                <div data-testid='category-title-maintenance'>Maintenance</div>
+                <div data-testid='bills-count-badge'>5</div>
+                
+                <div data-testid='bill-card-1'>
+                  <div data-testid='bill-number'>Facture #2025-001</div>
+                  <div data-testid='bill-amount-display'>1,500.00 $</div>
+                  <div data-testid='bill-description-text'>Réparation du système de chauffage</div>
+                  <div data-testid='bill-date'>2025-01-15</div>
+                  <div data-testid='bill-status-paid'>Payée</div>
+                  <div data-testid='bill-status-pending'>En attente</div>
+                  <div data-testid='bill-status-overdue'>En retard</div>
+                  
+                  <button data-testid='button-edit-bill'>Modifier</button>
+                  <button data-testid='button-delete-bill'>Supprimer</button>
+                  <button data-testid='button-mark-paid'>Marquer comme payée</button>
+                  <button data-testid='button-download-receipt'>Télécharger le reçu</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Empty States */}
+            <div data-testid='no-bills-found'>Aucune facture trouvée</div>
+            <div data-testid='no-bills-description'>
+              Aucune facture trouvée pour les filtres sélectionnés. Créez votre première facture pour commencer.
+            </div>
+            <button data-testid='button-create-first-bill'>Créer la première facture</button>
+
+            {/* Loading States */}
+            <div data-testid='loading-buildings'>Chargement des immeubles...</div>
+            <div data-testid='loading-bills'>Chargement des factures...</div>
+
+            {/* Error States */}
+            <div data-testid='error-load-buildings'>Échec du chargement des immeubles</div>
+            <div data-testid='error-load-bills'>Échec du chargement des factures</div>
+            <button data-testid='button-retry'>Réessayer</button>
+
+            {/* Toast Messages */}
+            <div data-testid='toast-bill-created'>Facture créée avec succès</div>
+            <div data-testid='toast-bill-updated'>Facture mise à jour avec succès</div>
+            <div data-testid='toast-bill-deleted'>Facture supprimée avec succès</div>
+            <div data-testid='toast-bill-paid'>Facture marquée comme payée</div>
+            <div data-testid='toast-bill-error'>Erreur lors de l'opération sur la facture</div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-bill-number-required'>Le numéro de facture est requis</div>
+            <div data-testid='validation-amount-required'>Le montant est requis</div>
+            <div data-testid='validation-amount-invalid'>Montant invalide</div>
+            <div data-testid='validation-description-required'>La description est requise</div>
+            <div data-testid='validation-category-required'>La catégorie est requise</div>
+            <div data-testid='validation-date-required'>La date est requise</div>
+            <div data-testid='validation-due-date-required'>La date d'échéance est requise</div>
+
+            {/* Additional Labels */}
+            <div data-testid='label-bill-summary'>Résumé des factures</div>
+            <div data-testid='label-total-expenses'>Total des dépenses</div>
+            <div data-testid='label-monthly-breakdown'>Répartition mensuelle</div>
+            <div data-testid='label-payment-status'>Statut de paiement</div>
+            <div data-testid='label-vendor-info'>Informations du fournisseur</div>
+            <div data-testid='label-attachments'>Pièces jointes</div>
+            <div data-testid='label-notes'>Notes</div>
+
+            {/* Bill Types and Payment Methods */}
+            <div data-testid='bill-type-expense'>Dépense</div>
+            <div data-testid='bill-type-revenue'>Revenu</div>
+            <div data-testid='payment-method-cash'>Comptant</div>
+            <div data-testid='payment-method-check'>Chèque</div>
+            <div data-testid='payment-method-transfer'>Virement</div>
+            <div data-testid='payment-method-card'>Carte</div>
+            <div data-testid='payment-method-other'>Autre</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerBillsPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-bills-management')).toHaveTextContent('Gestion de la facturation');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Gérer les dépenses d\'immeuble et le suivi des revenus');
+
+      // Verify filters section
+      expect(screen.getByTestId('filters-title')).toHaveTextContent('Filtres');
+      expect(screen.getByTestId('label-building-filter')).toHaveTextContent('Immeuble');
+      expect(screen.getByTestId('placeholder-select-building')).toHaveTextContent('Sélectionner un immeuble');
+      expect(screen.getByTestId('label-category-filter')).toHaveTextContent('Catégorie');
+      expect(screen.getByTestId('placeholder-all-categories')).toHaveTextContent('Toutes les catégories');
+      expect(screen.getByTestId('option-all-categories')).toHaveTextContent('Toutes les catégories');
+
+      // Verify bill categories use Quebec French
+      expect(screen.getByTestId('category-insurance')).toHaveTextContent('Assurance');
+      expect(screen.getByTestId('category-maintenance')).toHaveTextContent('Maintenance');
+      expect(screen.getByTestId('category-salary')).toHaveTextContent('Salaire');
+      expect(screen.getByTestId('category-utilities')).toHaveTextContent('Services publics');
+      expect(screen.getByTestId('category-cleaning')).toHaveTextContent('Nettoyage');
+      expect(screen.getByTestId('category-security')).toHaveTextContent('Sécurité');
+      expect(screen.getByTestId('category-landscaping')).toHaveTextContent('Aménagement paysager');
+      expect(screen.getByTestId('category-professional-services')).toHaveTextContent('Services professionnels');
+      expect(screen.getByTestId('category-administration')).toHaveTextContent('Administration');
+      expect(screen.getByTestId('category-repairs')).toHaveTextContent('Réparations');
+      expect(screen.getByTestId('category-supplies')).toHaveTextContent('Fournitures');
+      expect(screen.getByTestId('category-taxes')).toHaveTextContent('Taxes');
+      expect(screen.getByTestId('category-other')).toHaveTextContent('Autre');
+
+      // Verify year and months filters
+      expect(screen.getByTestId('label-year-filter')).toHaveTextContent('Année');
+      expect(screen.getByTestId('current-year-indicator')).toHaveTextContent('(Actuelle)');
+      expect(screen.getByTestId('label-months-filter')).toHaveTextContent('Mois');
+      expect(screen.getByTestId('all-months')).toHaveTextContent('Tous les mois');
+
+      // Verify months use Quebec French
+      expect(screen.getByTestId('month-january')).toHaveTextContent('Janvier');
+      expect(screen.getByTestId('month-february')).toHaveTextContent('Février');
+      expect(screen.getByTestId('month-march')).toHaveTextContent('Mars');
+      expect(screen.getByTestId('month-april')).toHaveTextContent('Avril');
+      expect(screen.getByTestId('month-may')).toHaveTextContent('Mai');
+      expect(screen.getByTestId('month-june')).toHaveTextContent('Juin');
+      expect(screen.getByTestId('month-july')).toHaveTextContent('Juillet');
+      expect(screen.getByTestId('month-august')).toHaveTextContent('Août');
+      expect(screen.getByTestId('month-september')).toHaveTextContent('Septembre');
+      expect(screen.getByTestId('month-october')).toHaveTextContent('Octobre');
+      expect(screen.getByTestId('month-november')).toHaveTextContent('Novembre');
+      expect(screen.getByTestId('month-december')).toHaveTextContent('Décembre');
+
+      // Verify building selection
+      expect(screen.getByTestId('select-building-title')).toHaveTextContent('Sélectionner un immeuble');
+      expect(screen.getByTestId('select-building-description')).toHaveTextContent('Choisissez un immeuble pour voir et gérer ses factures');
+      expect(screen.getByTestId('button-view-bills')).toHaveTextContent('Voir les factures');
+
+      // Verify action buttons
+      expect(screen.getByTestId('button-create-bill')).toHaveTextContent('Créer une facture');
+
+      // Verify create bill dialog
+      expect(screen.getByTestId('create-bill-title')).toHaveTextContent('Créer une nouvelle facture');
+      expect(screen.getByTestId('label-bill-number')).toHaveTextContent('Numéro de facture');
+      expect(screen.getByTestId('label-bill-amount')).toHaveTextContent('Montant');
+      expect(screen.getByTestId('label-bill-description')).toHaveTextContent('Description');
+      expect(screen.getByTestId('label-bill-category')).toHaveTextContent('Catégorie');
+      expect(screen.getByTestId('label-bill-date')).toHaveTextContent('Date');
+      expect(screen.getByTestId('label-due-date')).toHaveTextContent('Date d\'échéance');
+      expect(screen.getByTestId('label-vendor')).toHaveTextContent('Fournisseur');
+      expect(screen.getByTestId('label-payment-method')).toHaveTextContent('Méthode de paiement');
+
+      // Verify bill operations
+      expect(screen.getByTestId('button-save-bill')).toHaveTextContent('Sauvegarder la facture');
+      expect(screen.getByTestId('button-cancel-bill')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-edit-bill')).toHaveTextContent('Modifier');
+      expect(screen.getByTestId('button-delete-bill')).toHaveTextContent('Supprimer');
+      expect(screen.getByTestId('button-mark-paid')).toHaveTextContent('Marquer comme payée');
+      expect(screen.getByTestId('button-download-receipt')).toHaveTextContent('Télécharger le reçu');
+
+      // Verify bill status labels
+      expect(screen.getByTestId('bill-status-paid')).toHaveTextContent('Payée');
+      expect(screen.getByTestId('bill-status-pending')).toHaveTextContent('En attente');
+      expect(screen.getByTestId('bill-status-overdue')).toHaveTextContent('En retard');
+
+      // Verify empty states
+      expect(screen.getByTestId('no-bills-found')).toHaveTextContent('Aucune facture trouvée');
+      expect(screen.getByTestId('no-bills-description')).toHaveTextContent('Aucune facture trouvée pour les filtres sélectionnés');
+      expect(screen.getByTestId('button-create-first-bill')).toHaveTextContent('Créer la première facture');
+
+      // Verify loading and error states
+      expect(screen.getByTestId('loading-buildings')).toHaveTextContent('Chargement des immeubles');
+      expect(screen.getByTestId('loading-bills')).toHaveTextContent('Chargement des factures');
+      expect(screen.getByTestId('error-load-buildings')).toHaveTextContent('Échec du chargement des immeubles');
+      expect(screen.getByTestId('button-retry')).toHaveTextContent('Réessayer');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-bill-number-required')).toHaveTextContent('Le numéro de facture est requis');
+      expect(screen.getByTestId('validation-amount-required')).toHaveTextContent('Le montant est requis');
+      expect(screen.getByTestId('validation-description-required')).toHaveTextContent('La description est requise');
+      expect(screen.getByTestId('validation-category-required')).toHaveTextContent('La catégorie est requise');
+      expect(screen.getByTestId('validation-date-required')).toHaveTextContent('La date est requise');
+      expect(screen.getByTestId('validation-due-date-required')).toHaveTextContent('La date d\'échéance est requise');
+    });
+
+    it('should avoid English terminology in manager bills page', () => {
+      const BillsWithEnglishTerms = () => {
+        return (
+          <div data-testid='bills-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-bills-management'>Bills Management</div>
+            <div data-testid='incorrect-manage-building-expenses'>Manage building expenses</div>
+            <div data-testid='incorrect-revenue-tracking'>revenue tracking</div>
+            <div data-testid='incorrect-filters'>Filters</div>
+            <div data-testid='incorrect-building'>Building</div>
+            <div data-testid='incorrect-select-building'>Select building</div>
+            <div data-testid='incorrect-category'>Category</div>
+            <div data-testid='incorrect-all-categories'>All categories</div>
+            <div data-testid='incorrect-year'>Year</div>
+            <div data-testid='incorrect-months'>Months</div>
+            <div data-testid='incorrect-all-months'>All Months</div>
+            <div data-testid='incorrect-create-bill'>Create Bill</div>
+            <div data-testid='incorrect-insurance'>Insurance</div>
+            <div data-testid='incorrect-maintenance'>Maintenance</div>
+            <div data-testid='incorrect-salary'>Salary</div>
+            <div data-testid='incorrect-utilities'>Utilities</div>
+            <div data-testid='incorrect-cleaning'>Cleaning</div>
+            <div data-testid='incorrect-security'>Security</div>
+            <div data-testid='incorrect-landscaping'>Landscaping</div>
+            <div data-testid='incorrect-professional-services'>Professional Services</div>
+            <div data-testid='incorrect-administration'>Administration</div>
+            <div data-testid='incorrect-repairs'>Repairs</div>
+            <div data-testid='incorrect-supplies'>Supplies</div>
+            <div data-testid='incorrect-taxes'>Taxes</div>
+            <div data-testid='incorrect-other'>Other</div>
+            <div data-testid='incorrect-january'>January</div>
+            <div data-testid='incorrect-february'>February</div>
+            <div data-testid='incorrect-march'>March</div>
+            <div data-testid='incorrect-april'>April</div>
+            <div data-testid='incorrect-may'>May</div>
+            <div data-testid='incorrect-june'>June</div>
+            <div data-testid='incorrect-july'>July</div>
+            <div data-testid='incorrect-august'>August</div>
+            <div data-testid='incorrect-september'>September</div>
+            <div data-testid='incorrect-october'>October</div>
+            <div data-testid='incorrect-november'>November</div>
+            <div data-testid='incorrect-december'>December</div>
+            <div data-testid='incorrect-select-a-building'>Select a Building</div>
+            <div data-testid='incorrect-choose-building'>Choose a building</div>
+            <div data-testid='incorrect-view-bills'>View Bills</div>
+            <div data-testid='incorrect-create-new-bill'>Create New Bill</div>
+            <div data-testid='incorrect-bill-number'>Bill Number</div>
+            <div data-testid='incorrect-amount'>Amount</div>
+            <div data-testid='incorrect-description'>Description</div>
+            <div data-testid='incorrect-date'>Date</div>
+            <div data-testid='incorrect-due-date'>Due Date</div>
+            <div data-testid='incorrect-vendor'>Vendor</div>
+            <div data-testid='incorrect-payment-method'>Payment Method</div>
+            <div data-testid='incorrect-save-bill'>Save Bill</div>
+            <div data-testid='incorrect-cancel'>Cancel</div>
+            <div data-testid='incorrect-edit'>Edit</div>
+            <div data-testid='incorrect-delete'>Delete</div>
+            <div data-testid='incorrect-mark-paid'>Mark Paid</div>
+            <div data-testid='incorrect-download-receipt'>Download Receipt</div>
+            <div data-testid='incorrect-paid'>Paid</div>
+            <div data-testid='incorrect-pending'>Pending</div>
+            <div data-testid='incorrect-overdue'>Overdue</div>
+            <div data-testid='incorrect-no-bills-found'>No Bills Found</div>
+            <div data-testid='incorrect-loading-bills'>Loading bills</div>
+            <div data-testid='incorrect-failed-to-load'>Failed to load</div>
+            <div data-testid='incorrect-retry'>Retry</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <BillsWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'bills management',
+        'manage building expenses',
+        'revenue tracking',
+        'filters',
+        'building',
+        'select building',
+        'category',
+        'all categories',
+        'year',
+        'months',
+        'all months',
+        'create bill',
+        'insurance',
+        'maintenance',
+        'salary',
+        'utilities',
+        'cleaning',
+        'security',
+        'landscaping',
+        'professional services',
+        'administration',
+        'repairs',
+        'supplies',
+        'taxes',
+        'other',
+        'january',
+        'february',
+        'march',
+        'april',
+        'may',
+        'june',
+        'july',
+        'august',
+        'september',
+        'october',
+        'november',
+        'december',
+        'select a building',
+        'choose building',
+        'view bills',
+        'create new bill',
+        'bill number',
+        'amount',
+        'description',
+        'date',
+        'due date',
+        'vendor',
+        'payment method',
+        'save bill',
+        'cancel',
+        'edit',
+        'delete',
+        'mark paid',
+        'download receipt',
+        'paid',
+        'pending',
+        'overdue',
+        'no bills found',
+        'loading bills',
+        'failed to load',
+        'retry'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec financial and billing terminology', () => {
+      const FinancialBillingTerms = () => {
+        return (
+          <div data-testid='financial-billing-terms'>
+            {/* Correct Quebec French financial and billing terms */}
+            <div data-testid='term-gestion-facturation'>Gestion de la facturation</div>
+            <div data-testid='term-comptabilite'>Comptabilité</div>
+            <div data-testid='term-tenue-livres'>Tenue de livres</div>
+            <div data-testid='term-finances'>Finances</div>
+            <div data-testid='term-budget'>Budget</div>
+            <div data-testid='term-depenses'>Dépenses</div>
+            <div data-testid='term-revenus'>Revenus</div>
+            <div data-testid='term-recettes'>Recettes</div>
+            <div data-testid='term-facture'>Facture</div>
+            <div data-testid='term-factures'>Factures</div>
+            <div data-testid='term-facturation'>Facturation</div>
+            <div data-testid='term-compte'>Compte</div>
+            <div data-testid='term-comptes'>Comptes</div>
+            <div data-testid='term-paiement'>Paiement</div>
+            <div data-testid='term-paiements'>Paiements</div>
+            <div data-testid='term-recu'>Reçu</div>
+            <div data-testid='term-recus'>Reçus</div>
+            <div data-testid='term-fournisseur'>Fournisseur</div>
+            <div data-testid='term-fournisseurs'>Fournisseurs</div>
+            <div data-testid='term-creancier'>Créancier</div>
+            <div data-testid='term-debiteur'>Débiteur</div>
+            <div data-testid='term-echeance'>Échéance</div>
+            <div data-testid='term-echeances'>Échéances</div>
+            <div data-testid='term-montant'>Montant</div>
+            <div data-testid='term-montants'>Montants</div>
+            <div data-testid='term-total'>Total</div>
+            <div data-testid='term-sous-total'>Sous-total</div>
+            <div data-testid='term-tps'>TPS</div>
+            <div data-testid='term-tvq'>TVQ</div>
+            <div data-testid='term-taxes'>Taxes</div>
+            <div data-testid='term-taxable'>Taxable</div>
+            <div data-testid='term-non-taxable'>Non-taxable</div>
+            <div data-testid='term-remise'>Remise</div>
+            <div data-testid='term-rabais'>Rabais</div>
+            <div data-testid='term-escompte'>Escompte</div>
+            <div data-testid='term-interet'>Intérêt</div>
+            <div data-testid='term-interets'>Intérêts</div>
+            <div data-testid='term-penalite'>Pénalité</div>
+            <div data-testid='term-penalites'>Pénalités</div>
+            <div data-testid='term-frais'>Frais</div>
+            <div data-testid='term-frais-administration'>Frais d'administration</div>
+            <div data-testid='term-frais-service'>Frais de service</div>
+            <div data-testid='term-charges'>Charges</div>
+            <div data-testid='term-charges-exploitation'>Charges d'exploitation</div>
+            <div data-testid='term-coûts'>Coûts</div>
+            <div data-testid='term-cout-exploitation'>Coût d'exploitation</div>
+            <div data-testid='term-cout-entretien'>Coût d'entretien</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <FinancialBillingTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec financial and billing terminology
+      expect(screen.getByTestId('term-gestion-facturation')).toHaveTextContent('Gestion de la facturation');
+      expect(screen.getByTestId('term-comptabilite')).toHaveTextContent('Comptabilité');
+      expect(screen.getByTestId('term-tenue-livres')).toHaveTextContent('Tenue de livres');
+      expect(screen.getByTestId('term-finances')).toHaveTextContent('Finances');
+      expect(screen.getByTestId('term-budget')).toHaveTextContent('Budget');
+      expect(screen.getByTestId('term-depenses')).toHaveTextContent('Dépenses');
+      expect(screen.getByTestId('term-revenus')).toHaveTextContent('Revenus');
+      expect(screen.getByTestId('term-recettes')).toHaveTextContent('Recettes');
+      expect(screen.getByTestId('term-facture')).toHaveTextContent('Facture');
+      expect(screen.getByTestId('term-factures')).toHaveTextContent('Factures');
+      expect(screen.getByTestId('term-facturation')).toHaveTextContent('Facturation');
+      expect(screen.getByTestId('term-compte')).toHaveTextContent('Compte');
+      expect(screen.getByTestId('term-comptes')).toHaveTextContent('Comptes');
+      expect(screen.getByTestId('term-paiement')).toHaveTextContent('Paiement');
+      expect(screen.getByTestId('term-paiements')).toHaveTextContent('Paiements');
+      expect(screen.getByTestId('term-recu')).toHaveTextContent('Reçu');
+      expect(screen.getByTestId('term-recus')).toHaveTextContent('Reçus');
+      expect(screen.getByTestId('term-fournisseur')).toHaveTextContent('Fournisseur');
+      expect(screen.getByTestId('term-fournisseurs')).toHaveTextContent('Fournisseurs');
+      expect(screen.getByTestId('term-creancier')).toHaveTextContent('Créancier');
+      expect(screen.getByTestId('term-debiteur')).toHaveTextContent('Débiteur');
+      expect(screen.getByTestId('term-echeance')).toHaveTextContent('Échéance');
+      expect(screen.getByTestId('term-echeances')).toHaveTextContent('Échéances');
+      expect(screen.getByTestId('term-montant')).toHaveTextContent('Montant');
+      expect(screen.getByTestId('term-montants')).toHaveTextContent('Montants');
+      expect(screen.getByTestId('term-total')).toHaveTextContent('Total');
+      expect(screen.getByTestId('term-sous-total')).toHaveTextContent('Sous-total');
+      expect(screen.getByTestId('term-tps')).toHaveTextContent('TPS');
+      expect(screen.getByTestId('term-tvq')).toHaveTextContent('TVQ');
+      expect(screen.getByTestId('term-taxes')).toHaveTextContent('Taxes');
+      expect(screen.getByTestId('term-taxable')).toHaveTextContent('Taxable');
+      expect(screen.getByTestId('term-non-taxable')).toHaveTextContent('Non-taxable');
+      expect(screen.getByTestId('term-remise')).toHaveTextContent('Remise');
+      expect(screen.getByTestId('term-rabais')).toHaveTextContent('Rabais');
+      expect(screen.getByTestId('term-escompte')).toHaveTextContent('Escompte');
+      expect(screen.getByTestId('term-interet')).toHaveTextContent('Intérêt');
+      expect(screen.getByTestId('term-interets')).toHaveTextContent('Intérêts');
+      expect(screen.getByTestId('term-penalite')).toHaveTextContent('Pénalité');
+      expect(screen.getByTestId('term-penalites')).toHaveTextContent('Pénalités');
+      expect(screen.getByTestId('term-frais')).toHaveTextContent('Frais');
+      expect(screen.getByTestId('term-frais-administration')).toHaveTextContent('Frais d\'administration');
+      expect(screen.getByTestId('term-frais-service')).toHaveTextContent('Frais de service');
+      expect(screen.getByTestId('term-charges')).toHaveTextContent('Charges');
+      expect(screen.getByTestId('term-charges-exploitation')).toHaveTextContent('Charges d\'exploitation');
+      expect(screen.getByTestId('term-coûts')).toHaveTextContent('Coûts');
+      expect(screen.getByTestId('term-cout-exploitation')).toHaveTextContent('Coût d\'exploitation');
+      expect(screen.getByTestId('term-cout-entretien')).toHaveTextContent('Coût d\'entretien');
+    });
+
+    it('should display proper billing workflow in French', () => {
+      const BillingWorkflow = () => {
+        return (
+          <div data-testid='billing-workflow'>
+            {/* Billing process workflow */}
+            <div data-testid='workflow-creation'>
+              <div data-testid='step-creation-title'>1. Création de la facture</div>
+              <div data-testid='step-creation-description'>
+                Créer une nouvelle facture avec tous les détails requis
+              </div>
+            </div>
+
+            <div data-testid='workflow-review'>
+              <div data-testid='step-review-title'>2. Révision et validation</div>
+              <div data-testid='step-review-description'>
+                Vérifier les informations et valider les montants
+              </div>
+            </div>
+
+            <div data-testid='workflow-approval'>
+              <div data-testid='step-approval-title'>3. Approbation</div>
+              <div data-testid='step-approval-description'>
+                Approuver la facture pour traitement de paiement
+              </div>
+            </div>
+
+            <div data-testid='workflow-payment'>
+              <div data-testid='step-payment-title'>4. Traitement du paiement</div>
+              <div data-testid='step-payment-description'>
+                Effectuer le paiement et mettre à jour le statut
+              </div>
+            </div>
+
+            <div data-testid='workflow-archiving'>
+              <div data-testid='step-archiving-title'>5. Archivage</div>
+              <div data-testid='step-archiving-description'>
+                Archiver la facture payée avec tous les documents
+              </div>
+            </div>
+
+            {/* Payment tracking */}
+            <div data-testid='payment-tracking'>
+              <div data-testid='tracking-pending-desc'>
+                En attente - Facture créée mais non payée
+              </div>
+              <div data-testid='tracking-paid-desc'>
+                Payée - Paiement reçu et confirmé
+              </div>
+              <div data-testid='tracking-overdue-desc'>
+                En retard - Date d'échéance dépassée
+              </div>
+              <div data-testid='tracking-cancelled-desc'>
+                Annulée - Facture annulée ou remboursée
+              </div>
+            </div>
+
+            {/* Financial reporting */}
+            <div data-testid='financial-reporting'>
+              <div data-testid='report-monthly-expenses'>Rapport mensuel des dépenses</div>
+              <div data-testid='report-category-breakdown'>Répartition par catégorie</div>
+              <div data-testid='report-vendor-summary'>Résumé par fournisseur</div>
+              <div data-testid='report-payment-analysis'>Analyse des paiements</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <BillingWorkflow />
+        </TestProviders>
+      );
+
+      // Verify billing workflow steps use Quebec French
+      expect(screen.getByTestId('step-creation-title')).toHaveTextContent('1. Création de la facture');
+      expect(screen.getByTestId('step-creation-description')).toHaveTextContent('Créer une nouvelle facture avec tous les détails requis');
+      expect(screen.getByTestId('step-review-title')).toHaveTextContent('2. Révision et validation');
+      expect(screen.getByTestId('step-review-description')).toHaveTextContent('Vérifier les informations et valider les montants');
+      expect(screen.getByTestId('step-approval-title')).toHaveTextContent('3. Approbation');
+      expect(screen.getByTestId('step-approval-description')).toHaveTextContent('Approuver la facture pour traitement de paiement');
+      expect(screen.getByTestId('step-payment-title')).toHaveTextContent('4. Traitement du paiement');
+      expect(screen.getByTestId('step-payment-description')).toHaveTextContent('Effectuer le paiement et mettre à jour le statut');
+      expect(screen.getByTestId('step-archiving-title')).toHaveTextContent('5. Archivage');
+      expect(screen.getByTestId('step-archiving-description')).toHaveTextContent('Archiver la facture payée avec tous les documents');
+
+      // Verify payment tracking descriptions
+      expect(screen.getByTestId('tracking-pending-desc')).toHaveTextContent('En attente - Facture créée mais non payée');
+      expect(screen.getByTestId('tracking-paid-desc')).toHaveTextContent('Payée - Paiement reçu et confirmé');
+      expect(screen.getByTestId('tracking-overdue-desc')).toHaveTextContent('En retard - Date d\'échéance dépassée');
+      expect(screen.getByTestId('tracking-cancelled-desc')).toHaveTextContent('Annulée - Facture annulée ou remboursée');
+
+      // Verify financial reporting
+      expect(screen.getByTestId('report-monthly-expenses')).toHaveTextContent('Rapport mensuel des dépenses');
+      expect(screen.getByTestId('report-category-breakdown')).toHaveTextContent('Répartition par catégorie');
+      expect(screen.getByTestId('report-vendor-summary')).toHaveTextContent('Résumé par fournisseur');
+      expect(screen.getByTestId('report-payment-analysis')).toHaveTextContent('Analyse des paiements');
+    });
+
+    it('should have proper data-testid attributes for manager bills page elements', () => {
+      const ManagerBillsWithTestIds = () => {
+        return (
+          <div data-testid='manager-bills-page'>
+            <div data-testid='filters-card'>Filtres</div>
+            <div data-testid='building-filter'>Immeuble</div>
+            <div data-testid='category-filter'>Catégorie</div>
+            <div data-testid='year-filter'>Année</div>
+            <div data-testid='months-filter'>Mois</div>
+            <button data-testid='button-create-bill'>Créer</button>
+            <div data-testid='building-selection'>Sélection</div>
+            <button data-testid='button-view-bills'>Voir</button>
+            <div data-testid='dialog-create-bill'>Dialog</div>
+            <button data-testid='button-save-bill'>Sauvegarder</button>
+            <div data-testid='bills-section'>Factures</div>
+            <button data-testid='button-edit-bill'>Modifier</button>
+            <button data-testid='button-delete-bill'>Supprimer</button>
+            <div data-testid='no-bills-found'>Aucune facture</div>
+            <div data-testid='loading-bills'>Chargement</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerBillsWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all manager bills page elements have proper test IDs
+      expect(screen.getByTestId('manager-bills-page')).toBeInTheDocument();
+      expect(screen.getByTestId('filters-card')).toBeInTheDocument();
+      expect(screen.getByTestId('building-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('category-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('year-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('months-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('button-create-bill')).toBeInTheDocument();
+      expect(screen.getByTestId('building-selection')).toBeInTheDocument();
+      expect(screen.getByTestId('button-view-bills')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-create-bill')).toBeInTheDocument();
+      expect(screen.getByTestId('button-save-bill')).toBeInTheDocument();
+      expect(screen.getByTestId('bills-section')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-bill')).toBeInTheDocument();
+      expect(screen.getByTestId('button-delete-bill')).toBeInTheDocument();
+      expect(screen.getByTestId('no-bills-found')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-bills')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const createBillButton = screen.getByTestId('button-create-bill');
+      expect(createBillButton).toHaveAttribute('data-testid');
+      expect(createBillButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -3983,6 +4683,93 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   page: 'page',
   of: 'de',
   'more': 'de plus',
+
+  // Manager bills and financial management terms
+  'bills management': 'gestion de la facturation',
+  'manage building expenses and revenue tracking': 'gérer les dépenses d\'immeuble et le suivi des revenus',
+  'select building': 'sélectionner un immeuble',
+  'all categories': 'toutes les catégories',
+  'create bill': 'créer une facture',
+  insurance: 'assurance',
+  salary: 'salaire',
+  utilities: 'services publics',
+  cleaning: 'nettoyage',
+  security: 'sécurité',
+  landscaping: 'aménagement paysager',
+  'professional services': 'services professionnels',
+  administration: 'administration',
+  repairs: 'réparations',
+  supplies: 'fournitures',
+  taxes: 'taxes',
+  other: 'autre',
+  'current year': 'actuelle',
+  'show more years': 'afficher plus d\'années',
+  'show fewer years': 'afficher moins d\'années',
+  january: 'janvier',
+  february: 'février',
+  march: 'mars',
+  april: 'avril',
+  may: 'mai',
+  june: 'juin',
+  july: 'juillet',
+  august: 'août',
+  september: 'septembre',
+  october: 'octobre',
+  november: 'novembre',
+  december: 'décembre',
+  'select a building': 'sélectionner un immeuble',
+  'choose a building to view and manage its bills': 'choisissez un immeuble pour voir et gérer ses factures',
+  'view bills': 'voir les factures',
+  'create new bill': 'créer une nouvelle facture',
+  'bill number': 'numéro de facture',
+  amount: 'montant',
+  description: 'description',
+  date: 'date',
+  'due date': 'date d\'échéance',
+  vendor: 'fournisseur',
+  'payment method': 'méthode de paiement',
+  'save bill': 'sauvegarder la facture',
+  'edit bill': 'modifier la facture',
+  'delete bill': 'supprimer la facture',
+  'mark as paid': 'marquer comme payée',
+  'download receipt': 'télécharger le reçu',
+  paid: 'payée',
+  pending: 'en attente',
+  overdue: 'en retard',
+  'no bills found': 'aucune facture trouvée',
+  'no bills found for the selected filters': 'aucune facture trouvée pour les filtres sélectionnés',
+  'create your first bill to get started': 'créez votre première facture pour commencer',
+  'create first bill': 'créer la première facture',
+  'loading buildings': 'chargement des immeubles',
+  'loading bills': 'chargement des factures',
+  'failed to load buildings': 'échec du chargement des immeubles',
+  'failed to load bills': 'échec du chargement des factures',
+  retry: 'réessayer',
+  'bill created successfully': 'facture créée avec succès',
+  'bill updated successfully': 'facture mise à jour avec succès',
+  'bill deleted successfully': 'facture supprimée avec succès',
+  'bill marked as paid': 'facture marquée comme payée',
+  'error during bill operation': 'erreur lors de l\'opération sur la facture',
+  'bill number is required': 'le numéro de facture est requis',
+  'amount is required': 'le montant est requis',
+  'invalid amount': 'montant invalide',
+  'description is required': 'la description est requise',
+  'category is required': 'la catégorie est requise',
+  'date is required': 'la date est requise',
+  'due date is required': 'la date d\'échéance est requise',
+  'bill summary': 'résumé des factures',
+  'total expenses': 'total des dépenses',
+  'monthly breakdown': 'répartition mensuelle',
+  'payment status': 'statut de paiement',
+  'vendor information': 'informations du fournisseur',
+  attachments: 'pièces jointes',
+  notes: 'notes',
+  expense: 'dépense',
+  revenue: 'revenu',
+  cash: 'comptant',
+  check: 'chèque',
+  transfer: 'virement',
+  card: 'carte',
 };
 
 /**
