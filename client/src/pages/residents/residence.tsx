@@ -458,7 +458,7 @@ export default function Residence() {
                 <CardTitle className='flex items-center gap-2'>
                   <Home className='w-5 h-5' />
                   {user?.role && ['admin', 'manager'].includes(user.role)
-                    ? 'Select Building & Residence'
+                    ? t('selectBuildingResidence')
                     : 'Select Residence'}
                 </CardTitle>
               </CardHeader>
@@ -469,7 +469,7 @@ export default function Residence() {
                     ['admin', 'manager'].includes(user.role) &&
                     buildings.length > 0 && (
                       <div className='flex-1'>
-                        <Label className='text-sm font-medium mb-2 block'>Building</Label>
+                        <Label className='text-sm font-medium mb-2 block'>{t('building2')}</Label>
                         <Select
                           value={selectedBuildingId}
                           onValueChange={(value) => {
@@ -478,7 +478,7 @@ export default function Residence() {
                           }}
                         >
                           <SelectTrigger className='w-full'>
-                            <SelectValue placeholder='Select a building' />
+                            <SelectValue placeholder={t('selectABuilding')} />
                           </SelectTrigger>
                           <SelectContent>
                             {buildings.map((building: any) => (
@@ -496,7 +496,7 @@ export default function Residence() {
                     <div className='flex-1'>
                       <Label className='text-sm font-medium mb-2 block'>
                         {user?.role && ['admin', 'manager'].includes(user.role)
-                          ? 'Residence'
+                          ? t('residence')
                           : 'Select Residence'}
                       </Label>
                       <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>

@@ -320,6 +320,30 @@ export interface Translations {
   // Type placeholders
   typePlaceholder: string;
   buildingPlaceholder: string;
+  // Dashboard and major page content
+  welcomeBack: string;
+  personalizedDashboard: string;
+  quickAccessEverything: string;
+  adminDashboard: string;
+  systemManagement: string;
+  manageOrganizationsUsers: string;
+  organizationOverview: string;
+  viewManageOrganizations: string;
+  residences: string;
+  viewManageResidences: string;
+  selectBuildingResidence: string;
+  building2: string;
+  residence: string;
+  selectABuilding: string;
+  address: string;
+  floor: string;
+  sqFt: string;
+  bedrooms: string;
+  bathrooms: string;
+  viewDocuments2: string;
+  unit: string;
+  allFloors: string;
+  totalFloors: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -736,6 +760,30 @@ const translations: Record<Language, Translations> = {
     // Type placeholders
     typePlaceholder: 'Type',
     buildingPlaceholder: 'Building',
+    // Dashboard and major page content
+    welcomeBack: 'Welcome back',
+    personalizedDashboard: 'Your personalized dashboard - quick access to everything you need',
+    quickAccessEverything: 'quick access to everything you need',
+    adminDashboard: 'Admin Dashboard',
+    systemManagement: 'System Management',
+    manageOrganizationsUsers: 'Manage organizations, users, and system settings',
+    organizationOverview: 'Organization Overview',
+    viewManageOrganizations: 'View and manage all organizations',
+    residences: 'Residences',
+    viewManageResidences: 'View and manage organization residences',
+    selectBuildingResidence: 'Select Building & Residence',
+    building2: 'Building',
+    residence: 'Residence',
+    selectABuilding: 'Select a building',
+    address: 'Address',
+    floor: 'Floor',
+    sqFt: 'Sq Ft',
+    bedrooms: 'Bedrooms',
+    bathrooms: 'Bathrooms',
+    viewDocuments2: 'View Documents',
+    unit: 'Unit',
+    allFloors: 'All Floors',
+    totalFloors: 'Total Floors',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1164,6 +1212,30 @@ const translations: Record<Language, Translations> = {
     // Type placeholders
     typePlaceholder: 'Type',
     buildingPlaceholder: 'Bâtiment',
+    // Dashboard and major page content
+    welcomeBack: 'Bienvenue',
+    personalizedDashboard: 'Votre tableau de bord personnalisé - accès rapide à tout ce dont vous avez besoin',
+    quickAccessEverything: 'accès rapide à tout ce dont vous avez besoin',
+    adminDashboard: 'Tableau de bord administrateur',
+    systemManagement: 'Gestion du système',
+    manageOrganizationsUsers: 'Gérer les organisations, utilisateurs et paramètres système',
+    organizationOverview: 'Aperçu de l\'organisation',
+    viewManageOrganizations: 'Voir et gérer toutes les organisations',
+    residences: 'Résidences',
+    viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
+    selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
+    building2: 'Bâtiment',
+    residence: 'Résidence',
+    selectABuilding: 'Sélectionner un bâtiment',
+    address: 'Adresse',
+    floor: 'Étage',
+    sqFt: 'Pi²',
+    bedrooms: 'Chambres',
+    bathrooms: 'Salles de bain',
+    viewDocuments2: 'Voir les documents',
+    unit: 'Unité',
+    allFloors: 'Tous les étages',
+    totalFloors: 'Étages totaux',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
