@@ -254,6 +254,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       canAccessAllOrganizations: userOrganizations.some((uo) => uo.canAccessAllOrganizations),
     } as any;
 
+    // Special handling for hardcoded demo users - ensure they have proper organization access
+    if (user.role?.startsWith('demo_') && user.organizationId && (!req.user.organizations || req.user.organizations.length === 0)) {
+      console.log(`🔧 [AUTH] Adding organization access for hardcoded demo user: ${user.email}`);
+      req.user.organizations = [user.organizationId];
+      req.user.canAccessAllOrganizations = false;
+    }
+
     next();
   } catch (_error) {
     console.error('Authentication _error:', _error);
