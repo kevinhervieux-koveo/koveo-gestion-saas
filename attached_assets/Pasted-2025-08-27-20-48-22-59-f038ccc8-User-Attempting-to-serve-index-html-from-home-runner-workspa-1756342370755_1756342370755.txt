@@ -1,0 +1,120 @@
+2025-08-27 20:48:22.59
+f038ccc8
+User
+🔍 Attempting to serve index.html from: /home/runner/workspace/dist/public/index.html
+2025-08-27 20:48:22.59
+f038ccc8
+User
+✅ index.html found, serving to client
+2025-08-27 20:48:22.87
+f038ccc8
+User
+12:48:22 AM [express] 🔄 Checking database optimization status...
+2025-08-27 20:48:22.87
+f038ccc8
+User
+12:48:22 AM [express] 🏭 Production mode: Performing safe database checks...
+2025-08-27 20:48:22.87
+f038ccc8
+User
+Unexpected result format from index check query: SQL {
+2025-08-27 20:48:22.87
+f038ccc8
+User
+decoder: { mapFromDriverValue: [Function: mapFromDriverValue] },
+2025-08-27 20:48:22.87
+f038ccc8
+User
+shouldInlineParams: false,
+2025-08-27 20:48:22.87
+f038ccc8
+User
+usedTables: [],
+2025-08-27 20:48:22.87
+f038ccc8
+User
+queryChunks: [ StringChunk { value: [Array] } ]
+2025-08-27 20:48:22.87
+f038ccc8
+User
+}
+2025-08-27 20:48:22.87
+f038ccc8
+User
+12:48:22 AM [express] ⚠️ Production mode: Skipping database index creation for safety
+2025-08-27 20:48:22.88
+f038ccc8
+User
+12:48:22 AM [express] ⚠️ Consider running database optimizations in maintenance mode
+2025-08-27 20:48:22.88
+f038ccc8
+User
+12:48:22 AM [express] 🔄 Background work complete - all routes already loaded
+2025-08-27 20:48:33.98
+25e2931d
+User
+12:48:33 AM [express] 📊 Memory usage: 119MB
+2025-08-27 20:48:40.85
+f038ccc8
+User
+Cache miss: users:user_email:kevin.hervieux@koveo-gestion.com
+2025-08-27 20:48:41.03
+f038ccc8
+User
+Slow query detected: getUserByEmail took 182.51ms
+2025-08-27 20:48:41.04
+f038ccc8
+User
+Login error details: {
+2025-08-27 20:48:41.04
+f038ccc8
+User
+error: DrizzleQueryError: Failed query: select "id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at" from "users" where "users"."email" = $1
+2025-08-27 20:48:41.04
+f038ccc8
+User
+params: kevin.hervieux@koveo-gestion.com
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at NeonPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:41:15)
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:109:20)
+2025-08-27 20:48:41.04
+f038ccc8
+User
+... 2 lines matching cause stack trace ...
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at async file:///home/runner/workspace/dist/index.js:5888:20 {
+2025-08-27 20:48:41.04
+f038ccc8
+User
+query: 'select "id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at" from "users" where "users"."email" = $1',
+2025-08-27 20:48:41.04
+f038ccc8
+User
+params: [ 'kevin.hervieux@koveo-gestion.com' ],
+2025-08-27 20:48:41.04
+f038ccc8
+User
+cause: error: password authentication failed for user 'neondb_owner'
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 20:48:41.04
+f038ccc8
+User
+at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:110:14
