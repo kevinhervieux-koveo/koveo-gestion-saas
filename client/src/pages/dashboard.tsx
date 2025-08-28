@@ -69,8 +69,8 @@ export default function Dashboard() {
       );
     }
 
-    // Manager actions
-    if (user.role === 'manager' || user.role === 'admin') {
+    // Manager actions  
+    if (user.role === 'manager' || user.role === 'demo_manager' || user.role === 'admin') {
       actions.push(
         {
           title: 'Buildings',
@@ -99,8 +99,38 @@ export default function Dashboard() {
       );
     }
 
+    // Tenant actions
+    if (user.role === 'tenant' || user.role === 'demo_tenant') {
+      actions.push(
+        {
+          title: 'My Residence',
+          description: 'View your residence information and details',
+          icon: Home,
+          path: '/residents/residence',
+          color: 'bg-green-600',
+          testId: 'card-tenant-residence',
+        },
+        {
+          title: 'Maintenance Requests',
+          description: 'Submit and track maintenance requests',
+          icon: Settings,
+          path: '/residents/maintenance',
+          color: 'bg-orange-500',
+          testId: 'card-tenant-maintenance',
+        },
+        {
+          title: 'Documents',
+          description: 'View important documents and notices',
+          icon: FileText,
+          path: '/residents/documents',
+          color: 'bg-blue-500',
+          testId: 'card-tenant-documents',
+        }
+      );
+    }
+
     // Resident actions
-    if (user.role === 'resident') {
+    if (user.role === 'resident' || user.role === 'demo_resident') {
       actions.push(
         {
           title: 'My Home',
