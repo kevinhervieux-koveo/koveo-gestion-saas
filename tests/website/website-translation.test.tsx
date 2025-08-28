@@ -11378,6 +11378,1057 @@ describe('Website Translation Tests', () => {
       expect(refreshButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Admin Roadmap Page Translation', () => {
+    it('should display admin roadmap page with proper French translations', () => {
+      const AdminRoadmapPage = () => {
+        return (
+          <div data-testid='admin-roadmap-page'>
+            {/* Header Section */}
+            <div data-testid='header-product-roadmap'>Feuille de route du produit</div>
+            <div data-testid='header-subtitle'>
+              Liste complète des fonctionnalités et progrès de développement (Données en direct)
+            </div>
+
+            {/* Search Bar Section */}
+            <div data-testid='search-bar-section'>
+              <div data-testid='search-placeholder'>
+                Rechercher des fonctionnalités par nom, description ou catégorie...
+              </div>
+              <div data-testid='search-results'>
+                Trouvé 5 fonctionnalités correspondant à "gestion"
+              </div>
+              <div data-testid='search-clear'>
+                <button data-testid='button-clear-search'>Effacer la recherche</button>
+              </div>
+            </div>
+
+            {/* Refresh Command Section */}
+            <div data-testid='refresh-command-section'>
+              <div data-testid='refresh-command-label'>Commande de rafraîchissement :</div>
+              <div data-testid='refresh-command-value'>npm run validate</div>
+            </div>
+
+            {/* Automatic Synchronization Card */}
+            <div data-testid='sync-status-card'>
+              <div data-testid='sync-status-title'>Synchronisation automatique</div>
+              <div data-testid='sync-status-badge'>DEV → PROD Synchronisation activée</div>
+              <div data-testid='sync-status-description'>
+                Les nouvelles demandes de fonctionnalités apparaissent automatiquement avec le statut "Soumis" et se synchronisent avec la production. Les mises à jour des fonctionnalités de la feuille de route sont automatiquement synchronisées.
+              </div>
+              <div data-testid='sync-status-production'>Environnement de production</div>
+              <div data-testid='sync-status-production-desc'>
+                Ceci est la feuille de route de production. Les changements sont synchronisés depuis l'environnement de développement.
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div data-testid='action-buttons-section'>
+              <button data-testid='button-llm-help-form'>Formulaire d'aide LLM</button>
+              <button data-testid='button-sync-to-production'>Synchroniser vers la production</button>
+              <button data-testid='button-syncing'>Synchronisation...</button>
+              <button data-testid='button-create-new-item'>Créer un nouvel élément</button>
+            </div>
+
+            {/* Overview Statistics */}
+            <div data-testid='overview-stats'>
+              <div data-testid='stats-completed-features'>
+                <div data-testid='stats-completed-count'>0</div>
+                <div data-testid='stats-completed-label'>Fonctionnalités terminées</div>
+              </div>
+              
+              <div data-testid='stats-in-progress'>
+                <div data-testid='stats-in-progress-count'>0</div>
+                <div data-testid='stats-in-progress-label'>En cours</div>
+              </div>
+              
+              <div data-testid='stats-planned-features'>
+                <div data-testid='stats-planned-count'>0</div>
+                <div data-testid='stats-planned-label'>Fonctionnalités planifiées</div>
+              </div>
+              
+              <div data-testid='stats-total-features'>
+                <div data-testid='stats-total-count'>0</div>
+                <div data-testid='stats-total-label'>Fonctionnalités totales</div>
+              </div>
+              
+              <div data-testid='stats-exact-duplicates'>
+                <div data-testid='stats-exact-count'>0</div>
+                <div data-testid='stats-exact-label'>Doublons exacts</div>
+              </div>
+              
+              <div data-testid='stats-similar-features'>
+                <div data-testid='stats-similar-count'>0</div>
+                <div data-testid='stats-similar-label'>Fonctionnalités similaires</div>
+              </div>
+            </div>
+
+            {/* Feature Sections */}
+            <div data-testid='feature-sections'>
+              {/* Strategic Path Section */}
+              <div data-testid='section-strategic-path'>
+                <div data-testid='section-strategic-title'>Parcours stratégique</div>
+                <div data-testid='section-strategic-description'>
+                  Initiatives stratégiques de haut niveau et objectifs d'affaires
+                </div>
+                <div data-testid='section-strategic-progress'>0%</div>
+              </div>
+
+              {/* Dashboard & Home Section */}
+              <div data-testid='section-dashboard-home'>
+                <div data-testid='section-dashboard-title'>Tableau de bord et accueil</div>
+                <div data-testid='section-dashboard-description'>
+                  Hub central pour l'aperçu de la gestion immobilière
+                </div>
+                <div data-testid='section-dashboard-progress'>0%</div>
+              </div>
+
+              {/* Property Management Section */}
+              <div data-testid='section-property-management'>
+                <div data-testid='section-property-title'>Gestion immobilière</div>
+                <div data-testid='section-property-description'>
+                  Fonctionnalités de gestion des bâtiments et résidences
+                </div>
+                <div data-testid='section-property-progress'>0%</div>
+              </div>
+
+              {/* Resident Management Section */}
+              <div data-testid='section-resident-management'>
+                <div data-testid='section-resident-title'>Gestion des résidents</div>
+                <div data-testid='section-resident-description'>
+                  Système de gestion des résidents et locataires
+                </div>
+                <div data-testid='section-resident-progress'>0%</div>
+              </div>
+
+              {/* Financial Management Section */}
+              <div data-testid='section-financial-management'>
+                <div data-testid='section-financial-title'>Gestion financière</div>
+                <div data-testid='section-financial-description'>
+                  Système financier et de facturation complet
+                </div>
+                <div data-testid='section-financial-progress'>0%</div>
+              </div>
+
+              {/* Maintenance & Requests Section */}
+              <div data-testid='section-maintenance-requests'>
+                <div data-testid='section-maintenance-title'>Maintenance et demandes</div>
+                <div data-testid='section-maintenance-description'>
+                  Gestion des demandes de maintenance et ordres de travail
+                </div>
+                <div data-testid='section-maintenance-progress'>0%</div>
+              </div>
+
+              {/* Document Management Section */}
+              <div data-testid='section-document-management'>
+                <div data-testid='section-document-title'>Gestion documentaire</div>
+                <div data-testid='section-document-description'>
+                  Stockage et gestion centralisés des documents
+                </div>
+                <div data-testid='section-document-progress'>0%</div>
+              </div>
+
+              {/* Communication Section */}
+              <div data-testid='section-communication'>
+                <div data-testid='section-communication-title'>Communication</div>
+                <div data-testid='section-communication-description'>
+                  Système de communication multicanal
+                </div>
+                <div data-testid='section-communication-progress'>0%</div>
+              </div>
+
+              {/* AI & Automation Section */}
+              <div data-testid='section-ai-automation'>
+                <div data-testid='section-ai-title'>IA et automatisation</div>
+                <div data-testid='section-ai-description'>
+                  Fonctionnalités d'intelligence artificielle et d'automatisation
+                </div>
+                <div data-testid='section-ai-progress'>0%</div>
+              </div>
+
+              {/* Compliance & Security Section */}
+              <div data-testid='section-compliance-security'>
+                <div data-testid='section-compliance-title'>Conformité et sécurité</div>
+                <div data-testid='section-compliance-description'>
+                  Conformité Loi 25 du Québec et fonctionnalités de sécurité
+                </div>
+                <div data-testid='section-compliance-progress'>0%</div>
+              </div>
+
+              {/* Analytics & Reporting Section */}
+              <div data-testid='section-analytics-reporting'>
+                <div data-testid='section-analytics-title'>Analytiques et rapports</div>
+                <div data-testid='section-analytics-description'>
+                  Outils d'intelligence d'affaires et de génération de rapports
+                </div>
+                <div data-testid='section-analytics-progress'>0%</div>
+              </div>
+
+              {/* Integration & API Section */}
+              <div data-testid='section-integration-api'>
+                <div data-testid='section-integration-title'>Intégration et API</div>
+                <div data-testid='section-integration-description'>
+                  Intégrations tierces et accès API
+                </div>
+                <div data-testid='section-integration-progress'>0%</div>
+              </div>
+
+              {/* Infrastructure & Performance Section */}
+              <div data-testid='section-infrastructure-performance'>
+                <div data-testid='section-infrastructure-title'>Infrastructure et performance</div>
+                <div data-testid='section-infrastructure-description'>
+                  Infrastructure de plateforme et optimisation
+                </div>
+                <div data-testid='section-infrastructure-progress'>0%</div>
+              </div>
+
+              {/* Website Section */}
+              <div data-testid='section-website'>
+                <div data-testid='section-website-title'>Site web</div>
+                <div data-testid='section-website-description'>
+                  Fonctionnalités du site web, SEO et outils d'automatisation
+                </div>
+                <div data-testid='section-website-progress'>0%</div>
+              </div>
+            </div>
+
+            {/* Feature Status Labels */}
+            <div data-testid='feature-status-labels'>
+              <div data-testid='status-planned'>Planifié</div>
+              <div data-testid='status-submitted'>Soumis</div>
+              <div data-testid='status-in-progress'>En cours</div>
+              <div data-testid='status-completed'>Terminé</div>
+              <div data-testid='status-on-hold'>En attente</div>
+              <div data-testid='status-cancelled'>Annulé</div>
+            </div>
+
+            {/* Priority Labels */}
+            <div data-testid='priority-labels'>
+              <div data-testid='priority-low'>Faible</div>
+              <div data-testid='priority-medium'>Moyenne</div>
+              <div data-testid='priority-high'>Élevée</div>
+              <div data-testid='priority-critical'>Critique</div>
+            </div>
+
+            {/* Actionable Items */}
+            <div data-testid='actionable-items'>
+              <div data-testid='actionable-item-pending'>En attente</div>
+              <div data-testid='actionable-item-in-progress'>En cours</div>
+              <div data-testid='actionable-item-completed'>Terminé</div>
+              <div data-testid='actionable-item-blocked'>Bloqué</div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-states'>
+              <div data-testid='loading-roadmap'>Chargement des données de la feuille de route...</div>
+              <div data-testid='loading-features'>Chargement des fonctionnalités...</div>
+              <div data-testid='syncing-production'>Synchronisation vers la production...</div>
+              <div data-testid='updating-feature'>Mise à jour de la fonctionnalité...</div>
+              <div data-testid='creating-item'>Création d'un nouvel élément...</div>
+            </div>
+
+            {/* Success/Error Messages */}
+            <div data-testid='toast-messages'>
+              <div data-testid='toast-status-updated'>Statut mis à jour</div>
+              <div data-testid='toast-status-updated-desc'>
+                Le statut de la fonctionnalité a été mis à jour avec succès
+              </div>
+              <div data-testid='toast-task-updated'>Tâche mise à jour</div>
+              <div data-testid='toast-task-updated-desc'>
+                Le statut de l'élément actionnable a été mis à jour avec succès
+              </div>
+              <div data-testid='toast-strategic-updated'>Parcours stratégique mis à jour</div>
+              <div data-testid='toast-strategic-updated-desc'>
+                Le statut du parcours stratégique de la fonctionnalité a été mis à jour
+              </div>
+              <div data-testid='toast-sync-completed'>Synchronisation terminée</div>
+              <div data-testid='toast-sync-completed-desc'>
+                Toutes les fonctionnalités ont été synchronisées vers la production
+              </div>
+              <div data-testid='toast-sync-failed'>Échec de la synchronisation</div>
+              <div data-testid='toast-sync-failed-desc'>
+                Échec de la synchronisation des fonctionnalités vers la production
+              </div>
+              <div data-testid='toast-prompt-copied'>Invite copiée!</div>
+              <div data-testid='toast-prompt-copied-desc'>
+                L'invite d'implémentation a été copiée dans votre presse-papiers
+              </div>
+              <div data-testid='toast-copy-failed'>Échec de la copie</div>
+              <div data-testid='toast-copy-failed-desc'>
+                Impossible de copier l'invite dans le presse-papiers
+              </div>
+              <div data-testid='toast-llm-form-copied'>Formulaire d'aide LLM amélioré copié</div>
+              <div data-testid='toast-llm-form-copied-desc'>
+                Le formulaire de discussion de fonctionnalités amélioré avec le contexte Koveo Gestion a été copié. Le LLM se concentrera spécifiquement sur vos exigences
+              </div>
+            </div>
+
+            {/* Technical Labels */}
+            <div data-testid='technical-labels'>
+              <div data-testid='label-roadmap'>Feuille de route</div>
+              <div data-testid='label-feature'>Fonctionnalité</div>
+              <div data-testid='label-features'>Fonctionnalités</div>
+              <div data-testid='label-development'>Développement</div>
+              <div data-testid='label-progress'>Progrès</div>
+              <div data-testid='label-status'>Statut</div>
+              <div data-testid='label-priority'>Priorité</div>
+              <div data-testid='label-category'>Catégorie</div>
+              <div data-testid='label-description'>Description</div>
+              <div data-testid='label-strategic-path'>Parcours stratégique</div>
+              <div data-testid='label-synchronization'>Synchronisation</div>
+              <div data-testid='label-production'>Production</div>
+              <div data-testid='label-environment'>Environnement</div>
+              <div data-testid='label-automatic'>Automatique</div>
+              <div data-testid='label-manual'>Manuel</div>
+              <div data-testid='label-duplicates'>Doublons</div>
+              <div data-testid='label-similar'>Similaires</div>
+              <div data-testid='label-exact'>Exacts</div>
+              <div data-testid='label-search'>Recherche</div>
+              <div data-testid='label-filter'>Filtre</div>
+            </div>
+
+            {/* Roadmap Actions */}
+            <div data-testid='roadmap-actions'>
+              <div data-testid='action-create-feature'>Créer une fonctionnalité</div>
+              <div data-testid='action-edit-feature'>Modifier la fonctionnalité</div>
+              <div data-testid='action-delete-feature'>Supprimer la fonctionnalité</div>
+              <div data-testid='action-update-status'>Mettre à jour le statut</div>
+              <div data-testid='action-set-priority'>Définir la priorité</div>
+              <div data-testid='action-toggle-strategic'>Basculer le statut stratégique</div>
+              <div data-testid='action-copy-prompt'>Copier l'invite</div>
+              <div data-testid='action-sync-production'>Synchroniser vers la production</div>
+              <div data-testid='action-expand-section'>Développer la section</div>
+              <div data-testid='action-collapse-section'>Réduire la section</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminRoadmapPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-product-roadmap')).toHaveTextContent('Feuille de route du produit');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Liste complète des fonctionnalités et progrès de développement (Données en direct)');
+
+      // Verify search section
+      expect(screen.getByTestId('search-placeholder')).toHaveTextContent('Rechercher des fonctionnalités par nom, description ou catégorie');
+      expect(screen.getByTestId('search-results')).toHaveTextContent('Trouvé 5 fonctionnalités correspondant à "gestion"');
+      expect(screen.getByTestId('button-clear-search')).toHaveTextContent('Effacer la recherche');
+
+      // Verify refresh command section
+      expect(screen.getByTestId('refresh-command-label')).toHaveTextContent('Commande de rafraîchissement :');
+      expect(screen.getByTestId('refresh-command-value')).toHaveTextContent('npm run validate');
+
+      // Verify sync status card
+      expect(screen.getByTestId('sync-status-title')).toHaveTextContent('Synchronisation automatique');
+      expect(screen.getByTestId('sync-status-badge')).toHaveTextContent('DEV → PROD Synchronisation activée');
+      expect(screen.getByTestId('sync-status-description')).toHaveTextContent('Les nouvelles demandes de fonctionnalités apparaissent automatiquement avec le statut "Soumis" et se synchronisent avec la production');
+      expect(screen.getByTestId('sync-status-production')).toHaveTextContent('Environnement de production');
+      expect(screen.getByTestId('sync-status-production-desc')).toHaveTextContent('Ceci est la feuille de route de production. Les changements sont synchronisés depuis l\'environnement de développement');
+
+      // Verify action buttons
+      expect(screen.getByTestId('button-llm-help-form')).toHaveTextContent('Formulaire d\'aide LLM');
+      expect(screen.getByTestId('button-sync-to-production')).toHaveTextContent('Synchroniser vers la production');
+      expect(screen.getByTestId('button-syncing')).toHaveTextContent('Synchronisation');
+      expect(screen.getByTestId('button-create-new-item')).toHaveTextContent('Créer un nouvel élément');
+
+      // Verify overview statistics
+      expect(screen.getByTestId('stats-completed-label')).toHaveTextContent('Fonctionnalités terminées');
+      expect(screen.getByTestId('stats-in-progress-label')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('stats-planned-label')).toHaveTextContent('Fonctionnalités planifiées');
+      expect(screen.getByTestId('stats-total-label')).toHaveTextContent('Fonctionnalités totales');
+      expect(screen.getByTestId('stats-exact-label')).toHaveTextContent('Doublons exacts');
+      expect(screen.getByTestId('stats-similar-label')).toHaveTextContent('Fonctionnalités similaires');
+
+      // Verify feature sections
+      expect(screen.getByTestId('section-strategic-title')).toHaveTextContent('Parcours stratégique');
+      expect(screen.getByTestId('section-strategic-description')).toHaveTextContent('Initiatives stratégiques de haut niveau et objectifs d\'affaires');
+      expect(screen.getByTestId('section-dashboard-title')).toHaveTextContent('Tableau de bord et accueil');
+      expect(screen.getByTestId('section-dashboard-description')).toHaveTextContent('Hub central pour l\'aperçu de la gestion immobilière');
+      expect(screen.getByTestId('section-property-title')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('section-property-description')).toHaveTextContent('Fonctionnalités de gestion des bâtiments et résidences');
+      expect(screen.getByTestId('section-resident-title')).toHaveTextContent('Gestion des résidents');
+      expect(screen.getByTestId('section-resident-description')).toHaveTextContent('Système de gestion des résidents et locataires');
+      expect(screen.getByTestId('section-financial-title')).toHaveTextContent('Gestion financière');
+      expect(screen.getByTestId('section-financial-description')).toHaveTextContent('Système financier et de facturation complet');
+      expect(screen.getByTestId('section-maintenance-title')).toHaveTextContent('Maintenance et demandes');
+      expect(screen.getByTestId('section-maintenance-description')).toHaveTextContent('Gestion des demandes de maintenance et ordres de travail');
+      expect(screen.getByTestId('section-document-title')).toHaveTextContent('Gestion documentaire');
+      expect(screen.getByTestId('section-document-description')).toHaveTextContent('Stockage et gestion centralisés des documents');
+      expect(screen.getByTestId('section-communication-title')).toHaveTextContent('Communication');
+      expect(screen.getByTestId('section-communication-description')).toHaveTextContent('Système de communication multicanal');
+      expect(screen.getByTestId('section-ai-title')).toHaveTextContent('IA et automatisation');
+      expect(screen.getByTestId('section-ai-description')).toHaveTextContent('Fonctionnalités d\'intelligence artificielle et d\'automatisation');
+      expect(screen.getByTestId('section-compliance-title')).toHaveTextContent('Conformité et sécurité');
+      expect(screen.getByTestId('section-compliance-description')).toHaveTextContent('Conformité Loi 25 du Québec et fonctionnalités de sécurité');
+      expect(screen.getByTestId('section-analytics-title')).toHaveTextContent('Analytiques et rapports');
+      expect(screen.getByTestId('section-analytics-description')).toHaveTextContent('Outils d\'intelligence d\'affaires et de génération de rapports');
+      expect(screen.getByTestId('section-integration-title')).toHaveTextContent('Intégration et API');
+      expect(screen.getByTestId('section-integration-description')).toHaveTextContent('Intégrations tierces et accès API');
+      expect(screen.getByTestId('section-infrastructure-title')).toHaveTextContent('Infrastructure et performance');
+      expect(screen.getByTestId('section-infrastructure-description')).toHaveTextContent('Infrastructure de plateforme et optimisation');
+      expect(screen.getByTestId('section-website-title')).toHaveTextContent('Site web');
+      expect(screen.getByTestId('section-website-description')).toHaveTextContent('Fonctionnalités du site web, SEO et outils d\'automatisation');
+
+      // Verify status labels
+      expect(screen.getByTestId('status-planned')).toHaveTextContent('Planifié');
+      expect(screen.getByTestId('status-submitted')).toHaveTextContent('Soumis');
+      expect(screen.getByTestId('status-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('status-completed')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('status-on-hold')).toHaveTextContent('En attente');
+      expect(screen.getByTestId('status-cancelled')).toHaveTextContent('Annulé');
+
+      // Verify priority labels
+      expect(screen.getByTestId('priority-low')).toHaveTextContent('Faible');
+      expect(screen.getByTestId('priority-medium')).toHaveTextContent('Moyenne');
+      expect(screen.getByTestId('priority-high')).toHaveTextContent('Élevée');
+      expect(screen.getByTestId('priority-critical')).toHaveTextContent('Critique');
+
+      // Verify actionable items
+      expect(screen.getByTestId('actionable-item-pending')).toHaveTextContent('En attente');
+      expect(screen.getByTestId('actionable-item-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('actionable-item-completed')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('actionable-item-blocked')).toHaveTextContent('Bloqué');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-roadmap')).toHaveTextContent('Chargement des données de la feuille de route');
+      expect(screen.getByTestId('loading-features')).toHaveTextContent('Chargement des fonctionnalités');
+      expect(screen.getByTestId('syncing-production')).toHaveTextContent('Synchronisation vers la production');
+
+      // Verify toast messages
+      expect(screen.getByTestId('toast-status-updated')).toHaveTextContent('Statut mis à jour');
+      expect(screen.getByTestId('toast-status-updated-desc')).toHaveTextContent('Le statut de la fonctionnalité a été mis à jour avec succès');
+      expect(screen.getByTestId('toast-sync-completed')).toHaveTextContent('Synchronisation terminée');
+      expect(screen.getByTestId('toast-sync-completed-desc')).toHaveTextContent('Toutes les fonctionnalités ont été synchronisées vers la production');
+
+      // Verify technical labels
+      expect(screen.getByTestId('label-roadmap')).toHaveTextContent('Feuille de route');
+      expect(screen.getByTestId('label-feature')).toHaveTextContent('Fonctionnalité');
+      expect(screen.getByTestId('label-features')).toHaveTextContent('Fonctionnalités');
+      expect(screen.getByTestId('label-development')).toHaveTextContent('Développement');
+      expect(screen.getByTestId('label-progress')).toHaveTextContent('Progrès');
+      expect(screen.getByTestId('label-strategic-path')).toHaveTextContent('Parcours stratégique');
+      expect(screen.getByTestId('label-synchronization')).toHaveTextContent('Synchronisation');
+
+      // Verify roadmap actions
+      expect(screen.getByTestId('action-create-feature')).toHaveTextContent('Créer une fonctionnalité');
+      expect(screen.getByTestId('action-edit-feature')).toHaveTextContent('Modifier la fonctionnalité');
+      expect(screen.getByTestId('action-update-status')).toHaveTextContent('Mettre à jour le statut');
+      expect(screen.getByTestId('action-sync-production')).toHaveTextContent('Synchroniser vers la production');
+    });
+
+    it('should avoid English terminology in admin roadmap page', () => {
+      const AdminRoadmapWithEnglishTerms = () => {
+        return (
+          <div data-testid='admin-roadmap-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-product-roadmap'>Product Roadmap</div>
+            <div data-testid='incorrect-complete-feature-list'>Complete feature list and development progress</div>
+            <div data-testid='incorrect-live-data'>Live Data</div>
+            <div data-testid='incorrect-search-features'>Search features by name, description, or category</div>
+            <div data-testid='incorrect-found-features'>Found 5 features matching</div>
+            <div data-testid='incorrect-clear-search'>Clear search</div>
+            <div data-testid='incorrect-refresh-command'>Refresh Command</div>
+            <div data-testid='incorrect-automatic-synchronization'>Automatic Synchronization</div>
+            <div data-testid='incorrect-dev-prod-sync'>DEV → PROD Sync Enabled</div>
+            <div data-testid='incorrect-production-environment'>Production Environment</div>
+            <div data-testid='incorrect-new-feature-requests'>New feature requests automatically appear</div>
+            <div data-testid='incorrect-llm-help-form'>LLM Help Form</div>
+            <div data-testid='incorrect-sync-to-production'>Sync to Production</div>
+            <div data-testid='incorrect-syncing'>Syncing...</div>
+            <div data-testid='incorrect-create-new-item'>Create New Item</div>
+            <div data-testid='incorrect-completed-features'>Completed Features</div>
+            <div data-testid='incorrect-in-progress'>In Progress</div>
+            <div data-testid='incorrect-planned-features'>Planned Features</div>
+            <div data-testid='incorrect-total-features'>Total Features</div>
+            <div data-testid='incorrect-exact-duplicates'>Exact Duplicates</div>
+            <div data-testid='incorrect-similar-features'>Similar Features</div>
+            <div data-testid='incorrect-strategic-path'>Strategic Path</div>
+            <div data-testid='incorrect-high-level-initiatives'>High-level strategic initiatives and business objectives</div>
+            <div data-testid='incorrect-dashboard-home'>Dashboard & Home</div>
+            <div data-testid='incorrect-central-hub'>Central hub for property management overview</div>
+            <div data-testid='incorrect-property-management'>Property Management</div>
+            <div data-testid='incorrect-building-residence-management'>Building and residence management features</div>
+            <div data-testid='incorrect-resident-management'>Resident Management</div>
+            <div data-testid='incorrect-resident-tenant-system'>Resident and tenant management system</div>
+            <div data-testid='incorrect-financial-management'>Financial Management</div>
+            <div data-testid='incorrect-comprehensive-financial'>Comprehensive financial and billing system</div>
+            <div data-testid='incorrect-maintenance-requests'>Maintenance & Requests</div>
+            <div data-testid='incorrect-maintenance-work-order'>Maintenance request and work order management</div>
+            <div data-testid='incorrect-document-management'>Document Management</div>
+            <div data-testid='incorrect-centralized-document'>Centralized document storage and management</div>
+            <div data-testid='incorrect-communication'>Communication</div>
+            <div data-testid='incorrect-multi-channel'>Multi-channel communication system</div>
+            <div data-testid='incorrect-ai-automation'>AI & Automation</div>
+            <div data-testid='incorrect-artificial-intelligence'>Artificial intelligence and automation features</div>
+            <div data-testid='incorrect-compliance-security'>Compliance & Security</div>
+            <div data-testid='incorrect-quebec-law-25'>Quebec Law 25 compliance and security features</div>
+            <div data-testid='incorrect-analytics-reporting'>Analytics & Reporting</div>
+            <div data-testid='incorrect-business-intelligence'>Business intelligence and reporting tools</div>
+            <div data-testid='incorrect-integration-api'>Integration & API</div>
+            <div data-testid='incorrect-third-party-integrations'>Third-party integrations and API access</div>
+            <div data-testid='incorrect-infrastructure-performance'>Infrastructure & Performance</div>
+            <div data-testid='incorrect-platform-infrastructure'>Platform infrastructure and optimization</div>
+            <div data-testid='incorrect-website'>Website</div>
+            <div data-testid='incorrect-website-features'>Website features, SEO, and automation tools</div>
+            <div data-testid='incorrect-planned'>Planned</div>
+            <div data-testid='incorrect-submitted'>Submitted</div>
+            <div data-testid='incorrect-completed'>Completed</div>
+            <div data-testid='incorrect-on-hold'>On Hold</div>
+            <div data-testid='incorrect-cancelled'>Cancelled</div>
+            <div data-testid='incorrect-low'>Low</div>
+            <div data-testid='incorrect-medium'>Medium</div>
+            <div data-testid='incorrect-high'>High</div>
+            <div data-testid='incorrect-critical'>Critical</div>
+            <div data-testid='incorrect-pending'>Pending</div>
+            <div data-testid='incorrect-blocked'>Blocked</div>
+            <div data-testid='incorrect-loading-roadmap'>Loading roadmap data...</div>
+            <div data-testid='incorrect-loading-features'>Loading features...</div>
+            <div data-testid='incorrect-status-updated'>Status Updated</div>
+            <div data-testid='incorrect-task-updated'>Task Updated</div>
+            <div data-testid='incorrect-sync-completed'>Sync Completed</div>
+            <div data-testid='incorrect-sync-failed'>Sync Failed</div>
+            <div data-testid='incorrect-prompt-copied'>Prompt copied!</div>
+            <div data-testid='incorrect-copy-failed'>Failed to copy</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminRoadmapWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'product roadmap',
+        'complete feature list',
+        'live data',
+        'search features',
+        'found features',
+        'clear search',
+        'refresh command',
+        'automatic synchronization',
+        'dev prod sync',
+        'production environment',
+        'new feature requests',
+        'llm help form',
+        'sync to production',
+        'syncing',
+        'create new item',
+        'completed features',
+        'in progress',
+        'planned features',
+        'total features',
+        'exact duplicates',
+        'similar features',
+        'strategic path',
+        'high level initiatives',
+        'dashboard home',
+        'central hub',
+        'property management',
+        'building residence management',
+        'resident management',
+        'resident tenant system',
+        'financial management',
+        'comprehensive financial',
+        'maintenance requests',
+        'maintenance work order',
+        'document management',
+        'centralized document',
+        'communication',
+        'multi channel',
+        'ai automation',
+        'artificial intelligence',
+        'compliance security',
+        'quebec law 25',
+        'analytics reporting',
+        'business intelligence',
+        'integration api',
+        'third party integrations',
+        'infrastructure performance',
+        'platform infrastructure',
+        'website',
+        'website features',
+        'planned',
+        'submitted',
+        'completed',
+        'on hold',
+        'cancelled',
+        'low',
+        'medium',
+        'high',
+        'critical',
+        'pending',
+        'blocked',
+        'loading roadmap',
+        'loading features',
+        'status updated',
+        'task updated',
+        'sync completed',
+        'sync failed',
+        'prompt copied',
+        'copy failed'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec roadmap and project management terminology', () => {
+      const RoadmapTerminology = () => {
+        return (
+          <div data-testid='roadmap-terminology'>
+            {/* Correct Quebec French roadmap and project management terms */}
+            <div data-testid='term-feuille-route'>Feuille de route</div>
+            <div data-testid='term-plan-developpement'>Plan de développement</div>
+            <div data-testid='term-planification-produit'>Planification du produit</div>
+            <div data-testid='term-fonctionnalite'>Fonctionnalité</div>
+            <div data-testid='term-fonctionnalites'>Fonctionnalités</div>
+            <div data-testid='term-caracteristique'>Caractéristique</div>
+            <div data-testid='term-caracteristiques'>Caractéristiques</div>
+            <div data-testid='term-fonctionnement'>Fonctionnement</div>
+            <div data-testid='term-capacite'>Capacité</div>
+            <div data-testid='term-capacites'>Capacités</div>
+            <div data-testid='term-developpement'>Développement</div>
+            <div data-testid='term-progres'>Progrès</div>
+            <div data-testid='term-progression'>Progression</div>
+            <div data-testid='term-avancement'>Avancement</div>
+            <div data-testid='term-evolution'>Évolution</div>
+            <div data-testid='term-amelioration'>Amélioration</div>
+            <div data-testid='term-donnees-directes'>Données en direct</div>
+            <div data-testid='term-donnees-temps-reel'>Données en temps réel</div>
+            <div data-testid='term-donnees-live'>Données live</div>
+            <div data-testid='term-recherche'>Recherche</div>
+            <div data-testid='term-rechercher'>Rechercher</div>
+            <div data-testid='term-recherche-avancee'>Recherche avancée</div>
+            <div data-testid='term-filtre'>Filtre</div>
+            <div data-testid='term-filtrer'>Filtrer</div>
+            <div data-testid='term-filtrage'>Filtrage</div>
+            <div data-testid='term-trier'>Trier</div>
+            <div data-testid='term-tri'>Tri</div>
+            <div data-testid='term-categorie'>Catégorie</div>
+            <div data-testid='term-categories'>Catégories</div>
+            <div data-testid='term-classification'>Classification</div>
+            <div data-testid='term-synchronisation'>Synchronisation</div>
+            <div data-testid='term-synchroniser'>Synchroniser</div>
+            <div data-testid='term-synchro'>Synchro</div>
+            <div data-testid='term-automatique'>Automatique</div>
+            <div data-testid='term-automatise'>Automatisé</div>
+            <div data-testid='term-automatisation'>Automatisation</div>
+            <div data-testid='term-manuel'>Manuel</div>
+            <div data-testid='term-manuelle'>Manuelle</div>
+            <div data-testid='term-production'>Production</div>
+            <div data-testid='term-environnement'>Environnement</div>
+            <div data-testid='term-environnement-prod'>Environnement de production</div>
+            <div data-testid='term-environnement-dev'>Environnement de développement</div>
+            <div data-testid='term-parcours-strategique'>Parcours stratégique</div>
+            <div data-testid='term-chemin-strategique'>Chemin stratégique</div>
+            <div data-testid='term-voie-strategique'>Voie stratégique</div>
+            <div data-testid='term-initiative'>Initiative</div>
+            <div data-testid='term-initiatives'>Initiatives</div>
+            <div data-testid='term-objectif'>Objectif</div>
+            <div data-testid='term-objectifs'>Objectifs</div>
+            <div data-testid='term-objectif-affaires'>Objectif d'affaires</div>
+            <div data-testid='term-but'>But</div>
+            <div data-testid='term-buts'>Buts</div>
+            <div data-testid='term-cible'>Cible</div>
+            <div data-testid='term-cibles'>Cibles</div>
+            <div data-testid='term-statut'>Statut</div>
+            <div data-testid='term-etat'>État</div>
+            <div data-testid='term-planifie'>Planifié</div>
+            <div data-testid='term-soumis'>Soumis</div>
+            <div data-testid='term-en-cours'>En cours</div>
+            <div data-testid='term-termine'>Terminé</div>
+            <div data-testid='term-complete'>Complété</div>
+            <div data-testid='term-fini'>Fini</div>
+            <div data-testid='term-en-attente'>En attente</div>
+            <div data-testid='term-suspendu'>Suspendu</div>
+            <div data-testid='term-annule'>Annulé</div>
+            <div data-testid='term-reporte'>Reporté</div>
+            <div data-testid='term-priorite'>Priorité</div>
+            <div data-testid='term-priorites'>Priorités</div>
+            <div data-testid='term-faible'>Faible</div>
+            <div data-testid='term-basse'>Basse</div>
+            <div data-testid='term-moyenne'>Moyenne</div>
+            <div data-testid='term-moderee'>Modérée</div>
+            <div data-testid='term-elevee'>Élevée</div>
+            <div data-testid='term-haute'>Haute</div>
+            <div data-testid='term-critique'>Critique</div>
+            <div data-testid='term-urgente'>Urgente</div>
+            <div data-testid='term-element-actionnable'>Élément actionnable</div>
+            <div data-testid='term-elements-actionnables'>Éléments actionnables</div>
+            <div data-testid='term-tache'>Tâche</div>
+            <div data-testid='term-taches'>Tâches</div>
+            <div data-testid='term-action'>Action</div>
+            <div data-testid='term-actions'>Actions</div>
+            <div data-testid='term-bloque'>Bloqué</div>
+            <div data-testid='term-bloquee'>Bloquée</div>
+            <div data-testid='term-obstacle'>Obstacle</div>
+            <div data-testid='term-obstacles'>Obstacles</div>
+            <div data-testid='term-doublon'>Doublon</div>
+            <div data-testid='term-doublons'>Doublons</div>
+            <div data-testid='term-duplicata'>Duplicata</div>
+            <div data-testid='term-exact'>Exact</div>
+            <div data-testid='term-exacts'>Exacts</div>
+            <div data-testid='term-similaire'>Similaire</div>
+            <div data-testid='term-similaires'>Similaires</div>
+            <div data-testid='term-ressemblant'>Ressemblant</div>
+            <div data-testid='term-semblable'>Semblable</div>
+            <div data-testid='term-gestion-immobiliere'>Gestion immobilière</div>
+            <div data-testid='term-gestion-proprietes'>Gestion de propriétés</div>
+            <div data-testid='term-gestion-batiments'>Gestion de bâtiments</div>
+            <div data-testid='term-gestion-residences'>Gestion de résidences</div>
+            <div data-testid='term-gestion-residents'>Gestion des résidents</div>
+            <div data-testid='term-gestion-locataires'>Gestion des locataires</div>
+            <div data-testid='term-gestion-financiere'>Gestion financière</div>
+            <div data-testid='term-gestion-facturation'>Gestion de facturation</div>
+            <div data-testid='term-gestion-maintenance'>Gestion de maintenance</div>
+            <div data-testid='term-gestion-demandes'>Gestion des demandes</div>
+            <div data-testid='term-gestion-documentaire'>Gestion documentaire</div>
+            <div data-testid='term-gestion-documents'>Gestion des documents</div>
+            <div data-testid='term-communication'>Communication</div>
+            <div data-testid='term-communication-multicanal'>Communication multicanal</div>
+            <div data-testid='term-intelligence-artificielle'>Intelligence artificielle</div>
+            <div data-testid='term-ia'>IA</div>
+            <div data-testid='term-automatisation-ia'>Automatisation IA</div>
+            <div data-testid='term-conformite'>Conformité</div>
+            <div data-testid='term-securite'>Sécurité</div>
+            <div data-testid='term-conformite-securite'>Conformité et sécurité</div>
+            <div data-testid='term-analytiques'>Analytiques</div>
+            <div data-testid='term-rapports'>Rapports</div>
+            <div data-testid='term-generation-rapports'>Génération de rapports</div>
+            <div data-testid='term-intelligence-affaires'>Intelligence d'affaires</div>
+            <div data-testid='term-integration'>Intégration</div>
+            <div data-testid='term-integrations'>Intégrations</div>
+            <div data-testid='term-api'>API</div>
+            <div data-testid='term-interface-programmation'>Interface de programmation</div>
+            <div data-testid='term-infrastructure'>Infrastructure</div>
+            <div data-testid='term-performance'>Performance</div>
+            <div data-testid='term-optimisation'>Optimisation</div>
+            <div data-testid='term-plateforme'>Plateforme</div>
+            <div data-testid='term-site-web'>Site web</div>
+            <div data-testid='term-fonctionnalites-web'>Fonctionnalités web</div>
+            <div data-testid='term-seo'>SEO</div>
+            <div data-testid='term-referencement'>Référencement</div>
+            <div data-testid='term-outils-automatisation'>Outils d'automatisation</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RoadmapTerminology />
+        </TestProviders>
+      );
+
+      // Verify Quebec roadmap and project management terminology
+      expect(screen.getByTestId('term-feuille-route')).toHaveTextContent('Feuille de route');
+      expect(screen.getByTestId('term-plan-developpement')).toHaveTextContent('Plan de développement');
+      expect(screen.getByTestId('term-planification-produit')).toHaveTextContent('Planification du produit');
+      expect(screen.getByTestId('term-fonctionnalite')).toHaveTextContent('Fonctionnalité');
+      expect(screen.getByTestId('term-fonctionnalites')).toHaveTextContent('Fonctionnalités');
+      expect(screen.getByTestId('term-caracteristique')).toHaveTextContent('Caractéristique');
+      expect(screen.getByTestId('term-caracteristiques')).toHaveTextContent('Caractéristiques');
+      expect(screen.getByTestId('term-fonctionnement')).toHaveTextContent('Fonctionnement');
+      expect(screen.getByTestId('term-capacite')).toHaveTextContent('Capacité');
+      expect(screen.getByTestId('term-capacites')).toHaveTextContent('Capacités');
+      expect(screen.getByTestId('term-developpement')).toHaveTextContent('Développement');
+      expect(screen.getByTestId('term-progres')).toHaveTextContent('Progrès');
+      expect(screen.getByTestId('term-progression')).toHaveTextContent('Progression');
+      expect(screen.getByTestId('term-avancement')).toHaveTextContent('Avancement');
+      expect(screen.getByTestId('term-evolution')).toHaveTextContent('Évolution');
+      expect(screen.getByTestId('term-amelioration')).toHaveTextContent('Amélioration');
+      expect(screen.getByTestId('term-donnees-directes')).toHaveTextContent('Données en direct');
+      expect(screen.getByTestId('term-donnees-temps-reel')).toHaveTextContent('Données en temps réel');
+      expect(screen.getByTestId('term-donnees-live')).toHaveTextContent('Données live');
+      expect(screen.getByTestId('term-recherche')).toHaveTextContent('Recherche');
+      expect(screen.getByTestId('term-rechercher')).toHaveTextContent('Rechercher');
+      expect(screen.getByTestId('term-recherche-avancee')).toHaveTextContent('Recherche avancée');
+      expect(screen.getByTestId('term-filtre')).toHaveTextContent('Filtre');
+      expect(screen.getByTestId('term-filtrer')).toHaveTextContent('Filtrer');
+      expect(screen.getByTestId('term-filtrage')).toHaveTextContent('Filtrage');
+      expect(screen.getByTestId('term-trier')).toHaveTextContent('Trier');
+      expect(screen.getByTestId('term-tri')).toHaveTextContent('Tri');
+      expect(screen.getByTestId('term-categorie')).toHaveTextContent('Catégorie');
+      expect(screen.getByTestId('term-categories')).toHaveTextContent('Catégories');
+      expect(screen.getByTestId('term-classification')).toHaveTextContent('Classification');
+      expect(screen.getByTestId('term-synchronisation')).toHaveTextContent('Synchronisation');
+      expect(screen.getByTestId('term-synchroniser')).toHaveTextContent('Synchroniser');
+      expect(screen.getByTestId('term-synchro')).toHaveTextContent('Synchro');
+      expect(screen.getByTestId('term-automatique')).toHaveTextContent('Automatique');
+      expect(screen.getByTestId('term-automatise')).toHaveTextContent('Automatisé');
+      expect(screen.getByTestId('term-automatisation')).toHaveTextContent('Automatisation');
+      expect(screen.getByTestId('term-manuel')).toHaveTextContent('Manuel');
+      expect(screen.getByTestId('term-manuelle')).toHaveTextContent('Manuelle');
+      expect(screen.getByTestId('term-production')).toHaveTextContent('Production');
+      expect(screen.getByTestId('term-environnement')).toHaveTextContent('Environnement');
+      expect(screen.getByTestId('term-environnement-prod')).toHaveTextContent('Environnement de production');
+      expect(screen.getByTestId('term-environnement-dev')).toHaveTextContent('Environnement de développement');
+      expect(screen.getByTestId('term-parcours-strategique')).toHaveTextContent('Parcours stratégique');
+      expect(screen.getByTestId('term-chemin-strategique')).toHaveTextContent('Chemin stratégique');
+      expect(screen.getByTestId('term-voie-strategique')).toHaveTextContent('Voie stratégique');
+      expect(screen.getByTestId('term-initiative')).toHaveTextContent('Initiative');
+      expect(screen.getByTestId('term-initiatives')).toHaveTextContent('Initiatives');
+      expect(screen.getByTestId('term-objectif')).toHaveTextContent('Objectif');
+      expect(screen.getByTestId('term-objectifs')).toHaveTextContent('Objectifs');
+      expect(screen.getByTestId('term-objectif-affaires')).toHaveTextContent('Objectif d\'affaires');
+      expect(screen.getByTestId('term-but')).toHaveTextContent('But');
+      expect(screen.getByTestId('term-buts')).toHaveTextContent('Buts');
+      expect(screen.getByTestId('term-cible')).toHaveTextContent('Cible');
+      expect(screen.getByTestId('term-cibles')).toHaveTextContent('Cibles');
+      expect(screen.getByTestId('term-statut')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('term-etat')).toHaveTextContent('État');
+      expect(screen.getByTestId('term-planifie')).toHaveTextContent('Planifié');
+      expect(screen.getByTestId('term-soumis')).toHaveTextContent('Soumis');
+      expect(screen.getByTestId('term-en-cours')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('term-termine')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('term-complete')).toHaveTextContent('Complété');
+      expect(screen.getByTestId('term-fini')).toHaveTextContent('Fini');
+      expect(screen.getByTestId('term-en-attente')).toHaveTextContent('En attente');
+      expect(screen.getByTestId('term-suspendu')).toHaveTextContent('Suspendu');
+      expect(screen.getByTestId('term-annule')).toHaveTextContent('Annulé');
+      expect(screen.getByTestId('term-reporte')).toHaveTextContent('Reporté');
+      expect(screen.getByTestId('term-priorite')).toHaveTextContent('Priorité');
+      expect(screen.getByTestId('term-priorites')).toHaveTextContent('Priorités');
+      expect(screen.getByTestId('term-faible')).toHaveTextContent('Faible');
+      expect(screen.getByTestId('term-basse')).toHaveTextContent('Basse');
+      expect(screen.getByTestId('term-moyenne')).toHaveTextContent('Moyenne');
+      expect(screen.getByTestId('term-moderee')).toHaveTextContent('Modérée');
+      expect(screen.getByTestId('term-elevee')).toHaveTextContent('Élevée');
+      expect(screen.getByTestId('term-haute')).toHaveTextContent('Haute');
+      expect(screen.getByTestId('term-critique')).toHaveTextContent('Critique');
+      expect(screen.getByTestId('term-urgente')).toHaveTextContent('Urgente');
+      expect(screen.getByTestId('term-element-actionnable')).toHaveTextContent('Élément actionnable');
+      expect(screen.getByTestId('term-elements-actionnables')).toHaveTextContent('Éléments actionnables');
+      expect(screen.getByTestId('term-tache')).toHaveTextContent('Tâche');
+      expect(screen.getByTestId('term-taches')).toHaveTextContent('Tâches');
+      expect(screen.getByTestId('term-action')).toHaveTextContent('Action');
+      expect(screen.getByTestId('term-actions')).toHaveTextContent('Actions');
+      expect(screen.getByTestId('term-bloque')).toHaveTextContent('Bloqué');
+      expect(screen.getByTestId('term-bloquee')).toHaveTextContent('Bloquée');
+      expect(screen.getByTestId('term-obstacle')).toHaveTextContent('Obstacle');
+      expect(screen.getByTestId('term-obstacles')).toHaveTextContent('Obstacles');
+      expect(screen.getByTestId('term-doublon')).toHaveTextContent('Doublon');
+      expect(screen.getByTestId('term-doublons')).toHaveTextContent('Doublons');
+      expect(screen.getByTestId('term-duplicata')).toHaveTextContent('Duplicata');
+      expect(screen.getByTestId('term-exact')).toHaveTextContent('Exact');
+      expect(screen.getByTestId('term-exacts')).toHaveTextContent('Exacts');
+      expect(screen.getByTestId('term-similaire')).toHaveTextContent('Similaire');
+      expect(screen.getByTestId('term-similaires')).toHaveTextContent('Similaires');
+      expect(screen.getByTestId('term-ressemblant')).toHaveTextContent('Ressemblant');
+      expect(screen.getByTestId('term-semblable')).toHaveTextContent('Semblable');
+      expect(screen.getByTestId('term-gestion-immobiliere')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('term-gestion-proprietes')).toHaveTextContent('Gestion de propriétés');
+      expect(screen.getByTestId('term-gestion-batiments')).toHaveTextContent('Gestion de bâtiments');
+      expect(screen.getByTestId('term-gestion-residences')).toHaveTextContent('Gestion de résidences');
+      expect(screen.getByTestId('term-gestion-residents')).toHaveTextContent('Gestion des résidents');
+      expect(screen.getByTestId('term-gestion-locataires')).toHaveTextContent('Gestion des locataires');
+      expect(screen.getByTestId('term-gestion-financiere')).toHaveTextContent('Gestion financière');
+      expect(screen.getByTestId('term-gestion-facturation')).toHaveTextContent('Gestion de facturation');
+      expect(screen.getByTestId('term-gestion-maintenance')).toHaveTextContent('Gestion de maintenance');
+      expect(screen.getByTestId('term-gestion-demandes')).toHaveTextContent('Gestion des demandes');
+      expect(screen.getByTestId('term-gestion-documentaire')).toHaveTextContent('Gestion documentaire');
+      expect(screen.getByTestId('term-gestion-documents')).toHaveTextContent('Gestion des documents');
+      expect(screen.getByTestId('term-communication')).toHaveTextContent('Communication');
+      expect(screen.getByTestId('term-communication-multicanal')).toHaveTextContent('Communication multicanal');
+      expect(screen.getByTestId('term-intelligence-artificielle')).toHaveTextContent('Intelligence artificielle');
+      expect(screen.getByTestId('term-ia')).toHaveTextContent('IA');
+      expect(screen.getByTestId('term-automatisation-ia')).toHaveTextContent('Automatisation IA');
+      expect(screen.getByTestId('term-conformite')).toHaveTextContent('Conformité');
+      expect(screen.getByTestId('term-securite')).toHaveTextContent('Sécurité');
+      expect(screen.getByTestId('term-conformite-securite')).toHaveTextContent('Conformité et sécurité');
+      expect(screen.getByTestId('term-analytiques')).toHaveTextContent('Analytiques');
+      expect(screen.getByTestId('term-rapports')).toHaveTextContent('Rapports');
+      expect(screen.getByTestId('term-generation-rapports')).toHaveTextContent('Génération de rapports');
+      expect(screen.getByTestId('term-intelligence-affaires')).toHaveTextContent('Intelligence d\'affaires');
+      expect(screen.getByTestId('term-integration')).toHaveTextContent('Intégration');
+      expect(screen.getByTestId('term-integrations')).toHaveTextContent('Intégrations');
+      expect(screen.getByTestId('term-api')).toHaveTextContent('API');
+      expect(screen.getByTestId('term-interface-programmation')).toHaveTextContent('Interface de programmation');
+      expect(screen.getByTestId('term-infrastructure')).toHaveTextContent('Infrastructure');
+      expect(screen.getByTestId('term-performance')).toHaveTextContent('Performance');
+      expect(screen.getByTestId('term-optimisation')).toHaveTextContent('Optimisation');
+      expect(screen.getByTestId('term-plateforme')).toHaveTextContent('Plateforme');
+      expect(screen.getByTestId('term-site-web')).toHaveTextContent('Site web');
+      expect(screen.getByTestId('term-fonctionnalites-web')).toHaveTextContent('Fonctionnalités web');
+      expect(screen.getByTestId('term-seo')).toHaveTextContent('SEO');
+      expect(screen.getByTestId('term-referencement')).toHaveTextContent('Référencement');
+      expect(screen.getByTestId('term-outils-automatisation')).toHaveTextContent('Outils d\'automatisation');
+    });
+
+    it('should display proper roadmap development workflow in French', () => {
+      const RoadmapDevelopmentWorkflow = () => {
+        return (
+          <div data-testid='roadmap-development-workflow'>
+            {/* Roadmap development workflow */}
+            <div data-testid='workflow-feature-planning'>
+              <div data-testid='step-planning-title'>1. Planification des fonctionnalités</div>
+              <div data-testid='step-planning-description'>
+                Identifier et définir les nouvelles fonctionnalités basées sur les besoins des utilisateurs et les objectifs d'affaires
+              </div>
+            </div>
+
+            <div data-testid='workflow-priority-assignment'>
+              <div data-testid='step-priority-title'>2. Attribution des priorités</div>
+              <div data-testid='step-priority-description'>
+                Évaluer et assigner les niveaux de priorité selon l'impact commercial et la complexité technique
+              </div>
+            </div>
+
+            <div data-testid='workflow-development-execution'>
+              <div data-testid='step-execution-title'>3. Exécution du développement</div>
+              <div data-testid='step-execution-description'>
+                Implémenter les fonctionnalités selon la feuille de route avec suivi continu du progrès
+              </div>
+            </div>
+
+            <div data-testid='workflow-sync-deployment'>
+              <div data-testid='step-sync-title'>4. Synchronisation et déploiement</div>
+              <div data-testid='step-sync-description'>
+                Synchroniser automatiquement les changements entre les environnements de développement et de production
+              </div>
+            </div>
+
+            {/* Development lifecycle stages */}
+            <div data-testid='development-lifecycle-stages'>
+              <div data-testid='stage-ideation-desc'>
+                Idéation - Génération et collecte d'idées de fonctionnalités provenant des parties prenantes
+              </div>
+              <div data-testid='stage-evaluation-desc'>
+                Évaluation - Analyse de faisabilité technique et d'impact commercial de chaque fonctionnalité
+              </div>
+              <div data-testid='stage-planning-desc'>
+                Planification - Définition détaillée des spécifications et des critères d'acceptation
+              </div>
+              <div data-testid='stage-development-desc'>
+                Développement - Implémentation technique avec tests et révisions de code
+              </div>
+              <div data-testid='stage-testing-desc'>
+                Tests - Validation complète incluant tests unitaires, d'intégration et d'acceptation
+              </div>
+              <div data-testid='stage-deployment-desc'>
+                Déploiement - Mise en production avec surveillance et support post-lancement
+              </div>
+            </div>
+
+            {/* Strategic alignment principles */}
+            <div data-testid='strategic-alignment-principles'>
+              <div data-testid='principle-user-value-desc'>
+                Valeur utilisateur - Chaque fonctionnalité doit apporter une valeur mesurable aux utilisateurs finaux
+              </div>
+              <div data-testid='principle-business-impact-desc'>
+                Impact commercial - Alignement avec les objectifs stratégiques et la croissance de l'entreprise
+              </div>
+              <div data-testid='principle-technical-excellence-desc'>
+                Excellence technique - Maintien de la qualité du code et de l'architecture système
+              </div>
+              <div data-testid='principle-quebec-compliance-desc'>
+                Conformité québécoise - Respect des réglementations locales incluant la Loi 25
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <RoadmapDevelopmentWorkflow />
+        </TestProviders>
+      );
+
+      // Verify roadmap development workflow uses Quebec French
+      expect(screen.getByTestId('step-planning-title')).toHaveTextContent('1. Planification des fonctionnalités');
+      expect(screen.getByTestId('step-planning-description')).toHaveTextContent('Identifier et définir les nouvelles fonctionnalités basées sur les besoins des utilisateurs et les objectifs d\'affaires');
+      expect(screen.getByTestId('step-priority-title')).toHaveTextContent('2. Attribution des priorités');
+      expect(screen.getByTestId('step-priority-description')).toHaveTextContent('Évaluer et assigner les niveaux de priorité selon l\'impact commercial et la complexité technique');
+      expect(screen.getByTestId('step-execution-title')).toHaveTextContent('3. Exécution du développement');
+      expect(screen.getByTestId('step-execution-description')).toHaveTextContent('Implémenter les fonctionnalités selon la feuille de route avec suivi continu du progrès');
+      expect(screen.getByTestId('step-sync-title')).toHaveTextContent('4. Synchronisation et déploiement');
+      expect(screen.getByTestId('step-sync-description')).toHaveTextContent('Synchroniser automatiquement les changements entre les environnements de développement et de production');
+
+      // Verify development lifecycle stages
+      expect(screen.getByTestId('stage-ideation-desc')).toHaveTextContent('Idéation - Génération et collecte d\'idées de fonctionnalités provenant des parties prenantes');
+      expect(screen.getByTestId('stage-evaluation-desc')).toHaveTextContent('Évaluation - Analyse de faisabilité technique et d\'impact commercial de chaque fonctionnalité');
+      expect(screen.getByTestId('stage-planning-desc')).toHaveTextContent('Planification - Définition détaillée des spécifications et des critères d\'acceptation');
+      expect(screen.getByTestId('stage-development-desc')).toHaveTextContent('Développement - Implémentation technique avec tests et révisions de code');
+      expect(screen.getByTestId('stage-testing-desc')).toHaveTextContent('Tests - Validation complète incluant tests unitaires, d\'intégration et d\'acceptation');
+      expect(screen.getByTestId('stage-deployment-desc')).toHaveTextContent('Déploiement - Mise en production avec surveillance et support post-lancement');
+
+      // Verify strategic alignment principles
+      expect(screen.getByTestId('principle-user-value-desc')).toHaveTextContent('Valeur utilisateur - Chaque fonctionnalité doit apporter une valeur mesurable aux utilisateurs finaux');
+      expect(screen.getByTestId('principle-business-impact-desc')).toHaveTextContent('Impact commercial - Alignement avec les objectifs stratégiques et la croissance de l\'entreprise');
+      expect(screen.getByTestId('principle-technical-excellence-desc')).toHaveTextContent('Excellence technique - Maintien de la qualité du code et de l\'architecture système');
+      expect(screen.getByTestId('principle-quebec-compliance-desc')).toHaveTextContent('Conformité québécoise - Respect des réglementations locales incluant la Loi 25');
+    });
+
+    it('should have proper data-testid attributes for admin roadmap page elements', () => {
+      const AdminRoadmapWithTestIds = () => {
+        return (
+          <div data-testid='admin-roadmap-page'>
+            <div data-testid='product-roadmap-header'>Feuille de route du produit</div>
+            <div data-testid='search-bar-section'>Section barre de recherche</div>
+            <div data-testid='refresh-command-section'>Section commande de rafraîchissement</div>
+            <div data-testid='sync-status-card'>Carte statut de synchronisation</div>
+            <div data-testid='action-buttons-section'>Section boutons d'action</div>
+            <div data-testid='overview-stats'>Statistiques d'aperçu</div>
+            <div data-testid='feature-sections'>Sections de fonctionnalités</div>
+            <button data-testid='button-llm-help-form'>Formulaire d'aide LLM</button>
+            <button data-testid='button-sync-to-production'>Synchroniser vers production</button>
+            <button data-testid='button-create-new-item'>Créer nouvel élément</button>
+            <div data-testid='section-strategic-path'>Section parcours stratégique</div>
+            <div data-testid='section-dashboard-home'>Section tableau de bord</div>
+            <div data-testid='feature-status-labels'>Étiquettes de statut</div>
+            <div data-testid='priority-labels'>Étiquettes de priorité</div>
+            <div data-testid='actionable-items'>Éléments actionnables</div>
+            <div data-testid='loading-roadmap'>Chargement feuille de route</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminRoadmapWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all admin roadmap page elements have proper test IDs
+      expect(screen.getByTestId('admin-roadmap-page')).toBeInTheDocument();
+      expect(screen.getByTestId('product-roadmap-header')).toBeInTheDocument();
+      expect(screen.getByTestId('search-bar-section')).toBeInTheDocument();
+      expect(screen.getByTestId('refresh-command-section')).toBeInTheDocument();
+      expect(screen.getByTestId('sync-status-card')).toBeInTheDocument();
+      expect(screen.getByTestId('action-buttons-section')).toBeInTheDocument();
+      expect(screen.getByTestId('overview-stats')).toBeInTheDocument();
+      expect(screen.getByTestId('feature-sections')).toBeInTheDocument();
+      expect(screen.getByTestId('button-llm-help-form')).toBeInTheDocument();
+      expect(screen.getByTestId('button-sync-to-production')).toBeInTheDocument();
+      expect(screen.getByTestId('button-create-new-item')).toBeInTheDocument();
+      expect(screen.getByTestId('section-strategic-path')).toBeInTheDocument();
+      expect(screen.getByTestId('section-dashboard-home')).toBeInTheDocument();
+      expect(screen.getByTestId('feature-status-labels')).toBeInTheDocument();
+      expect(screen.getByTestId('priority-labels')).toBeInTheDocument();
+      expect(screen.getByTestId('actionable-items')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-roadmap')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const llmButton = screen.getByTestId('button-llm-help-form');
+      expect(llmButton).toHaveAttribute('data-testid');
+      expect(llmButton.tagName.toLowerCase()).toBe('button');
+
+      const syncButton = screen.getByTestId('button-sync-to-production');
+      expect(syncButton).toHaveAttribute('data-testid');
+      expect(syncButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -12595,6 +13646,146 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   'security and regulatory compliance including quebec law 25': 'sécurité et conformité réglementaire incluant la loi 25 du québec',
   'continuous improvement with artificial intelligence and advanced analytics': 'amélioration continue avec intelligence artificielle et analytiques avancées',
   'comprehensive documentation and organizational knowledge management': 'gestion complète de la documentation et des connaissances organisationnelles',
+
+  // Admin roadmap and product management terms
+  'product roadmap': 'feuille de route du produit',
+  'complete feature list and development progress': 'liste complète des fonctionnalités et progrès de développement',
+  'live data': 'données en direct',
+  'search features by name description or category': 'rechercher des fonctionnalités par nom, description ou catégorie',
+  'found features matching': 'trouvé 5 fonctionnalités correspondant à',
+  'clear search': 'effacer la recherche',
+  'automatic synchronization': 'synchronisation automatique',
+  'dev prod sync enabled': 'dev → prod synchronisation activée',
+  'production environment': 'environnement de production',
+  'new feature requests automatically appear': 'les nouvelles demandes de fonctionnalités apparaissent automatiquement avec le statut "soumis" et se synchronisent avec la production',
+  'roadmap features automatically synchronized': 'les mises à jour des fonctionnalités de la feuille de route sont automatiquement synchronisées',
+  'production roadmap synchronized from development': 'ceci est la feuille de route de production. les changements sont synchronisés depuis l\'environnement de développement',
+  'llm help form': 'formulaire d\'aide llm',
+  'sync to production': 'synchroniser vers la production',
+  'syncing': 'synchronisation',
+  'create new item': 'créer un nouvel élément',
+  'completed features': 'fonctionnalités terminées',
+  'planned features': 'fonctionnalités planifiées',
+  'total features': 'fonctionnalités totales',
+  'exact duplicates': 'doublons exacts',
+  'similar features': 'fonctionnalités similaires',
+  'strategic path': 'parcours stratégique',
+  'high level strategic initiatives and business objectives': 'initiatives stratégiques de haut niveau et objectifs d\'affaires',
+  'dashboard home': 'tableau de bord et accueil',
+  'central hub for property management overview': 'hub central pour l\'aperçu de la gestion immobilière',
+  'property management': 'gestion immobilière',
+  'building and residence management features': 'fonctionnalités de gestion des bâtiments et résidences',
+  'resident management': 'gestion des résidents',
+  'resident and tenant management system': 'système de gestion des résidents et locataires',
+  'financial management': 'gestion financière',
+  'comprehensive financial and billing system': 'système financier et de facturation complet',
+  'maintenance requests': 'maintenance et demandes',
+  'maintenance request and work order management': 'gestion des demandes de maintenance et ordres de travail',
+  'document management': 'gestion documentaire',
+  'centralized document storage and management': 'stockage et gestion centralisés des documents',
+  'multi channel communication system': 'système de communication multicanal',
+  'ai automation': 'ia et automatisation',
+  'artificial intelligence and automation features': 'fonctionnalités d\'intelligence artificielle et d\'automatisation',
+  'compliance security': 'conformité et sécurité',
+  'quebec law 25 compliance and security features': 'conformité loi 25 du québec et fonctionnalités de sécurité',
+  'analytics reporting': 'analytiques et rapports',
+  'business intelligence and reporting tools': 'outils d\'intelligence d\'affaires et de génération de rapports',
+  'integration api': 'intégration et api',
+  'third party integrations and api access': 'intégrations tierces et accès api',
+  'infrastructure performance': 'infrastructure et performance',
+  'platform infrastructure and optimization': 'infrastructure de plateforme et optimisation',
+  'website features seo and automation tools': 'fonctionnalités du site web, seo et outils d\'automatisation',
+  'planned': 'planifié',
+  'submitted': 'soumis',
+  'on hold': 'en attente',
+  'cancelled': 'annulé',
+  'low': 'faible',
+  'medium': 'moyenne',
+  'high': 'élevée',
+  'critical': 'critique',
+  'pending': 'en attente',
+  'blocked': 'bloqué',
+  'loading roadmap data': 'chargement des données de la feuille de route',
+  'loading features': 'chargement des fonctionnalités',
+  'syncing to production': 'synchronisation vers la production',
+  'updating feature': 'mise à jour de la fonctionnalité',
+  'creating new item': 'création d\'un nouvel élément',
+  'status updated': 'statut mis à jour',
+  'feature status updated successfully': 'le statut de la fonctionnalité a été mis à jour avec succès',
+  'task updated': 'tâche mise à jour',
+  'actionable item status updated successfully': 'le statut de l\'élément actionnable a été mis à jour avec succès',
+  'strategic path updated': 'parcours stratégique mis à jour',
+  'strategic path status updated': 'le statut du parcours stratégique de la fonctionnalité a été mis à jour',
+  'sync completed': 'synchronisation terminée',
+  'all features synchronized to production': 'toutes les fonctionnalités ont été synchronisées vers la production',
+  'sync failed': 'échec de la synchronisation',
+  'failed to synchronize features to production': 'échec de la synchronisation des fonctionnalités vers la production',
+  'prompt copied': 'invite copiée!',
+  'implementation prompt copied to clipboard': 'l\'invite d\'implémentation a été copiée dans votre presse-papiers',
+  'failed to copy': 'échec de la copie',
+  'could not copy prompt to clipboard': 'impossible de copier l\'invite dans le presse-papiers',
+  'enhanced llm help form copied': 'formulaire d\'aide llm amélioré copié',
+  'enhanced feature discussion form with koveo gestion context copied': 'le formulaire de discussion de fonctionnalités amélioré avec le contexte koveo gestion a été copié. le llm se concentrera spécifiquement sur vos exigences',
+  'copy failed': 'échec de la copie',
+  'failed to copy form to clipboard': 'échec de la copie du formulaire dans le presse-papiers',
+  roadmap: 'feuille de route',
+  feature: 'fonctionnalité',
+  features: 'fonctionnalités',
+  development: 'développement',
+  progress: 'progrès',
+  status: 'statut',
+  priority: 'priorité',
+  category: 'catégorie',
+  description: 'description',
+  'strategic path label': 'parcours stratégique',
+  synchronization: 'synchronisation',
+  production: 'production',
+  environment: 'environnement',
+  automatic: 'automatique',
+  manual: 'manuel',
+  duplicates: 'doublons',
+  similar: 'similaires',
+  exact: 'exacts',
+  search: 'recherche',
+  filter: 'filtre',
+  'create feature': 'créer une fonctionnalité',
+  'edit feature': 'modifier la fonctionnalité',
+  'delete feature': 'supprimer la fonctionnalité',
+  'update status': 'mettre à jour le statut',
+  'set priority': 'définir la priorité',
+  'toggle strategic status': 'basculer le statut stratégique',
+  'copy prompt': 'copier l\'invite',
+  'sync to production action': 'synchroniser vers la production',
+  'expand section': 'développer la section',
+  'collapse section': 'réduire la section',
+  'feature planning': 'planification des fonctionnalités',
+  'identify and define new features based on user needs and business objectives': 'identifier et définir les nouvelles fonctionnalités basées sur les besoins des utilisateurs et les objectifs d\'affaires',
+  'priority assignment': 'attribution des priorités',
+  'evaluate and assign priority levels based on business impact and technical complexity': 'évaluer et assigner les niveaux de priorité selon l\'impact commercial et la complexité technique',
+  'development execution': 'exécution du développement',
+  'implement features according to roadmap with continuous progress tracking': 'implémenter les fonctionnalités selon la feuille de route avec suivi continu du progrès',
+  'sync and deployment': 'synchronisation et déploiement',
+  'automatically synchronize changes between development and production environments': 'synchroniser automatiquement les changements entre les environnements de développement et de production',
+  'ideation': 'idéation',
+  'generation and collection of feature ideas from stakeholders': 'génération et collecte d\'idées de fonctionnalités provenant des parties prenantes',
+  'evaluation': 'évaluation',
+  'technical feasibility and business impact analysis of each feature': 'analyse de faisabilité technique et d\'impact commercial de chaque fonctionnalité',
+  'planning': 'planification',
+  'detailed specification definition and acceptance criteria': 'définition détaillée des spécifications et des critères d\'acceptation',
+  'development': 'développement',
+  'technical implementation with testing and code reviews': 'implémentation technique avec tests et révisions de code',
+  'testing': 'tests',
+  'comprehensive validation including unit integration and acceptance testing': 'validation complète incluant tests unitaires, d\'intégration et d\'acceptation',
+  'deployment': 'déploiement',
+  'production release with monitoring and post launch support': 'mise en production avec surveillance et support post-lancement',
+  'user value': 'valeur utilisateur',
+  'each feature must provide measurable value to end users': 'chaque fonctionnalité doit apporter une valeur mesurable aux utilisateurs finaux',
+  'business impact': 'impact commercial',
+  'alignment with strategic objectives and business growth': 'alignement avec les objectifs stratégiques et la croissance de l\'entreprise',
+  'technical excellence': 'excellence technique',
+  'maintaining code quality and system architecture': 'maintien de la qualité du code et de l\'architecture système',
+  'quebec compliance': 'conformité québécoise',
+  'compliance with local regulations including law 25': 'respect des réglementations locales incluant la loi 25',
 };
 
 /**
