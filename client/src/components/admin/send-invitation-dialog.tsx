@@ -224,9 +224,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Fetch organizations (filtered by user access)
   const { data: organizations } = useQuery<Organization[]>({
-    queryKey: ['/api/users/me/organizations'],
+    queryKey: ['/api/organizations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users/me/organizations');
+      const response = await apiRequest('GET', '/api/organizations');
       return response.json();
     },
     enabled: open,
