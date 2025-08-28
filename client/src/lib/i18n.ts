@@ -1261,7 +1261,7 @@ const translations: Record<Language, Translations> = {
     selectStatus: 'Sélectionner le statut',
     addNotesReview: 'Ajouter des notes sur votre décision d\'examen...',
     selectBuilding2: 'Sélectionner le bâtiment',
-    addNotesReviewDecision: 'Ajoutez des notes sur votre décision d\\'examen...',
+    addNotesReviewDecision: 'Ajoutez des notes sur votre décision d\'examen...',
     // Status options for manager
     submitted2: 'Soumis',
     // Document management translations
