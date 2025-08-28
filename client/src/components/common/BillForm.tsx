@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FileText, Upload, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '../../../shared/schema';
 
 // Unified form schema
@@ -143,6 +144,7 @@ export const STATUS_OPTIONS = [
  * @param root0.onCancel
  */
 export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFormProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('manual');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
@@ -326,9 +328,9 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           name='title'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title *</FormLabel>
+              <FormLabel>{t('title')} *</FormLabel>
               <FormControl>
-                <Input {...field} placeholder='Bill title' data-testid='input-title' />
+                <Input {...field} placeholder={t('billTitle')} data-testid='input-title' />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -341,11 +343,11 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           name='vendor'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vendor</FormLabel>
+              <FormLabel>{t('vendor')}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder='Company or service provider'
+                  placeholder={t('companyOrServiceProvider')}
                   data-testid='input-vendor'
                 />
               </FormControl>
@@ -360,11 +362,11 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           name='category'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category *</FormLabel>
+              <FormLabel>{t('category')} *</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger data-testid='select-category'>
-                    <SelectValue placeholder='Select category' />
+                    <SelectValue placeholder={t('selectCategory')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

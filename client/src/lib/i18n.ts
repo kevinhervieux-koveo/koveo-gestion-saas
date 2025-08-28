@@ -236,6 +236,42 @@ export interface Translations {
   cancelling: string;
   daysRemaining: string;
   hoursRemaining: string;
+  // Form and UI translations
+  formStatus: string;
+  formType: string;
+  building: string;
+  allBuildings: string;
+  searchDemands: string;
+  title: string;
+  vendor: string;
+  category: string;
+  selectCategory: string;
+  billTitle: string;
+  companyOrServiceProvider: string;
+  selectPaymentType: string;
+  selectSchedule: string;
+  selectStatus: string;
+  // Page content translations
+  loadingDemands: string;
+  searchDemandsUsers: string;
+  submitAndTrack: string;
+  reviewDemand: string;
+  failedToReviewDemand: string;
+  error: string;
+  submitted: string;
+  underReview: string;
+  approved: string;
+  inProgress: string;
+  completed: string;
+  rejected: string;
+  cancelled: string;
+  // Status label translations
+  draft: string;
+  maintenance: string;
+  complaint: string;
+  information: string;
+  other: string;
+  allStatus: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -568,6 +604,42 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Cancelling',
     daysRemaining: 'days remaining',
     hoursRemaining: 'hours remaining',
+    // Form and UI translations
+    formStatus: 'Status',
+    formType: 'Type',
+    building: 'Building',
+    allBuildings: 'All Buildings',
+    searchDemands: 'Search demands...',
+    title: 'Title',
+    vendor: 'Vendor',
+    category: 'Category',
+    selectCategory: 'Select category',
+    billTitle: 'Bill title',
+    companyOrServiceProvider: 'Company or service provider',
+    selectPaymentType: 'Select payment type',
+    selectSchedule: 'Select schedule',
+    selectStatus: 'Select status',
+    // Page content translations
+    loadingDemands: 'Loading demands...',
+    searchDemandsUsers: 'Search demands, users...',
+    submitAndTrack: 'Submit and track maintenance requests',
+    reviewDemand: 'Review Demand',
+    failedToReviewDemand: 'Failed to review demand',
+    error: 'Error',
+    submitted: 'Submitted',
+    underReview: 'Under Review',
+    approved: 'Approved',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    rejected: 'Rejected',
+    cancelled: 'Cancelled',
+    // Additional status labels
+    draft: 'Draft',
+    maintenance: 'Maintenance',
+    complaint: 'Complaint',
+    information: 'Information',
+    other: 'Other',
+    allStatus: 'All Status',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -912,6 +984,42 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Annulation',
     daysRemaining: 'jours restants',
     hoursRemaining: 'heures restantes',
+    // Form and UI translations
+    formStatus: 'Statut',
+    formType: 'Type',
+    building: 'Bâtiment',
+    allBuildings: 'Tous les bâtiments',
+    searchDemands: 'Rechercher des demandes...',
+    title: 'Titre',
+    vendor: 'Fournisseur',
+    category: 'Catégorie',
+    selectCategory: 'Sélectionner une catégorie',
+    billTitle: 'Titre de la facture',
+    companyOrServiceProvider: 'Entreprise ou fournisseur de service',
+    selectPaymentType: 'Sélectionner le type de paiement',
+    selectSchedule: 'Sélectionner l\'horaire',
+    selectStatus: 'Sélectionner le statut',
+    // Page content translations
+    loadingDemands: 'Chargement des demandes...',
+    searchDemandsUsers: 'Rechercher demandes, utilisateurs...',
+    submitAndTrack: 'Soumettre et suivre les demandes de maintenance',
+    reviewDemand: 'Examiner la demande',
+    failedToReviewDemand: 'Échec de l\'examen de la demande',
+    error: 'Erreur',
+    submitted: 'Soumis',
+    underReview: 'En cours d\'examen',
+    approved: 'Approuvé',
+    inProgress: 'En cours',
+    completed: 'Terminé',
+    rejected: 'Rejeté',
+    cancelled: 'Annulé',
+    // Additional status labels
+    draft: 'Brouillon',
+    maintenance: 'Entretien',
+    complaint: 'Plainte',
+    information: 'Information',
+    other: 'Autre',
+    allStatus: 'Tous les statuts',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',

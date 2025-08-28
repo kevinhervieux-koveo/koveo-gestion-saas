@@ -50,6 +50,7 @@ import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
 import { PageLayout } from '@/components/common/PageLayout';
 import { PageHeader } from '@/components/common/PageHeader';
+import { useLanguage } from '@/hooks/use-language';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DemandFilters } from '@/components/common/DemandFilters';
 import { DemandCard } from '@/components/common/DemandCard';
@@ -122,27 +123,37 @@ const statusColors = {
   completed: 'bg-emerald-100 text-emerald-800',
 };
 
-const typeLabels = {
-  maintenance: 'Maintenance',
-  complaint: 'Complaint',
-  information: 'Information',
-  other: 'Other',
+// Type labels will use translation keys
+const getTypeLabel = (type: string, t: (key: string) => string) => {
+  const labels = {
+    maintenance: t('maintenance'),
+    complaint: t('complaint'),
+    information: t('information'),
+    other: t('other'),
+  };
+  return labels[type as keyof typeof labels] || type;
 };
 
-const statusLabels = {
-  draft: 'Draft',
-  submitted: 'Submitted',
-  under_review: 'Under Review',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  in_progress: 'In Progress',
-  completed: 'Completed',
+// Status labels will use translation keys
+const getStatusLabel = (status: string, t: (key: string) => string) => {
+  const labels = {
+    draft: t('draft'),
+    submitted: t('submitted'),
+    under_review: t('underReview'),
+    approved: t('approved'),
+    rejected: t('rejected'),
+    in_progress: t('inProgress'),
+    completed: t('completed'),
+  };
+  return labels[status as keyof typeof labels] || status;
 };
 
 /**
  *
  */
-export default function /**
+export default function ManagerDemandsPage() {
+  const { t } = useLanguage();
+/**
  * Manager demands page function.
  */ /**
  * Manager demands page function.
@@ -192,7 +203,7 @@ ManagerDemandsPage() {
        */
 
       if (!response.ok) {
-        throw new Error('Failed to review demand');
+        throw new Error(t('failedToReviewDemand'));
       }
       return response.json();
     },
@@ -206,7 +217,7 @@ ManagerDemandsPage() {
     },
     onError: (_error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: 'Failed to review demand',
         variant: 'destructive',
       });
@@ -228,7 +239,7 @@ ManagerDemandsPage() {
   const filteredDemands = (demands as Demand[]).filter((demand: Demand) => {
     const matchesSearch =
       demand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      typeLabels[demand.type].toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getTypeLabel(demand.type, t).toLowerCase().includes(searchTerm.toLowerCase()) ||
       (demand.submitter &&
         (demand.submitter.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           demand.submitter.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -302,8 +313,8 @@ ManagerDemandsPage() {
         <CardHeader className='pb-3'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
-              <Badge className={statusColors[demand.status]}>{statusLabels[demand.status]}</Badge>
+              <Badge variant='outline'>{getTypeLabel(demand.type, t)}</Badge>
+              <Badge className={statusColors[demand.status]}>{getStatusLabel(demand.status, t)}</Badge>
             </div>
             <div className='flex items-center gap-1'>
               <Button
@@ -399,7 +410,7 @@ ManagerDemandsPage() {
     return (
       <div className='container mx-auto py-6'>
         <div className='flex items-center justify-center h-64'>
-          <div className='text-center'>Loading demands...</div>
+          <div className='text-center'>{t('loadingDemands')}</div>
         </div>
       </div>
     );
@@ -428,7 +439,7 @@ ManagerDemandsPage() {
         <div className='relative flex-1 max-w-sm'>
           <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
           <Input
-            placeholder='Search demands, users...'
+            placeholder={t('searchDemandsUsers')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className='pl-10'
@@ -436,10 +447,10 @@ ManagerDemandsPage() {
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className='w-40'>
-            <SelectValue placeholder='Status' />
+            <SelectValue placeholder={t('formStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='all'>All Status</SelectItem>
+            <SelectItem value='all'>{t('allStatus')}</SelectItem>
             <SelectItem value='submitted'>Submitted</SelectItem>
             <SelectItem value='under_review'>Under Review</SelectItem>
             <SelectItem value='approved'>Approved</SelectItem>
@@ -541,9 +552,9 @@ ManagerDemandsPage() {
           {selectedDemand && (
             <div className='space-y-4'>
               <div className='flex items-center gap-2'>
-                <Badge variant='outline'>{typeLabels[selectedDemand.type]}</Badge>
+                <Badge variant='outline'>{getTypeLabel(selectedDemand.type, t)}</Badge>
                 <Badge className={statusColors[selectedDemand.status]}>
-                  {statusLabels[selectedDemand.status]}
+                  {getStatusLabel(selectedDemand.status, t)}
                 </Badge>
               </div>
               <div>
