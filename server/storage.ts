@@ -1103,5 +1103,15 @@ class ProductionFallbackStorage implements IStorage {
   async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{ success: boolean; message: string; data?: any }> { return { success: true, message: 'Fallback mode' }; }
 }
 
-// Use database storage in all environments for proper functionality
-export const storage = new OptimizedDatabaseStorage();
+// Create storage instance with proper error handling
+let storageInstance: OptimizedDatabaseStorage | MemStorage;
+
+try {
+  storageInstance = new OptimizedDatabaseStorage();
+  console.log('✅ Using database storage');
+} catch (error) {
+  console.warn('⚠️ Database storage failed, falling back to memory storage:', error);
+  storageInstance = new MemStorage();
+}
+
+export const storage = storageInstance;

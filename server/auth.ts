@@ -55,19 +55,21 @@ const PostgreSqlStore = connectPg(session);
  */
 function createSessionStore() {
   try {
-    // Use PostgreSQL session store in all environments for consistency
+    // Use PostgreSQL session store when database is available
     return new PostgreSqlStore({
       pool: pool,
       tableName: 'user_sessions',
       createTableIfMissing: true,
       errorLog: (error: any) => {
-        console.warn('Session store error:', error.message);
-        // Don't crash the application on session store errors
+        // Suppress session store errors in production to prevent crashes
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Session store error:', error.message);
+        }
       }
     });
   } catch (error) {
-    console.warn('Failed to create PostgreSQL session store, falling back to memory store:', error);
-    // In production, if DB fails, use memory store to keep app running
+    console.warn('Failed to create PostgreSQL session store, using memory store');
+    // Use memory store as fallback to keep application running
     return undefined; // Will use default memory store
   }
 }

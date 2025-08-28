@@ -1,0 +1,84 @@
+2025-08-27 21:44:41.23
+7892237d
+User
+🔍 Attempting to serve index.html from: /home/runner/workspace/dist/public/index.html
+2025-08-27 21:44:41.23
+7892237d
+User
+✅ index.html found, serving to client
+2025-08-27 21:45:15.53
+7892237d
+User
+error: password authentication failed for user 'neondb_owner'
+2025-08-27 21:45:15.53
+7892237d
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 21:45:15.53
+7892237d
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 21:45:15.53
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 21:45:15.53
+7892237d
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 21:45:15.53
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7)
+2025-08-27 21:45:15.63
+7892237d
+User
+error: password authentication failed for user 'neondb_owner'
+2025-08-27 21:45:15.63
+7892237d
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 21:45:15.63
+7892237d
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 21:45:15.63
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 21:45:15.63
+7892237d
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 21:45:15.63
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7)
+2025-08-27 21:45:18.27
+7892237d
+User
+error: password authentication failed for user 'neondb_owner'
+2025-08-27 21:45:18.27
+7892237d
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-08-27 21:45:18.27
+7892237d
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-27 21:45:18.27
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)
+2025-08-27 21:45:18.27
+7892237d
+User
+at async PGStore._rawEnsureSessionStoreTable (/home/runner/workspace/node_modules/connect-pg-simple/index.js:177:19)
+2025-08-27 21:45:18.27
+7892237d
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:315:7)
+2025-08-27 21:45:19.07
+7892237d
+User
+error: password authentication failed for user 'neondb_owner'
