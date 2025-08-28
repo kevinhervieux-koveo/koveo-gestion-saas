@@ -8,6 +8,7 @@ import { Language, translations } from '@/lib/i18n';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: (_key: keyof typeof translations.en) => string;
 }
 
@@ -56,12 +57,16 @@ export function /**
 LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('en');
 
+  const toggleLanguage = () => {
+    setLanguage(current => current === 'en' ? 'fr' : 'en');
+  };
+
   const t = (_key: keyof typeof translations.en): string => {
     return translations[language][_key] || _key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
