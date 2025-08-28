@@ -734,7 +734,32 @@ class ProductionFallbackStorage implements IStorage {
     };
     
     await this.memStorage.createUser(adminUser);
-    console.log('✅ Production fallback: Admin user initialized in memory storage');
+    
+    // Create default organization for admin user
+    const defaultOrg = {
+      id: 'koveo-org-main',
+      name: 'Koveo Gestion',
+      type: 'property_management' as const,
+      address: '123 Quebec Street',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+      phone: '+1-514-555-0100',
+      email: 'contact@koveo-gestion.com',
+      website: 'https://koveo-gestion.com',
+      description: 'Main Koveo property management organization',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    await this.memStorage.createOrganization(defaultOrg);
+    
+    // Associate admin user with the organization
+    // For memory storage, we'll just ensure the user has access to the organization
+    // This is handled by the user's role being 'admin' which gives access to all organizations
+    
+    console.log('✅ Production fallback: Admin user and default organization initialized in memory storage');
   }
 
   // User operations with fallback
