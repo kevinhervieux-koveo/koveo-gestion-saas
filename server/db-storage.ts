@@ -60,7 +60,7 @@ export class DatabaseStorage implements IStorage {
     
     try {
       // Check if this is a demo user first
-      const demoOrgId = '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o';
+      const demoOrgId = '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'; // Real Demo organization ID from database
       const demoUserIds = [
         'd6f5c19e-8d7f-42ad-8b84-bd011a96c456', // Sophie Martin
         '95cbf06e-56d2-440e-8a0e-5d719dc39f05', // Jean Tremblay
@@ -232,7 +232,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_resident',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -249,7 +249,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_tenant',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -266,7 +266,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_manager',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -283,7 +283,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_tenant',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -300,7 +300,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_manager',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -317,7 +317,7 @@ export class DatabaseStorage implements IStorage {
             role: 'demo_resident',
             isActive: true,
             lastLoginAt: null,
-            organizationId: '1e2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },

@@ -22,18 +22,22 @@ import { delayedUpdateService } from '../services/delayed-update-service.js';
  * @returns Function result.
  */
 export function registerResidenceRoutes(app: Express) {
+
   // Get user's residences
   app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
+      console.log(`🏠 [USER RESIDENCES] Fetching residences for user ${user.id} (${user.email})`);
 
-      const userResidencesList = await db
-        .select({
-          residenceId: userResidences.residenceId,
-        })
-        .from(userResidences)
-        .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+      // Use raw SQL to avoid Drizzle UUID type issues
+      const result = await db.execute(sql`
+        SELECT residence_id as "residenceId"
+        FROM user_residences 
+        WHERE user_id = ${user.id} AND is_active = true
+      `);
 
+      const userResidencesList = result.rows;
+      console.log(`🏠 [USER RESIDENCES] Found ${userResidencesList.length} residences:`, userResidencesList);
       res.json(userResidencesList);
     } catch (_error) {
       console.error('Error fetching user residences:', _error);
