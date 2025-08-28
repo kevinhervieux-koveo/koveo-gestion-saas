@@ -461,7 +461,7 @@ ManagerDemandsPage() {
         </Select>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className='w-40'>
-            <SelectValue placeholder='Type' />
+            <SelectValue placeholder={t('typePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='all'>All Types</SelectItem>
@@ -473,7 +473,7 @@ ManagerDemandsPage() {
         </Select>
         <Select value={buildingFilter} onValueChange={setBuildingFilter}>
           <SelectTrigger className='w-40'>
-            <SelectValue placeholder='Building' />
+            <SelectValue placeholder={t('buildingPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='all'>All Buildings</SelectItem>

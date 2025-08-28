@@ -272,6 +272,54 @@ export interface Translations {
   information: string;
   other: string;
   allStatus: string;
+  // Dialog and form translations
+  createNewBill: string;
+  billCreationForm: string;
+  cancel: string;
+  createBill: string;
+  createNewDemand: string;
+  submitNewRequest: string;
+  myDemands: string;
+  submitAndTrackRequests: string;
+  newDemand: string;
+  selectType: string;
+  selectBuilding: string;
+  addNewDocument: string;
+  addDocument: string;
+  documentName: string;
+  enterDocumentName: string;
+  documentType: string;
+  selectDocumentType: string;
+  enterDocumentDescription: string;
+  backToResidences: string;
+  documents: string;
+  documentsAvailableToTenants: string;
+  allResidenceDocuments: string;
+  loadingDemands2: string;
+  noDemandsFound: string;
+  success: string;
+  updateStatusAndNotes: string;
+  // Additional form labels and placeholders
+  describeRequestDetail: string;
+  submittedBy: string;
+  selectStatus: string;
+  addNotesReview: string;
+  selectBuilding2: string;
+  // Status options for manager
+  submitted2: string;
+  // Document management translations
+  documentTitle: string;
+  documentDescription: string;
+  selectCategory: string;
+  selectOrganizationOptional: string;
+  selectBuildingOptional: string;
+  selectResidenceOptional: string;
+  searchDocuments: string;
+  filterByCategory: string;
+  noDocumentsFound: string;
+  // Type placeholders
+  typePlaceholder: string;
+  buildingPlaceholder: string;
   // Navigation translations
   quickActions: string;
   calendar: string;
@@ -640,6 +688,54 @@ const translations: Record<Language, Translations> = {
     information: 'Information',
     other: 'Other',
     allStatus: 'All Status',
+    // Dialog and form translations
+    createNewBill: 'Create New Bill',
+    billCreationForm: 'Bill creation form for {building}',
+    cancel: 'Cancel',
+    createBill: 'Create Bill',
+    createNewDemand: 'Create New Demand',
+    submitNewRequest: 'Submit a new request or complaint',
+    myDemands: 'My Demands',
+    submitAndTrackRequests: 'Submit and track your requests',
+    newDemand: 'New Demand',
+    selectType: 'Select type',
+    selectBuilding: 'Select building',
+    addNewDocument: 'Add New Document',
+    addDocument: 'Add Document',
+    documentName: 'Document Name',
+    enterDocumentName: 'Enter document name',
+    documentType: 'Document Type',
+    selectDocumentType: 'Select document type',
+    enterDocumentDescription: 'Enter document description',
+    backToResidences: 'Back to Residences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents available to tenants',
+    allResidenceDocuments: 'All residence documents',
+    loadingDemands2: 'Loading demands...',
+    noDemandsFound: 'No demands found',
+    success: 'Success',
+    updateStatusAndNotes: 'Update the status and add review notes',
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Describe your request in detail...',
+    submittedBy: 'Submitted by',
+    selectStatus: 'Select status',
+    addNotesReview: 'Add notes about your review decision...',
+    selectBuilding2: 'Select building',
+    // Status options for manager
+    submitted2: 'Submitted',
+    // Document management translations
+    documentTitle: 'Document title',
+    documentDescription: 'Document description',
+    selectCategory: 'Select a category',
+    selectOrganizationOptional: 'Select organization (optional)',
+    selectBuildingOptional: 'Select building (optional)',
+    selectResidenceOptional: 'Select residence (optional)',
+    searchDocuments: 'Search documents...',
+    filterByCategory: 'Filter by category',
+    noDocumentsFound: 'No documents found',
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Building',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1020,6 +1116,54 @@ const translations: Record<Language, Translations> = {
     information: 'Information',
     other: 'Autre',
     allStatus: 'Tous les statuts',
+    // Dialog and form translations
+    createNewBill: 'Créer une nouvelle facture',
+    billCreationForm: 'Formulaire de création de facture pour {building}',
+    cancel: 'Annuler',
+    createBill: 'Créer la facture',
+    createNewDemand: 'Créer une nouvelle demande',
+    submitNewRequest: 'Soumettre une nouvelle demande ou plainte',
+    myDemands: 'Mes demandes',
+    submitAndTrackRequests: 'Soumettre et suivre vos demandes',
+    newDemand: 'Nouvelle demande',
+    selectType: 'Sélectionner le type',
+    selectBuilding: 'Sélectionner le bâtiment',
+    addNewDocument: 'Ajouter un nouveau document',
+    addDocument: 'Ajouter un document',
+    documentName: 'Nom du document',
+    enterDocumentName: 'Saisir le nom du document',
+    documentType: 'Type de document',
+    selectDocumentType: 'Sélectionner le type de document',
+    enterDocumentDescription: 'Saisir la description du document',
+    backToResidences: 'Retour aux résidences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents disponibles aux locataires',
+    allResidenceDocuments: 'Tous les documents de résidence',
+    loadingDemands2: 'Chargement des demandes...',
+    noDemandsFound: 'Aucune demande trouvée',
+    success: 'Succès',
+    updateStatusAndNotes: 'Mettre à jour le statut et ajouter des notes d\'examen',
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Décrivez votre demande en détail...',
+    submittedBy: 'Soumis par',
+    selectStatus: 'Sélectionner le statut',
+    addNotesReview: 'Ajouter des notes sur votre décision d\'examen...',
+    selectBuilding2: 'Sélectionner le bâtiment',
+    // Status options for manager
+    submitted2: 'Soumis',
+    // Document management translations
+    documentTitle: 'Titre du document',
+    documentDescription: 'Description du document',
+    selectCategory: 'Sélectionner une catégorie',
+    selectOrganizationOptional: 'Sélectionner une organisation (optionnel)',
+    selectBuildingOptional: 'Sélectionner un bâtiment (optionnel)',
+    selectResidenceOptional: 'Sélectionner une résidence (optionnel)',
+    searchDocuments: 'Rechercher des documents...',
+    filterByCategory: 'Filtrer par catégorie',
+    noDocumentsFound: 'Aucun document trouvé',
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Bâtiment',
     // Navigation translations
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
