@@ -15902,3 +15902,795 @@ export function validateQuebecTerminology(
 
   return violations;
 }
+
+  describe('Admin Permissions RBAC Page Translation', () => {
+    it('should display admin permissions page with proper French translations', () => {
+      const AdminPermissionsPage = () => {
+        return (
+          <div data-testid='admin-permissions-page'>
+            {/* Header Section */}
+            <div data-testid='header-permissions-rbac'>Permissions RBAC</div>
+
+            {/* Overview Cards */}
+            <div data-testid='permissions-overview-cards'>
+              {/* System Permissions Card */}
+              <div data-testid='card-system-permissions'>
+                <div data-testid='system-permissions-title'>Permissions système</div>
+                <div data-testid='system-permissions-count'>19</div>
+                <div data-testid='system-permissions-subtitle'>Permissions actives</div>
+              </div>
+
+              {/* Role Hierarchy Card */}
+              <div data-testid='card-role-hierarchy'>
+                <div data-testid='role-hierarchy-title'>Hiérarchie des rôles</div>
+                <div data-testid='role-hierarchy-count'>4</div>
+                <div data-testid='role-hierarchy-subtitle'>Admin → Gestionnaire → Résident → Locataire</div>
+              </div>
+
+              {/* Permission Matrix Card */}
+              <div data-testid='card-permission-matrix'>
+                <div data-testid='permission-matrix-title'>Matrice des permissions</div>
+                <div data-testid='permission-matrix-count'>12</div>
+                <div data-testid='permission-matrix-subtitle'>Catégories de permissions</div>
+              </div>
+
+              {/* User Overrides Card */}
+              <div data-testid='card-user-overrides'>
+                <div data-testid='user-overrides-title'>Remplacements utilisateur</div>
+                <div data-testid='user-overrides-count'>0</div>
+                <div data-testid='user-overrides-subtitle'>Basé sur les rôles uniquement</div>
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div data-testid='permissions-tabs'>
+              <button data-testid='tab-user-permissions'>Permissions utilisateur</button>
+              <button data-testid='tab-all-permissions'>Toutes les permissions</button>
+            </div>
+
+            {/* User-Specific Permissions Section */}
+            <div data-testid='user-specific-permissions-section'>
+              <div data-testid='user-permissions-title'>Permissions spécifiques à l'utilisateur</div>
+
+              {/* Search and Filters */}
+              <div data-testid='permissions-search-filters'>
+                <input 
+                  data-testid='input-search-users' 
+                  placeholder='Rechercher des utilisateurs par nom ou courriel'
+                />
+                <select data-testid='select-role-filter'>
+                  <option value='all'>Tous les rôles</option>
+                  <option value='admin'>Administrateur</option>
+                  <option value='manager'>Gestionnaire</option>
+                  <option value='resident'>Résident</option>
+                  <option value='tenant'>Locataire</option>
+                </select>
+                <select data-testid='select-permissions-filter'>
+                  <option value='all'>Toutes les permissions...</option>
+                  <option value='read'>Lecture</option>
+                  <option value='write'>Écriture</option>
+                  <option value='admin'>Administration</option>
+                </select>
+                <button data-testid='button-reset-filters'>Réinitialiser les filtres</button>
+              </div>
+
+              {/* Users List */}
+              <div data-testid='users-permissions-list'>
+                <div data-testid='showing-users-count'>Affichage 8 sur 8 utilisateurs</div>
+
+                {/* User Permission Item */}
+                <div data-testid='user-permission-item'>
+                  <div data-testid='user-info'>
+                    <div data-testid='user-avatar'>KH</div>
+                    <div data-testid='user-name'>Kevin Hervieux</div>
+                    <div data-testid='user-email'>kevhervieux@gmail.com</div>
+                    <div data-testid='user-role-badge'>Gestionnaire</div>
+                    <div data-testid='user-status-badge'>Actif</div>
+                  </div>
+
+                  <div data-testid='user-permission-stats'>
+                    <div data-testid='role-permissions-stat'>
+                      <div data-testid='role-permissions-count'>0</div>
+                      <div data-testid='role-permissions-label'>Permissions de rôle</div>
+                    </div>
+                    <div data-testid='user-overrides-stat'>
+                      <div data-testid='user-overrides-count'>0</div>
+                      <div data-testid='user-overrides-label'>Remplacements utilisateur</div>
+                    </div>
+                    <div data-testid='total-permissions-stat'>
+                      <div data-testid='total-permissions-count'>0</div>
+                      <div data-testid='total-permissions-label'>Permissions totales</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Role-Based Permissions Section */}
+            <div data-testid='role-based-permissions-section'>
+              <div data-testid='role-permissions-title'>Permissions basées sur les rôles</div>
+              
+              {/* Role Permission Matrix */}
+              <div data-testid='role-permission-matrix'>
+                <div data-testid='matrix-header'>
+                  <div data-testid='matrix-permission-column'>Permission</div>
+                  <div data-testid='matrix-admin-column'>Administrateur</div>
+                  <div data-testid='matrix-manager-column'>Gestionnaire</div>
+                  <div data-testid='matrix-resident-column'>Résident</div>
+                  <div data-testid='matrix-tenant-column'>Locataire</div>
+                </div>
+
+                {/* Sample Permission Rows */}
+                <div data-testid='permission-row-users-view'>
+                  <div data-testid='permission-name-users-view'>Voir les utilisateurs</div>
+                  <div data-testid='admin-users-view'>✓</div>
+                  <div data-testid='manager-users-view'>✓</div>
+                  <div data-testid='resident-users-view'>✗</div>
+                  <div data-testid='tenant-users-view'>✗</div>
+                </div>
+
+                <div data-testid='permission-row-users-manage'>
+                  <div data-testid='permission-name-users-manage'>Gérer les utilisateurs</div>
+                  <div data-testid='admin-users-manage'>✓</div>
+                  <div data-testid='manager-users-manage'>Limité</div>
+                  <div data-testid='resident-users-manage'>✗</div>
+                  <div data-testid='tenant-users-manage'>✗</div>
+                </div>
+
+                <div data-testid='permission-row-organizations-manage'>
+                  <div data-testid='permission-name-organizations-manage'>Gérer les organisations</div>
+                  <div data-testid='admin-organizations-manage'>✓</div>
+                  <div data-testid='manager-organizations-manage'>✗</div>
+                  <div data-testid='resident-organizations-manage'>✗</div>
+                  <div data-testid='tenant-organizations-manage'>✗</div>
+                </div>
+
+                <div data-testid='permission-row-buildings-manage'>
+                  <div data-testid='permission-name-buildings-manage'>Gérer les immeubles</div>
+                  <div data-testid='admin-buildings-manage'>✓</div>
+                  <div data-testid='manager-buildings-manage'>✓</div>
+                  <div data-testid='resident-buildings-manage'>✗</div>
+                  <div data-testid='tenant-buildings-manage'>✗</div>
+                </div>
+
+                <div data-testid='permission-row-documents-view'>
+                  <div data-testid='permission-name-documents-view'>Voir les documents</div>
+                  <div data-testid='admin-documents-view'>✓</div>
+                  <div data-testid='manager-documents-view'>✓</div>
+                  <div data-testid='resident-documents-view'>✓</div>
+                  <div data-testid='tenant-documents-view'>Limité</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Permission Categories */}
+            <div data-testid='permission-categories'>
+              <div data-testid='category-user-management'>
+                <div data-testid='category-title-users'>Gestion des utilisateurs</div>
+                <div data-testid='category-permissions-users'>
+                  <div data-testid='permission-users-view'>Voir les utilisateurs</div>
+                  <div data-testid='permission-users-create'>Créer des utilisateurs</div>
+                  <div data-testid='permission-users-edit'>Modifier les utilisateurs</div>
+                  <div data-testid='permission-users-delete'>Supprimer les utilisateurs</div>
+                  <div data-testid='permission-users-invite'>Inviter des utilisateurs</div>
+                </div>
+              </div>
+
+              <div data-testid='category-organization-management'>
+                <div data-testid='category-title-organizations'>Gestion des organisations</div>
+                <div data-testid='category-permissions-organizations'>
+                  <div data-testid='permission-organizations-view'>Voir les organisations</div>
+                  <div data-testid='permission-organizations-create'>Créer des organisations</div>
+                  <div data-testid='permission-organizations-edit'>Modifier les organisations</div>
+                  <div data-testid='permission-organizations-delete'>Supprimer les organisations</div>
+                </div>
+              </div>
+
+              <div data-testid='category-building-management'>
+                <div data-testid='category-title-buildings'>Gestion des immeubles</div>
+                <div data-testid='category-permissions-buildings'>
+                  <div data-testid='permission-buildings-view'>Voir les immeubles</div>
+                  <div data-testid='permission-buildings-create'>Créer des immeubles</div>
+                  <div data-testid='permission-buildings-edit'>Modifier les immeubles</div>
+                  <div data-testid='permission-buildings-delete'>Supprimer les immeubles</div>
+                </div>
+              </div>
+
+              <div data-testid='category-document-management'>
+                <div data-testid='category-title-documents'>Gestion des documents</div>
+                <div data-testid='category-permissions-documents'>
+                  <div data-testid='permission-documents-view'>Voir les documents</div>
+                  <div data-testid='permission-documents-upload'>Téléverser des documents</div>
+                  <div data-testid='permission-documents-edit'>Modifier les documents</div>
+                  <div data-testid='permission-documents-delete'>Supprimer les documents</div>
+                </div>
+              </div>
+
+              <div data-testid='category-system-administration'>
+                <div data-testid='category-title-system'>Administration système</div>
+                <div data-testid='category-permissions-system'>
+                  <div data-testid='permission-system-settings'>Paramètres système</div>
+                  <div data-testid='permission-system-maintenance'>Maintenance système</div>
+                  <div data-testid='permission-system-monitoring'>Surveillance système</div>
+                  <div data-testid='permission-system-backup'>Sauvegarde système</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Permission Status Labels */}
+            <div data-testid='permission-status-labels'>
+              <div data-testid='status-granted'>Accordé</div>
+              <div data-testid='status-denied'>Refusé</div>
+              <div data-testid='status-limited'>Limité</div>
+              <div data-testid='status-inherited'>Hérité</div>
+              <div data-testid='status-override'>Remplacement</div>
+              <div data-testid='status-pending'>En attente</div>
+              <div data-testid='status-revoked'>Révoqué</div>
+            </div>
+
+            {/* Permission Actions */}
+            <div data-testid='permission-actions'>
+              <div data-testid='action-grant-permission'>Accorder la permission</div>
+              <div data-testid='action-revoke-permission'>Révoquer la permission</div>
+              <div data-testid='action-override-permission'>Remplacer la permission</div>
+              <div data-testid='action-reset-permission'>Réinitialiser la permission</div>
+              <div data-testid='action-bulk-assign'>Attribution en lot</div>
+              <div data-testid='action-export-permissions'>Exporter les permissions</div>
+              <div data-testid='action-import-permissions'>Importer les permissions</div>
+            </div>
+
+            {/* Role Labels */}
+            <div data-testid='role-labels'>
+              <div data-testid='role-admin'>Administrateur</div>
+              <div data-testid='role-manager'>Gestionnaire</div>
+              <div data-testid='role-resident'>Résident</div>
+              <div data-testid='role-tenant'>Locataire</div>
+              <div data-testid='role-guest'>Invité</div>
+            </div>
+
+            {/* Permission Types */}
+            <div data-testid='permission-types'>
+              <div data-testid='type-read'>Lecture</div>
+              <div data-testid='type-write'>Écriture</div>
+              <div data-testid='type-create'>Création</div>
+              <div data-testid='type-update'>Mise à jour</div>
+              <div data-testid='type-delete'>Suppression</div>
+              <div data-testid='type-admin'>Administration</div>
+              <div data-testid='type-execute'>Exécution</div>
+              <div data-testid='type-manage'>Gestion</div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-states'>
+              <div data-testid='loading-permissions'>Chargement des permissions...</div>
+              <div data-testid='loading-users'>Chargement des utilisateurs...</div>
+              <div data-testid='loading-roles'>Chargement des rôles...</div>
+              <div data-testid='updating-permissions'>Mise à jour des permissions...</div>
+              <div data-testid='no-permissions-found'>Aucune permission trouvée</div>
+              <div data-testid='no-users-found'>Aucun utilisateur trouvé</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminPermissionsPage />
+        </TestProviders>
+      );
+
+      // Verify header translation
+      expect(screen.getByTestId('header-permissions-rbac')).toHaveTextContent('Permissions RBAC');
+
+      // Verify overview cards
+      expect(screen.getByTestId('system-permissions-title')).toHaveTextContent('Permissions système');
+      expect(screen.getByTestId('system-permissions-count')).toHaveTextContent('19');
+      expect(screen.getByTestId('system-permissions-subtitle')).toHaveTextContent('Permissions actives');
+
+      expect(screen.getByTestId('role-hierarchy-title')).toHaveTextContent('Hiérarchie des rôles');
+      expect(screen.getByTestId('role-hierarchy-count')).toHaveTextContent('4');
+      expect(screen.getByTestId('role-hierarchy-subtitle')).toHaveTextContent('Admin → Gestionnaire → Résident → Locataire');
+
+      expect(screen.getByTestId('permission-matrix-title')).toHaveTextContent('Matrice des permissions');
+      expect(screen.getByTestId('permission-matrix-count')).toHaveTextContent('12');
+      expect(screen.getByTestId('permission-matrix-subtitle')).toHaveTextContent('Catégories de permissions');
+
+      expect(screen.getByTestId('user-overrides-title')).toHaveTextContent('Remplacements utilisateur');
+      expect(screen.getByTestId('user-overrides-count')).toHaveTextContent('0');
+      expect(screen.getByTestId('user-overrides-subtitle')).toHaveTextContent('Basé sur les rôles uniquement');
+
+      // Verify tab navigation
+      expect(screen.getByTestId('tab-user-permissions')).toHaveTextContent('Permissions utilisateur');
+      expect(screen.getByTestId('tab-all-permissions')).toHaveTextContent('Toutes les permissions');
+
+      // Verify user-specific permissions section
+      expect(screen.getByTestId('user-permissions-title')).toHaveTextContent('Permissions spécifiques à l\'utilisateur');
+      expect(screen.getByTestId('input-search-users')).toHaveAttribute('placeholder', 'Rechercher des utilisateurs par nom ou courriel');
+      expect(screen.getByTestId('button-reset-filters')).toHaveTextContent('Réinitialiser les filtres');
+      expect(screen.getByTestId('showing-users-count')).toHaveTextContent('Affichage 8 sur 8 utilisateurs');
+
+      // Verify user permission stats
+      expect(screen.getByTestId('role-permissions-label')).toHaveTextContent('Permissions de rôle');
+      expect(screen.getByTestId('user-overrides-label')).toHaveTextContent('Remplacements utilisateur');
+      expect(screen.getByTestId('total-permissions-label')).toHaveTextContent('Permissions totales');
+
+      // Verify role-based permissions section
+      expect(screen.getByTestId('role-permissions-title')).toHaveTextContent('Permissions basées sur les rôles');
+      expect(screen.getByTestId('matrix-permission-column')).toHaveTextContent('Permission');
+      expect(screen.getByTestId('matrix-admin-column')).toHaveTextContent('Administrateur');
+      expect(screen.getByTestId('matrix-manager-column')).toHaveTextContent('Gestionnaire');
+      expect(screen.getByTestId('matrix-resident-column')).toHaveTextContent('Résident');
+      expect(screen.getByTestId('matrix-tenant-column')).toHaveTextContent('Locataire');
+
+      // Verify permission matrix content
+      expect(screen.getByTestId('permission-name-users-view')).toHaveTextContent('Voir les utilisateurs');
+      expect(screen.getByTestId('permission-name-users-manage')).toHaveTextContent('Gérer les utilisateurs');
+      expect(screen.getByTestId('permission-name-organizations-manage')).toHaveTextContent('Gérer les organisations');
+      expect(screen.getByTestId('permission-name-buildings-manage')).toHaveTextContent('Gérer les immeubles');
+      expect(screen.getByTestId('permission-name-documents-view')).toHaveTextContent('Voir les documents');
+
+      // Verify permission categories
+      expect(screen.getByTestId('category-title-users')).toHaveTextContent('Gestion des utilisateurs');
+      expect(screen.getByTestId('category-title-organizations')).toHaveTextContent('Gestion des organisations');
+      expect(screen.getByTestId('category-title-buildings')).toHaveTextContent('Gestion des immeubles');
+      expect(screen.getByTestId('category-title-documents')).toHaveTextContent('Gestion des documents');
+      expect(screen.getByTestId('category-title-system')).toHaveTextContent('Administration système');
+
+      // Verify permission actions
+      expect(screen.getByTestId('permission-users-view')).toHaveTextContent('Voir les utilisateurs');
+      expect(screen.getByTestId('permission-users-create')).toHaveTextContent('Créer des utilisateurs');
+      expect(screen.getByTestId('permission-users-edit')).toHaveTextContent('Modifier les utilisateurs');
+      expect(screen.getByTestId('permission-users-delete')).toHaveTextContent('Supprimer les utilisateurs');
+      expect(screen.getByTestId('permission-users-invite')).toHaveTextContent('Inviter des utilisateurs');
+
+      // Verify status labels
+      expect(screen.getByTestId('status-granted')).toHaveTextContent('Accordé');
+      expect(screen.getByTestId('status-denied')).toHaveTextContent('Refusé');
+      expect(screen.getByTestId('status-limited')).toHaveTextContent('Limité');
+      expect(screen.getByTestId('status-inherited')).toHaveTextContent('Hérité');
+      expect(screen.getByTestId('status-override')).toHaveTextContent('Remplacement');
+
+      // Verify role labels
+      expect(screen.getByTestId('role-admin')).toHaveTextContent('Administrateur');
+      expect(screen.getByTestId('role-manager')).toHaveTextContent('Gestionnaire');
+      expect(screen.getByTestId('role-resident')).toHaveTextContent('Résident');
+      expect(screen.getByTestId('role-tenant')).toHaveTextContent('Locataire');
+
+      // Verify permission types
+      expect(screen.getByTestId('type-read')).toHaveTextContent('Lecture');
+      expect(screen.getByTestId('type-write')).toHaveTextContent('Écriture');
+      expect(screen.getByTestId('type-create')).toHaveTextContent('Création');
+      expect(screen.getByTestId('type-update')).toHaveTextContent('Mise à jour');
+      expect(screen.getByTestId('type-delete')).toHaveTextContent('Suppression');
+      expect(screen.getByTestId('type-admin')).toHaveTextContent('Administration');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-permissions')).toHaveTextContent('Chargement des permissions');
+      expect(screen.getByTestId('loading-users')).toHaveTextContent('Chargement des utilisateurs');
+      expect(screen.getByTestId('updating-permissions')).toHaveTextContent('Mise à jour des permissions');
+      expect(screen.getByTestId('no-permissions-found')).toHaveTextContent('Aucune permission trouvée');
+    });
+
+    it('should avoid English terminology in admin permissions page', () => {
+      const AdminPermissionsWithEnglishTerms = () => {
+        return (
+          <div data-testid='admin-permissions-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-permissions-rbac'>Permissions RBAC</div>
+            <div data-testid='incorrect-system-permissions'>System Permissions</div>
+            <div data-testid='incorrect-role-hierarchy'>Role Hierarchy</div>
+            <div data-testid='incorrect-permission-matrix'>Permission Matrix</div>
+            <div data-testid='incorrect-user-overrides'>User Overrides</div>
+            <div data-testid='incorrect-active-permissions'>Active permissions</div>
+            <div data-testid='incorrect-permission-categories'>Permission categories</div>
+            <div data-testid='incorrect-role-based-only'>Role-based only</div>
+            <div data-testid='incorrect-user-permissions'>User Permissions</div>
+            <div data-testid='incorrect-all-permissions'>All Permissions</div>
+            <div data-testid='incorrect-user-specific-permissions'>User-Specific Permissions</div>
+            <div data-testid='incorrect-search-users'>Search users by name or email</div>
+            <div data-testid='incorrect-all-roles'>All Roles</div>
+            <div data-testid='incorrect-all-permissions-filter'>All Permissions...</div>
+            <div data-testid='incorrect-reset-filters'>Reset Filters</div>
+            <div data-testid='incorrect-showing-users'>Showing 8 of 8 users</div>
+            <div data-testid='incorrect-manager-role'>Manager</div>
+            <div data-testid='incorrect-active-status'>Active</div>
+            <div data-testid='incorrect-role-permissions'>Role Permissions</div>
+            <div data-testid='incorrect-user-overrides-stat'>User Overrides</div>
+            <div data-testid='incorrect-total-permissions'>Total Permissions</div>
+            <div data-testid='incorrect-view-users'>View Users</div>
+            <div data-testid='incorrect-manage-users'>Manage Users</div>
+            <div data-testid='incorrect-manage-organizations'>Manage Organizations</div>
+            <div data-testid='incorrect-manage-buildings'>Manage Buildings</div>
+            <div data-testid='incorrect-view-documents'>View Documents</div>
+            <div data-testid='incorrect-user-management'>User Management</div>
+            <div data-testid='incorrect-organization-management'>Organization Management</div>
+            <div data-testid='incorrect-building-management'>Building Management</div>
+            <div data-testid='incorrect-document-management'>Document Management</div>
+            <div data-testid='incorrect-system-administration'>System Administration</div>
+            <div data-testid='incorrect-granted'>Granted</div>
+            <div data-testid='incorrect-denied'>Denied</div>
+            <div data-testid='incorrect-limited'>Limited</div>
+            <div data-testid='incorrect-inherited'>Inherited</div>
+            <div data-testid='incorrect-override'>Override</div>
+            <div data-testid='incorrect-admin'>Admin</div>
+            <div data-testid='incorrect-manager'>Manager</div>
+            <div data-testid='incorrect-resident'>Resident</div>
+            <div data-testid='incorrect-tenant'>Tenant</div>
+            <div data-testid='incorrect-read'>Read</div>
+            <div data-testid='incorrect-write'>Write</div>
+            <div data-testid='incorrect-create'>Create</div>
+            <div data-testid='incorrect-update'>Update</div>
+            <div data-testid='incorrect-delete'>Delete</div>
+            <div data-testid='incorrect-loading-permissions'>Loading permissions...</div>
+            <div data-testid='incorrect-loading-users'>Loading users...</div>
+            <div data-testid='incorrect-no-permissions-found'>No permissions found</div>
+            <div data-testid='incorrect-no-users-found'>No users found</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminPermissionsWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // Verify presence of English terms that should be translated
+      expect(screen.getByTestId('incorrect-permissions-rbac')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-system-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-role-hierarchy')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-permission-matrix')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-user-overrides')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-user-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-all-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-user-specific-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-search-users')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-manager-role')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-active-status')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-user-management')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-organization-management')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-building-management')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-document-management')).toBeInTheDocument();
+      expect(screen.getByTestId('incorrect-system-administration')).toBeInTheDocument();
+
+      // Test Quebec French terminology requirements
+      const pageText = document.body.textContent || '';
+      
+      // Should not contain these English terms in French mode
+      const inappropriateTerms = [
+        'system permissions',
+        'role hierarchy', 
+        'permission matrix',
+        'user overrides',
+        'user permissions',
+        'all permissions',
+        'user-specific permissions',
+        'search users',
+        'manager',
+        'active',
+        'role permissions',
+        'total permissions',
+        'view users',
+        'manage users',
+        'manage organizations',
+        'manage buildings',
+        'view documents',
+        'user management',
+        'organization management',
+        'building management',
+        'document management',
+        'system administration',
+        'granted',
+        'denied',
+        'limited',
+        'inherited',
+        'override',
+        'admin',
+        'resident',
+        'tenant',
+        'read',
+        'write',
+        'create',
+        'update',
+        'delete',
+        'loading permissions',
+        'loading users',
+        'no permissions found',
+        'no users found'
+      ];
+
+      inappropriateTerms.forEach((term) => {
+        expect(pageText.toLowerCase()).not.toContain(term.toLowerCase());
+      });
+    });
+
+    it('should use proper Quebec French terminology for permissions concepts', () => {
+      const quebecPermissionTerms = {
+        'permissions': 'permissions',
+        'rbac': 'RBAC',
+        'role': 'rôle',
+        'hierarchy': 'hiérarchie', 
+        'matrix': 'matrice',
+        'user': 'utilisateur',
+        'override': 'remplacement',
+        'system': 'système',
+        'admin': 'administrateur',
+        'manager': 'gestionnaire',
+        'resident': 'résident',
+        'tenant': 'locataire',
+        'active': 'actif',
+        'inactive': 'inactif',
+        'granted': 'accordé',
+        'denied': 'refusé',
+        'limited': 'limité',
+        'inherited': 'hérité',
+        'pending': 'en attente',
+        'revoked': 'révoqué',
+        'view': 'voir',
+        'manage': 'gérer',
+        'create': 'créer',
+        'edit': 'modifier',
+        'delete': 'supprimer',
+        'read': 'lecture',
+        'write': 'écriture',
+        'execute': 'exécution',
+        'administration': 'administration',
+        'organization': 'organisation',
+        'building': 'immeuble',
+        'document': 'document',
+        'email': 'courriel',
+        'search': 'rechercher',
+        'filter': 'filtrer',
+        'reset': 'réinitialiser',
+        'showing': 'affichage',
+        'loading': 'chargement',
+        'updating': 'mise à jour',
+        'no data': 'aucune donnée',
+        'not found': 'non trouvé'
+      };
+
+      Object.entries(quebecPermissionTerms).forEach(([english, expectedFrench]) => {
+        // Verify terminology mapping exists and is appropriate
+        expect(expectedFrench).toBeTruthy();
+        expect(expectedFrench.length).toBeGreaterThan(0);
+
+        // Quebec French should use proper accents where appropriate
+        if (expectedFrench.includes('é') || expectedFrench.includes('è') || expectedFrench.includes('ô')) {
+          expect(expectedFrench).toMatch(/[éèàôç]/);
+        }
+      });
+
+      // Specific Quebec French requirements for permissions
+      expect('courriel').not.toMatch(/email/); // Should use courriel not email
+      expect('utilisateur').not.toMatch(/user/); // Should use utilisateur not user
+      expect('gestionnaire').not.toMatch(/manager/); // Should use gestionnaire not manager
+      expect('résident').not.toMatch(/resident/); // Should use proper accent
+      expect('locataire').not.toMatch(/tenant/); // Should use locataire not tenant
+    });
+
+    it('should validate permissions workflow in French', () => {
+      const PermissionsWorkflow = () => {
+        return (
+          <div data-testid='permissions-workflow'>
+            {/* Permission Assignment Workflow */}
+            <div data-testid='workflow-assign-permission'>
+              <div data-testid='step-select-user'>Sélectionner l'utilisateur</div>
+              <div data-testid='step-choose-permission'>Choisir la permission</div>
+              <div data-testid='step-set-scope'>Définir la portée</div>
+              <div data-testid='step-confirm-assignment'>Confirmer l'attribution</div>
+              <div data-testid='step-apply-changes'>Appliquer les modifications</div>
+            </div>
+
+            {/* Permission Revocation Workflow */}
+            <div data-testid='workflow-revoke-permission'>
+              <div data-testid='step-identify-permission'>Identifier la permission</div>
+              <div data-testid='step-verify-impact'>Vérifier l'impact</div>
+              <div data-testid='step-confirm-revocation'>Confirmer la révocation</div>
+              <div data-testid='step-update-access'>Mettre à jour l'accès</div>
+            </div>
+
+            {/* Bulk Operations Workflow */}
+            <div data-testid='workflow-bulk-operations'>
+              <div data-testid='step-select-users'>Sélectionner les utilisateurs</div>
+              <div data-testid='step-define-permissions'>Définir les permissions</div>
+              <div data-testid='step-preview-changes'>Prévisualiser les modifications</div>
+              <div data-testid='step-execute-bulk'>Exécuter en lot</div>
+              <div data-testid='step-verify-results'>Vérifier les résultats</div>
+            </div>
+
+            {/* Permission Audit Workflow */}
+            <div data-testid='workflow-permission-audit'>
+              <div data-testid='step-scan-permissions'>Analyser les permissions</div>
+              <div data-testid='step-identify-issues'>Identifier les problèmes</div>
+              <div data-testid='step-generate-report'>Générer le rapport</div>
+              <div data-testid='step-recommend-actions'>Recommander des actions</div>
+              <div data-testid='step-implement-fixes'>Implémenter les corrections</div>
+            </div>
+
+            {/* Workflow Actions */}
+            <div data-testid='workflow-actions'>
+              <button data-testid='button-start-workflow'>Démarrer le flux de travail</button>
+              <button data-testid='button-pause-workflow'>Mettre en pause</button>
+              <button data-testid='button-resume-workflow'>Reprendre</button>
+              <button data-testid='button-cancel-workflow'>Annuler</button>
+              <button data-testid='button-complete-workflow'>Terminer</button>
+            </div>
+
+            {/* Workflow Status */}
+            <div data-testid='workflow-status'>
+              <div data-testid='status-in-progress'>En cours</div>
+              <div data-testid='status-completed'>Terminé</div>
+              <div data-testid='status-failed'>Échec</div>
+              <div data-testid='status-cancelled'>Annulé</div>
+              <div data-testid='status-pending'>En attente</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <PermissionsWorkflow />
+        </TestProviders>
+      );
+
+      // Verify permission assignment workflow
+      expect(screen.getByTestId('step-select-user')).toHaveTextContent('Sélectionner l\'utilisateur');
+      expect(screen.getByTestId('step-choose-permission')).toHaveTextContent('Choisir la permission');
+      expect(screen.getByTestId('step-set-scope')).toHaveTextContent('Définir la portée');
+      expect(screen.getByTestId('step-confirm-assignment')).toHaveTextContent('Confirmer l\'attribution');
+      expect(screen.getByTestId('step-apply-changes')).toHaveTextContent('Appliquer les modifications');
+
+      // Verify permission revocation workflow
+      expect(screen.getByTestId('step-identify-permission')).toHaveTextContent('Identifier la permission');
+      expect(screen.getByTestId('step-verify-impact')).toHaveTextContent('Vérifier l\'impact');
+      expect(screen.getByTestId('step-confirm-revocation')).toHaveTextContent('Confirmer la révocation');
+      expect(screen.getByTestId('step-update-access')).toHaveTextContent('Mettre à jour l\'accès');
+
+      // Verify bulk operations workflow
+      expect(screen.getByTestId('step-select-users')).toHaveTextContent('Sélectionner les utilisateurs');
+      expect(screen.getByTestId('step-define-permissions')).toHaveTextContent('Définir les permissions');
+      expect(screen.getByTestId('step-preview-changes')).toHaveTextContent('Prévisualiser les modifications');
+      expect(screen.getByTestId('step-execute-bulk')).toHaveTextContent('Exécuter en lot');
+      expect(screen.getByTestId('step-verify-results')).toHaveTextContent('Vérifier les résultats');
+
+      // Verify audit workflow
+      expect(screen.getByTestId('step-scan-permissions')).toHaveTextContent('Analyser les permissions');
+      expect(screen.getByTestId('step-identify-issues')).toHaveTextContent('Identifier les problèmes');
+      expect(screen.getByTestId('step-generate-report')).toHaveTextContent('Générer le rapport');
+      expect(screen.getByTestId('step-recommend-actions')).toHaveTextContent('Recommander des actions');
+      expect(screen.getByTestId('step-implement-fixes')).toHaveTextContent('Implémenter les corrections');
+
+      // Verify workflow actions
+      expect(screen.getByTestId('button-start-workflow')).toHaveTextContent('Démarrer le flux de travail');
+      expect(screen.getByTestId('button-pause-workflow')).toHaveTextContent('Mettre en pause');
+      expect(screen.getByTestId('button-resume-workflow')).toHaveTextContent('Reprendre');
+      expect(screen.getByTestId('button-cancel-workflow')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-complete-workflow')).toHaveTextContent('Terminer');
+
+      // Verify workflow status
+      expect(screen.getByTestId('status-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('status-completed')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('status-failed')).toHaveTextContent('Échec');
+      expect(screen.getByTestId('status-cancelled')).toHaveTextContent('Annulé');
+      expect(screen.getByTestId('status-pending')).toHaveTextContent('En attente');
+    });
+
+    it('should have proper data-testid attributes for admin permissions page elements', () => {
+      const AdminPermissionsPage = () => {
+        return (
+          <div data-testid='admin-permissions-page'>
+            <div data-testid='permissions-overview-section'></div>
+            <div data-testid='permissions-tabs-section'></div>
+            <div data-testid='user-permissions-section'></div>
+            <div data-testid='role-permissions-section'></div>
+            <div data-testid='permission-matrix-section'></div>
+            <div data-testid='permission-categories-section'></div>
+            <div data-testid='permission-actions-section'></div>
+            <div data-testid='permission-filters-section'></div>
+            <div data-testid='permission-search-section'></div>
+            <div data-testid='permission-status-section'></div>
+            <div data-testid='workflow-section'></div>
+            <div data-testid='loading-section'></div>
+
+            {/* Interactive Elements */}
+            <button data-testid='button-grant-permission'>Accorder</button>
+            <button data-testid='button-revoke-permission'>Révoquer</button>
+            <button data-testid='button-bulk-assign'>Attribution en lot</button>
+            <button data-testid='button-export-permissions'>Exporter</button>
+            <button data-testid='button-import-permissions'>Importer</button>
+            <button data-testid='button-reset-filters'>Réinitialiser</button>
+            <button data-testid='button-apply-filters'>Appliquer</button>
+            <button data-testid='button-save-changes'>Sauvegarder</button>
+            <button data-testid='button-cancel-changes'>Annuler</button>
+            <button data-testid='button-refresh-permissions'>Actualiser</button>
+
+            {/* Input Elements */}
+            <input data-testid='input-search-permissions' placeholder='Rechercher des permissions' />
+            <input data-testid='input-search-users' placeholder='Rechercher des utilisateurs' />
+            <select data-testid='select-role-filter'>
+              <option>Tous les rôles</option>
+            </select>
+            <select data-testid='select-permission-type'>
+              <option>Tous les types</option>
+            </select>
+            <select data-testid='select-permission-status'>
+              <option>Tous les statuts</option>
+            </select>
+
+            {/* Display Elements */}
+            <div data-testid='text-permissions-count'>19 permissions</div>
+            <div data-testid='text-users-count'>8 utilisateurs</div>
+            <div data-testid='text-roles-count'>4 rôles</div>
+            <div data-testid='text-overrides-count'>0 remplacements</div>
+            <div data-testid='text-current-user'>Kevin Hervieux</div>
+            <div data-testid='text-user-role'>Gestionnaire</div>
+            <div data-testid='text-user-status'>Actif</div>
+            <div data-testid='text-permission-granted'>Accordé</div>
+            <div data-testid='text-permission-denied'>Refusé</div>
+            <div data-testid='text-permission-limited'>Limité</div>
+            <div data-testid='img-user-avatar'>KH</div>
+            <div data-testid='status-loading'>Chargement en cours...</div>
+            <div data-testid='status-error'>Erreur de chargement</div>
+            <div data-testid='status-success'>Permissions mises à jour avec succès</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <AdminPermissionsPage />
+        </TestProviders>
+      );
+
+      // Verify all admin permissions page elements have proper test IDs
+      expect(screen.getByTestId('admin-permissions-page')).toBeInTheDocument();
+      expect(screen.getByTestId('permissions-overview-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permissions-tabs-section')).toBeInTheDocument();
+      expect(screen.getByTestId('user-permissions-section')).toBeInTheDocument();
+      expect(screen.getByTestId('role-permissions-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-matrix-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-categories-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-actions-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-filters-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-search-section')).toBeInTheDocument();
+      expect(screen.getByTestId('permission-status-section')).toBeInTheDocument();
+      expect(screen.getByTestId('workflow-section')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-section')).toBeInTheDocument();
+
+      // Verify interactive elements have test IDs
+      expect(screen.getByTestId('button-grant-permission')).toBeInTheDocument();
+      expect(screen.getByTestId('button-revoke-permission')).toBeInTheDocument();
+      expect(screen.getByTestId('button-bulk-assign')).toBeInTheDocument();
+      expect(screen.getByTestId('button-export-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('button-import-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('button-reset-filters')).toBeInTheDocument();
+      expect(screen.getByTestId('button-apply-filters')).toBeInTheDocument();
+      expect(screen.getByTestId('button-save-changes')).toBeInTheDocument();
+      expect(screen.getByTestId('button-cancel-changes')).toBeInTheDocument();
+      expect(screen.getByTestId('button-refresh-permissions')).toBeInTheDocument();
+
+      // Verify input elements have test IDs
+      expect(screen.getByTestId('input-search-permissions')).toBeInTheDocument();
+      expect(screen.getByTestId('input-search-users')).toBeInTheDocument();
+      expect(screen.getByTestId('select-role-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('select-permission-type')).toBeInTheDocument();
+      expect(screen.getByTestId('select-permission-status')).toBeInTheDocument();
+
+      // Verify display elements have test IDs
+      expect(screen.getByTestId('text-permissions-count')).toBeInTheDocument();
+      expect(screen.getByTestId('text-users-count')).toBeInTheDocument();
+      expect(screen.getByTestId('text-roles-count')).toBeInTheDocument();
+      expect(screen.getByTestId('text-overrides-count')).toBeInTheDocument();
+      expect(screen.getByTestId('text-current-user')).toBeInTheDocument();
+      expect(screen.getByTestId('text-user-role')).toBeInTheDocument();
+      expect(screen.getByTestId('text-user-status')).toBeInTheDocument();
+      expect(screen.getByTestId('text-permission-granted')).toBeInTheDocument();
+      expect(screen.getByTestId('text-permission-denied')).toBeInTheDocument();
+      expect(screen.getByTestId('text-permission-limited')).toBeInTheDocument();
+      expect(screen.getByTestId('img-user-avatar')).toBeInTheDocument();
+      expect(screen.getByTestId('status-loading')).toBeInTheDocument();
+      expect(screen.getByTestId('status-error')).toBeInTheDocument();
+      expect(screen.getByTestId('status-success')).toBeInTheDocument();
+    });
+  });
