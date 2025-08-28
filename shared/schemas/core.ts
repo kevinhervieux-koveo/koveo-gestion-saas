@@ -67,7 +67,7 @@ export const organizations = pgTable('organizations', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
-  type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative'
+  type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),
   city: text('city').notNull(),
   province: text('province').notNull().default('QC'),
