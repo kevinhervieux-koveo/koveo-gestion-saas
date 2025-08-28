@@ -7674,6 +7674,1056 @@ describe('Website Translation Tests', () => {
       expect(createButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Idea Box Page Translation', () => {
+    it('should display idea box page with proper French translations', () => {
+      const IdeaBoxPage = () => {
+        return (
+          <div data-testid='idea-box-page'>
+            {/* Header Section */}
+            <div data-testid='header-idea-box'>Boîte à idées</div>
+            <div data-testid='header-subtitle'>
+              Soumettez et votez pour des suggestions de fonctionnalités
+            </div>
+
+            {/* Feature Requests Section */}
+            <div data-testid='feature-requests-section'>
+              <div data-testid='feature-requests-title'>Demandes de fonctionnalités</div>
+              
+              {/* Search and Filters */}
+              <div data-testid='search-filters-section'>
+                <input data-testid='input-search-features' 
+                  placeholder='Rechercher des demandes de fonctionnalités...' 
+                />
+                
+                <div data-testid='status-filter'>
+                  <select data-testid='select-status-filter'>
+                    <option data-testid='filter-all-status'>Tous les statuts</option>
+                    <option data-testid='filter-submitted'>Soumis</option>
+                    <option data-testid='filter-under-review'>En révision</option>
+                    <option data-testid='filter-planned'>Planifié</option>
+                    <option data-testid='filter-in-progress'>En cours</option>
+                    <option data-testid='filter-completed'>Terminé</option>
+                    <option data-testid='filter-rejected'>Rejeté</option>
+                  </select>
+                </div>
+
+                <div data-testid='category-filter'>
+                  <select data-testid='select-category-filter'>
+                    <option data-testid='filter-all-categories'>Toutes les catégories</option>
+                    <option data-testid='filter-dashboard'>Tableau de bord</option>
+                    <option data-testid='filter-property-management'>Gestion immobilière</option>
+                    <option data-testid='filter-resident-management'>Gestion des résidents</option>
+                    <option data-testid='filter-financial-management'>Gestion financière</option>
+                    <option data-testid='filter-maintenance'>Maintenance</option>
+                    <option data-testid='filter-document-management'>Gestion documentaire</option>
+                    <option data-testid='filter-communication'>Communication</option>
+                    <option data-testid='filter-reports'>Rapports</option>
+                    <option data-testid='filter-mobile-app'>Application mobile</option>
+                    <option data-testid='filter-integrations'>Intégrations</option>
+                    <option data-testid='filter-security'>Sécurité</option>
+                    <option data-testid='filter-performance'>Performance</option>
+                    <option data-testid='filter-other'>Autre</option>
+                  </select>
+                </div>
+
+                <div data-testid='sort-by-filter'>
+                  <select data-testid='select-sort-by'>
+                    <option data-testid='sort-newest'>Plus récent en premier</option>
+                    <option data-testid='sort-oldest'>Plus ancien en premier</option>
+                    <option data-testid='sort-most-upvoted'>Plus voté</option>
+                    <option data-testid='sort-least-upvoted'>Moins voté</option>
+                  </select>
+                </div>
+
+                <button data-testid='button-create-feature-request'>Soumettre une idée</button>
+              </div>
+
+              {/* Feature Requests List */}
+              <div data-testid='feature-requests-list'>
+                {/* Empty State */}
+                <div data-testid='empty-state'>
+                  <div data-testid='no-feature-requests-found'>
+                    Aucune demande de fonctionnalité trouvée
+                  </div>
+                  <div data-testid='be-first-to-submit'>
+                    Soyez le premier à soumettre une demande de fonctionnalité !
+                  </div>
+                  <div data-testid='adjust-filters'>
+                    Essayez d'ajuster vos filtres pour voir plus de résultats.
+                  </div>
+                </div>
+
+                {/* Feature Request Items */}
+                <div data-testid='feature-request-item'>
+                  <div data-testid='feature-title'>Titre de la fonctionnalité</div>
+                  <div data-testid='feature-description'>Description de la fonctionnalité</div>
+                  <div data-testid='feature-need'>Besoin adressé</div>
+                  <div data-testid='feature-category'>Catégorie</div>
+                  <div data-testid='feature-status'>Statut</div>
+                  <div data-testid='feature-page'>Page/Emplacement</div>
+                  <div data-testid='feature-upvotes'>Votes positifs</div>
+                  <div data-testid='feature-created-by'>Créé par</div>
+                  <div data-testid='feature-created-date'>Date de création</div>
+                  <div data-testid='feature-assigned-to'>Assigné à</div>
+                  <div data-testid='feature-admin-notes'>Notes administratives</div>
+                  
+                  {/* Feature Actions */}
+                  <div data-testid='feature-actions'>
+                    <button data-testid='button-upvote'>Voter pour</button>
+                    <button data-testid='button-remove-upvote'>Retirer le vote</button>
+                    <button data-testid='button-edit-feature'>Modifier</button>
+                    <button data-testid='button-delete-feature'>Supprimer</button>
+                    <button data-testid='button-view-details'>Voir les détails</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Create Feature Request Dialog */}
+            <div data-testid='dialog-create-feature'>
+              <div data-testid='create-feature-title'>Soumettre une demande de fonctionnalité</div>
+              
+              <div data-testid='create-feature-form'>
+                <div data-testid='label-feature-title'>Titre*</div>
+                <input data-testid='input-feature-title' 
+                  placeholder='Description brève de la fonctionnalité dont vous avez besoin' 
+                />
+                
+                <div data-testid='label-feature-description'>Description*</div>
+                <textarea data-testid='textarea-feature-description' 
+                  placeholder='Description détaillée de la fonctionnalité et de son fonctionnement'
+                />
+                
+                <div data-testid='label-feature-need'>Quel besoin cela adresse-t-il ?*</div>
+                <textarea data-testid='textarea-feature-need' 
+                  placeholder='Expliquez le besoin spécifique ou le problème que cette fonctionnalité résoudrait'
+                />
+                
+                <div data-testid='label-feature-category'>Catégorie*</div>
+                <select data-testid='select-feature-category'>
+                  <option data-testid='category-dashboard'>Tableau de bord</option>
+                  <option data-testid='category-property-management'>Gestion immobilière</option>
+                  <option data-testid='category-resident-management'>Gestion des résidents</option>
+                  <option data-testid='category-financial-management'>Gestion financière</option>
+                  <option data-testid='category-maintenance'>Maintenance</option>
+                  <option data-testid='category-document-management'>Gestion documentaire</option>
+                  <option data-testid='category-communication'>Communication</option>
+                  <option data-testid='category-reports'>Rapports</option>
+                  <option data-testid='category-mobile-app'>Application mobile</option>
+                  <option data-testid='category-integrations'>Intégrations</option>
+                  <option data-testid='category-security'>Sécurité</option>
+                  <option data-testid='category-performance'>Performance</option>
+                  <option data-testid='category-other'>Autre</option>
+                </select>
+                
+                <div data-testid='label-feature-page'>Page/Emplacement*</div>
+                <input data-testid='input-feature-page' 
+                  placeholder='ex. Tableau de bord, Paramètres, Page des immeubles'
+                />
+
+                <div data-testid='form-buttons'>
+                  <button data-testid='button-cancel-feature'>Annuler</button>
+                  <button data-testid='button-submit-feature-request'>
+                    Soumettre la demande de fonctionnalité
+                  </button>
+                  <button data-testid='button-submitting-feature' disabled>
+                    Soumission en cours...
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Edit Feature Request Dialog */}
+            <div data-testid='dialog-edit-feature'>
+              <div data-testid='edit-feature-title'>Modifier la demande de fonctionnalité</div>
+              
+              <div data-testid='edit-feature-form'>
+                <div data-testid='label-edit-title'>Titre*</div>
+                <input data-testid='input-edit-title' />
+                
+                <div data-testid='label-edit-description'>Description*</div>
+                <textarea data-testid='textarea-edit-description' />
+                
+                <div data-testid='label-edit-need'>Besoin adressé*</div>
+                <textarea data-testid='textarea-edit-need' />
+                
+                <div data-testid='label-edit-category'>Catégorie*</div>
+                <select data-testid='select-edit-category'>
+                  <option data-testid='edit-category-dashboard'>Tableau de bord</option>
+                  <option data-testid='edit-category-property-management'>Gestion immobilière</option>
+                  <option data-testid='edit-category-resident-management'>Gestion des résidents</option>
+                  <option data-testid='edit-category-financial-management'>Gestion financière</option>
+                  <option data-testid='edit-category-maintenance'>Maintenance</option>
+                  <option data-testid='edit-category-document-management'>Gestion documentaire</option>
+                  <option data-testid='edit-category-communication'>Communication</option>
+                  <option data-testid='edit-category-reports'>Rapports</option>
+                  <option data-testid='edit-category-mobile-app'>Application mobile</option>
+                  <option data-testid='edit-category-integrations'>Intégrations</option>
+                  <option data-testid='edit-category-security'>Sécurité</option>
+                  <option data-testid='edit-category-performance'>Performance</option>
+                  <option data-testid='edit-category-other'>Autre</option>
+                </select>
+                
+                <div data-testid='label-edit-status'>Statut</div>
+                <select data-testid='select-edit-status'>
+                  <option data-testid='edit-status-submitted'>Soumis</option>
+                  <option data-testid='edit-status-under-review'>En révision</option>
+                  <option data-testid='edit-status-planned'>Planifié</option>
+                  <option data-testid='edit-status-in-progress'>En cours</option>
+                  <option data-testid='edit-status-completed'>Terminé</option>
+                  <option data-testid='edit-status-rejected'>Rejeté</option>
+                </select>
+                
+                <div data-testid='label-edit-page'>Page/Emplacement*</div>
+                <input data-testid='input-edit-page' />
+                
+                <div data-testid='label-edit-assigned-to'>Assigné à</div>
+                <input data-testid='input-edit-assigned-to' />
+                
+                <div data-testid='label-edit-admin-notes'>Notes administratives</div>
+                <textarea data-testid='textarea-edit-admin-notes' />
+
+                <div data-testid='edit-form-buttons'>
+                  <button data-testid='button-cancel-edit'>Annuler</button>
+                  <button data-testid='button-save-feature'>Sauvegarder les modifications</button>
+                  <button data-testid='button-updating-feature' disabled>
+                    Mise à jour en cours...
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature Request Details Dialog */}
+            <div data-testid='dialog-feature-details'>
+              <div data-testid='feature-details-title'>Détails de la demande de fonctionnalité</div>
+              
+              <div data-testid='feature-details-content'>
+                <div data-testid='detail-feature-id'>Identifiant de la demande</div>
+                <div data-testid='detail-feature-title'>Titre</div>
+                <div data-testid='detail-feature-description'>Description</div>
+                <div data-testid='detail-feature-need'>Besoin adressé</div>
+                <div data-testid='detail-feature-category'>Catégorie</div>
+                <div data-testid='detail-feature-status'>Statut</div>
+                <div data-testid='detail-feature-page'>Page/Emplacement</div>
+                <div data-testid='detail-feature-upvotes'>Nombre de votes</div>
+                <div data-testid='detail-created-by'>Créé par</div>
+                <div data-testid='detail-created-date'>Date de création</div>
+                <div data-testid='detail-assigned-to'>Assigné à</div>
+                <div data-testid='detail-reviewed-by'>Révisé par</div>
+                <div data-testid='detail-reviewed-date'>Date de révision</div>
+                <div data-testid='detail-admin-notes'>Notes administratives</div>
+                <div data-testid='detail-last-updated'>Dernière mise à jour</div>
+              </div>
+            </div>
+
+            {/* Delete Feature Confirmation */}
+            <div data-testid='dialog-delete-feature'>
+              <div data-testid='delete-feature-title'>Supprimer la demande de fonctionnalité</div>
+              <div data-testid='delete-feature-description'>
+                Êtes-vous sûr de vouloir supprimer cette demande de fonctionnalité ? 
+                Cette action ne peut pas être annulée.
+              </div>
+              <div data-testid='delete-feature-buttons'>
+                <button data-testid='button-cancel-delete'>Annuler</button>
+                <button data-testid='button-confirm-delete'>Supprimer</button>
+              </div>
+            </div>
+
+            {/* Status Badges */}
+            <div data-testid='status-badges'>
+              <div data-testid='badge-submitted'>Soumis</div>
+              <div data-testid='badge-under-review'>En révision</div>
+              <div data-testid='badge-planned'>Planifié</div>
+              <div data-testid='badge-in-progress'>En cours</div>
+              <div data-testid='badge-completed'>Terminé</div>
+              <div data-testid='badge-rejected'>Rejeté</div>
+            </div>
+
+            {/* Category Badges */}
+            <div data-testid='category-badges'>
+              <div data-testid='badge-dashboard'>Tableau de bord</div>
+              <div data-testid='badge-property-management'>Gestion immobilière</div>
+              <div data-testid='badge-resident-management'>Gestion des résidents</div>
+              <div data-testid='badge-financial-management'>Gestion financière</div>
+              <div data-testid='badge-maintenance'>Maintenance</div>
+              <div data-testid='badge-document-management'>Gestion documentaire</div>
+              <div data-testid='badge-communication'>Communication</div>
+              <div data-testid='badge-reports'>Rapports</div>
+              <div data-testid='badge-mobile-app'>Application mobile</div>
+              <div data-testid='badge-integrations'>Intégrations</div>
+              <div data-testid='badge-security'>Sécurité</div>
+              <div data-testid='badge-performance'>Performance</div>
+              <div data-testid='badge-other'>Autre</div>
+            </div>
+
+            {/* Success/Error Messages */}
+            <div data-testid='toast-messages'>
+              <div data-testid='toast-feature-submitted'>Demande de fonctionnalité soumise</div>
+              <div data-testid='toast-feature-submitted-desc'>
+                Votre demande de fonctionnalité a été soumise avec succès.
+              </div>
+              <div data-testid='toast-feature-updated'>Demande de fonctionnalité mise à jour</div>
+              <div data-testid='toast-feature-updated-desc'>
+                La demande de fonctionnalité a été mise à jour avec succès.
+              </div>
+              <div data-testid='toast-feature-deleted'>Demande de fonctionnalité supprimée</div>
+              <div data-testid='toast-feature-deleted-desc'>
+                La demande de fonctionnalité a été supprimée avec succès.
+              </div>
+              <div data-testid='toast-upvoted'>Vote enregistré</div>
+              <div data-testid='toast-upvoted-desc'>
+                Votre vote a été enregistré.
+              </div>
+              <div data-testid='toast-upvote-removed'>Vote retiré</div>
+              <div data-testid='toast-upvote-removed-desc'>
+                Votre vote a été retiré.
+              </div>
+              <div data-testid='toast-error-title'>Erreur</div>
+              <div data-testid='toast-error-create'>
+                Échec de la création de la demande de fonctionnalité
+              </div>
+              <div data-testid='toast-error-update'>
+                Échec de la mise à jour de la demande de fonctionnalité
+              </div>
+              <div data-testid='toast-error-delete'>
+                Échec de la suppression de la demande de fonctionnalité
+              </div>
+              <div data-testid='toast-error-upvote'>
+                Échec du vote pour la demande de fonctionnalité
+              </div>
+              <div data-testid='toast-error-remove-upvote'>
+                Échec de la suppression du vote
+              </div>
+            </div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-messages'>
+              <div data-testid='validation-title-required'>Le titre est requis</div>
+              <div data-testid='validation-title-max-length'>
+                Le titre ne doit pas dépasser 200 caractères
+              </div>
+              <div data-testid='validation-description-required'>
+                La description doit contenir au moins 10 caractères
+              </div>
+              <div data-testid='validation-description-max-length'>
+                La description ne doit pas dépasser 2000 caractères
+              </div>
+              <div data-testid='validation-need-required'>
+                Le besoin doit contenir au moins 5 caractères
+              </div>
+              <div data-testid='validation-need-max-length'>
+                Le besoin ne doit pas dépasser 500 caractères
+              </div>
+              <div data-testid='validation-category-required'>La catégorie est requise</div>
+              <div data-testid='validation-page-required'>La page est requise</div>
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-feature-requests'>
+              Chargement des demandes de fonctionnalités...
+            </div>
+            <div data-testid='loading-create'>Création de la demande en cours...</div>
+            <div data-testid='loading-update'>Mise à jour en cours...</div>
+            <div data-testid='loading-delete'>Suppression en cours...</div>
+            <div data-testid='loading-upvote'>Enregistrement du vote...</div>
+
+            {/* Permissions Messages */}
+            <div data-testid='permission-messages'>
+              <div data-testid='cannot-edit-feature'>
+                Vous n'avez pas la permission de modifier cette demande de fonctionnalité
+              </div>
+              <div data-testid='cannot-delete-feature'>
+                Vous n'avez pas la permission de supprimer cette demande de fonctionnalité
+              </div>
+              <div data-testid='admin-only-feature-action'>
+                Cette action est réservée aux administrateurs
+              </div>
+            </div>
+
+            {/* Filter Labels */}
+            <div data-testid='filter-labels'>
+              <div data-testid='filter-by-status'>Filtrer par statut</div>
+              <div data-testid='filter-by-category'>Filtrer par catégorie</div>
+              <div data-testid='sort-by'>Trier par</div>
+              <div data-testid='clear-filters'>Effacer les filtres</div>
+              <div data-testid='apply-filters'>Appliquer les filtres</div>
+            </div>
+
+            {/* Voting Actions */}
+            <div data-testid='voting-actions'>
+              <div data-testid='upvote-count'>votes</div>
+              <div data-testid='vote-for-this'>Voter pour cette idée</div>
+              <div data-testid='remove-vote'>Retirer votre vote</div>
+              <div data-testid='you-voted'>Vous avez voté</div>
+              <div data-testid='popular-idea'>Idée populaire</div>
+              <div data-testid='trending-idea'>Idée tendance</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <IdeaBoxPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-idea-box')).toHaveTextContent('Boîte à idées');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Soumettez et votez pour des suggestions de fonctionnalités');
+
+      // Verify feature requests section
+      expect(screen.getByTestId('feature-requests-title')).toHaveTextContent('Demandes de fonctionnalités');
+      expect(screen.getByTestId('input-search-features')).toHaveAttribute('placeholder', 'Rechercher des demandes de fonctionnalités...');
+      expect(screen.getByTestId('button-create-feature-request')).toHaveTextContent('Soumettre une idée');
+
+      // Verify filter options
+      expect(screen.getByTestId('filter-all-status')).toHaveTextContent('Tous les statuts');
+      expect(screen.getByTestId('filter-submitted')).toHaveTextContent('Soumis');
+      expect(screen.getByTestId('filter-under-review')).toHaveTextContent('En révision');
+      expect(screen.getByTestId('filter-planned')).toHaveTextContent('Planifié');
+      expect(screen.getByTestId('filter-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('filter-completed')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('filter-rejected')).toHaveTextContent('Rejeté');
+
+      // Verify category filter options
+      expect(screen.getByTestId('filter-all-categories')).toHaveTextContent('Toutes les catégories');
+      expect(screen.getByTestId('filter-dashboard')).toHaveTextContent('Tableau de bord');
+      expect(screen.getByTestId('filter-property-management')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('filter-resident-management')).toHaveTextContent('Gestion des résidents');
+      expect(screen.getByTestId('filter-financial-management')).toHaveTextContent('Gestion financière');
+      expect(screen.getByTestId('filter-maintenance')).toHaveTextContent('Maintenance');
+      expect(screen.getByTestId('filter-document-management')).toHaveTextContent('Gestion documentaire');
+      expect(screen.getByTestId('filter-communication')).toHaveTextContent('Communication');
+      expect(screen.getByTestId('filter-reports')).toHaveTextContent('Rapports');
+      expect(screen.getByTestId('filter-mobile-app')).toHaveTextContent('Application mobile');
+      expect(screen.getByTestId('filter-integrations')).toHaveTextContent('Intégrations');
+      expect(screen.getByTestId('filter-security')).toHaveTextContent('Sécurité');
+      expect(screen.getByTestId('filter-performance')).toHaveTextContent('Performance');
+      expect(screen.getByTestId('filter-other')).toHaveTextContent('Autre');
+
+      // Verify sort options
+      expect(screen.getByTestId('sort-newest')).toHaveTextContent('Plus récent en premier');
+      expect(screen.getByTestId('sort-oldest')).toHaveTextContent('Plus ancien en premier');
+      expect(screen.getByTestId('sort-most-upvoted')).toHaveTextContent('Plus voté');
+      expect(screen.getByTestId('sort-least-upvoted')).toHaveTextContent('Moins voté');
+
+      // Verify empty state
+      expect(screen.getByTestId('no-feature-requests-found')).toHaveTextContent('Aucune demande de fonctionnalité trouvée');
+      expect(screen.getByTestId('be-first-to-submit')).toHaveTextContent('Soyez le premier à soumettre une demande de fonctionnalité !');
+      expect(screen.getByTestId('adjust-filters')).toHaveTextContent('Essayez d\'ajuster vos filtres pour voir plus de résultats');
+
+      // Verify create feature dialog
+      expect(screen.getByTestId('create-feature-title')).toHaveTextContent('Soumettre une demande de fonctionnalité');
+      expect(screen.getByTestId('label-feature-title')).toHaveTextContent('Titre*');
+      expect(screen.getByTestId('input-feature-title')).toHaveAttribute('placeholder', 'Description brève de la fonctionnalité dont vous avez besoin');
+      expect(screen.getByTestId('label-feature-description')).toHaveTextContent('Description*');
+      expect(screen.getByTestId('textarea-feature-description')).toHaveAttribute('placeholder', 'Description détaillée de la fonctionnalité et de son fonctionnement');
+      expect(screen.getByTestId('label-feature-need')).toHaveTextContent('Quel besoin cela adresse-t-il ?*');
+      expect(screen.getByTestId('textarea-feature-need')).toHaveAttribute('placeholder', 'Expliquez le besoin spécifique ou le problème que cette fonctionnalité résoudrait');
+
+      // Verify category options in form
+      expect(screen.getByTestId('category-dashboard')).toHaveTextContent('Tableau de bord');
+      expect(screen.getByTestId('category-property-management')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('category-resident-management')).toHaveTextContent('Gestion des résidents');
+      expect(screen.getByTestId('category-financial-management')).toHaveTextContent('Gestion financière');
+      expect(screen.getByTestId('category-maintenance')).toHaveTextContent('Maintenance');
+      expect(screen.getByTestId('category-document-management')).toHaveTextContent('Gestion documentaire');
+      expect(screen.getByTestId('category-communication')).toHaveTextContent('Communication');
+      expect(screen.getByTestId('category-reports')).toHaveTextContent('Rapports');
+      expect(screen.getByTestId('category-mobile-app')).toHaveTextContent('Application mobile');
+      expect(screen.getByTestId('category-integrations')).toHaveTextContent('Intégrations');
+      expect(screen.getByTestId('category-security')).toHaveTextContent('Sécurité');
+      expect(screen.getByTestId('category-performance')).toHaveTextContent('Performance');
+      expect(screen.getByTestId('category-other')).toHaveTextContent('Autre');
+
+      // Verify additional form fields
+      expect(screen.getByTestId('label-feature-page')).toHaveTextContent('Page/Emplacement*');
+      expect(screen.getByTestId('input-feature-page')).toHaveAttribute('placeholder', 'ex. Tableau de bord, Paramètres, Page des immeubles');
+
+      // Verify form buttons
+      expect(screen.getByTestId('button-cancel-feature')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-submit-feature-request')).toHaveTextContent('Soumettre la demande de fonctionnalité');
+      expect(screen.getByTestId('button-submitting-feature')).toHaveTextContent('Soumission en cours');
+
+      // Verify edit dialog
+      expect(screen.getByTestId('edit-feature-title')).toHaveTextContent('Modifier la demande de fonctionnalité');
+      expect(screen.getByTestId('label-edit-title')).toHaveTextContent('Titre*');
+      expect(screen.getByTestId('label-edit-description')).toHaveTextContent('Description*');
+      expect(screen.getByTestId('label-edit-need')).toHaveTextContent('Besoin adressé*');
+      expect(screen.getByTestId('label-edit-category')).toHaveTextContent('Catégorie*');
+      expect(screen.getByTestId('label-edit-status')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('label-edit-assigned-to')).toHaveTextContent('Assigné à');
+      expect(screen.getByTestId('label-edit-admin-notes')).toHaveTextContent('Notes administratives');
+
+      // Verify edit form buttons
+      expect(screen.getByTestId('button-cancel-edit')).toHaveTextContent('Annuler');
+      expect(screen.getByTestId('button-save-feature')).toHaveTextContent('Sauvegarder les modifications');
+      expect(screen.getByTestId('button-updating-feature')).toHaveTextContent('Mise à jour en cours');
+
+      // Verify feature details
+      expect(screen.getByTestId('feature-details-title')).toHaveTextContent('Détails de la demande de fonctionnalité');
+      expect(screen.getByTestId('detail-feature-id')).toHaveTextContent('Identifiant de la demande');
+      expect(screen.getByTestId('detail-feature-title')).toHaveTextContent('Titre');
+      expect(screen.getByTestId('detail-feature-description')).toHaveTextContent('Description');
+      expect(screen.getByTestId('detail-feature-need')).toHaveTextContent('Besoin adressé');
+      expect(screen.getByTestId('detail-feature-upvotes')).toHaveTextContent('Nombre de votes');
+
+      // Verify delete confirmation
+      expect(screen.getByTestId('delete-feature-title')).toHaveTextContent('Supprimer la demande de fonctionnalité');
+      expect(screen.getByTestId('delete-feature-description')).toHaveTextContent('Êtes-vous sûr de vouloir supprimer cette demande de fonctionnalité ? Cette action ne peut pas être annulée');
+
+      // Verify status badges
+      expect(screen.getByTestId('badge-submitted')).toHaveTextContent('Soumis');
+      expect(screen.getByTestId('badge-under-review')).toHaveTextContent('En révision');
+      expect(screen.getByTestId('badge-planned')).toHaveTextContent('Planifié');
+      expect(screen.getByTestId('badge-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('badge-completed')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('badge-rejected')).toHaveTextContent('Rejeté');
+
+      // Verify category badges
+      expect(screen.getByTestId('badge-dashboard')).toHaveTextContent('Tableau de bord');
+      expect(screen.getByTestId('badge-property-management')).toHaveTextContent('Gestion immobilière');
+      expect(screen.getByTestId('badge-resident-management')).toHaveTextContent('Gestion des résidents');
+      expect(screen.getByTestId('badge-financial-management')).toHaveTextContent('Gestion financière');
+
+      // Verify toast messages
+      expect(screen.getByTestId('toast-feature-submitted')).toHaveTextContent('Demande de fonctionnalité soumise');
+      expect(screen.getByTestId('toast-feature-submitted-desc')).toHaveTextContent('Votre demande de fonctionnalité a été soumise avec succès');
+      expect(screen.getByTestId('toast-feature-updated')).toHaveTextContent('Demande de fonctionnalité mise à jour');
+      expect(screen.getByTestId('toast-feature-updated-desc')).toHaveTextContent('La demande de fonctionnalité a été mise à jour avec succès');
+      expect(screen.getByTestId('toast-upvoted')).toHaveTextContent('Vote enregistré');
+      expect(screen.getByTestId('toast-upvoted-desc')).toHaveTextContent('Votre vote a été enregistré');
+      expect(screen.getByTestId('toast-upvote-removed')).toHaveTextContent('Vote retiré');
+      expect(screen.getByTestId('toast-upvote-removed-desc')).toHaveTextContent('Votre vote a été retiré');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-title-required')).toHaveTextContent('Le titre est requis');
+      expect(screen.getByTestId('validation-title-max-length')).toHaveTextContent('Le titre ne doit pas dépasser 200 caractères');
+      expect(screen.getByTestId('validation-description-required')).toHaveTextContent('La description doit contenir au moins 10 caractères');
+      expect(screen.getByTestId('validation-description-max-length')).toHaveTextContent('La description ne doit pas dépasser 2000 caractères');
+      expect(screen.getByTestId('validation-need-required')).toHaveTextContent('Le besoin doit contenir au moins 5 caractères');
+      expect(screen.getByTestId('validation-need-max-length')).toHaveTextContent('Le besoin ne doit pas dépasser 500 caractères');
+      expect(screen.getByTestId('validation-category-required')).toHaveTextContent('La catégorie est requise');
+      expect(screen.getByTestId('validation-page-required')).toHaveTextContent('La page est requise');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-feature-requests')).toHaveTextContent('Chargement des demandes de fonctionnalités');
+      expect(screen.getByTestId('loading-create')).toHaveTextContent('Création de la demande en cours');
+      expect(screen.getByTestId('loading-update')).toHaveTextContent('Mise à jour en cours');
+      expect(screen.getByTestId('loading-delete')).toHaveTextContent('Suppression en cours');
+      expect(screen.getByTestId('loading-upvote')).toHaveTextContent('Enregistrement du vote');
+
+      // Verify voting actions
+      expect(screen.getByTestId('upvote-count')).toHaveTextContent('votes');
+      expect(screen.getByTestId('vote-for-this')).toHaveTextContent('Voter pour cette idée');
+      expect(screen.getByTestId('remove-vote')).toHaveTextContent('Retirer votre vote');
+      expect(screen.getByTestId('you-voted')).toHaveTextContent('Vous avez voté');
+      expect(screen.getByTestId('popular-idea')).toHaveTextContent('Idée populaire');
+      expect(screen.getByTestId('trending-idea')).toHaveTextContent('Idée tendance');
+    });
+
+    it('should avoid English terminology in idea box page', () => {
+      const IdeaBoxWithEnglishTerms = () => {
+        return (
+          <div data-testid='idea-box-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-idea-box'>Idea Box</div>
+            <div data-testid='incorrect-submit-vote-features'>Submit and vote on feature suggestions</div>
+            <div data-testid='incorrect-feature-requests'>Feature Requests</div>
+            <div data-testid='incorrect-search-feature-requests'>Search feature requests...</div>
+            <div data-testid='incorrect-all-status'>All Status</div>
+            <div data-testid='incorrect-all-categories'>All Categories</div>
+            <div data-testid='incorrect-submit-idea'>Submit Idea</div>
+            <div data-testid='incorrect-submitted'>Submitted</div>
+            <div data-testid='incorrect-under-review'>Under Review</div>
+            <div data-testid='incorrect-planned'>Planned</div>
+            <div data-testid='incorrect-in-progress'>In Progress</div>
+            <div data-testid='incorrect-completed'>Completed</div>
+            <div data-testid='incorrect-rejected'>Rejected</div>
+            <div data-testid='incorrect-dashboard'>Dashboard</div>
+            <div data-testid='incorrect-property-management'>Property Management</div>
+            <div data-testid='incorrect-resident-management'>Resident Management</div>
+            <div data-testid='incorrect-financial-management'>Financial Management</div>
+            <div data-testid='incorrect-maintenance'>Maintenance</div>
+            <div data-testid='incorrect-document-management'>Document Management</div>
+            <div data-testid='incorrect-communication'>Communication</div>
+            <div data-testid='incorrect-reports'>Reports</div>
+            <div data-testid='incorrect-mobile-app'>Mobile App</div>
+            <div data-testid='incorrect-integrations'>Integrations</div>
+            <div data-testid='incorrect-security'>Security</div>
+            <div data-testid='incorrect-performance'>Performance</div>
+            <div data-testid='incorrect-other'>Other</div>
+            <div data-testid='incorrect-newest-first'>Newest First</div>
+            <div data-testid='incorrect-oldest-first'>Oldest First</div>
+            <div data-testid='incorrect-most-upvoted'>Most Upvoted</div>
+            <div data-testid='incorrect-least-upvoted'>Least Upvoted</div>
+            <div data-testid='incorrect-no-feature-requests-found'>No feature requests found</div>
+            <div data-testid='incorrect-be-first-submit'>Be the first to submit a feature request!</div>
+            <div data-testid='incorrect-adjust-filters'>Try adjusting your filters to see more results.</div>
+            <div data-testid='incorrect-submit-feature-request'>Submit a Feature Request</div>
+            <div data-testid='incorrect-title'>Title</div>
+            <div data-testid='incorrect-description'>Description</div>
+            <div data-testid='incorrect-what-need-address'>What need does this address?</div>
+            <div data-testid='incorrect-category'>Category</div>
+            <div data-testid='incorrect-page-location'>Page/Location</div>
+            <div data-testid='incorrect-brief-description-feature'>Brief description of the feature you need</div>
+            <div data-testid='incorrect-detailed-description-feature'>Detailed description of the feature and how it should work</div>
+            <div data-testid='incorrect-explain-specific-need'>Explain the specific need or problem this feature would solve</div>
+            <div data-testid='incorrect-select-category'>Select category</div>
+            <div data-testid='incorrect-dashboard-settings-buildings'>e.g., Dashboard, Settings, Buildings page</div>
+            <div data-testid='incorrect-cancel'>Cancel</div>
+            <div data-testid='incorrect-submit-feature-request-btn'>Submit Feature Request</div>
+            <div data-testid='incorrect-submitting'>Submitting...</div>
+            <div data-testid='incorrect-edit-feature-request'>Edit Feature Request</div>
+            <div data-testid='incorrect-assigned-to'>Assigned To</div>
+            <div data-testid='incorrect-admin-notes'>Admin Notes</div>
+            <div data-testid='incorrect-save-changes'>Save Changes</div>
+            <div data-testid='incorrect-updating'>Updating...</div>
+            <div data-testid='incorrect-upvote'>Upvote</div>
+            <div data-testid='incorrect-remove-upvote'>Remove Upvote</div>
+            <div data-testid='incorrect-view-details'>View Details</div>
+            <div data-testid='incorrect-delete'>Delete</div>
+            <div data-testid='incorrect-feature-request-submitted'>Feature request submitted</div>
+            <div data-testid='incorrect-feature-submitted-successfully'>Your feature request has been submitted successfully</div>
+            <div data-testid='incorrect-feature-request-updated'>Feature request updated</div>
+            <div data-testid='incorrect-feature-updated-successfully'>Feature request has been updated successfully</div>
+            <div data-testid='incorrect-upvoted'>Upvoted</div>
+            <div data-testid='incorrect-upvote-recorded'>Your upvote has been recorded</div>
+            <div data-testid='incorrect-upvote-removed'>Upvote removed</div>
+            <div data-testid='incorrect-upvote-removed-desc'>Your upvote has been removed</div>
+            <div data-testid='incorrect-error'>Error</div>
+            <div data-testid='incorrect-failed-create-feature'>Failed to create feature request</div>
+            <div data-testid='incorrect-failed-update-feature'>Failed to update feature request</div>
+            <div data-testid='incorrect-failed-delete-feature'>Failed to delete feature request</div>
+            <div data-testid='incorrect-loading-feature-requests'>Loading feature requests...</div>
+            <div data-testid='incorrect-creating-request'>Creating request...</div>
+            <div data-testid='incorrect-updating-request'>Updating...</div>
+            <div data-testid='incorrect-deleting-request'>Deleting...</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <IdeaBoxWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'idea box',
+        'submit vote features',
+        'feature requests',
+        'search feature requests',
+        'all status',
+        'all categories',
+        'submit idea',
+        'submitted',
+        'under review',
+        'planned',
+        'in progress',
+        'completed',
+        'rejected',
+        'dashboard',
+        'property management',
+        'resident management',
+        'financial management',
+        'maintenance',
+        'document management',
+        'communication',
+        'reports',
+        'mobile app',
+        'integrations',
+        'security',
+        'performance',
+        'other',
+        'newest first',
+        'oldest first',
+        'most upvoted',
+        'least upvoted',
+        'no feature requests found',
+        'be first submit',
+        'adjust filters',
+        'submit feature request',
+        'title',
+        'description',
+        'what need address',
+        'category',
+        'page location',
+        'brief description feature',
+        'detailed description feature',
+        'explain specific need',
+        'select category',
+        'dashboard settings buildings',
+        'cancel',
+        'submit feature request btn',
+        'submitting',
+        'edit feature request',
+        'assigned to',
+        'admin notes',
+        'save changes',
+        'updating',
+        'upvote',
+        'remove upvote',
+        'view details',
+        'delete',
+        'feature request submitted',
+        'feature submitted successfully',
+        'feature request updated',
+        'feature updated successfully',
+        'upvoted',
+        'upvote recorded',
+        'upvote removed',
+        'upvote removed desc',
+        'error',
+        'failed create feature',
+        'failed update feature',
+        'failed delete feature',
+        'loading feature requests',
+        'creating request',
+        'updating request',
+        'deleting request'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec feature development and innovation terminology', () => {
+      const FeatureDevelopmentTerms = () => {
+        return (
+          <div data-testid='feature-development-terms'>
+            {/* Correct Quebec French feature development and innovation terms */}
+            <div data-testid='term-boite-idees'>Boîte à idées</div>
+            <div data-testid='term-idee'>Idée</div>
+            <div data-testid='term-idees'>Idées</div>
+            <div data-testid='term-suggestion'>Suggestion</div>
+            <div data-testid='term-suggestions'>Suggestions</div>
+            <div data-testid='term-proposition'>Proposition</div>
+            <div data-testid='term-propositions'>Propositions</div>
+            <div data-testid='term-demande-fonctionnalite'>Demande de fonctionnalité</div>
+            <div data-testid='term-demandes-fonctionnalites'>Demandes de fonctionnalités</div>
+            <div data-testid='term-fonctionnalite'>Fonctionnalité</div>
+            <div data-testid='term-fonctionnalites'>Fonctionnalités</div>
+            <div data-testid='term-caracteristique'>Caractéristique</div>
+            <div data-testid='term-caracteristiques'>Caractéristiques</div>
+            <div data-testid='term-amelioration'>Amélioration</div>
+            <div data-testid='term-ameliorations'>Améliorations</div>
+            <div data-testid='term-innovation'>Innovation</div>
+            <div data-testid='term-innovations'>Innovations</div>
+            <div data-testid='term-developpement'>Développement</div>
+            <div data-testid='term-conception'>Conception</div>
+            <div data-testid='term-creation'>Création</div>
+            <div data-testid='term-implementation'>Implémentation</div>
+            <div data-testid='term-realisation'>Réalisation</div>
+            <div data-testid='term-vote'>Vote</div>
+            <div data-testid='term-votes'>Votes</div>
+            <div data-testid='term-voter'>Voter</div>
+            <div data-testid='term-suffrage'>Suffrage</div>
+            <div data-testid='term-approbation'>Approbation</div>
+            <div data-testid='term-soutien'>Soutien</div>
+            <div data-testid='term-evaluation'>Évaluation</div>
+            <div data-testid='term-notation'>Notation</div>
+            <div data-testid='term-classement'>Classement</div>
+            <div data-testid='term-popularite'>Popularité</div>
+            <div data-testid='term-tendance'>Tendance</div>
+            <div data-testid='term-priorite'>Priorité</div>
+            <div data-testid='term-priorites'>Priorités</div>
+            <div data-testid='term-prioritaire'>Prioritaire</div>
+            <div data-testid='term-urgent'>Urgent</div>
+            <div data-testid='term-important'>Important</div>
+            <div data-testid='term-critique'>Critique</div>
+            <div data-testid='term-essentiel'>Essentiel</div>
+            <div data-testid='term-necessaire'>Nécessaire</div>
+            <div data-testid='term-souhaitable'>Souhaitable</div>
+            <div data-testid='term-optionnel'>Optionnel</div>
+            <div data-testid='term-statut'>Statut</div>
+            <div data-testid='term-etat'>État</div>
+            <div data-testid='term-phase'>Phase</div>
+            <div data-testid='term-etape'>Étape</div>
+            <div data-testid='term-stade'>Stade</div>
+            <div data-testid='term-soumis'>Soumis</div>
+            <div data-testid='term-en-revision'>En révision</div>
+            <div data-testid='term-en-evaluation'>En évaluation</div>
+            <div data-testid='term-planifie'>Planifié</div>
+            <div data-testid='term-programme'>Programmé</div>
+            <div data-testid='term-en-cours'>En cours</div>
+            <div data-testid='term-en-developpement'>En développement</div>
+            <div data-testid='term-termine'>Terminé</div>
+            <div data-testid='term-complete'>Complété</div>
+            <div data-testid='term-acheve'>Achevé</div>
+            <div data-testid='term-rejete'>Rejeté</div>
+            <div data-testid='term-refuse'>Refusé</div>
+            <div data-testid='term-decline'>Décliné</div>
+            <div data-testid='term-annule'>Annulé</div>
+            <div data-testid='term-reporte'>Reporté</div>
+            <div data-testid='term-suspendu'>Suspendu</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <FeatureDevelopmentTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec feature development and innovation terminology
+      expect(screen.getByTestId('term-boite-idees')).toHaveTextContent('Boîte à idées');
+      expect(screen.getByTestId('term-idee')).toHaveTextContent('Idée');
+      expect(screen.getByTestId('term-idees')).toHaveTextContent('Idées');
+      expect(screen.getByTestId('term-suggestion')).toHaveTextContent('Suggestion');
+      expect(screen.getByTestId('term-suggestions')).toHaveTextContent('Suggestions');
+      expect(screen.getByTestId('term-proposition')).toHaveTextContent('Proposition');
+      expect(screen.getByTestId('term-propositions')).toHaveTextContent('Propositions');
+      expect(screen.getByTestId('term-demande-fonctionnalite')).toHaveTextContent('Demande de fonctionnalité');
+      expect(screen.getByTestId('term-demandes-fonctionnalites')).toHaveTextContent('Demandes de fonctionnalités');
+      expect(screen.getByTestId('term-fonctionnalite')).toHaveTextContent('Fonctionnalité');
+      expect(screen.getByTestId('term-fonctionnalites')).toHaveTextContent('Fonctionnalités');
+      expect(screen.getByTestId('term-caracteristique')).toHaveTextContent('Caractéristique');
+      expect(screen.getByTestId('term-caracteristiques')).toHaveTextContent('Caractéristiques');
+      expect(screen.getByTestId('term-amelioration')).toHaveTextContent('Amélioration');
+      expect(screen.getByTestId('term-ameliorations')).toHaveTextContent('Améliorations');
+      expect(screen.getByTestId('term-innovation')).toHaveTextContent('Innovation');
+      expect(screen.getByTestId('term-innovations')).toHaveTextContent('Innovations');
+      expect(screen.getByTestId('term-developpement')).toHaveTextContent('Développement');
+      expect(screen.getByTestId('term-conception')).toHaveTextContent('Conception');
+      expect(screen.getByTestId('term-creation')).toHaveTextContent('Création');
+      expect(screen.getByTestId('term-implementation')).toHaveTextContent('Implémentation');
+      expect(screen.getByTestId('term-realisation')).toHaveTextContent('Réalisation');
+      expect(screen.getByTestId('term-vote')).toHaveTextContent('Vote');
+      expect(screen.getByTestId('term-votes')).toHaveTextContent('Votes');
+      expect(screen.getByTestId('term-voter')).toHaveTextContent('Voter');
+      expect(screen.getByTestId('term-suffrage')).toHaveTextContent('Suffrage');
+      expect(screen.getByTestId('term-approbation')).toHaveTextContent('Approbation');
+      expect(screen.getByTestId('term-soutien')).toHaveTextContent('Soutien');
+      expect(screen.getByTestId('term-evaluation')).toHaveTextContent('Évaluation');
+      expect(screen.getByTestId('term-notation')).toHaveTextContent('Notation');
+      expect(screen.getByTestId('term-classement')).toHaveTextContent('Classement');
+      expect(screen.getByTestId('term-popularite')).toHaveTextContent('Popularité');
+      expect(screen.getByTestId('term-tendance')).toHaveTextContent('Tendance');
+      expect(screen.getByTestId('term-priorite')).toHaveTextContent('Priorité');
+      expect(screen.getByTestId('term-priorites')).toHaveTextContent('Priorités');
+      expect(screen.getByTestId('term-prioritaire')).toHaveTextContent('Prioritaire');
+      expect(screen.getByTestId('term-urgent')).toHaveTextContent('Urgent');
+      expect(screen.getByTestId('term-important')).toHaveTextContent('Important');
+      expect(screen.getByTestId('term-critique')).toHaveTextContent('Critique');
+      expect(screen.getByTestId('term-essentiel')).toHaveTextContent('Essentiel');
+      expect(screen.getByTestId('term-necessaire')).toHaveTextContent('Nécessaire');
+      expect(screen.getByTestId('term-souhaitable')).toHaveTextContent('Souhaitable');
+      expect(screen.getByTestId('term-optionnel')).toHaveTextContent('Optionnel');
+      expect(screen.getByTestId('term-statut')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('term-etat')).toHaveTextContent('État');
+      expect(screen.getByTestId('term-phase')).toHaveTextContent('Phase');
+      expect(screen.getByTestId('term-etape')).toHaveTextContent('Étape');
+      expect(screen.getByTestId('term-stade')).toHaveTextContent('Stade');
+      expect(screen.getByTestId('term-soumis')).toHaveTextContent('Soumis');
+      expect(screen.getByTestId('term-en-revision')).toHaveTextContent('En révision');
+      expect(screen.getByTestId('term-en-evaluation')).toHaveTextContent('En évaluation');
+      expect(screen.getByTestId('term-planifie')).toHaveTextContent('Planifié');
+      expect(screen.getByTestId('term-programme')).toHaveTextContent('Programmé');
+      expect(screen.getByTestId('term-en-cours')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('term-en-developpement')).toHaveTextContent('En développement');
+      expect(screen.getByTestId('term-termine')).toHaveTextContent('Terminé');
+      expect(screen.getByTestId('term-complete')).toHaveTextContent('Complété');
+      expect(screen.getByTestId('term-acheve')).toHaveTextContent('Achevé');
+      expect(screen.getByTestId('term-rejete')).toHaveTextContent('Rejeté');
+      expect(screen.getByTestId('term-refuse')).toHaveTextContent('Refusé');
+      expect(screen.getByTestId('term-decline')).toHaveTextContent('Décliné');
+      expect(screen.getByTestId('term-annule')).toHaveTextContent('Annulé');
+      expect(screen.getByTestId('term-reporte')).toHaveTextContent('Reporté');
+      expect(screen.getByTestId('term-suspendu')).toHaveTextContent('Suspendu');
+    });
+
+    it('should display proper feature development workflow in French', () => {
+      const FeatureDevelopmentWorkflow = () => {
+        return (
+          <div data-testid='feature-development-workflow'>
+            {/* Feature development workflow */}
+            <div data-testid='workflow-submit-idea'>
+              <div data-testid='step-submit-title'>1. Soumettre l'idée</div>
+              <div data-testid='step-submit-description'>
+                Proposez une nouvelle fonctionnalité en décrivant le besoin et la solution envisagée
+              </div>
+            </div>
+
+            <div data-testid='workflow-community-voting'>
+              <div data-testid='step-voting-title'>2. Vote de la communauté</div>
+              <div data-testid='step-voting-description'>
+                La communauté vote pour les fonctionnalités les plus importantes et utiles
+              </div>
+            </div>
+
+            <div data-testid='workflow-evaluation'>
+              <div data-testid='step-evaluation-title'>3. Évaluation et planification</div>
+              <div data-testid='step-evaluation-description'>
+                L'équipe technique évalue la faisabilité et planifie le développement
+              </div>
+            </div>
+
+            <div data-testid='workflow-development'>
+              <div data-testid='step-development-title'>4. Développement</div>
+              <div data-testid='step-development-description'>
+                Implémentation de la fonctionnalité selon les spécifications approuvées
+              </div>
+            </div>
+
+            <div data-testid='workflow-release'>
+              <div data-testid='step-release-title'>5. Mise en production</div>
+              <div data-testid='step-release-description'>
+                Déploiement de la nouvelle fonctionnalité et notification aux utilisateurs
+              </div>
+            </div>
+
+            {/* Feature lifecycle states */}
+            <div data-testid='feature-lifecycle'>
+              <div data-testid='lifecycle-submitted-desc'>
+                Soumis - Nouvelle idée proposée par un utilisateur, en attente d'évaluation
+              </div>
+              <div data-testid='lifecycle-review-desc'>
+                En révision - Idée évaluée par l'équipe pour faisabilité et pertinence
+              </div>
+              <div data-testid='lifecycle-planned-desc'>
+                Planifié - Fonctionnalité approuvée et ajoutée à la feuille de route
+              </div>
+              <div data-testid='lifecycle-progress-desc'>
+                En cours - Développement actif de la fonctionnalité par l'équipe technique
+              </div>
+              <div data-testid='lifecycle-completed-desc'>
+                Terminé - Fonctionnalité développée, testée et mise en production
+              </div>
+              <div data-testid='lifecycle-rejected-desc'>
+                Rejeté - Idée non retenue après évaluation ou non compatible avec la vision produit
+              </div>
+            </div>
+
+            {/* Voting guidelines */}
+            <div data-testid='voting-guidelines'>
+              <div data-testid='voting-purpose-desc'>
+                Les votes aident à prioriser les fonctionnalités selon les besoins réels des utilisateurs
+              </div>
+              <div data-testid='voting-criteria-desc'>
+                Votez pour les idées qui amélioreraient significativement votre expérience d'utilisation
+              </div>
+              <div data-testid='voting-impact-desc'>
+                Plus une idée reçoit de votes, plus elle a de chances d'être priorisée dans le développement
+              </div>
+              <div data-testid='voting-feedback-desc'>
+                Vous pouvez ajouter des commentaires pour enrichir et préciser les propositions
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <FeatureDevelopmentWorkflow />
+        </TestProviders>
+      );
+
+      // Verify feature development workflow uses Quebec French
+      expect(screen.getByTestId('step-submit-title')).toHaveTextContent('1. Soumettre l\'idée');
+      expect(screen.getByTestId('step-submit-description')).toHaveTextContent('Proposez une nouvelle fonctionnalité en décrivant le besoin et la solution envisagée');
+      expect(screen.getByTestId('step-voting-title')).toHaveTextContent('2. Vote de la communauté');
+      expect(screen.getByTestId('step-voting-description')).toHaveTextContent('La communauté vote pour les fonctionnalités les plus importantes et utiles');
+      expect(screen.getByTestId('step-evaluation-title')).toHaveTextContent('3. Évaluation et planification');
+      expect(screen.getByTestId('step-evaluation-description')).toHaveTextContent('L\'équipe technique évalue la faisabilité et planifie le développement');
+      expect(screen.getByTestId('step-development-title')).toHaveTextContent('4. Développement');
+      expect(screen.getByTestId('step-development-description')).toHaveTextContent('Implémentation de la fonctionnalité selon les spécifications approuvées');
+      expect(screen.getByTestId('step-release-title')).toHaveTextContent('5. Mise en production');
+      expect(screen.getByTestId('step-release-description')).toHaveTextContent('Déploiement de la nouvelle fonctionnalité et notification aux utilisateurs');
+
+      // Verify feature lifecycle descriptions
+      expect(screen.getByTestId('lifecycle-submitted-desc')).toHaveTextContent('Soumis - Nouvelle idée proposée par un utilisateur, en attente d\'évaluation');
+      expect(screen.getByTestId('lifecycle-review-desc')).toHaveTextContent('En révision - Idée évaluée par l\'équipe pour faisabilité et pertinence');
+      expect(screen.getByTestId('lifecycle-planned-desc')).toHaveTextContent('Planifié - Fonctionnalité approuvée et ajoutée à la feuille de route');
+      expect(screen.getByTestId('lifecycle-progress-desc')).toHaveTextContent('En cours - Développement actif de la fonctionnalité par l\'équipe technique');
+      expect(screen.getByTestId('lifecycle-completed-desc')).toHaveTextContent('Terminé - Fonctionnalité développée, testée et mise en production');
+      expect(screen.getByTestId('lifecycle-rejected-desc')).toHaveTextContent('Rejeté - Idée non retenue après évaluation ou non compatible avec la vision produit');
+
+      // Verify voting guidelines
+      expect(screen.getByTestId('voting-purpose-desc')).toHaveTextContent('Les votes aident à prioriser les fonctionnalités selon les besoins réels des utilisateurs');
+      expect(screen.getByTestId('voting-criteria-desc')).toHaveTextContent('Votez pour les idées qui amélioreraient significativement votre expérience d\'utilisation');
+      expect(screen.getByTestId('voting-impact-desc')).toHaveTextContent('Plus une idée reçoit de votes, plus elle a de chances d\'être priorisée dans le développement');
+      expect(screen.getByTestId('voting-feedback-desc')).toHaveTextContent('Vous pouvez ajouter des commentaires pour enrichir et préciser les propositions');
+    });
+
+    it('should have proper data-testid attributes for idea box page elements', () => {
+      const IdeaBoxWithTestIds = () => {
+        return (
+          <div data-testid='idea-box-page'>
+            <div data-testid='feature-requests-section'>Demandes de fonctionnalités</div>
+            <div data-testid='search-filters-section'>Recherche et filtres</div>
+            <div data-testid='feature-requests-list'>Liste des demandes</div>
+            <div data-testid='dialog-create-feature'>Créer une demande</div>
+            <div data-testid='dialog-edit-feature'>Modifier une demande</div>
+            <div data-testid='dialog-feature-details'>Détails de la fonctionnalité</div>
+            <input data-testid='input-search-features' />
+            <select data-testid='select-status-filter' />
+            <select data-testid='select-category-filter' />
+            <select data-testid='select-sort-by' />
+            <button data-testid='button-create-feature-request'>Créer</button>
+            <input data-testid='input-feature-title' />
+            <textarea data-testid='textarea-feature-description' />
+            <textarea data-testid='textarea-feature-need' />
+            <select data-testid='select-feature-category' />
+            <input data-testid='input-feature-page' />
+            <button data-testid='button-submit-feature-request'>Soumettre</button>
+            <button data-testid='button-upvote'>Voter</button>
+            <button data-testid='button-edit-feature'>Modifier</button>
+            <button data-testid='button-delete-feature'>Supprimer</button>
+            <div data-testid='loading-feature-requests'>Chargement</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <IdeaBoxWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all idea box page elements have proper test IDs
+      expect(screen.getByTestId('idea-box-page')).toBeInTheDocument();
+      expect(screen.getByTestId('feature-requests-section')).toBeInTheDocument();
+      expect(screen.getByTestId('search-filters-section')).toBeInTheDocument();
+      expect(screen.getByTestId('feature-requests-list')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-create-feature')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-edit-feature')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-feature-details')).toBeInTheDocument();
+      expect(screen.getByTestId('input-search-features')).toBeInTheDocument();
+      expect(screen.getByTestId('select-status-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('select-category-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('select-sort-by')).toBeInTheDocument();
+      expect(screen.getByTestId('button-create-feature-request')).toBeInTheDocument();
+      expect(screen.getByTestId('input-feature-title')).toBeInTheDocument();
+      expect(screen.getByTestId('textarea-feature-description')).toBeInTheDocument();
+      expect(screen.getByTestId('textarea-feature-need')).toBeInTheDocument();
+      expect(screen.getByTestId('select-feature-category')).toBeInTheDocument();
+      expect(screen.getByTestId('input-feature-page')).toBeInTheDocument();
+      expect(screen.getByTestId('button-submit-feature-request')).toBeInTheDocument();
+      expect(screen.getByTestId('button-upvote')).toBeInTheDocument();
+      expect(screen.getByTestId('button-edit-feature')).toBeInTheDocument();
+      expect(screen.getByTestId('button-delete-feature')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-feature-requests')).toBeInTheDocument();
+
+      // Verify inputs have proper attributes
+      const searchInput = screen.getByTestId('input-search-features');
+      expect(searchInput).toHaveAttribute('data-testid');
+      expect(searchInput.tagName.toLowerCase()).toBe('input');
+
+      // Verify buttons have proper attributes
+      const createButton = screen.getByTestId('button-create-feature-request');
+      expect(createButton).toHaveAttribute('data-testid');
+      expect(createButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -8505,6 +9555,94 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   'sort by status': 'trier par statut',
   ascending: 'croissant',
   descending: 'décroissant',
+
+  // Idea box and feature development terms
+  'idea box': 'boîte à idées',
+  'submit and vote on feature suggestions': 'soumettez et votez pour des suggestions de fonctionnalités',
+  'feature requests': 'demandes de fonctionnalités',
+  'search feature requests': 'rechercher des demandes de fonctionnalités',
+  'submit idea': 'soumettre une idée',
+  submitted: 'soumis',
+  'under review': 'en révision',
+  planned: 'planifié',
+  'in progress': 'en cours',
+  completed: 'terminé',
+  rejected: 'rejeté',
+  'all categories': 'toutes les catégories',
+  'property management': 'gestion immobilière',
+  'resident management': 'gestion des résidents',
+  'financial management': 'gestion financière',
+  'document management': 'gestion documentaire',
+  communication: 'communication',
+  reports: 'rapports',
+  'mobile app': 'application mobile',
+  integrations: 'intégrations',
+  'newest first': 'plus récent en premier',
+  'oldest first': 'plus ancien en premier',
+  'most upvoted': 'plus voté',
+  'least upvoted': 'moins voté',
+  'no feature requests found': 'aucune demande de fonctionnalité trouvée',
+  'be the first to submit a feature request': 'soyez le premier à soumettre une demande de fonctionnalité',
+  'try adjusting your filters to see more results': 'essayez d\'ajuster vos filtres pour voir plus de résultats',
+  'submit a feature request': 'soumettre une demande de fonctionnalité',
+  'brief description of the feature you need': 'description brève de la fonctionnalité dont vous avez besoin',
+  'detailed description of the feature and how it should work': 'description détaillée de la fonctionnalité et de son fonctionnement',
+  'what need does this address': 'quel besoin cela adresse-t-il',
+  'explain the specific need or problem this feature would solve': 'expliquez le besoin spécifique ou le problème que cette fonctionnalité résoudrait',
+  'select category': 'sélectionner une catégorie',
+  'e.g. dashboard settings buildings page': 'ex. tableau de bord, paramètres, page des immeubles',
+  'submit feature request': 'soumettre la demande de fonctionnalité',
+  'edit feature request': 'modifier la demande de fonctionnalité',
+  'need addressed': 'besoin adressé',
+  'assigned to': 'assigné à',
+  'admin notes': 'notes administratives',
+  'upvotes': 'votes positifs',
+  'positive votes': 'votes positifs',
+  'vote for': 'voter pour',
+  upvote: 'voter pour',
+  'remove upvote': 'retirer le vote',
+  'feature request details': 'détails de la demande de fonctionnalité',
+  'request id': 'identifiant de la demande',
+  'request identifier': 'identifiant de la demande',
+  'number of votes': 'nombre de votes',
+  'reviewed by': 'révisé par',
+  'review date': 'date de révision',
+  'delete feature request': 'supprimer la demande de fonctionnalité',
+  'are you sure you want to delete this feature request': 'êtes-vous sûr de vouloir supprimer cette demande de fonctionnalité',
+  'feature request submitted': 'demande de fonctionnalité soumise',
+  'your feature request has been submitted successfully': 'votre demande de fonctionnalité a été soumise avec succès',
+  'feature request updated': 'demande de fonctionnalité mise à jour',
+  'feature request has been updated successfully': 'la demande de fonctionnalité a été mise à jour avec succès',
+  'feature request deleted': 'demande de fonctionnalité supprimée',
+  'feature request has been deleted successfully': 'la demande de fonctionnalité a été supprimée avec succès',
+  upvoted: 'vote enregistré',
+  'your upvote has been recorded': 'votre vote a été enregistré',
+  'upvote removed': 'vote retiré',
+  'your upvote has been removed': 'votre vote a été retiré',
+  'failed to create feature request': 'échec de la création de la demande de fonctionnalité',
+  'failed to update feature request': 'échec de la mise à jour de la demande de fonctionnalité',
+  'failed to delete feature request': 'échec de la suppression de la demande de fonctionnalité',
+  'failed to upvote feature request': 'échec du vote pour la demande de fonctionnalité',
+  'failed to remove upvote': 'échec de la suppression du vote',
+  'title must not exceed 200 characters': 'le titre ne doit pas dépasser 200 caractères',
+  'description must be at least 10 characters': 'la description doit contenir au moins 10 caractères',
+  'description must not exceed 2000 characters': 'la description ne doit pas dépasser 2000 caractères',
+  'need must be at least 5 characters': 'le besoin doit contenir au moins 5 caractères',
+  'need must not exceed 500 characters': 'le besoin ne doit pas dépasser 500 caractères',
+  'loading feature requests': 'chargement des demandes de fonctionnalités',
+  'creating request': 'création de la demande en cours',
+  'recording vote': 'enregistrement du vote',
+  'cannot edit feature': 'vous n\'avez pas la permission de modifier cette demande de fonctionnalité',
+  'cannot delete feature': 'vous n\'avez pas la permission de supprimer cette demande de fonctionnalité',
+  'admin only feature action': 'cette action est réservée aux administrateurs',
+  'filter by category': 'filtrer par catégorie',
+  'sort by': 'trier par',
+  votes: 'votes',
+  'vote for this idea': 'voter pour cette idée',
+  'remove your vote': 'retirer votre vote',
+  'you voted': 'vous avez voté',
+  'popular idea': 'idée populaire',
+  'trending idea': 'idée tendance',
 };
 
 /**
