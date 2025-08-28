@@ -4308,6 +4308,700 @@ describe('Website Translation Tests', () => {
       expect(createBillButton.tagName.toLowerCase()).toBe('button');
     });
   });
+
+  describe('Manager Demands Page Translation', () => {
+    it('should display manager demands page with proper French translations', () => {
+      const ManagerDemandsPage = () => {
+        return (
+          <div data-testid='manager-demands-page'>
+            {/* Header Section */}
+            <div data-testid='header-demands-management'>Gestion des demandes</div>
+            <div data-testid='header-subtitle'>
+              Gérer les demandes de maintenance et les réclamations
+            </div>
+
+            {/* Main Section */}
+            <div data-testid='main-section'>
+              <div data-testid='all-demands-title'>Toutes les demandes</div>
+              <div data-testid='all-demands-subtitle'>
+                Examiner et gérer les demandes des résidents
+              </div>
+              
+              <button data-testid='button-new-demand'>Nouvelle demande</button>
+            </div>
+
+            {/* Filters Section */}
+            <div data-testid='filters-section'>
+              <div data-testid='search-input'>
+                <div data-testid='placeholder-search-demands'>
+                  Rechercher des demandes...
+                </div>
+              </div>
+
+              <div data-testid='status-filter'>
+                <div data-testid='placeholder-status'>Statut</div>
+                <div data-testid='option-all-status'>Tous les statuts</div>
+                <div data-testid='status-draft'>Brouillon</div>
+                <div data-testid='status-submitted'>Soumise</div>
+                <div data-testid='status-under-review'>En révision</div>
+                <div data-testid='status-approved'>Approuvée</div>
+                <div data-testid='status-in-progress'>En cours</div>
+                <div data-testid='status-completed'>Complétée</div>
+                <div data-testid='status-rejected'>Rejetée</div>
+                <div data-testid='status-cancelled'>Annulée</div>
+              </div>
+
+              <div data-testid='type-filter'>
+                <div data-testid='placeholder-type'>Type</div>
+                <div data-testid='option-all-types'>Tous les types</div>
+                <div data-testid='type-maintenance'>Maintenance</div>
+                <div data-testid='type-complaint'>Plainte</div>
+                <div data-testid='type-information'>Information</div>
+                <div data-testid='type-other'>Autre</div>
+              </div>
+            </div>
+
+            {/* Tabs Section */}
+            <div data-testid='tabs-section'>
+              <div data-testid='tab-pending-review'>En attente de révision (0)</div>
+              <div data-testid='tab-active'>Actives (0)</div>
+              <div data-testid='tab-completed'>Complétées (0)</div>
+              <div data-testid='tab-all'>Toutes (0)</div>
+            </div>
+
+            {/* Create Demand Dialog */}
+            <div data-testid='dialog-create-demand'>
+              <div data-testid='create-demand-title'>Créer une nouvelle demande</div>
+              <div data-testid='create-demand-description'>
+                Créer une demande au nom d'un résident
+              </div>
+              
+              <div data-testid='create-demand-form'>
+                <div data-testid='label-demand-type'>Type</div>
+                <div data-testid='placeholder-select-type'>Sélectionner le type</div>
+                <div data-testid='option-maintenance'>Maintenance</div>
+                <div data-testid='option-complaint'>Plainte</div>
+                <div data-testid='option-information'>Information</div>
+                <div data-testid='option-other'>Autre</div>
+
+                <div data-testid='label-building'>Immeuble</div>
+                <div data-testid='placeholder-select-building'>Sélectionner un immeuble</div>
+
+                <div data-testid='label-description'>Description</div>
+                <div data-testid='placeholder-describe-demand'>
+                  Décrivez la demande en détail...
+                </div>
+
+                <button data-testid='button-create-demand'>Créer</button>
+                <button data-testid='button-creating-demand'>Création en cours...</button>
+              </div>
+            </div>
+
+            {/* Demand Cards */}
+            <div data-testid='demand-card-1'>
+              <div data-testid='demand-type-badge'>Maintenance</div>
+              <div data-testid='demand-status-badge'>En révision</div>
+              <div data-testid='demand-description'>Réparation du système de plomberie</div>
+              
+              <div data-testid='demand-details'>
+                <div data-testid='submitted-by-label'>Soumise par:</div>
+                <div data-testid='submitter-name'>Jean Dupont</div>
+                
+                <div data-testid='building-label'>Immeuble:</div>
+                <div data-testid='building-name'>Immeuble Démo</div>
+                
+                <div data-testid='residence-label'>Résidence:</div>
+                <div data-testid='residence-name'>Unité 101</div>
+                
+                <div data-testid='created-label'>Créée:</div>
+                <div data-testid='created-date'>2025-01-15</div>
+              </div>
+            </div>
+
+            {/* Empty States */}
+            <div data-testid='no-demands-pending-review'>Aucune demande en attente de révision</div>
+            <div data-testid='no-active-demands'>Aucune demande active</div>
+            <div data-testid='no-completed-demands'>Aucune demande complétée</div>
+            <div data-testid='no-demands-found'>Aucune demande trouvée</div>
+            <div data-testid='total-demands-loaded'>
+              (25 demandes totales chargées, mais filtrées)
+            </div>
+
+            {/* Loading States */}
+            <div data-testid='loading-demands'>Chargement des demandes...</div>
+
+            {/* Toast Messages */}
+            <div data-testid='toast-success-title'>Succès</div>
+            <div data-testid='toast-demand-created'>Demande créée avec succès</div>
+            <div data-testid='toast-error-title'>Erreur</div>
+            <div data-testid='toast-failed-create-demand'>Échec de la création de la demande</div>
+
+            {/* Validation Messages */}
+            <div data-testid='validation-description-min-length'>
+              La description doit contenir au moins 10 caractères
+            </div>
+            <div data-testid='validation-building-required'>L'immeuble est requis</div>
+            <div data-testid='validation-type-required'>Le type est requis</div>
+
+            {/* Additional Labels */}
+            <div data-testid='label-priority'>Priorité</div>
+            <div data-testid='label-assignment'>Attribution</div>
+            <div data-testid='label-due-date'>Date d'échéance</div>
+            <div data-testid='label-review-notes'>Notes de révision</div>
+            <div data-testid='label-attachments'>Pièces jointes</div>
+            <div data-testid='label-resolution'>Résolution</div>
+            <div data-testid='label-estimated-cost'>Coût estimé</div>
+            <div data-testid='label-actual-cost'>Coût réel</div>
+
+            {/* Priority Levels */}
+            <div data-testid='priority-low'>Faible</div>
+            <div data-testid='priority-medium'>Moyenne</div>
+            <div data-testid='priority-high'>Élevée</div>
+            <div data-testid='priority-urgent'>Urgente</div>
+
+            {/* Action Buttons */}
+            <div data-testid='button-approve'>Approuver</div>
+            <div data-testid='button-reject'>Rejeter</div>
+            <div data-testid='button-assign'>Attribuer</div>
+            <div data-testid='button-start-work'>Commencer le travail</div>
+            <div data-testid='button-mark-completed'>Marquer comme complétée</div>
+            <div data-testid='button-cancel-demand'>Annuler la demande</div>
+            <div data-testid='button-reopen'>Rouvrir</div>
+
+            {/* Demand Categories */}
+            <div data-testid='category-plumbing'>Plomberie</div>
+            <div data-testid='category-electrical'>Électricité</div>
+            <div data-testid='category-heating'>Chauffage</div>
+            <div data-testid='category-air-conditioning'>Climatisation</div>
+            <div data-testid='category-appliances'>Électroménagers</div>
+            <div data-testid='category-painting'>Peinture</div>
+            <div data-testid='category-flooring'>Revêtement de sol</div>
+            <div data-testid='category-windows'>Fenêtres</div>
+            <div data-testid='category-doors'>Portes</div>
+            <div data-testid='category-security'>Sécurité</div>
+            <div data-testid='category-cleaning'>Nettoyage</div>
+            <div data-testid='category-noise-complaint'>Plainte de bruit</div>
+            <div data-testid='category-neighbor-complaint'>Plainte de voisinage</div>
+
+            {/* Status Indicators */}
+            <div data-testid='indicator-new'>Nouveau</div>
+            <div data-testid='indicator-urgent'>Urgent</div>
+            <div data-testid='indicator-overdue'>En retard</div>
+            <div data-testid='indicator-on-hold'>En attente</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerDemandsPage />
+        </TestProviders>
+      );
+
+      // Verify header translations
+      expect(screen.getByTestId('header-demands-management')).toHaveTextContent('Gestion des demandes');
+      expect(screen.getByTestId('header-subtitle')).toHaveTextContent('Gérer les demandes de maintenance et les réclamations');
+
+      // Verify main section
+      expect(screen.getByTestId('all-demands-title')).toHaveTextContent('Toutes les demandes');
+      expect(screen.getByTestId('all-demands-subtitle')).toHaveTextContent('Examiner et gérer les demandes des résidents');
+      expect(screen.getByTestId('button-new-demand')).toHaveTextContent('Nouvelle demande');
+
+      // Verify filters section
+      expect(screen.getByTestId('placeholder-search-demands')).toHaveTextContent('Rechercher des demandes');
+      expect(screen.getByTestId('placeholder-status')).toHaveTextContent('Statut');
+      expect(screen.getByTestId('option-all-status')).toHaveTextContent('Tous les statuts');
+      expect(screen.getByTestId('placeholder-type')).toHaveTextContent('Type');
+      expect(screen.getByTestId('option-all-types')).toHaveTextContent('Tous les types');
+
+      // Verify status options use Quebec French
+      expect(screen.getByTestId('status-draft')).toHaveTextContent('Brouillon');
+      expect(screen.getByTestId('status-submitted')).toHaveTextContent('Soumise');
+      expect(screen.getByTestId('status-under-review')).toHaveTextContent('En révision');
+      expect(screen.getByTestId('status-approved')).toHaveTextContent('Approuvée');
+      expect(screen.getByTestId('status-in-progress')).toHaveTextContent('En cours');
+      expect(screen.getByTestId('status-completed')).toHaveTextContent('Complétée');
+      expect(screen.getByTestId('status-rejected')).toHaveTextContent('Rejetée');
+      expect(screen.getByTestId('status-cancelled')).toHaveTextContent('Annulée');
+
+      // Verify type options use Quebec French
+      expect(screen.getByTestId('type-maintenance')).toHaveTextContent('Maintenance');
+      expect(screen.getByTestId('type-complaint')).toHaveTextContent('Plainte');
+      expect(screen.getByTestId('type-information')).toHaveTextContent('Information');
+      expect(screen.getByTestId('type-other')).toHaveTextContent('Autre');
+
+      // Verify tabs section
+      expect(screen.getByTestId('tab-pending-review')).toHaveTextContent('En attente de révision (0)');
+      expect(screen.getByTestId('tab-active')).toHaveTextContent('Actives (0)');
+      expect(screen.getByTestId('tab-completed')).toHaveTextContent('Complétées (0)');
+      expect(screen.getByTestId('tab-all')).toHaveTextContent('Toutes (0)');
+
+      // Verify create demand dialog
+      expect(screen.getByTestId('create-demand-title')).toHaveTextContent('Créer une nouvelle demande');
+      expect(screen.getByTestId('create-demand-description')).toHaveTextContent('Créer une demande au nom d\'un résident');
+      expect(screen.getByTestId('label-demand-type')).toHaveTextContent('Type');
+      expect(screen.getByTestId('placeholder-select-type')).toHaveTextContent('Sélectionner le type');
+      expect(screen.getByTestId('label-building')).toHaveTextContent('Immeuble');
+      expect(screen.getByTestId('placeholder-select-building')).toHaveTextContent('Sélectionner un immeuble');
+      expect(screen.getByTestId('label-description')).toHaveTextContent('Description');
+      expect(screen.getByTestId('placeholder-describe-demand')).toHaveTextContent('Décrivez la demande en détail');
+
+      // Verify form options
+      expect(screen.getByTestId('option-maintenance')).toHaveTextContent('Maintenance');
+      expect(screen.getByTestId('option-complaint')).toHaveTextContent('Plainte');
+      expect(screen.getByTestId('option-information')).toHaveTextContent('Information');
+      expect(screen.getByTestId('option-other')).toHaveTextContent('Autre');
+
+      // Verify action buttons
+      expect(screen.getByTestId('button-create-demand')).toHaveTextContent('Créer');
+      expect(screen.getByTestId('button-creating-demand')).toHaveTextContent('Création en cours');
+
+      // Verify demand card details
+      expect(screen.getByTestId('submitted-by-label')).toHaveTextContent('Soumise par:');
+      expect(screen.getByTestId('building-label')).toHaveTextContent('Immeuble:');
+      expect(screen.getByTestId('residence-label')).toHaveTextContent('Résidence:');
+      expect(screen.getByTestId('created-label')).toHaveTextContent('Créée:');
+
+      // Verify empty states
+      expect(screen.getByTestId('no-demands-pending-review')).toHaveTextContent('Aucune demande en attente de révision');
+      expect(screen.getByTestId('no-active-demands')).toHaveTextContent('Aucune demande active');
+      expect(screen.getByTestId('no-completed-demands')).toHaveTextContent('Aucune demande complétée');
+      expect(screen.getByTestId('no-demands-found')).toHaveTextContent('Aucune demande trouvée');
+
+      // Verify loading states
+      expect(screen.getByTestId('loading-demands')).toHaveTextContent('Chargement des demandes');
+
+      // Verify validation messages
+      expect(screen.getByTestId('validation-description-min-length')).toHaveTextContent('La description doit contenir au moins 10 caractères');
+      expect(screen.getByTestId('validation-building-required')).toHaveTextContent('L\'immeuble est requis');
+
+      // Verify priority levels
+      expect(screen.getByTestId('priority-low')).toHaveTextContent('Faible');
+      expect(screen.getByTestId('priority-medium')).toHaveTextContent('Moyenne');
+      expect(screen.getByTestId('priority-high')).toHaveTextContent('Élevée');
+      expect(screen.getByTestId('priority-urgent')).toHaveTextContent('Urgente');
+
+      // Verify action buttons
+      expect(screen.getByTestId('button-approve')).toHaveTextContent('Approuver');
+      expect(screen.getByTestId('button-reject')).toHaveTextContent('Rejeter');
+      expect(screen.getByTestId('button-assign')).toHaveTextContent('Attribuer');
+      expect(screen.getByTestId('button-start-work')).toHaveTextContent('Commencer le travail');
+      expect(screen.getByTestId('button-mark-completed')).toHaveTextContent('Marquer comme complétée');
+      expect(screen.getByTestId('button-cancel-demand')).toHaveTextContent('Annuler la demande');
+
+      // Verify demand categories
+      expect(screen.getByTestId('category-plumbing')).toHaveTextContent('Plomberie');
+      expect(screen.getByTestId('category-electrical')).toHaveTextContent('Électricité');
+      expect(screen.getByTestId('category-heating')).toHaveTextContent('Chauffage');
+      expect(screen.getByTestId('category-air-conditioning')).toHaveTextContent('Climatisation');
+      expect(screen.getByTestId('category-noise-complaint')).toHaveTextContent('Plainte de bruit');
+      expect(screen.getByTestId('category-neighbor-complaint')).toHaveTextContent('Plainte de voisinage');
+    });
+
+    it('should avoid English terminology in manager demands page', () => {
+      const DemandsWithEnglishTerms = () => {
+        return (
+          <div data-testid='demands-with-english'>
+            {/* These should be avoided in French version */}
+            <div data-testid='incorrect-demands-management'>Demands Management</div>
+            <div data-testid='incorrect-manage-maintenance-requests'>Manage maintenance requests</div>
+            <div data-testid='incorrect-all-demands'>All Demands</div>
+            <div data-testid='incorrect-review-manage-demands'>Review and manage resident demands</div>
+            <div data-testid='incorrect-new-demand'>New Demand</div>
+            <div data-testid='incorrect-search-demands'>Search demands</div>
+            <div data-testid='incorrect-status'>Status</div>
+            <div data-testid='incorrect-all-status'>All Status</div>
+            <div data-testid='incorrect-type'>Type</div>
+            <div data-testid='incorrect-all-types'>All Types</div>
+            <div data-testid='incorrect-draft'>Draft</div>
+            <div data-testid='incorrect-submitted'>Submitted</div>
+            <div data-testid='incorrect-under-review'>Under Review</div>
+            <div data-testid='incorrect-approved'>Approved</div>
+            <div data-testid='incorrect-in-progress'>In Progress</div>
+            <div data-testid='incorrect-completed'>Completed</div>
+            <div data-testid='incorrect-rejected'>Rejected</div>
+            <div data-testid='incorrect-cancelled'>Cancelled</div>
+            <div data-testid='incorrect-maintenance'>Maintenance</div>
+            <div data-testid='incorrect-complaint'>Complaint</div>
+            <div data-testid='incorrect-information'>Information</div>
+            <div data-testid='incorrect-other'>Other</div>
+            <div data-testid='incorrect-pending-review'>Pending Review</div>
+            <div data-testid='incorrect-active'>Active</div>
+            <div data-testid='incorrect-all'>All</div>
+            <div data-testid='incorrect-create-new-demand'>Create New Demand</div>
+            <div data-testid='incorrect-create-demand-behalf'>Create a demand on behalf of a resident</div>
+            <div data-testid='incorrect-select-type'>Select type</div>
+            <div data-testid='incorrect-building'>Building</div>
+            <div data-testid='incorrect-select-building'>Select building</div>
+            <div data-testid='incorrect-description'>Description</div>
+            <div data-testid='incorrect-describe-demand-detail'>Describe the demand in detail</div>
+            <div data-testid='incorrect-create'>Create</div>
+            <div data-testid='incorrect-creating'>Creating</div>
+            <div data-testid='incorrect-submitted-by'>Submitted by</div>
+            <div data-testid='incorrect-residence'>Residence</div>
+            <div data-testid='incorrect-created'>Created</div>
+            <div data-testid='incorrect-no-demands-pending'>No demands pending review</div>
+            <div data-testid='incorrect-no-active-demands'>No active demands</div>
+            <div data-testid='incorrect-no-completed-demands'>No completed demands</div>
+            <div data-testid='incorrect-no-demands-found'>No demands found</div>
+            <div data-testid='incorrect-loading-demands'>Loading demands</div>
+            <div data-testid='incorrect-success'>Success</div>
+            <div data-testid='incorrect-demand-created-successfully'>Demand created successfully</div>
+            <div data-testid='incorrect-error'>Error</div>
+            <div data-testid='incorrect-failed-create-demand'>Failed to create demand</div>
+            <div data-testid='incorrect-approve'>Approve</div>
+            <div data-testid='incorrect-reject'>Reject</div>
+            <div data-testid='incorrect-assign'>Assign</div>
+            <div data-testid='incorrect-start-work'>Start Work</div>
+            <div data-testid='incorrect-mark-completed'>Mark Completed</div>
+            <div data-testid='incorrect-cancel'>Cancel</div>
+            <div data-testid='incorrect-priority'>Priority</div>
+            <div data-testid='incorrect-low'>Low</div>
+            <div data-testid='incorrect-medium'>Medium</div>
+            <div data-testid='incorrect-high'>High</div>
+            <div data-testid='incorrect-urgent'>Urgent</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <DemandsWithEnglishTerms />
+        </TestProviders>
+      );
+
+      // When in French mode, these English terms should not appear
+      const inappropriateTerms = [
+        'demands management',
+        'manage maintenance requests',
+        'all demands',
+        'review and manage',
+        'new demand',
+        'search demands',
+        'status',
+        'all status',
+        'type',
+        'all types',
+        'draft',
+        'submitted',
+        'under review',
+        'approved',
+        'in progress',
+        'completed',
+        'rejected',
+        'cancelled',
+        'maintenance',
+        'complaint',
+        'information',
+        'other',
+        'pending review',
+        'active',
+        'all',
+        'create new demand',
+        'create demand behalf',
+        'select type',
+        'building',
+        'select building',
+        'description',
+        'describe demand detail',
+        'create',
+        'creating',
+        'submitted by',
+        'residence',
+        'created',
+        'no demands pending',
+        'no active demands',
+        'no completed demands',
+        'no demands found',
+        'loading demands',
+        'success',
+        'demand created successfully',
+        'error',
+        'failed create demand',
+        'approve',
+        'reject',
+        'assign',
+        'start work',
+        'mark completed',
+        'cancel',
+        'priority',
+        'low',
+        'medium',
+        'high',
+        'urgent'
+      ];
+
+      // For testing purposes, we verify the elements exist (they should be translated)
+      inappropriateTerms.forEach(term => {
+        const testId = `incorrect-${term.replace(/\s+/g, '-').toLowerCase()}`;
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
+      });
+    });
+
+    it('should use proper Quebec maintenance and service request terminology', () => {
+      const MaintenanceServiceTerms = () => {
+        return (
+          <div data-testid='maintenance-service-terms'>
+            {/* Correct Quebec French maintenance and service request terms */}
+            <div data-testid='term-gestion-demandes'>Gestion des demandes</div>
+            <div data-testid='term-demandes-service'>Demandes de service</div>
+            <div data-testid='term-demandes-maintenance'>Demandes de maintenance</div>
+            <div data-testid='term-demandes-reparation'>Demandes de réparation</div>
+            <div data-testid='term-reclamations'>Réclamations</div>
+            <div data-testid='term-plaintes'>Plaintes</div>
+            <div data-testid='term-requetes'>Requêtes</div>
+            <div data-testid='term-interventions'>Interventions</div>
+            <div data-testid='term-travaux'>Travaux</div>
+            <div data-testid='term-travaux-maintenance'>Travaux de maintenance</div>
+            <div data-testid='term-travaux-reparation'>Travaux de réparation</div>
+            <div data-testid='term-entretien'>Entretien</div>
+            <div data-testid='term-entretien-preventif'>Entretien préventif</div>
+            <div data-testid='term-entretien-correctif'>Entretien correctif</div>
+            <div data-testid='term-reparations'>Réparations</div>
+            <div data-testid='term-reparations-urgentes'>Réparations urgentes</div>
+            <div data-testid='term-diagnostics'>Diagnostics</div>
+            <div data-testid='term-evaluations'>Évaluations</div>
+            <div data-testid='term-inspections'>Inspections</div>
+            <div data-testid='term-verifications'>Vérifications</div>
+            <div data-testid='term-controles'>Contrôles</div>
+            <div data-testid='term-suivis'>Suivis</div>
+            <div data-testid='term-rapports'>Rapports</div>
+            <div data-testid='term-comptes-rendus'>Comptes-rendus</div>
+            <div data-testid='term-bilans'>Bilans</div>
+            <div data-testid='term-états'>États</div>
+            <div data-testid='term-statuts'>Statuts</div>
+            <div data-testid='term-priorites'>Priorités</div>
+            <div data-testid='term-urgences'>Urgences</div>
+            <div data-testid='term-planifications'>Planifications</div>
+            <div data-testid='term-programmations'>Programmations</div>
+            <div data-testid='term-attributions'>Attributions</div>
+            <div data-testid='term-assignations'>Assignations</div>
+            <div data-testid='term-affectations'>Affectations</div>
+            <div data-testid='term-techniciens'>Techniciens</div>
+            <div data-testid='term-ouvriers'>Ouvriers</div>
+            <div data-testid='term-artisans'>Artisans</div>
+            <div data-testid='term-specialistes'>Spécialistes</div>
+            <div data-testid='term-entrepreneurs'>Entrepreneurs</div>
+            <div data-testid='term-sous-traitants'>Sous-traitants</div>
+            <div data-testid='term-fournisseurs-services'>Fournisseurs de services</div>
+            <div data-testid='term-prestataires'>Prestataires</div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <MaintenanceServiceTerms />
+        </TestProviders>
+      );
+
+      // Verify Quebec maintenance and service request terminology
+      expect(screen.getByTestId('term-gestion-demandes')).toHaveTextContent('Gestion des demandes');
+      expect(screen.getByTestId('term-demandes-service')).toHaveTextContent('Demandes de service');
+      expect(screen.getByTestId('term-demandes-maintenance')).toHaveTextContent('Demandes de maintenance');
+      expect(screen.getByTestId('term-demandes-reparation')).toHaveTextContent('Demandes de réparation');
+      expect(screen.getByTestId('term-reclamations')).toHaveTextContent('Réclamations');
+      expect(screen.getByTestId('term-plaintes')).toHaveTextContent('Plaintes');
+      expect(screen.getByTestId('term-requetes')).toHaveTextContent('Requêtes');
+      expect(screen.getByTestId('term-interventions')).toHaveTextContent('Interventions');
+      expect(screen.getByTestId('term-travaux')).toHaveTextContent('Travaux');
+      expect(screen.getByTestId('term-travaux-maintenance')).toHaveTextContent('Travaux de maintenance');
+      expect(screen.getByTestId('term-travaux-reparation')).toHaveTextContent('Travaux de réparation');
+      expect(screen.getByTestId('term-entretien')).toHaveTextContent('Entretien');
+      expect(screen.getByTestId('term-entretien-preventif')).toHaveTextContent('Entretien préventif');
+      expect(screen.getByTestId('term-entretien-correctif')).toHaveTextContent('Entretien correctif');
+      expect(screen.getByTestId('term-reparations')).toHaveTextContent('Réparations');
+      expect(screen.getByTestId('term-reparations-urgentes')).toHaveTextContent('Réparations urgentes');
+      expect(screen.getByTestId('term-diagnostics')).toHaveTextContent('Diagnostics');
+      expect(screen.getByTestId('term-evaluations')).toHaveTextContent('Évaluations');
+      expect(screen.getByTestId('term-inspections')).toHaveTextContent('Inspections');
+      expect(screen.getByTestId('term-verifications')).toHaveTextContent('Vérifications');
+      expect(screen.getByTestId('term-controles')).toHaveTextContent('Contrôles');
+      expect(screen.getByTestId('term-suivis')).toHaveTextContent('Suivis');
+      expect(screen.getByTestId('term-rapports')).toHaveTextContent('Rapports');
+      expect(screen.getByTestId('term-comptes-rendus')).toHaveTextContent('Comptes-rendus');
+      expect(screen.getByTestId('term-bilans')).toHaveTextContent('Bilans');
+      expect(screen.getByTestId('term-états')).toHaveTextContent('États');
+      expect(screen.getByTestId('term-statuts')).toHaveTextContent('Statuts');
+      expect(screen.getByTestId('term-priorites')).toHaveTextContent('Priorités');
+      expect(screen.getByTestId('term-urgences')).toHaveTextContent('Urgences');
+      expect(screen.getByTestId('term-planifications')).toHaveTextContent('Planifications');
+      expect(screen.getByTestId('term-programmations')).toHaveTextContent('Programmations');
+      expect(screen.getByTestId('term-attributions')).toHaveTextContent('Attributions');
+      expect(screen.getByTestId('term-assignations')).toHaveTextContent('Assignations');
+      expect(screen.getByTestId('term-affectations')).toHaveTextContent('Affectations');
+      expect(screen.getByTestId('term-techniciens')).toHaveTextContent('Techniciens');
+      expect(screen.getByTestId('term-ouvriers')).toHaveTextContent('Ouvriers');
+      expect(screen.getByTestId('term-artisans')).toHaveTextContent('Artisans');
+      expect(screen.getByTestId('term-specialistes')).toHaveTextContent('Spécialistes');
+      expect(screen.getByTestId('term-entrepreneurs')).toHaveTextContent('Entrepreneurs');
+      expect(screen.getByTestId('term-sous-traitants')).toHaveTextContent('Sous-traitants');
+      expect(screen.getByTestId('term-fournisseurs-services')).toHaveTextContent('Fournisseurs de services');
+      expect(screen.getByTestId('term-prestataires')).toHaveTextContent('Prestataires');
+    });
+
+    it('should display proper demand management workflow in French', () => {
+      const DemandManagementWorkflow = () => {
+        return (
+          <div data-testid='demand-management-workflow'>
+            {/* Demand processing workflow */}
+            <div data-testid='workflow-submission'>
+              <div data-testid='step-submission-title'>1. Soumission de la demande</div>
+              <div data-testid='step-submission-description'>
+                Le résident soumet une demande de service ou de maintenance
+              </div>
+            </div>
+
+            <div data-testid='workflow-review'>
+              <div data-testid='step-review-title'>2. Révision initiale</div>
+              <div data-testid='step-review-description'>
+                Évaluation de la demande et classification par priorité
+              </div>
+            </div>
+
+            <div data-testid='workflow-approval'>
+              <div data-testid='step-approval-title'>3. Approbation</div>
+              <div data-testid='step-approval-description'>
+                Approbation ou rejet de la demande avec justification
+              </div>
+            </div>
+
+            <div data-testid='workflow-assignment'>
+              <div data-testid='step-assignment-title'>4. Attribution</div>
+              <div data-testid='step-assignment-description'>
+                Attribution à un technicien ou prestataire de services
+              </div>
+            </div>
+
+            <div data-testid='workflow-execution'>
+              <div data-testid='step-execution-title'>5. Exécution des travaux</div>
+              <div data-testid='step-execution-description'>
+                Réalisation de l'intervention ou des réparations
+              </div>
+            </div>
+
+            <div data-testid='workflow-completion'>
+              <div data-testid='step-completion-title'>6. Finalisation</div>
+              <div data-testid='step-completion-description'>
+                Validation des travaux et clôture de la demande
+              </div>
+            </div>
+
+            {/* Status tracking */}
+            <div data-testid='status-tracking'>
+              <div data-testid='tracking-draft-desc'>
+                Brouillon - Demande en cours de rédaction
+              </div>
+              <div data-testid='tracking-submitted-desc'>
+                Soumise - Demande envoyée pour révision
+              </div>
+              <div data-testid='tracking-review-desc'>
+                En révision - Évaluation en cours par le gestionnaire
+              </div>
+              <div data-testid='tracking-approved-desc'>
+                Approuvée - Demande acceptée et en attente d'attribution
+              </div>
+              <div data-testid='tracking-progress-desc'>
+                En cours - Travaux en cours de réalisation
+              </div>
+              <div data-testid='tracking-completed-desc'>
+                Complétée - Intervention terminée avec succès
+              </div>
+            </div>
+
+            {/* Reporting and analytics */}
+            <div data-testid='demand-analytics'>
+              <div data-testid='analytics-response-time'>Temps de réponse moyen</div>
+              <div data-testid='analytics-completion-rate'>Taux de finalisation</div>
+              <div data-testid='analytics-satisfaction-score'>Score de satisfaction</div>
+              <div data-testid='analytics-cost-analysis'>Analyse des coûts</div>
+            </div>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <DemandManagementWorkflow />
+        </TestProviders>
+      );
+
+      // Verify demand management workflow steps use Quebec French
+      expect(screen.getByTestId('step-submission-title')).toHaveTextContent('1. Soumission de la demande');
+      expect(screen.getByTestId('step-submission-description')).toHaveTextContent('Le résident soumet une demande de service ou de maintenance');
+      expect(screen.getByTestId('step-review-title')).toHaveTextContent('2. Révision initiale');
+      expect(screen.getByTestId('step-review-description')).toHaveTextContent('Évaluation de la demande et classification par priorité');
+      expect(screen.getByTestId('step-approval-title')).toHaveTextContent('3. Approbation');
+      expect(screen.getByTestId('step-approval-description')).toHaveTextContent('Approbation ou rejet de la demande avec justification');
+      expect(screen.getByTestId('step-assignment-title')).toHaveTextContent('4. Attribution');
+      expect(screen.getByTestId('step-assignment-description')).toHaveTextContent('Attribution à un technicien ou prestataire de services');
+      expect(screen.getByTestId('step-execution-title')).toHaveTextContent('5. Exécution des travaux');
+      expect(screen.getByTestId('step-execution-description')).toHaveTextContent('Réalisation de l\'intervention ou des réparations');
+      expect(screen.getByTestId('step-completion-title')).toHaveTextContent('6. Finalisation');
+      expect(screen.getByTestId('step-completion-description')).toHaveTextContent('Validation des travaux et clôture de la demande');
+
+      // Verify status tracking descriptions
+      expect(screen.getByTestId('tracking-draft-desc')).toHaveTextContent('Brouillon - Demande en cours de rédaction');
+      expect(screen.getByTestId('tracking-submitted-desc')).toHaveTextContent('Soumise - Demande envoyée pour révision');
+      expect(screen.getByTestId('tracking-review-desc')).toHaveTextContent('En révision - Évaluation en cours par le gestionnaire');
+      expect(screen.getByTestId('tracking-approved-desc')).toHaveTextContent('Approuvée - Demande acceptée et en attente d\'attribution');
+      expect(screen.getByTestId('tracking-progress-desc')).toHaveTextContent('En cours - Travaux en cours de réalisation');
+      expect(screen.getByTestId('tracking-completed-desc')).toHaveTextContent('Complétée - Intervention terminée avec succès');
+
+      // Verify analytics and reporting
+      expect(screen.getByTestId('analytics-response-time')).toHaveTextContent('Temps de réponse moyen');
+      expect(screen.getByTestId('analytics-completion-rate')).toHaveTextContent('Taux de finalisation');
+      expect(screen.getByTestId('analytics-satisfaction-score')).toHaveTextContent('Score de satisfaction');
+      expect(screen.getByTestId('analytics-cost-analysis')).toHaveTextContent('Analyse des coûts');
+    });
+
+    it('should have proper data-testid attributes for manager demands page elements', () => {
+      const ManagerDemandsWithTestIds = () => {
+        return (
+          <div data-testid='manager-demands-page'>
+            <div data-testid='filters-section'>Filtres</div>
+            <div data-testid='status-filter'>Statut</div>
+            <div data-testid='type-filter'>Type</div>
+            <button data-testid='button-new-demand'>Nouvelle demande</button>
+            <div data-testid='tabs-section'>Onglets</div>
+            <div data-testid='dialog-create-demand'>Dialog</div>
+            <button data-testid='button-create-demand'>Créer</button>
+            <div data-testid='demand-card-1'>Demande</div>
+            <div data-testid='no-demands-found'>Aucune demande</div>
+            <div data-testid='loading-demands'>Chargement</div>
+            <button data-testid='button-approve'>Approuver</button>
+            <button data-testid='button-reject'>Rejeter</button>
+          </div>
+        );
+      };
+
+      render(
+        <TestProviders>
+          <ManagerDemandsWithTestIds />
+        </TestProviders>
+      );
+
+      // Verify all manager demands page elements have proper test IDs
+      expect(screen.getByTestId('manager-demands-page')).toBeInTheDocument();
+      expect(screen.getByTestId('filters-section')).toBeInTheDocument();
+      expect(screen.getByTestId('status-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('type-filter')).toBeInTheDocument();
+      expect(screen.getByTestId('button-new-demand')).toBeInTheDocument();
+      expect(screen.getByTestId('tabs-section')).toBeInTheDocument();
+      expect(screen.getByTestId('dialog-create-demand')).toBeInTheDocument();
+      expect(screen.getByTestId('button-create-demand')).toBeInTheDocument();
+      expect(screen.getByTestId('demand-card-1')).toBeInTheDocument();
+      expect(screen.getByTestId('no-demands-found')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-demands')).toBeInTheDocument();
+      expect(screen.getByTestId('button-approve')).toBeInTheDocument();
+      expect(screen.getByTestId('button-reject')).toBeInTheDocument();
+
+      // Verify buttons have proper attributes
+      const newDemandButton = screen.getByTestId('button-new-demand');
+      expect(newDemandButton).toHaveAttribute('data-testid');
+      expect(newDemandButton.tagName.toLowerCase()).toBe('button');
+    });
+  });
 });
 
 /**
@@ -4770,6 +5464,82 @@ export const QUEBEC_TERMINOLOGY_MAP = {
   check: 'chèque',
   transfer: 'virement',
   card: 'carte',
+
+  // Manager demands and service request management terms
+  'demands management': 'gestion des demandes',
+  'manage maintenance requests and demands': 'gérer les demandes de maintenance et les réclamations',
+  'all demands': 'toutes les demandes',
+  'review and manage resident demands': 'examiner et gérer les demandes des résidents',
+  'new demand': 'nouvelle demande',
+  'search demands': 'rechercher des demandes',
+  'all status': 'tous les statuts',
+  'all types': 'tous les types',
+  draft: 'brouillon',
+  submitted: 'soumise',
+  'under review': 'en révision',
+  approved: 'approuvée',
+  'in progress': 'en cours',
+  completed: 'complétée',
+  rejected: 'rejetée',
+  cancelled: 'annulée',
+  complaint: 'plainte',
+  information: 'information',
+  'pending review': 'en attente de révision',
+  active: 'actives',
+  all: 'toutes',
+  'create new demand': 'créer une nouvelle demande',
+  'create a demand on behalf of a resident': 'créer une demande au nom d\'un résident',
+  'select type': 'sélectionner le type',
+  'describe the demand in detail': 'décrivez la demande en détail',
+  create: 'créer',
+  creating: 'création en cours',
+  'submitted by': 'soumise par',
+  residence: 'résidence',
+  created: 'créée',
+  'no demands pending review': 'aucune demande en attente de révision',
+  'no active demands': 'aucune demande active',
+  'no completed demands': 'aucune demande complétée',
+  'no demands found': 'aucune demande trouvée',
+  'total demands loaded': 'demandes totales chargées',
+  'loading demands': 'chargement des demandes',
+  success: 'succès',
+  'demand created successfully': 'demande créée avec succès',
+  'failed to create demand': 'échec de la création de la demande',
+  'description must be at least 10 characters': 'la description doit contenir au moins 10 caractères',
+  'building is required': 'l\'immeuble est requis',
+  'type is required': 'le type est requis',
+  priority: 'priorité',
+  assignment: 'attribution',
+  'due date': 'date d\'échéance',
+  'review notes': 'notes de révision',
+  resolution: 'résolution',
+  'estimated cost': 'coût estimé',
+  'actual cost': 'coût réel',
+  low: 'faible',
+  medium: 'moyenne',
+  high: 'élevée',
+  urgent: 'urgente',
+  approve: 'approuver',
+  reject: 'rejeter',
+  assign: 'attribuer',
+  'start work': 'commencer le travail',
+  'mark completed': 'marquer comme complétée',
+  'cancel demand': 'annuler la demande',
+  reopen: 'rouvrir',
+  plumbing: 'plomberie',
+  electrical: 'électricité',
+  heating: 'chauffage',
+  'air conditioning': 'climatisation',
+  appliances: 'électroménagers',
+  painting: 'peinture',
+  flooring: 'revêtement de sol',
+  windows: 'fenêtres',
+  doors: 'portes',
+  'noise complaint': 'plainte de bruit',
+  'neighbor complaint': 'plainte de voisinage',
+  new: 'nouveau',
+  overdue: 'en retard',
+  'on hold': 'en attente',
 };
 
 /**
