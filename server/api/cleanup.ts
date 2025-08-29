@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { documentsBuildings, documentsResidents } from '../../shared/schema';
-import { ObjectStorageService, objectStorageClient } from '../objectStorage';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
 

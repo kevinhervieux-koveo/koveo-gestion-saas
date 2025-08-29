@@ -11,7 +11,6 @@ import {
 } from '@shared/schema';
 import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
-import { ObjectStorageService } from '../objectStorage';
 import crypto from 'crypto';
 
 /**

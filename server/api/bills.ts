@@ -7,7 +7,6 @@ import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
-import { ObjectStorageService } from '../objectStorage';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';

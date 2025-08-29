@@ -29,7 +29,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { ObjectUploader } from '@/components/ObjectUploader';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,7 +49,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
-import type { UploadResult } from '@uppy/core';
 import { useLocation } from 'wouter';
 
 import {

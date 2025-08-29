@@ -1,9 +1,6 @@
 import type { Express } from 'express';
-import { ObjectStorageService } from '../objectStorage';
 import { Storage } from '@google-cloud/storage';
 
-// Initialize object storage service
-const objectStorageService = new ObjectStorageService();
 
 /**
  * Register company history routes for fetching company information and documents.
