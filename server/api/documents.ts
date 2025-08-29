@@ -596,12 +596,28 @@ export function registerDocumentRoutes(app: Express): void {
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
 
       // Use unified documents system for deletion
+      console.log(`🗑️ Attempting to delete document: ${documentId}`);
       let deleted = false;
       
       try {
+        // First check if the document exists
+        const documents = await storage.getDocuments({ userId, userRole });
+        const existingDoc = documents.find(doc => doc.id === documentId);
+        console.log(`🔍 Document found for deletion:`, existingDoc ? 'YES' : 'NO');
+        
+        if (existingDoc) {
+          console.log(`📋 Document details:`, {
+            id: existingDoc.id,
+            name: existingDoc.name,
+            buildingId: existingDoc.buildingId,
+            residenceId: existingDoc.residenceId
+          });
+        }
+        
         deleted = await storage.deleteDocument(documentId);
+        console.log(`🗑️ Deletion result:`, deleted ? 'SUCCESS' : 'FAILED');
       } catch (error) {
-        console.warn('Failed to delete document:', error);
+        console.error('❌ Failed to delete document:', error);
       }
 
       if (!deleted) {
