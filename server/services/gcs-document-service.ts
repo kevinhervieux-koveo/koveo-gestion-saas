@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 import path from 'path';
 import fs from 'fs';
 
@@ -18,9 +19,33 @@ export class GCSDocumentService {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Initialize Google Cloud Storage with minimal configuration for Workload Identity Federation
-    // This will use the GOOGLE_CLOUD_PROJECT and GOOGLE_SERVICE_ACCOUNT_EMAIL from Replit environment
-    this.storage = new Storage();
+    // Create external account credentials configuration for Replit Workload Identity Federation
+    const externalAccountConfig = {
+      type: 'external_account',
+      audience: `//iam.googleapis.com/projects/${projectId}/locations/global/workloadIdentityPools/replit-wif-pool/providers/replit-wif-provider`,
+      subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+      token_url: 'https://sts.googleapis.com/v1/token',
+      credential_source: {
+        format: {
+          type: 'json',
+          subject_token_field_name: 'token'
+        },
+        url: `data:application/json,{"token":"${process.env.REPL_IDENTITY}"}`
+      },
+      service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`
+    };
+
+    // Initialize GoogleAuth with external account configuration
+    const auth = new GoogleAuth({
+      credentials: externalAccountConfig,
+      scopes: ['https://www.googleapis.com/auth/devstorage.full_control']
+    });
+
+    // Initialize Google Cloud Storage with custom auth
+    this.storage = new Storage({
+      projectId: projectId,
+      authClient: auth
+    });
   }
 
   /**
