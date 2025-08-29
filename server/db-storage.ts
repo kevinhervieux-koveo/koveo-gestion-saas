@@ -24,7 +24,7 @@ import type {
 } from '@shared/schema';
 import type { IStorage } from './storage';
 // Use shared database connection to avoid multiple pools in production
-import { db } from './db';
+import { db, sql } from './db';
 
 // Database optimizations will be initialized after server startup to prevent deployment timeouts
 // This prevents blocking the server startup process during deployment
@@ -174,7 +174,6 @@ export class DatabaseStorage implements IStorage {
           role: schema.users.role,
           isActive: schema.users.isActive,
           lastLoginAt: schema.users.lastLoginAt,
-          organizationId: schema.users.organizationId,
           createdAt: schema.users.createdAt,
           updatedAt: schema.users.updatedAt,
         })
@@ -347,23 +346,60 @@ export class DatabaseStorage implements IStorage {
    */
   async getUserByEmail(email: string): Promise<User | undefined> {
     const cacheKey = `user_email:${email}`;
-    const cached = queryCache.get('users', cacheKey);
+    // Temporarily bypass cache to ensure fresh data during login
+    const cached = false; // queryCache.get('users', cacheKey);
     if (cached) return cached;
     
     console.log(`Looking for user with email: ${email}`);
     
     try {
-      const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
-      console.log(`Drizzle query returned ${result.length} users`);
+      // Use direct SQL to bypass Drizzle schema issues
+      console.log(`Executing SQL query for email: ${email}`);
+      const result = await sql`
+        SELECT 
+          id, username, email, password, first_name, last_name, 
+          phone, profile_image, language, role, is_active, 
+          last_login_at, created_at, updated_at
+        FROM users 
+        WHERE email = ${email} AND is_active = true
+        LIMIT 1
+      `;
       
-      const user = result[0];
-      if (user) {
-        queryCache.set('users', cacheKey, user);
+      console.log(`Direct SQL query returned ${result.length} users`);
+      if (result.length === 0) {
+        console.log(`No users found for email: ${email}`);
+        // Try a broader query to debug
+        const debugResult = await sql`SELECT email, is_active FROM users WHERE email = ${email}`;
+        console.log(`Debug query (no is_active filter):`, debugResult);
       }
       
-      return user;
+      if (result.length > 0) {
+        const dbUser = result[0];
+        // Convert to our User type format
+        const user: User = {
+          id: dbUser.id,
+          username: dbUser.username,
+          email: dbUser.email,
+          password: dbUser.password,
+          firstName: dbUser.first_name,
+          lastName: dbUser.last_name,
+          phone: dbUser.phone,
+          profileImage: dbUser.profile_image,
+          language: dbUser.language,
+          role: dbUser.role as any,
+          isActive: dbUser.is_active,
+          lastLoginAt: dbUser.last_login_at,
+          createdAt: dbUser.created_at,
+          updatedAt: dbUser.updated_at,
+        };
+        
+        queryCache.set('users', cacheKey, user);
+        return user;
+      }
+      
+      return undefined;
     } catch (error) {
-      console.error(`Drizzle query failed:`, error);
+      console.error(`SQL query failed:`, error);
       return undefined;
     }
   }
