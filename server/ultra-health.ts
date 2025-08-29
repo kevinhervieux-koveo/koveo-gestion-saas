@@ -9,8 +9,8 @@ export function createUltraHealthEndpoints(app: express.Application) {
   app.get('/_deploy_health', (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'text/plain',
-      'Connection': 'close',
-      'Cache-Control': 'no-cache'
+      Connection: 'close',
+      'Cache-Control': 'no-cache',
     });
     res.end('OK');
   });
@@ -19,8 +19,8 @@ export function createUltraHealthEndpoints(app: express.Application) {
   app.get('/_status', (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'application/json',
-      'Connection': 'close',
-      'Cache-Control': 'no-cache'
+      Connection: 'close',
+      'Cache-Control': 'no-cache',
     });
     res.end('{"status":"ok","ready":true}');
   });
@@ -29,7 +29,7 @@ export function createUltraHealthEndpoints(app: express.Application) {
   app.get('/_ping', (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'text/plain',
-      'Connection': 'close'
+      Connection: 'close',
     });
     res.end('pong');
   });

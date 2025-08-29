@@ -548,10 +548,13 @@ describe('useFormDialog Hook', () => {
 
     // Should close dialog after submission
     // Wait for the dialog to close
-    await waitFor(() => {
-      const dialog = screen.queryByTestId('form-dialog');
-      return dialog === null;
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        const dialog = screen.queryByTestId('form-dialog');
+        return dialog === null;
+      },
+      { timeout: 2000 }
+    );
   });
 });
 

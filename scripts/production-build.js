@@ -26,7 +26,6 @@ try {
 
   console.log('🚀 Production build completed successfully!');
   console.log('✅ Ready for deployment');
-  
 } catch (error) {
   console.error('❌ Production build failed:', error.message);
   process.exit(1);

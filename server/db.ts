@@ -3,10 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { config } from './config/index.js';
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
-import { 
-  users, 
-  organizations, 
-  buildings, 
+import {
+  users,
+  organizations,
+  buildings,
   residences,
   userOrganizations,
   invitations,
@@ -20,7 +20,7 @@ import {
   userPermissions,
   rolePermissions,
   budgets,
-  monthlyBudgets
+  monthlyBudgets,
 } from '@shared/schema';
 
 const databaseUrl = config.database.url;
@@ -48,7 +48,6 @@ export const sql = neon(databaseUrl);
     console.error('❌ Database connection failed:', error.message);
   }
 })();
-
 
 // Create schema object with only tables (no relations to avoid production errors)
 const schema = {

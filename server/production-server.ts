@@ -16,7 +16,7 @@ export function configureProductionServer(app: express.Express) {
       // Increase timeout for asset files
       req.setTimeout(60000); // 60 seconds
       res.setTimeout(60000);
-      
+
       // Set proper cache headers for assets
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,20 +39,23 @@ export function configureProductionServer(app: express.Express) {
 
 export function handleLargeFileErrors(app: express.Express) {
   // Specific error handler for large static files
-  app.use('/assets/*', (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (err) {
-      log(`Large file serving error for ${req.path}: ${err.message}`, 'error');
-      
-      // Return a more informative error for debugging
-      res.status(503).json({
-        error: 'Temporary service unavailable',
-        message: 'Large file serving issue',
-        file: req.path,
-        retry: true,
-        suggestion: 'Try refreshing the page or clearing browser cache'
-      });
-      return;
+  app.use(
+    '/assets/*',
+    (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+      if (err) {
+        log(`Large file serving error for ${req.path}: ${err.message}`, 'error');
+
+        // Return a more informative error for debugging
+        res.status(503).json({
+          error: 'Temporary service unavailable',
+          message: 'Large file serving issue',
+          file: req.path,
+          retry: true,
+          suggestion: 'Try refreshing the page or clearing browser cache',
+        });
+        return;
+      }
+      next();
     }
-    next();
-  });
+  );
 }

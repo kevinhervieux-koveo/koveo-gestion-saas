@@ -205,6 +205,7 @@ export function OrganizationFormDialog({
                         <SelectItem value='syndicate'>Syndicate</SelectItem>
                         <SelectItem value='cooperative'>Cooperative</SelectItem>
                         <SelectItem value='condo_association'>Condo Association</SelectItem>
+                        <SelectItem value='demo'>Demo</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

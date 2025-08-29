@@ -10,7 +10,7 @@ export function createProductionDiagnostic(app: express.Express) {
   app.get('/api/deployment/status', (req, res) => {
     const distPath = path.resolve(process.cwd(), 'dist', 'public');
     const assetsPath = path.resolve(distPath, 'assets');
-    
+
     const diagnostics = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
@@ -19,12 +19,12 @@ export function createProductionDiagnostic(app: express.Express) {
       distContents: fs.existsSync(distPath) ? fs.readdirSync(distPath) : [],
       assetCount: fs.existsSync(assetsPath) ? fs.readdirSync(assetsPath).length : 0,
       indexHtmlExists: fs.existsSync(path.resolve(distPath, 'index.html')),
-      staticMiddlewareActive: !!app._router?.stack?.find((layer: any) => 
-        layer.name === 'serveStatic' || 
-        (layer.handle && layer.handle.name === 'serveStatic')
-      )
+      staticMiddlewareActive: !!app._router?.stack?.find(
+        (layer: any) =>
+          layer.name === 'serveStatic' || (layer.handle && layer.handle.name === 'serveStatic')
+      ),
     };
-    
+
     res.json(diagnostics);
   });
 }

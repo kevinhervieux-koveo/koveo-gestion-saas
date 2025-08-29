@@ -92,7 +92,6 @@ export type {
   InsertDocumentResident,
 } from './schemas/documents';
 
-
 export type {
   Feature,
   InsertFeature,
@@ -120,13 +119,19 @@ export type {
 export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
-export { bugs, featureRequests, featureRequestUpvotes, maintenanceRequests, notifications } from './schemas/operations';
-export { 
-  developmentPillars, 
-  workspaceStatus, 
-  qualityMetrics, 
+export {
+  bugs,
+  featureRequests,
+  featureRequestUpvotes,
+  maintenanceRequests,
+  notifications,
+} from './schemas/operations';
+export {
+  developmentPillars,
+  workspaceStatus,
+  qualityMetrics,
   frameworkConfiguration,
   features,
   actionableItems,
-  improvementSuggestions
+  improvementSuggestions,
 } from './schemas/development';

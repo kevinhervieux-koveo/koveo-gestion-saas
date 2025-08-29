@@ -63,28 +63,31 @@ export interface IStorage {
   getUserByEmail(_email: string): Promise<User | undefined>;
   createUser(_user: InsertUser): Promise<User>;
   updateUser(_id: string, _updates: Partial<User>): Promise<User | undefined>;
-  
+
   // Password reset operations
   createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken>;
   getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenAsUsed(_tokenId: string): Promise<PasswordResetToken | undefined>;
   cleanupExpiredPasswordResetTokens(): Promise<number>;
-  
+
   // Organization operations
   getOrganizations(): Promise<Organization[]>;
   getOrganization(_id: string): Promise<Organization | undefined>;
   getOrganizationByName(_name: string): Promise<Organization | undefined>;
   createOrganization(_organization: InsertOrganization): Promise<Organization>;
-  updateOrganization(_id: string, _updates: Partial<Organization>): Promise<Organization | undefined>;
+  updateOrganization(
+    _id: string,
+    _updates: Partial<Organization>
+  ): Promise<Organization | undefined>;
   getBuildingsByOrganization(_organizationId: string): Promise<Building[]>;
-  
+
   // Building operations
   getBuildings(): Promise<Building[]>;
   getBuilding(_id: string): Promise<Building | undefined>;
   createBuilding(_building: InsertBuilding): Promise<Building>;
   updateBuilding(_id: string, _updates: Partial<Building>): Promise<Building | undefined>;
   deleteBuilding(_id: string): Promise<boolean>;
-  
+
   // Residence operations
   getResidences(): Promise<Residence[]>;
   getResidence(_id: string): Promise<Residence | undefined>;
@@ -92,28 +95,47 @@ export interface IStorage {
   createResidence(_residence: InsertResidence): Promise<Residence>;
   updateResidence(_id: string, _updates: Partial<Residence>): Promise<Residence | undefined>;
   deleteResidence(_id: string): Promise<boolean>;
-  
+
   // Contact operations
   getContacts(): Promise<Contact[]>;
-  getContactsByEntity(_entityId: string, _entity: 'organization' | 'building' | 'residence'): Promise<Contact[]>;
+  getContactsByEntity(
+    _entityId: string,
+    _entity: 'organization' | 'building' | 'residence'
+  ): Promise<Contact[]>;
   getContactsForResidence(_residenceId: string): Promise<Array<Contact & { user: User }>>;
   createContact(_contact: InsertContact): Promise<Contact>;
   updateContact(_id: string, _updates: Partial<Contact>): Promise<Contact | undefined>;
   deleteContact(_id: string): Promise<boolean>;
-  
+
   // Document operations
-  getBuildingDocumentsForUser(_buildingId: string, _userId: string, _userRole: string): Promise<Array<Document & { buildingDocument: DocumentBuilding }>>;
-  getBuildingDocument(_buildingId: string, _documentId: string, _userId: string, _userRole: string): Promise<(Document & { buildingDocument: DocumentBuilding }) | undefined>;
+  getBuildingDocumentsForUser(
+    _buildingId: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<Array<Document & { buildingDocument: DocumentBuilding }>>;
+  getBuildingDocument(
+    _buildingId: string,
+    _documentId: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<(Document & { buildingDocument: DocumentBuilding }) | undefined>;
   createBuildingDocument(_document: InsertDocumentBuilding): Promise<DocumentBuilding>;
-  updateBuildingDocument(_id: string, _updates: Partial<DocumentBuilding>): Promise<DocumentBuilding | undefined>;
+  updateBuildingDocument(
+    _id: string,
+    _updates: Partial<DocumentBuilding>
+  ): Promise<DocumentBuilding | undefined>;
   deleteBuildingDocument(_id: string): Promise<boolean>;
-  getResidentDocumentsForUser(_residenceId: string, _userId: string, _userRole: string): Promise<Array<Document & { residentDocument: DocumentResident }>>;
-  
+  getResidentDocumentsForUser(
+    _residenceId: string,
+    _userId: string,
+    _userRole: string
+  ): Promise<Array<Document & { residentDocument: DocumentResident }>>;
+
   // Permission operations
   getPermissions(): Promise<Permission[]>;
   getRolePermissions(): Promise<RolePermission[]>;
   getUserPermissions(): Promise<UserPermission[]>;
-  
+
   // Development operations
   getPillars(): Promise<Pillar[]>;
   getPillar(_id: string): Promise<Pillar | undefined>;
@@ -122,22 +144,38 @@ export interface IStorage {
   getWorkspaceStatuses(): Promise<WorkspaceStatus[]>;
   getWorkspaceStatus(_component: string): Promise<WorkspaceStatus | undefined>;
   createWorkspaceStatus(_status: InsertWorkspaceStatus): Promise<WorkspaceStatus>;
-  updateWorkspaceStatus(_component: string, _status: Partial<WorkspaceStatus>): Promise<WorkspaceStatus | undefined>;
+  updateWorkspaceStatus(
+    _component: string,
+    _status: Partial<WorkspaceStatus>
+  ): Promise<WorkspaceStatus | undefined>;
   getQualityMetrics(): Promise<QualityMetric[]>;
   createQualityMetric(_metric: InsertQualityMetric): Promise<QualityMetric>;
   getFrameworkConfigurations(): Promise<FrameworkConfiguration[]>;
-  createFrameworkConfiguration(_config: InsertFrameworkConfiguration): Promise<FrameworkConfiguration>;
-  updateFrameworkConfiguration(_key: string, _config: Partial<FrameworkConfiguration>): Promise<FrameworkConfiguration | undefined>;
+  createFrameworkConfiguration(
+    _config: InsertFrameworkConfiguration
+  ): Promise<FrameworkConfiguration>;
+  updateFrameworkConfiguration(
+    _key: string,
+    _config: Partial<FrameworkConfiguration>
+  ): Promise<FrameworkConfiguration | undefined>;
   getImprovementSuggestions(): Promise<ImprovementSuggestion[]>;
-  createImprovementSuggestion(_suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion>;
-  updateImprovementSuggestion(_id: string, _updates: Partial<ImprovementSuggestion>): Promise<ImprovementSuggestion | undefined>;
+  createImprovementSuggestion(
+    _suggestion: InsertImprovementSuggestion
+  ): Promise<ImprovementSuggestion>;
+  updateImprovementSuggestion(
+    _id: string,
+    _updates: Partial<ImprovementSuggestion>
+  ): Promise<ImprovementSuggestion | undefined>;
   getFeatures(): Promise<Feature[]>;
   getFeature(_id: string): Promise<Feature | undefined>;
   createFeature(_feature: InsertFeature): Promise<Feature>;
   updateFeature(_id: string, _updates: Partial<Feature>): Promise<Feature | undefined>;
   getActionableItems(): Promise<ActionableItem[]>;
   createActionableItem(_item: InsertActionableItem): Promise<ActionableItem>;
-  updateActionableItem(_id: string, _updates: Partial<ActionableItem>): Promise<ActionableItem | undefined>;
+  updateActionableItem(
+    _id: string,
+    _updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined>;
   deleteActionableItem(_id: string): Promise<boolean>;
   getInvitations(): Promise<Invitation[]>;
   createInvitation(_invitation: InsertInvitation): Promise<Invitation>;
@@ -154,9 +192,18 @@ export interface IStorage {
   getFeatureRequests(): Promise<FeatureRequest[]>;
   getFeatureRequest(_id: string): Promise<FeatureRequest | undefined>;
   createFeatureRequest(_request: InsertFeatureRequest): Promise<FeatureRequest>;
-  updateFeatureRequest(_id: string, _updates: Partial<FeatureRequest>): Promise<FeatureRequest | undefined>;
-  addFeatureRequestUpvote(_featureRequestId: string, _userId: string): Promise<{ success: boolean; message: string; data?: any }>;
-  removeFeatureRequestUpvote(_featureRequestId: string, _userId: string): Promise<{ success: boolean; message: string; data?: any }>;
+  updateFeatureRequest(
+    _id: string,
+    _updates: Partial<FeatureRequest>
+  ): Promise<FeatureRequest | undefined>;
+  addFeatureRequestUpvote(
+    _featureRequestId: string,
+    _userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }>;
+  removeFeatureRequestUpvote(
+    _featureRequestId: string,
+    _userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }>;
 }
 
 export class MemStorage implements IStorage {
@@ -200,7 +247,7 @@ export class MemStorage implements IStorage {
 
   private initializeTestUser() {
     const preHashedPassword = '$2b$12$MdgAKqapGQDuM.z4QtxH.eJld2LR0fFMSOCiNR4MiLDYzPscRjIO.';
-    
+
     const user: User = {
       id: '550e8400-e29b-41d4-a716-446655440000',
       username: 'kevin.hervieux@koveo-gestion.com',
@@ -217,7 +264,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     this.users.set(user.id, user);
   }
 
@@ -243,7 +290,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    return Array.from(this.users.values()).find((user) => user.email === email);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -281,14 +328,24 @@ export class MemStorage implements IStorage {
   async createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken> {
     return { ..._token, id: randomUUID(), createdAt: new Date(), usedAt: null, isUsed: false };
   }
-  async getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined> { return undefined; }
-  async markPasswordResetTokenAsUsed(_tokenId: string): Promise<PasswordResetToken | undefined> { return undefined; }
-  async cleanupExpiredPasswordResetTokens(): Promise<number> { return 0; }
+  async getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined> {
+    return undefined;
+  }
+  async markPasswordResetTokenAsUsed(_tokenId: string): Promise<PasswordResetToken | undefined> {
+    return undefined;
+  }
+  async cleanupExpiredPasswordResetTokens(): Promise<number> {
+    return 0;
+  }
 
-  async getOrganizations(): Promise<Organization[]> { return Array.from(this.organizations.values()); }
-  async getOrganization(id: string): Promise<Organization | undefined> { return this.organizations.get(id); }
-  async getOrganizationByName(name: string): Promise<Organization | undefined> { 
-    return Array.from(this.organizations.values()).find(org => org.name === name); 
+  async getOrganizations(): Promise<Organization[]> {
+    return Array.from(this.organizations.values());
+  }
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    return this.organizations.get(id);
+  }
+  async getOrganizationByName(name: string): Promise<Organization | undefined> {
+    return Array.from(this.organizations.values()).find((org) => org.name === name);
   }
   async createOrganization(org: InsertOrganization): Promise<Organization> {
     const id = randomUUID();
@@ -306,7 +363,10 @@ export class MemStorage implements IStorage {
     this.organizations.set(id, organization);
     return organization;
   }
-  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+  async updateOrganization(
+    id: string,
+    updates: Partial<Organization>
+  ): Promise<Organization | undefined> {
     const existing = this.organizations.get(id);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -314,11 +374,15 @@ export class MemStorage implements IStorage {
     return updated;
   }
   async getBuildingsByOrganization(orgId: string): Promise<Building[]> {
-    return Array.from(this.buildings.values()).filter(b => b.organizationId === orgId);
+    return Array.from(this.buildings.values()).filter((b) => b.organizationId === orgId);
   }
 
-  async getBuildings(): Promise<Building[]> { return Array.from(this.buildings.values()); }
-  async getBuilding(id: string): Promise<Building | undefined> { return this.buildings.get(id); }
+  async getBuildings(): Promise<Building[]> {
+    return Array.from(this.buildings.values());
+  }
+  async getBuilding(id: string): Promise<Building | undefined> {
+    return this.buildings.get(id);
+  }
   async createBuilding(building: InsertBuilding): Promise<Building> {
     const id = randomUUID();
     const newBuilding: Building = {
@@ -330,7 +394,7 @@ export class MemStorage implements IStorage {
       totalUnits: building.totalUnits || 0,
       floors: building.floors || 0,
       yearBuilt: building.yearBuilt || 0,
-      buildingType: building.buildingType as "apartment" | "condo" | "rental",
+      buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
       bankAccountNumber: building.bankAccountNumber || '',
       bankAccountMinimums: building.bankAccountMinimums || {},
       bankAccountUpdatedAt: new Date(),
@@ -348,12 +412,18 @@ export class MemStorage implements IStorage {
     this.buildings.set(id, updated);
     return updated;
   }
-  async deleteBuilding(id: string): Promise<boolean> { return this.buildings.delete(id); }
+  async deleteBuilding(id: string): Promise<boolean> {
+    return this.buildings.delete(id);
+  }
 
-  async getResidences(): Promise<Residence[]> { return Array.from(this.residences.values()); }
-  async getResidence(id: string): Promise<Residence | undefined> { return this.residences.get(id); }
+  async getResidences(): Promise<Residence[]> {
+    return Array.from(this.residences.values());
+  }
+  async getResidence(id: string): Promise<Residence | undefined> {
+    return this.residences.get(id);
+  }
   async getResidencesByBuilding(buildingId: string): Promise<Residence[]> {
-    return Array.from(this.residences.values()).filter(r => r.buildingId === buildingId);
+    return Array.from(this.residences.values()).filter((r) => r.buildingId === buildingId);
   }
   async createResidence(residence: InsertResidence): Promise<Residence> {
     const id = randomUUID();
@@ -382,11 +452,19 @@ export class MemStorage implements IStorage {
     this.residences.set(id, updated);
     return updated;
   }
-  async deleteResidence(id: string): Promise<boolean> { return this.residences.delete(id); }
+  async deleteResidence(id: string): Promise<boolean> {
+    return this.residences.delete(id);
+  }
 
-  async getContacts(): Promise<Contact[]> { return []; }
-  async getContactsByEntity(): Promise<Contact[]> { return []; }
-  async getContactsForResidence(): Promise<Array<Contact & { user: User }>> { return []; }
+  async getContacts(): Promise<Contact[]> {
+    return [];
+  }
+  async getContactsByEntity(): Promise<Contact[]> {
+    return [];
+  }
+  async getContactsForResidence(): Promise<Array<Contact & { user: User }>> {
+    return [];
+  }
   async createContact(contact: InsertContact): Promise<Contact> {
     const id = randomUUID();
     return {
@@ -399,11 +477,23 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
   }
-  async updateContact(): Promise<Contact | undefined> { return undefined; }
-  async deleteContact(): Promise<boolean> { return false; }
+  async updateContact(): Promise<Contact | undefined> {
+    return undefined;
+  }
+  async deleteContact(): Promise<boolean> {
+    return false;
+  }
 
-  async getBuildingDocumentsForUser(): Promise<Array<Document & { buildingDocument: DocumentBuilding }>> { return []; }
-  async getBuildingDocument(): Promise<(Document & { buildingDocument: DocumentBuilding }) | undefined> { return undefined; }
+  async getBuildingDocumentsForUser(): Promise<
+    Array<Document & { buildingDocument: DocumentBuilding }>
+  > {
+    return [];
+  }
+  async getBuildingDocument(): Promise<
+    (Document & { buildingDocument: DocumentBuilding }) | undefined
+  > {
+    return undefined;
+  }
   async createBuildingDocument(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
     const id = randomUUID();
     return {
@@ -419,16 +509,34 @@ export class MemStorage implements IStorage {
       mimeType: doc.mimeType || '',
     };
   }
-  async updateBuildingDocument(): Promise<DocumentBuilding | undefined> { return undefined; }
-  async deleteBuildingDocument(): Promise<boolean> { return false; }
-  async getResidentDocumentsForUser(): Promise<Array<Document & { residentDocument: DocumentResident }>> { return []; }
+  async updateBuildingDocument(): Promise<DocumentBuilding | undefined> {
+    return undefined;
+  }
+  async deleteBuildingDocument(): Promise<boolean> {
+    return false;
+  }
+  async getResidentDocumentsForUser(): Promise<
+    Array<Document & { residentDocument: DocumentResident }>
+  > {
+    return [];
+  }
 
-  async getPermissions(): Promise<Permission[]> { return []; }
-  async getRolePermissions(): Promise<RolePermission[]> { return []; }
-  async getUserPermissions(): Promise<UserPermission[]> { return []; }
+  async getPermissions(): Promise<Permission[]> {
+    return [];
+  }
+  async getRolePermissions(): Promise<RolePermission[]> {
+    return [];
+  }
+  async getUserPermissions(): Promise<UserPermission[]> {
+    return [];
+  }
 
-  async getPillars(): Promise<Pillar[]> { return Array.from(this.pillars.values()); }
-  async getPillar(id: string): Promise<Pillar | undefined> { return this.pillars.get(id); }
+  async getPillars(): Promise<Pillar[]> {
+    return Array.from(this.pillars.values());
+  }
+  async getPillar(id: string): Promise<Pillar | undefined> {
+    return this.pillars.get(id);
+  }
   async createPillar(pillar: InsertPillar): Promise<Pillar> {
     const id = randomUUID();
     const newPillar: Pillar = {
@@ -449,15 +557,27 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> { return Array.from(this.workspaceStatuses.values()); }
-  async getWorkspaceStatus(component: string): Promise<WorkspaceStatus | undefined> { return this.workspaceStatuses.get(component); }
+  async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> {
+    return Array.from(this.workspaceStatuses.values());
+  }
+  async getWorkspaceStatus(component: string): Promise<WorkspaceStatus | undefined> {
+    return this.workspaceStatuses.get(component);
+  }
   async createWorkspaceStatus(status: InsertWorkspaceStatus): Promise<WorkspaceStatus> {
     const id = randomUUID();
-    const newStatus: WorkspaceStatus = { ...status, id, createdAt: new Date(), updatedAt: new Date() };
+    const newStatus: WorkspaceStatus = {
+      ...status,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.workspaceStatuses.set(status.component, newStatus);
     return newStatus;
   }
-  async updateWorkspaceStatus(component: string, updates: Partial<WorkspaceStatus>): Promise<WorkspaceStatus | undefined> {
+  async updateWorkspaceStatus(
+    component: string,
+    updates: Partial<WorkspaceStatus>
+  ): Promise<WorkspaceStatus | undefined> {
     const existing = this.workspaceStatuses.get(component);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -465,22 +585,41 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getQualityMetrics(): Promise<QualityMetric[]> { return Array.from(this.qualityMetrics.values()); }
+  async getQualityMetrics(): Promise<QualityMetric[]> {
+    return Array.from(this.qualityMetrics.values());
+  }
   async createQualityMetric(metric: InsertQualityMetric): Promise<QualityMetric> {
     const id = randomUUID();
-    const newMetric: QualityMetric = { ...metric, id, createdAt: new Date(), updatedAt: new Date() };
+    const newMetric: QualityMetric = {
+      ...metric,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.qualityMetrics.set(id, newMetric);
     return newMetric;
   }
 
-  async getFrameworkConfigurations(): Promise<FrameworkConfiguration[]> { return Array.from(this.frameworkConfigs.values()); }
-  async createFrameworkConfiguration(config: InsertFrameworkConfiguration): Promise<FrameworkConfiguration> {
+  async getFrameworkConfigurations(): Promise<FrameworkConfiguration[]> {
+    return Array.from(this.frameworkConfigs.values());
+  }
+  async createFrameworkConfiguration(
+    config: InsertFrameworkConfiguration
+  ): Promise<FrameworkConfiguration> {
     const id = randomUUID();
-    const newConfig: FrameworkConfiguration = { ...config, id, createdAt: new Date(), updatedAt: new Date() };
+    const newConfig: FrameworkConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.frameworkConfigs.set(config._key, newConfig);
     return newConfig;
   }
-  async updateFrameworkConfiguration(key: string, updates: Partial<FrameworkConfiguration>): Promise<FrameworkConfiguration | undefined> {
+  async updateFrameworkConfiguration(
+    key: string,
+    updates: Partial<FrameworkConfiguration>
+  ): Promise<FrameworkConfiguration | undefined> {
     const existing = this.frameworkConfigs.get(key);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -488,8 +627,12 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> { return Array.from(this.improvementSuggestions.values()); }
-  async createImprovementSuggestion(suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> {
+  async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> {
+    return Array.from(this.improvementSuggestions.values());
+  }
+  async createImprovementSuggestion(
+    suggestion: InsertImprovementSuggestion
+  ): Promise<ImprovementSuggestion> {
     const id = randomUUID();
     const newSuggestion: ImprovementSuggestion = {
       ...suggestion,
@@ -502,7 +645,10 @@ export class MemStorage implements IStorage {
     this.improvementSuggestions.set(id, newSuggestion);
     return newSuggestion;
   }
-  async updateImprovementSuggestion(id: string, updates: Partial<ImprovementSuggestion>): Promise<ImprovementSuggestion | undefined> {
+  async updateImprovementSuggestion(
+    id: string,
+    updates: Partial<ImprovementSuggestion>
+  ): Promise<ImprovementSuggestion | undefined> {
     const existing = this.improvementSuggestions.get(id);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -510,8 +656,12 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getFeatures(): Promise<Feature[]> { return Array.from(this.features.values()); }
-  async getFeature(id: string): Promise<Feature | undefined> { return this.features.get(id); }
+  async getFeatures(): Promise<Feature[]> {
+    return Array.from(this.features.values());
+  }
+  async getFeature(id: string): Promise<Feature | undefined> {
+    return this.features.get(id);
+  }
   async createFeature(feature: InsertFeature): Promise<Feature> {
     const id = randomUUID();
     const newFeature: Feature = {
@@ -547,7 +697,9 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getActionableItems(): Promise<ActionableItem[]> { return Array.from(this.actionableItems.values()); }
+  async getActionableItems(): Promise<ActionableItem[]> {
+    return Array.from(this.actionableItems.values());
+  }
   async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
     const id = randomUUID();
     const newItem: ActionableItem = {
@@ -564,16 +716,23 @@ export class MemStorage implements IStorage {
     this.actionableItems.set(id, newItem);
     return newItem;
   }
-  async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> {
+  async updateActionableItem(
+    id: string,
+    updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined> {
     const existing = this.actionableItems.get(id);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
     this.actionableItems.set(id, updated);
     return updated;
   }
-  async deleteActionableItem(id: string): Promise<boolean> { return this.actionableItems.delete(id); }
+  async deleteActionableItem(id: string): Promise<boolean> {
+    return this.actionableItems.delete(id);
+  }
 
-  async getInvitations(): Promise<Invitation[]> { return Array.from(this.invitations.values()); }
+  async getInvitations(): Promise<Invitation[]> {
+    return Array.from(this.invitations.values());
+  }
   async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
     const id = randomUUID();
     const newInvitation: Invitation = {
@@ -592,9 +751,12 @@ export class MemStorage implements IStorage {
     return newInvitation;
   }
   async getInvitationByToken(token: string): Promise<Invitation | undefined> {
-    return Array.from(this.invitations.values()).find(inv => inv.token === token);
+    return Array.from(this.invitations.values()).find((inv) => inv.token === token);
   }
-  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
+  async updateInvitation(
+    id: string,
+    updates: Partial<Invitation>
+  ): Promise<Invitation | undefined> {
     const existing = this.invitations.get(id);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -602,7 +764,9 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> { return Array.from(this.invitationAuditLogs.values()); }
+  async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> {
+    return Array.from(this.invitationAuditLogs.values());
+  }
   async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
     const id = randomUUID();
     const newLog: InvitationAuditLog = { ...log, id, createdAt: new Date() };
@@ -610,7 +774,9 @@ export class MemStorage implements IStorage {
     return newLog;
   }
 
-  async getCommentsByDemand(): Promise<DemandComment[]> { return []; }
+  async getCommentsByDemand(): Promise<DemandComment[]> {
+    return [];
+  }
   async createDemandComment(comment: InsertDemandComment): Promise<DemandComment> {
     const id = randomUUID();
     return {
@@ -621,8 +787,12 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async getBugs(): Promise<Bug[]> { return Array.from(this.bugs.values()); }
-  async getBug(id: string): Promise<Bug | undefined> { return this.bugs.get(id); }
+  async getBugs(): Promise<Bug[]> {
+    return Array.from(this.bugs.values());
+  }
+  async getBug(id: string): Promise<Bug | undefined> {
+    return this.bugs.get(id);
+  }
   async createBug(bug: InsertBug): Promise<Bug> {
     const id = randomUUID();
     const newBug: Bug = {
@@ -647,8 +817,12 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  async getFeatureRequests(): Promise<FeatureRequest[]> { return Array.from(this.featureRequests.values()); }
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> { return this.featureRequests.get(id); }
+  async getFeatureRequests(): Promise<FeatureRequest[]> {
+    return Array.from(this.featureRequests.values());
+  }
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
+    return this.featureRequests.get(id);
+  }
   async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
     const id = randomUUID();
     const newRequest: FeatureRequest = {
@@ -661,7 +835,10 @@ export class MemStorage implements IStorage {
     this.featureRequests.set(id, newRequest);
     return newRequest;
   }
-  async updateFeatureRequest(id: string, updates: Partial<FeatureRequest>): Promise<FeatureRequest | undefined> {
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>
+  ): Promise<FeatureRequest | undefined> {
     const existing = this.featureRequests.get(id);
     if (!existing) return undefined;
     const updated = { ...existing, ...updates, updatedAt: new Date() };
@@ -678,16 +855,16 @@ export class MemStorage implements IStorage {
 }
 
 // Import the database storage implementation
-import { OptimizedDatabaseStorage } from './optimized-db-storage';
+import { DatabaseStorage } from './db-storage';
 
 // Production fallback storage - try database first, fall back to memory if authentication fails
 class ProductionFallbackStorage implements IStorage {
-  private dbStorage: OptimizedDatabaseStorage;
+  private dbStorage: DatabaseStorage;
   private memStorage: MemStorage;
   private usingFallback: boolean = false;
 
   constructor() {
-    this.dbStorage = new OptimizedDatabaseStorage();
+    this.dbStorage = new DatabaseStorage();
     this.memStorage = new MemStorage();
   }
 
@@ -695,17 +872,21 @@ class ProductionFallbackStorage implements IStorage {
     if (this.usingFallback) {
       throw new Error('Database unavailable, using memory storage');
     }
-    
+
     try {
       return await operation();
     } catch (error: any) {
       // Check if it's a database authentication error
-      if (error.message?.includes('password authentication failed') || 
-          error.message?.includes('neondb_owner') ||
-          error.cause?.message?.includes('password authentication failed')) {
-        console.warn('🔄 Database authentication failed, switching to memory storage for production stability');
+      if (
+        error.message?.includes('password authentication failed') ||
+        error.message?.includes('neondb_owner') ||
+        error.cause?.message?.includes('password authentication failed')
+      ) {
+        console.warn(
+          '🔄 Database authentication failed, switching to memory storage for production stability'
+        );
         this.usingFallback = true;
-        
+
         // Initialize memory storage with production admin user
         await this.initializeFallbackData();
         throw new Error('Database unavailable, using memory storage');
@@ -732,9 +913,9 @@ class ProductionFallbackStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     await this.memStorage.createUser(adminUser);
-    
+
     // Create default organization for admin user
     const defaultOrg = {
       id: 'koveo-org-main',
@@ -752,20 +933,29 @@ class ProductionFallbackStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     await this.memStorage.createOrganization(defaultOrg);
-    
+
     // Associate admin user with the organization
     // For memory storage, we'll just ensure the user has access to the organization
     // This is handled by the user's role being 'admin' which gives access to all organizations
-    
-    console.log('✅ Production fallback: Admin user and default organization initialized in memory storage');
+
+    console.log(
+      '✅ Production fallback: Admin user and default organization initialized in memory storage'
+    );
   }
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-    return user;
+    console.log('🔍 ProductionFallbackStorage.getUserByEmail called with:', email);
+    try {
+      const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
+      console.log('🔍 ProductionFallbackStorage result:', user ? 'FOUND' : 'NOT FOUND');
+      return user;
+    } catch (error) {
+      console.error('🔍 ProductionFallbackStorage error:', error);
+      throw error;
+    }
   }
 
   async getUsers(): Promise<User[]> {
@@ -870,7 +1060,10 @@ class ProductionFallbackStorage implements IStorage {
     }
   }
 
-  async updateOrganization(id: string, updates: Partial<Organization>): Promise<Organization | undefined> {
+  async updateOrganization(
+    id: string,
+    updates: Partial<Organization>
+  ): Promise<Organization | undefined> {
     try {
       return await this.safeDbOperation(() => this.dbStorage.updateOrganization(id, updates));
     } catch {
@@ -897,7 +1090,9 @@ class ProductionFallbackStorage implements IStorage {
 
   async getBuildingsByOrganization(organizationId: string): Promise<Building[]> {
     try {
-      return await this.safeDbOperation(() => this.dbStorage.getBuildingsByOrganization(organizationId));
+      return await this.safeDbOperation(() =>
+        this.dbStorage.getBuildingsByOrganization(organizationId)
+      );
     } catch {
       return this.memStorage.getBuildingsByOrganization(organizationId);
     }
@@ -1026,67 +1221,218 @@ class ProductionFallbackStorage implements IStorage {
   }
 
   // Stub implementations for remaining interface methods - add all other required methods
-  async getDocuments(): Promise<Document[]> { return []; }
-  async getDocument(id: string): Promise<Document | undefined> { return undefined; }
-  async createDocument(doc: InsertDocument): Promise<Document> { throw new Error('Not implemented in fallback'); }
-  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> { return undefined; }
-  async deleteDocument(id: string): Promise<boolean> { return false; }
-  async getDocumentsByBuilding(buildingId: string): Promise<DocumentBuilding[]> { return []; }
-  async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> { throw new Error('Not implemented in fallback'); }
-  async deleteDocumentBuilding(documentId: string, buildingId: string): Promise<boolean> { return false; }
-  async getDocumentsByResident(residentId: string): Promise<DocumentResident[]> { return []; }
-  async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> { throw new Error('Not implemented in fallback'); }
-  async deleteDocumentResident(documentId: string, residentId: string): Promise<boolean> { return false; }
-  async getPillars(): Promise<Pillar[]> { return []; }
-  async getPillar(id: string): Promise<Pillar | undefined> { return undefined; }
-  async createPillar(pillar: InsertPillar): Promise<Pillar> { throw new Error('Not implemented in fallback'); }
-  async updatePillar(id: string, updates: Partial<Pillar>): Promise<Pillar | undefined> { return undefined; }
-  async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> { return []; }
-  async getWorkspaceStatus(id: string): Promise<WorkspaceStatus | undefined> { return undefined; }
-  async createWorkspaceStatus(status: InsertWorkspaceStatus): Promise<WorkspaceStatus> { throw new Error('Not implemented in fallback'); }
-  async updateWorkspaceStatus(id: string, updates: Partial<WorkspaceStatus>): Promise<WorkspaceStatus | undefined> { return undefined; }
-  async getQualityMetrics(): Promise<QualityMetric[]> { return []; }
-  async getQualityMetric(id: string): Promise<QualityMetric | undefined> { return undefined; }
-  async createQualityMetric(metric: InsertQualityMetric): Promise<QualityMetric> { throw new Error('Not implemented in fallback'); }
-  async updateQualityMetric(id: string, updates: Partial<QualityMetric>): Promise<QualityMetric | undefined> { return undefined; }
-  async getFrameworkConfigurations(): Promise<FrameworkConfiguration[]> { return []; }
-  async getFrameworkConfiguration(id: string): Promise<FrameworkConfiguration | undefined> { return undefined; }
-  async createFrameworkConfiguration(config: InsertFrameworkConfiguration): Promise<FrameworkConfiguration> { throw new Error('Not implemented in fallback'); }
-  async updateFrameworkConfiguration(id: string, updates: Partial<FrameworkConfiguration>): Promise<FrameworkConfiguration | undefined> { return undefined; }
-  async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> { return []; }
-  async getImprovementSuggestion(id: string): Promise<ImprovementSuggestion | undefined> { return undefined; }
-  async createImprovementSuggestion(suggestion: InsertImprovementSuggestion): Promise<ImprovementSuggestion> { throw new Error('Not implemented in fallback'); }
-  async updateImprovementSuggestion(id: string, updates: Partial<ImprovementSuggestion>): Promise<ImprovementSuggestion | undefined> { return undefined; }
-  async getFeatures(): Promise<Feature[]> { return []; }
-  async getFeature(id: string): Promise<Feature | undefined> { return undefined; }
-  async createFeature(feature: InsertFeature): Promise<Feature> { throw new Error('Not implemented in fallback'); }
-  async updateFeature(id: string, updates: Partial<Feature>): Promise<Feature | undefined> { return undefined; }
-  async getActionableItems(): Promise<ActionableItem[]> { return []; }
-  async getActionableItem(id: string): Promise<ActionableItem | undefined> { return undefined; }
-  async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> { throw new Error('Not implemented in fallback'); }
-  async updateActionableItem(id: string, updates: Partial<ActionableItem>): Promise<ActionableItem | undefined> { return undefined; }
-  async getInvitations(): Promise<Invitation[]> { return []; }
-  async getInvitation(id: string): Promise<Invitation | undefined> { return undefined; }
-  async getInvitationByToken(token: string): Promise<Invitation | undefined> { return undefined; }
-  async createInvitation(invitation: InsertInvitation): Promise<Invitation> { throw new Error('Not implemented in fallback'); }
-  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> { return undefined; }
-  async deleteInvitation(id: string): Promise<boolean> { return false; }
-  async getPermissions(): Promise<Permission[]> { return []; }
-  async getPermission(id: string): Promise<Permission | undefined> { return undefined; }
-  async getRolePermissions(role: string): Promise<RolePermission[]> { return []; }
-  async getUserPermissions(userId: string): Promise<UserPermission[]> { return []; }
-  async hasPermission(userId: string, permission: string): Promise<boolean> { return true; } // Admin fallback
-  async getBugs(): Promise<Bug[]> { return []; }
-  async getBug(id: string): Promise<Bug | undefined> { return undefined; }
-  async createBug(bug: InsertBug): Promise<Bug> { throw new Error('Not implemented in fallback'); }
-  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> { return undefined; }
-  async getFeatureRequests(): Promise<FeatureRequest[]> { return []; }
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> { return undefined; }
-  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> { throw new Error('Not implemented in fallback'); }
-  async updateFeatureRequest(id: string, updates: Partial<FeatureRequest>): Promise<FeatureRequest | undefined> { return undefined; }
-  async addFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{ success: boolean; message: string; data?: any }> { return { success: true, message: 'Fallback mode' }; }
-  async removeFeatureRequestUpvote(featureRequestId: string, userId: string): Promise<{ success: boolean; message: string; data?: any }> { return { success: true, message: 'Fallback mode' }; }
+  async getDocuments(): Promise<Document[]> {
+    return [];
+  }
+  async getDocument(id: string): Promise<Document | undefined> {
+    return undefined;
+  }
+  async createDocument(doc: InsertDocument): Promise<Document> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
+    return undefined;
+  }
+  async deleteDocument(id: string): Promise<boolean> {
+    return false;
+  }
+  async getDocumentsByBuilding(buildingId: string): Promise<DocumentBuilding[]> {
+    return [];
+  }
+  async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
+    throw new Error('Not implemented in fallback');
+  }
+  async deleteDocumentBuilding(documentId: string, buildingId: string): Promise<boolean> {
+    return false;
+  }
+  async getDocumentsByResident(residentId: string): Promise<DocumentResident[]> {
+    return [];
+  }
+  async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> {
+    throw new Error('Not implemented in fallback');
+  }
+  async deleteDocumentResident(documentId: string, residentId: string): Promise<boolean> {
+    return false;
+  }
+  async getPillars(): Promise<Pillar[]> {
+    return [];
+  }
+  async getPillar(id: string): Promise<Pillar | undefined> {
+    return undefined;
+  }
+  async createPillar(pillar: InsertPillar): Promise<Pillar> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updatePillar(id: string, updates: Partial<Pillar>): Promise<Pillar | undefined> {
+    return undefined;
+  }
+  async getWorkspaceStatuses(): Promise<WorkspaceStatus[]> {
+    return [];
+  }
+  async getWorkspaceStatus(id: string): Promise<WorkspaceStatus | undefined> {
+    return undefined;
+  }
+  async createWorkspaceStatus(status: InsertWorkspaceStatus): Promise<WorkspaceStatus> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateWorkspaceStatus(
+    id: string,
+    updates: Partial<WorkspaceStatus>
+  ): Promise<WorkspaceStatus | undefined> {
+    return undefined;
+  }
+  async getQualityMetrics(): Promise<QualityMetric[]> {
+    return [];
+  }
+  async getQualityMetric(id: string): Promise<QualityMetric | undefined> {
+    return undefined;
+  }
+  async createQualityMetric(metric: InsertQualityMetric): Promise<QualityMetric> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateQualityMetric(
+    id: string,
+    updates: Partial<QualityMetric>
+  ): Promise<QualityMetric | undefined> {
+    return undefined;
+  }
+  async getFrameworkConfigurations(): Promise<FrameworkConfiguration[]> {
+    return [];
+  }
+  async getFrameworkConfiguration(id: string): Promise<FrameworkConfiguration | undefined> {
+    return undefined;
+  }
+  async createFrameworkConfiguration(
+    config: InsertFrameworkConfiguration
+  ): Promise<FrameworkConfiguration> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateFrameworkConfiguration(
+    id: string,
+    updates: Partial<FrameworkConfiguration>
+  ): Promise<FrameworkConfiguration | undefined> {
+    return undefined;
+  }
+  async getImprovementSuggestions(): Promise<ImprovementSuggestion[]> {
+    return [];
+  }
+  async getImprovementSuggestion(id: string): Promise<ImprovementSuggestion | undefined> {
+    return undefined;
+  }
+  async createImprovementSuggestion(
+    suggestion: InsertImprovementSuggestion
+  ): Promise<ImprovementSuggestion> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateImprovementSuggestion(
+    id: string,
+    updates: Partial<ImprovementSuggestion>
+  ): Promise<ImprovementSuggestion | undefined> {
+    return undefined;
+  }
+  async getFeatures(): Promise<Feature[]> {
+    return [];
+  }
+  async getFeature(id: string): Promise<Feature | undefined> {
+    return undefined;
+  }
+  async createFeature(feature: InsertFeature): Promise<Feature> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateFeature(id: string, updates: Partial<Feature>): Promise<Feature | undefined> {
+    return undefined;
+  }
+  async getActionableItems(): Promise<ActionableItem[]> {
+    return [];
+  }
+  async getActionableItem(id: string): Promise<ActionableItem | undefined> {
+    return undefined;
+  }
+  async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateActionableItem(
+    id: string,
+    updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined> {
+    return undefined;
+  }
+  async getInvitations(): Promise<Invitation[]> {
+    return [];
+  }
+  async getInvitation(id: string): Promise<Invitation | undefined> {
+    return undefined;
+  }
+  async getInvitationByToken(token: string): Promise<Invitation | undefined> {
+    return undefined;
+  }
+  async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateInvitation(
+    id: string,
+    updates: Partial<Invitation>
+  ): Promise<Invitation | undefined> {
+    return undefined;
+  }
+  async deleteInvitation(id: string): Promise<boolean> {
+    return false;
+  }
+  async getPermissions(): Promise<Permission[]> {
+    return [];
+  }
+  async getPermission(id: string): Promise<Permission | undefined> {
+    return undefined;
+  }
+  async getRolePermissions(role: string): Promise<RolePermission[]> {
+    return [];
+  }
+  async getUserPermissions(userId: string): Promise<UserPermission[]> {
+    return [];
+  }
+  async hasPermission(userId: string, permission: string): Promise<boolean> {
+    return true;
+  } // Admin fallback
+  async getBugs(): Promise<Bug[]> {
+    return [];
+  }
+  async getBug(id: string): Promise<Bug | undefined> {
+    return undefined;
+  }
+  async createBug(bug: InsertBug): Promise<Bug> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+    return undefined;
+  }
+  async getFeatureRequests(): Promise<FeatureRequest[]> {
+    return [];
+  }
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
+    return undefined;
+  }
+  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
+    throw new Error('Not implemented in fallback');
+  }
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>
+  ): Promise<FeatureRequest | undefined> {
+    return undefined;
+  }
+  async addFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    return { success: true, message: 'Fallback mode' };
+  }
+  async removeFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    return { success: true, message: 'Fallback mode' };
+  }
 }
 
 // Always use database storage - no fallbacks
-export const storage = new OptimizedDatabaseStorage();
+export const storage = new DatabaseStorage();

@@ -501,67 +501,98 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      // With cascade delete relationships, we can now do a true cascade delete
-      // First cleanup orphaned records to ensure data integrity
-      const { cleanupOrphans } = await import('../utils/cleanup-orphans');
-      const report = await cleanupOrphans();
-      console.log(`🧹 Orphan cleanup report:`, report);
+      console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
 
-      // Start transaction for cascading delete
-      await db.transaction(async (tx) => {
-        console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
+      // Since Neon HTTP driver doesn't support transactions, we'll do cascading delete manually
+      // in the correct order to maintain referential integrity
 
-        // With proper cascade delete relationships in schema, we can now perform
-        // a true cascade delete instead of manual transaction management
-        // This will automatically delete all related buildings, residences, and relationships
+      // 1. Get all buildings in this organization (including already inactive ones)
+      const orgBuildings = await db
+        .select({ id: buildings.id })
+        .from(buildings)
+        .where(eq(buildings.organizationId, organizationId));
 
-        // Delete all buildings FIRST to prevent foreign key constraint violations
-        const orgBuildings = await tx.select().from(buildings).where(eq(buildings.organizationId, organizationId));
-        if (orgBuildings.length > 0) {
-          const orgBuildingIds = orgBuildings.map(b => b.id);
-          
-          // Delete residences first
-          await tx.delete(residences).where(inArray(residences.buildingId, orgBuildingIds));
-          
-          // Then delete buildings
-          await tx.delete(buildings).where(inArray(buildings.id, orgBuildingIds));
-        }
-        
-        // Now safe to delete organization references
-        await tx.delete(userOrganizations).where(eq(userOrganizations.organizationId, organizationId));
+      if (orgBuildings.length > 0) {
+        const orgBuildingIds = orgBuildings.map((b) => b.id);
 
-        console.log(`✅ Organization ${organizationId} deleted with automatic cascade`);
-
-        // Cascade delete will handle user-organization relationships automatically
-        const orphanedUsers = await tx
-          .select({ id: users.id })
-          .from(users)
-          .leftJoin(
-            userOrganizations,
-            and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
-          )
-          .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
-
-        if (orphanedUsers.length > 0) {
-          const orphanedUserIds = orphanedUsers.map((u) => u.id);
-          await tx
-            .update(users)
-            .set({ isActive: false, updatedAt: new Date() })
-            .where(inArray(users.id, orphanedUserIds));
-        }
-
-        // 9. Finally, soft delete the organization
-        await tx
-          .update(organizations)
+        // 2. Soft delete residences first (children of buildings) - get ALL residences in these buildings
+        const affectedResidences = await db
+          .update(residences)
           .set({ isActive: false, updatedAt: new Date() })
-          .where(eq(organizations.id, organizationId));
-      });
+          .where(inArray(residences.buildingId, orgBuildingIds))
+          .returning({ id: residences.id, unitNumber: residences.unitNumber });
+
+        console.log(
+          `🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`
+        );
+
+        // 3. Soft delete buildings
+        const affectedBuildings = await db
+          .update(buildings)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(inArray(buildings.id, orgBuildingIds))
+          .returning({ id: buildings.id, name: buildings.name });
+
+        console.log(
+          `🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`
+        );
+      }
+
+      // 4. Delete user-organization relationships
+      await db
+        .delete(userOrganizations)
+        .where(eq(userOrganizations.organizationId, organizationId));
+
+      // 5. Find and delete orphaned users (users with no active organization relationships)
+      const orphanedUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        })
+        .from(users)
+        .leftJoin(
+          userOrganizations,
+          and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
+        )
+        .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
+
+      if (orphanedUsers.length > 0) {
+        const orphanedUserIds = orphanedUsers.map((u) => u.id);
+
+        // Hard delete orphaned users since they have no organization assignments
+        const deletedUsers = await db
+          .delete(users)
+          .where(inArray(users.id, orphanedUserIds))
+          .returning({
+            id: users.id,
+            email: users.email,
+          });
+
+        console.log(
+          `🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map((u) => u.email).join(', ')}`
+        );
+      }
+
+      // 6. Finally, soft delete the organization
+      await db
+        .update(organizations)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(organizations.id, organizationId));
 
       console.warn(`✅ Organization cascading delete completed: ${organizationId}`);
 
       // Clean up object storage hierarchy for the deleted organization
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.deleteOrganizationHierarchy(organizationId);
+      try {
+        const objectStorageService = new ObjectStorageService();
+        await objectStorageService.deleteOrganizationHierarchy(organizationId);
+      } catch (storageError) {
+        console.warn(
+          '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
+          storageError
+        );
+      }
 
       res.json({
         message: 'Organization and related entities deleted successfully',

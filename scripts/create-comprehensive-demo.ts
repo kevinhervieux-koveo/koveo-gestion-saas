@@ -77,7 +77,11 @@ async function createComprehensiveDemo(): Promise<void> {
 
     // Step 6: Create Financial Data
     console.log('\n💰 Creating financial data (bills, budgets, money flow)...');
-    await createFinancialData(buildings, residences, users.filter(u => u && u.id));
+    await createFinancialData(
+      buildings,
+      residences,
+      users.filter((u) => u && u.id)
+    );
 
     // Step 7: Create Operations Data
     console.log('\n🔧 Creating operations data (maintenance, demands, notifications)...');
@@ -125,22 +129,21 @@ async function cleanExistingDemoData(): Promise<void> {
   try {
     console.log('  🗑️  Removing ALL existing demo users...');
     // Get ALL users with demo emails and delete them
-    const demoUsers = await db.select({ username: schema.users.username })
+    const demoUsers = await db
+      .select({ username: schema.users.username })
       .from(schema.users)
       .where(like(schema.users.email, '%demo.com%'));
-    
+
     if (demoUsers.length > 0) {
       console.log(`  🗑️  Found ${demoUsers.length} demo users to remove`);
-      await db.delete(schema.users).where(
-        like(schema.users.email, '%demo.com%')
-      );
+      await db.delete(schema.users).where(like(schema.users.email, '%demo.com%'));
     }
-    
+
     console.log('  🗑️  Removing existing demo organizations...');
-    await db.delete(schema.organizations).where(
-      inArray(schema.organizations.name, ['Demo', 'Open Demo'])
-    );
-    
+    await db
+      .delete(schema.organizations)
+      .where(inArray(schema.organizations.name, ['Demo', 'Open Demo']));
+
     console.log('  ✅ Cleanup complete');
   } catch (error) {
     console.log('  ⚠️  Cleanup warning (non-critical):', (error as Error).message);

@@ -185,9 +185,9 @@ export function createUploadHandler(
        * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
        */
 
-      if (result.successful && result.successful.length > 0) {
+      if (_result.successful && _result.successful.length > 0) {
         onSuccess?.();
-      } else if (result.failed && result.failed.length > 0) {
+      } else if (_result.failed && _result.failed.length > 0) {
         /**
          * If function.
          * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
@@ -196,7 +196,7 @@ export function createUploadHandler(
          * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
          */
 
-        const error = new Error(`Upload failed: ${result.failed[0].error}`);
+        const error = new Error(`Upload failed: ${_result.failed[0].error}`);
         onError?.(error);
       }
     } catch (_error) {

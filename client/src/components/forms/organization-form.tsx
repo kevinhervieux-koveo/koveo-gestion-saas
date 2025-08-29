@@ -119,7 +119,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       console.error('Create organization _error:', _error);
       toast({
         title: 'Error',
-        description: (error as Error)?.message || 'Failed to create organization',
+        description: (_error as Error)?.message || 'Failed to create organization',
         variant: 'destructive',
       });
     },
@@ -179,6 +179,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
                         <SelectItem value='syndicate'>Syndicate</SelectItem>
                         <SelectItem value='cooperative'>Cooperative</SelectItem>
                         <SelectItem value='condo_association'>Condo Association</SelectItem>
+                        <SelectItem value='Demo'>Demo</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -274,7 +275,7 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
                         onChange={(e) => {
                           // Auto-format postal code to uppercase
                           const value = e.target.value.toUpperCase();
-                          field.onChange(_value);
+                          field.onChange(value);
                         }}
                       />
                     </FormControl>

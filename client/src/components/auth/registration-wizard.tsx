@@ -139,7 +139,7 @@ export function RegistrationWizard({
       };
 
       await onComplete(completeData);
-      
+
       // Only mark final step as complete after successful submission
       updateStepCompletion(currentStep.id, true);
     } catch (_error) {

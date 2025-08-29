@@ -7,7 +7,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Language Switcher Functionality Tests
- * 
+ *
  * Tests the language switching mechanism and UI behavior
  */
 describe('Language Switcher Functionality', () => {

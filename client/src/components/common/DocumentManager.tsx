@@ -191,7 +191,7 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
       const response = (await apiRequest('PUT', `/api/documents/${document.id}`, {
         ...data,
         dateReference: new Date(data.dateReference).toISOString(),
-      })) as Document;
+      })) as unknown as Document;
       onSave(response);
       toast({
         title: 'Success',
@@ -357,12 +357,14 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const queryParam =
     config.type === 'building' ? `buildingId=${config.entityId}` : `residenceId=${config.entityId}`;
 
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey,
-    queryFn: () =>
-      config.entityId
-        ? (apiRequest('GET', `/api/documents?${queryParam}`) as Promise<Document[]>)
-        : Promise.resolve([]),
+    queryFn: async () => {
+      if (!config.entityId) {
+        return [];
+      }
+      return (await apiRequest('GET', `/api/documents?${queryParam}`)) as unknown as Document[];
+    },
     enabled: !!config.entityId,
   });
 
@@ -757,23 +759,12 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                               </div>
                             ) : (
                               <ObjectUploader
-                                restrictions={{
-                                  maxFileSize: 10 * 1024 * 1024, // 10MB
-                                  allowedFileTypes: [
-                                    '.pdf',
-                                    '.doc',
-                                    '.docx',
-                                    '.xls',
-                                    '.xlsx',
-                                    '.jpg',
-                                    '.jpeg',
-                                    '.png',
-                                  ],
-                                }}
-                                onUpload={handleNewDocumentUpload}
+                                maxFileSize={10 * 1024 * 1024} // 10MB
+                                onGetUploadParameters={handleNewDocumentUpload}
                                 onComplete={handleNewDocumentUploadComplete}
-                                disabled={isUploadingNewFile}
-                              />
+                              >
+                                <span>Upload File</span>
+                              </ObjectUploader>
                             )}
                           </div>
                         </div>
@@ -809,7 +800,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
             {config.userRole === 'resident' && (
               <div className='text-sm text-gray-600'>
                 Showing {startItem + 1}-{endItem} of {filteredDocuments.length} documents
-                {selectedCategory !== 'all' && ` in ${getCategoryLabel(selectedCategory)}`}
+                {selectedCategory !== 'all' &&
+                  ` in ${getCategoryLabel(documentCategories, selectedCategory)}`}
                 {selectedYear !== 'all' && ` from ${selectedYear}`}
               </div>
             )}

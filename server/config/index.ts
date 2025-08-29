@@ -6,11 +6,12 @@ import { z } from 'zod';
 
 // Environment schema validation
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DATABASE_URL_DEV: z.string().optional(),
   SESSION_SECRET: z.string().optional(),
+  REPL_SLUG: z.string().optional(),
+  REPL_OWNER: z.string().optional(),
 
   // Email configuration
   SENDGRID_API_KEY: z.string().optional(),
@@ -42,21 +43,47 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
+// Detect environment based on domain instead of NODE_ENV
+const detectEnvironment = () => {
+  const domain =
+    env.REPL_SLUG && env.REPL_OWNER ? `${env.REPL_SLUG}.${env.REPL_OWNER}.repl.co` : 'localhost';
+
+  // Production domains (add your production domains here)
+  const productionDomains = ['koveo-gestion.com', 'www.koveo-gestion.com', 'app.koveo-gestion.com'];
+
+  const isProduction = productionDomains.some((prodDomain) => domain.includes(prodDomain));
+  const isDevelopment = !isProduction;
+
+  console.log(
+    `🌍 Environment detected: ${isDevelopment ? 'development' : 'production'} (domain: ${domain})`
+  );
+
+  return {
+    environment: isDevelopment ? 'development' : 'production',
+    isDevelopment,
+    isProduction,
+    isTest: false,
+    domain,
+  };
+};
+
+const envConfig = detectEnvironment();
+
 export const config = {
   // Server configuration
   server: {
     port: env.PORT,
-    nodeEnv: env.NODE_ENV,
-    isDevelopment: env.NODE_ENV === 'development',
-    isProduction: env.NODE_ENV === 'production',
-    isTest: env.NODE_ENV === 'test',
+    nodeEnv: envConfig.environment,
+    isDevelopment: envConfig.isDevelopment,
+    isProduction: envConfig.isProduction,
+    isTest: envConfig.isTest,
+    domain: envConfig.domain,
   },
 
   // Database configuration
   database: {
-    url: env.NODE_ENV === 'development' 
-      ? env.DATABASE_URL_DEV || env.DATABASE_URL
-      : env.DATABASE_URL,
+    // Use development database if available and we're in development, otherwise production
+    url: envConfig.isDevelopment && env.DATABASE_URL_DEV ? env.DATABASE_URL_DEV : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },
@@ -65,7 +92,7 @@ export const config = {
   session: {
     secret: env.SESSION_SECRET || 'koveo-gestion-secret-key',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    secure: env.NODE_ENV === 'production',
+    secure: envConfig.isProduction,
     httpOnly: true,
     sameSite: 'strict' as const,
   },

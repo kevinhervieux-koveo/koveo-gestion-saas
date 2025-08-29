@@ -194,7 +194,7 @@ function BookingCalendar({
     // Check opening hours if available
     if (space.openingHours) {
       const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      
+
       // Handle object format opening hours
       if (typeof space.openingHours === 'object' && !Array.isArray(space.openingHours)) {
         const todayHours = space.openingHours[dayName];

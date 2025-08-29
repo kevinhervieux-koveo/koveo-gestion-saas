@@ -46,11 +46,19 @@ export default function MyBuilding() {
   const itemsPerPage = 10;
 
   // Fetch buildings accessible to the user
-  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{
+  const {
+    data: buildingsData,
+    isLoading: isLoadingBuildings,
+    error: buildingsError,
+  } = useQuery<{
     buildings: BuildingWithStats[];
+    meta?: any;
   }>({
     queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest('GET', '/api/manager/buildings'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      return response.json();
+    },
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
@@ -102,7 +110,9 @@ export default function MyBuilding() {
             <Card>
               <CardContent className='p-8 text-center'>
                 <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBuildingsFound')}</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  {t('noBuildingsFound')}
+                </h3>
                 <p className='text-gray-500'>You don't have access to any buildings yet.</p>
               </CardContent>
             </Card>
@@ -146,12 +156,16 @@ export default function MyBuilding() {
 
                     <div className='grid grid-cols-2 gap-3'>
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>{t('buildingType')}</Label>
+                        <Label className='text-xs font-medium text-gray-500'>
+                          {t('buildingType')}
+                        </Label>
                         <p className='text-sm text-gray-700 capitalize'>{building.buildingType}</p>
                       </div>
                       {building.yearBuilt && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>{t('yearBuilt')}</Label>
+                          <Label className='text-xs font-medium text-gray-500'>
+                            {t('yearBuilt')}
+                          </Label>
                           <div className='flex items-center gap-1'>
                             <Calendar className='w-3 h-3' />
                             <span className='text-sm text-gray-700'>{building.yearBuilt}</span>
@@ -159,7 +173,9 @@ export default function MyBuilding() {
                         </div>
                       )}
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>{t('totalUnits')}</Label>
+                        <Label className='text-xs font-medium text-gray-500'>
+                          {t('totalUnits')}
+                        </Label>
                         <div className='flex items-center gap-1'>
                           <Home className='w-3 h-3' />
                           <span className='text-sm text-gray-700'>{building.totalUnits}</span>
@@ -167,7 +183,9 @@ export default function MyBuilding() {
                       </div>
                       {building.totalFloors && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>{t('totalFloors')}</Label>
+                          <Label className='text-xs font-medium text-gray-500'>
+                            {t('totalFloors')}
+                          </Label>
                           <p className='text-sm text-gray-700'>{building.totalFloors}</p>
                         </div>
                       )}

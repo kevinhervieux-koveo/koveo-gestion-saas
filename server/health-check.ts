@@ -16,10 +16,10 @@ export function createFastHealthCheck() {
     // Set ultra-fast response headers
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Connection': 'close',
+      Connection: 'close',
       'Content-Type': 'text/plain',
       'X-Health-Check': 'OK',
-      'X-Response-Time': Date.now().toString()
+      'X-Response-Time': Date.now().toString(),
     });
 
     // Send immediate response - no async operations
@@ -42,14 +42,14 @@ export function createStatusCheck() {
     // Set headers for fast response
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Connection': 'close',
-      'Content-Type': 'application/json'
+      Connection: 'close',
+      'Content-Type': 'application/json',
     });
 
     // Send immediate JSON response with minimal data
     res.status(200).json({
       status: 'ok',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   };
 }
@@ -67,7 +67,7 @@ export function createRootHandler() {
     });
 
     const userAgent = req.get('User-Agent') || '';
-    const isHealthCheck = 
+    const isHealthCheck =
       userAgent.includes('GoogleHC') ||
       userAgent.includes('uptime') ||
       userAgent.includes('health') ||
@@ -89,8 +89,8 @@ export function createRootHandler() {
     if (isHealthCheck || process.env.NODE_ENV === 'production') {
       // Ultra-fast health check response - minimal headers
       res.set({
-        'Connection': 'close',
-        'Content-Type': 'text/plain'
+        Connection: 'close',
+        'Content-Type': 'text/plain',
       });
       res.status(200).send('OK');
       return;

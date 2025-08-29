@@ -319,7 +319,13 @@ export default function UserManagement() {
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
-    mutationFn: async ({ userId, data }: { userId: string; data: z.infer<typeof deleteUserSchema> }) => {
+    mutationFn: async ({
+      userId,
+      data,
+    }: {
+      userId: string;
+      data: z.infer<typeof deleteUserSchema>;
+    }) => {
       const response = await apiRequest('POST', `/api/users/${userId}/delete-account`, data);
       return response.json();
     },

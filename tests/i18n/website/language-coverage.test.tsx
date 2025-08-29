@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 
 /**
  * Language Coverage Validation Tests
- * 
+ *
  * Ensures complete translation coverage and Quebec French terminology compliance
  */
 describe('Language Coverage Validation', () => {
@@ -38,9 +38,9 @@ describe('Language Coverage Validation', () => {
     // Mock translations for testing
     const mockTranslations = {
       en: { emailAddress: 'Email Address', userManagement: 'User Management' },
-      fr: { emailAddress: 'Adresse courriel', userManagement: 'Gestion des utilisateurs' }
+      fr: { emailAddress: 'Adresse courriel', userManagement: 'Gestion des utilisateurs' },
     };
-    
+
     const englishKeys = Object.keys(mockTranslations.en);
     const frenchKeys = Object.keys(mockTranslations.fr);
 
@@ -106,7 +106,7 @@ describe('Language Coverage Validation', () => {
       'Gestion des propriétés',
       'Adresse courriel',
       'Téléphone',
-      'Numéro de téléphone'
+      'Numéro de téléphone',
     ];
 
     // Check for common Quebec French requirements
@@ -144,7 +144,7 @@ describe('Language Coverage Validation', () => {
       'Gestion des propriétés',
       'Adresse courriel',
       'Système de gestion immobilière',
-      'Tableau de bord administrateur'
+      'Tableau de bord administrateur',
     ];
 
     mockFrenchValues.forEach((text) => {

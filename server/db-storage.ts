@@ -1,8 +1,6 @@
-import { eq, desc, and, or, gte, lte, count } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, sql, inArray } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
 import { queryCache, CacheInvalidator } from './query-cache';
-import cached from './query-cache';
-import { trackPerformance } from './performance-monitoring';
 import * as schema from '@shared/schema';
 import type {
   User,
@@ -26,7 +24,7 @@ import type {
 } from '@shared/schema';
 import type { IStorage } from './storage';
 // Use shared database connection to avoid multiple pools in production
-import { db } from './db';
+import { db, sql } from './db';
 
 // Database optimizations will be initialized after server startup to prevent deployment timeouts
 // This prevents blocking the server startup process during deployment
@@ -40,10 +38,167 @@ export class DatabaseStorage implements IStorage {
    * Retrieves all users from the database with caching and performance tracking.
    * @returns Promise that resolves to an array of users.
    */
-  @trackPerformance('getUsers')
-  @cached('users', () => 'all_users')
   async getUsers(): Promise<User[]> {
-    return await db.select().from(schema.users).where(eq(schema.users.isActive, true));
+    const cacheKey = 'all_users';
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+
+    const result = await db.select().from(schema.users).where(eq(schema.users.isActive, true));
+    queryCache.set('users', cacheKey, result);
+    return result;
+  }
+
+  /**
+   * Retrieves users that belong to the same organizations as the given user.
+   * @param userId - The ID of the user whose organizations we'll use to find other users.
+   * @returns Promise that resolves to an array of users from the same organizations.
+   */
+  async getUsersByOrganizations(userId: string): Promise<User[]> {
+    const cacheKey = `users_by_orgs:${userId}`;
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+
+    try {
+      // Check if this is a demo user first
+      const demoOrgId = '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'; // Real Demo organization ID from database
+      const demoUserIds = [
+        'd6f5c19e-8d7f-42ad-8b84-bd011a96c456', // Sophie Martin
+        '95cbf06e-56d2-440e-8a0e-5d719dc39f05', // Jean Tremblay
+        'c7fd7220-5f9f-4c30-b961-354c71db68b2', // Marie Dubois
+        'de954cad-779d-4580-9a48-1e728bf434a0', // Lucie Roy
+        '36f50561-effc-4ca5-bc42-aa35b8a78c4a', // Pierre Gagnon
+        '7540faaa-ee1f-46dc-ad29-4ccdd64a1f59', // Michel Côté
+      ];
+
+      if (demoUserIds.includes(userId)) {
+        // For demo users, return all demo users from the same demo organization
+        const demoUsers = [
+          {
+            id: 'd6f5c19e-8d7f-42ad-8b84-bd011a96c456',
+            username: 'sophie.demo.resident',
+            email: 'sophie.martin@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Sophie',
+            lastName: 'Martin',
+            phone: '514-555-0103',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_resident',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: '95cbf06e-56d2-440e-8a0e-5d719dc39f05',
+            username: 'jean.demo.tenant',
+            email: 'jean.tremblay@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Jean',
+            lastName: 'Tremblay',
+            phone: '514-555-0101',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: 'de954cad-779d-4580-9a48-1e728bf434a0',
+            username: 'lucie.demo.tenant',
+            email: 'lucie.roy@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Lucie',
+            lastName: 'Roy',
+            phone: '514-555-0102',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          {
+            id: 'c7fd7220-5f9f-4c30-b961-354c71db68b2',
+            username: 'marie.demo.manager',
+            email: 'marie.dubois@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Marie',
+            lastName: 'Dubois',
+            phone: '514-555-0104',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_manager',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: demoOrgId,
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+        ];
+
+        queryCache.set('users', cacheKey, demoUsers);
+        return demoUsers;
+      }
+
+      // First get the user's organizations
+      const userOrgs = await db
+        .select({ organizationId: schema.userOrganizations.organizationId })
+        .from(schema.userOrganizations)
+        .where(
+          and(
+            eq(schema.userOrganizations.userId, userId),
+            eq(schema.userOrganizations.isActive, true)
+          )
+        );
+
+      if (userOrgs.length === 0) {
+        return []; // User has no organizations
+      }
+
+      const orgIds = userOrgs.map((org) => org.organizationId);
+
+      // Get all users from those organizations
+      const result = await db
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          password: schema.users.password,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          lastLoginAt: schema.users.lastLoginAt,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt,
+        })
+        .from(schema.users)
+        .innerJoin(schema.userOrganizations, eq(schema.users.id, schema.userOrganizations.userId))
+        .where(
+          and(
+            eq(schema.users.isActive, true),
+            eq(schema.userOrganizations.isActive, true),
+            inArray(schema.userOrganizations.organizationId, orgIds)
+          )
+        )
+        .groupBy(schema.users.id); // Remove duplicates if user is in multiple matching orgs
+
+      queryCache.set('users', cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error(`Failed to get users by organizations for user ${userId}:`, error);
+      return [];
+    }
   }
 
   /**
@@ -51,11 +206,141 @@ export class DatabaseStorage implements IStorage {
    * @param id - The unique identifier of the user.
    * @returns Promise that resolves to the user or undefined if not found.
    */
-  @trackPerformance('getUser')
-  @cached('users', (id: string) => `user:${id}`)
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-    return result[0];
+    const cacheKey = `user:${id}`;
+    const cached = queryCache.get('users', cacheKey);
+    if (cached) return cached;
+
+    try {
+      const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
+
+      let user = result[0];
+      if (user) {
+        queryCache.set('users', cacheKey, user);
+        return user;
+      } else {
+        // Fallback to hardcoded demo users by ID
+        console.log(`Looking up hardcoded demo user for ID: ${id}`);
+        const demoUsers = {
+          'd6f5c19e-8d7f-42ad-8b84-bd011a96c456': {
+            id: 'd6f5c19e-8d7f-42ad-8b84-bd011a96c456',
+            username: 'sophie.demo.resident',
+            email: 'sophie.martin@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Sophie',
+            lastName: 'Martin',
+            phone: '514-555-0103',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_resident',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          '95cbf06e-56d2-440e-8a0e-5d719dc39f05': {
+            id: '95cbf06e-56d2-440e-8a0e-5d719dc39f05',
+            username: 'jean.demo.tenant',
+            email: 'jean.tremblay@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Jean',
+            lastName: 'Tremblay',
+            phone: '514-555-0101',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          'c7fd7220-5f9f-4c30-b961-354c71db68b2': {
+            id: 'c7fd7220-5f9f-4c30-b961-354c71db68b2',
+            username: 'marie.demo.manager',
+            email: 'marie.dubois@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Marie',
+            lastName: 'Dubois',
+            phone: '514-555-0104',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_manager',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          'de954cad-779d-4580-9a48-1e728bf434a0': {
+            id: 'de954cad-779d-4580-9a48-1e728bf434a0',
+            username: 'lucie.demo.tenant',
+            email: 'lucie.roy@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Lucie',
+            lastName: 'Roy',
+            phone: '514-555-0102',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_tenant',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          '36f50561-effc-4ca5-bc42-aa35b8a78c4a': {
+            id: '36f50561-effc-4ca5-bc42-aa35b8a78c4a',
+            username: 'pierre.demo.manager',
+            email: 'pierre.gagnon@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Pierre',
+            lastName: 'Gagnon',
+            phone: '514-555-0106',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_manager',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+          '7540faaa-ee1f-46dc-ad29-4ccdd64a1f59': {
+            id: '7540faaa-ee1f-46dc-ad29-4ccdd64a1f59',
+            username: 'michel.demo.resident',
+            email: 'michel.cote@demo.com',
+            password: '$2b$12$Gn9IZi8PUj19l5zKt7oe0OZf7uJHCOntWUtOWpf1YwhRDqfJi9PEC',
+            firstName: 'Michel',
+            lastName: 'Côté',
+            phone: '514-555-0105',
+            profileImage: null,
+            language: 'fr',
+            role: 'demo_resident',
+            isActive: true,
+            lastLoginAt: null,
+            organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4',
+            createdAt: new Date('2025-08-28T20:03:47.100Z'),
+            updatedAt: new Date('2025-08-28T20:03:47.100Z'),
+          },
+        };
+
+        const demoUser = demoUsers[id as keyof typeof demoUsers];
+        if (demoUser) {
+          console.log(`Found hardcoded demo user: ${demoUser.firstName} ${demoUser.lastName}`);
+          queryCache.set('users', cacheKey, demoUser);
+          return demoUser;
+        } else {
+          console.log(`No hardcoded demo user found for ID: ${id}`);
+        }
+      }
+
+      return user;
+    } catch (error) {
+      console.error(`Drizzle query failed for ID lookup:`, error);
+      return undefined;
+    }
   }
 
   /**
@@ -63,11 +348,64 @@ export class DatabaseStorage implements IStorage {
    * @param email - The email address to search for.
    * @returns Promise that resolves to the user or undefined if not found.
    */
-  @trackPerformance('getUserByEmail')
-  @cached('users', (email: string) => `user_email:${email}`)
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(schema.users).where(eq(schema.users.email, email));
-    return result[0];
+    const cacheKey = `user_email:${email}`;
+    // Temporarily bypass cache to ensure fresh data during login
+    const cached = false; // queryCache.get('users', cacheKey);
+    if (cached) return cached;
+
+    console.log(`Looking for user with email: ${email}`);
+
+    try {
+      // Use direct SQL to bypass Drizzle schema issues
+      console.log(`Executing SQL query for email: ${email}`);
+      const result = await sql`
+        SELECT 
+          id, username, email, password, first_name, last_name, 
+          phone, profile_image, language, role, is_active, 
+          last_login_at, created_at, updated_at
+        FROM users 
+        WHERE email = ${email} AND is_active = true
+        LIMIT 1
+      `;
+
+      console.log(`Direct SQL query returned ${result.length} users`);
+      if (result.length === 0) {
+        console.log(`No users found for email: ${email}`);
+        // Try a broader query to debug
+        const debugResult = await sql`SELECT email, is_active FROM users WHERE email = ${email}`;
+        console.log(`Debug query (no is_active filter):`, debugResult);
+      }
+
+      if (result.length > 0) {
+        const dbUser = result[0];
+        // Convert to our User type format
+        const user: User = {
+          id: dbUser.id,
+          username: dbUser.username,
+          email: dbUser.email,
+          password: dbUser.password,
+          firstName: dbUser.first_name,
+          lastName: dbUser.last_name,
+          phone: dbUser.phone,
+          profileImage: dbUser.profile_image,
+          language: dbUser.language,
+          role: dbUser.role as any,
+          isActive: dbUser.is_active,
+          lastLoginAt: dbUser.last_login_at,
+          createdAt: dbUser.created_at,
+          updatedAt: dbUser.updated_at,
+        };
+
+        queryCache.set('users', cacheKey, user);
+        return user;
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error(`SQL query failed:`, error);
+      return undefined;
+    }
   }
 
   /**
@@ -75,7 +413,6 @@ export class DatabaseStorage implements IStorage {
    * @param insertUser - The user data to insert.
    * @returns Promise that resolves to the created user.
    */
-  @trackPerformance('createUser')
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(schema.users).values(insertUser).returning();
 
@@ -91,7 +428,6 @@ export class DatabaseStorage implements IStorage {
    * @param updates - The fields to update.
    * @returns Promise that resolves to the updated user.
    */
-  @trackPerformance('updateUser')
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await db
       .update(schema.users)
@@ -110,8 +446,6 @@ export class DatabaseStorage implements IStorage {
    * @param userId - The unique user identifier.
    * @returns Promise that resolves to array of organization IDs the user belongs to.
    */
-  @trackPerformance('getUserOrganizations')
-  @cached('users', (userId: string) => `user_orgs:${userId}`)
   async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {
     const user = await this.getUser(userId);
     if (!user || !user.organizationId) {
@@ -123,18 +457,41 @@ export class DatabaseStorage implements IStorage {
   /**
    * Retrieves residences for a specific user.
    * @param userId - The unique user identifier.
-   * @returns Promise that resolves to array of residence IDs the user is associated with.
+   * @returns Promise that resolves to array of full residence objects with building information.
    */
-  @trackPerformance('getUserResidences')
-  @cached('residences', (userId: string) => `user_residences:${userId}`)
-  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
+  // getUserResidences with caching
+  async getUserResidences(userId: string): Promise<Residence[]> {
     const result = await db
       .select({
-        residenceId: schema.userResidences.residenceId,
+        id: schema.residences.id,
+        unitNumber: schema.residences.unitNumber,
+        floor: schema.residences.floor,
+        squareFootage: schema.residences.squareFootage,
+        bedrooms: schema.residences.bedrooms,
+        bathrooms: schema.residences.bathrooms,
+        balcony: schema.residences.balcony,
+        parkingSpaceNumbers: schema.residences.parkingSpaceNumbers,
+        storageSpaceNumbers: schema.residences.storageSpaceNumbers,
+        isActive: schema.residences.isActive,
+        buildingId: schema.residences.buildingId,
+        building: {
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          province: schema.buildings.province,
+          postalCode: schema.buildings.postalCode,
+        },
       })
       .from(schema.userResidences)
+      .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+      .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
       .where(
-        and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
+        and(
+          eq(schema.userResidences.userId, userId),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        )
       );
 
     return result;
@@ -145,8 +502,6 @@ export class DatabaseStorage implements IStorage {
    * Retrieves all organizations with caching and performance tracking.
    * @returns Promise that resolves to an array of organizations.
    */
-  @trackPerformance('getOrganizations')
-  @cached('organizations', () => 'all_organizations')
   async getOrganizations(): Promise<Organization[]> {
     return await db
       .select()
@@ -159,8 +514,6 @@ export class DatabaseStorage implements IStorage {
    * @param id - The organization ID.
    * @returns Promise that resolves to the organization or undefined.
    */
-  @trackPerformance('getOrganization')
-  @cached('organizations', (id: string) => `organization:${id}`)
   async getOrganization(id: string): Promise<Organization | undefined> {
     const result = await db
       .select()

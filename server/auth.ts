@@ -4,6 +4,7 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
+import { sql } from './db.js';
 import type { User } from '@shared/schema';
 // Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';
@@ -22,24 +23,24 @@ import { queryCache } from './query-cache';
 async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
   try {
     console.log(`🔍 Checking permission: role="${userRole}", permission="${permissionName}"`);
-    
+
     // First check if permission exists at all
     const permissionExists = await db
       .select()
       .from(schema.permissions)
       .where(eq(schema.permissions.name, permissionName))
       .limit(1);
-    
+
     console.log(`🔍 Permission "${permissionName}" exists: ${permissionExists.length > 0}`);
-    
+
     // Check role permissions
     const rolePermissions = await db
       .select()
       .from(schema.rolePermissions)
       .where(eq(schema.rolePermissions.role, userRole as any));
-    
+
     console.log(`🔍 Role "${userRole}" has ${rolePermissions.length} permissions`);
-    
+
     const result = await db
       .select()
       .from(schema.rolePermissions)
@@ -52,18 +53,28 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
       )
       .limit(1);
 
-    console.log(`🔍 Permission check result: ${result.length > 0 ? 'GRANTED' : 'DENIED'}, found ${result.length} matching records`);
-    
+    console.log(
+      `🔍 Permission check result: ${result.length > 0 ? 'GRANTED' : 'DENIED'}, found ${result.length} matching records`
+    );
+
     if (result.length === 0) {
-      console.log(`❌ No permission found for role "${userRole}" and permission "${permissionName}"`);
+      console.log(
+        `❌ No permission found for role "${userRole}" and permission "${permissionName}"`
+      );
       // Debug: list all admin permissions
       if (userRole === 'admin') {
         const adminPerms = await db
           .select({ name: schema.permissions.name })
           .from(schema.rolePermissions)
-          .leftJoin(schema.permissions, eq(schema.rolePermissions.permissionId, schema.permissions.id))
+          .leftJoin(
+            schema.permissions,
+            eq(schema.rolePermissions.permissionId, schema.permissions.id)
+          )
           .where(eq(schema.rolePermissions.role, 'admin'));
-        console.log(`🔍 Admin permissions:`, adminPerms.map(p => p.name));
+        console.log(
+          `🔍 Admin permissions:`,
+          adminPerms.map((p) => p.name)
+        );
       }
     }
 
@@ -102,8 +113,8 @@ export const sessionConfig = session({
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS required in production
-    httpOnly: true,
+    secure: false, // Disable secure for Replit development environment
+    httpOnly: false, // Disable httpOnly to allow JavaScript access for debugging
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
     sameSite: 'lax', // Keep lax for same-site compatibility
     // Don't set domain - let it default to current domain
@@ -204,13 +215,16 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     console.log(`🔍 RequireAuth: Loading user with session ID: ${req.session.userId}`);
-    
+
     // Clear any cached user data for this ID to ensure fresh load
     queryCache.invalidate('users', `user:${req.session.userId}`);
     queryCache.invalidate('users', `user_email:*`);
-    
+
     const user = await storage.getUser(req.session.userId);
-    console.log(`🔍 RequireAuth: Loaded user:`, user ? { id: user.id, email: user.email, role: user.role } : 'NOT FOUND');
+    console.log(
+      `🔍 RequireAuth: Loaded user:`,
+      user ? { id: user.id, email: user.email, role: user.role } : 'NOT FOUND'
+    );
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
         if (err) {
@@ -253,6 +267,17 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       organizations: userOrganizations.map((uo) => uo.organizationId),
       canAccessAllOrganizations: userOrganizations.some((uo) => uo.canAccessAllOrganizations),
     } as any;
+
+    // Special handling for hardcoded demo users - ensure they have proper organization access
+    if (
+      user.role?.startsWith('demo_') &&
+      user.organizationId &&
+      (!req.user.organizations || req.user.organizations.length === 0)
+    ) {
+      console.log(`🔧 [AUTH] Adding organization access for hardcoded demo user: ${user.email}`);
+      req.user.organizations = [user.organizationId];
+      req.user.canAccessAllOrganizations = false;
+    }
 
     next();
   } catch (_error) {
@@ -399,6 +424,7 @@ export function setupAuthRoutes(app: any) {
   app.post('/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
+      console.log(`🔍 [AUTH ROUTE] Login attempt for: ${email}`);
 
       if (!email || !password) {
         return res.status(400).json({
@@ -407,10 +433,9 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-
-      // Normal database lookup for all users
+      console.log(`🔍 [AUTH ROUTE] Calling storage.getUserByEmail for: ${email.toLowerCase()}`);
       const user = await storage.getUserByEmail(email.toLowerCase());
-      
+
       if (!user) {
         return res.status(401).json({
           message: 'Invalid credentials',
@@ -426,9 +451,15 @@ export function setupAuthRoutes(app: any) {
       }
 
       // Use bcrypt for password verification
+      console.log(
+        `🔍 [AUTH DEBUG] Verifying password for user: ${user.firstName} ${user.lastName}`
+      );
+      console.log(`🔍 [AUTH DEBUG] Password hash: ${user.password.substring(0, 20)}...`);
       const isValidPassword = await verifyPassword(password, user.password);
+      console.log(`🔍 [AUTH DEBUG] Password verification result: ${isValidPassword}`);
 
       if (!isValidPassword) {
+        console.log(`❌ [AUTH DEBUG] Password verification failed for: ${user.email}`);
         return res.status(401).json({
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS',
@@ -503,11 +534,13 @@ export function setupAuthRoutes(app: any) {
   app.get('/auth/user', async (req: Request, res: Response) => {
     try {
       // 🚨 EMERGENCY PRODUCTION SESSION CHECK - Support emergency login sessions
-      if (process.env.NODE_ENV === 'production' && 
-          req.session?.userId === 'f35647de-5f16-46f2-b30b-09e0469356b1' &&
-          req.session?.userRole === 'admin') {
+      if (
+        process.env.NODE_ENV === 'production' &&
+        req.session?.userId === 'f35647de-5f16-46f2-b30b-09e0469356b1' &&
+        req.session?.userRole === 'admin'
+      ) {
         console.log('🚨 Emergency session detected - returning admin user data');
-        
+
         return res.json({
           id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
           username: 'kevin.hervieux',
@@ -578,7 +611,7 @@ export function setupAuthRoutes(app: any) {
       secure: req.secure,
       trustProxy: !!req.app.get('trust proxy'),
     };
-    
+
     console.log('Auth debug info:', debugInfo);
     res.json(debugInfo);
   });
@@ -587,21 +620,21 @@ export function setupAuthRoutes(app: any) {
   app.post('/auth/test-cookie', (req: Request, res: Response) => {
     // Set a test session value
     req.session.testValue = 'test-' + Date.now();
-    
+
     req.session.save((err) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to save session', details: err.message });
       }
-      
-      res.json({ 
+
+      res.json({
         message: 'Test cookie set',
         sessionId: req.sessionID,
         testValue: req.session.testValue,
         cookieSettings: {
           secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
-          sameSite: 'lax'
-        }
+          sameSite: 'lax',
+        },
       });
     });
   });

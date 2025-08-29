@@ -43,7 +43,7 @@ export class DemoManagementService {
   }> {
     // Demo organizations functionality disabled per user request - no database operations
     console.log('✅ Demo organizations functionality disabled (skipped)');
-    
+
     return {
       success: true,
       message: 'Demo organizations functionality disabled - skipping all database operations',
@@ -61,7 +61,7 @@ export class DemoManagementService {
     openDemoOrgId?: string;
   }> {
     console.log('✅ Demo organizations recreation skipped (disabled)');
-    
+
     return {
       success: true,
       message: 'Demo organizations functionality disabled - recreation skipped',
@@ -83,7 +83,7 @@ export class DemoManagementService {
     };
   }> {
     console.log('✅ Demo organizations info retrieval skipped (disabled)');
-    
+
     return {
       stats: {
         demoBuildings: 0,
@@ -134,7 +134,7 @@ export class DemoManagementService {
           city: 'Montreal',
           province: 'QC',
           postalCode: 'H1A 1A1',
-          isActive: true
+          isActive: true,
         });
       }
 
@@ -154,7 +154,7 @@ export class DemoManagementService {
           city: 'Montreal',
           province: 'QC',
           postalCode: 'H1B 1B1',
-          isActive: true
+          isActive: true,
         });
       }
 

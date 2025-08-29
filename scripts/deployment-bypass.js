@@ -18,18 +18,18 @@ process.env.CI = 'true';
 
 // Step 2: Create temporary TypeScript config for deployment
 const deployTsConfig = {
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "noImplicitAny": false,
-    "strict": false,
-    "noEmitOnError": false,
-    "suppressImplicitAnyIndexErrors": true
+  extends: './tsconfig.base.json',
+  compilerOptions: {
+    noEmit: true,
+    skipLibCheck: true,
+    skipDefaultLibCheck: true,
+    noImplicitAny: false,
+    strict: false,
+    noEmitOnError: false,
+    suppressImplicitAnyIndexErrors: true,
   },
-  "include": ["client/src/**/*", "server/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "tests", "coverage", "dist", "build"]
+  include: ['client/src/**/*', 'server/**/*', 'shared/**/*'],
+  exclude: ['node_modules', 'tests', 'coverage', 'dist', 'build'],
 };
 
 writeFileSync('tsconfig.deploy.json', JSON.stringify(deployTsConfig, null, 2));
@@ -43,12 +43,14 @@ try {
 
   // Step 4: Build server with lenient type checking
   console.log('🖥️  Building server (lenient type checking)...');
-  execSync('npx tsc --project tsconfig.deploy.json --skipLibCheck --skipDefaultLibCheck --noEmitOnError false', { 
-    stdio: 'inherit',
-    env: { ...process.env, SKIP_TYPECHECK: 'true' }
-  });
+  execSync(
+    'npx tsc --project tsconfig.deploy.json --skipLibCheck --skipDefaultLibCheck --noEmitOnError false',
+    {
+      stdio: 'inherit',
+      env: { ...process.env, SKIP_TYPECHECK: 'true' },
+    }
+  );
   console.log('✅ Server build completed');
-
 } catch (error) {
   console.warn('⚠️  Build completed with warnings:', error.message);
   console.log('✅ Deployment can proceed despite warnings');

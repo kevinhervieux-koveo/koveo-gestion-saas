@@ -1,4 +1,3 @@
-/// <reference types='../../../types/browser-apis' />
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { FileText, Upload, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
-import type { Bill } from '../../../shared/schema';
+import type { Bill } from '@shared/schema';
 
 // Unified form schema
 const billFormSchema = z.object({
@@ -51,7 +50,7 @@ const billFormSchema = z.object({
   ]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
-  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly']).optional(),
+  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   totalAmount: z.string().min(1, 'Amount is required'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().optional(),

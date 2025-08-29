@@ -1,6 +1,6 @@
 /**
  * Deployment Validation Tests
- * 
+ *
  * Tests to ensure the application is properly configured for deployment
  * and catches issues that would cause 500 errors in production.
  */
@@ -115,7 +115,7 @@ describe('Deployment Validation', () => {
       const response = await request(app)
         .post('/api/features/invalid-id/update-status')
         .send({ status: 'invalid-status' });
-      
+
       // Should return 400 (bad request) or 404 (not found), not 500
       expect([400, 404]).toContain(response.status);
     });
@@ -124,7 +124,7 @@ describe('Deployment Validation', () => {
   describe('Security Headers', () => {
     test('should include security headers', async () => {
       const response = await request(app).get('/api/health');
-      
+
       expect(response.headers).toMatchObject({
         'x-content-type-options': 'nosniff',
         'x-frame-options': 'DENY',
@@ -140,7 +140,7 @@ describe('Deployment Validation', () => {
       // This test ensures database operations don't cause 500 errors
       const response = await request(app).get('/api/health/detailed');
       expect(response.status).toBe(200);
-      
+
       // If database connectivity is broken, this would likely return 500
       expect(response.body.status).toBe('healthy');
     });

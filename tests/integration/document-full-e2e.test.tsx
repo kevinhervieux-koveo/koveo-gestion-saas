@@ -92,12 +92,15 @@ describe('Document Management - Full E2E Tests', () => {
         }
 
         // Step 2: Test document API with authentication
-        const documentsResponse = await fetch('/api/documents?type=resident&residenceId=test-residence', {
-          headers: {
-            Cookie: authCookie,
-          },
-          credentials: 'include',
-        });
+        const documentsResponse = await fetch(
+          '/api/documents?type=resident&residenceId=test-residence',
+          {
+            headers: {
+              Cookie: authCookie,
+            },
+            credentials: 'include',
+          }
+        );
 
         if (documentsResponse.ok) {
           const documentsData = await documentsResponse.json();
@@ -107,7 +110,7 @@ describe('Document Management - Full E2E Tests', () => {
           // Document the API response for debugging
           const errorData = await documentsResponse.json();
           console.log('Documents API error:', documentsResponse.status, errorData);
-          
+
           // Common expected errors that we should handle gracefully
           if (documentsResponse.status === 403) {
             expect(errorData.message).toContain('Access denied');
@@ -172,9 +175,9 @@ describe('Document Management - Full E2E Tests', () => {
     it('should handle empty document state gracefully', () => {
       // Test that components handle no documents correctly
       const emptyDocumentsData = { documents: [] };
-      
+
       expect(emptyDocumentsData.documents).toHaveLength(0);
-      
+
       // In the UI, this should show "No Documents Found" message
       // and not crash or show errors
     });
@@ -188,7 +191,7 @@ describe('Document Management - Full E2E Tests', () => {
         { status: 500, message: 'Internal server error' },
       ];
 
-      errorScenarios.forEach(scenario => {
+      errorScenarios.forEach((scenario) => {
         expect(scenario.status).toBeGreaterThan(399);
         expect(scenario.message).toBeDefined();
       });
@@ -220,13 +223,13 @@ describe('Document Management - Full E2E Tests', () => {
       ];
 
       // Test filtering for tenant users
-      const tenantVisibleDocs = mockDocuments.filter(doc => doc.isVisibleToTenants);
+      const tenantVisibleDocs = mockDocuments.filter((doc) => doc.isVisibleToTenants);
       expect(tenantVisibleDocs).toHaveLength(2);
-      
+
       // Test building vs residence document separation
-      const buildingDocs = mockDocuments.filter(doc => doc.entityType === 'building');
-      const residenceDocs = mockDocuments.filter(doc => doc.entityType === 'residence');
-      
+      const buildingDocs = mockDocuments.filter((doc) => doc.entityType === 'building');
+      const residenceDocs = mockDocuments.filter((doc) => doc.entityType === 'residence');
+
       expect(buildingDocs).toHaveLength(2);
       expect(residenceDocs).toHaveLength(1);
     });
@@ -262,7 +265,7 @@ describe('Document Management - Full E2E Tests', () => {
       expect(accessMatrix.admin.canAccessAnyResidence).toBe(true);
       expect(accessMatrix.manager.canAccessAnyResidence).toBe(true);
       expect(accessMatrix.tenant.canAccessAnyResidence).toBe(false);
-      
+
       expect(accessMatrix.tenant.canCreateDocument).toBe(false);
       expect(accessMatrix.admin.canCreateDocument).toBe(true);
     });
@@ -286,9 +289,9 @@ describe('Document Management - Full E2E Tests', () => {
       // Test visibility logic
       expect(visibilityRules.tenantVisibleDocument.canTenantView).toBe(true);
       expect(visibilityRules.privateDocument.canTenantView).toBe(false);
-      
+
       // Managers and admins can always view documents
-      Object.values(visibilityRules).forEach(rule => {
+      Object.values(visibilityRules).forEach((rule) => {
         expect(rule.canManagerView).toBe(true);
         expect(rule.canAdminView).toBe(true);
       });
@@ -303,9 +306,7 @@ describe('Document Management - Full E2E Tests', () => {
           { email: 'manager@demo.com', role: 'manager', password: 'demo123' },
           { email: 'tenant@demo.com', role: 'tenant', password: 'demo123' },
         ],
-        demoBuildings: [
-          { name: 'Demo Building A', address: '123 Test Street' },
-        ],
+        demoBuildings: [{ name: 'Demo Building A', address: '123 Test Street' }],
         demoResidences: [
           { unitNumber: '101', buildingId: 'demo-building-a' },
           { unitNumber: '102', buildingId: 'demo-building-a' },

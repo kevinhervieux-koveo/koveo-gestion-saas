@@ -18,42 +18,46 @@ describe('Building Residence Auto-Generation Tests', () => {
     await db.delete(users);
 
     // Create test organization
-    const [organization] = await db.insert(organizations).values({
-      id: 'test-org-residence-gen',
-      name: 'Test Organization for Residence Generation',
-      type: 'property_management',
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const [organization] = await db
+      .insert(organizations)
+      .values({
+        id: 'test-org-residence-gen',
+        name: 'Test Organization for Residence Generation',
+        type: 'property_management',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
     testOrganizationId = organization.id;
 
     // Create test admin user
-    const [user] = await db.insert(users).values({
-      id: 'test-admin-residence-gen',
-      username: 'test-admin-residence',
-      email: 'test-residence@example.com',
-      firstName: 'Test',
-      lastName: 'Admin',
-      phone: '',
-      profileImage: '',
-      language: 'en',
-      role: 'admin',
-      isActive: true,
-      canAccessAllOrganizations: true,
-      passwordHash: 'test-hash',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: 'test-admin-residence-gen',
+        username: 'test-admin-residence',
+        email: 'test-residence@example.com',
+        firstName: 'Test',
+        lastName: 'Admin',
+        phone: '',
+        profileImage: '',
+        language: 'en',
+        role: 'admin',
+        isActive: true,
+        canAccessAllOrganizations: true,
+        passwordHash: 'test-hash',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
     testUserId = user.id;
 
     // Create authenticated session
-    const loginResponse = await request(app)
-      .post('/api/login')
-      .send({
-        email: 'test-residence@example.com',
-        password: 'test-password'
-      });
+    const loginResponse = await request(app).post('/api/login').send({
+      email: 'test-residence@example.com',
+      password: 'test-password',
+    });
 
     authCookie = loginResponse.headers['set-cookie'];
   });
@@ -82,11 +86,11 @@ describe('Building Residence Auto-Generation Tests', () => {
       expect(buildingId).toBeDefined();
 
       // Wait a moment for residence generation to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify 6 residences were created
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(6);
@@ -100,7 +104,7 @@ describe('Building Residence Auto-Generation Tests', () => {
       });
 
       // Verify unit numbers are properly formatted
-      const unitNumbers = createdResidences.map(r => r.unitNumber).sort();
+      const unitNumbers = createdResidences.map((r) => r.unitNumber).sort();
       expect(unitNumbers).toEqual(['101', '102', '103', '104', '105', '106']);
     });
 
@@ -125,10 +129,10 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for residence generation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(1);
@@ -158,20 +162,20 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for residence generation
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(50);
 
       // Verify floors are distributed (should have residences on floors 1-5)
-      const floors = [...new Set(createdResidences.map(r => r.floor))].sort();
+      const floors = [...new Set(createdResidences.map((r) => r.floor))].sort();
       expect(floors).toEqual([1, 2, 3, 4, 5]);
 
       // Verify unit numbering follows pattern (floor + unit on floor)
-      const floor1Units = createdResidences.filter(r => r.floor === 1);
+      const floor1Units = createdResidences.filter((r) => r.floor === 1);
       expect(floor1Units.length).toBe(10); // 50 units / 5 floors = 10 per floor
     });
 
@@ -196,10 +200,10 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for potential residence generation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(0);
@@ -226,10 +230,10 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for potential residence generation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(0);
@@ -257,27 +261,27 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for residence generation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       expect(createdResidences).toHaveLength(12);
 
       // 12 units / 3 floors = 4 units per floor
-      const floor1Units = createdResidences.filter(r => r.floor === 1);
-      const floor2Units = createdResidences.filter(r => r.floor === 2);
-      const floor3Units = createdResidences.filter(r => r.floor === 3);
+      const floor1Units = createdResidences.filter((r) => r.floor === 1);
+      const floor2Units = createdResidences.filter((r) => r.floor === 2);
+      const floor3Units = createdResidences.filter((r) => r.floor === 3);
 
       expect(floor1Units.length).toBe(4);
       expect(floor2Units.length).toBe(4);
       expect(floor3Units.length).toBe(4);
 
       // Verify unit numbering pattern
-      const floor1UnitNumbers = floor1Units.map(r => r.unitNumber).sort();
-      const floor2UnitNumbers = floor2Units.map(r => r.unitNumber).sort();
-      const floor3UnitNumbers = floor3Units.map(r => r.unitNumber).sort();
+      const floor1UnitNumbers = floor1Units.map((r) => r.unitNumber).sort();
+      const floor2UnitNumbers = floor2Units.map((r) => r.unitNumber).sort();
+      const floor3UnitNumbers = floor3Units.map((r) => r.unitNumber).sort();
 
       expect(floor1UnitNumbers).toEqual(['101', '102', '103', '104']);
       expect(floor2UnitNumbers).toEqual(['201', '202', '203', '204']);
@@ -295,7 +299,7 @@ describe('Building Residence Auto-Generation Tests', () => {
         province: 'Quebec',
         postalCode: 'H1A 1A1',
         buildingType: 'condo',
-        totalUnits: "6", // String instead of number (simulating form input)
+        totalUnits: '6', // String instead of number (simulating form input)
         organizationId: testOrganizationId,
       };
 
@@ -308,10 +312,10 @@ describe('Building Residence Auto-Generation Tests', () => {
       const buildingId = response.body.building.id;
 
       // Wait for residence generation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const createdResidences = await db.query.residences.findMany({
-        where: eq(residences.buildingId, buildingId)
+        where: eq(residences.buildingId, buildingId),
       });
 
       // Should still create 6 residences even though totalUnits was sent as string

@@ -177,8 +177,9 @@ class DeploymentValidator {
       const startScript = packageJson.scripts?.start;
       if (
         startScript &&
-        (startScript.includes('dist/index.js') || 
-         (startScript.includes('server/index.js') && fs.existsSync(path.resolve(this.projectRoot, 'server/index.js'))))
+        (startScript.includes('dist/index.js') ||
+          (startScript.includes('server/index.js') &&
+            fs.existsSync(path.resolve(this.projectRoot, 'server/index.js'))))
       ) {
         this.addResult('Start Script', 'PASS', 'Start script is production-ready');
       } else {
@@ -370,7 +371,12 @@ class DeploymentValidator {
       );
 
       if (stderr.includes('failed') || stderr.includes('error')) {
-        this.addResult('Critical Tests', 'WARN', 'Some deployment tests failed - not blocking deployment', false);
+        this.addResult(
+          'Critical Tests',
+          'WARN',
+          'Some deployment tests failed - not blocking deployment',
+          false
+        );
         console.warn('\n⚠️ Test warnings:');
         console.warn(stderr);
       } else {
@@ -436,7 +442,6 @@ class DeploymentValidator {
     }
   }
 
-
   /**
    *
    */
@@ -453,7 +458,7 @@ class DeploymentValidator {
     this.checkBuildArtifacts();
     await this.checkDatabaseConnection();
     await this.checkServerStartup();
-    
+
     // Skip demo organization sync for deployment validation
     // This is handled separately and not critical for deployment
     console.warn('\n⏭️  Skipping demo organization sync validation (not critical for deployment)');
@@ -463,7 +468,12 @@ class DeploymentValidator {
       await this.runTests();
     } catch (_error) {
       console.warn('\n⚠️ Could not run test suite (this may be expected in some environments)');
-      this.addResult('Critical Tests', 'WARN', 'Test suite skipped due to missing dependencies', false);
+      this.addResult(
+        'Critical Tests',
+        'WARN',
+        'Test suite skipped due to missing dependencies',
+        false
+      );
     }
 
     // Generate final report

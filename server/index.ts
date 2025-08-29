@@ -55,7 +55,7 @@ app.get('/api', (req, res) => {
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     port: port,
-    host: host
+    host: host,
   });
 });
 
@@ -67,7 +67,7 @@ app.get('/api/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     port: port,
-    host: host
+    host: host,
   });
 });
 
@@ -83,16 +83,16 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
     // Production environment checks
     if (process.env.NODE_ENV === 'production') {
       log('🏭 Production mode detected - applying production configurations');
-      
+
       // Verify production requirements
       if (!process.env.DATABASE_URL) {
         log('❌ DATABASE_URL is required in production', 'error');
         process.exit(1);
       }
-      
+
       // Set production-specific configurations
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
-      
+
       log('✅ Production checks passed');
     }
     server = app.listen(port, host, () => {
@@ -104,11 +104,13 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       log(`   - http://${host}:${port}/ping`);
       log(`   - http://${host}:${port}/status`);
       log(`   - http://${host}:${port}/api/health`);
-      
+
       log(`🚀 Server listening on http://${host}:${port} - Health checks ready`);
       log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-      log(`🏗️  Build mode: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'}`);
-      
+      log(
+        `🏗️  Build mode: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'}`
+      );
+
       // Different startup for development vs production
       if (process.env.NODE_ENV === 'development') {
         log('🔄 Development mode: Loading features in background...');
@@ -142,7 +144,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       log(`❌ Server error: ${error?.message || error}`, 'error');
       log(`❌ Error code: ${error?.code}`, 'error');
       log(`❌ Error details: ${JSON.stringify(error, null, 2)}`, 'error');
-      
+
       if (error?.code === 'EADDRINUSE') {
         log(`❌ Port ${port} is already in use. Cannot start server.`, 'error');
         process.exit(1);
@@ -154,7 +156,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         process.exit(1);
       }
     });
-    
+
     // Add listening event for better debugging
     server.on('listening', () => {
       const addr = server.address();
@@ -171,7 +173,6 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       });
       setTimeout(() => process.exit(1), 10000);
     });
-
   } catch (error: any) {
     log(`❌ Critical failure starting server: ${error.message}`, 'error');
     log(`❌ Error stack: ${error.stack}`, 'error');
@@ -207,19 +208,17 @@ if (process.env.NODE_ENV === 'production') {
 // Export server for testing
 export { server };
 
-
-
 /**
  * Load full application features after health checks are available
  */
 async function loadFullApplication(): Promise<void> {
   try {
     log('🔄 Loading full application features...');
-    
+
     // Production-specific validations
     if (process.env.NODE_ENV === 'production') {
       log('🔍 Production validation: Checking application requirements...');
-      
+
       // Verify critical environment variables
       const requiredEnvVars = ['DATABASE_URL'];
       for (const envVar of requiredEnvVars) {
@@ -227,46 +226,49 @@ async function loadFullApplication(): Promise<void> {
           throw new Error(`Missing required environment variable: ${envVar}`);
         }
       }
-      
+
       log('✅ Production environment validation passed');
     }
-    
+
     // Load API routes FIRST to ensure they have priority over static files
     const { registerRoutes } = await import('./routes-minimal');
     await registerRoutes(app);
     log('✅ Essential application routes loaded');
-    
+
     // Setup frontend serving AFTER API routes are registered
     // Use production serving when NODE_ENV=production and we have a built dist directory
     // Or when explicitly forced with FORCE_PRODUCTION_SERVE
     const fs = await import('fs');
     const path = await import('path');
     const hasProductionBuild = fs.existsSync(path.resolve(process.cwd(), 'dist', 'public'));
-    const isActualProduction = process.env.NODE_ENV === 'production' && 
+    const isActualProduction =
+      process.env.NODE_ENV === 'production' &&
       (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
     const isViteDevMode = !isActualProduction;
-    
-    log(`🔍 Environment check: NODE_ENV=${process.env.NODE_ENV}, REPLIT_DOMAINS=${!!process.env.REPLIT_DOMAINS}, isViteDevMode=${isViteDevMode}`);
-    
+
+    log(
+      `🔍 Environment check: NODE_ENV=${process.env.NODE_ENV}, REPLIT_DOMAINS=${!!process.env.REPLIT_DOMAINS}, isViteDevMode=${isViteDevMode}`
+    );
+
     if (isViteDevMode) {
       log('🔄 Setting up Vite for frontend development...');
       const { setupVite } = await import('./vite');
       await setupVite(app, server);
       log('✅ Vite development server configured');
-      
+
       // Verify Vite is working
       app.get('/test-vite', (req, res) => {
         res.json({ vite: 'configured', mode: 'development' });
       });
     } else {
       log('🔄 Setting up production static file serving (deployment detected)...');
-      
+
       // Use production server logic which handles API routes correctly
       const path = await import('path');
       const fs = await import('fs');
-      
+
       const distPath = path.resolve(process.cwd(), 'dist', 'public');
-      
+
       if (!fs.existsSync(distPath)) {
         log(`⚠️ Build directory not found at: ${distPath}`, 'error');
         log('⚠️ Continuing without static file serving - API routes still available', 'error');
@@ -276,10 +278,10 @@ async function loadFullApplication(): Promise<void> {
 
       // Static file serving is handled in routes-minimal.ts
       // Remove duplicate handlers to avoid conflicts
-      
+
       log('✅ Production static file serving configured with API route protection');
     }
-    
+
     // Start heavy database work in background AFTER routes are ready
     const dbDelay = process.env.NODE_ENV === 'production' ? 500 : 1000;
     setTimeout(() => {
@@ -291,11 +293,10 @@ async function loadFullApplication(): Promise<void> {
         }
       });
     }, dbDelay);
-    
   } catch (error: any) {
     log(`❌ Failed to load full application: ${error.message}`, 'error');
     log(`❌ Stack trace: ${error.stack}`, 'error');
-    
+
     if (process.env.NODE_ENV === 'production') {
       log('❌ Critical application failure in production', 'error');
       // In production, this is more serious but don't crash if health checks work
@@ -313,34 +314,36 @@ async function initializeDatabaseInBackground(): Promise<void> {
     // Only run database optimizations after server is fully started
     if (process.env.NODE_ENV !== 'test' && !process.env.DISABLE_DB_OPTIMIZATIONS) {
       log('🔄 Checking database optimization status...');
-      
+
       // Production environment: Be more cautious with database operations
       if (process.env.NODE_ENV === 'production') {
         log('🏭 Production mode: Performing safe database checks...');
       }
-      
+
       // Import QueryOptimizer dynamically to avoid blocking startup
       const { QueryOptimizer } = await import('./database-optimization');
-      
+
       // Check if indexes are already set up with timeout protection and error handling
       let indexesExist = false;
       try {
         const indexCheckPromise = QueryOptimizer.areIndexesSetup();
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Database check timeout')), 10000)
         );
-        
-        indexesExist = await Promise.race([indexCheckPromise, timeoutPromise]) as boolean;
+
+        indexesExist = (await Promise.race([indexCheckPromise, timeoutPromise])) as boolean;
       } catch (dbError: any) {
         if (process.env.NODE_ENV === 'production') {
-          log(`⚠️ Production: Database connection failed, skipping optimization: ${dbError.message}`);
+          log(
+            `⚠️ Production: Database connection failed, skipping optimization: ${dbError.message}`
+          );
           return; // Exit early, don't attempt any database operations
         } else {
           log(`⚠️ Development: Database check failed: ${dbError.message}`);
           // In development, continue to try optimization
         }
       }
-      
+
       if (indexesExist) {
         log('✅ Database indexes already exist - skipping optimization');
         log('🚀 Database is ready for high performance queries');
@@ -355,11 +358,14 @@ async function initializeDatabaseInBackground(): Promise<void> {
         }
       }
     }
-    
+
     log('🔄 Background work complete - all routes already loaded');
   } catch (error: any) {
     if (process.env.NODE_ENV === 'production') {
-      log(`⚠️ Production: Background initialization failed (non-critical): ${error.message}`, 'error');
+      log(
+        `⚠️ Production: Background initialization failed (non-critical): ${error.message}`,
+        'error'
+      );
     } else {
       log(`⚠️ Background initialization failed: ${error.message}`, 'error');
     }

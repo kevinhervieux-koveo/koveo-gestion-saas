@@ -41,7 +41,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: 'ok',
     message: 'Koveo Gestion API is running',
-    version: '1.0.0'
+    version: '1.0.0',
   });
 });
 
@@ -51,7 +51,7 @@ if (process.env.NODE_ENV !== 'test') {
     log(`🚀 MINIMAL SERVER ready on port ${port}`);
     log(`✅ Health checks available immediately`);
     log(`🌐 Deployment-ready - no heavy operations`);
-    
+
     // Only load full application if explicitly requested
     if (process.env.LOAD_FULL_APP === 'true') {
       setTimeout(async () => {

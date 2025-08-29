@@ -365,7 +365,7 @@ export class QueryOptimizer {
           'idx_bills_residence_id'
         )
       `;
-      
+
       // Handle both array and direct result formats
       const row = Array.isArray(result) ? result[0] : result;
       if (!row || typeof row.count === 'undefined') {
@@ -375,7 +375,7 @@ export class QueryOptimizer {
         }
         return false;
       }
-      
+
       const indexCount = parseInt(String(row.count));
       return indexCount >= 4; // If we have these key indexes, assume setup is complete
     } catch (error) {

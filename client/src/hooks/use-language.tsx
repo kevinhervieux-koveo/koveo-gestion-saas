@@ -72,7 +72,7 @@ LanguageProvider({ children }: LanguageProviderProps) {
   }, [language]);
 
   const toggleLanguage = () => {
-    setLanguage(current => current === 'en' ? 'fr' : 'en');
+    setLanguage((current) => (current === 'en' ? 'fr' : 'en'));
   };
 
   const t = (_key: keyof typeof translations.en): string => {

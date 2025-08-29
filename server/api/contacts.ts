@@ -1,6 +1,12 @@
 import { Express } from 'express';
 import { db } from '../db';
-import { contacts, residences, buildings, organizations, insertContactSchema } from '../../shared/schema';
+import {
+  contacts,
+  residences,
+  buildings,
+  organizations,
+  insertContactSchema,
+} from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 

@@ -9,7 +9,7 @@ describe('Document Management - Simple Demo User Tests', () => {
 
   // Mock API requests
   const mockApiRequest = jest.fn();
-  
+
   beforeAll(() => {
     // Mock the queryClient module
     jest.doMock('../../client/src/lib/queryClient', () => ({
@@ -49,11 +49,11 @@ describe('Document Management - Simple Demo User Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock window functions
     global.confirm = jest.fn(() => true);
     global.open = jest.fn();
-    
+
     // Mock URL params
     Object.defineProperty(window, 'URLSearchParams', {
       value: jest.fn(() => ({
@@ -97,7 +97,10 @@ describe('Document Management - Simple Demo User Tests', () => {
       await queryClient.fetchQuery({
         queryKey: ['/api/documents', 'resident', 'residence-demo-101'],
         queryFn: async () => {
-          const response = await mockApiRequest('GET', '/api/documents?type=resident&residenceId=residence-demo-101');
+          const response = await mockApiRequest(
+            'GET',
+            '/api/documents?type=resident&residenceId=residence-demo-101'
+          );
           return response;
         },
       });
@@ -232,7 +235,11 @@ describe('Document Management - Simple Demo User Tests', () => {
         },
       });
 
-      expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/documents/doc-123/upload', formData);
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        'POST',
+        '/api/documents/doc-123/upload',
+        formData
+      );
     });
   });
 
@@ -244,7 +251,7 @@ describe('Document Management - Simple Demo User Tests', () => {
         { id: '3', name: 'Another Public', isVisibleToTenants: true },
       ];
 
-      const tenantVisibleDocs = allDocuments.filter(doc => doc.isVisibleToTenants);
+      const tenantVisibleDocs = allDocuments.filter((doc) => doc.isVisibleToTenants);
 
       expect(tenantVisibleDocs).toHaveLength(2);
       expect(tenantVisibleDocs[0].name).toBe('Public Doc');
@@ -302,7 +309,7 @@ describe('Document Management - Simple Demo User Tests', () => {
       ];
 
       const searchTerm = 'rules';
-      const filteredDocs = documents.filter(doc =>
+      const filteredDocs = documents.filter((doc) =>
         doc.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
@@ -319,7 +326,7 @@ describe('Document Management - Simple Demo User Tests', () => {
       ];
 
       const selectedCategory = 'policies';
-      const filteredDocs = documents.filter(doc => doc.type === selectedCategory);
+      const filteredDocs = documents.filter((doc) => doc.type === selectedCategory);
 
       expect(filteredDocs).toHaveLength(2);
       expect(filteredDocs[0].name).toBe('Building Rules');
@@ -336,7 +343,7 @@ describe('Document Management - Simple Demo User Tests', () => {
       const searchTerm = 'rules';
       const selectedCategory = 'policies';
 
-      const filteredDocs = documents.filter(doc => {
+      const filteredDocs = documents.filter((doc) => {
         const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = doc.type === selectedCategory;
         return matchesSearch && matchesCategory;
@@ -408,7 +415,7 @@ describe('Document Management - Simple Demo User Tests', () => {
         { name: 'executable.exe', valid: false },
       ];
 
-      testFiles.forEach(file => {
+      testFiles.forEach((file) => {
         const extension = '.' + file.name.split('.').pop();
         const isAllowed = allowedTypes.includes(extension);
         expect(isAllowed).toBe(file.valid);
@@ -427,7 +434,7 @@ describe('Demo User Test Scenarios Summary', () => {
       { path: '/manager/residences', role: 'manager', access: 'full-crud' },
     ];
 
-    documentPages.forEach(page => {
+    documentPages.forEach((page) => {
       expect(page.path).toBeDefined();
       expect(['tenant', 'manager']).toContain(page.role);
       expect(['read-only', 'full-crud']).toContain(page.access);
@@ -450,8 +457,8 @@ describe('Demo User Test Scenarios Summary', () => {
       },
     ];
 
-    const tenant = demoUsers.find(u => u.role === 'tenant');
-    const manager = demoUsers.find(u => u.role === 'manager');
+    const tenant = demoUsers.find((u) => u.role === 'tenant');
+    const manager = demoUsers.find((u) => u.role === 'manager');
 
     expect(tenant?.permissions).toContain('view');
     expect(tenant?.permissions).not.toContain('create');

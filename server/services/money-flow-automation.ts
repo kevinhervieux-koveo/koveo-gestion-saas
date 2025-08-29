@@ -6,18 +6,18 @@ export const moneyFlowAutomationService = {
     console.warn(`⚠️ Money flow automation disabled - skipping bill ${billId}`);
     return 0;
   },
-  
+
   async generateForResidence(residenceId: string): Promise<number> {
     console.warn(`⚠️ Money flow automation disabled - skipping residence ${residenceId}`);
     return 0;
   },
-  
+
   async getMoneyFlowStatistics(): Promise<any> {
     return {
       totalEntries: 0,
       billEntries: 0,
       residenceEntries: 0,
-      lastGeneratedAt: null
+      lastGeneratedAt: null,
     };
-  }
+  },
 };

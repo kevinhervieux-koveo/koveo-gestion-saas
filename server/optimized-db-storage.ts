@@ -49,7 +49,7 @@ import type {
   InsertBug,
 } from '@shared/schema';
 import type { IStorage } from './storage';
-import type { DevelopmentPillar } from '../shared/schemas/development';
+import type { Pillar } from '../shared/schemas/development';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
 import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
@@ -345,7 +345,11 @@ export class OptimizedDatabaseStorage implements IStorage {
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
       console.log(`🔍 Storage.getUser: Database returned ${result.length} results for ID ${id}`);
       if (result.length > 0) {
-        console.log(`🔍 Storage.getUser: Found user:`, { id: result[0].id, email: result[0].email, role: result[0].role });
+        console.log(`🔍 Storage.getUser: Found user:`, {
+          id: result[0].id,
+          email: result[0].email,
+          role: result[0].role,
+        });
       } else {
         console.log(`❌ Storage.getUser: No user found in database for ID ${id}`);
       }
@@ -370,8 +374,39 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
-      const inserted = await db.insert(schema.users).values([insertUser]).returning();
-      return inserted;
+      // Filter only the fields that exist in the database schema
+      const userData = {
+        username: insertUser.username,
+        email: insertUser.email,
+        password: insertUser.password,
+        firstName: insertUser.firstName,
+        lastName: insertUser.lastName,
+        phone: insertUser.phone || '',
+        profileImage: insertUser.profileImage,
+        language: insertUser.language || 'fr',
+        role: insertUser.role,
+        isActive: insertUser.isActive ?? true,
+      };
+
+      console.log('🔍 Creating user with data:', {
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        language: userData.language,
+        hasPassword: !!userData.password,
+      });
+
+      try {
+        const inserted = await db.insert(schema.users).values([userData]).returning();
+        console.log('✅ User created successfully with ID:', inserted[0]?.id);
+        return inserted;
+      } catch (error) {
+        console.error('❌ Database insertion failed:', error);
+        console.error('📊 Failed user data:', userData);
+        throw error;
+      }
     });
 
     // Invalidate related caches

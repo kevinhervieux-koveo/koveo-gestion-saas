@@ -130,16 +130,16 @@
     grid-template-columns: 1fr;
     @apply gap-3 p-3;
   }
-  
+
   .card-container {
     max-width: none;
   }
-  
+
   .card-title {
     @apply text-sm leading-4;
     -webkit-line-clamp: 3;
   }
-  
+
   .card-metadata {
     @apply text-xs;
   }
@@ -174,11 +174,11 @@
   .card-container {
     @apply border-2 border-gray-800;
   }
-  
+
   .card-title {
     @apply text-black;
   }
-  
+
   .status-badge {
     @apply border-2;
   }
@@ -198,7 +198,7 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   .card-action-button {
     @apply hidden;
   }

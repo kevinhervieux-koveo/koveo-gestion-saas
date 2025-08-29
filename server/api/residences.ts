@@ -26,14 +26,12 @@ export function registerResidenceRoutes(app: Express) {
   app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
-
       const userResidencesList = await db
         .select({
           residenceId: userResidences.residenceId,
         })
         .from(userResidences)
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
-
       res.json(userResidencesList);
     } catch (_error) {
       console.error('Error fetching user residences:', _error);
@@ -162,7 +160,7 @@ export function registerResidenceRoutes(app: Express) {
         });
       } else {
         // Regular users: Get buildings from their organizations
-        if (user.role === 'admin' || user.role === 'manager') {
+        if (user.role === 'admin' || user.role === 'manager' || user.role === 'demo_manager') {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 
@@ -179,12 +177,19 @@ export function registerResidenceRoutes(app: Express) {
         }
 
         // For ALL roles (Admin, Manager, Resident, Tenant): Get buildings from their residences
+        console.log(
+          `🔍 [ACCESS DEBUG] Checking residence access for user ${user.id} with role ${user.role}`
+        );
         const userResidenceRecords = await db
           .select({
             residenceId: userResidences.residenceId,
           })
           .from(userResidences)
           .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+
+        console.log(
+          `🔍 [ACCESS DEBUG] Found ${userResidenceRecords.length} residence records for user ${user.id}`
+        );
 
         if (userResidenceRecords.length > 0) {
           const residenceIds = userResidenceRecords.map((ur) => ur.residenceId);
@@ -203,6 +208,10 @@ export function registerResidenceRoutes(app: Express) {
       }
 
       // Add building access filter to conditions
+      console.log(
+        `🔍 [ACCESS DEBUG] User ${user.id} has access to ${accessibleBuildingIds.size} buildings:`,
+        Array.from(accessibleBuildingIds)
+      );
       if (accessibleBuildingIds.size > 0) {
         conditions.push(inArray(residences.buildingId, Array.from(accessibleBuildingIds)));
       } else {
