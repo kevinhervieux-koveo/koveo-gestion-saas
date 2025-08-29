@@ -117,6 +117,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         setTimeout(() => {
           loadFullApplication().catch((error) => {
             log(`⚠️ Full application load failed: ${error.message}`, 'error');
+            log(`⚠️ Error stack: ${error.stack}`, 'error');
             // Continue - health checks still work
           });
         }, 100); // Very short delay for development
@@ -230,17 +231,10 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Production environment validation passed');
     }
 
-    // Load API routes FIRST to ensure they have priority over static files
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    log('✅ Essential application routes loaded');
-
-    // Setup frontend serving AFTER API routes are registered
-    // Use production serving when NODE_ENV=production and we have a built dist directory
-    // Or when explicitly forced with FORCE_PRODUCTION_SERVE
-    const fs = await import('fs');
-    const path = await import('path');
-    const hasProductionBuild = fs.existsSync(path.resolve(process.cwd(), 'dist', 'public'));
+    // Setup frontend serving FIRST for faster response
+    const fsModule = await import('fs');
+    const pathModule = await import('path');
+    const hasProductionBuild = fsModule.existsSync(pathModule.resolve(process.cwd(), 'dist', 'public'));
     const isActualProduction =
       process.env.NODE_ENV === 'production' &&
       (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
@@ -262,24 +256,20 @@ async function loadFullApplication(): Promise<void> {
       });
     } else {
       log('🔄 Setting up production static file serving (deployment detected)...');
+      const { serveStatic } = await import('./vite');
+      serveStatic(app);
+      log('✅ Production static file serving configured');
+    }
 
-      // Use production server logic which handles API routes correctly
-      const path = await import('path');
-      const fs = await import('fs');
-
-      const distPath = path.resolve(process.cwd(), 'dist', 'public');
-
-      if (!fs.existsSync(distPath)) {
-        log(`⚠️ Build directory not found at: ${distPath}`, 'error');
-        log('⚠️ Continuing without static file serving - API routes still available', 'error');
-      } else {
-        log(`✅ Found build directory: ${distPath}`);
-      }
-
-      // Static file serving is handled in routes-minimal.ts
-      // Remove duplicate handlers to avoid conflicts
-
-      log('✅ Production static file serving configured with API route protection');
+    // Load API routes AFTER frontend serving is set up
+    log('🔄 Loading routes...');
+    try {
+      const { registerRoutes } = await import('./routes-minimal');
+      await registerRoutes(app);
+      log('✅ Essential application routes loaded');
+    } catch (routeError: any) {
+      log(`⚠️ Routes loading failed: ${routeError.message}`, 'error');
+      log('✅ Frontend serving still available');
     }
 
     // Start heavy database work in background AFTER routes are ready
