@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Google Cloud Storage document upload utility.
+Google Cloud Storage document utility.
 
-This module provides a secure document upload function that organizes files
+This module provides secure document upload and URL generation functions that organize files
 by organization structure in Google Cloud Storage.
 """
 
 import os
+from datetime import timedelta
 from google.cloud import storage
 from google.cloud.exceptions import NotFound, Forbidden
 
@@ -65,6 +66,66 @@ def upload_secure_document(bucket_name: str, organization_id: str, file_path: st
         raise PermissionError(f"Permission denied uploading to bucket '{bucket_name}'")
     except Exception as e:
         raise Exception(f"Failed to upload file: {str(e)}")
+
+
+def get_secure_document_url(bucket_name: str, organization_id: str, file_name: str) -> str:
+    """
+    Generates a v4 signed URL for secure access to a document in Google Cloud Storage.
+    
+    Args:
+        bucket_name (str): The name of the Google Cloud Storage bucket
+        organization_id (str): The organization ID for organizing files
+        file_name (str): The name of the file to generate URL for
+        
+    Returns:
+        str: The v4 signed URL that expires in 15 minutes
+        
+    Raises:
+        NotFound: If the specified file (blob) is not found
+        PermissionError: If there are permission issues with Google Cloud Storage
+        Exception: If URL generation fails for other reasons
+    """
+    
+    # Initialize the Google Cloud Storage client using application default credentials
+    try:
+        client = storage.Client()
+    except Exception as e:
+        raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
+    
+    # Get the bucket
+    try:
+        bucket = client.bucket(bucket_name)
+    except NotFound:
+        raise Exception(f"Bucket '{bucket_name}' not found")
+    except Forbidden:
+        raise PermissionError(f"Permission denied accessing bucket '{bucket_name}'")
+    except Exception as e:
+        raise Exception(f"Failed to access bucket: {str(e)}")
+    
+    # Construct the full blob name using the specified format
+    blob_name = f"prod_org_{organization_id}/{file_name}"
+    
+    # Get the blob (file object in the bucket)
+    blob = bucket.blob(blob_name)
+    
+    # Check if the blob exists
+    if not blob.exists():
+        raise NotFound(f"File not found: {blob_name}")
+    
+    try:
+        # Generate a v4 signed URL that expires in 15 minutes
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(minutes=15),
+            method="GET"
+        )
+        
+        return url
+        
+    except Forbidden:
+        raise PermissionError(f"Permission denied generating URL for blob '{blob_name}'")
+    except Exception as e:
+        raise Exception(f"Failed to generate signed URL: {str(e)}")
 
 
 def main():
