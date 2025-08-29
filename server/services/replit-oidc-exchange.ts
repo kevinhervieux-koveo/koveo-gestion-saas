@@ -30,18 +30,28 @@ export class ReplitOIDCExchange {
     try {
       console.log('🔄 Starting token exchange process using google-auth-library...');
       
-      // Get the OIDC token from REPL_IDENTITY environment variable
-      const replitToken = process.env.REPL_IDENTITY;
-      if (!replitToken) {
-        throw new Error('REPL_IDENTITY environment variable not found');
-      }
-
-      // Write the token to the expected file path for gcp-wif-config.json
-      const tokenFilePath = '/tmp/repl-identity-token';
       const fs = await import('fs');
-      fs.writeFileSync(tokenFilePath, replitToken, 'utf8');
+      let tokenFilePath = '/tmp/repl-identity-token';
+      
+      // Check if REPLIT_ID_TOKEN_PATH is available (contains JWT token)
+      const jwtTokenPath = process.env.REPLIT_ID_TOKEN_PATH;
+      
+      if (jwtTokenPath && fs.existsSync(jwtTokenPath)) {
+        console.log('🔄 Using JWT token from REPLIT_ID_TOKEN_PATH:', jwtTokenPath);
+        tokenFilePath = jwtTokenPath;
+      } else {
+        console.log('🔄 REPLIT_ID_TOKEN_PATH not available, using REPL_IDENTITY PASETO token');
+        
+        // Get the OIDC token from REPL_IDENTITY environment variable
+        const replitToken = process.env.REPL_IDENTITY;
+        if (!replitToken) {
+          throw new Error('Neither REPLIT_ID_TOKEN_PATH nor REPL_IDENTITY environment variable found');
+        }
 
-      console.log('🔄 Written OIDC token to file for Google Auth Library');
+        // Write the token to the expected file path for gcp-wif-config.json
+        fs.writeFileSync(tokenFilePath, replitToken, 'utf8');
+        console.log('🔄 Written PASETO token to file for Google Auth Library');
+      }
 
       // Try Application Default Credentials first, then fall back to manual token exchange
       const { GoogleAuth } = await import('google-auth-library');
@@ -88,14 +98,29 @@ export class ReplitOIDCExchange {
         console.log('🔄 Metadata service not available, trying WIF with PASETO...');
       }
       
-      // Third attempt: Try with Workload Identity Federation (might work despite token format)
+      // Third attempt: Try with Workload Identity Federation
+      // Update the gcp-wif-config.json to use the correct token path
+      const gcpConfig = {
+        type: 'external_account',
+        audience: this.audience,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${this.serviceAccountEmail}:generateAccessToken`,
+        credential_source: {
+          file: tokenFilePath,
+          format: {
+            type: 'text'
+          }
+        }
+      };
+      
       const auth = new GoogleAuth({
         scopes: [
           'https://www.googleapis.com/auth/devstorage.full_control',
           'https://www.googleapis.com/auth/cloud-platform'
         ],
         projectId: this.projectId,
-        keyFilename: './gcp-wif-config.json'
+        credentials: gcpConfig
       });
 
       const authClient = await auth.getClient();
@@ -121,14 +146,21 @@ export class ReplitOIDCExchange {
   async checkConfiguration(): Promise<boolean> {
     try {
       const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+      const jwtTokenPath = process.env.REPLIT_ID_TOKEN_PATH;
       const replitToken = process.env.REPL_IDENTITY;
 
       console.log('🔧 Configuration Check:');
       console.log('  - GOOGLE_CLOUD_PROJECT present:', !!projectId);
+      console.log('  - REPLIT_ID_TOKEN_PATH present:', !!jwtTokenPath);
       console.log('  - REPL_IDENTITY present:', !!replitToken);
 
-      if (!projectId || !replitToken) {
-        console.log('❌ Missing required environment variables');
+      if (!projectId) {
+        console.log('❌ Missing GOOGLE_CLOUD_PROJECT environment variable');
+        return false;
+      }
+      
+      if (!jwtTokenPath && !replitToken) {
+        console.log('❌ Neither REPLIT_ID_TOKEN_PATH nor REPL_IDENTITY environment variable found');
         return false;
       }
 
