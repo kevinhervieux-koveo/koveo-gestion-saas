@@ -41,9 +41,24 @@ def upload_secure_document(organization_id: str, file_path: str) -> None:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
     
-    # Initialize the Google Cloud Storage client with project ID for workload identity
+    # Initialize the Google Cloud Storage client with explicit credentials
     try:
-        client = storage.Client(project=project_id)
+        # Try to use service account credentials if available
+        import google.auth
+        from google.oauth2 import service_account
+        import json
+        
+        creds_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_json:
+            # Parse JSON credentials
+            creds_info = json.loads(creds_json)
+            credentials = service_account.Credentials.from_service_account_info(creds_info)
+            client = storage.Client(project=project_id, credentials=credentials)
+        else:
+            # Disable default credential discovery to avoid metadata server
+            os.environ.pop('GOOGLE_APPLICATION_CREDENTIALS', None)
+            # Try with just project ID in Replit environment
+            client = storage.Client(project=project_id)
     except Exception as e:
         raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
     
@@ -106,9 +121,24 @@ def get_secure_document_url(organization_id: str, file_name: str) -> str:
     if not project_id:
         raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set")
     
-    # Initialize the Google Cloud Storage client with project ID for workload identity
+    # Initialize the Google Cloud Storage client with explicit credentials
     try:
-        client = storage.Client(project=project_id)
+        # Try to use service account credentials if available
+        import google.auth
+        from google.oauth2 import service_account
+        import json
+        
+        creds_json = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_json:
+            # Parse JSON credentials
+            creds_info = json.loads(creds_json)
+            credentials = service_account.Credentials.from_service_account_info(creds_info)
+            client = storage.Client(project=project_id, credentials=credentials)
+        else:
+            # Disable default credential discovery to avoid metadata server
+            os.environ.pop('GOOGLE_APPLICATION_CREDENTIALS', None)
+            # Try with just project ID in Replit environment
+            client = storage.Client(project=project_id)
     except Exception as e:
         raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
     
