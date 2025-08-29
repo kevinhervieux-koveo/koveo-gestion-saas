@@ -262,40 +262,94 @@ async function loadFullApplication(): Promise<void> {
     }
 
     // Load API routes AFTER frontend serving is set up
-    log('🔄 Loading routes...');
+    log('🔄 Loading essential authentication routes...');
     
-    // Try to load routes with a timeout to prevent hanging
-    const routePromise = (async () => {
-      log('🔄 Importing original routes module...');
-      const routesModule = await import('./routes-minimal');
-      log('✅ Routes module imported successfully');
-      
-      log('🔄 Calling registerRoutes function...');
-      const { registerRoutes } = routesModule;
-      if (!registerRoutes) {
-        throw new Error('registerRoutes function not found in routes-minimal module');
-      }
-      
-      const server = await registerRoutes(app);
-      log('✅ Essential application routes loaded successfully');
-      return true;
-    })();
-    
-    // Timeout after 30 seconds
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Route import timeout after 30 seconds')), 30000)
-    );
-    
+    // Skip the problematic routes-minimal.ts import and load auth routes directly
     try {
-      await Promise.race([routePromise, timeoutPromise]);
-      log('✅ Routes loaded successfully');
-    } catch (routeError: any) {
-      log(`⚠️ Routes loading failed: ${routeError.message}`, 'error');
-      log(`⚠️ Will continue with fallback routes for basic functionality`, 'error');
+      // Import auth functions
+      const { sessionConfig, requireAuth, hashPassword, verifyPassword } = await import('./auth');
+      const { storage } = await import('./storage');
       
-      // The main issue was that routes-minimal.ts has complex dependencies
-      // For now, let's just ensure the frontend works by not crashing the server
-      log('⚠️ Authentication will not work until routes are fixed');
+      // Setup session middleware
+      app.use(sessionConfig);
+      
+      // Essential auth routes
+      app.get('/api/auth/user', requireAuth, async (req: any, res) => {
+        try {
+          res.json(req.user);
+        } catch (error: any) {
+          console.error('Error fetching user:', error);
+          res.status(500).json({ error: 'Failed to fetch user' });
+        }
+      });
+
+      app.post('/api/auth/login', async (req, res) => {
+        try {
+          const { username, password } = req.body;
+          
+          if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+          }
+
+          const user = await storage.getUserByEmail(username);
+          if (!user || !user.isActive) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+          }
+
+          const isValid = await verifyPassword(password, user.password);
+          if (!isValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+          }
+
+          // Set session
+          (req.session as any).userId = user.id;
+          (req.session as any).userRole = user.role;
+          (req.session as any).role = user.role;
+
+          // Skip last login update for now - method not available
+
+          res.json({ 
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+              language: user.language
+            }
+          });
+        } catch (error: any) {
+          console.error('Login error:', error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      });
+
+      app.post('/api/auth/logout', (req, res) => {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ error: 'Failed to logout' });
+          }
+          res.json({ success: true });
+        });
+      });
+
+      log('✅ Essential authentication routes loaded successfully');
+    } catch (authError: any) {
+      log(`⚠️ Failed to load auth routes: ${authError.message}`, 'error');
+      
+      // Add basic fallback routes if auth import fails
+      app.get('/api/auth/user', (req, res) => {
+        res.status(401).json({ error: 'Authentication system not available' });
+      });
+      app.post('/api/auth/login', (req, res) => {
+        res.status(503).json({ error: 'Authentication system not available' });
+      });
+      app.post('/api/auth/logout', (req, res) => {
+        res.status(503).json({ error: 'Authentication system not available' });
+      });
     }
 
     // Start heavy database work in background AFTER routes are ready
