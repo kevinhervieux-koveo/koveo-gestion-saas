@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -33,8 +33,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+
 // Checkbox component import removed (unused)
 import { UserPlus, Shield } from 'lucide-react';
+
 import { useToast } from '@/hooks/use-toast';
 
 // Form validation schema
@@ -60,14 +62,17 @@ const invitationSchema = z
   })
   .refine(
     (data) => {
+
       // For demo roles, first and last name are required instead of email
       if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(data.role)) {
         return !!data.firstName && !!data.lastName;
+
       }
       // For regular roles, email is required
       return !!data.email;
     },
     {
+
       message: 'Email is required for regular roles, first and last name for demo roles',
       path: ['email'],
     }
@@ -86,6 +91,7 @@ const invitationSchema = z
     },
     {
       message: 'Residence must be assigned for tenants and residents when a building is selected',
+
       path: ['residenceId'],
     }
   );
@@ -167,7 +173,7 @@ interface Residence {
 /**
  * Send Invitation Dialog Component.
  *
- * Allows sending single or bulk invitations with comprehensive options
+ * Allows sending single invitations with comprehensive options
  * including role selection, organization/building assignment, and custom messages.
  * @param props - Component props.
  * @param props.open - Whether dialog is open.
@@ -179,13 +185,16 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const { t } = useLanguage();
   const { user: currentUser, hasRole } = useAuth();
   const { toast } = useToast();
+
   const [selectedOrgType, setSelectedOrgType] = useState<string>('');
+
 
   // Single invitation form
   const form = useForm<InvitationFormData>({
     resolver: zodResolver(invitationSchema),
     defaultValues: {
       email: '',
+
       firstName: '',
       lastName: '',
       role: 'tenant',
@@ -199,9 +208,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Fetch organizations (filtered by user access)
   const { data: organizations } = useQuery<Organization[]>({
-    queryKey: ['/api/users/me/organizations'],
+    queryKey: ['/api/organizations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users/me/organizations');
+      const response = await apiRequest('GET', '/api/organizations');
       return response.json();
     },
     enabled: open,
@@ -297,11 +306,24 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     return buildings.filter((building) => building.organizationId === selectedOrgId);
   };
 
-  const getFilteredResidences = (selectedBuildingId: string) => {
-    if (!residences || !selectedBuildingId) {
+  const getFilteredResidences = (selectedBuildingId: string, selectedOrgId: string) => {
+    if (!residences) {
       return [];
     }
-    return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    
+    // If a specific building is selected, show only residences from that building
+    if (selectedBuildingId && selectedBuildingId !== 'none') {
+      return residences.filter((residence) => residence.buildingId === selectedBuildingId);
+    }
+    
+    // If no building selected but organization is selected, show all residences from that organization
+    if (selectedOrgId && (!selectedBuildingId || selectedBuildingId === 'none')) {
+      const orgBuildings = buildings?.filter(building => building.organizationId === selectedOrgId) || [];
+      const orgBuildingIds = orgBuildings.map(building => building.id);
+      return residences.filter((residence) => orgBuildingIds.includes(residence.buildingId));
+    }
+    
+    return [];
   };
 
   // Single invitation mutation
@@ -357,6 +379,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const onSubmit = (_data: InvitationFormData) => {
     invitationMutation.mutate(_data);
+
   };
 
   const canInviteRole = (role: string) => {
@@ -403,6 +426,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
           <DialogDescription>{t('inviteUserDescription')}</DialogDescription>
         </DialogHeader>
 
+
         <div className='space-y-4'>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
@@ -412,6 +436,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('organization')} *</FormLabel>
+
                     <FormControl>
                       <select
                         {...field}
@@ -454,6 +479,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         ? 'Managers can only invite to their organization'
                         : 'Select target organization'}
                     </FormDescription>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -574,6 +600,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           ))}
                         </select>
                       </FormControl>
+
                       <FormMessage />
                     </FormItem>
                   )}
@@ -684,6 +711,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
             </form>
           </Form>
         </div>
+
       </DialogContent>
     </Dialog>
   );
