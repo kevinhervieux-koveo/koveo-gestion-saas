@@ -1,5 +1,4 @@
 import { Storage } from '@google-cloud/storage';
-import { GoogleAuth } from 'google-auth-library';
 import path from 'path';
 import fs from 'fs';
 
@@ -19,17 +18,9 @@ export class GCSDocumentService {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Initialize Google Cloud Storage with Workload Identity
-    const auth = new GoogleAuth({
-      projectId,
-      scopes: ['https://www.googleapis.com/auth/cloud-platform']
-    });
-
-    // Initialize Google Cloud Storage with project ID only
-    // The GoogleAuth will be used automatically by the Storage client
-    this.storage = new Storage({
-      projectId
-    });
+    // Initialize Google Cloud Storage with auto-discovery for Workload Identity Federation
+    // No arguments allows the library to auto-discover authentication from environment
+    this.storage = new Storage();
   }
 
   /**
