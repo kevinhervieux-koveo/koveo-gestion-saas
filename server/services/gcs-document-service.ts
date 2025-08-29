@@ -18,6 +18,11 @@ export class GCSDocumentService {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
+    // Configure environment for Workload Identity Federation in Replit
+    // Disable compute engine metadata service detection
+    process.env.GOOGLE_CLOUD_DISABLE_METADATA_SERVER = 'true';
+    process.env.GCE_METADATA_HOST = 'disable';
+    
     // Initialize Google Cloud Storage with auto-discovery for Workload Identity Federation
     // No arguments allows the library to auto-discover authentication from environment
     this.storage = new Storage();
