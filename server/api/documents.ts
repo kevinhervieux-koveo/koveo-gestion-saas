@@ -466,12 +466,19 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         const document = await storage.createDocumentResident(validatedData);
-        res.status(201).json({
+        
+        console.log('📝 Created resident document:', document);
+        console.log('📝 Document ID:', document.id);
+        
+        const response = {
           ...document,
           documentCategory: 'resident',
           entityType: 'residence',
           entityId: document.residenceId,
-        });
+        };
+        
+        console.log('📤 Sending response:', response);
+        res.status(201).json(response);
       } else {
         return res.status(400).json({
           message: 'Invalid documentType. Must be either \"building\" or \"resident\"',
