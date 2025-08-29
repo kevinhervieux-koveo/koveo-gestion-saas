@@ -1,7 +1,8 @@
 import { Storage } from '@google-cloud/storage';
-import { GoogleAuth } from 'google-auth-library';
+import { GoogleAuth, JWT } from 'google-auth-library';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 /**
  * Google Cloud Storage Document Service
@@ -14,38 +15,41 @@ export class GCSDocumentService {
   constructor() {
     const projectId = process.env.GOOGLE_CLOUD_PROJECT;
     this.bucketName = process.env.GCS_BUCKET_NAME || '';
+    const credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
     if (!projectId || !this.bucketName) {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Create external account credentials configuration for Replit Workload Identity Federation
-    const externalAccountConfig = {
-      type: 'external_account',
-      audience: `//iam.googleapis.com/projects/${projectId}/locations/global/workloadIdentityPools/replit-wif-pool/providers/replit-wif-provider`,
-      subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
-      token_url: 'https://sts.googleapis.com/v1/token',
-      credential_source: {
-        format: {
-          type: 'json',
-          subject_token_field_name: 'token'
-        },
-        url: `data:application/json,{"token":"${process.env.REPL_IDENTITY}"}`
-      },
-      service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`
+    // Initialize Google Cloud Storage
+    const storageConfig: any = {
+      projectId: projectId
     };
 
-    // Initialize GoogleAuth with external account configuration
-    const auth = new GoogleAuth({
-      credentials: externalAccountConfig,
-      scopes: ['https://www.googleapis.com/auth/devstorage.full_control']
-    });
+    // If credentials are provided, parse and use them
+    if (credentials) {
+      try {
+        // Handle both JSON string and file path formats
+        let credentialsObj;
+        if (credentials.startsWith('{')) {
+          // It's a JSON string
+          credentialsObj = JSON.parse(credentials);
+        } else {
+          // It might be a file path (fallback to default behavior)
+          storageConfig.keyFilename = credentials;
+        }
+        
+        if (credentialsObj) {
+          storageConfig.credentials = credentialsObj;
+        }
+      } catch (error) {
+        console.warn('Warning: Could not parse GOOGLE_APPLICATION_CREDENTIALS, using default auth:', error.message);
+        // Fall back to default authentication
+      }
+    }
 
-    // Initialize Google Cloud Storage with custom auth
-    this.storage = new Storage({
-      projectId: projectId,
-      authClient: auth
-    });
+    // Initialize Google Cloud Storage
+    this.storage = new Storage(storageConfig);
   }
 
   /**
