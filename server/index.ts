@@ -264,12 +264,45 @@ async function loadFullApplication(): Promise<void> {
     // Load API routes AFTER frontend serving is set up
     log('🔄 Loading routes...');
     try {
-      const { registerRoutes } = await import('./routes-minimal');
-      await registerRoutes(app);
-      log('✅ Essential application routes loaded');
+      log('🔄 Importing simplified routes module...');
+      const routesModule = await import('./routes-simple');
+      log('✅ Routes module imported successfully');
+      
+      log('🔄 Calling registerRoutes function...');
+      const { registerRoutes } = routesModule;
+      if (!registerRoutes) {
+        throw new Error('registerRoutes function not found in routes-minimal module');
+      }
+      
+      const server = await registerRoutes(app);
+      log('✅ Essential application routes loaded successfully');
+      
+      // Test that basic routes work
+      app.get('/api/test-route', (req, res) => {
+        res.json({ message: 'Routes are working', timestamp: new Date().toISOString() });
+      });
+      log('✅ Test route added');
+      
     } catch (routeError: any) {
       log(`⚠️ Routes loading failed: ${routeError.message}`, 'error');
-      log('✅ Frontend serving still available');
+      log(`⚠️ Routes error stack: ${routeError.stack}`, 'error');
+      
+      // Add minimal working auth routes as fallback
+      log('🔄 Adding minimal fallback auth routes...');
+      try {
+        app.get('/api/auth/user', (req, res) => {
+          res.status(401).json({ error: 'Not authenticated - routes failed to load' });
+        });
+        app.post('/api/auth/login', (req, res) => {
+          res.status(500).json({ error: 'Auth system failed to load completely' });
+        });
+        app.get('/api/test-route', (req, res) => {
+          res.json({ message: 'Fallback routes only', error: 'Main routes failed', timestamp: new Date().toISOString() });
+        });
+        log('✅ Fallback auth routes added');
+      } catch (fallbackError: any) {
+        log(`⚠️ Even fallback routes failed: ${fallbackError.message}`, 'error');
+      }
     }
 
     // Start heavy database work in background AFTER routes are ready
