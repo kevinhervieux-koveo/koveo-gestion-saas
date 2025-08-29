@@ -30,12 +30,20 @@ export class ReplitOIDCExchange {
     try {
       console.log('🔄 Starting token exchange process using google-auth-library...');
       
-      // Create dynamic configuration using the OIDC token from REPLIT_ID_TOKEN_PATH
-      const oidcTokenPath = process.env.REPLIT_ID_TOKEN_PATH;
-      if (!oidcTokenPath) {
-        throw new Error('REPLIT_ID_TOKEN_PATH environment variable not found');
+      // Get the OIDC token from REPL_IDENTITY environment variable
+      const replitToken = process.env.REPL_IDENTITY;
+      if (!replitToken) {
+        throw new Error('REPL_IDENTITY environment variable not found');
       }
 
+      // Write the token to the expected file path for gcp-wif-config.json
+      const tokenFilePath = '/tmp/repl-identity-token';
+      const fs = await import('fs');
+      fs.writeFileSync(tokenFilePath, replitToken, 'utf8');
+
+      console.log('🔄 Written OIDC token to file for Google Auth Library');
+
+      // Use Google Auth Library with the gcp-wif-config.json configuration
       const { GoogleAuth } = await import('google-auth-library');
       const auth = new GoogleAuth({
         scopes: [
@@ -43,20 +51,7 @@ export class ReplitOIDCExchange {
           'https://www.googleapis.com/auth/cloud-platform'
         ],
         projectId: this.projectId,
-        // Use external account credentials with dynamic token path
-        credentials: {
-          type: 'external_account',
-          audience: this.audience,
-          subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
-          token_url: 'https://sts.googleapis.com/v1/token',
-          service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${this.serviceAccountEmail}:generateAccessToken`,
-          credential_source: {
-            file: oidcTokenPath,
-            format: {
-              type: 'text'
-            }
-          }
-        }
+        keyFilename: './gcp-wif-config.json'
       });
 
       const authClient = await auth.getClient();
@@ -82,13 +77,13 @@ export class ReplitOIDCExchange {
   async checkConfiguration(): Promise<boolean> {
     try {
       const projectId = process.env.GOOGLE_CLOUD_PROJECT;
-      const oidcTokenPath = process.env.REPLIT_ID_TOKEN_PATH;
+      const replitToken = process.env.REPL_IDENTITY;
 
       console.log('🔧 Configuration Check:');
       console.log('  - GOOGLE_CLOUD_PROJECT present:', !!projectId);
-      console.log('  - REPLIT_ID_TOKEN_PATH present:', !!oidcTokenPath);
+      console.log('  - REPL_IDENTITY present:', !!replitToken);
 
-      if (!projectId || !oidcTokenPath) {
+      if (!projectId || !replitToken) {
         console.log('❌ Missing required environment variables');
         return false;
       }
