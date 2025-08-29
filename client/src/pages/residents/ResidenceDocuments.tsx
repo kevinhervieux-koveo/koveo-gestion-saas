@@ -185,13 +185,9 @@ export default function ResidenceDocuments() {
         console.log('✅ Document ID found, starting upload...');
         setUploadingDocumentId(newDocument.id);
         
-        // Upload file immediately while session is still valid
-        try {
-          await uploadFile(newDocument.id);
-        } catch (error) {
-          console.error('❌ Upload failed in onSuccess:', error);
-          setUploadingDocumentId(null);
-        }
+        // This should not happen anymore since we use single-step upload
+        console.warn('⚠️ File upload in two-step mode - this should be updated to single-step upload');
+        setUploadingDocumentId(null);
       } else if (selectedFile && !newDocument?.id) {
         console.error('❌ Document ID is missing from response');
         console.error('❌ Full response object:', JSON.stringify(newDocument, null, 2));
@@ -240,11 +236,10 @@ export default function ResidenceDocuments() {
     },
   });
 
-  const uploadFile = async (documentId: string) => {
+  const uploadFile = async (data: any) => {
     if (!selectedFile) return;
 
     console.log('🔄 Starting file upload:', {
-      documentId,
       fileName: selectedFile.name,
       fileSize: selectedFile.size,
       fileType: selectedFile.type
@@ -252,6 +247,11 @@ export default function ResidenceDocuments() {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('documentType', data.documentType);
+    formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
+    formData.append('residenceId', residenceId);
     
     console.log('📦 FormData created:', {
       hasFile: formData.has('file'),
@@ -262,8 +262,18 @@ export default function ResidenceDocuments() {
     });
 
     try {
-      console.log('📤 Making upload request to:', `/api/documents/${documentId}/upload`);
-      const response = await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
+      console.log('📤 Making upload request to:', `/api/documents/upload`);
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+      }
+      
       const result = await response.json();
       console.log('✅ Upload successful:', result);
       
@@ -297,8 +307,15 @@ export default function ResidenceDocuments() {
     }
   };
 
-  const handleCreateDocument = (data: DocumentFormData) => {
-    createDocumentMutation.mutate(data);
+  const handleCreateDocument = async (data: DocumentFormData) => {
+    if (selectedFile) {
+      // Single-step upload with GCS integration
+      setUploadingDocumentId('uploading');
+      await uploadFile(data);
+    } else {
+      // No file - just create document record
+      createDocumentMutation.mutate(data);
+    }
   };
 
   const handleDeleteDocument = (document: Document) => {

@@ -181,7 +181,9 @@ export default function ResidenceDocuments() {
     onSuccess: (newDocument) => {
       if (selectedFile) {
         setUploadingDocumentId(newDocument.id);
-        uploadFile(newDocument.id);
+        // This should not happen anymore since we use single-step upload
+        console.warn('⚠️ File upload in two-step mode - this should be updated to single-step upload');
+        setUploadingDocumentId(null);
       } else {
         queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
         setIsAddDialogOpen(false);
@@ -247,14 +249,29 @@ export default function ResidenceDocuments() {
     },
   });
 
-  const uploadFile = async (documentId: string) => {
+  const uploadFile = async (data: any) => {
     if (!selectedFile) return;
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('documentType', data.documentType);
+    formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
+    formData.append('residenceId', residenceId);
 
     try {
-      await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
       setIsAddDialogOpen(false);
       setSelectedFile(null);
@@ -262,7 +279,7 @@ export default function ResidenceDocuments() {
       form.reset();
       toast({
         title: 'Document uploaded',
-        description: 'Document has been uploaded successfully.',
+        description: 'Document has been uploaded successfully to Google Cloud Storage.',
       });
     } catch (error: any) {
       setUploadingDocumentId(null);
@@ -274,8 +291,15 @@ export default function ResidenceDocuments() {
     }
   };
 
-  const handleCreateDocument = (data: DocumentFormData) => {
-    createDocumentMutation.mutate(data);
+  const handleCreateDocument = async (data: DocumentFormData) => {
+    if (selectedFile) {
+      // Single-step upload with GCS integration
+      setUploadingDocumentId('uploading');
+      await uploadFile(data);
+    } else {
+      // No file - just create document record
+      createDocumentMutation.mutate(data);
+    }
   };
 
   const handleUpdateDocument = (data: DocumentFormData) => {
