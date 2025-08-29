@@ -167,10 +167,11 @@ export default function ResidenceDocuments() {
         residenceId,
         uploadedBy: user?.id,
       });
-      console.log('📝 Document creation response:', response);
-      return response;
+      const result = await response.json();
+      console.log('📝 Document creation response:', result);
+      return result;
     },
-    onSuccess: (newDocument) => {
+    onSuccess: async (newDocument) => {
       console.log('✅ Document created successfully:', newDocument);
       console.log('🔍 Document keys:', newDocument ? Object.keys(newDocument) : 'null');
       console.log('🔍 Document ID check:', {
@@ -179,22 +180,28 @@ export default function ResidenceDocuments() {
         idType: typeof newDocument?.id
       });
       
-      if (selectedFile) {
-        console.log('📤 File selected, uploading to document ID:', newDocument?.id);
-        if (newDocument?.id) {
-          console.log('✅ Document ID found, starting upload...');
-          setUploadingDocumentId(newDocument.id);
-          uploadFile(newDocument.id);
-        } else {
-          console.error('❌ Document ID is missing from response');
-          console.error('❌ Full response object:', JSON.stringify(newDocument, null, 2));
-          toast({
-            title: 'Upload failed',
-            description: 'Document was created but upload failed due to missing document ID',
-            variant: 'destructive',
-          });
+      if (selectedFile && newDocument?.id) {
+        console.log('📤 File selected, uploading to document ID:', newDocument.id);
+        console.log('✅ Document ID found, starting upload...');
+        setUploadingDocumentId(newDocument.id);
+        
+        // Upload file immediately while session is still valid
+        try {
+          await uploadFile(newDocument.id);
+        } catch (error) {
+          console.error('❌ Upload failed in onSuccess:', error);
+          setUploadingDocumentId(null);
         }
+      } else if (selectedFile && !newDocument?.id) {
+        console.error('❌ Document ID is missing from response');
+        console.error('❌ Full response object:', JSON.stringify(newDocument, null, 2));
+        toast({
+          title: 'Upload failed',
+          description: 'Document was created but upload failed due to missing document ID',
+          variant: 'destructive',
+        });
       } else {
+        // No file selected - just document creation
         queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
         setIsAddDialogOpen(false);
         form.reset();
