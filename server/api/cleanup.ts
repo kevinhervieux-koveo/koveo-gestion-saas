@@ -10,7 +10,10 @@ const router = Router();
  */
 router.post('/cleanup-storage', async (req, res) => {
   try {
-    const objectStorageService = new ObjectStorageService();
+    // ObjectStorageService has been replaced with Python GCS functions
+    // TODO: Implement cleanup using new Python functions
+    res.json({ message: 'Storage cleanup temporarily disabled - needs update for new GCS system' });
+    return;
 
     // Get all file URLs from both document tables
     const buildingDocs = await db

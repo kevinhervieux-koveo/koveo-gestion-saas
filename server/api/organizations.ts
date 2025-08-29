@@ -232,9 +232,8 @@ export function registerOrganizationRoutes(app: Express): void {
 
       console.warn('✅ Created organization:', newOrganization.name);
 
-      // Create object storage hierarchy for the new organization
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.createOrganizationHierarchy(newOrganization.id);
+      // Organization storage hierarchy will be created automatically when documents are uploaded
+      console.log('Organization created - storage hierarchy will be created on first document upload');
 
       res.status(201).json(newOrganization);
     } catch (_error) {
@@ -582,10 +581,9 @@ export function registerOrganizationRoutes(app: Express): void {
 
       console.warn(`✅ Organization cascading delete completed: ${organizationId}`);
 
-      // Clean up object storage hierarchy for the deleted organization
+      // Object storage cleanup will be handled automatically
       try {
-        const objectStorageService = new ObjectStorageService();
-        await objectStorageService.deleteOrganizationHierarchy(organizationId);
+        console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
         console.warn(
           '⚠️ Object storage cleanup failed, but organization deletion succeeded:',

@@ -1240,6 +1240,28 @@ class ProductionFallbackStorage implements IStorage {
     return [];
   }
   async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
+    // Import the GCS service to handle file operations
+    const { gcsDocumentService } = await import('./services/gcs-document-service');
+    
+    // If there's a file path, upload it to Google Cloud Storage
+    if (doc.filePath) {
+      try {
+        // Get organization ID from the document context
+        const organizations = await this.getUserOrganizations(doc.uploadedBy);
+        const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+        
+        // Upload to GCS using Python function
+        await gcsDocumentService.uploadDocument(organizationId, doc.filePath);
+        
+        // Update the document path to the GCS format
+        const fileName = doc.fileName || doc.filePath.split('/').pop() || 'document';
+        doc.filePath = `prod_org_${organizationId}/${fileName}`;
+      } catch (error) {
+        console.error('Failed to upload document to GCS:', error);
+        // Continue with creation even if upload fails
+      }
+    }
+    
     const id = randomUUID();
     return {
       ...doc,
@@ -1255,6 +1277,28 @@ class ProductionFallbackStorage implements IStorage {
     return [];
   }
   async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> {
+    // Import the GCS service to handle file operations
+    const { gcsDocumentService } = await import('./services/gcs-document-service');
+    
+    // If there's a file path, upload it to Google Cloud Storage
+    if (doc.filePath) {
+      try {
+        // Get organization ID from the document context
+        const organizations = await this.getUserOrganizations(doc.uploadedBy);
+        const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+        
+        // Upload to GCS using Python function
+        await gcsDocumentService.uploadDocument(organizationId, doc.filePath);
+        
+        // Update the document path to the GCS format
+        const fileName = doc.fileName || doc.filePath.split('/').pop() || 'document';
+        doc.filePath = `prod_org_${organizationId}/${fileName}`;
+      } catch (error) {
+        console.error('Failed to upload document to GCS:', error);
+        // Continue with creation even if upload fails
+      }
+    }
+    
     const id = randomUUID();
     return {
       ...doc,

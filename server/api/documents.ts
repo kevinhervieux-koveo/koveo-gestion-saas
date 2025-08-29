@@ -13,7 +13,26 @@ import {
   type InsertDocumentResident,
 } from '../../shared/schemas/documents';
 import { z } from 'zod';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
+// Configure multer for file uploads
+const upload = multer({
+  dest: '/tmp/uploads/',
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow most common document and image types
+    const allowedTypes = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|jpg|jpeg|png|gif|bmp|tiff)$/i;
+    if (allowedTypes.test(file.originalname)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only documents and images are allowed.'));
+    }
+  },
+});
 
 // Document categories for validation
 const DOCUMENT_CATEGORIES = [
@@ -303,8 +322,8 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
-  // Create a new document
-  app.post('/api/documents', requireAuth, async (req: any, res) => {
+  // Create a new document with optional file upload
+  app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const user = req.user;
       const userRole = user.role;
@@ -345,6 +364,8 @@ export function registerDocumentRoutes(app: Express): void {
           ...otherData,
           buildingId,
           uploadedBy: userId,
+          filePath: req.file ? req.file.path : undefined,
+          fileName: req.file ? req.file.originalname : undefined,
         });
 
         // Permission checks for building documents
@@ -377,6 +398,16 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         const document = await storage.createBuildingDocument(validatedData);
+        
+        // Clean up temporary file after successful upload
+        if (req.file?.path) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (cleanupError) {
+            console.warn('Failed to cleanup temp file:', cleanupError);
+          }
+        }
+        
         res.status(201).json({
           ...document,
           documentCategory: 'building',
@@ -395,6 +426,8 @@ export function registerDocumentRoutes(app: Express): void {
           ...otherData,
           residenceId,
           uploadedBy: userId,
+          filePath: req.file ? req.file.path : undefined,
+          fileName: req.file ? req.file.originalname : undefined,
         });
 
         // Permission checks for resident documents
@@ -439,6 +472,15 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
     } catch (_error) {
+      // Clean up temporary file on error
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp file on error:', cleanupError);
+        }
+      }
+      
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',

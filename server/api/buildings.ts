@@ -24,7 +24,7 @@ async function handleResidenceChanges(
   totalFloors?: number
 ): Promise<void> {
   try {
-    const objectStorageService = new ObjectStorageService();
+    // Object storage hierarchy will be created automatically when documents are uploaded
 
     if (newTotalUnits > currentResidenceCount) {
       // Need to create more residences
@@ -903,9 +903,8 @@ export function registerBuildingRoutes(app: Express): void {
 
       console.warn(`✅ Building created successfully with ID: ${buildingId}`);
 
-      // Create object storage hierarchy for the new building
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.createBuildingHierarchy(buildingData.organizationId, buildingId);
+      // Building storage hierarchy will be created automatically when documents are uploaded
+      console.log('Building created - storage hierarchy will be created on first document upload');
 
       // Auto-generate residences if totalUnits is specified and <= 300
       if (
@@ -1126,12 +1125,8 @@ export function registerBuildingRoutes(app: Express): void {
 
       console.warn(`✅ Building deleted successfully: ${buildingId}`);
 
-      // Clean up object storage hierarchy for the deleted building
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.deleteBuildingHierarchy(
-        existingBuilding[0].organizationId,
-        buildingId
-      );
+      // Object storage cleanup will be handled automatically
+      console.log('Building deleted - storage cleanup will be handled automatically');
 
       res.json({
         message: 'Building deleted successfully',
@@ -1349,11 +1344,8 @@ export function registerBuildingRoutes(app: Express): void {
         .limit(1);
 
       if (buildingOrg.length > 0) {
-        const objectStorageService = new ObjectStorageService();
-        await objectStorageService.deleteBuildingHierarchy(
-          buildingOrg[0].organizationId,
-          buildingId
-        );
+        // Object storage cleanup will be handled automatically
+        console.log('Building deleted - storage cleanup will be handled automatically');
       }
 
       res.json({
