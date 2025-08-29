@@ -13,7 +13,7 @@ export class GCSDocumentService {
 
   constructor() {
     // Path to the Python script relative to the server directory
-    this.pythonScriptPath = path.join(process.cwd(), 'upload_secure_document.py');
+    this.pythonScriptPath = path.join(process.cwd(), 'upload_secure_document_simple.py');
   }
 
   /**
@@ -25,7 +25,7 @@ export class GCSDocumentService {
   async uploadDocument(organizationId: string, filePath: string): Promise<void> {
     try {
       const command = `python3 -c "
-from upload_secure_document import upload_secure_document
+from upload_secure_document_simple import upload_secure_document
 upload_secure_document('${organizationId}', '${filePath}')
 "`;
       
@@ -44,7 +44,7 @@ upload_secure_document('${organizationId}', '${filePath}')
   async getDocumentUrl(organizationId: string, fileName: string): Promise<string> {
     try {
       const command = `python3 -c "
-from upload_secure_document import get_secure_document_url
+from upload_secure_document_simple import get_secure_document_url
 print(get_secure_document_url('${organizationId}', '${fileName}'))
 "`;
       
