@@ -32,19 +32,15 @@ export class GCSDocumentService {
       projectId: projectId
     };
 
-    // If credentials are provided, parse and use them
+    // Handle GOOGLE_APPLICATION_CREDENTIALS properly
     if (credentials) {
       try {
-        // Handle both JSON string and file path formats
-        let credentialsObj;
+        // Check if it's a JSON string (starts with '{') or a file path
         if (credentials.trim().startsWith('{')) {
-          // It's a JSON string - parse it
-          credentialsObj = JSON.parse(credentials.trim());
+          // It's a JSON string - parse it for service account credentials
+          const credentialsObj = JSON.parse(credentials.trim());
           console.log('🔧 Parsed credentials type:', credentialsObj.type);
-          console.log('🔧 Parsed credentials client_email:', credentialsObj.client_email);
-          console.log('🔧 Parsed credentials has private_key:', !!credentialsObj.private_key);
           
-          // Validate that it has required service account fields
           if (credentialsObj.type === 'service_account' && credentialsObj.private_key && credentialsObj.client_email) {
             storageConfig.credentials = credentialsObj;
             console.log('✅ Using parsed service account credentials for', credentialsObj.client_email);
@@ -52,13 +48,18 @@ export class GCSDocumentService {
             console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
           }
         } else {
-          // It might be a file path (fallback to default behavior)
+          // It's a file path - let Google Cloud SDK handle it automatically
           storageConfig.keyFilename = credentials;
           console.log('✅ Using credentials file path:', credentials);
+          console.log('🔧 Google Cloud SDK will automatically load:', credentials);
         }
       } catch (error) {
-        console.warn('⚠️ Could not parse GOOGLE_APPLICATION_CREDENTIALS, using default auth:', error.message);
-        // Fall back to default authentication
+        console.warn('⚠️ Could not process GOOGLE_APPLICATION_CREDENTIALS:', error.message);
+        // For file paths, let the SDK handle it directly without our custom config
+        if (!credentials.trim().startsWith('{')) {
+          console.log('🔄 Letting Google Cloud SDK handle file path directly');
+          // Don't set keyFilename, let the environment variable work
+        }
       }
     } else {
       console.log('ℹ️ No credentials provided, using default authentication');
