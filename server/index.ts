@@ -264,78 +264,16 @@ async function loadFullApplication(): Promise<void> {
     // Load API routes AFTER frontend serving is set up
     log('🔄 Loading essential authentication routes...');
     
-    // Skip the problematic routes-minimal.ts import and load auth routes directly
+    // Load authentication using the proper setupAuthRoutes function
     try {
-      // Import auth functions
-      const { sessionConfig, requireAuth, hashPassword, verifyPassword } = await import('./auth');
-      const { storage } = await import('./storage');
+      const { sessionConfig, setupAuthRoutes } = await import('./auth');
       
       // Setup session middleware
       app.use(sessionConfig);
       
-      // Essential auth routes
-      app.get('/api/auth/user', requireAuth, async (req: any, res) => {
-        try {
-          res.json(req.user);
-        } catch (error: any) {
-          console.error('Error fetching user:', error);
-          res.status(500).json({ error: 'Failed to fetch user' });
-        }
-      });
-
-      app.post('/api/auth/login', async (req, res) => {
-        try {
-          const { username, password } = req.body;
-          
-          if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
-          }
-
-          const user = await storage.getUserByEmail(username);
-          if (!user || !user.isActive) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-          }
-
-          const isValid = await verifyPassword(password, user.password);
-          if (!isValid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-          }
-
-          // Set session
-          (req.session as any).userId = user.id;
-          (req.session as any).userRole = user.role;
-          (req.session as any).role = user.role;
-
-          // Skip last login update for now - method not available
-
-          res.json({ 
-            success: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role,
-              language: user.language
-            }
-          });
-        } catch (error: any) {
-          console.error('Login error:', error);
-          res.status(500).json({ error: 'Internal server error' });
-        }
-      });
-
-      app.post('/api/auth/logout', (req, res) => {
-        req.session.destroy((err) => {
-          if (err) {
-            console.error('Logout error:', err);
-            return res.status(500).json({ error: 'Failed to logout' });
-          }
-          res.json({ success: true });
-        });
-      });
-
+      // Setup complete authentication routes (the original working system)
+      setupAuthRoutes(app);
+      
       log('✅ Essential authentication routes loaded successfully');
     } catch (authError: any) {
       log(`⚠️ Failed to load auth routes: ${authError.message}`, 'error');
