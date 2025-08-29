@@ -162,12 +162,15 @@ describe('Document Management - Authorization Integration Tests', () => {
         });
 
       try {
-        const response = await fetch('/api/documents?type=resident&residenceId=unauthorized-residence', {
-          credentials: 'include',
-        });
+        const response = await fetch(
+          '/api/documents?type=resident&residenceId=unauthorized-residence',
+          {
+            credentials: 'include',
+          }
+        );
         expect(response.ok).toBe(false);
         expect(response.status).toBe(403);
-        
+
         const error = await response.json();
         expect(error.message).toBe('Access denied to this residence');
       } catch (error) {
@@ -208,9 +211,12 @@ describe('Document Management - Authorization Integration Tests', () => {
           }),
         });
 
-      const response = await fetch('/api/documents?type=resident&residenceId=tenant-assigned-residence', {
-        credentials: 'include',
-      });
+      const response = await fetch(
+        '/api/documents?type=resident&residenceId=tenant-assigned-residence',
+        {
+          credentials: 'include',
+        }
+      );
 
       expect(response.ok).toBe(true);
       const data = await response.json();
@@ -239,8 +245,8 @@ describe('Document Management - Authorization Integration Tests', () => {
       ];
 
       // Test client-side filtering for tenant users
-      const tenantVisibleDocs = mockDocuments.filter(doc => doc.isVisibleToTenants);
-      
+      const tenantVisibleDocs = mockDocuments.filter((doc) => doc.isVisibleToTenants);
+
       expect(tenantVisibleDocs).toHaveLength(1);
       expect(tenantVisibleDocs[0].name).toBe('Public Document');
     });
@@ -265,7 +271,7 @@ describe('Document Management - Authorization Integration Tests', () => {
 
       // Managers/admins should see all documents
       expect(mockDocuments).toHaveLength(2);
-      expect(mockDocuments.some(doc => !doc.isVisibleToTenants)).toBe(true);
+      expect(mockDocuments.some((doc) => !doc.isVisibleToTenants)).toBe(true);
     });
   });
 
@@ -299,7 +305,7 @@ describe('Document Management - Authorization Integration Tests', () => {
         },
       ];
 
-      authorizationScenarios.forEach(scenario => {
+      authorizationScenarios.forEach((scenario) => {
         // Verify authorization logic expectations
         if (scenario.userRole === 'admin' || scenario.userRole === 'manager') {
           expect(scenario.expectedAccess).toBe(true);
@@ -333,7 +339,7 @@ describe('Document Management - Authorization Integration Tests', () => {
         },
       ];
 
-      permissionTests.forEach(test => {
+      permissionTests.forEach((test) => {
         if (test.userRole === 'tenant') {
           expect(test.canCreate).toBe(false);
           expect(test.canEdit).toBe(false);

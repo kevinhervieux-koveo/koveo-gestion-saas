@@ -343,9 +343,9 @@ function BuildingForm({
                   <FormItem>
                     <FormLabel>Total Units</FormLabel>
                     <FormControl>
-                      <Input 
-                        type='number' 
-                        placeholder='Enter total units' 
+                      <Input
+                        type='number'
+                        placeholder='Enter total units'
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />

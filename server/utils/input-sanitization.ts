@@ -8,7 +8,7 @@
  */
 export function sanitizeString(input: string): string {
   if (!input) return '';
-  
+
   return input
     .trim()
     .replace(/[<>]/g, '') // Remove potential HTML tags
@@ -29,7 +29,8 @@ export function normalizeEmail(email: string): string {
  */
 export function isValidQuebecPostalCode(postalCode: string): boolean {
   if (!postalCode) return true; // Optional field
-  const quebecPostalCodeRegex = /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ] ?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i;
+  const quebecPostalCodeRegex =
+    /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ] ?\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i;
   return quebecPostalCodeRegex.test(postalCode.trim());
 }
 
@@ -47,7 +48,7 @@ export function isValidNorthAmericanPhone(phone: string): boolean {
  */
 export function sanitizeName(name: string): string {
   if (!name) return '';
-  
+
   return name
     .trim()
     .replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '') // Allow accented characters for Quebec names
@@ -60,7 +61,7 @@ export function sanitizeName(name: string): string {
  */
 export function generateUsernameFromEmail(email: string): string {
   if (!email) return '';
-  
+
   return email
     .split('@')[0]
     .toLowerCase()
@@ -75,23 +76,24 @@ export function validatePasswordStrength(password: string): { isValid: boolean; 
   if (!password) {
     return { isValid: false, message: 'Password is required' };
   }
-  
+
   if (password.length < 8) {
     return { isValid: false, message: 'Password must be at least 8 characters long' };
   }
-  
+
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /\d/.test(password);
   const hasSpecialChar = /[@$!%*?&]/.test(password);
-  
+
   if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecialChar) {
-    return { 
-      isValid: false, 
-      message: 'Password must contain uppercase, lowercase, number, and special character (@$!%*?&)' 
+    return {
+      isValid: false,
+      message:
+        'Password must contain uppercase, lowercase, number, and special character (@$!%*?&)',
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -100,7 +102,7 @@ export function validatePasswordStrength(password: string): { isValid: boolean; 
  */
 export function sanitizeAddress(address: string): string {
   if (!address) return '';
-  
+
   return address
     .trim()
     .replace(/[<>]/g, '') // Remove potential HTML

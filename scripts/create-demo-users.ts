@@ -83,16 +83,16 @@ async function createDemoUsers() {
         .returning({ id: users.id, email: users.email });
 
       // Add user to Demo organization
-      await db
-        .insert(userOrganizations)
-        .values({
-          userId: newUser.id,
-          organizationId: DEMO_ORG_ID,
-          organizationRole: userData.role,
-          isActive: true,
-        });
+      await db.insert(userOrganizations).values({
+        userId: newUser.id,
+        organizationId: DEMO_ORG_ID,
+        organizationRole: userData.role,
+        isActive: true,
+      });
 
-      console.log(`✅ Created demo user: ${userData.firstName} ${userData.lastName} (${userData.email})`);
+      console.log(
+        `✅ Created demo user: ${userData.firstName} ${userData.lastName} (${userData.email})`
+      );
     }
 
     console.log('🎉 All demo users created successfully!');

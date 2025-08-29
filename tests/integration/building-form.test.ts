@@ -16,42 +16,46 @@ describe('Building Form Integration Tests', () => {
     await db.delete(users);
 
     // Create test organization
-    const [organization] = await db.insert(organizations).values({
-      id: 'test-org-id',
-      name: 'Test Organization',
-      type: 'property_management',
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const [organization] = await db
+      .insert(organizations)
+      .values({
+        id: 'test-org-id',
+        name: 'Test Organization',
+        type: 'property_management',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
     testOrganizationId = organization.id;
 
     // Create test admin user
-    const [user] = await db.insert(users).values({
-      id: 'test-admin-id',
-      username: 'test-admin',
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'Admin',
-      phone: '',
-      profileImage: '',
-      language: 'en',
-      role: 'admin',
-      isActive: true,
-      canAccessAllOrganizations: true,
-      passwordHash: 'test-hash',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: 'test-admin-id',
+        username: 'test-admin',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'Admin',
+        phone: '',
+        profileImage: '',
+        language: 'en',
+        role: 'admin',
+        isActive: true,
+        canAccessAllOrganizations: true,
+        passwordHash: 'test-hash',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
     testUserId = user.id;
 
     // Create authenticated session
-    const loginResponse = await request(app)
-      .post('/api/login')
-      .send({
-        email: 'test@example.com',
-        password: 'test-password'
-      });
+    const loginResponse = await request(app).post('/api/login').send({
+      email: 'test@example.com',
+      password: 'test-password',
+    });
 
     authCookie = loginResponse.headers['set-cookie'];
   });
@@ -124,10 +128,7 @@ describe('Building Form Integration Tests', () => {
         organizationId: testOrganizationId,
       };
 
-      await request(app)
-        .post('/api/admin/buildings')
-        .send(buildingData)
-        .expect(401);
+      await request(app).post('/api/admin/buildings').send(buildingData).expect(401);
     });
 
     it('should validate required fields', async () => {
@@ -172,20 +173,23 @@ describe('Building Form Integration Tests', () => {
 
     beforeEach(async () => {
       // Create a test building to update
-      const [building] = await db.insert(buildings).values({
-        id: 'test-building-id',
-        name: 'Original Building',
-        address: '123 Original Street',
-        city: 'Montreal',
-        province: 'Quebec',
-        postalCode: 'H1A 1A1',
-        buildingType: 'condo',
-        totalUnits: 25,
-        organizationId: testOrganizationId,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }).returning();
+      const [building] = await db
+        .insert(buildings)
+        .values({
+          id: 'test-building-id',
+          name: 'Original Building',
+          address: '123 Original Street',
+          city: 'Montreal',
+          province: 'Quebec',
+          postalCode: 'H1A 1A1',
+          buildingType: 'condo',
+          totalUnits: 25,
+          organizationId: testOrganizationId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
       testBuildingId = building.id;
     });
 
@@ -242,20 +246,23 @@ describe('Building Form Integration Tests', () => {
 
     beforeEach(async () => {
       // Create a test building to delete
-      const [building] = await db.insert(buildings).values({
-        id: 'test-building-delete-id',
-        name: 'Building to Delete',
-        address: '789 Delete Street',
-        city: 'Montreal',
-        province: 'Quebec',
-        postalCode: 'H1A 1A1',
-        buildingType: 'condo',
-        totalUnits: 10,
-        organizationId: testOrganizationId,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }).returning();
+      const [building] = await db
+        .insert(buildings)
+        .values({
+          id: 'test-building-delete-id',
+          name: 'Building to Delete',
+          address: '789 Delete Street',
+          city: 'Montreal',
+          province: 'Quebec',
+          postalCode: 'H1A 1A1',
+          buildingType: 'condo',
+          totalUnits: 10,
+          organizationId: testOrganizationId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
       testBuildingId = building.id;
     });
 
@@ -267,7 +274,7 @@ describe('Building Form Integration Tests', () => {
 
       // Verify building is marked as inactive (soft delete)
       const deletedBuilding = await db.query.buildings.findFirst({
-        where: (buildings, { eq }) => eq(buildings.id, testBuildingId)
+        where: (buildings, { eq }) => eq(buildings.id, testBuildingId),
       });
 
       expect(deletedBuilding?.isActive).toBe(false);

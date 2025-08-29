@@ -22,7 +22,7 @@ describe('Demo User Login Page Integration', () => {
     const demoOrg = await db.query.organizations.findFirst({
       where: eq(schema.organizations.name, 'Demo'),
     });
-    
+
     if (!demoOrg) {
       throw new Error('Demo organization not found - ensure demo setup is complete');
     }
@@ -37,24 +37,24 @@ describe('Demo User Login Page Integration', () => {
       // Check database connection
       const result = await db.execute(sql`SELECT current_database(), version()`);
       expect(result.rows).toHaveLength(1);
-      
+
       const row = result.rows[0] as { current_database: string; version: string };
       const dbName = row.current_database;
       const version = row.version;
-      
+
       console.log(`✅ Connected to database: ${dbName}`);
       console.log(`✅ PostgreSQL version: ${version}`);
-      
+
       // Verify this is a PostgreSQL database (expected for production)
       expect(version).toMatch(/PostgreSQL/i);
-      
+
       // Check for expected demo data structure
       const tableCount = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM information_schema.tables 
         WHERE table_schema = 'public'
       `);
-      
+
       const countRow = tableCount.rows[0] as { count: string };
       expect(Number(countRow.count)).toBeGreaterThan(10);
     });
@@ -64,20 +64,20 @@ describe('Demo User Login Page Integration', () => {
       const demoOrg = await db.query.organizations.findFirst({
         where: eq(schema.organizations.name, 'Demo'),
       });
-      
+
       expect(demoOrg).toBeDefined();
       expect(demoOrg?.type).toBe('demo');
       expect(demoOrg?.isActive).toBe(true);
-      
+
       // Verify Open Demo organization exists
       const openDemoOrg = await db.query.organizations.findFirst({
         where: eq(schema.organizations.name, 'Open Demo'),
       });
-      
+
       expect(openDemoOrg).toBeDefined();
       expect(openDemoOrg?.type).toBe('demo');
       expect(openDemoOrg?.isActive).toBe(true);
-      
+
       console.log(`✅ Demo organization verified: ${demoOrg?.id}`);
       console.log(`✅ Open Demo organization verified: ${openDemoOrg?.id}`);
     });
@@ -87,10 +87,7 @@ describe('Demo User Login Page Integration', () => {
     test('should have demo users that can appear on login page', async () => {
       // Get all demo users from Demo organization
       const demoUsers = await db.query.users.findMany({
-        where: and(
-          eq(schema.users.isActive, true),
-          sql`${schema.users.email} LIKE '%@demo.com'`
-        ),
+        where: and(eq(schema.users.isActive, true), sql`${schema.users.email} LIKE '%@demo.com'`),
         with: {
           userOrganizations: {
             with: {
@@ -111,13 +108,13 @@ describe('Demo User Login Page Integration', () => {
         expect(user.firstName.length).toBeGreaterThan(0);
         expect(user.lastName.length).toBeGreaterThan(0);
         expect(user.isActive).toBe(true);
-        
+
         // Check organization membership
         const demoOrgMembership = user.userOrganizations.find(
-          uo => uo.organization?.name === 'Demo'
+          (uo) => uo.organization?.name === 'Demo'
         );
         expect(demoOrgMembership).toBeDefined();
-        
+
         console.log(`  ✓ ${user.firstName} ${user.lastName} (${user.email}) - ${user.role}`);
       }
     });
@@ -146,14 +143,16 @@ describe('Demo User Login Page Integration', () => {
           expect(user.firstName).toBeDefined();
           expect(user.lastName).toBeDefined();
           expect(user.isActive).toBe(true);
-          
+
           // Check organization membership
           const openDemoOrgMembership = user.userOrganizations.find(
-            uo => uo.organization?.name === 'Open Demo'
+            (uo) => uo.organization?.name === 'Open Demo'
           );
           expect(openDemoOrgMembership).toBeDefined();
-          
-          console.log(`  ✓ ${user.firstName} ${user.lastName} (${user.email}) - ${user.role} [View Only]`);
+
+          console.log(
+            `  ✓ ${user.firstName} ${user.lastName} (${user.email}) - ${user.role} [View Only]`
+          );
         }
       } else {
         console.log('ℹ️ No Open Demo users found - they may need to be created');
@@ -174,7 +173,7 @@ describe('Demo User Login Page Integration', () => {
       `);
 
       expect(usersByRole.rows.length).toBeGreaterThan(0);
-      
+
       const roleDistribution: { [key: string]: number } = {};
       for (const row of usersByRole.rows) {
         roleDistribution[row.role as string] = Number(row.count);
@@ -222,7 +221,7 @@ describe('Demo User Login Page Integration', () => {
           organization_name: string;
           is_view_only: boolean;
         };
-        
+
         expect(userRow.id).toBeDefined();
         expect(userRow.email).toMatch(/^[a-zA-Z0-9._%+-]+@(demo|opendemo)\.com$/);
         expect(userRow.first_name).toBeDefined();
@@ -230,7 +229,7 @@ describe('Demo User Login Page Integration', () => {
         expect(userRow.role).toMatch(/^(admin|manager|tenant|resident)$/);
         expect(userRow.organization_name).toMatch(/^(Demo|Open Demo)$/);
         expect(typeof userRow.is_view_only).toBe('boolean');
-        
+
         // Type assertion for row data
         const userRow = user as {
           id: string;
@@ -241,36 +240,44 @@ describe('Demo User Login Page Integration', () => {
           organization_name: string;
           is_view_only: boolean;
         };
-        
+
         // Check email format matches first name and last name
         const expectedEmailPrefix = `${userRow.first_name.toLowerCase()}.${userRow.last_name.toLowerCase()}`;
-        const normalizedEmailPrefix = expectedEmailPrefix
-          .replace(/[àâäéèêëïîôöùûüÿç]/g, (char) => {
-            const map: { [key: string]: string } = {
-              'à': 'a', 'â': 'a', 'ä': 'a',
-              'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-              'ï': 'i', 'î': 'i',
-              'ô': 'o', 'ö': 'o',
-              'ù': 'u', 'û': 'u', 'ü': 'u',
-              'ÿ': 'y', 'ç': 'c'
-            };
-            return map[char] || char;
-          });
-        
+        const normalizedEmailPrefix = expectedEmailPrefix.replace(/[àâäéèêëïîôöùûüÿç]/g, (char) => {
+          const map: { [key: string]: string } = {
+            à: 'a',
+            â: 'a',
+            ä: 'a',
+            é: 'e',
+            è: 'e',
+            ê: 'e',
+            ë: 'e',
+            ï: 'i',
+            î: 'i',
+            ô: 'o',
+            ö: 'o',
+            ù: 'u',
+            û: 'u',
+            ü: 'u',
+            ÿ: 'y',
+            ç: 'c',
+          };
+          return map[char] || char;
+        });
+
         const emailPrefix = userRow.email.split('@')[0];
         expect(emailPrefix.toLowerCase()).toBe(normalizedEmailPrefix);
-        
-        console.log(`  ✓ Login format valid: ${userRow.first_name} ${userRow.last_name} (${userRow.email}) - ${userRow.role} ${userRow.is_view_only ? '[View Only]' : ''}`);
+
+        console.log(
+          `  ✓ Login format valid: ${userRow.first_name} ${userRow.last_name} (${userRow.email}) - ${userRow.role} ${userRow.is_view_only ? '[View Only]' : ''}`
+        );
       }
     });
 
     test('should have proper password format for authentication', async () => {
       // Get a sample of demo users and check password format
       const usersWithPasswords = await db.query.users.findMany({
-        where: and(
-          eq(schema.users.isActive, true),
-          sql`${schema.users.email} LIKE '%@demo.com'`
-        ),
+        where: and(eq(schema.users.isActive, true), sql`${schema.users.email} LIKE '%@demo.com'`),
         limit: 3,
       });
 
@@ -280,7 +287,7 @@ describe('Demo User Login Page Integration', () => {
         // Verify password is properly hashed (bcrypt format)
         expect(user.password).toMatch(/^\$2b\$\d+\$/);
         expect(user.password.length).toBeGreaterThan(50); // bcrypt hashes are typically 60 chars
-        
+
         console.log(`  ✓ Password properly hashed for: ${user.email}`);
       }
     });
@@ -303,7 +310,7 @@ describe('Demo User Login Page Integration', () => {
 
       for (const emailRow of testEmails.rows) {
         const email = emailRow.email as string;
-        
+
         // Simulate login email lookup
         const foundUser = await db.query.users.findFirst({
           where: eq(schema.users.email, email),
@@ -312,7 +319,7 @@ describe('Demo User Login Page Integration', () => {
         expect(foundUser).toBeDefined();
         expect(foundUser?.email).toBe(email);
         expect(foundUser?.isActive).toBe(true);
-        
+
         console.log(`  ✓ Email lookup successful: ${email}`);
       }
     });
@@ -335,7 +342,7 @@ describe('Demo User Login Page Integration', () => {
 
       // Should have no incomplete user profiles
       expect(incompleteUsers.rows.length).toBe(0);
-      
+
       if (incompleteUsers.rows.length > 0) {
         console.error('❌ Found incomplete user profiles:');
         for (const user of incompleteUsers.rows) {
@@ -361,7 +368,7 @@ describe('Demo User Login Page Integration', () => {
 
       // Should have no orphaned demo users
       expect(orphanedUsers.rows.length).toBe(0);
-      
+
       if (orphanedUsers.rows.length > 0) {
         console.error('❌ Found orphaned demo users:');
         for (const user of orphanedUsers.rows) {

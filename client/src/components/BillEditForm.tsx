@@ -155,19 +155,16 @@ export function BillEditForm({
        */ /**
        * If function.
        * @param !response.ok - !response.ok parameter.
-       */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */  /**
-   * If function.
-   * @param !response.ok - !response.ok parameter.
-   */
-
-
-
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */ /**
+       * If function.
+       * @param !response.ok - !response.ok parameter.
+       */
 
       if (!response.ok) {
         throw new Error('Failed to update bill');

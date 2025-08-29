@@ -7,7 +7,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Page Content Translation Tests
- * 
+ *
  * Tests proper translation of page-specific content
  */
 describe('Page Content Translation', () => {

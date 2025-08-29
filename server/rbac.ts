@@ -559,10 +559,7 @@ export async function filterOrganizationsByAccess(
  * @param buildings
  * @returns Function result.
  */
-export async function filterBuildingsByAccess(
-  userId: string,
-  buildings: any[]
-): Promise<any[]> {
+export async function filterBuildingsByAccess(userId: string, buildings: any[]): Promise<any[]> {
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   return buildings.filter((building) => accessibleOrgIds.includes(building.organizationId));
 }
@@ -578,10 +575,7 @@ export async function filterBuildingsByAccess(
  * @param residences
  * @returns Function result.
  */
-export async function filterResidencesByAccess(
-  userId: string,
-  residences: any[]
-): Promise<any[]> {
+export async function filterResidencesByAccess(userId: string, residences: any[]): Promise<any[]> {
   const user = await db.query.users.findFirst({
     where: eq(schema.users.id, userId),
   });
@@ -600,7 +594,9 @@ export async function filterResidencesByAccess(
     });
 
     const accessibleBuildingIds = accessibleBuildings.map((b) => b.id);
-    return residences.filter((residence: any) => accessibleBuildingIds.includes(residence.buildingId));
+    return residences.filter((residence: any) =>
+      accessibleBuildingIds.includes(residence.buildingId)
+    );
   }
 
   // For tenants/residents, only show their own residences

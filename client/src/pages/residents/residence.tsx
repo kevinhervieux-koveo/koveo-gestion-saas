@@ -389,7 +389,9 @@ export default function Residence() {
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
           title={
-            user?.role && ['admin', 'manager'].includes(user.role) ? t('residences') : t('myResidence')
+            user?.role && ['admin', 'manager'].includes(user.role)
+              ? t('residences')
+              : t('myResidence')
           }
           subtitle={
             user?.role && ['admin', 'manager'].includes(user.role)
@@ -533,15 +535,20 @@ export default function Residence() {
                       <Home className='w-5 h-5' />
                       Unit {residence.unitNumber}
                     </CardTitle>
-                    <div className='text-sm text-gray-600'>{residence.building?.name || 'Building information unavailable'}</div>
+                    <div className='text-sm text-gray-600'>
+                      {residence.building?.name || 'Building information unavailable'}
+                    </div>
                   </CardHeader>
                   <CardContent className='space-y-4'>
                     <div className='grid grid-cols-1 gap-3'>
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>Address</Label>
-                        <p className='text-sm text-gray-700'>{residence.building?.address || 'Address unavailable'}</p>
                         <p className='text-sm text-gray-700'>
-                          {residence.building?.city || 'N/A'}, {residence.building?.province || 'N/A'}{' '}
+                          {residence.building?.address || 'Address unavailable'}
+                        </p>
+                        <p className='text-sm text-gray-700'>
+                          {residence.building?.city || 'N/A'},{' '}
+                          {residence.building?.province || 'N/A'}{' '}
                           {residence.building?.postalCode || ''}
                         </p>
                       </div>

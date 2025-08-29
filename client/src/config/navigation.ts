@@ -156,10 +156,10 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
 export const ROLE_HIERARCHY = {
   tenant: 1,
   resident: 1,
-  demo_tenant: 1,    // Demo tenant has same permissions as tenant
-  demo_resident: 1,  // Demo resident has same permissions as resident
+  demo_tenant: 1, // Demo tenant has same permissions as tenant
+  demo_resident: 1, // Demo resident has same permissions as resident
   manager: 2,
-  demo_manager: 2,   // Demo manager has same permissions as manager
+  demo_manager: 2, // Demo manager has same permissions as manager
   admin: 3,
 } as const;
 

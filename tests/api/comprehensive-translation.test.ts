@@ -44,7 +44,7 @@ const mockTranslations = {
     },
     validation: {
       required: 'Ce champ est obligatoire',
-      emailRequired: 'L\'adresse courriel est obligatoire',
+      emailRequired: "L'adresse courriel est obligatoire",
       email: 'Veuillez entrer une adresse courriel valide',
       password: 'Le mot de passe doit contenir au moins 8 caractères',
     },

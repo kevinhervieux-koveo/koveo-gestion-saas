@@ -7,7 +7,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Accessibility and Translation Tests
- * 
+ *
  * Tests accessibility features work correctly with translations
  */
 describe('Accessibility and Translation', () => {

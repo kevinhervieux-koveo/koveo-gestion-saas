@@ -16,7 +16,7 @@ if (!DATABASE_URL) {
 
 async function checkConnection() {
   const pool = new Pool({ connectionString: DATABASE_URL });
-  
+
   try {
     const client = await pool.connect();
     await client.query('SELECT 1');

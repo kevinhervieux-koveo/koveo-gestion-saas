@@ -21,8 +21,8 @@ async function setupDemoPermissions() {
     // Map demo roles to their corresponding non-demo roles for permission copying
     const roleMapping = {
       demo_manager: 'manager',
-      demo_tenant: 'tenant', 
-      demo_resident: 'resident'
+      demo_tenant: 'tenant',
+      demo_resident: 'resident',
     };
 
     for (const [demoRole, originalRole] of Object.entries(roleMapping)) {

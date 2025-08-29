@@ -1,7 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Columns, TrendingUp, FileText, Shield, TestTube, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import {
+  Columns,
+  TrendingUp,
+  FileText,
+  Shield,
+  TestTube,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -28,20 +37,23 @@ export function PillarFramework() {
   // Calculate completion percentages and health scores
   const calculatePillarHealth = (pillarName: string) => {
     if (!suggestions) return { health: 85, suggestions: 0, completedToday: 0 };
-    
-    const pillarSuggestions = Array.isArray(suggestions) ? suggestions.filter((s: any) => 
-      s.category?.toLowerCase().includes(pillarName.toLowerCase())
-    ) : [];
+
+    const pillarSuggestions = Array.isArray(suggestions)
+      ? suggestions.filter((s: any) => s.category?.toLowerCase().includes(pillarName.toLowerCase()))
+      : [];
     const completedSuggestions = pillarSuggestions.filter((s: any) => s.status === 'Done');
-    
+
     return {
-      health: pillarSuggestions.length > 0 ? Math.round((completedSuggestions.length / pillarSuggestions.length) * 100) : 85,
+      health:
+        pillarSuggestions.length > 0
+          ? Math.round((completedSuggestions.length / pillarSuggestions.length) * 100)
+          : 85,
       suggestions: pillarSuggestions.length,
       completedToday: completedSuggestions.filter((s: any) => {
         const completedDate = new Date(s.completedAt || s.updatedAt);
         const today = new Date();
         return completedDate.toDateString() === today.toDateString();
-      }).length
+      }).length,
     };
   };
 
@@ -58,7 +70,7 @@ export function PillarFramework() {
       borderColor: 'border-blue-200 dark:border-blue-800',
       iconColor: 'text-blue-600 dark:text-blue-400',
       statusColor: 'text-orange-600 dark:text-orange-400',
-      ...calculatePillarHealth('Quality')
+      ...calculatePillarHealth('Quality'),
     },
     {
       id: 2,
@@ -71,12 +83,13 @@ export function PillarFramework() {
       borderColor: 'border-green-200 dark:border-green-800',
       iconColor: 'text-green-600 dark:text-green-400',
       statusColor: 'text-orange-600 dark:text-orange-400',
-      ...calculatePillarHealth('Testing')
+      ...calculatePillarHealth('Testing'),
     },
     {
       id: 3,
       title: t('securityPillar') || 'Security & Compliance',
-      description: t('law25ComplianceFramework') || 'Quebec Law 25 compliance and security framework',
+      description:
+        t('law25ComplianceFramework') || 'Quebec Law 25 compliance and security framework',
       status: 'in-progress',
       statusText: t('inProgress') || 'In Progress',
       icon: Shield,
@@ -84,12 +97,14 @@ export function PillarFramework() {
       borderColor: 'border-purple-200 dark:border-purple-800',
       iconColor: 'text-purple-600 dark:text-purple-400',
       statusColor: 'text-orange-600 dark:text-orange-400',
-      ...calculatePillarHealth('Security')
+      ...calculatePillarHealth('Security'),
     },
     {
       id: 4,
       title: t('continuousImprovementPillar') || 'Continuous Improvement',
-      description: t('continuousImprovementDescription') || 'AI-driven metrics, analytics, and automated improvement suggestions',
+      description:
+        t('continuousImprovementDescription') ||
+        'AI-driven metrics, analytics, and automated improvement suggestions',
       status: 'active',
       statusText: t('activePillar') || 'Active',
       icon: TrendingUp,
@@ -97,12 +112,14 @@ export function PillarFramework() {
       borderColor: 'border-indigo-200 dark:border-indigo-800',
       iconColor: 'text-indigo-600 dark:text-indigo-400',
       statusColor: 'text-green-600 dark:text-green-400',
-      ...calculatePillarHealth('Continuous Improvement')
+      ...calculatePillarHealth('Continuous Improvement'),
     },
     {
       id: 5,
       title: t('documentationPillar') || 'Documentation & Knowledge',
-      description: t('documentationDescription') || 'Comprehensive documentation and knowledge management system',
+      description:
+        t('documentationDescription') ||
+        'Comprehensive documentation and knowledge management system',
       status: 'in-progress',
       statusText: t('inProgress') || 'In Progress',
       icon: FileText,
@@ -110,11 +127,13 @@ export function PillarFramework() {
       borderColor: 'border-amber-200 dark:border-amber-800',
       iconColor: 'text-amber-600 dark:text-amber-400',
       statusColor: 'text-orange-600 dark:text-orange-400',
-      ...calculatePillarHealth('Documentation')
+      ...calculatePillarHealth('Documentation'),
     },
   ];
 
-  const overallHealth = Math.round(pillars.reduce((acc, pillar) => acc + pillar.health, 0) / pillars.length);
+  const overallHealth = Math.round(
+    pillars.reduce((acc, pillar) => acc + pillar.health, 0) / pillars.length
+  );
   const totalSuggestions = pillars.reduce((acc, pillar) => acc + pillar.suggestions, 0);
   const completedToday = pillars.reduce((acc, pillar) => acc + pillar.completedToday, 0);
 
@@ -148,7 +167,11 @@ export function PillarFramework() {
               <Columns className='text-koveo-navy' size={20} />
               {t('pillarMethodology') || 'Pillar Methodology Framework'}
             </div>
-            <Badge variant={overallHealth >= 80 ? 'default' : overallHealth >= 60 ? 'secondary' : 'destructive'}>
+            <Badge
+              variant={
+                overallHealth >= 80 ? 'default' : overallHealth >= 60 ? 'secondary' : 'destructive'
+              }
+            >
               {overallHealth}% Health
             </Badge>
           </CardTitle>
@@ -158,24 +181,36 @@ export function PillarFramework() {
             <div className='bg-blue-50 dark:bg-blue-950 p-4 rounded-lg'>
               <div className='flex items-center gap-2 mb-2'>
                 <TrendingUp className='text-blue-600 dark:text-blue-400' size={16} />
-                <span className='text-sm font-medium text-blue-900 dark:text-blue-100'>System Health</span>
+                <span className='text-sm font-medium text-blue-900 dark:text-blue-100'>
+                  System Health
+                </span>
               </div>
-              <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{overallHealth}%</div>
+              <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>
+                {overallHealth}%
+              </div>
               <Progress value={overallHealth} className='mt-2' />
             </div>
             <div className='bg-green-50 dark:bg-green-950 p-4 rounded-lg'>
               <div className='flex items-center gap-2 mb-2'>
                 <CheckCircle2 className='text-green-600 dark:text-green-400' size={16} />
-                <span className='text-sm font-medium text-green-900 dark:text-green-100'>Completed Today</span>
+                <span className='text-sm font-medium text-green-900 dark:text-green-100'>
+                  Completed Today
+                </span>
               </div>
-              <div className='text-2xl font-bold text-green-600 dark:text-green-400'>{completedToday}</div>
+              <div className='text-2xl font-bold text-green-600 dark:text-green-400'>
+                {completedToday}
+              </div>
             </div>
             <div className='bg-purple-50 dark:bg-purple-950 p-4 rounded-lg'>
               <div className='flex items-center gap-2 mb-2'>
                 <AlertCircle className='text-purple-600 dark:text-purple-400' size={16} />
-                <span className='text-sm font-medium text-purple-900 dark:text-purple-100'>Active Suggestions</span>
+                <span className='text-sm font-medium text-purple-900 dark:text-purple-100'>
+                  Active Suggestions
+                </span>
               </div>
-              <div className='text-2xl font-bold text-purple-600 dark:text-purple-400'>{totalSuggestions}</div>
+              <div className='text-2xl font-bold text-purple-600 dark:text-purple-400'>
+                {totalSuggestions}
+              </div>
             </div>
           </div>
 
@@ -193,11 +228,17 @@ export function PillarFramework() {
                     <div className='flex items-center gap-3'>
                       <div className='flex items-center gap-2'>
                         <Icon className={pillar.iconColor} size={20} />
-                        <span className='font-bold text-gray-500 dark:text-gray-400'>#{pillar.id}</span>
+                        <span className='font-bold text-gray-500 dark:text-gray-400'>
+                          #{pillar.id}
+                        </span>
                       </div>
                       <div>
-                        <h3 className='font-semibold text-gray-900 dark:text-gray-100'>{pillar.title}</h3>
-                        <p className='text-sm text-gray-600 dark:text-gray-400'>{pillar.description}</p>
+                        <h3 className='font-semibold text-gray-900 dark:text-gray-100'>
+                          {pillar.title}
+                        </h3>
+                        <p className='text-sm text-gray-600 dark:text-gray-400'>
+                          {pillar.description}
+                        </p>
                       </div>
                     </div>
                     <div className='text-right'>
@@ -207,7 +248,7 @@ export function PillarFramework() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className='flex items-center justify-between'>
                     <div className='flex-1 mr-4'>
                       <Progress value={pillar.health} className='h-2' />

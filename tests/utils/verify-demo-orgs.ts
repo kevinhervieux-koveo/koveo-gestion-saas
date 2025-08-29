@@ -20,7 +20,7 @@ if (!DATABASE_URL) {
 async function verifyDemoOrganizations() {
   const pool = new Pool({ connectionString: DATABASE_URL });
   const db = drizzle({ client: pool, schema });
-  
+
   try {
     // Check for Demo organization
     const demoOrg = await db.query.organizations.findFirst({

@@ -84,7 +84,7 @@ export default function ResidenceDocuments() {
   const params = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -131,7 +131,11 @@ export default function ResidenceDocuments() {
   const building = buildingData?.buildings?.find((b: any) => b.id === residence?.buildingId);
 
   // Fetch documents
-  const { data: documentsData, isLoading, refetch } = useQuery({
+  const {
+    data: documentsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/documents', 'resident', residenceId],
     queryFn: async () => {
       const response = await fetch(`/api/documents?type=resident&residenceId=${residenceId}`, {
@@ -225,7 +229,8 @@ export default function ResidenceDocuments() {
 
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
-    mutationFn: (documentId: string) => apiRequest('DELETE', `/api/documents/${documentId}?type=resident`),
+    mutationFn: (documentId: string) =>
+      apiRequest('DELETE', `/api/documents/${documentId}?type=resident`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
       toast({
@@ -310,56 +315,53 @@ export default function ResidenceDocuments() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header
-          title="Residence Documents"
-          subtitle="Loading documents..."
-        />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title='Residence Documents' subtitle='Loading documents...' />
+        <div className='flex-1 flex items-center justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900'></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
         title={`${residence?.unitNumber ? `Unit ${residence.unitNumber}` : 'Residence'} Documents`}
-        subtitle="Manage residence documents and control tenant visibility"
+        subtitle='Manage residence documents and control tenant visibility'
       />
 
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-6xl mx-auto space-y-6'>
           {/* Back button */}
           <Button
-            variant="outline"
+            variant='outline'
             onClick={() => navigate('/manager/residences')}
-            className="mb-4"
-            data-testid="button-back"
+            className='mb-4'
+            data-testid='button-back'
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className='w-4 h-4 mr-2' />
             Back to Residences
           </Button>
 
           {/* Residence info */}
           {residence && (
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Home className="w-5 h-5 text-blue-600" />
+              <CardContent className='p-4'>
+                <div className='flex items-center gap-3'>
+                  <Home className='w-5 h-5 text-blue-600' />
                   <div>
-                    <h3 className="font-semibold">Unit {residence.unitNumber}</h3>
+                    <h3 className='font-semibold'>Unit {residence.unitNumber}</h3>
                     {building && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Building className="w-3 h-3" />
-                        {building.name} • 
-                        <MapPin className="w-3 h-3 ml-1" />
+                      <p className='text-sm text-muted-foreground flex items-center gap-1'>
+                        <Building className='w-3 h-3' />
+                        {building.name} •
+                        <MapPin className='w-3 h-3 ml-1' />
                         {building.address}, {building.city}, {building.province}
                       </p>
                     )}
                     {residence.bedrooms && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className='text-sm text-muted-foreground'>
                         {residence.bedrooms} bedrooms • {residence.bathrooms} bathrooms
                         {residence.squareFootage && ` • ${residence.squareFootage} sq ft`}
                       </p>
@@ -372,27 +374,27 @@ export default function ResidenceDocuments() {
 
           {/* Search and filters */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <CardContent className='p-4'>
+              <div className='flex flex-col md:flex-row gap-4'>
+                <div className='flex-1'>
+                  <div className='relative'>
+                    <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
                     <Input
-                      placeholder="Search documents..."
+                      placeholder='Search documents...'
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                      data-testid="input-search-documents"
+                      className='pl-10'
+                      data-testid='input-search-documents'
                     />
                   </div>
                 </div>
-                <div className="w-full md:w-48">
+                <div className='w-full md:w-48'>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger data-testid="select-document-category">
-                      <SelectValue placeholder="All Categories" />
+                    <SelectTrigger data-testid='select-document-category'>
+                      <SelectValue placeholder='All Categories' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value='all'>All Categories</SelectItem>
                       {RESIDENCE_DOCUMENT_CATEGORIES.map((category) => (
                         <SelectItem key={category._value} value={category._value}>
                           {category.label}
@@ -406,41 +408,41 @@ export default function ResidenceDocuments() {
           </Card>
 
           {/* Controls */}
-          <div className="flex justify-between items-center">
+          <div className='flex justify-between items-center'>
             <div>
-              <h2 className="text-lg font-semibold" data-testid="text-documents-title">
+              <h2 className='text-lg font-semibold' data-testid='text-documents-title'>
                 Documents ({filteredDocuments.length})
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className='text-sm text-muted-foreground'>
                 Manage residence documents and control visibility to tenants
               </p>
             </div>
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="button-add-document">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button data-testid='button-add-document'>
+                  <Plus className='w-4 h-4 mr-2' />
                   Add Document
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className='max-w-md'>
                 <DialogHeader>
                   <DialogTitle>Add New Document</DialogTitle>
                 </DialogHeader>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleCreateDocument)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(handleCreateDocument)} className='space-y-4'>
                     <FormField
                       control={form.control}
-                      name="name"
+                      name='name'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Document Name</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Enter document name"
+                              placeholder='Enter document name'
                               {...field}
-                              data-testid="input-document-name"
+                              data-testid='input-document-name'
                             />
                           </FormControl>
                           <FormMessage />
@@ -450,14 +452,14 @@ export default function ResidenceDocuments() {
 
                     <FormField
                       control={form.control}
-                      name="type"
+                      name='type'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Document Type</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-document-type">
-                                <SelectValue placeholder="Select document type" />
+                              <SelectTrigger data-testid='select-document-type'>
+                                <SelectValue placeholder='Select document type' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -475,15 +477,15 @@ export default function ResidenceDocuments() {
 
                     <FormField
                       control={form.control}
-                      name="description"
+                      name='description'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description (Optional)</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Enter document description"
+                              placeholder='Enter document description'
                               {...field}
-                              data-testid="textarea-document-description"
+                              data-testid='textarea-document-description'
                             />
                           </FormControl>
                           <FormMessage />
@@ -493,15 +495,15 @@ export default function ResidenceDocuments() {
 
                     <FormField
                       control={form.control}
-                      name="isVisibleToTenants"
+                      name='isVisibleToTenants'
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2">
+                        <FormItem className='flex items-center space-x-2'>
                           <FormControl>
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               checked={field.value}
                               onChange={field.onChange}
-                              data-testid="checkbox-visible-to-tenants"
+                              data-testid='checkbox-visible-to-tenants'
                             />
                           </FormControl>
                           <FormLabel>Visible to tenants</FormLabel>
@@ -513,26 +515,30 @@ export default function ResidenceDocuments() {
                     <div>
                       <Label>File (Optional)</Label>
                       <Input
-                        type="file"
+                        type='file'
                         onChange={handleFileSelect}
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-                        data-testid="input-file-upload"
+                        accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.txt'
+                        data-testid='input-file-upload'
                       />
                       {selectedFile && (
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className='text-sm text-muted-foreground mt-1'>
                           Selected: {selectedFile.name}
                         </p>
                       )}
                     </div>
 
                     <DialogFooter>
-                      <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => setIsAddDialogOpen(false)}
+                      >
                         Cancel
                       </Button>
                       <Button
-                        type="submit"
+                        type='submit'
                         disabled={createDocumentMutation.isPending || uploadingDocumentId !== null}
-                        data-testid="button-submit-document"
+                        data-testid='button-submit-document'
                       >
                         {uploadingDocumentId ? 'Uploading...' : 'Create Document'}
                       </Button>
@@ -545,24 +551,24 @@ export default function ResidenceDocuments() {
 
           {/* Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className='max-w-md'>
               <DialogHeader>
                 <DialogTitle>Edit Document</DialogTitle>
               </DialogHeader>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleUpdateDocument)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(handleUpdateDocument)} className='space-y-4'>
                   <FormField
                     control={form.control}
-                    name="name"
+                    name='name'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Document Name</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter document name"
+                            placeholder='Enter document name'
                             {...field}
-                            data-testid="input-edit-document-name"
+                            data-testid='input-edit-document-name'
                           />
                         </FormControl>
                         <FormMessage />
@@ -572,14 +578,14 @@ export default function ResidenceDocuments() {
 
                   <FormField
                     control={form.control}
-                    name="type"
+                    name='type'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Document Type</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-edit-document-type">
-                              <SelectValue placeholder="Select document type" />
+                            <SelectTrigger data-testid='select-edit-document-type'>
+                              <SelectValue placeholder='Select document type' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -597,15 +603,15 @@ export default function ResidenceDocuments() {
 
                   <FormField
                     control={form.control}
-                    name="isVisibleToTenants"
+                    name='isVisibleToTenants'
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
+                      <FormItem className='flex items-center space-x-2'>
                         <FormControl>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={field.value}
                             onChange={field.onChange}
-                            data-testid="checkbox-edit-visible-to-tenants"
+                            data-testid='checkbox-edit-visible-to-tenants'
                           />
                         </FormControl>
                         <FormLabel>Visible to tenants</FormLabel>
@@ -615,13 +621,17 @@ export default function ResidenceDocuments() {
                   />
 
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={() => setIsEditDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
+                      type='submit'
                       disabled={updateDocumentMutation.isPending}
-                      data-testid="button-update-document"
+                      data-testid='button-update-document'
                     >
                       Update Document
                     </Button>
@@ -634,10 +644,10 @@ export default function ResidenceDocuments() {
           {/* Documents Grid */}
           {filteredDocuments.length === 0 ? (
             <Card>
-              <CardContent className="p-8 text-center">
-                <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
-                <p className="text-gray-500">
+              <CardContent className='p-8 text-center'>
+                <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Documents Found</h3>
+                <p className='text-gray-500'>
                   {searchTerm || selectedCategory !== 'all'
                     ? 'No documents match your search criteria.'
                     : 'No documents have been uploaded for this residence yet.'}
@@ -645,58 +655,68 @@ export default function ResidenceDocuments() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {filteredDocuments.map((document) => (
-                <Card key={document.id} className="hover:shadow-lg transition-shadow" data-testid={`card-document-${document.id}`}>
+                <Card
+                  key={document.id}
+                  className='hover:shadow-lg transition-shadow'
+                  data-testid={`card-document-${document.id}`}
+                >
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <FileText className="w-4 h-4" />
+                    <CardTitle className='flex items-center gap-2 text-sm'>
+                      <FileText className='w-4 h-4' />
                       {document.name}
                     </CardTitle>
-                    <Badge variant="outline" className="w-fit">
-                      {RESIDENCE_DOCUMENT_CATEGORIES.find(cat => cat._value === document.type)?.label || document.type}
+                    <Badge variant='outline' className='w-fit'>
+                      {RESIDENCE_DOCUMENT_CATEGORIES.find((cat) => cat._value === document.type)
+                        ?.label || document.type}
                     </Badge>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
-                          {RESIDENCE_DOCUMENT_CATEGORIES.find(cat => cat._value === document.type)?.label || document.type} document
+                    <div className='space-y-3'>
+                      <div className='flex items-center justify-between'>
+                        <p className='text-sm text-muted-foreground'>
+                          {RESIDENCE_DOCUMENT_CATEGORIES.find((cat) => cat._value === document.type)
+                            ?.label || document.type}{' '}
+                          document
                         </p>
-                        <Badge variant={document.isVisibleToTenants ? "default" : "secondary"} className="text-xs">
+                        <Badge
+                          variant={document.isVisibleToTenants ? 'default' : 'secondary'}
+                          className='text-xs'
+                        >
                           {document.isVisibleToTenants ? 'Visible to tenants' : 'Manager only'}
                         </Badge>
                       </div>
-                      
-                      <div className="flex gap-2">
+
+                      <div className='flex gap-2'>
                         {document.fileUrl && (
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant='outline'
+                            size='sm'
                             onClick={() => handleDownload(document)}
-                            className="flex-1"
+                            className='flex-1'
                             data-testid={`button-download-${document.id}`}
                           >
-                            <Download className="w-3 h-3 mr-1" />
+                            <Download className='w-3 h-3 mr-1' />
                             View
                           </Button>
                         )}
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant='outline'
+                          size='sm'
                           onClick={() => handleEditDocument(document)}
                           data-testid={`button-edit-${document.id}`}
                         >
-                          <Edit className="w-3 h-3" />
+                          <Edit className='w-3 h-3' />
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => handleDeleteDocument(document)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className='text-red-600 hover:text-red-700 hover:bg-red-50'
                           data-testid={`button-delete-${document.id}`}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className='w-3 h-3' />
                         </Button>
                       </div>
                     </div>

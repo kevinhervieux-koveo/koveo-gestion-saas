@@ -25,7 +25,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: 'ok',
     message: 'Koveo Gestion API is running',
-    version: '1.0.0'
+    version: '1.0.0',
   });
 });
 
@@ -52,7 +52,7 @@ app.get('/', (req, res) => {
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Development server listening on http://0.0.0.0:${port}`);
   console.log(`🌐 Server ready - loading full features in background...`);
-  
+
   // Load full application features AFTER port is open
   setTimeout(() => {
     loadFullApplication().catch(console.error);
@@ -83,19 +83,18 @@ process.on('SIGTERM', () => {
 async function loadFullApplication(): Promise<void> {
   try {
     console.log('🔄 Loading full application features in background...');
-    
+
     // Setup Vite for frontend development
     const { setupVite } = await import('./vite.js');
     await setupVite(app, server);
     console.log('✅ Vite development server configured');
-    
+
     // Load API routes
     const { registerRoutes } = await import('./routes-minimal.js');
     await registerRoutes(app);
     console.log('✅ Full application routes loaded');
-    
+
     console.log('🎉 Development server fully ready!');
-    
   } catch (error: any) {
     console.error(`⚠️ Failed to load full application: ${error.message}`);
     // Continue - basic server still works

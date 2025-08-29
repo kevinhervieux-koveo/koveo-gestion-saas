@@ -44,9 +44,7 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <ToastProvider>{children}</ToastProvider>
         </LanguageProvider>
       </QueryClientProvider>
     </BrowserRouter>
@@ -125,7 +123,7 @@ describe('Demo User UI Restrictions', () => {
 
       await waitFor(() => {
         const editButtons = screen.queryAllByTestId(/button-edit-user/);
-        editButtons.forEach(button => {
+        editButtons.forEach((button) => {
           expect(button).toBeDisabled();
         });
       });
@@ -289,7 +287,7 @@ describe('Demo User UI Restrictions', () => {
 
       await waitFor(() => {
         const editButtons = screen.queryAllByTestId(/button-edit-user/);
-        editButtons.forEach(button => {
+        editButtons.forEach((button) => {
           expect(button).not.toBeDisabled();
         });
       });
@@ -424,13 +422,13 @@ describe('Demo User UI Restrictions', () => {
       await waitFor(() => {
         // Should be able to view documents
         expect(screen.getByText('Demo Document')).toBeInTheDocument();
-        
+
         // Should be able to use search/filter
         const searchInput = screen.queryByTestId('input-search-documents');
         if (searchInput) {
           expect(searchInput).not.toBeDisabled();
         }
-        
+
         // Should be able to view details
         const viewButton = screen.queryByTestId('button-view-document');
         if (viewButton) {
@@ -457,7 +455,7 @@ describe('Demo User UI Restrictions', () => {
 
       // Mock delayed API response
       mockApiRequest.mockImplementationOnce(
-        () => new Promise(resolve => setTimeout(() => resolve([]), 1000))
+        () => new Promise((resolve) => setTimeout(() => resolve([]), 1000))
       );
 
       render(
@@ -470,9 +468,12 @@ describe('Demo User UI Restrictions', () => {
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
 
       // After loading, should show demo restrictions
-      await waitFor(() => {
-        expect(screen.getByTestId('demo-restriction-banner')).toBeInTheDocument();
-      }, { timeout: 2000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('demo-restriction-banner')).toBeInTheDocument();
+        },
+        { timeout: 2000 }
+      );
     });
   });
 
@@ -501,7 +502,7 @@ describe('Demo User UI Restrictions', () => {
 
       await waitFor(() => {
         const disabledButtons = screen.queryAllByRole('button', { hidden: true });
-        disabledButtons.forEach(button => {
+        disabledButtons.forEach((button) => {
           if (button.hasAttribute('disabled')) {
             expect(button).toHaveAttribute('aria-label');
             expect(button.getAttribute('aria-label')).toMatch(/demo.*restricted|view.*only/i);
@@ -538,7 +539,7 @@ describe('Demo User UI Restrictions', () => {
         // Tab navigation should work for allowed actions
         await user.tab();
         const focusedElement = document.activeElement;
-        
+
         if (focusedElement && focusedElement.tagName === 'BUTTON') {
           expect(focusedElement).not.toHaveAttribute('disabled');
         }
@@ -570,7 +571,7 @@ describe('Demo User UI Restrictions', () => {
       await waitFor(() => {
         const banner = screen.getByTestId('demo-restriction-banner');
         expect(banner).toBeInTheDocument();
-        
+
         // Should have an expand/collapse functionality
         const expandButton = screen.queryByTestId('button-expand-demo-info');
         if (expandButton) {

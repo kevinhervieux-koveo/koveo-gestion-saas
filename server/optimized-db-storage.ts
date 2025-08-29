@@ -345,7 +345,11 @@ export class OptimizedDatabaseStorage implements IStorage {
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
       console.log(`🔍 Storage.getUser: Database returned ${result.length} results for ID ${id}`);
       if (result.length > 0) {
-        console.log(`🔍 Storage.getUser: Found user:`, { id: result[0].id, email: result[0].email, role: result[0].role });
+        console.log(`🔍 Storage.getUser: Found user:`, {
+          id: result[0].id,
+          email: result[0].email,
+          role: result[0].role,
+        });
       } else {
         console.log(`❌ Storage.getUser: No user found in database for ID ${id}`);
       }
@@ -383,7 +387,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         role: insertUser.role,
         isActive: insertUser.isActive ?? true,
       };
-      
+
       console.log('🔍 Creating user with data:', {
         username: userData.username,
         email: userData.email,
@@ -393,7 +397,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         language: userData.language,
         hasPassword: !!userData.password,
       });
-      
+
       try {
         const inserted = await db.insert(schema.users).values([userData]).returning();
         console.log('✅ User created successfully with ID:', inserted[0]?.id);

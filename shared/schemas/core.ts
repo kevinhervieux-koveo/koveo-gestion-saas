@@ -20,7 +20,15 @@ import { relations } from 'drizzle-orm';
  * Enum defining user roles in the Quebec property management system.
  * Determines user permissions and access levels across the application.
  */
-export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']);
+export const userRoleEnum = pgEnum('user_role', [
+  'admin',
+  'manager',
+  'tenant',
+  'resident',
+  'demo_manager',
+  'demo_tenant',
+  'demo_resident',
+]);
 
 /**
  * Enum defining invitation status values for user invitation system.
@@ -254,7 +262,8 @@ export const userPermissions = pgTable('user_permissions', {
 export const insertUserSchema = z.object({
   username: z.string().min(1).max(50, 'Username must be between 1-50 characters'),
   email: z.string().email('Must be a valid email address').toLowerCase(),
-  password: z.string()
+  password: z
+    .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
@@ -262,13 +271,27 @@ export const insertUserSchema = z.object({
     ),
   firstName: z.string().min(1).max(100, 'First name must be 1-100 characters').trim(),
   lastName: z.string().min(1).max(100, 'Last name must be 1-100 characters').trim(),
-  phone: z.string().optional().refine(
-    (phone) => !phone || /^(\+1\s?)?(\([0-9]{3}\)|[0-9]{3})[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}$/.test(phone),
-    'Phone must be a valid North American format (e.g., 514-123-4567 or (514) 123-4567)'
-  ),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (phone) =>
+        !phone || /^(\+1\s?)?(\([0-9]{3}\)|[0-9]{3})[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}$/.test(phone),
+      'Phone must be a valid North American format (e.g., 514-123-4567 or (514) 123-4567)'
+    ),
   profileImage: z.string().optional(),
   language: z.string().default('fr'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']).default('tenant'),
+  role: z
+    .enum([
+      'admin',
+      'manager',
+      'tenant',
+      'resident',
+      'demo_manager',
+      'demo_tenant',
+      'demo_resident',
+    ])
+    .default('tenant'),
 });
 
 export const insertOrganizationSchema = z.object({
@@ -287,7 +310,17 @@ export const insertOrganizationSchema = z.object({
 export const insertUserOrganizationSchema = z.object({
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
-  organizationRole: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']).default('tenant'),
+  organizationRole: z
+    .enum([
+      'admin',
+      'manager',
+      'tenant',
+      'resident',
+      'demo_manager',
+      'demo_tenant',
+      'demo_resident',
+    ])
+    .default('tenant'),
   canAccessAllOrganizations: z.boolean().default(false),
 });
 
@@ -295,7 +328,15 @@ export const insertInvitationSchema = z.object({
   organizationId: z.string().uuid().optional(),
   residenceId: z.union([z.string().uuid(), z.null()]).optional(),
   email: z.string().email(),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
+  role: z.enum([
+    'admin',
+    'manager',
+    'tenant',
+    'resident',
+    'demo_manager',
+    'demo_tenant',
+    'demo_resident',
+  ]),
   invitedByUserId: z.string().uuid(),
   expiresAt: z.union([
     z.date(),
@@ -337,7 +378,15 @@ export const insertPermissionSchema = z.object({
 });
 
 export const insertRolePermissionSchema = z.object({
-  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
+  role: z.enum([
+    'admin',
+    'manager',
+    'tenant',
+    'resident',
+    'demo_manager',
+    'demo_tenant',
+    'demo_resident',
+  ]),
   permissionId: z.string().uuid(),
 });
 

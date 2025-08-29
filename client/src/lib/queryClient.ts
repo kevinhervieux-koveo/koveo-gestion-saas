@@ -131,8 +131,16 @@ export const queryClient = new QueryClient({
       if (error.message.includes('401') || error.message.includes('Authentication required')) {
         // Check if we're not already on login or public pages
         const currentPath = window.location.pathname;
-        const isPublicPath = ['/', '/auth/login', '/auth/register', '/features', '/pricing', '/security', '/story'].includes(currentPath);
-        
+        const isPublicPath = [
+          '/',
+          '/auth/login',
+          '/auth/register',
+          '/features',
+          '/pricing',
+          '/security',
+          '/story',
+        ].includes(currentPath);
+
         if (!isPublicPath) {
           console.warn('Session expired during API call, redirecting to login');
           window.location.href = '/auth/login';
@@ -178,8 +186,16 @@ export const queryClient = new QueryClient({
       if (error.message.includes('401') || error.message.includes('Authentication required')) {
         // Check if we're not already on login or public pages
         const currentPath = window.location.pathname;
-        const isPublicPath = ['/', '/auth/login', '/auth/register', '/features', '/pricing', '/security', '/story'].includes(currentPath);
-        
+        const isPublicPath = [
+          '/',
+          '/auth/login',
+          '/auth/register',
+          '/features',
+          '/pricing',
+          '/security',
+          '/story',
+        ].includes(currentPath);
+
         if (!isPublicPath) {
           console.warn('Session expired during mutation, redirecting to login');
           window.location.href = '/auth/login';

@@ -7,7 +7,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Quebec Legal Compliance Tests
- * 
+ *
  * Tests Quebec Law 25 compliance and legal terminology
  */
 describe('Quebec Legal Compliance', () => {

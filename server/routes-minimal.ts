@@ -33,13 +33,13 @@ import crypto from 'crypto';
 import { EmailService } from './services/email-service';
 import { hashPassword } from './auth';
 import { storage } from './storage';
-import { 
-  sanitizeString, 
-  sanitizeName, 
-  normalizeEmail, 
+import {
+  sanitizeString,
+  sanitizeName,
+  normalizeEmail,
   validatePasswordStrength,
   generateUsernameFromEmail,
-  isValidQuebecPostalCode
+  isValidQuebecPostalCode,
 } from './utils/input-sanitization';
 import { logUserCreation } from './utils/user-creation-logger';
 
@@ -184,10 +184,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/emergency-login', (req: any, res: any) => {
       try {
         const { email, password } = req.body;
-        
+
         if (email === 'kevin.hervieux@koveo-gestion.com' && password === 'admin123') {
           console.log('🚨 Emergency production login activated');
-          
+
           // Set session directly without database lookup
           if (!req.session) {
             req.session = {};
@@ -195,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.session.userId = 'f35647de-5f16-46f2-b30b-09e0469356b1';
           req.session.userRole = 'admin';
           req.session.role = 'admin';
-          
+
           res.json({
             user: {
               id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
@@ -234,10 +234,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Production static file serving - Enable when NODE_ENV=production and dist directory exists
   const pathModule = await import('path');
   const fsModule = await import('fs');
-  const hasProductionBuild = fsModule.existsSync(pathModule.resolve(process.cwd(), 'dist', 'public'));
-  const enableProductionServing = process.env.NODE_ENV === 'production' && 
+  const hasProductionBuild = fsModule.existsSync(
+    pathModule.resolve(process.cwd(), 'dist', 'public')
+  );
+  const enableProductionServing =
+    process.env.NODE_ENV === 'production' &&
     (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
-  
+
   if (enableProductionServing) {
     const express = await import('express');
     const distPath = pathModule.resolve(process.cwd(), 'dist', 'public');
@@ -245,20 +248,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`🔍 Setting up static file serving from: ${distPath}`);
 
     // Serve static assets with proper caching
-    app.use('/assets', express.static(pathModule.resolve(distPath, 'assets'), {
-      maxAge: '1y',
-      etag: false,
-      immutable: true,
-      setHeaders: (res) => {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }));
+    app.use(
+      '/assets',
+      express.static(pathModule.resolve(distPath, 'assets'), {
+        maxAge: '1y',
+        etag: false,
+        immutable: true,
+        setHeaders: (res) => {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        },
+      })
+    );
 
     // Serve other static files
-    app.use(express.static(distPath, {
-      maxAge: '1d',
-      index: false
-    }));
+    app.use(
+      express.static(distPath, {
+        maxAge: '1d',
+        index: false,
+      })
+    );
 
     console.log('✅ Production static file serving configured (deployment mode)');
   }
@@ -295,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRouter.use(sessionConfig); // Add session middleware to API routes
   apiRouter.use(express.json()); // Add JSON parsing
   apiRouter.use(express.urlencoded({ extended: true })); // Add URL encoding
-  
+
   // Register auth routes on the API router
   try {
     setupAuthRoutes(apiRouter);
@@ -303,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Auth routes failed: ${_error}`, 'error');
   }
-  
+
   // Mount the API router at /api with all necessary middleware
   app.use('/api', apiRouter);
 
@@ -355,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log(`❌ Feature request routes failed: ${_error}`, 'error');
   }
 
-  // Demo management routes completely removed per user request  
+  // Demo management routes completely removed per user request
   log('✅ Demo management routes removed (not registered)');
 
   // Register feature management API routes
@@ -463,7 +471,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (_error) {
     log(`❌ Bills routes failed: ${_error}`, 'error');
   }
-
 
   // Register delayed update monitoring routes
   try {
@@ -1117,7 +1124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate unique username from email using utility
         const baseUsername = generateUsernameFromEmail(normalizedEmail);
         let username = baseUsername;
-        
+
         // Ensure username uniqueness by checking existing users
         let usernameCounter = 1;
         let existingUsername = await db
@@ -1125,7 +1132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(schemaUsers)
           .where(eq(schemaUsers.username, username))
           .limit(1);
-        
+
         while (existingUsername.length > 0) {
           username = `${baseUsername}${usernameCounter}`;
           usernameCounter++;
@@ -1154,7 +1161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('❌ User data validation failed:', validationResult.error.issues);
           console.log('📝 Attempted user data:', createUserData);
           return res.status(400).json({
-            message: 'Invalid user data: ' + validationResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', '),
+            message:
+              'Invalid user data: ' +
+              validationResult.error.issues
+                .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+                .join(', '),
             code: 'VALIDATION_ERROR',
             details: validationResult.error.issues,
           });
@@ -1203,10 +1214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
             .where(eq(invitations.id, invitationData.id));
           console.log('✅ Invitation marked as accepted');
-
         } catch (error) {
           console.error('❌ Error during user creation process:', error);
-          
+
           // If user was created but other operations failed, try to clean up
           if (newUser?.id) {
             try {
@@ -1257,7 +1267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log failed user creation attempt with proper variable scope
         const invitationEmail = req.body.email || 'unknown';
         const invitationRole = req.body.role || 'unknown';
-        
+
         logUserCreation({
           email: invitationEmail,
           role: invitationRole,
@@ -1392,117 +1402,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register quality metrics routes for continuous improvement
   try {
     // GET /api/quality-metrics - Get real-time quality metrics
-    app.get(
-      '/api/quality-metrics',
-      requireAuth,
-      async (req: any, res: any) => {
-        try {
-          // Fetch latest quality metrics from database
-          const metrics = await db
-            .select()
-            .from(schema.qualityMetrics)
-            .orderBy(desc(schema.qualityMetrics.timestamp))
-            .limit(10);
+    app.get('/api/quality-metrics', requireAuth, async (req: any, res: any) => {
+      try {
+        // Fetch latest quality metrics from database
+        const metrics = await db
+          .select()
+          .from(schema.qualityMetrics)
+          .orderBy(desc(schema.qualityMetrics.timestamp))
+          .limit(10);
 
-          // Transform to frontend format
-          const metricsData = {
-            coverage: metrics.find(m => m.metricType === 'code_coverage')?._value || '85%',
-            codeQuality: 'A',
-            security: metrics.find(m => m.metricType === 'security_vulnerabilities')?._value || '0',
-            buildTime: metrics.find(m => m.metricType === 'build_time')?._value || '2.3s',
-            memoryUsage: metrics.find(m => m.metricType === 'memory_usage')?._value || '45MB',
-            bundleSize: metrics.find(m => m.metricType === 'bundle_size')?._value || '2.1MB',
-            responseTime: metrics.find(m => m.metricType === 'api_response_time')?._value || '125ms',
-            quebecCompliance: metrics.find(m => m.metricType === 'quebec_compliance_score')?._value || '98%',
-            lastUpdated: new Date().toISOString(),
-            trend: 'improving'
-          };
+        // Transform to frontend format
+        const metricsData = {
+          coverage: metrics.find((m) => m.metricType === 'code_coverage')?._value || '85%',
+          codeQuality: 'A',
+          security: metrics.find((m) => m.metricType === 'security_vulnerabilities')?._value || '0',
+          buildTime: metrics.find((m) => m.metricType === 'build_time')?._value || '2.3s',
+          memoryUsage: metrics.find((m) => m.metricType === 'memory_usage')?._value || '45MB',
+          bundleSize: metrics.find((m) => m.metricType === 'bundle_size')?._value || '2.1MB',
+          responseTime:
+            metrics.find((m) => m.metricType === 'api_response_time')?._value || '125ms',
+          quebecCompliance:
+            metrics.find((m) => m.metricType === 'quebec_compliance_score')?._value || '98%',
+          lastUpdated: new Date().toISOString(),
+          trend: 'improving',
+        };
 
-          res.json(metricsData);
-        } catch (_error) {
-          console.error('Error fetching quality metrics:', _error);
-          // Return fallback data for continuous operation
-          res.json({
-            coverage: '85%',
-            codeQuality: 'A',
-            security: '0',
-            buildTime: '2.3s',
-            memoryUsage: '45MB',
-            bundleSize: '2.1MB',
-            responseTime: '125ms',
-            quebecCompliance: '98%',
-            lastUpdated: new Date().toISOString(),
-            trend: 'improving'
-          });
-        }
+        res.json(metricsData);
+      } catch (_error) {
+        console.error('Error fetching quality metrics:', _error);
+        // Return fallback data for continuous operation
+        res.json({
+          coverage: '85%',
+          codeQuality: 'A',
+          security: '0',
+          buildTime: '2.3s',
+          memoryUsage: '45MB',
+          bundleSize: '2.1MB',
+          responseTime: '125ms',
+          quebecCompliance: '98%',
+          lastUpdated: new Date().toISOString(),
+          trend: 'improving',
+        });
       }
-    );
+    });
 
     // GET /api/pillars - Get pillar status and configuration
-    app.get(
-      '/api/pillars',
-      requireAuth,
-      async (req: any, res: any) => {
-        try {
-          const pillars = await db
-            .select()
-            .from(schema.developmentPillars)
-            .orderBy(schema.developmentPillars.order);
+    app.get('/api/pillars', requireAuth, async (req: any, res: any) => {
+      try {
+        const pillars = await db
+          .select()
+          .from(schema.developmentPillars)
+          .orderBy(schema.developmentPillars.order);
 
-          // If no pillars exist, create default ones
-          if (pillars.length === 0) {
-            const defaultPillars = [
-              {
-                name: 'Validation & QA',
-                description: 'Core quality assurance and validation framework',
-                status: 'in-progress',
-                order: '1',
-                configuration: { health: 85, completedToday: 3 }
-              },
-              {
-                name: 'Testing Framework',
-                description: 'Automated testing and validation system',
-                status: 'in-progress',
-                order: '2',
-                configuration: { health: 78, completedToday: 2 }
-              },
-              {
-                name: 'Security & Compliance',
-                description: 'Quebec Law 25 compliance and security framework',
-                status: 'in-progress',
-                order: '3',
-                configuration: { health: 92, completedToday: 1 }
-              },
-              {
-                name: 'Continuous Improvement',
-                description: 'AI-driven metrics, analytics, and automated improvement suggestions',
-                status: 'active',
-                order: '4',
-                configuration: { health: 95, completedToday: 5 }
-              },
-              {
-                name: 'Documentation & Knowledge',
-                description: 'Comprehensive documentation and knowledge management system',
-                status: 'in-progress',
-                order: '5',
-                configuration: { health: 72, completedToday: 1 }
-              }
-            ];
+        // If no pillars exist, create default ones
+        if (pillars.length === 0) {
+          const defaultPillars = [
+            {
+              name: 'Validation & QA',
+              description: 'Core quality assurance and validation framework',
+              status: 'in-progress',
+              order: '1',
+              configuration: { health: 85, completedToday: 3 },
+            },
+            {
+              name: 'Testing Framework',
+              description: 'Automated testing and validation system',
+              status: 'in-progress',
+              order: '2',
+              configuration: { health: 78, completedToday: 2 },
+            },
+            {
+              name: 'Security & Compliance',
+              description: 'Quebec Law 25 compliance and security framework',
+              status: 'in-progress',
+              order: '3',
+              configuration: { health: 92, completedToday: 1 },
+            },
+            {
+              name: 'Continuous Improvement',
+              description: 'AI-driven metrics, analytics, and automated improvement suggestions',
+              status: 'active',
+              order: '4',
+              configuration: { health: 95, completedToday: 5 },
+            },
+            {
+              name: 'Documentation & Knowledge',
+              description: 'Comprehensive documentation and knowledge management system',
+              status: 'in-progress',
+              order: '5',
+              configuration: { health: 72, completedToday: 1 },
+            },
+          ];
 
-            for (const pillar of defaultPillars) {
-              await db.insert(schema.developmentPillars).values(pillar);
-            }
-
-            res.json(defaultPillars);
-          } else {
-            res.json(pillars);
+          for (const pillar of defaultPillars) {
+            await db.insert(schema.developmentPillars).values(pillar);
           }
-        } catch (_error) {
-          console.error('Error fetching pillars:', _error);
-          res.status(500).json({ message: 'Failed to fetch pillars' });
+
+          res.json(defaultPillars);
+        } else {
+          res.json(pillars);
         }
+      } catch (_error) {
+        console.error('Error fetching pillars:', _error);
+        res.status(500).json({ message: 'Failed to fetch pillars' });
       }
-    );
+    });
 
     log('✅ Quality metrics and pillar routes registered');
   } catch (_error) {
@@ -1530,7 +1534,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: 'Authentication required' });
         }
 
-        console.log(`📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`);
+        console.log(
+          `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
+        );
 
         let organizationsQuery;
 
@@ -1554,7 +1560,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               type: schema.organizations.type,
             })
             .from(schema.organizations)
-            .innerJoin(schema.userOrganizations, eq(schema.organizations.id, schema.userOrganizations.organizationId))
+            .innerJoin(
+              schema.userOrganizations,
+              eq(schema.organizations.id, schema.userOrganizations.organizationId)
+            )
             .where(
               and(
                 eq(schema.organizations.isActive, true),
@@ -1566,7 +1575,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const accessibleOrganizations = await organizationsQuery;
-        console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
+        console.log(
+          `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
+        );
 
         res.json(accessibleOrganizations);
       } catch (error) {
@@ -1639,16 +1650,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   log('✅ Demo organizations functionality removed - no initialization needed');
 
   // Root route handler for SPA (production only - Vite handles development)
-  
+
   // Register root handler for deployed production (Replit deployments)
   if (enableProductionServing) {
-    
     app.get('/', (req, res) => {
       try {
         const indexPath = pathModule.resolve(process.cwd(), 'dist/public/index.html');
-        
+
         console.log(`🔍 Attempting to serve index.html from: ${indexPath}`);
-        
+
         if (fsModule.existsSync(indexPath)) {
           console.log('✅ index.html found, serving to client');
           res.sendFile(indexPath);
@@ -1667,16 +1677,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (process.env.NODE_ENV === 'development') {
     app.get('*', (req, res, next) => {
       // Skip API routes, health checks, and Vite-specific routes
-      if (req.path.startsWith('/api/') || req.path.startsWith('/assets/') || 
-          req.path.startsWith('/health') || req.path.startsWith('/ping') || 
-          req.path.startsWith('/status') || req.path.startsWith('/ready') ||
-          req.path.startsWith('/src/') || req.path.startsWith('/@') ||
-          req.path.startsWith('/node_modules/') || req.path.includes('.js') ||
-          req.path.includes('.ts') || req.path.includes('.tsx') || req.path.includes('.css') ||
-          req.path.includes('.json') || req.path.includes('.map')) {
+      if (
+        req.path.startsWith('/api/') ||
+        req.path.startsWith('/assets/') ||
+        req.path.startsWith('/health') ||
+        req.path.startsWith('/ping') ||
+        req.path.startsWith('/status') ||
+        req.path.startsWith('/ready') ||
+        req.path.startsWith('/src/') ||
+        req.path.startsWith('/@') ||
+        req.path.startsWith('/node_modules/') ||
+        req.path.includes('.js') ||
+        req.path.includes('.ts') ||
+        req.path.includes('.tsx') ||
+        req.path.includes('.css') ||
+        req.path.includes('.json') ||
+        req.path.includes('.map')
+      ) {
         return next(); // Let other middleware handle these
       }
-      
+
       // For unmatched routes in development, let Vite's middleware handle it
       // This allows Vite to serve the index.html for SPA routing
       next();
@@ -1685,15 +1705,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Production catch-all for SPA when deployed
     app.get('*', (req, res) => {
       // Skip API routes and health checks
-      if (req.path.startsWith('/api/') || 
-          req.path.startsWith('/health') || req.path.startsWith('/ping') || 
-          req.path.startsWith('/status') || req.path.startsWith('/ready')) {
+      if (
+        req.path.startsWith('/api/') ||
+        req.path.startsWith('/health') ||
+        req.path.startsWith('/ping') ||
+        req.path.startsWith('/status') ||
+        req.path.startsWith('/ready')
+      ) {
         return res.status(404).json({ error: 'Not found' });
       }
-      
+
       try {
         const indexPath = pathModule.resolve(process.cwd(), 'dist/public/index.html');
-        
+
         if (fsModule.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {

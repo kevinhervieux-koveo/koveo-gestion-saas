@@ -513,27 +513,31 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(eq(buildings.organizationId, organizationId));
 
       if (orgBuildings.length > 0) {
-        const orgBuildingIds = orgBuildings.map(b => b.id);
-        
+        const orgBuildingIds = orgBuildings.map((b) => b.id);
+
         // 2. Soft delete residences first (children of buildings) - get ALL residences in these buildings
         const affectedResidences = await db
           .update(residences)
           .set({ isActive: false, updatedAt: new Date() })
           .where(inArray(residences.buildingId, orgBuildingIds))
           .returning({ id: residences.id, unitNumber: residences.unitNumber });
-        
-        console.log(`🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`);
-        
+
+        console.log(
+          `🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`
+        );
+
         // 3. Soft delete buildings
         const affectedBuildings = await db
           .update(buildings)
           .set({ isActive: false, updatedAt: new Date() })
           .where(inArray(buildings.id, orgBuildingIds))
           .returning({ id: buildings.id, name: buildings.name });
-        
-        console.log(`🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map(b => b.name).join(', ')}`);
+
+        console.log(
+          `🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`
+        );
       }
-      
+
       // 4. Delete user-organization relationships
       await db
         .delete(userOrganizations)
@@ -541,11 +545,11 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // 5. Find and delete orphaned users (users with no active organization relationships)
       const orphanedUsers = await db
-        .select({ 
-          id: users.id, 
+        .select({
+          id: users.id,
           email: users.email,
           firstName: users.firstName,
-          lastName: users.lastName 
+          lastName: users.lastName,
         })
         .from(users)
         .leftJoin(
@@ -556,17 +560,19 @@ export function registerOrganizationRoutes(app: Express): void {
 
       if (orphanedUsers.length > 0) {
         const orphanedUserIds = orphanedUsers.map((u) => u.id);
-        
+
         // Hard delete orphaned users since they have no organization assignments
         const deletedUsers = await db
           .delete(users)
           .where(inArray(users.id, orphanedUserIds))
-          .returning({ 
-            id: users.id, 
-            email: users.email 
+          .returning({
+            id: users.id,
+            email: users.email,
           });
-        
-        console.log(`🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map(u => u.email).join(', ')}`);
+
+        console.log(
+          `🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map((u) => u.email).join(', ')}`
+        );
       }
 
       // 6. Finally, soft delete the organization
@@ -582,7 +588,10 @@ export function registerOrganizationRoutes(app: Express): void {
         const objectStorageService = new ObjectStorageService();
         await objectStorageService.deleteOrganizationHierarchy(organizationId);
       } catch (storageError) {
-        console.warn('⚠️ Object storage cleanup failed, but organization deletion succeeded:', storageError);
+        console.warn(
+          '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
+          storageError
+        );
       }
 
       res.json({

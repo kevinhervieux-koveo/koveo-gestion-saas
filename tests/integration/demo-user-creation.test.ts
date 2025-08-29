@@ -39,12 +39,10 @@ describe('Demo User Creation and Login Integration Tests', () => {
   afterEach(async () => {
     // Clean up any users created during tests
     if (createdUserIds.length > 0) {
-      await db.delete(schema.userOrganizations).where(
-        inArray(schema.userOrganizations.userId, createdUserIds)
-      );
-      await db.delete(schema.users).where(
-        inArray(schema.users.id, createdUserIds)
-      );
+      await db
+        .delete(schema.userOrganizations)
+        .where(inArray(schema.userOrganizations.userId, createdUserIds));
+      await db.delete(schema.users).where(inArray(schema.users.id, createdUserIds));
       createdUserIds = [];
     }
   });
@@ -54,19 +52,19 @@ describe('Demo User Creation and Login Integration Tests', () => {
       // Verify we're connected to the expected database
       const result = await db.execute(sql`SELECT current_database()`);
       expect(result.rows).toHaveLength(1);
-      
+
       // Check that demo organizations exist (indicating correct database)
       const demoOrg = await db.query.organizations.findFirst({
         where: eq(schema.organizations.name, 'Demo'),
       });
-      
+
       const openDemoOrg = await db.query.organizations.findFirst({
         where: eq(schema.organizations.name, 'Open Demo'),
       });
 
       expect(demoOrg).toBeDefined();
       expect(openDemoOrg).toBeDefined();
-      
+
       const dbName = result.rows[0] as { current_database: string };
       console.log(`✅ Connected to database: ${dbName.current_database}`);
       console.log(`✅ Demo organization found: ${demoOrg?.id}`);
@@ -76,7 +74,7 @@ describe('Demo User Creation and Login Integration Tests', () => {
     test('should have proper database schema and tables', async () => {
       // Verify key tables exist
       const tables = ['users', 'organizations', 'userOrganizations', 'buildings', 'residences'];
-      
+
       for (const tableName of tables) {
         const result = await db.execute(
           sql`SELECT EXISTS (
@@ -85,7 +83,7 @@ describe('Demo User Creation and Login Integration Tests', () => {
             AND table_name = ${tableName}
           )`
         );
-        
+
         const row = result.rows[0] as { exists: boolean };
         expect(row.exists).toBe(true);
       }
@@ -194,14 +192,12 @@ describe('Demo User Creation and Login Integration Tests', () => {
       createdUserIds.push(newUser.id);
 
       // Add user to Open Demo organization
-      await db
-        .insert(schema.userOrganizations)
-        .values({
-          userId: newUser.id,
-          organizationId: testOpenDemoOrgId,
-          organizationRole: userData.role,
-          isActive: true,
-        });
+      await db.insert(schema.userOrganizations).values({
+        userId: newUser.id,
+        organizationId: testOpenDemoOrgId,
+        organizationRole: userData.role,
+        isActive: true,
+      });
 
       // Verify user is properly identified as Open Demo user
       const { isOpenDemoUser } = await import('../../server/rbac');
@@ -265,14 +261,12 @@ describe('Demo User Creation and Login Integration Tests', () => {
         createdUserIds.push(newUser.id);
 
         // Add to Demo organization
-        await db
-          .insert(schema.userOrganizations)
-          .values({
-            userId: newUser.id,
-            organizationId: testDemoOrgId,
-            organizationRole: userData.role,
-            isActive: true,
-          });
+        await db.insert(schema.userOrganizations).values({
+          userId: newUser.id,
+          organizationId: testDemoOrgId,
+          organizationRole: userData.role,
+          isActive: true,
+        });
 
         // Verify names follow Quebec patterns
         expect(newUser.firstName).toMatch(/^[A-Z][a-z]+$/);
@@ -322,22 +316,17 @@ describe('Demo User Creation and Login Integration Tests', () => {
 
         createdUserIds.push(newUser.id);
 
-        await db
-          .insert(schema.userOrganizations)
-          .values({
-            userId: newUser.id,
-            organizationId: testDemoOrgId,
-            organizationRole: userData.role,
-            isActive: true,
-          });
+        await db.insert(schema.userOrganizations).values({
+          userId: newUser.id,
+          organizationId: testDemoOrgId,
+          organizationRole: userData.role,
+          isActive: true,
+        });
       }
 
       // Verify users can be retrieved for login page suggestions
       const demoUsers = await db.query.users.findMany({
-        where: and(
-          eq(schema.users.isActive, true),
-          sql`${schema.users.email} LIKE '%@demo.com'`
-        ),
+        where: and(eq(schema.users.isActive, true), sql`${schema.users.email} LIKE '%@demo.com'`),
         with: {
           userOrganizations: {
             where: eq(schema.userOrganizations.organizationId, testDemoOrgId),
@@ -349,7 +338,7 @@ describe('Demo User Creation and Login Integration Tests', () => {
       });
 
       expect(demoUsers.length).toBeGreaterThanOrEqual(2);
-      
+
       // Verify each user has proper login page format
       for (const user of demoUsers) {
         expect(user.email).toMatch(/@demo\.com$/);
@@ -519,14 +508,12 @@ describe('Demo User Creation and Login Integration Tests', () => {
       createdUserIds.push(newUser.id);
 
       // Create organization relationship
-      await db
-        .insert(schema.userOrganizations)
-        .values({
-          userId: newUser.id,
-          organizationId: testDemoOrgId,
-          organizationRole: userData.role,
-          isActive: true,
-        });
+      await db.insert(schema.userOrganizations).values({
+        userId: newUser.id,
+        organizationId: testDemoOrgId,
+        organizationRole: userData.role,
+        isActive: true,
+      });
 
       // Verify complete user-organization relationship
       const userWithFullDetails = await db.query.userOrganizations.findFirst({
@@ -554,15 +541,18 @@ async function setupTestOrganizations() {
   });
 
   if (!demoOrg) {
-    [demoOrg] = await db.insert(schema.organizations).values({
-      name: 'Demo',
-      type: 'demo',
-      address: '123 Demo St',
-      city: 'Montreal',
-      province: 'QC',
-      postalCode: 'H1A 1A1',
-      isActive: true,
-    }).returning();
+    [demoOrg] = await db
+      .insert(schema.organizations)
+      .values({
+        name: 'Demo',
+        type: 'demo',
+        address: '123 Demo St',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1A 1A1',
+        isActive: true,
+      })
+      .returning();
   }
 
   // Get or create Open Demo organization
@@ -571,15 +561,18 @@ async function setupTestOrganizations() {
   });
 
   if (!openDemoOrg) {
-    [openDemoOrg] = await db.insert(schema.organizations).values({
-      name: 'Open Demo',
-      type: 'demo',
-      address: '456 Open Demo Ave',
-      city: 'Montreal',
-      province: 'QC',
-      postalCode: 'H1B 1B1',
-      isActive: true,
-    }).returning();
+    [openDemoOrg] = await db
+      .insert(schema.organizations)
+      .values({
+        name: 'Open Demo',
+        type: 'demo',
+        address: '456 Open Demo Ave',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1B 1B1',
+        isActive: true,
+      })
+      .returning();
   }
 
   testDemoOrgId = demoOrg.id;
@@ -598,16 +591,14 @@ async function cleanupTestData() {
     });
 
     if (testUsers.length > 0) {
-      const testUserIds = testUsers.map(u => u.id);
-      
-      await db.delete(schema.userOrganizations).where(
-        inArray(schema.userOrganizations.userId, testUserIds)
-      );
-      
-      await db.delete(schema.users).where(
-        inArray(schema.users.id, testUserIds)
-      );
-      
+      const testUserIds = testUsers.map((u) => u.id);
+
+      await db
+        .delete(schema.userOrganizations)
+        .where(inArray(schema.userOrganizations.userId, testUserIds));
+
+      await db.delete(schema.users).where(inArray(schema.users.id, testUserIds));
+
       console.log(`✅ Cleaned up ${testUsers.length} test users`);
     }
   } catch (error) {

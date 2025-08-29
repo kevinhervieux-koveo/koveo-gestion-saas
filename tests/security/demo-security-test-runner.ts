@@ -2,7 +2,7 @@
 
 /**
  * Demo Security Test Runner
- * 
+ *
  * Comprehensive test suite to validate all security restrictions for demo users.
  * This ensures that demo users (especially Open Demo users) have proper view-only access
  * and cannot perform any destructive operations.
@@ -24,20 +24,20 @@ const TEST_SUITES: TestSuite[] = [
     name: 'Demo User Validation',
     path: 'tests/security/demo-users-validation.test.ts',
     description: 'Validates demo user data integrity and naming conventions',
-    critical: true
+    critical: true,
   },
   {
     name: 'Comprehensive Demo Security',
     path: 'tests/security/comprehensive-demo-user-security.test.ts',
     description: 'End-to-end API security tests for demo user restrictions',
-    critical: true
+    critical: true,
   },
   {
     name: 'UI Restrictions Integration',
     path: 'tests/integration/demo-user-ui-restrictions.test.tsx',
     description: 'Frontend UI restrictions and user experience tests',
-    critical: false
-  }
+    critical: false,
+  },
 ];
 
 interface TestResult {
@@ -105,33 +105,33 @@ class DemoSecurityTester {
     console.log(chalk.gray(`   ${suite.description}\n`));
 
     const startTime = performance.now();
-    
+
     try {
       // Use Jest directly for better performance
       const output = execSync(`npx jest ${suite.path} --verbose --forceExit --detectOpenHandles`, {
         encoding: 'utf8',
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       const duration = performance.now() - startTime;
-      
+
       this.results.push({
         suite: suite.name,
         passed: true,
         duration,
-        output
+        output,
       });
 
       console.log(chalk.green(`   ✅ PASSED (${Math.round(duration)}ms)\n`));
     } catch (error: any) {
       const duration = performance.now() - startTime;
-      
+
       this.results.push({
         suite: suite.name,
         passed: false,
         duration,
         output: error.stdout || '',
-        error: error.stderr || error.message
+        error: error.stderr || error.message,
       });
 
       console.log(chalk.red(`   ❌ FAILED (${Math.round(duration)}ms)`));
@@ -144,22 +144,31 @@ class DemoSecurityTester {
 
   private generateSummaryReport(): void {
     const totalDuration = performance.now() - this.startTime;
-    const passedCount = this.results.filter(r => r.passed).length;
-    const failedCount = this.results.filter(r => !r.passed).length;
-    const criticalFailures = this.results.filter(r => !r.passed && TEST_SUITES.find(s => s.name === r.suite)?.critical).length;
+    const passedCount = this.results.filter((r) => r.passed).length;
+    const failedCount = this.results.filter((r) => !r.passed).length;
+    const criticalFailures = this.results.filter(
+      (r) => !r.passed && TEST_SUITES.find((s) => s.name === r.suite)?.critical
+    ).length;
 
     console.log(chalk.blue.bold('\n📊 Demo Security Test Summary\n'));
-    console.log(chalk.gray('=')); repeat('=', 50);
+    console.log(chalk.gray('='));
+    repeat('=', 50);
     console.log('');
 
     // Overall status
-    const overallStatus = failedCount === 0 ? 'SECURE' : criticalFailures > 0 ? 'CRITICAL' : 'WARNING';
-    const statusColor = overallStatus === 'SECURE' ? chalk.green : overallStatus === 'CRITICAL' ? chalk.red : chalk.yellow;
-    
+    const overallStatus =
+      failedCount === 0 ? 'SECURE' : criticalFailures > 0 ? 'CRITICAL' : 'WARNING';
+    const statusColor =
+      overallStatus === 'SECURE'
+        ? chalk.green
+        : overallStatus === 'CRITICAL'
+          ? chalk.red
+          : chalk.yellow;
+
     console.log(`${statusColor.bold('Status:')} ${statusColor(overallStatus)}`);
     console.log(`${chalk.blue('Tests:')} ${passedCount} passed, ${failedCount} failed`);
     console.log(`${chalk.blue('Duration:')} ${Math.round(totalDuration)}ms`);
-    
+
     if (criticalFailures > 0) {
       console.log(`${chalk.red.bold('Critical Failures:')} ${criticalFailures}`);
     }
@@ -168,14 +177,16 @@ class DemoSecurityTester {
 
     // Individual test results
     console.log(chalk.blue.bold('Test Results:\n'));
-    
-    this.results.forEach(result => {
+
+    this.results.forEach((result) => {
       const status = result.passed ? chalk.green('✅ PASS') : chalk.red('❌ FAIL');
-      const critical = TEST_SUITES.find(s => s.name === result.suite)?.critical ? ' (CRITICAL)' : '';
-      
+      const critical = TEST_SUITES.find((s) => s.name === result.suite)?.critical
+        ? ' (CRITICAL)'
+        : '';
+
       console.log(`${status} ${result.suite}${critical}`);
       console.log(`      Duration: ${Math.round(result.duration)}ms`);
-      
+
       if (!result.passed && result.error) {
         console.log(`      Error: ${chalk.red(result.error.split('\n')[0])}`);
       }
@@ -187,10 +198,12 @@ class DemoSecurityTester {
   }
 
   private generateSecurityRecommendations(): void {
-    const failedResults = this.results.filter(r => !r.passed);
-    
+    const failedResults = this.results.filter((r) => !r.passed);
+
     if (failedResults.length === 0) {
-      console.log(chalk.green.bold('🎉 All security tests passed! Demo users are properly restricted.\n'));
+      console.log(
+        chalk.green.bold('🎉 All security tests passed! Demo users are properly restricted.\n')
+      );
       return;
     }
 
@@ -198,7 +211,7 @@ class DemoSecurityTester {
 
     failedResults.forEach((result, index) => {
       console.log(`${index + 1}. ${chalk.yellow(result.suite)}`);
-      
+
       // Provide specific recommendations based on test suite
       if (result.suite.includes('Validation')) {
         console.log('   → Check demo user data integrity in database');
@@ -218,12 +231,18 @@ class DemoSecurityTester {
   }
 
   private checkCriticalFailures(): void {
-    const criticalFailures = this.results.filter(r => !r.passed && TEST_SUITES.find(s => s.name === r.suite)?.critical);
-    
+    const criticalFailures = this.results.filter(
+      (r) => !r.passed && TEST_SUITES.find((s) => s.name === r.suite)?.critical
+    );
+
     if (criticalFailures.length > 0) {
       console.log(chalk.red.bold('\n🚨 CRITICAL SECURITY FAILURES DETECTED\n'));
-      console.log(chalk.red('Demo user security is compromised. The following issues must be resolved immediately:\n'));
-      
+      console.log(
+        chalk.red(
+          'Demo user security is compromised. The following issues must be resolved immediately:\n'
+        )
+      );
+
       criticalFailures.forEach((failure, index) => {
         console.log(`${index + 1}. ${failure.suite}`);
         if (failure.error) {
@@ -231,7 +250,7 @@ class DemoSecurityTester {
         }
         console.log('');
       });
-      
+
       console.log(chalk.red.bold('⚠️  DO NOT DEPLOY until these critical issues are resolved.\n'));
       process.exit(1);
     }
@@ -246,7 +265,7 @@ function repeat(char: string, count: number): string {
 // Run the test suite if this file is executed directly
 if (require.main === module) {
   const tester = new DemoSecurityTester();
-  tester.runAllTests().catch(error => {
+  tester.runAllTests().catch((error) => {
     console.error(chalk.red('Test runner failed:'), error);
     process.exit(1);
   });

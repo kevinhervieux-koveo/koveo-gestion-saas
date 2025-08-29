@@ -63,7 +63,7 @@ interface ObjectUploaderProps {
  * @param children - children parameter.
  * @param } - } parameter.
  */
-export function  /**
+export function /**
    * Object uploader function.
    * @param {
   maxNumberOfFiles = 1 - {
@@ -76,7 +76,7 @@ export function  /**
    * @param buttonClassName - buttonClassName parameter.
    * @param children - children parameter.
    * @param } - } parameter.
-   */  /**
+   */ /**
    * Object uploader function.
    * @param {
   maxNumberOfFiles = 1 - {
@@ -89,7 +89,7 @@ export function  /**
    * @param buttonClassName - buttonClassName parameter.
    * @param children - children parameter.
    * @param } - } parameter.
-   */  /**
+   */ /**
    * Object uploader function.
    * @param {
   maxNumberOfFiles = 1 - {
@@ -104,8 +104,7 @@ export function  /**
    * @param } - } parameter.
    */
 
-
- ObjectUploader({
+ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default
   onGetUploadParameters,

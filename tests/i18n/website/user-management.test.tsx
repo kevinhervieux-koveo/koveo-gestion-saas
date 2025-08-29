@@ -6,7 +6,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * User Management Translation Tests
- * 
+ *
  * Tests proper translation of user management functionality
  */
 describe('User Management Translation', () => {

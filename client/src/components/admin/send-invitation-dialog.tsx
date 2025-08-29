@@ -43,7 +43,15 @@ const invitationSchema = z
     email: z.string().email('Invalid email address').optional(),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
-    role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
+    role: z.enum([
+      'admin',
+      'manager',
+      'tenant',
+      'resident',
+      'demo_manager',
+      'demo_tenant',
+      'demo_resident',
+    ]),
     organizationId: z.string().min(1, 'Organization is required'),
     buildingId: z.string().optional(),
     residenceId: z.string().optional(),
@@ -81,7 +89,6 @@ const invitationSchema = z
       path: ['residenceId'],
     }
   );
-
 
 /**
  * Form data type for single invitation.
@@ -331,7 +338,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
       toast({
         title: isDemoRole ? 'Demo User Created' : t('invitationSent'),
-        description: isDemoRole ? 'Demo user has been created successfully' : t('invitationSentSuccessfully'),
+        description: isDemoRole
+          ? 'Demo user has been created successfully'
+          : t('invitationSentSuccessfully'),
       });
       form.reset();
       onSuccess();
@@ -346,7 +355,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
   });
 
-
   const onSubmit = (_data: InvitationFormData) => {
     invitationMutation.mutate(_data);
   };
@@ -358,7 +366,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     }
     if (hasRole(['manager'])) {
       // Manager can invite regular and demo roles (but not admin)
-      if (['resident', 'tenant', 'manager', 'demo_manager', 'demo_tenant', 'demo_resident'].includes(role)) {
+      if (
+        ['resident', 'tenant', 'manager', 'demo_manager', 'demo_tenant', 'demo_resident'].includes(
+          role
+        )
+      ) {
         return true;
       }
     }
@@ -368,16 +380,16 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Get available roles based on organization type
   const getAvailableRoles = () => {
-    const selectedOrg = organizations?.find(org => org.id === form.watch('organizationId'));
+    const selectedOrg = organizations?.find((org) => org.id === form.watch('organizationId'));
     const isDemoOrg = selectedOrg?.type === 'Demo';
-    
+
     if (isDemoOrg) {
       return ['demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
     }
-    
+
     return ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
   };
-  
+
   const availableRoles = getAvailableRoles();
 
   return (
@@ -392,278 +404,285 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         </DialogHeader>
 
         <div className='space-y-4'>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+              <FormField
+                control={form.control}
+                name='organizationId'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('organization')} *</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                          const selectedOrg = organizations?.find(
+                            (org) => org.id === e.target.value
+                          );
+                          setSelectedOrgType(selectedOrg?.type || '');
+                          // Reset building and residence when organization changes
+                          form.setValue('buildingId', '');
+                          form.setValue('residenceId', '');
+                          // Reset role when switching between demo and regular orgs
+                          form.setValue(
+                            'role',
+                            selectedOrg?.type === 'Demo' ? 'demo_tenant' : 'tenant'
+                          );
+                        }}
+                        disabled={currentUser?.role === 'manager'}
+                        className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                      >
+                        <option value=''>{t('selectOrganization')}</option>
+                        {getFilteredOrganizations().map((org) => {
+                          if (!org?.id || !org?.name) {
+                            return null;
+                          }
+
+                          const canInvite = canInviteToOrganization(org.id);
+
+                          return (
+                            <option key={org.id} value={org.id} disabled={!canInvite}>
+                              {org.name} {org.type === 'Demo' ? '(Demo)' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      {currentUser?.role === 'manager'
+                        ? 'Managers can only invite to their organization'
+                        : 'Select target organization'}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='role'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('role')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('selectRole')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableRoles.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            <div className='flex items-center gap-2'>
+                              <Shield className='h-4 w-4' />
+                              {role === 'admin'
+                                ? t('admin')
+                                : role === 'manager'
+                                  ? t('manager')
+                                  : role === 'resident'
+                                    ? t('resident')
+                                    : role === 'tenant'
+                                      ? t('tenant')
+                                      : role === 'demo_manager'
+                                        ? 'Demo Manager'
+                                        : role === 'demo_tenant'
+                                          ? 'Demo Tenant'
+                                          : 'Demo Resident'}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Conditional fields based on role type */}
+              {selectedOrgType === 'Demo' ? (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='firstName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder='Enter first name' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='lastName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder='Enter last name' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              ) : (
                 <FormField
                   control={form.control}
-                  name='organizationId'
+                  name='email'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('organization')} *</FormLabel>
+                      <FormLabel>{t('emailAddress')} *</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t('enterEmailAddress')} type='email' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {form.watch('organizationId') && (
+                <FormField
+                  control={form.control}
+                  name='buildingId'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {'Building'} ({t('optional')})
+                      </FormLabel>
                       <FormControl>
                         <select
                           {...field}
                           onChange={(e) => {
                             field.onChange(e.target.value);
-                            const selectedOrg = organizations?.find(org => org.id === e.target.value);
-                            setSelectedOrgType(selectedOrg?.type || '');
-                            // Reset building and residence when organization changes
-                            form.setValue('buildingId', '');
+                            // Reset residence when building changes
                             form.setValue('residenceId', '');
-                            // Reset role when switching between demo and regular orgs
-                            form.setValue('role', selectedOrg?.type === 'Demo' ? 'demo_tenant' : 'tenant');
                           }}
-                          disabled={currentUser?.role === 'manager'}
                           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         >
-                          <option value=''>{t('selectOrganization')}</option>
-                          {getFilteredOrganizations().map((org) => {
-                            if (!org?.id || !org?.name) {
-                              return null;
-                            }
-
-                            const canInvite = canInviteToOrganization(org.id);
-
-                            return (
-                              <option key={org.id} value={org.id} disabled={!canInvite}>
-                                {org.name} {org.type === 'Demo' ? '(Demo)' : ''}
-                              </option>
-                            );
-                          })}
+                          <option value=''>{'Select building'}</option>
+                          <option value='none'>{'No specific building'}</option>
+                          {getFilteredBuildings(form.watch('organizationId')).map((building) => (
+                            <option key={building.id} value={building.id}>
+                              {building.name} - {building.address}
+                            </option>
+                          ))}
                         </select>
                       </FormControl>
-                      <FormDescription>
-                        {currentUser?.role === 'manager'
-                          ? 'Managers can only invite to their organization'
-                          : 'Select target organization'}
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
 
+              {['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(
+                form.watch('role')
+              ) &&
+                form.watch('buildingId') &&
+                form.watch('buildingId') !== 'none' && (
+                  <FormField
+                    control={form.control}
+                    name='residenceId'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{'Residence'} *</FormLabel>
+                        <FormControl>
+                          <select
+                            {...field}
+                            onChange={field.onChange}
+                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                          >
+                            <option value=''>{'Select residence'}</option>
+                            {getFilteredResidences(form.watch('buildingId')).map((residence) => (
+                              <option key={residence.id} value={residence.id}>
+                                {'Unit'} {residence.unitNumber}
+                                {residence.floor && ` - ${'Floor'} ${residence.floor}`}
+                              </option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormDescription>
+                          {'Residence required for tenants and residents'}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+              {/* Only show expiry for regular invitations, not demo users */}
+              {selectedOrgType !== 'Demo' && (
                 <FormField
                   control={form.control}
-                  name='role'
+                  name='expiryDays'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('role')}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('selectRole')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              <div className='flex items-center gap-2'>
-                                <Shield className='h-4 w-4' />
-                                {role === 'admin'
-                                  ? t('admin')
-                                  : role === 'manager'
-                                    ? t('manager')
-                                    : role === 'resident'
-                                      ? t('resident')
-                                      : role === 'tenant'
-                                        ? t('tenant')
-                                        : role === 'demo_manager'
-                                          ? 'Demo Manager'
-                                          : role === 'demo_tenant'
-                                            ? 'Demo Tenant'
-                                            : 'Demo Resident'}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>{t('expiresIn')}</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          value={field.value.toString()}
+                          className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                        >
+                          <option value='1'>1 {t('day')}</option>
+                          <option value='3'>3 {t('days')}</option>
+                          <option value='7'>7 {t('days')}</option>
+                          <option value='14'>14 {t('days')}</option>
+                          <option value='30'>30 {t('days')}</option>
+                        </select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
 
-                {/* Conditional fields based on role type */}
-                {selectedOrgType === 'Demo' ? (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name='firstName'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder='Enter first name' {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name='lastName'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder='Enter last name' {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                ) : (
-                  <FormField
-                    control={form.control}
-                    name='email'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('emailAddress')} *</FormLabel>
-                        <FormControl>
-                          <Input placeholder={t('enterEmailAddress')} type='email' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {form.watch('organizationId') && (
-                  <FormField
-                    control={form.control}
-                    name='buildingId'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {'Building'} ({t('optional')})
-                        </FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e.target.value);
-                              // Reset residence when building changes
-                              form.setValue('residenceId', '');
-                            }}
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            <option value=''>{'Select building'}</option>
-                            <option value='none'>{'No specific building'}</option>
-                            {getFilteredBuildings(form.watch('organizationId')).map(
-                              (building) => (
-                                <option key={building.id} value={building.id}>
-                                  {building.name} - {building.address}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) &&
-                  form.watch('buildingId') &&
-                  form.watch('buildingId') !== 'none' && (
-                    <FormField
-                      control={form.control}
-                      name='residenceId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{'Residence'} *</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              onChange={field.onChange}
-                              className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                            >
-                              <option value=''>{'Select residence'}</option>
-                              {getFilteredResidences(form.watch('buildingId')).map(
-                                (residence) => (
-                                  <option key={residence.id} value={residence.id}>
-                                    {'Unit'} {residence.unitNumber}
-                                    {residence.floor && ` - ${'Floor'} ${residence.floor}`}
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          </FormControl>
-                          <FormDescription>
-                            {'Residence required for tenants and residents'}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              {/* Only show personal message for regular invitations, not demo users */}
+              {selectedOrgType !== 'Demo' && (
+                <FormField
+                  control={form.control}
+                  name='personalMessage'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('personalMessage')} ({t('optional')})
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('personalMessagePlaceholder')}
+                          className='min-h-[80px]'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>{t('personalMessageDescription')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
+                />
+              )}
 
-                {/* Only show expiry for regular invitations, not demo users */}
-                {selectedOrgType !== 'Demo' && (
-                  <FormField
-                    control={form.control}
-                    name='expiryDays'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('expiresIn')}</FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                            value={field.value.toString()}
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                          >
-                            <option value='1'>1 {t('day')}</option>
-                            <option value='3'>3 {t('days')}</option>
-                            <option value='7'>7 {t('days')}</option>
-                            <option value='14'>14 {t('days')}</option>
-                            <option value='30'>30 {t('days')}</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {/* Only show personal message for regular invitations, not demo users */}
-                {selectedOrgType !== 'Demo' && (
-                  <FormField
-                    control={form.control}
-                    name='personalMessage'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {t('personalMessage')} ({t('optional')})
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t('personalMessagePlaceholder')}
-                            className='min-h-[80px]'
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>{t('personalMessageDescription')}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                <DialogFooter>
-                  <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-                    {t('cancel')}
-                  </Button>
-                  <Button type='submit' disabled={invitationMutation.isPending}>
-                    {invitationMutation.isPending 
-                      ? (selectedOrgType === 'Demo' ? 'Creating User...' : t('sending'))
-                      : (selectedOrgType === 'Demo' ? 'Create Demo User' : t('sendInvitation'))}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+              <DialogFooter>
+                <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+                  {t('cancel')}
+                </Button>
+                <Button type='submit' disabled={invitationMutation.isPending}>
+                  {invitationMutation.isPending
+                    ? selectedOrgType === 'Demo'
+                      ? 'Creating User...'
+                      : t('sending')
+                    : selectedOrgType === 'Demo'
+                      ? 'Create Demo User'
+                      : t('sendInvitation')}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </div>
       </DialogContent>
     </Dialog>

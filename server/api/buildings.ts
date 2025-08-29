@@ -26,53 +26,50 @@ async function handleResidenceChanges(
 ): Promise<void> {
   try {
     const objectStorageService = new ObjectStorageService();
-    
+
     if (newTotalUnits > currentResidenceCount) {
       // Need to create more residences
       const residencesToCreate = newTotalUnits - currentResidenceCount;
       console.warn(`📈 Creating ${residencesToCreate} new residences for building ${buildingId}`);
-      
+
       // Get existing residence numbers to avoid conflicts
       const existingResidences = await db
         .select({ unitNumber: residences.unitNumber })
         .from(residences)
         .where(eq(residences.buildingId, buildingId));
-      
-      const existingUnitNumbers = new Set(existingResidences.map(r => r.unitNumber));
-      
+
+      const existingUnitNumbers = new Set(existingResidences.map((r) => r.unitNumber));
+
       const floors = totalFloors || 1;
       const unitsPerFloor = Math.ceil(newTotalUnits / floors);
-      
+
       const newResidences = [];
       let unitCounter = 1;
-      
+
       for (let residenceIndex = 0; residenceIndex < residencesToCreate; residenceIndex++) {
         // Find next available unit number
         while (existingUnitNumbers.has(unitCounter.toString())) {
           unitCounter++;
         }
-        
+
         const floor = Math.ceil(unitCounter / unitsPerFloor);
         const unitNumber = unitCounter.toString();
-        
+
         newResidences.push({
           buildingId,
           unitNumber,
           floor: floor,
           isActive: true,
         });
-        
+
         existingUnitNumbers.add(unitNumber);
         unitCounter++;
       }
-      
+
       // Create residences in batch
       if (newResidences.length > 0) {
-        const createdResidences = await db
-          .insert(residences)
-          .values(newResidences)
-          .returning();
-        
+        const createdResidences = await db.insert(residences).values(newResidences).returning();
+
         // Create object storage hierarchy for each new residence
         for (const residence of createdResidences) {
           try {
@@ -82,58 +79,73 @@ async function handleResidenceChanges(
               residence.id
             );
           } catch (storageError) {
-            console.error(`⚠️ Error creating storage hierarchy for residence ${residence.id}:`, storageError);
+            console.error(
+              `⚠️ Error creating storage hierarchy for residence ${residence.id}:`,
+              storageError
+            );
             // Don't fail the whole operation for storage errors
           }
         }
-        
-        console.warn(`✅ Created ${createdResidences.length} new residences for building ${buildingId}`);
+
+        console.warn(
+          `✅ Created ${createdResidences.length} new residences for building ${buildingId}`
+        );
       }
     } else if (newTotalUnits < currentResidenceCount) {
       // Need to delete some residences
       const residencesToDelete = currentResidenceCount - newTotalUnits;
-      console.warn(`📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`);
-      
+      console.warn(
+        `📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`
+      );
+
       // Get residences that can be safely deleted (no active user relationships)
       const deletableResidences = await db
         .select({ id: residences.id, unitNumber: residences.unitNumber })
         .from(residences)
-        .leftJoin(userResidences, and(
-          eq(userResidences.residenceId, residences.id),
-          eq(userResidences.isActive, true)
-        ))
-        .where(and(
-          eq(residences.buildingId, buildingId),
-          eq(residences.isActive, true),
-          isNull(userResidences.id) // No active user relationships
-        ))
+        .leftJoin(
+          userResidences,
+          and(eq(userResidences.residenceId, residences.id), eq(userResidences.isActive, true))
+        )
+        .where(
+          and(
+            eq(residences.buildingId, buildingId),
+            eq(residences.isActive, true),
+            isNull(userResidences.id) // No active user relationships
+          )
+        )
         .orderBy(sql`${residences.unitNumber}::integer DESC`) // Delete highest unit numbers first
         .limit(residencesToDelete);
-      
+
       if (deletableResidences.length > 0) {
-        const residenceIdsToDelete = deletableResidences.map(r => r.id);
-        
+        const residenceIdsToDelete = deletableResidences.map((r) => r.id);
+
         // Soft delete residences (mark as inactive)
         await db
           .update(residences)
-          .set({ 
-            isActive: false, 
-            updatedAt: new Date() 
+          .set({
+            isActive: false,
+            updatedAt: new Date(),
           })
           .where(inArray(residences.id, residenceIdsToDelete));
-        
-        console.warn(`✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`);
-        
+
+        console.warn(
+          `✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`
+        );
+
         // Log which residences couldn't be deleted due to user relationships
         const protectedCount = residencesToDelete - deletableResidences.length;
         if (protectedCount > 0) {
-          console.warn(`⚠️ Could not delete ${protectedCount} residences - they have active user relationships`);
+          console.warn(
+            `⚠️ Could not delete ${protectedCount} residences - they have active user relationships`
+          );
         }
       } else {
         console.warn(`⚠️ No residences can be deleted - all have active user relationships`);
       }
     } else {
-      console.warn(`✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`);
+      console.warn(
+        `✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`
+      );
     }
   } catch (error) {
     console.error(`❌ Error handling residence changes for building ${buildingId}:`, error);
@@ -172,7 +184,17 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       // Role-based access control for buildings
-      if (!['admin', 'manager', 'demo_manager', 'demo_tenant', 'demo_resident', 'tenant', 'resident'].includes(user.role)) {
+      if (
+        ![
+          'admin',
+          'manager',
+          'demo_manager',
+          'demo_tenant',
+          'demo_resident',
+          'tenant',
+          'resident',
+        ].includes(user.role)
+      ) {
         return res.status(403).json({
           message: 'Access denied. Insufficient permissions.',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -184,7 +206,7 @@ export function registerBuildingRoutes(app: Express): void {
         id: user.id,
         role: user.role,
         organizations: user.organizations,
-        canAccessAllOrganizations: user.canAccessAllOrganizations
+        canAccessAllOrganizations: user.canAccessAllOrganizations,
       });
 
       let buildingsQuery;
@@ -216,10 +238,15 @@ export function registerBuildingRoutes(app: Express): void {
           .orderBy(organizations.name, buildings.name);
       } else {
         // Manager or admin without global access: only buildings from their organizations
-        console.warn(`🔍 [BUILDINGS DEBUG] Taking ELSE path - User ${user.id} organizations:`, user.organizations);
+        console.warn(
+          `🔍 [BUILDINGS DEBUG] Taking ELSE path - User ${user.id} organizations:`,
+          user.organizations
+        );
         if (!user.organizations || user.organizations.length === 0) {
-          console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
-          
+          console.log(
+            `🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`
+          );
+
           // For tenant/resident roles: Get buildings through their residences
           if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
             const userResidencesList = await db
@@ -229,16 +256,20 @@ export function registerBuildingRoutes(app: Express): void {
               .from(userResidences)
               .innerJoin(residences, eq(userResidences.residenceId, residences.id))
               .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
-            
-            console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`);
-            
+
+            console.log(
+              `🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`
+            );
+
             if (userResidencesList.length === 0) {
               return res.json([]); // No residences = no buildings
             }
-            
-            const accessibleBuildingIds = [...new Set(userResidencesList.map(ur => ur.buildingId))];
+
+            const accessibleBuildingIds = [
+              ...new Set(userResidencesList.map((ur) => ur.buildingId)),
+            ];
             console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
-            
+
             buildingsQuery = db
               .select({
                 id: buildings.id,
@@ -271,28 +302,31 @@ export function registerBuildingRoutes(app: Express): void {
           // User has organizations - use organization-based access
           buildingsQuery = db
             .select({
-            id: buildings.id,
-            name: buildings.name,
-            address: buildings.address,
-            city: buildings.city,
-            province: buildings.province,
-            postalCode: buildings.postalCode,
-            buildingType: buildings.buildingType,
-            yearBuilt: buildings.yearBuilt,
-            totalUnits: buildings.totalUnits,
-            totalFloors: buildings.totalFloors,
-            parkingSpaces: buildings.parkingSpaces,
-            storageSpaces: buildings.storageSpaces,
-            organizationId: buildings.organizationId,
-            isActive: buildings.isActive,
-            createdAt: buildings.createdAt,
-            organizationName: organizations.name,
-          })
-          .from(buildings)
-          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(
-            and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
-          )
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+              buildingType: buildings.buildingType,
+              yearBuilt: buildings.yearBuilt,
+              totalUnits: buildings.totalUnits,
+              totalFloors: buildings.totalFloors,
+              parkingSpaces: buildings.parkingSpaces,
+              storageSpaces: buildings.storageSpaces,
+              organizationId: buildings.organizationId,
+              isActive: buildings.isActive,
+              createdAt: buildings.createdAt,
+              organizationName: organizations.name,
+            })
+            .from(buildings)
+            .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+            .where(
+              and(
+                eq(buildings.isActive, true),
+                inArray(buildings.organizationId, user.organizations)
+              )
+            )
             .orderBy(organizations.name, buildings.name);
         }
       }
@@ -993,7 +1027,9 @@ export function registerBuildingRoutes(app: Express): void {
       const newTotalUnits = buildingData.totalUnits || 0;
       const previousTotalUnits = existingBuilding[0].totalUnits || 0;
 
-      console.warn(`🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`);
+      console.warn(
+        `🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`
+      );
 
       // Update building
       const updatedBuilding = await db
@@ -1019,7 +1055,13 @@ export function registerBuildingRoutes(app: Express): void {
         .returning();
 
       // Handle residence creation/deletion based on totalUnits change
-      await handleResidenceChanges(buildingId, buildingData.organizationId, newTotalUnits, currentResidenceCount, buildingData.totalFloors);
+      await handleResidenceChanges(
+        buildingId,
+        buildingData.organizationId,
+        newTotalUnits,
+        currentResidenceCount,
+        buildingData.totalFloors
+      );
 
       console.warn(`✅ Building updated successfully: ${buildingId}`);
 

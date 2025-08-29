@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
-import {
-  useDeleteMutation,
-} from '@/lib/common-hooks';
+import { useDeleteMutation } from '@/lib/common-hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { ColumnConfig, TableAction, BulkAction } from '@/components/ui/data-table';
@@ -73,7 +71,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
       onOpenChange(false);
       onSuccess();
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    }
+    },
   });
 
   const formFields: FormFieldConfig[] = [
@@ -154,14 +152,14 @@ export function UserListComponent({
   const deleteUserMutation = useDeleteMutation({
     deleteFn: (id: string) => apiRequest('DELETE', `/api/users/${id}`),
     successMessage: 'User deleted successfully',
-    queryKeysToInvalidate: ['/api/users']
+    queryKeysToInvalidate: ['/api/users'],
   });
 
   const resetPasswordMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/users/reset-password', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    }
+    },
   });
 
   const canEditUser = hasRole(['admin']);

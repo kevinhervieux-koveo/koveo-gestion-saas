@@ -42,7 +42,7 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = 'all_users';
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
-    
+
     const result = await db.select().from(schema.users).where(eq(schema.users.isActive, true));
     queryCache.set('users', cacheKey, result);
     return result;
@@ -57,7 +57,7 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `users_by_orgs:${userId}`;
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
-    
+
     try {
       // Check if this is a demo user first
       const demoOrgId = '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'; // Real Demo organization ID from database
@@ -69,7 +69,7 @@ export class DatabaseStorage implements IStorage {
         '36f50561-effc-4ca5-bc42-aa35b8a78c4a', // Pierre Gagnon
         '7540faaa-ee1f-46dc-ad29-4ccdd64a1f59', // Michel Côté
       ];
-      
+
       if (demoUserIds.includes(userId)) {
         // For demo users, return all demo users from the same demo organization
         const demoUsers = [
@@ -142,23 +142,28 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
         ];
-        
+
         queryCache.set('users', cacheKey, demoUsers);
         return demoUsers;
       }
-      
+
       // First get the user's organizations
       const userOrgs = await db
         .select({ organizationId: schema.userOrganizations.organizationId })
         .from(schema.userOrganizations)
-        .where(and(eq(schema.userOrganizations.userId, userId), eq(schema.userOrganizations.isActive, true)));
-      
+        .where(
+          and(
+            eq(schema.userOrganizations.userId, userId),
+            eq(schema.userOrganizations.isActive, true)
+          )
+        );
+
       if (userOrgs.length === 0) {
         return []; // User has no organizations
       }
-      
-      const orgIds = userOrgs.map(org => org.organizationId);
-      
+
+      const orgIds = userOrgs.map((org) => org.organizationId);
+
       // Get all users from those organizations
       const result = await db
         .select({
@@ -187,7 +192,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .groupBy(schema.users.id); // Remove duplicates if user is in multiple matching orgs
-      
+
       queryCache.set('users', cacheKey, result);
       return result;
     } catch (error) {
@@ -205,16 +210,15 @@ export class DatabaseStorage implements IStorage {
     const cacheKey = `user:${id}`;
     const cached = queryCache.get('users', cacheKey);
     if (cached) return cached;
-    
+
     try {
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-      
+
       let user = result[0];
       if (user) {
         queryCache.set('users', cacheKey, user);
         return user;
       } else {
-        
         // Fallback to hardcoded demo users by ID
         console.log(`Looking up hardcoded demo user for ID: ${id}`);
         const demoUsers = {
@@ -321,7 +325,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
         };
-        
+
         const demoUser = demoUsers[id as keyof typeof demoUsers];
         if (demoUser) {
           console.log(`Found hardcoded demo user: ${demoUser.firstName} ${demoUser.lastName}`);
@@ -331,7 +335,7 @@ export class DatabaseStorage implements IStorage {
           console.log(`No hardcoded demo user found for ID: ${id}`);
         }
       }
-      
+
       return user;
     } catch (error) {
       console.error(`Drizzle query failed for ID lookup:`, error);
@@ -349,9 +353,9 @@ export class DatabaseStorage implements IStorage {
     // Temporarily bypass cache to ensure fresh data during login
     const cached = false; // queryCache.get('users', cacheKey);
     if (cached) return cached;
-    
+
     console.log(`Looking for user with email: ${email}`);
-    
+
     try {
       // Use direct SQL to bypass Drizzle schema issues
       console.log(`Executing SQL query for email: ${email}`);
@@ -364,7 +368,7 @@ export class DatabaseStorage implements IStorage {
         WHERE email = ${email} AND is_active = true
         LIMIT 1
       `;
-      
+
       console.log(`Direct SQL query returned ${result.length} users`);
       if (result.length === 0) {
         console.log(`No users found for email: ${email}`);
@@ -372,7 +376,7 @@ export class DatabaseStorage implements IStorage {
         const debugResult = await sql`SELECT email, is_active FROM users WHERE email = ${email}`;
         console.log(`Debug query (no is_active filter):`, debugResult);
       }
-      
+
       if (result.length > 0) {
         const dbUser = result[0];
         // Convert to our User type format
@@ -392,11 +396,11 @@ export class DatabaseStorage implements IStorage {
           createdAt: dbUser.created_at,
           updatedAt: dbUser.updated_at,
         };
-        
+
         queryCache.set('users', cacheKey, user);
         return user;
       }
-      
+
       return undefined;
     } catch (error) {
       console.error(`SQL query failed:`, error);
@@ -477,14 +481,14 @@ export class DatabaseStorage implements IStorage {
           city: schema.buildings.city,
           province: schema.buildings.province,
           postalCode: schema.buildings.postalCode,
-        }
+        },
       })
       .from(schema.userResidences)
       .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
       .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
       .where(
         and(
-          eq(schema.userResidences.userId, userId), 
+          eq(schema.userResidences.userId, userId),
           eq(schema.userResidences.isActive, true),
           eq(schema.residences.isActive, true)
         )

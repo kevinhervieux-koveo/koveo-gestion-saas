@@ -78,10 +78,10 @@ async function runQuickQualityCheck(): Promise<QualityMetrics> {
 async function main() {
   try {
     const metrics = await runQuickQualityCheck();
-    
+
     const passedChecks = Object.values(metrics).filter(Boolean).length;
     const totalChecks = Object.keys(metrics).length;
-    
+
     console.log(chalk.blue('\n📊 Quality Check Summary'));
     console.log(chalk.gray('=========================='));
     console.log(`📈 Passed: ${passedChecks}/${totalChecks} checks`);
@@ -89,7 +89,7 @@ async function main() {
     console.log(`🎯 Linting: ${metrics.lint ? '✅' : '❌'}`);
     console.log(`🎯 Tests: ${metrics.basicTests ? '✅' : '❌'}`);
     console.log(`🎯 Build: ${metrics.buildTest ? '✅' : '❌'}`);
-    
+
     if (passedChecks === totalChecks) {
       console.log(chalk.green('\n🎉 All quality checks passed!'));
       console.log(chalk.blue('✅ Code is ready for deployment'));

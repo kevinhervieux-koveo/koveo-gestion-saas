@@ -307,7 +307,9 @@ export default function ManagerDemandsPage() {
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <Badge variant='outline'>{getTypeLabel(demand.type, t)}</Badge>
-              <Badge className={statusColors[demand.status]}>{getStatusLabel(demand.status, t)}</Badge>
+              <Badge className={statusColors[demand.status]}>
+                {getStatusLabel(demand.status, t)}
+              </Badge>
             </div>
             <div className='flex items-center gap-1'>
               <Button

@@ -29,7 +29,7 @@ try {
   if (!existsSync('dist/public/index.html')) {
     throw new Error('Client build failed: dist/public/index.html not found');
   }
-  
+
   if (!existsSync('dist/index.js')) {
     throw new Error('Server build failed: dist/index.js not found');
   }
@@ -55,7 +55,7 @@ try {
   const checks = [
     { file: 'server/index.js', description: 'Server entry point' },
     { file: 'dist/public/index.html', description: 'Client build' },
-    { file: 'dist/index.js', description: 'Server build' }
+    { file: 'dist/index.js', description: 'Server build' },
   ];
 
   for (const check of checks) {
@@ -72,7 +72,6 @@ try {
   console.log('   ✓ Server built to dist/index.js');
   console.log('   ✓ Server entry point created at server/index.js');
   console.log('   ✓ Ready for deployment with npm start');
-
 } catch (error) {
   console.error('\n❌ Deployment build failed:');
   console.error(error.message);

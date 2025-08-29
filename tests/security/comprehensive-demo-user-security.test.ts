@@ -11,7 +11,10 @@ import 'whatwg-fetch';
 
 neonConfig.webSocketConstructor = ws;
 
-const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || 'postgresql://postgres:password@localhost:5432/test';
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  'postgresql://postgres:password@localhost:5432/test';
 if (!DATABASE_URL) {
   console.warn('No DATABASE_URL found, using default test database');
 }
@@ -35,27 +38,33 @@ const isOpenDemoUser = async (userId: string): Promise<boolean> => {
       with: {
         userOrganizations: {
           with: {
-            organization: true
-          }
-        }
-      }
+            organization: true,
+          },
+        },
+      },
     });
-    
+
     if (!user) return false;
-    
+
     // Check if user belongs to Open Demo organization or has opendemo email
-    return user.email?.includes('@opendemo.com') || 
-           user.userOrganizations.some(uo => 
-             uo.organization?.name === 'Open Demo' || 
-             uo.organization?.name?.toLowerCase().includes('open demo')
-           );
+    return (
+      user.email?.includes('@opendemo.com') ||
+      user.userOrganizations.some(
+        (uo) =>
+          uo.organization?.name === 'Open Demo' ||
+          uo.organization?.name?.toLowerCase().includes('open demo')
+      )
+    );
   } catch (error) {
     console.error('Error checking Open Demo user:', error);
     return false;
   }
 };
 
-const canUserPerformWriteOperation = async (userId: string, operation: string): Promise<boolean> => {
+const canUserPerformWriteOperation = async (
+  userId: string,
+  operation: string
+): Promise<boolean> => {
   try {
     const isOpenDemo = await isOpenDemoUser(userId);
     return !isOpenDemo;
@@ -69,7 +78,7 @@ const canUserPerformWriteOperation = async (userId: string, operation: string): 
 function createTestApp(): Express {
   const testApp = express();
   testApp.use(express.json());
-  
+
   // Mock middleware for authentication
   testApp.use((req: any, res, next) => {
     const authHeader = req.headers.authorization;
@@ -77,28 +86,28 @@ function createTestApp(): Express {
       const token = authHeader.substring(7);
       // Mock user based on token
       if (token.includes('open-demo-user-id')) {
-        req.user = { 
-          id: openDemoUserId, 
-          email: 'demo@opendemo.com', 
+        req.user = {
+          id: openDemoUserId,
+          email: 'demo@opendemo.com',
           role: 'tenant',
           isDemo: true,
-          isDemoRestricted: true
+          isDemoRestricted: true,
         };
       } else if (token.includes('demo-user-id')) {
-        req.user = { 
-          id: demoUserId, 
-          email: 'manager@demo.com', 
+        req.user = {
+          id: demoUserId,
+          email: 'manager@demo.com',
           role: 'manager',
           isDemo: true,
-          isDemoRestricted: false
+          isDemoRestricted: false,
         };
       } else {
-        req.user = { 
-          id: regularUserId, 
-          email: 'user@regular.com', 
+        req.user = {
+          id: regularUserId,
+          email: 'user@regular.com',
           role: 'manager',
           isDemo: false,
-          isDemoRestricted: false
+          isDemoRestricted: false,
         };
       }
     }
@@ -189,7 +198,7 @@ describe('Comprehensive Demo User Security Tests', () => {
           email: 'test@example.com',
           firstName: 'Test',
           lastName: 'User',
-          role: 'tenant'
+          role: 'tenant',
         });
 
       expect(response.status).toBe(403);
@@ -216,7 +225,7 @@ describe('Comprehensive Demo User Security Tests', () => {
         .send({
           email: 'test@example.com',
           firstName: 'Test',
-          lastName: 'User'
+          lastName: 'User',
         });
 
       expect(response.status).toBe(403);
@@ -231,13 +240,10 @@ describe('Comprehensive Demo User Security Tests', () => {
 async function findExistingDemoUsers() {
   try {
     console.log('🔍 Finding existing demo users in database...');
-    
+
     // Find Demo organization
     const demoOrg = await db.query.organizations.findFirst({
-      where: and(
-        eq(schema.organizations.name, 'Demo'),
-        eq(schema.organizations.isActive, true)
-      )
+      where: and(eq(schema.organizations.name, 'Demo'), eq(schema.organizations.isActive, true)),
     });
 
     // Find Open Demo organization
@@ -245,11 +251,13 @@ async function findExistingDemoUsers() {
       where: and(
         eq(schema.organizations.name, 'Open Demo'),
         eq(schema.organizations.isActive, true)
-      )
+      ),
     });
 
     if (!demoOrg || !openDemoOrg) {
-      throw new Error('Demo organizations not found in database. Please ensure demo data is seeded.');
+      throw new Error(
+        'Demo organizations not found in database. Please ensure demo data is seeded.'
+      );
     }
 
     demoOrgId = demoOrg.id;
@@ -257,41 +265,33 @@ async function findExistingDemoUsers() {
 
     // Find a regular Demo user (manager role, not Open Demo)
     const demoUser = await db.query.users.findFirst({
-      where: and(
-        eq(schema.users.isActive, true),
-        eq(schema.users.role, 'manager')
-      ),
+      where: and(eq(schema.users.isActive, true), eq(schema.users.role, 'manager')),
       with: {
         userOrganizations: {
           where: eq(schema.userOrganizations.organizationId, demoOrgId),
           with: {
-            organization: true
-          }
-        }
-      }
+            organization: true,
+          },
+        },
+      },
     });
 
     // Find an Open Demo user (restricted user)
     const openDemoUser = await db.query.users.findFirst({
-      where: and(
-        eq(schema.users.isActive, true)
-      ),
+      where: and(eq(schema.users.isActive, true)),
       with: {
         userOrganizations: {
           where: eq(schema.userOrganizations.organizationId, openDemoOrgId),
           with: {
-            organization: true
-          }
-        }
-      }
+            organization: true,
+          },
+        },
+      },
     });
 
     // Find any regular (non-demo) user for comparison
     const regularUser = await db.query.users.findFirst({
-      where: and(
-        eq(schema.users.isActive, true),
-        eq(schema.users.role, 'manager')
-      ),
+      where: and(eq(schema.users.isActive, true), eq(schema.users.role, 'manager')),
       with: {
         userOrganizations: {
           with: {
@@ -299,11 +299,11 @@ async function findExistingDemoUsers() {
               where: and(
                 eq(schema.organizations.isActive, true),
                 inArray(schema.organizations.name, ['Demo', 'Open Demo'], true) // NOT in demo orgs
-              )
-            }
-          }
-        }
-      }
+              ),
+            },
+          },
+        },
+      },
     });
 
     if (!demoUser || !openDemoUser) {
@@ -318,7 +318,6 @@ async function findExistingDemoUsers() {
     console.log(`  - Demo user: ${demoUser.email} (${demoUser.id})`);
     console.log(`  - Open Demo user: ${openDemoUser.email} (${openDemoUser.id})`);
     console.log(`  - Regular user: ${regularUser?.email || 'using demo user'} (${regularUserId})`);
-    
   } catch (error) {
     console.error('❌ Failed to find demo users:', error);
     throw error;

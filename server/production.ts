@@ -43,7 +43,7 @@ app.get('/api', (req, res) => {
   res.json({
     status: 'ok',
     message: 'Koveo Gestion API is running',
-    version: '1.0.0'
+    version: '1.0.0',
   });
 });
 
@@ -52,13 +52,16 @@ const publicPath = path.resolve(process.cwd(), 'dist', 'public');
 
 if (fs.existsSync(publicPath)) {
   console.log(`✅ Serving static files from: ${publicPath}`);
-  
+
   // Serve static assets with proper caching
-  app.use('/assets', express.static(path.join(publicPath, 'assets'), {
-    maxAge: '1y', // Cache assets for 1 year
-    immutable: true
-  }));
-  
+  app.use(
+    '/assets',
+    express.static(path.join(publicPath, 'assets'), {
+      maxAge: '1y', // Cache assets for 1 year
+      immutable: true,
+    })
+  );
+
   // Serve other static files (but skip API routes)
   app.use((req, res, next) => {
     // Skip static serving for API routes
@@ -66,10 +69,10 @@ if (fs.existsSync(publicPath)) {
       return next();
     }
     express.static(publicPath, {
-      maxAge: '1h' // Cache other files for 1 hour
+      maxAge: '1h', // Cache other files for 1 hour
     })(req, res, next);
   });
-  
+
   console.log('✅ Static file serving configured');
 } else {
   console.error(`❌ Public directory not found: ${publicPath}`);
@@ -82,7 +85,7 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  
+
   const indexPath = path.join(publicPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);

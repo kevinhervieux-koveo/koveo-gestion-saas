@@ -69,7 +69,7 @@ export default function Dashboard() {
       );
     }
 
-    // Manager actions  
+    // Manager actions
     if (user.role === 'manager' || user.role === 'demo_manager' || user.role === 'admin') {
       actions.push(
         {

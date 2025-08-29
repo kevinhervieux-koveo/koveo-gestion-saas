@@ -6,7 +6,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Dashboard Translation Tests
- * 
+ *
  * Tests proper translation of dashboard elements and quick actions
  */
 describe('Dashboard Translation', () => {
@@ -84,19 +84,35 @@ describe('Dashboard Translation', () => {
     // Verify dashboard header translations
     expect(screen.getByTestId('header-welcome-back')).toHaveTextContent('Bienvenue, Kevin');
     expect(screen.getByTestId('header-subtitle')).toHaveTextContent('tableau de bord personnalisé');
-    expect(screen.getByTestId('text-admin-dashboard')).toHaveTextContent('Tableau de bord administrateur');
-    expect(screen.getByTestId('text-organization-not-assigned')).toHaveTextContent('Organisation: Non assigné');
+    expect(screen.getByTestId('text-admin-dashboard')).toHaveTextContent(
+      'Tableau de bord administrateur'
+    );
+    expect(screen.getByTestId('text-organization-not-assigned')).toHaveTextContent(
+      'Organisation: Non assigné'
+    );
 
     // Verify fullscreen toggle buttons
     expect(screen.getByTestId('button-fullscreen')).toHaveTextContent('Plein écran');
-    expect(screen.getByTestId('button-exit-fullscreen')).toHaveTextContent('Quitter le plein écran');
+    expect(screen.getByTestId('button-exit-fullscreen')).toHaveTextContent(
+      'Quitter le plein écran'
+    );
 
     // Verify admin quick action cards
     expect(screen.getByTestId('title-system-management')).toHaveTextContent('Gestion du système');
-    expect(screen.getByTestId('description-system-management')).toHaveTextContent('Gérer les organisations');
-    expect(screen.getByTestId('title-organization-overview')).toHaveTextContent('Aperçu des organisations');
-    expect(screen.getByTestId('description-organization-overview')).toHaveTextContent('Voir et gérer toutes');
-    expect(screen.getByTestId('title-user-management')).toHaveTextContent('Gestion des utilisateurs');
-    expect(screen.getByTestId('description-user-management')).toHaveTextContent('Gérer les utilisateurs');
+    expect(screen.getByTestId('description-system-management')).toHaveTextContent(
+      'Gérer les organisations'
+    );
+    expect(screen.getByTestId('title-organization-overview')).toHaveTextContent(
+      'Aperçu des organisations'
+    );
+    expect(screen.getByTestId('description-organization-overview')).toHaveTextContent(
+      'Voir et gérer toutes'
+    );
+    expect(screen.getByTestId('title-user-management')).toHaveTextContent(
+      'Gestion des utilisateurs'
+    );
+    expect(screen.getByTestId('description-user-management')).toHaveTextContent(
+      'Gérer les utilisateurs'
+    );
   });
 });

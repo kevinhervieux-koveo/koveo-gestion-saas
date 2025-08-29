@@ -1,6 +1,6 @@
 /**
  * Simple Deployment Tests
- * 
+ *
  * Tests to ensure basic endpoints work without 500 errors
  */
 

@@ -126,25 +126,17 @@ export function DataTable<T extends Record<string, unknown>>({
   emptyMessage,
   className = '',
   onSelectionChange,
-  selectedItems = new Set()
+  selectedItems = new Set(),
 }: DataTableProps<T>) {
   const { t } = useLanguage();
   const [internalSelection, setInternalSelection] = useState<Set<string>>(new Set());
-  
+
   const selection = selectedItems.size > 0 ? selectedItems : internalSelection;
   const setSelection = onSelectionChange || setInternalSelection;
 
   const handleSelectAll = (checked: boolean) => {
-
-
-
-
-
-
-
-
     if (checked) {
-      const newSelection = new Set(__data.map(item => String(item[keyAccessor])));
+      const newSelection = new Set(__data.map((item) => String(item[keyAccessor])));
       setSelection(newSelection);
     } else {
       setSelection(new Set());
@@ -162,14 +154,9 @@ export function DataTable<T extends Record<string, unknown>>({
   };
 
   const renderCellContent = (column: TableColumn<T>, item: T) => {
-
-
-
-
     if (column.render) {
-      const value = typeof column.accessor === 'function' 
-        ? column.accessor(item)
-        : item[column.accessor];
+      const value =
+        typeof column.accessor === 'function' ? column.accessor(item) : item[column.accessor];
       return column.render(value, item);
     }
 
@@ -178,62 +165,47 @@ export function DataTable<T extends Record<string, unknown>>({
     }
 
     const value = item[column.accessor];
-    
+
     // Handle common _data types
-
-
-
 
     if (typeof value === 'boolean') {
       return (
-        <Badge variant={value ? 'default' : 'secondary'}>
-          {value ? 'Active' : 'Inactive'}
-        </Badge>
+        <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Active' : 'Inactive'}</Badge>
       );
     }
-
-
-
-
 
     if (value && typeof value === 'object' && 'toLocaleDateString' in value) {
       return (value as Date).toLocaleDateString();
     }
 
     if (typeof value === 'string' && value.includes('@')) {
-      return <span className="text-sm text-muted-foreground">{value}</span>;
+      return <span className='text-sm text-muted-foreground'>{value}</span>;
     }
 
     return String(value || '');
   };
 
-  const selectedItemsData = _data.filter(item => 
-    selection.has(String(item[keyAccessor]))
-  );
+  const selectedItemsData = _data.filter((item) => selection.has(String(item[keyAccessor])));
 
   return (
     <Card className={className}>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">
-            {title || 'Data Table'}
-          </CardTitle>
-          <div className="flex items-center gap-4">
+      <CardHeader className='pb-4'>
+        <div className='flex items-center justify-between'>
+          <CardTitle className='text-lg font-semibold'>{title || 'Data Table'}</CardTitle>
+          <div className='flex items-center gap-4'>
             {selection.size > 0 && (
-              <span className="text-sm text-muted-foreground">
-                {selection.size} selected
-              </span>
+              <span className='text-sm text-muted-foreground'>{selection.size} selected</span>
             )}
             {bulkActions.length > 0 && selection.size > 0 && (
-              <div className="flex gap-2">
+              <div className='flex gap-2'>
                 {bulkActions.map((action, _index) => (
                   <Button
                     key={index}
-                    size="sm"
+                    size='sm'
                     variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
                     onClick={() => action.onClick(selectedItemsData)}
                   >
-                    {action.icon && <action.icon className="h-4 w-4 mr-2" />}
+                    {action.icon && <action.icon className='h-4 w-4 mr-2' />}
                     {action.label}
                   </Button>
                 ))}
@@ -243,17 +215,17 @@ export function DataTable<T extends Record<string, unknown>>({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
+      <CardContent className='p-0'>
+        <div className='overflow-x-auto'>
           <Table>
             <TableHeader>
               <TableRow>
                 {selectable && (
-                  <TableHead className="w-12">
+                  <TableHead className='w-12'>
                     <Checkbox
                       checked={_data.length > 0 && selection.size === _data.length}
                       onCheckedChange={handleSelectAll}
-                      aria-label="Select all items"
+                      aria-label='Select all items'
                     />
                   </TableHead>
                 )}
@@ -267,25 +239,29 @@ export function DataTable<T extends Record<string, unknown>>({
                     {column.label}
                   </TableHead>
                 ))}
-                {actions.length > 0 && (
-                  <TableHead className="w-12"></TableHead>
-                )}
+                {actions.length > 0 && <TableHead className='w-12'></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="text-center py-8">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2" />
+                  <TableCell
+                    colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
+                    className='text-center py-8'
+                  >
+                    <div className='flex items-center justify-center'>
+                      <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2' />
                       Loading...
                     </div>
                   </TableCell>
                 </TableRow>
               ) : _data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)} className="text-center py-8">
-                    <div className="text-muted-foreground">
+                  <TableCell
+                    colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
+                    className='text-center py-8'
+                  >
+                    <div className='text-muted-foreground'>
                       {emptyMessage || 'No _data available'}
                     </div>
                   </TableCell>
@@ -294,13 +270,15 @@ export function DataTable<T extends Record<string, unknown>>({
                 _data.map((item) => {
                   const itemKey = String(item[keyAccessor]);
                   return (
-                    <TableRow key={itemKey} className="group">
+                    <TableRow key={itemKey} className='group'>
                       {selectable && (
                         <TableCell>
                           <Checkbox
                             checked={selection.has(itemKey)}
-                            onCheckedChange={(checked) => handleItemSelection(itemKey, checked as boolean)}
-                            aria-label="Select item"
+                            onCheckedChange={(checked) =>
+                              handleItemSelection(itemKey, checked as boolean)
+                            }
+                            aria-label='Select item'
                           />
                         </TableCell>
                       )}
@@ -316,11 +294,11 @@ export function DataTable<T extends Record<string, unknown>>({
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
+                                <MoreHorizontal className='h-4 w-4' />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align='end'>
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               {actions.map((action, _index) => (
@@ -329,9 +307,13 @@ export function DataTable<T extends Record<string, unknown>>({
                                   <DropdownMenuItem
                                     onClick={() => action.onClick(item)}
                                     disabled={action.disabled ? action.disabled(item) : false}
-                                    className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
+                                    className={
+                                      action.variant === 'destructive'
+                                        ? 'text-destructive focus:text-destructive'
+                                        : ''
+                                    }
                                   >
-                                    {action.icon && <action.icon className="h-4 w-4 mr-2" />}
+                                    {action.icon && <action.icon className='h-4 w-4 mr-2' />}
                                     {action.label}
                                   </DropdownMenuItem>
                                 </React.Fragment>

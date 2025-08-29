@@ -188,10 +188,10 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
 
   const handleEditSave = async (data: any) => {
     try {
-      const response = await apiRequest('PUT', `/api/documents/${document.id}`, {
+      const response = (await apiRequest('PUT', `/api/documents/${document.id}`, {
         ...data,
         dateReference: new Date(data.dateReference).toISOString(),
-      }) as unknown as Document;
+      })) as unknown as Document;
       onSave(response);
       toast({
         title: 'Success',
@@ -363,7 +363,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       if (!config.entityId) {
         return [];
       }
-      return (await apiRequest('GET', `/api/documents?${queryParam}`) as unknown) as Document[];
+      return (await apiRequest('GET', `/api/documents?${queryParam}`)) as unknown as Document[];
     },
     enabled: !!config.entityId,
   });
@@ -800,7 +800,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
             {config.userRole === 'resident' && (
               <div className='text-sm text-gray-600'>
                 Showing {startItem + 1}-{endItem} of {filteredDocuments.length} documents
-                {selectedCategory !== 'all' && ` in ${getCategoryLabel(documentCategories, selectedCategory)}`}
+                {selectedCategory !== 'all' &&
+                  ` in ${getCategoryLabel(documentCategories, selectedCategory)}`}
                 {selectedYear !== 'all' && ` from ${selectedYear}`}
               </div>
             )}

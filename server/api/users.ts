@@ -7,12 +7,12 @@ import { requireAuth } from '../auth';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
-import { 
-  sanitizeString, 
-  sanitizeName, 
-  normalizeEmail, 
+import {
+  sanitizeString,
+  sanitizeName,
+  normalizeEmail,
   validatePasswordStrength,
-  generateUsernameFromEmail
+  generateUsernameFromEmail,
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
 import { queryCache } from '../query-cache';
@@ -163,7 +163,7 @@ export function registerUserRoutes(app: Express): void {
       if (!normalizedData.username && normalizedData.email) {
         const baseUsername = generateUsernameFromEmail(normalizedData.email);
         let username = baseUsername;
-        
+
         // Ensure username uniqueness
         let usernameCounter = 1;
         let existingUsername = await db
@@ -171,7 +171,7 @@ export function registerUserRoutes(app: Express): void {
           .from(schema.users)
           .where(eq(schema.users.username, username))
           .limit(1);
-        
+
         while (existingUsername.length > 0) {
           username = `${baseUsername}${usernameCounter}`;
           usernameCounter++;
@@ -181,7 +181,7 @@ export function registerUserRoutes(app: Express): void {
             .where(eq(schema.users.username, username))
             .limit(1);
         }
-        
+
         normalizedData.username = username;
       }
 
@@ -831,7 +831,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       const currentUser = req.user || req.session?.user;
       const { id: targetUserId } = req.params;
-      
+
       if (!currentUser) {
         return res.status(401).json({
           message: 'Authentication required',
@@ -892,7 +892,9 @@ export function registerUserRoutes(app: Express): void {
       const optionalDeletions = [
         async () => {
           try {
-            await db.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId));
+            await db
+              .delete(schema.notifications)
+              .where(eq(schema.notifications.userId, targetUserId));
           } catch (error: any) {
             if (error.cause?.code === '42P01') {
               console.log('Notifications table not found, skipping...');
@@ -920,7 +922,7 @@ export function registerUserRoutes(app: Express): void {
       await Promise.all(deletionPromises);
 
       // Execute optional deletions
-      await Promise.all(optionalDeletions.map(fn => fn()));
+      await Promise.all(optionalDeletions.map((fn) => fn()));
 
       // Finally, delete the user account
       await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
@@ -1043,7 +1045,7 @@ export function registerUserRoutes(app: Express): void {
 
       // Generate demo email
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@demo.com`;
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {

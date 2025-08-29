@@ -7,7 +7,7 @@ import { TestProviders } from './test-providers';
 
 /**
  * Form and UI Element Translation Tests
- * 
+ *
  * Tests proper translation of forms, buttons, and interactive elements
  */
 describe('Form and UI Element Translation', () => {
