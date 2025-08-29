@@ -664,5 +664,99 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Upload endpoint that matches frontend expectation: /api/documents/:id/upload
+  app.post('/api/documents/:id/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userRole = user.role;
+      const userId = user.id;
+      const residenceId = req.params.id; // The :id in the URL is the residence ID
+      const { documentType = 'resident', ...otherData } = req.body;
+
+      // Validate permissions - only admin, manager, and resident can create documents
+      if (!['admin', 'manager', 'resident'].includes(userRole)) {
+        return res.status(403).json({ message: 'Insufficient permissions to create documents' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'File is required for upload' });
+      }
+
+      // Validate and create resident document
+      const validatedData = createResidentDocumentSchema.parse({
+        ...otherData,
+        residenceId,
+        uploadedBy: userId,
+        filePath: req.file.path,
+        fileName: req.file.originalname,
+      });
+
+      // Permission checks for resident documents
+      if (userRole === 'resident' || userRole === 'tenant') {
+        const userResidences = await storage.getUserResidences(userId);
+        const hasAccess = userResidences.some((residence) => residence.residenceId === residenceId);
+        if (!hasAccess) {
+          return res.status(403).json({
+            message: 'You can only upload documents for your own residence',
+          });
+        }
+      }
+
+      // Get residence and building info for organization ID
+      const residence = await storage.getResidence(residenceId);
+      if (!residence) {
+        return res.status(404).json({ message: 'Residence not found' });
+      }
+
+      const building = await storage.getBuilding(residence.buildingId);
+      if (!building) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+
+      // Call Python function to upload to Google Cloud Storage
+      const documentData = await gcsDocumentService.createDocument(
+        validatedData,
+        building.organizationId
+      );
+
+      // Create resident document record
+      const residentDocument = await storage.createDocumentResident({
+        documentId: documentData.id,
+        residenceId,
+        visibleToTenants: otherData.visibleToTenants || false,
+      });
+
+      // Clean up temporary file
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      res.status(201).json({
+        document: documentData,
+        residentDocument,
+        message: 'Document uploaded successfully',
+      });
+    } catch (error: any) {
+      console.error('Error creating document:', error);
+
+      // Clean up temporary file on error
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up file:', cleanupError);
+        }
+      }
+
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: 'Validation error',
+          errors: error.errors,
+        });
+      }
+
+      res.status(500).json({ message: 'Failed to upload document' });
+    }
+  });
 
 }
