@@ -19,9 +19,10 @@ export class GCSDocumentService {
     }
 
     // Configure for Workload Identity Federation in Replit environment
-    // Ensure GCE metadata detection is disabled and use external account auth
-    process.env.NO_GCE_CHECK = 'True';
-    process.env.GCE_METADATA_TIMEOUT = '1';
+    // Completely disable metadata server detection
+    process.env.GCE_METADATA_HOST = '';
+    process.env.NO_GCE_CHECK = 'true';
+    process.env.GOOGLE_AUTH_SUPPRESS_CREDENTIALS_WARNINGS = 'true';
     
     // Initialize Google Cloud Storage with project ID
     // SDK will use GOOGLE_CLOUD_PROJECT and service account email from Replit WIF
