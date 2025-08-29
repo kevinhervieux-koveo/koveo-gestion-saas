@@ -781,37 +781,57 @@ export function registerDocumentRoutes(app: Express): void {
         gcsPath = `general/${uniqueFileName}`;
       }
 
-      // Initialize GCS client
-      const gcsClient = await getGCSClient();
-      const bucket = gcsClient.bucket(bucketName);
-      const file = bucket.file(gcsPath);
+      // Handle file storage based on environment
+      if (process.env.NODE_ENV === 'development') {
+        // In development, save file locally
+        const localStoragePath = path.join(process.cwd(), 'uploads');
+        if (!fs.existsSync(localStoragePath)) {
+          fs.mkdirSync(localStoragePath, { recursive: true });
+        }
+        
+        // Create directory structure
+        const localFilePath = path.join(localStoragePath, gcsPath);
+        const localFileDir = path.dirname(localFilePath);
+        if (!fs.existsSync(localFileDir)) {
+          fs.mkdirSync(localFileDir, { recursive: true });
+        }
+        
+        // Move uploaded file to local storage
+        fs.renameSync(req.file!.path, localFilePath);
+        console.log(`🔧 Development: File saved locally at ${localFilePath}`);
+      } else {
+        // In production, upload to GCS
+        const gcsClient = await getGCSClient();
+        const bucket = gcsClient.bucket(bucketName);
+        const file = bucket.file(gcsPath);
 
-      // Upload file to GCS
-      await new Promise<void>((resolve, reject) => {
-        const stream = fs.createReadStream(req.file!.path);
-        const uploadStream = file.createWriteStream({
-          metadata: {
-            contentType: req.file!.mimetype,
+        // Upload file to GCS
+        await new Promise<void>((resolve, reject) => {
+          const stream = fs.createReadStream(req.file!.path);
+          const uploadStream = file.createWriteStream({
             metadata: {
-              originalName: req.file!.originalname,
-              uploadedBy: userId,
-              uploadedAt: new Date().toISOString(),
+              contentType: req.file!.mimetype,
+              metadata: {
+                originalName: req.file!.originalname,
+                uploadedBy: userId,
+                uploadedAt: new Date().toISOString(),
+              },
             },
-          },
-        });
+          });
 
-        uploadStream.on('error', (error) => {
-          console.error('GCS upload error:', error);
-          reject(error);
-        });
+          uploadStream.on('error', (error) => {
+            console.error('GCS upload error:', error);
+            reject(error);
+          });
 
-        uploadStream.on('finish', () => {
-          console.log(`File uploaded to GCS: ${gcsPath}`);
-          resolve();
-        });
+          uploadStream.on('finish', () => {
+            console.log(`File uploaded to GCS: ${gcsPath}`);
+            resolve();
+          });
 
-        stream.pipe(uploadStream);
-      });
+          stream.pipe(uploadStream);
+        });
+      }
 
       // Create document record in database
       const documentData: InsertDocument = {
@@ -827,8 +847,8 @@ export function registerDocumentRoutes(app: Express): void {
 
       const newDocument = await storage.createDocument(documentData);
 
-      // Clean up temporary file
-      if (fs.existsSync(req.file.path)) {
+      // Clean up temporary file (only if not moved in development)
+      if (process.env.NODE_ENV !== 'development' && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
 

@@ -31,20 +31,21 @@ class GCSClient {
    */
   private static async initializeStorage(): Promise<Storage> {
     try {
-      // Determine OIDC token path based on environment
-      const developmentTokenPath = '/tmp/repl-identity-token';
-      const productionTokenPath = '/var/run/secrets/google/token';
-      
-      let tokenPath: string;
-      if (fs.existsSync(developmentTokenPath)) {
-        tokenPath = developmentTokenPath;
-        console.log('🔧 Using development WIF token path:', tokenPath);
-      } else if (fs.existsSync(productionTokenPath)) {
-        tokenPath = productionTokenPath;
-        console.log('🚀 Using production WIF token path:', tokenPath);
-      } else {
-        throw new Error(`OIDC token file not found at either ${developmentTokenPath} or ${productionTokenPath}`);
+      // In development, return a mock storage that saves locally
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 Development mode: Using local file storage (no GCS)');
+        // Return null - we'll handle this in the upload endpoint
+        return null as any;
       }
+      
+      // In production, use WIF
+      const tokenPath = '/var/run/secrets/google/token';
+      
+      if (!fs.existsSync(tokenPath)) {
+        throw new Error(`Production OIDC token file not found at ${tokenPath}`);
+      }
+      
+      console.log('🚀 Using production WIF token path:', tokenPath);
 
       // Verify required environment variable
       const serviceAccountEmail = process.env.GCP_SERVICE_ACCOUNT_EMAIL;
