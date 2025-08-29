@@ -7,11 +7,11 @@ by organization structure in Google Cloud Storage.
 """
 
 import os
-from typing import Optional
 from google.cloud import storage
+from google.cloud.exceptions import NotFound, Forbidden
 
 
-def upload_secure_document(bucket_name: str, organization_id: str, file_path: str) -> str:
+def upload_secure_document(bucket_name: str, organization_id: str, file_path: str) -> None:
     """
     Uploads a document securely to Google Cloud Storage with organization-based structure.
     
@@ -20,44 +20,49 @@ def upload_secure_document(bucket_name: str, organization_id: str, file_path: st
         organization_id (str): The organization ID for organizing files
         file_path (str): Local path to the file to upload
         
-    Returns:
-        str: The public URL of the uploaded file
-        
     Raises:
         FileNotFoundError: If the local file doesn't exist
-        Exception: If the upload fails
+        PermissionError: If there are permission issues with Google Cloud Storage
+        Exception: If the upload fails for other reasons
     """
     
     # Verify the file exists
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
     
-    # Initialize the Google Cloud Storage client
-    client = storage.Client()
+    # Initialize the Google Cloud Storage client using application default credentials
+    try:
+        client = storage.Client()
+    except Exception as e:
+        raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
     
     # Get the bucket
-    bucket = client.bucket(bucket_name)
+    try:
+        bucket = client.bucket(bucket_name)
+    except NotFound:
+        raise Exception(f"Bucket '{bucket_name}' not found")
+    except Forbidden:
+        raise PermissionError(f"Permission denied accessing bucket '{bucket_name}'")
+    except Exception as e:
+        raise Exception(f"Failed to access bucket: {str(e)}")
     
-    # Create the destination path with organization structure
-    filename = os.path.basename(file_path)
-    destination_path = f"organizations/{organization_id}/documents/{filename}"
+    # Construct destination blob name using the specified format
+    file_name = os.path.basename(file_path)
+    destination_blob_name = f"prod_org_{organization_id}/{file_name}"
     
     # Create the blob (file object in the bucket)
-    blob = bucket.blob(destination_path)
+    blob = bucket.blob(destination_blob_name)
     
     try:
         # Upload the file
         with open(file_path, 'rb') as file_data:
             blob.upload_from_file(file_data)
         
-        # Make the blob publicly readable (optional - remove for private files)
-        blob.make_public()
+        # Print success message including the final blob name
+        print(f"File uploaded successfully to blob: {destination_blob_name}")
         
-        print(f"File {filename} uploaded successfully to {destination_path}")
-        
-        # Return the public URL
-        return blob.public_url
-        
+    except Forbidden:
+        raise PermissionError(f"Permission denied uploading to bucket '{bucket_name}'")
     except Exception as e:
         raise Exception(f"Failed to upload file: {str(e)}")
 
