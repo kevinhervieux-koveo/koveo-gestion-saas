@@ -838,8 +838,9 @@ export function registerDocumentRoutes(app: Express): void {
             fs.mkdirSync(localFileDir, { recursive: true });
           }
           
-          // Move uploaded file to local storage
-          fs.renameSync(req.file!.path, localFilePath);
+          // Copy uploaded file to local storage (cross-device safe)
+          fs.copyFileSync(req.file!.path, localFilePath);
+          fs.unlinkSync(req.file!.path); // Clean up temp file
           console.log(`📁 File saved locally: ${localFilePath}`);
         } else {
           // In production, re-throw the error
@@ -861,7 +862,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       const newDocument = await storage.createDocument(documentData);
 
-      // Clean up temporary file
+      // Clean up temporary file (if still exists)
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
