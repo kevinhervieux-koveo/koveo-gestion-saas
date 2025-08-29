@@ -31,11 +31,24 @@ class GCSClient {
    */
   private static async initializeStorage(): Promise<Storage> {
     try {
-      // In development, return a mock storage that saves locally
+      // In development, use Application Default Credentials
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔧 Development mode: Using local file storage (no GCS)');
-        // Return null - we'll handle this in the upload endpoint
-        return null as any;
+        console.log('🔧 Development mode: Using Application Default Credentials');
+        console.log('💡 Run "gcloud auth application-default login" if authentication fails');
+        
+        const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+        if (!projectId) {
+          throw new Error('GCP_PROJECT_ID environment variable is required');
+        }
+        
+        // Use ADC - will automatically find credentials from gcloud
+        const storage = new Storage({
+          projectId: projectId
+          // No credentials needed - will use ADC
+        });
+        
+        console.log('✅ Google Cloud Storage client initialized with ADC');
+        return storage;
       }
       
       // In production, use WIF
