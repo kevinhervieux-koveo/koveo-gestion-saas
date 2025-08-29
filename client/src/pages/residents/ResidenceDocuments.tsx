@@ -167,12 +167,24 @@ export default function ResidenceDocuments() {
         residenceId,
         uploadedBy: user?.id,
       });
+      console.log('📝 Document creation response:', response);
       return response;
     },
     onSuccess: (newDocument) => {
+      console.log('✅ Document created successfully:', newDocument);
       if (selectedFile) {
-        setUploadingDocumentId(newDocument.id);
-        uploadFile(newDocument.id);
+        console.log('📤 File selected, uploading to document ID:', newDocument?.id);
+        if (newDocument?.id) {
+          setUploadingDocumentId(newDocument.id);
+          uploadFile(newDocument.id);
+        } else {
+          console.error('❌ Document ID is missing from response');
+          toast({
+            title: 'Upload failed',
+            description: 'Document was created but upload failed due to missing document ID',
+            variant: 'destructive',
+          });
+        }
       } else {
         queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
         setIsAddDialogOpen(false);
@@ -215,10 +227,26 @@ export default function ResidenceDocuments() {
   const uploadFile = async (documentId: string) => {
     if (!selectedFile) return;
 
+    console.log('🔄 Starting file upload:', {
+      documentId,
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType: selectedFile.type
+    });
+
     const formData = new FormData();
     formData.append('file', selectedFile);
+    
+    console.log('📦 FormData created:', {
+      hasFile: formData.has('file'),
+      entries: Array.from(formData.entries()).map(([key, value]) => ({
+        key,
+        value: value instanceof File ? `File: ${value.name}` : value
+      }))
+    });
 
     try {
+      console.log('📤 Making upload request to:', `/api/documents/${documentId}/upload`);
       await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
       queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
       setIsAddDialogOpen(false);
