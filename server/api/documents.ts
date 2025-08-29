@@ -16,6 +16,8 @@ import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import { getGCSClient } from '../../src/lib/gcs';
 
 // Configure multer for file uploads
 const upload = multer({
@@ -69,6 +71,16 @@ const createResidentDocumentSchema = insertDocumentResidentSchema.extend({
   type: z.enum(DOCUMENT_CATEGORIES),
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
+});
+
+// Schema for unified document upload
+const uploadDocumentSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().optional(),
+  documentType: z.enum(DOCUMENT_CATEGORIES),
+  isVisibleToTenants: z.boolean().default(false),
+  residenceId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional(),
 });
 
 /**
@@ -787,6 +799,158 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       res.status(500).json({ message: 'Failed to upload document' });
+    }
+  });
+
+  // POST /api/documents/upload - Upload file to GCS and create unified document record
+  app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req, res) => {
+    try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      // Parse form data
+      const formData = {
+        name: req.body.name,
+        description: req.body.description || '',
+        documentType: req.body.documentType,
+        isVisibleToTenants: req.body.isVisibleToTenants === 'true',
+        residenceId: req.body.residenceId || undefined,
+        buildingId: req.body.buildingId || undefined,
+      };
+
+      // Validate form data
+      const validatedData = uploadDocumentSchema.parse(formData);
+
+      // Get user info from auth middleware
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      // Determine GCS bucket based on environment
+      const bucketName = process.env.NODE_ENV === 'production' 
+        ? process.env.GCS_PROD_BUCKET_NAME 
+        : process.env.GCS_DEV_BUCKET_NAME;
+
+      if (!bucketName) {
+        console.error('GCS bucket name not configured');
+        return res.status(500).json({ message: 'Storage configuration error' });
+      }
+
+      // Generate unique GCS path
+      const fileExtension = path.extname(req.file.originalname);
+      const baseFileName = path.basename(req.file.originalname, fileExtension);
+      const uniqueFileName = `${uuidv4()}-${baseFileName}${fileExtension}`;
+      
+      let gcsPath: string;
+      if (validatedData.residenceId) {
+        gcsPath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
+      } else if (validatedData.buildingId) {
+        gcsPath = `buildings/${validatedData.buildingId}/${uniqueFileName}`;
+      } else {
+        gcsPath = `general/${uniqueFileName}`;
+      }
+
+      // Initialize GCS client
+      const gcsClient = await getGCSClient();
+      const bucket = gcsClient.bucket(bucketName);
+      const file = bucket.file(gcsPath);
+
+      // Upload file to GCS
+      await new Promise<void>((resolve, reject) => {
+        const stream = fs.createReadStream(req.file!.path);
+        const uploadStream = file.createWriteStream({
+          metadata: {
+            contentType: req.file!.mimetype,
+            metadata: {
+              originalName: req.file!.originalname,
+              uploadedBy: userId,
+              uploadedAt: new Date().toISOString(),
+            },
+          },
+        });
+
+        uploadStream.on('error', (error) => {
+          console.error('GCS upload error:', error);
+          reject(error);
+        });
+
+        uploadStream.on('finish', () => {
+          console.log(`File uploaded to GCS: ${gcsPath}`);
+          resolve();
+        });
+
+        stream.pipe(uploadStream);
+      });
+
+      // Create document record in database
+      const documentData: InsertDocument = {
+        name: validatedData.name,
+        description: validatedData.description,
+        documentType: validatedData.documentType,
+        gcsPath: gcsPath,
+        isVisibleToTenants: validatedData.isVisibleToTenants,
+        residenceId: validatedData.residenceId,
+        buildingId: validatedData.buildingId,
+        uploadedById: userId,
+      };
+
+      const newDocument = await storage.createDocument(documentData);
+
+      // Clean up temporary file
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      // Return success response
+      res.status(201).json({
+        message: 'Document uploaded successfully',
+        document: newDocument,
+      });
+
+    } catch (error: any) {
+      console.error('Document upload error:', error);
+
+      // Clean up temporary file on error
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up temporary file:', cleanupError);
+        }
+      }
+
+      // Handle validation errors
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: 'Validation error',
+          errors: error.errors,
+        });
+      }
+
+      // Handle GCS errors
+      if (error.message && error.message.includes('Google Cloud Storage')) {
+        return res.status(500).json({
+          message: 'File upload failed',
+          error: 'Storage service error',
+        });
+      }
+
+      // Handle database errors
+      if (error.message && error.message.includes('database')) {
+        return res.status(500).json({
+          message: 'Failed to save document record',
+          error: 'Database error',
+        });
+      }
+
+      // Generic error response
+      res.status(500).json({
+        message: 'Internal server error',
+        error: 'Document upload failed',
+      });
     }
   });
 
