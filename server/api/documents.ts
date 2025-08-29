@@ -676,12 +676,30 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id; // The :id in the URL is the document ID (from frontend)
       const { documentType = 'resident', residenceId, ...otherData } = req.body;
 
+      console.log('📤 Upload request received:', {
+        documentId,
+        userId,
+        userRole,
+        hasFile: !!req.file,
+        fileInfo: req.file ? {
+          fieldname: req.file.fieldname,
+          originalname: req.file.originalname,
+          encoding: req.file.encoding,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+          path: req.file.path
+        } : null,
+        bodyKeys: Object.keys(req.body),
+        contentType: req.headers['content-type']
+      });
+
       // Validate permissions - only admin, manager, and resident can create documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
 
       if (!req.file) {
+        console.error('❌ No file received in upload request');
         return res.status(400).json({ message: 'File is required for upload' });
       }
 
