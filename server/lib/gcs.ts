@@ -88,5 +88,62 @@ export async function getStorageClient(): Promise<Storage> {
  */
 export const storage = getStorageClient();
 
+/**
+ * Uploads a file to Google Cloud Storage.
+ * 
+ * @param file - The multer file object containing file data and metadata
+ * @param fileName - The target filename/path in the bucket
+ * @returns Promise with GCS path and public URL
+ */
+export async function uploadToGCS(file: any, fileName: string): Promise<{ gcsPath: string; publicUrl: string }> {
+  try {
+    const storage = await getStorageClient();
+    const bucketName = process.env.GCS_BUCKET_NAME || 'koveo-documents';
+    const bucket = storage.bucket(bucketName);
+    
+    // Create a reference to the file in the bucket
+    const gcsFile = bucket.file(fileName);
+    
+    // Create a write stream to upload the file
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+      resumable: false, // Use simple upload for smaller files
+    });
+
+    // Return a promise that resolves when upload is complete
+    return new Promise((resolve, reject) => {
+      stream.on('error', (error) => {
+        console.error('GCS upload error:', error);
+        reject(new Error(`Failed to upload file to GCS: ${error.message}`));
+      });
+
+      stream.on('finish', () => {
+        const gcsPath = `gs://${bucketName}/${fileName}`;
+        const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+        
+        console.log(`File uploaded successfully to ${gcsPath}`);
+        resolve({ gcsPath, publicUrl });
+      });
+
+      // Write the file buffer to the stream
+      if (file.buffer) {
+        stream.end(file.buffer);
+      } else if (file.path) {
+        // If file is stored on disk, read and upload it
+        const fs = require('fs');
+        const fileStream = fs.createReadStream(file.path);
+        fileStream.pipe(stream);
+      } else {
+        reject(new Error('File data not found - no buffer or path available'));
+      }
+    });
+  } catch (error) {
+    console.error('GCS upload setup error:', error);
+    throw new Error(`Failed to setup GCS upload: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 // Export default for convenience
 export default getStorageClient;

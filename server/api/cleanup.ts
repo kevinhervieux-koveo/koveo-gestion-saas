@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { documentsBuildings, documentsResidents } from '../../shared/schema';
+import { documents } from '../../shared/schema';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
 
@@ -15,25 +15,20 @@ router.post('/cleanup-storage', async (req, res) => {
     res.json({ message: 'Storage cleanup temporarily disabled - needs update for new GCS system' });
     return;
 
-    // Get all file URLs from both document tables
-    const buildingDocs = await db
-      .select({ fileUrl: documentsBuildings.fileUrl })
-      .from(documentsBuildings)
-      .where(isNotNull(documentsBuildings.fileUrl));
+    // Get all file paths from the unified documents table
+    const allDocs = await db
+      .select({ filePath: documents.filePath })
+      .from(documents)
+      .where(isNotNull(documents.filePath));
 
-    const residentDocs = await db
-      .select({ fileUrl: documentsResidents.fileUrl })
-      .from(documentsResidents)
-      .where(isNotNull(documentsResidents.fileUrl));
-
-    // Combine all referenced file URLs and extract object paths from hierarchical structure
+    // Extract object paths from GCS paths
     const referencedObjectPaths = new Set();
 
-    [...buildingDocs, ...residentDocs].forEach((doc) => {
-      if (doc.fileUrl) {
+    allDocs.forEach((doc) => {
+      if (doc.filePath) {
         try {
-          // Convert URL to object path - handles hierarchical paths
-          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.fileUrl);
+          // Convert GCS path to object path - handles hierarchical paths
+          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.filePath);
           if (normalizedPath.startsWith('/objects/')) {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
