@@ -31,11 +31,19 @@ class GCSClient {
    */
   private static async initializeStorage(): Promise<Storage> {
     try {
-      // Read the Replit OIDC token from the mounted secret
-      const tokenPath = '/var/run/secrets/google/token';
+      // Determine OIDC token path based on environment
+      const developmentTokenPath = '/tmp/repl-identity-token';
+      const productionTokenPath = '/var/run/secrets/google/token';
       
-      if (!fs.existsSync(tokenPath)) {
-        throw new Error(`OIDC token file not found at ${tokenPath}`);
+      let tokenPath: string;
+      if (fs.existsSync(developmentTokenPath)) {
+        tokenPath = developmentTokenPath;
+        console.log('🔧 Using development WIF token path:', tokenPath);
+      } else if (fs.existsSync(productionTokenPath)) {
+        tokenPath = productionTokenPath;
+        console.log('🚀 Using production WIF token path:', tokenPath);
+      } else {
+        throw new Error(`OIDC token file not found at either ${developmentTokenPath} or ${productionTokenPath}`);
       }
 
       // Verify required environment variable
@@ -69,8 +77,13 @@ class GCSClient {
       const authClient = await auth.getClient();
 
       // Create Storage instance with the auth client
+      const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+      if (!projectId) {
+        throw new Error('GCP_PROJECT_ID or GOOGLE_CLOUD_PROJECT environment variable is required');
+      }
+      
       const storage = new Storage({
-        projectId: process.env.GOOGLE_CLOUD_PROJECT,
+        projectId: projectId,
         authClient: authClient
       });
 
