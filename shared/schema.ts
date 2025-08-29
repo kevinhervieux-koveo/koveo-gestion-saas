@@ -86,6 +86,10 @@ export type {
 export type {
   Document,
   InsertDocument,
+  DocumentBuilding,
+  InsertDocumentBuilding,
+  DocumentResident,
+  InsertDocumentResident,
 } from './schemas/documents';
 
 export type {

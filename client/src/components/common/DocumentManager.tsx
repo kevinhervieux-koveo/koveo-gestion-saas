@@ -99,7 +99,6 @@ interface DocumentManagerConfig {
 const createDocumentFormSchema = (type: 'building' | 'residence') => {
   const baseSchema = {
     name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
-    description: z.string().optional(),
     dateReference: z.string().refine(
       (dateStr) => {
         const date = new Date(dateStr);
@@ -315,7 +314,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -329,7 +327,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
-      description: '',
       type: 'other',
       dateReference: new Date().toISOString().split('T')[0],
       ...(config.type === 'building'
@@ -465,64 +462,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Event handlers
   const handleCreateDocument = async (data: any) => {
-    // Prevent default form submission
-    const formData = new FormData();
-    
-    // Append form fields to FormData
-    formData.append('name', data.name);
-    formData.append('description', data.description || '');
-    formData.append('documentType', config.type);
-    formData.append('isVisibleToTenants', data.isVisibleToTenants?.toString() || 'true');
-    
-    // Append entity ID
-    if (config.type === 'residence') {
-      formData.append('residenceId', data.residenceId);
-    } else {
-      formData.append('buildingId', data.buildingId);
-    }
-    
-    // Append file if selected
-    if (selectedFile) {
-      formData.append('file', selectedFile);
-    }
-    
-    try {
-      const response = await fetch('/api/documents', {
-        method: 'POST',
-        body: formData,
-        // Don't set Content-Type header - browser will set it with boundary
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      // Invalidate queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey });
-      
-      // Close modal and reset form
-      setIsCreateDialogOpen(false);
-      setSelectedFile(null);
-      form.reset();
-      
-      // Show success notification
-      toast({
-        title: 'Success',
-        description: selectedFile 
-          ? 'Document and file uploaded successfully!' 
-          : 'Document created successfully.',
-      });
-      
-    } catch (error: any) {
-      // Show error notification without closing modal
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upload document',
-        variant: 'destructive',
-      });
-    }
+    createDocumentMutation.mutate(data);
   };
 
   const handleNewDocumentUpload = async () => {
@@ -733,24 +673,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
                         <FormField
                           control={form.control}
-                          name='description'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description (Optional)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder='Enter document description'
-                                  {...field}
-                                  data-testid='input-document-description'
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
                           name='type'
                           render={({ field }) => (
                             <FormItem>
@@ -817,58 +739,30 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                         <div className='space-y-4'>
                           <Label>Attach File (Optional)</Label>
                           <div className='border-2 border-dashed border-gray-300 rounded-lg p-4'>
-                            {selectedFile ? (
+                            {uploadedFile ? (
                               <div className='text-center'>
                                 <FileText className='h-8 w-8 text-green-500 mx-auto mb-2' />
                                 <p className='text-sm text-gray-600 mb-2'>
-                                  File selected: {selectedFile.name}
-                                </p>
-                                <p className='text-xs text-gray-500 mb-2'>
-                                  Size: {Math.round(selectedFile.size / 1024)} KB
+                                  File ready: {uploadedFile.fileName}
                                 </p>
                                 <Button
                                   type='button'
                                   variant='outline'
                                   size='sm'
-                                  onClick={() => setSelectedFile(null)}
+                                  onClick={() => setUploadedFile(null)}
                                   data-testid='button-remove-file'
                                 >
                                   Remove File
                                 </Button>
                               </div>
                             ) : (
-                              <div className='text-center'>
-                                <Upload className='h-8 w-8 text-gray-400 mx-auto mb-2' />
-                                <div className='space-y-2'>
-                                  <p className='text-sm text-gray-600'>
-                                    Choose a file to upload
-                                  </p>
-                                  <Input
-                                    type='file'
-                                    accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff'
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        // Check file size (10MB limit)
-                                        if (file.size > 10 * 1024 * 1024) {
-                                          toast({
-                                            title: 'File too large',
-                                            description: 'Please select a file smaller than 10MB',
-                                            variant: 'destructive',
-                                          });
-                                          return;
-                                        }
-                                        setSelectedFile(file);
-                                      }
-                                    }}
-                                    data-testid='input-document-file'
-                                    className='cursor-pointer'
-                                  />
-                                  <p className='text-xs text-gray-500'>
-                                    Max file size: 10MB. Supported formats: PDF, DOC, XLS, PPT, TXT, Images
-                                  </p>
-                                </div>
-                              </div>
+                              <ObjectUploader
+                                maxFileSize={10 * 1024 * 1024} // 10MB
+                                onGetUploadParameters={handleNewDocumentUpload}
+                                onComplete={handleNewDocumentUploadComplete}
+                              >
+                                <span>Upload File</span>
+                              </ObjectUploader>
                             )}
                           </div>
                         </div>
@@ -877,20 +771,20 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           <Button
                             type='button'
                             variant='outline'
-                            onClick={() => {
-                              setIsCreateDialogOpen(false);
-                              setSelectedFile(null);
-                              form.reset();
-                            }}
+                            onClick={() => setIsCreateDialogOpen(false)}
+                            disabled={createDocumentMutation.isPending || isUploadingNewFile}
                             data-testid='button-cancel-document'
                           >
                             Cancel
                           </Button>
                           <Button
                             type='submit'
+                            disabled={createDocumentMutation.isPending || isUploadingNewFile}
                             data-testid='button-create-document'
                           >
-                            {selectedFile ? 'Upload Document' : 'Create Document'}
+                            {createDocumentMutation.isPending || isUploadingNewFile
+                              ? 'Creating...'
+                              : 'Create Document'}
                           </Button>
                         </DialogFooter>
                       </form>

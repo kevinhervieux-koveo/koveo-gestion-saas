@@ -224,7 +224,6 @@ export class MemStorage implements IStorage {
   private bugs: Map<string, Bug>;
   private featureRequests: Map<string, FeatureRequest>;
   private featureRequestUpvotes: Map<string, FeatureRequestUpvote>;
-  private documents: Map<string, Document>;
 
   constructor() {
     this.users = new Map();
@@ -243,7 +242,6 @@ export class MemStorage implements IStorage {
     this.bugs = new Map();
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
-    this.documents = new Map();
 
     this.initializeTestUser();
   }
@@ -1183,19 +1181,6 @@ class ProductionFallbackStorage implements IStorage {
     }
   }
 
-  // Document operations for MemStorage
-  async createDocument(doc: InsertDocument): Promise<Document> {
-    const id = randomUUID();
-    const document: Document = {
-      ...doc,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.documents.set(id, document);
-    return document;
-  }
-
   // All other methods - implement fallback pattern for remaining interface methods
   async getContacts(): Promise<Contact[]> {
     try {
@@ -1245,11 +1230,7 @@ class ProductionFallbackStorage implements IStorage {
     return undefined;
   }
   async createDocument(doc: InsertDocument): Promise<Document> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.createDocument(doc));
-    } catch {
-      return this.memStorage.createDocument(doc);
-    }
+    throw new Error('Not implemented in fallback');
   }
   async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
     return undefined;

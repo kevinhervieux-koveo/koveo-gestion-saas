@@ -43,26 +43,26 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
-// Detect environment based on NODE_ENV environment variable
+// Detect environment based on domain instead of NODE_ENV
 const detectEnvironment = () => {
-  const nodeEnv = process.env.NODE_ENV || 'development';
   const domain =
     env.REPL_SLUG && env.REPL_OWNER ? `${env.REPL_SLUG}.${env.REPL_OWNER}.repl.co` : 'localhost';
 
-  // Handle both English and French spellings for development
-  const isProduction = nodeEnv === 'production';
-  const isDevelopment = nodeEnv === 'development' || nodeEnv === 'developpement';
-  const isTest = nodeEnv === 'test';
+  // Production domains (add your production domains here)
+  const productionDomains = ['koveo-gestion.com', 'www.koveo-gestion.com', 'app.koveo-gestion.com'];
+
+  const isProduction = productionDomains.some((prodDomain) => domain.includes(prodDomain));
+  const isDevelopment = !isProduction;
 
   console.log(
-    `🌍 Environment detected: ${isDevelopment ? 'development' : nodeEnv} (NODE_ENV: ${process.env.NODE_ENV}, domain: ${domain})`
+    `🌍 Environment detected: ${isDevelopment ? 'development' : 'production'} (domain: ${domain})`
   );
 
   return {
-    environment: isDevelopment ? 'development' : nodeEnv,
+    environment: isDevelopment ? 'development' : 'production',
     isDevelopment,
     isProduction,
-    isTest,
+    isTest: false,
     domain,
   };
 };
@@ -82,8 +82,8 @@ export const config = {
 
   // Database configuration
   database: {
-    // Use environment-specific database URLs based on NODE_ENV
-    url: envConfig.isDevelopment ? env.DATABASE_URL_DEV || env.DATABASE_URL : env.DATABASE_URL,
+    // Use development database if available and we're in development, otherwise production
+    url: envConfig.isDevelopment && env.DATABASE_URL_DEV ? env.DATABASE_URL_DEV : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },

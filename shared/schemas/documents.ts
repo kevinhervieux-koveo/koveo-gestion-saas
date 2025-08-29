@@ -1,46 +1,138 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, varchar, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
-import { users } from './core';
 
+// Separate document tables for buildings and residents
 /**
- * Unified documents table for storing all document types.
- * Supports both building-level and residence-level documents.
+ * Documents table for building-related documents.
  */
-export const documents = pgTable('documents', {
-  id: varchar('id')
+export const documentsBuildings = pgTable('documents_buildings', {
+  id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
-  description: text('description'),
-  documentType: text('document_type').notNull(), // e.g., 'lease', 'invoice', 'by-law'
-  gcsPath: text('gcs_path').notNull().unique(), // Full GCS path: 'residences/{residenceId}/{uuid}.pdf'
+  uploadDate: timestamp('upload_date').defaultNow().notNull(),
+  dateReference: timestamp('date_reference'),
+  type: text('type').notNull(),
+  buildingId: uuid('building_id')
+    .references(() => buildings.id)
+    .notNull(),
+  fileUrl: text('file_url'),
+  fileName: text('file_name'),
+  fileSize: text('file_size'),
+  mimeType: text('mime_type'),
+  uploadedBy: uuid('uploaded_by').notNull(),
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
-  residenceId: varchar('residence_id').references(() => residences.id), // nullable
-  buildingId: varchar('building_id').references(() => buildings.id), // nullable  
-  uploadedById: varchar('uploaded_by_id').references(() => users.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Insert schema
-export const insertDocumentSchema = createInsertSchema(documents, {
-  name: z.string().min(1, 'Document name is required'),
-  description: z.string().optional(),
-  documentType: z.string().min(1, 'Document type is required'),
-  gcsPath: z.string().min(1, 'GCS path is required'),
+/**
+ * Documents table for resident-related documents (includes tenants).
+ */
+export const documentsResidents = pgTable('documents_residents', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull(),
+  uploadDate: timestamp('upload_date').defaultNow().notNull(),
+  dateReference: timestamp('date_reference'),
+  type: text('type').notNull(),
+  residenceId: uuid('residence_id')
+    .references(() => residences.id)
+    .notNull(),
+  fileUrl: text('file_url'),
+  fileName: text('file_name'),
+  fileSize: text('file_size'),
+  mimeType: text('mime_type'),
+  uploadedBy: uuid('uploaded_by').notNull(),
+  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Insert schemas
+export const insertDocumentBuildingSchema = z.object({
+  name: z.string(),
+  dateReference: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  type: z.string(),
+  buildingId: z.string().uuid(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
   isVisibleToTenants: z.boolean().default(false),
-  residenceId: z.string().optional(),
-  buildingId: z.string().optional(),
-  uploadedById: z.string().min(1, 'Uploader ID is required'),
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+});
+
+export const insertDocumentResidentSchema = z.object({
+  name: z.string(),
+  dateReference: z
+    .string()
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  type: z.string(),
+  residenceId: z.string().uuid(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
+  isVisibleToTenants: z.boolean().default(false),
 });
 
 // Types
+/**
+ *
+ */
+export type InsertDocumentBuilding = z.infer<typeof insertDocumentBuildingSchema>;
+/**
+ *
+ */
+export type DocumentBuilding = typeof documentsBuildings.$inferSelect;
+/**
+ *
+ */
+export type InsertDocumentResident = z.infer<typeof insertDocumentResidentSchema>;
+/**
+ *
+ */
+export type DocumentResident = typeof documentsResidents.$inferSelect;
+
+// Legacy document table (kept for migration purposes)
+export const documents = pgTable('documents', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: text('name').notNull(),
+  uploadDate: timestamp('upload_date').defaultNow().notNull(),
+  dateReference: timestamp('date_reference'),
+  type: text('type').notNull(),
+  buildings: text('buildings').notNull().default('false'),
+  residence: text('residence').notNull().default('false'),
+  tenant: text('tenant').notNull().default('false'),
+});
+
+// Legacy types for migration
+export const insertDocumentSchema = z.object({
+  name: z.string(),
+  dateReference: z.date().optional(),
+  type: z.string(),
+  buildings: z.string().default('false'),
+  residence: z.string().default('false'),
+  tenant: z.string().default('false'),
+});
+
+/**
+ *
+ */
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+/**
+ *
+ */
 export type Document = typeof documents.$inferSelect;
