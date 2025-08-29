@@ -5,17 +5,13 @@ import {
   insertDocumentSchema,
   type Document,
   type InsertDocument,
-  insertDocumentBuildingSchema,
-  type DocumentBuilding,
-  type InsertDocumentBuilding,
-  insertDocumentResidentSchema,
-  type DocumentResident,
-  type InsertDocumentResident,
-} from '../../shared/schemas/documents';
+} from '@shared/schema';
 import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { uploadToGCS } from '../lib/gcs';
+import crypto from 'crypto';
 
 // Configure multer for file uploads
 const upload = multer({
@@ -748,15 +744,26 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(400).json({ message: 'Document must be associated with a building or residence' });
       }
 
-      // Note: File upload to external storage removed
-      
-      // Update document with file information
-      const updatedDocument = await storage.updateResidentDocument(documentId, {
-        fileUrl: `prod_org_${organizationId}/${req.file.originalname}`,
+      // Upload file to Google Cloud Storage
+      const fileName = `residences/${existingDocument.residenceId || existingDocument.buildingId}/${crypto.randomUUID()}-${req.file.originalname}`;
+      const { gcsPath, publicUrl } = await uploadToGCS(req.file, fileName);
+
+      // Create unified document record
+      const documentData: InsertDocument = {
+        title: req.body.title || req.file.originalname,
+        description: req.body.description || '',
+        documentCategory: req.body.documentCategory || 'other',
+        entityType: existingDocument.residenceId ? 'residence' : 'building',
+        entityId: existingDocument.residenceId || existingDocument.buildingId,
+        filePath: gcsPath,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
-      }, userId, userRole);
+        uploadedBy: userId,
+        uploadedAt: new Date(),
+      };
+
+      const updatedDocument = await storage.createDocument(documentData);
 
       // Clean up temporary file
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
