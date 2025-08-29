@@ -2,11 +2,13 @@ import type { Express, Request, Response } from 'express';
 import { eq, desc, and, sql, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { requireAuth } from '../auth';
+import { storage } from '../storage';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
+import { gcsDocumentService } from '../services/gcs-document-service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -151,7 +153,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error fetching bills:', _error);
       res.status(500).json({
         message: 'Failed to fetch bills',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -198,7 +200,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error fetching bill:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -256,7 +258,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error creating bill:', _error);
       res.status(500).json({
         message: 'Failed to create bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -332,7 +334,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error updating bill:', _error);
       res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -414,7 +416,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error updating bill:', _error);
       res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -443,7 +445,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error deleting bill:', _error);
       res.status(500).json({
         message: 'Failed to delete bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -464,28 +466,15 @@ export function registerBillRoutes(app: Express) {
           return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // Upload to object storage
-        const objectStorageService = new ObjectStorageService();
-        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        // Get organization ID for document organization
+        const organizations = await storage.getUserOrganizations(req.user.id);
+        const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-        // Read the uploaded file
-        const fileBuffer = fs.readFileSync(req.file.path);
-
-        // Upload to object storage
-        const uploadResponse = await fetch(uploadURL, {
-          method: 'PUT',
-          body: fileBuffer.buffer,
-          headers: {
-            'Content-Type': req.file.mimetype,
-          },
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload file to object storage');
-        }
-
-        // Get the object path
-        const documentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+        // Upload to Google Cloud Storage using Python functions
+        await gcsDocumentService.uploadDocument(organizationId, req.file.path);
+        
+        // Create document path in the expected format
+        const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
 
         // Analyze document with Gemini AI (only for images)
         let analysisResult = null;
@@ -530,17 +519,59 @@ export function registerBillRoutes(app: Express) {
           try {
             fs.unlinkSync(req.file.path);
           } catch (___cleanupError) {
-            console.error('Error cleaning up temp file:', cleanupError);
+            console.error('Error cleaning up temp file:', ___cleanupError);
           }
         }
 
         res.status(500).json({
           message: 'Failed to upload document',
-          _error: error instanceof Error ? error.message : 'Unknown error',
+          _error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }
   );
+
+  /**
+   * Download bill document using secure signed URL
+   * GET /api/bills/:id/download-document.
+   */
+  app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+
+      // Get the bill to check if it has a document
+      const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+
+      if (bill.length === 0) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const billData = bill[0];
+
+      if (!billData.documentPath || !billData.documentName) {
+        return res.status(404).json({ message: 'No document associated with this bill' });
+      }
+
+      // Get organization ID for document access
+      const organizations = await storage.getUserOrganizations(req.user.id);
+      const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+
+      // Generate signed URL for the document
+      const signedUrl = await gcsDocumentService.getDocumentUrl(organizationId, billData.documentName);
+
+      res.json({
+        url: signedUrl,
+        fileName: billData.documentName,
+        message: 'Document URL generated successfully'
+      });
+    } catch (_error) {
+      console.error('Error generating document URL:', _error);
+      res.status(500).json({
+        message: 'Failed to generate document download URL',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      });
+    }
+  });
 
   /**
    * Apply AI analysis to bill form data
@@ -602,7 +633,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error applying AI analysis:', _error);
       res.status(500).json({
         message: 'Failed to apply AI analysis',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -680,7 +711,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error generating future bills:', _error);
       res.status(500).json({
         message: 'Failed to generate future bills',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -714,7 +745,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error fetching bill categories:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill categories',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -797,7 +828,7 @@ export function registerBillRoutes(app: Express) {
       console.error('Error getting generated bills stats:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });

@@ -439,10 +439,10 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',
-          errors: error.issues,
+          errors: _error.issues,
         });
       }
 
@@ -543,10 +543,10 @@ export function registerDocumentRoutes(app: Express): void {
 
       res.json(updatedDocument);
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',
-          errors: error.issues,
+          errors: _error.issues,
         });
       }
 
