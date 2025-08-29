@@ -17,6 +17,12 @@ export class GCSDocumentService {
     this.bucketName = process.env.GCS_BUCKET_NAME || '';
     const credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
+    console.log('🔧 GCS Service Constructor - Project ID:', projectId);
+    console.log('🔧 GCS Service Constructor - Bucket Name:', this.bucketName);
+    console.log('🔧 GCS Service Constructor - Credentials present:', !!credentials);
+    console.log('🔧 GCS Service Constructor - Credentials length:', credentials?.length || 0);
+    console.log('🔧 GCS Service Constructor - Credentials preview:', credentials?.substring(0, 50) + '...');
+    
     if (!projectId || !this.bucketName) {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
@@ -34,11 +40,14 @@ export class GCSDocumentService {
         if (credentials.trim().startsWith('{')) {
           // It's a JSON string - parse it
           credentialsObj = JSON.parse(credentials.trim());
+          console.log('🔧 Parsed credentials type:', credentialsObj.type);
+          console.log('🔧 Parsed credentials client_email:', credentialsObj.client_email);
+          console.log('🔧 Parsed credentials has private_key:', !!credentialsObj.private_key);
           
           // Validate that it has required service account fields
           if (credentialsObj.type === 'service_account' && credentialsObj.private_key && credentialsObj.client_email) {
             storageConfig.credentials = credentialsObj;
-            console.log('✅ Using parsed service account credentials');
+            console.log('✅ Using parsed service account credentials for', credentialsObj.client_email);
           } else {
             console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
           }
@@ -55,8 +64,11 @@ export class GCSDocumentService {
       console.log('ℹ️ No credentials provided, using default authentication');
     }
 
+    console.log('🔧 Final storage config:', JSON.stringify(storageConfig, null, 2));
+    
     // Initialize Google Cloud Storage
     this.storage = new Storage(storageConfig);
+    console.log('✅ Google Cloud Storage client initialized');
   }
 
   /**
