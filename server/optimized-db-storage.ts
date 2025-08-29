@@ -1780,6 +1780,17 @@ export class OptimizedDatabaseStorage implements IStorage {
     });
   }
 
+  async createDocumentResident(document: InsertDocumentResident): Promise<DocumentResident> {
+    return dbPerformanceMonitor.trackQuery('createDocumentResident', async () => {
+      const result = await db.insert(schema.documentsResidents).values(document).returning();
+
+      // Invalidate resident document caches
+      queryCache.invalidate('resident_documents');
+
+      return result[0];
+    });
+  }
+
   /**
    * Updates building document with permission check.
    * @param id

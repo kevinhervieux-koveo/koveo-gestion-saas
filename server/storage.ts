@@ -130,6 +130,7 @@ export interface IStorage {
     _userId: string,
     _userRole: string
   ): Promise<Array<Document & { residentDocument: DocumentResident }>>;
+  createDocumentResident(_document: InsertDocumentResident): Promise<DocumentResident>;
 
   // Permission operations
   getPermissions(): Promise<Permission[]>;
