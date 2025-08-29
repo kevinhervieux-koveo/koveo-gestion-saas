@@ -547,73 +547,21 @@ export function registerDocumentRoutes(app: Express): void {
       const residenceIds = residences.map((ur) => ur.residenceId);
       const buildingIds = buildings.map((b) => b.id);
 
+      // Use unified documents system for updates
       let updatedDocument: unknown = null;
-
-      // Try to update the document in the appropriate table(s)
-      const hasNewDocumentMethods = 'updateBuildingDocument' in storage;
-
-      if (hasNewDocumentMethods) {
-        if (!documentType || documentType === 'building') {
-          try {
-            const validatedData = createBuildingDocumentSchema.partial().parse(req.body);
-            updatedDocument = await (storage as any).updateBuildingDocument(
-              documentId,
-              validatedData,
-              userId,
-              userRole,
-              organizationId
-            );
-            if (updatedDocument) {
-              updatedDocument.documentCategory = 'building';
-              updatedDocument.entityType = 'building';
-              updatedDocument.entityId = updatedDocument.buildingId;
-            }
-          } catch (_error) {
-            console.warn('Building document not found for update, trying resident documents');
-          }
+      
+      try {
+        const validatedData = createDocumentSchema.partial().parse(req.body);
+        updatedDocument = await storage.updateDocument(documentId, validatedData);
+        
+        if (updatedDocument) {
+          // Add compatibility fields for frontend
+          updatedDocument.documentCategory = updatedDocument.buildingId ? 'building' : 'resident';
+          updatedDocument.entityType = updatedDocument.buildingId ? 'building' : 'residence';
+          updatedDocument.entityId = updatedDocument.buildingId || updatedDocument.residenceId;
         }
-
-        if (!updatedDocument && (!documentType || documentType === 'resident')) {
-          try {
-            const validatedData = createResidentDocumentSchema.partial().parse(req.body);
-            // updateResidentDocument doesn't exist, use updateDocument as fallback
-            updatedDocument = await storage.updateDocument(
-              documentId,
-              validatedData,
-              userId,
-              userRole,
-              organizationId
-            );
-            if (updatedDocument) {
-              updatedDocument.documentCategory = 'resident';
-              updatedDocument.entityType = 'residence';
-              updatedDocument.entityId = updatedDocument.residenceId;
-            }
-          } catch (_error) {
-            console.warn('Resident document not found for update');
-          }
-        }
-      }
-
-      // Fallback to legacy documents if not found and no type specified
-      if (!updatedDocument && !documentType) {
-        try {
-          const validatedData = createDocumentSchema.partial().parse(req.body);
-          updatedDocument = await storage.updateDocument(
-            documentId,
-            validatedData,
-            userId,
-            userRole,
-            organizationId
-          );
-          if (updatedDocument) {
-            updatedDocument.documentCategory = 'legacy';
-            updatedDocument.entityType = 'legacy';
-            updatedDocument.entityId = null;
-          }
-        } catch (_error) {
-          console.warn('Legacy document not accessible for update');
-        }
+      } catch (error) {
+        console.warn('Failed to update document:', error);
       }
 
       if (!updatedDocument) {
@@ -647,46 +595,13 @@ export function registerDocumentRoutes(app: Express): void {
       const organizations = await storage.getUserOrganizations(userId);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
 
+      // Use unified documents system for deletion
       let deleted = false;
-
-      // Try to delete the document from the appropriate table(s)
-      const hasNewDocumentMethods = 'deleteBuildingDocument' in storage;
-
-      if (hasNewDocumentMethods) {
-        if (!documentType || documentType === 'building') {
-          try {
-            deleted = await (storage as any).deleteBuildingDocument(
-              documentId,
-              userId,
-              userRole,
-              organizationId
-            );
-          } catch (_error) {
-            console.warn('Building document not found for deletion, trying resident documents');
-          }
-        }
-
-        if (!deleted && (!documentType || documentType === 'resident')) {
-          try {
-            deleted = await (storage as any).deleteResidentDocument(
-              documentId,
-              userId,
-              userRole,
-              organizationId
-            );
-          } catch (_error) {
-            console.warn('Resident document not found for deletion');
-          }
-        }
-      }
-
-      // Fallback to legacy documents if not found and no type specified
-      if (!deleted && !documentType) {
-        try {
-          deleted = await storage.deleteDocument(documentId, userId, userRole, organizationId);
-        } catch (_error) {
-          console.warn('Legacy document not accessible for deletion');
-        }
+      
+      try {
+        deleted = await storage.deleteDocument(documentId);
+      } catch (error) {
+        console.warn('Failed to delete document:', error);
       }
 
       if (!deleted) {
@@ -777,12 +692,12 @@ export function registerDocumentRoutes(app: Express): void {
       // Note: File upload to external storage removed
       
       // Update document with file information
-      const updatedDocument = await storage.updateResidentDocument(documentId, {
+      const updatedDocument = await storage.updateDocument(documentId, {
         fileUrl: `prod_org_${organizationId}/${req.file.originalname}`,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
-      }, userId, userRole);
+      });
 
       // Clean up temporary file
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
