@@ -376,7 +376,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        const document = await (storage as any).createBuildingDocument(validatedData);
+        const document = await storage.createBuildingDocument(validatedData);
         res.status(201).json({
           ...document,
           documentCategory: 'building',
@@ -426,7 +426,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        const document = await (storage as any).createResidentDocument(validatedData);
+        const document = await storage.createDocumentResident(validatedData);
         res.status(201).json({
           ...document,
           documentCategory: 'resident',
@@ -498,7 +498,8 @@ export function registerDocumentRoutes(app: Express): void {
         if (!updatedDocument && (!documentType || documentType === 'resident')) {
           try {
             const validatedData = createResidentDocumentSchema.partial().parse(req.body);
-            updatedDocument = await (storage as any).updateResidentDocument(
+            // updateResidentDocument doesn't exist, use updateDocument as fallback
+            updatedDocument = await storage.updateDocument(
               documentId,
               validatedData,
               userId,

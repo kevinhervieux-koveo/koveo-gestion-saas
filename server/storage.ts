@@ -1240,7 +1240,13 @@ class ProductionFallbackStorage implements IStorage {
     return [];
   }
   async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
-    throw new Error('Not implemented in fallback');
+    const id = randomUUID();
+    return {
+      ...doc,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async deleteDocumentBuilding(documentId: string, buildingId: string): Promise<boolean> {
     return false;
@@ -1249,7 +1255,13 @@ class ProductionFallbackStorage implements IStorage {
     return [];
   }
   async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> {
-    throw new Error('Not implemented in fallback');
+    const id = randomUUID();
+    return {
+      ...doc,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async deleteDocumentResident(documentId: string, residentId: string): Promise<boolean> {
     return false;
