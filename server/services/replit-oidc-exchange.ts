@@ -43,8 +43,52 @@ export class ReplitOIDCExchange {
 
       console.log('🔄 Written OIDC token to file for Google Auth Library');
 
-      // Use Google Auth Library with the gcp-wif-config.json configuration
+      // Try Application Default Credentials first, then fall back to manual token exchange
       const { GoogleAuth } = await import('google-auth-library');
+      
+      // First attempt: Use Application Default Credentials
+      try {
+        const auth = new GoogleAuth({
+          scopes: [
+            'https://www.googleapis.com/auth/devstorage.full_control',
+            'https://www.googleapis.com/auth/cloud-platform'
+          ],
+          projectId: this.projectId,
+        });
+        
+        const authClient = await auth.getClient();
+        const accessToken = await authClient.getAccessToken();
+        
+        if (accessToken.token) {
+          console.log('✅ Successfully obtained access token via Application Default Credentials');
+          return accessToken.token;
+        }
+      } catch (adcError) {
+        console.log('🔄 ADC failed, trying service account impersonation...');
+      }
+      
+      // Second attempt: Direct service account impersonation using raw HTTP
+      const axios = await import('axios');
+      
+      // Try to use the metadata service if available
+      try {
+        const metadataResponse = await axios.default.get(
+          'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+          {
+            headers: { 'Metadata-Flavor': 'Google' },
+            timeout: 5000
+          }
+        );
+        
+        if (metadataResponse.data.access_token) {
+          console.log('✅ Successfully obtained access token via metadata service');
+          return metadataResponse.data.access_token;
+        }
+      } catch (metadataError) {
+        console.log('🔄 Metadata service not available, trying WIF with PASETO...');
+      }
+      
+      // Third attempt: Try with Workload Identity Federation (might work despite token format)
       const auth = new GoogleAuth({
         scopes: [
           'https://www.googleapis.com/auth/devstorage.full_control',
