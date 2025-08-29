@@ -417,49 +417,7 @@ export function setupAuthRoutes(app: any) {
       }
 
       console.log(`🔍 [AUTH ROUTE] Calling storage.getUserByEmail for: ${email.toLowerCase()}`);
-      // Temporary direct SQL bypass to fix login issues
-      console.log(`🔄 [AUTH BYPASS] Using direct SQL for user lookup: ${email.toLowerCase()}`);
-      let user = null;
-      try {
-        const sqlResult = await sql`
-          SELECT 
-            id, username, email, password, first_name, last_name, 
-            phone, profile_image, language, role, is_active, 
-            last_login_at, created_at, updated_at
-          FROM users 
-          WHERE email = ${email.toLowerCase()} AND is_active = true
-          LIMIT 1
-        `;
-        
-        if (sqlResult.length > 0) {
-          const dbUser = sqlResult[0];
-          user = {
-            id: dbUser.id,
-            username: dbUser.username,
-            email: dbUser.email,
-            password: dbUser.password,
-            firstName: dbUser.first_name,
-            lastName: dbUser.last_name,
-            phone: dbUser.phone,
-            profileImage: dbUser.profile_image,
-            language: dbUser.language,
-            role: dbUser.role,
-            isActive: dbUser.is_active,
-            lastLoginAt: dbUser.last_login_at,
-            createdAt: dbUser.created_at,
-            updatedAt: dbUser.updated_at,
-          };
-          console.log(`✅ [AUTH BYPASS] Found user via direct SQL: ${user.firstName} ${user.lastName}`);
-          console.log(`🔍 [AUTH BYPASS] SQL returned password hash: ${user.password.substring(0, 40)}...`);
-        } else {
-          console.log(`❌ [AUTH BYPASS] No user found via direct SQL for: ${email.toLowerCase()}`);
-        }
-      } catch (sqlError) {
-        console.error(`❌ [AUTH BYPASS] SQL error:`, sqlError);
-        // Fallback to original storage method
-        console.log(`🔄 [AUTH BYPASS] Falling back to storage method for: ${email.toLowerCase()}`);
-        user = await storage.getUserByEmail(email.toLowerCase());
-      }
+      const user = await storage.getUserByEmail(email.toLowerCase());
       
       if (!user) {
         return res.status(401).json({

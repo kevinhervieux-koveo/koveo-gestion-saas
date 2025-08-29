@@ -86,14 +86,14 @@ export default function LoginPage() {
           : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
       users: [
         {
-          email: 'marie.dubois@demo.com',
-          name: language === 'fr' ? 'Marie Dubois' : 'Marie Dubois',
+          email: 'marc.gauthier@demo.com',
+          name: language === 'fr' ? 'Marc Gauthier' : 'Marc Gauthier',
           building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'pierre.gagnon@demo.com',
-          name: language === 'fr' ? 'Pierre Gagnon' : 'Pierre Gagnon',
+          email: 'sophie.tremblay@demo.com',
+          name: language === 'fr' ? 'Sophie Tremblay' : 'Sophie Tremblay',
           building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
@@ -114,8 +114,8 @@ export default function LoginPage() {
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'claude.morin@demo.com',
-          name: language === 'fr' ? 'Claude Morin' : 'Claude Morin',
+          email: 'alice.johnson@demo.com',
+          name: language === 'fr' ? 'Alice Johnson' : 'Alice Johnson',
           building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
@@ -130,14 +130,14 @@ export default function LoginPage() {
           : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
       users: [
         {
-          email: 'michel.cote@demo.com',
-          name: language === 'fr' ? 'Michel Côté' : 'Michel Côté',
+          email: 'bob.smith@demo.com',
+          name: language === 'fr' ? 'Bob Smith' : 'Bob Smith',
           building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'francois.leclerc@demo.com',
-          name: language === 'fr' ? 'François Leclerc' : 'François Leclerc',
+          email: 'david.wilson@demo.com',
+          name: language === 'fr' ? 'David Wilson' : 'David Wilson',
           building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
