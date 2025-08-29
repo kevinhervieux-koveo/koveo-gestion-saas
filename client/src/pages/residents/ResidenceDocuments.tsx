@@ -249,7 +249,7 @@ export default function ResidenceDocuments() {
     formData.append('file', selectedFile);
     formData.append('name', data.name);
     formData.append('description', data.description || '');
-    formData.append('documentType', data.documentType);
+    formData.append('documentType', data.type);
     formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
     formData.append('residenceId', residenceId);
     
