@@ -165,8 +165,8 @@ export class GCSDocumentService {
         throw new Error('Missing required environment variables: GOOGLE_CLOUD_PROJECT, GCS_BUCKET_NAME');
       }
 
-      if (!process.env.REPLIT_ID_TOKEN_PATH) {
-        throw new Error('Missing REPLIT_ID_TOKEN_PATH for OIDC authentication');
+      if (!process.env.REPL_IDENTITY) {
+        throw new Error('Missing REPL_IDENTITY for OIDC authentication');
       }
 
       console.log('🔄 Testing OIDC token exchange...');
