@@ -737,13 +737,13 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Get the existing document to determine where to store the file
-      const existingDocument = await storage.getResidentDocument(
-        documentId,
+      const documents = await storage.getDocuments({
+        id: documentId,
         userId,
-        userRole,
-        undefined, // organizationId
-        undefined  // residenceIds  
-      );
+        userRole
+      });
+
+      const existingDocument = documents.find(doc => doc.id === documentId);
 
       if (!existingDocument) {
         return res.status(404).json({ message: 'Document not found' });
