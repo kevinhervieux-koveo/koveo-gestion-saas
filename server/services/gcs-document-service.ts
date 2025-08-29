@@ -18,14 +18,14 @@ export class GCSDocumentService {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Configure for Workload Identity Federation in Replit environment
-    // Completely disable metadata server detection
-    process.env.GCE_METADATA_HOST = '';
-    process.env.NO_GCE_CHECK = 'true';
-    process.env.GOOGLE_AUTH_SUPPRESS_CREDENTIALS_WARNINGS = 'true';
+    // Configure environment to force external account authentication
+    // This prevents the Google Cloud SDK from trying to access metadata server
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = '/dev/null';
+    process.env.GCLOUD_PROJECT = projectId;
+    delete process.env.GCE_METADATA_HOST;
     
-    // Initialize Google Cloud Storage with project ID
-    // SDK will use GOOGLE_CLOUD_PROJECT and service account email from Replit WIF
+    // Initialize Google Cloud Storage client
+    // With invalid GOOGLE_APPLICATION_CREDENTIALS, it will fallback to external account auth
     this.storage = new Storage({
       projectId
     });
