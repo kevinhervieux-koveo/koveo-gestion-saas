@@ -857,6 +857,7 @@ export class MemStorage implements IStorage {
 
 // Import the database storage implementation
 import { DatabaseStorage } from './db-storage';
+import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
 // Production fallback storage - try database first, fall back to memory if authentication fails
 class ProductionFallbackStorage implements IStorage {
@@ -1491,5 +1492,5 @@ class ProductionFallbackStorage implements IStorage {
   }
 }
 
-// Always use database storage - no fallbacks
-export const storage = new DatabaseStorage();
+// Always use optimized database storage - no fallbacks
+export const storage = new OptimizedDatabaseStorage();
