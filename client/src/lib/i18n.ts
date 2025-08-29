@@ -2,24 +2,12 @@
  * Supported languages for the Quebec property management platform.
  * Provides bilingual support as required by Quebec regulations.
  */
-/**
- * Language type definition.
- */
-/**
- * Language type definition.
- */
 export type Language = 'en' | 'fr';
 
 /**
  * Translation keys interface for multilingual support.
  * Defines all translatable text keys used throughout the application.
  * Supports Quebec's bilingual requirements with French and English translations.
- */
-/**
- * Translations type definition.
- */
-/**
- * Translations type definition.
  */
 export interface Translations {
   dashboard: string;
