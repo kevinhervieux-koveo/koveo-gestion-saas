@@ -48,27 +48,29 @@ export class GCSDocumentService {
             console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
           }
         } else {
-          // It's a file path - try to read and validate the file
+          // It's a file path - check if it's WIF or service account
           console.log('🔧 Found credentials file path:', credentials);
           
-          // WIF may not work properly in this environment, check for alternative
-          // If we have service account credentials as backup, use those instead
-          const serviceAccountCreds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-          if (serviceAccountCreds) {
-            console.log('🔄 WIF file detected but using service account JSON instead for reliability');
-            try {
-              const serviceCredentialsObj = JSON.parse(serviceAccountCreds);
-              if (serviceCredentialsObj.type === 'service_account') {
-                storageConfig.credentials = serviceCredentialsObj;
-                console.log('✅ Using service account credentials from GOOGLE_SERVICE_ACCOUNT_JSON');
-              }
-            } catch (e) {
-              console.warn('⚠️ Could not parse GOOGLE_SERVICE_ACCOUNT_JSON, falling back to keyFilename');
+          try {
+            // Read the file to determine its type
+            const credFileContent = fs.readFileSync(credentials, 'utf8');
+            const credFileObj = JSON.parse(credFileContent);
+            
+            if (credFileObj.type === 'external_account') {
+              console.log('🔧 Detected Workload Identity Federation config');
+              console.log('🔄 WIF detected - Google Cloud SDK will use GOOGLE_APPLICATION_CREDENTIALS env var directly');
+              // Don't set keyFilename for WIF - let the SDK handle it via environment variable
+            } else if (credFileObj.type === 'service_account') {
+              console.log('🔧 Detected service account key file');
               storageConfig.keyFilename = credentials;
+              console.log('✅ Using service account key file:', credentials);
+            } else {
+              console.warn('⚠️ Unknown credential file type:', credFileObj.type);
+              // Fall back to letting SDK handle it
             }
-          } else {
-            storageConfig.keyFilename = credentials;
-            console.log('✅ Using credentials file path:', credentials);
+          } catch (fileError) {
+            console.warn('⚠️ Could not read/parse credentials file:', fileError.message);
+            console.log('🔄 Letting Google Cloud SDK handle credentials directly');
           }
         }
       } catch (error) {
