@@ -256,7 +256,10 @@ export default function ResidenceDocuments() {
 
     try {
       console.log('📤 Making upload request to:', `/api/documents/${documentId}/upload`);
-      await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
+      const response = await apiRequest('POST', `/api/documents/${documentId}/upload`, formData);
+      const result = await response.json();
+      console.log('✅ Upload successful:', result);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
       setIsAddDialogOpen(false);
       setSelectedFile(null);
@@ -264,15 +267,26 @@ export default function ResidenceDocuments() {
       form.reset();
       toast({
         title: 'Document uploaded',
-        description: 'Document has been uploaded successfully.',
+        description: 'Document has been uploaded successfully to Google Cloud Storage.',
       });
     } catch (error: any) {
+      console.error('❌ Upload error:', error);
       setUploadingDocumentId(null);
-      toast({
-        title: 'Failed to upload file',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
-      });
+      
+      // Handle authentication errors specifically
+      if (error.message.includes('401')) {
+        toast({
+          title: 'Session expired',
+          description: 'Please refresh the page and try again.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Failed to upload file',
+          description: error.message || 'Something went wrong',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

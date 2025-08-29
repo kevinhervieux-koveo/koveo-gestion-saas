@@ -36,10 +36,19 @@ async function throwIfResNotOk(res: Response) {
  * @throws Error if response status is not ok.
  */
 export async function apiRequest(method: string, url: string, data?: unknown): Promise<Response> {
+  const headers: Record<string, string> = {};
+  
+  // Handle FormData vs JSON data
+  if (data instanceof FormData) {
+    // Don't set Content-Type for FormData - let browser set it with boundary
+  } else if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { 'Content-Type': 'application/json' } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     credentials: 'include',
   });
 
