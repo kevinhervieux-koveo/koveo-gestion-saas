@@ -16,6 +16,9 @@ import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { GCSDocumentService } from '../services/gcs-document-service';
+
+const gcsDocumentService = new GCSDocumentService();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -670,8 +673,8 @@ export function registerDocumentRoutes(app: Express): void {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
-      const residenceId = req.params.id; // The :id in the URL is the residence ID
-      const { documentType = 'resident', ...otherData } = req.body;
+      const documentId = req.params.id; // The :id in the URL is the document ID (from frontend)
+      const { documentType = 'resident', residenceId, ...otherData } = req.body;
 
       // Validate permissions - only admin, manager, and resident can create documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
@@ -682,48 +685,59 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(400).json({ message: 'File is required for upload' });
       }
 
-      // Validate and create resident document
-      const validatedData = createResidentDocumentSchema.parse({
-        ...otherData,
-        residenceId,
-        uploadedBy: userId,
+      // Get the existing document to determine where to store the file
+      const existingDocument = await storage.getDocument(
+        documentId,
+        userId,
+        userRole,
+        undefined, // organizationId
+        undefined  // residenceIds  
+      );
+
+      if (!existingDocument) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+
+      // Validate file upload data
+      const validatedData = insertDocumentSchema.parse({
+        ...existingDocument,
         filePath: req.file.path,
         fileName: req.file.originalname,
       });
 
-      // Permission checks for resident documents
-      if (userRole === 'resident' || userRole === 'tenant') {
-        const userResidences = await storage.getUserResidences(userId);
-        const hasAccess = userResidences.some((residence) => residence.residenceId === residenceId);
-        if (!hasAccess) {
-          return res.status(403).json({
-            message: 'You can only upload documents for your own residence',
-          });
+      // Determine organization ID based on document context
+      let organizationId: string;
+
+      if (existingDocument.buildingId) {
+        const building = await storage.getBuilding(existingDocument.buildingId);
+        if (!building) {
+          return res.status(404).json({ message: 'Building not found' });
         }
+        organizationId = building.organizationId;
+      } else if (existingDocument.residenceId) {
+        const residence = await storage.getResidence(existingDocument.residenceId);
+        if (!residence) {
+          return res.status(404).json({ message: 'Residence not found' });
+        }
+        const building = await storage.getBuilding(residence.buildingId);
+        if (!building) {
+          return res.status(404).json({ message: 'Building not found' });
+        }
+        organizationId = building.organizationId;
+      } else {
+        return res.status(400).json({ message: 'Document must be associated with a building or residence' });
       }
 
-      // Get residence and building info for organization ID
-      const residence = await storage.getResidence(residenceId);
-      if (!residence) {
-        return res.status(404).json({ message: 'Residence not found' });
-      }
-
-      const building = await storage.getBuilding(residence.buildingId);
-      if (!building) {
-        return res.status(404).json({ message: 'Building not found' });
-      }
-
-      // Call Python function to upload to Google Cloud Storage
-      const documentData = await gcsDocumentService.createDocument(
-        validatedData,
-        building.organizationId
-      );
-
-      // Create resident document record
-      const residentDocument = await storage.createDocumentResident({
-        documentId: documentData.id,
-        residenceId,
-        visibleToTenants: otherData.visibleToTenants || false,
+      // Upload file to Google Cloud Storage
+      await gcsDocumentService.uploadDocument(organizationId, req.file.path);
+      
+      // Update document with file information
+      const updatedDocument = await storage.updateDocument(documentId, {
+        ...existingDocument,
+        filePath: `prod_org_${organizationId}/${req.file.originalname}`,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
       });
 
       // Clean up temporary file
@@ -731,10 +745,9 @@ export function registerDocumentRoutes(app: Express): void {
         fs.unlinkSync(req.file.path);
       }
 
-      res.status(201).json({
-        document: documentData,
-        residentDocument,
-        message: 'Document uploaded successfully',
+      res.status(200).json({
+        document: updatedDocument,
+        message: 'File uploaded successfully',
       });
     } catch (error: any) {
       console.error('Error creating document:', error);
