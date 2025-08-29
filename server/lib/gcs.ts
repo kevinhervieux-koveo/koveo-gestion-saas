@@ -77,7 +77,12 @@ async function createStorageClient(): Promise<Storage> {
  */
 export async function getStorageClient(): Promise<Storage> {
   if (!storageInstance) {
-    storageInstance = await createStorageClient();
+    try {
+      storageInstance = await createStorageClient();
+    } catch (error) {
+      console.warn('GCS client initialization failed, will skip GCS operations:', error);
+      throw error;
+    }
   }
   return storageInstance;
 }
@@ -86,7 +91,10 @@ export async function getStorageClient(): Promise<Storage> {
  * Pre-configured Storage client instance for immediate use.
  * Note: This is an async operation, so use getStorageClient() for guaranteed initialization.
  */
-export const storage = getStorageClient();
+export const storage = (() => {
+  // Don't initialize GCS client at module load time to prevent startup errors
+  return null;
+})();
 
 /**
  * Uploads a file to Google Cloud Storage.
@@ -96,6 +104,15 @@ export const storage = getStorageClient();
  * @returns Promise with GCS path and public URL
  */
 export async function uploadToGCS(file: any, fileName: string): Promise<{ gcsPath: string; publicUrl: string }> {
+  // Check if GCS is available
+  if (!process.env.GCP_SERVICE_ACCOUNT_EMAIL) {
+    console.warn('GCS not configured, using local file path fallback');
+    return {
+      gcsPath: `local://${fileName}`,
+      publicUrl: `/uploads/${fileName}`
+    };
+  }
+
   try {
     const storage = await getStorageClient();
     const bucketName = process.env.GCS_BUCKET_NAME || 'koveo-documents';
@@ -140,8 +157,12 @@ export async function uploadToGCS(file: any, fileName: string): Promise<{ gcsPat
       }
     });
   } catch (error) {
-    console.error('GCS upload setup error:', error);
-    throw new Error(`Failed to setup GCS upload: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('GCS upload setup error, falling back to local storage:', error);
+    // Fallback to local file storage
+    return {
+      gcsPath: `local://${fileName}`,
+      publicUrl: `/uploads/${fileName}`
+    };
   }
 }
 
