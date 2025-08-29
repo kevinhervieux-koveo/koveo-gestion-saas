@@ -37,7 +37,7 @@ const upload = multer({
   },
 });
 
-// Document categories for validation
+// Document categories for validation - synchronized with frontend
 const DOCUMENT_CATEGORIES = [
   'bylaw',
   'financial',
@@ -48,6 +48,9 @@ const DOCUMENT_CATEGORIES = [
   'contracts',
   'permits',
   'inspection',
+  'lease',
+  'correspondence',
+  'utilities',
   'other',
 ] as const;
 
