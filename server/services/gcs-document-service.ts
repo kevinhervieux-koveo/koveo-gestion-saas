@@ -18,17 +18,9 @@ export class GCSDocumentService {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Configure environment to force external account authentication
-    // This prevents the Google Cloud SDK from trying to access metadata server
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = '/dev/null';
-    process.env.GCLOUD_PROJECT = projectId;
-    delete process.env.GCE_METADATA_HOST;
-    
-    // Initialize Google Cloud Storage client
-    // With invalid GOOGLE_APPLICATION_CREDENTIALS, it will fallback to external account auth
-    this.storage = new Storage({
-      projectId
-    });
+    // Initialize Google Cloud Storage with minimal configuration for Workload Identity Federation
+    // This will use the GOOGLE_CLOUD_PROJECT and GOOGLE_SERVICE_ACCOUNT_EMAIL from Replit environment
+    this.storage = new Storage();
   }
 
   /**
