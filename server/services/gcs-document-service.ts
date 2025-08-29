@@ -3,89 +3,89 @@ import { GoogleAuth, JWT } from 'google-auth-library';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { ReplitOIDCExchange } from './replit-oidc-exchange.js';
 
 /**
  * Google Cloud Storage Document Service
- * Uses Node.js Google Cloud SDK with Workload Identity Federation
+ * Uses custom OIDC token exchange for Replit + Google Cloud authentication
  */
 export class GCSDocumentService {
-  private storage: Storage;
+  private storage: Storage | null = null;
   private bucketName: string;
+  private oidcExchange: ReplitOIDCExchange;
+  private cachedToken: string | null = null;
+  private tokenExpiry: number = 0;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
     const projectId = process.env.GOOGLE_CLOUD_PROJECT;
     this.bucketName = process.env.GCS_BUCKET_NAME || '';
-    const credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
     console.log('🔧 GCS Service Constructor - Project ID:', projectId);
     console.log('🔧 GCS Service Constructor - Bucket Name:', this.bucketName);
-    console.log('🔧 GCS Service Constructor - Credentials present:', !!credentials);
-    console.log('🔧 GCS Service Constructor - Credentials length:', credentials?.length || 0);
-    console.log('🔧 GCS Service Constructor - Credentials preview:', credentials?.substring(0, 50) + '...');
     
     if (!projectId || !this.bucketName) {
       throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
     }
 
-    // Initialize Google Cloud Storage
-    const storageConfig: any = {
-      projectId: projectId
-    };
+    // Initialize OIDC exchange service
+    this.oidcExchange = new ReplitOIDCExchange();
+    
+    // Initialize storage with basic config - authentication will be done dynamically
+    this.storage = new Storage({ 
+      projectId: projectId,
+      // We'll authenticate using access tokens dynamically
+    });
 
-    // Handle GOOGLE_APPLICATION_CREDENTIALS properly
-    if (credentials) {
-      try {
-        // Check if it's a JSON string (starts with '{') or a file path
-        if (credentials.trim().startsWith('{')) {
-          // It's a JSON string - parse it for service account credentials
-          const credentialsObj = JSON.parse(credentials.trim());
-          console.log('🔧 Parsed credentials type:', credentialsObj.type);
-          
-          if (credentialsObj.type === 'service_account' && credentialsObj.private_key && credentialsObj.client_email) {
-            storageConfig.credentials = credentialsObj;
-            console.log('✅ Using parsed service account credentials for', credentialsObj.client_email);
-          } else {
-            console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
-          }
-        } else {
-          // It's a file path - check if it's WIF or service account
-          console.log('🔧 Found credentials file path:', credentials);
-          
-          try {
-            // Read the file to determine its type
-            const credFileContent = fs.readFileSync(credentials, 'utf8');
-            const credFileObj = JSON.parse(credFileContent);
-            
-            if (credFileObj.type === 'external_account') {
-              console.log('🔧 Detected Workload Identity Federation config');
-              console.log('🔄 WIF detected - Google Cloud SDK will use GOOGLE_APPLICATION_CREDENTIALS env var directly');
-              // Don't set keyFilename for WIF - let the SDK handle it via environment variable
-            } else if (credFileObj.type === 'service_account') {
-              console.log('🔧 Detected service account key file');
-              storageConfig.keyFilename = credentials;
-              console.log('✅ Using service account key file:', credentials);
-            } else {
-              console.warn('⚠️ Unknown credential file type:', credFileObj.type);
-              // Fall back to letting SDK handle it
-            }
-          } catch (fileError) {
-            console.warn('⚠️ Could not read/parse credentials file:', fileError.message);
-            console.log('🔄 Letting Google Cloud SDK handle credentials directly');
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Could not process GOOGLE_APPLICATION_CREDENTIALS:', error.message);
-        console.log('🔄 Falling back to environment-based authentication');
-      }
-    } else {
-      console.log('ℹ️ No credentials provided, using default authentication');
+    console.log('✅ GCS Service initialized with OIDC token exchange');
+  }
+
+  /**
+   * Get a valid access token (cached or fresh)
+   */
+  private async getAccessToken(): Promise<string> {
+    const now = Date.now();
+    
+    // Check if we have a cached token that's still valid (with 5-minute buffer)
+    if (this.cachedToken && now < (this.tokenExpiry - 5 * 60 * 1000)) {
+      console.log('🔄 Using cached access token');
+      return this.cachedToken;
     }
 
-    console.log('🔧 Final storage config:', JSON.stringify(storageConfig, null, 2));
+    console.log('🔄 Getting fresh access token via OIDC exchange...');
     
-    // Initialize Google Cloud Storage
-    this.storage = new Storage(storageConfig);
-    console.log('✅ Google Cloud Storage client initialized');
+    try {
+      this.cachedToken = await this.oidcExchange.exchangeTokenForAccessToken();
+      // Tokens typically expire in 1 hour, cache for 50 minutes
+      this.tokenExpiry = now + (50 * 60 * 1000);
+      
+      console.log('✅ Fresh access token obtained');
+      return this.cachedToken;
+    } catch (error: any) {
+      console.error('❌ Failed to get access token:', error.message);
+      throw new Error(`Authentication failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get an authenticated GCS bucket instance
+   */
+  private async getAuthenticatedBucket() {
+    if (!this.storage) {
+      throw new Error('Storage client not initialized');
+    }
+
+    const accessToken = await this.getAccessToken();
+    
+    // For GCS operations, we need to create a new client with the access token
+    const authenticatedStorage = new Storage({
+      projectId: process.env.GOOGLE_CLOUD_PROJECT,
+      authClient: {
+        getAccessToken: () => ({ access_token: accessToken }),
+      } as any,
+    });
+
+    return authenticatedStorage.bucket(this.bucketName);
   }
 
   /**
@@ -101,9 +101,13 @@ export class GCSDocumentService {
         throw new Error(`File not found: ${filePath}`);
       }
 
-      const bucket = this.storage.bucket(this.bucketName);
+      const bucket = await this.getAuthenticatedBucket();
       const fileName = path.basename(filePath);
       const destinationBlobName = `prod_org_${organizationId}/${fileName}`;
+      
+      console.log(`📤 Uploading file: ${filePath}`);
+      console.log(`📤 Destination: ${destinationBlobName}`);
+      console.log(`📤 Bucket: ${this.bucketName}`);
       
       // Upload the file
       await bucket.upload(filePath, {
@@ -113,8 +117,9 @@ export class GCSDocumentService {
         },
       });
 
-      console.log(`File uploaded successfully to blob: ${destinationBlobName}`);
+      console.log(`✅ File uploaded successfully to blob: ${destinationBlobName}`);
     } catch (error: any) {
+      console.error('❌ Upload failed:', error);
       throw new Error(`Failed to upload document: ${error.message}`);
     }
   }
@@ -127,7 +132,7 @@ export class GCSDocumentService {
    */
   async getDocumentUrl(organizationId: string, fileName: string): Promise<string> {
     try {
-      const bucket = this.storage.bucket(this.bucketName);
+      const bucket = await this.getAuthenticatedBucket();
       const blobName = `prod_org_${organizationId}/${fileName}`;
       const file = bucket.file(blobName);
 
@@ -160,11 +165,23 @@ export class GCSDocumentService {
         throw new Error('Missing required environment variables: GOOGLE_CLOUD_PROJECT, GCS_BUCKET_NAME');
       }
 
+      if (!process.env.REPL_IDENTITY) {
+        throw new Error('Missing REPL_IDENTITY token for OIDC authentication');
+      }
+
+      console.log('🔄 Testing OIDC token exchange...');
+      
+      // Test OIDC configuration
+      const configCheck = await this.oidcExchange.checkConfiguration();
+      if (!configCheck) {
+        throw new Error('OIDC configuration check failed');
+      }
+
       // Test authentication by trying to access the bucket
-      const bucket = this.storage.bucket(this.bucketName);
+      const bucket = await this.getAuthenticatedBucket();
       await bucket.getMetadata();
       
-      console.log('✅ Google Cloud Storage environment check passed');
+      console.log(`✅ Environment check passed: bucket ${this.bucketName} is accessible with OIDC authentication`);
       return true;
     } catch (error: any) {
       console.error('❌ Environment check failed:', error.message);
