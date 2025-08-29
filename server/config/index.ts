@@ -54,9 +54,8 @@ export const config = {
 
   // Database configuration
   database: {
-    url: env.NODE_ENV === 'development' 
-      ? env.DATABASE_URL_DEV || env.DATABASE_URL
-      : env.DATABASE_URL,
+    // Force development database for local development, even if NODE_ENV is production
+    url: env.DATABASE_URL_DEV || env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },

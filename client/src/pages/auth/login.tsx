@@ -74,7 +74,7 @@ export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Demo roles and users available for testing - only showing Demo organization users
+  // Demo roles and users available for testing - random selection from database users
   const demoRoles = {
     demo_manager: {
       displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
@@ -114,8 +114,8 @@ export default function LoginPage() {
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'lucie.roy@demo.com',
-          name: language === 'fr' ? 'Lucie Roy' : 'Lucie Roy',
+          email: 'claude.morin@demo.com',
+          name: language === 'fr' ? 'Claude Morin' : 'Claude Morin',
           building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
@@ -130,14 +130,14 @@ export default function LoginPage() {
           : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
       users: [
         {
-          email: 'sophie.martin@demo.com',
-          name: language === 'fr' ? 'Sophie Martin' : 'Sophie Martin',
+          email: 'michel.cote@demo.com',
+          name: language === 'fr' ? 'Michel Côté' : 'Michel Côté',
           building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
         {
-          email: 'michel.cote@demo.com',
-          name: language === 'fr' ? 'Michel Côté' : 'Michel Côté',
+          email: 'francois.leclerc@demo.com',
+          name: language === 'fr' ? 'François Leclerc' : 'François Leclerc',
           building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
         },
