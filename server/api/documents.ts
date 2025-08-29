@@ -742,7 +742,7 @@ export function registerDocumentRoutes(app: Express): void {
       const formData = {
         name: req.body.name,
         description: req.body.description || '',
-        documentType: req.body.documentType,
+        documentType: req.body.documentType || req.body.type, // Handle both field names
         isVisibleToTenants: req.body.isVisibleToTenants === 'true',
         residenceId: req.body.residenceId || undefined,
         buildingId: req.body.buildingId || undefined,
@@ -781,37 +781,93 @@ export function registerDocumentRoutes(app: Express): void {
         gcsPath = `general/${uniqueFileName}`;
       }
 
-      // Upload to GCS (works in both dev with ADC and prod with WIF)
-      const gcsClient = await getGCSClient();
-      const bucket = gcsClient.bucket(bucketName);
-      const file = bucket.file(gcsPath);
+      // Handle file storage - fallback to local storage in development if GCS fails
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          console.log('🔧 Development: Attempting GCS upload...');
+          const gcsClient = await getGCSClient();
+          const bucket = gcsClient.bucket(bucketName);
+          const file = bucket.file(gcsPath);
 
-      // Upload file to GCS
-      await new Promise<void>((resolve, reject) => {
-        const stream = fs.createReadStream(req.file!.path);
-        const uploadStream = file.createWriteStream({
-          metadata: {
-            contentType: req.file!.mimetype,
+          // Upload file to GCS
+          await new Promise<void>((resolve, reject) => {
+            const stream = fs.createReadStream(req.file!.path);
+            const uploadStream = file.createWriteStream({
+              metadata: {
+                contentType: req.file!.mimetype,
+                metadata: {
+                  originalName: req.file!.originalname,
+                  uploadedBy: userId,
+                  uploadedAt: new Date().toISOString(),
+                },
+              },
+            });
+
+            uploadStream.on('error', (error) => {
+              console.error('GCS upload error:', error);
+              reject(error);
+            });
+
+            uploadStream.on('finish', () => {
+              console.log(`✅ File uploaded to GCS: ${gcsPath}`);
+              resolve();
+            });
+
+            stream.pipe(uploadStream);
+          });
+        } catch (gcsError) {
+          console.log('⚠️ GCS upload failed, using local storage for development');
+          
+          // Fallback to local storage
+          const localStoragePath = path.join(process.cwd(), 'uploads');
+          if (!fs.existsSync(localStoragePath)) {
+            fs.mkdirSync(localStoragePath, { recursive: true });
+          }
+          
+          // Create directory structure
+          const localFilePath = path.join(localStoragePath, gcsPath);
+          const localFileDir = path.dirname(localFilePath);
+          if (!fs.existsSync(localFileDir)) {
+            fs.mkdirSync(localFileDir, { recursive: true });
+          }
+          
+          // Copy uploaded file to local storage
+          fs.copyFileSync(req.file!.path, localFilePath);
+          console.log(`🔧 Development: File saved locally at ${localFilePath}`);
+        }
+      } else {
+        // Production: Upload to GCS
+        const gcsClient = await getGCSClient();
+        const bucket = gcsClient.bucket(bucketName);
+        const file = bucket.file(gcsPath);
+
+        // Upload file to GCS
+        await new Promise<void>((resolve, reject) => {
+          const stream = fs.createReadStream(req.file!.path);
+          const uploadStream = file.createWriteStream({
             metadata: {
-              originalName: req.file!.originalname,
-              uploadedBy: userId,
-              uploadedAt: new Date().toISOString(),
+              contentType: req.file!.mimetype,
+              metadata: {
+                originalName: req.file!.originalname,
+                uploadedBy: userId,
+                uploadedAt: new Date().toISOString(),
+              },
             },
-          },
-        });
+          });
 
-        uploadStream.on('error', (error) => {
-          console.error('GCS upload error:', error);
-          reject(error);
-        });
+          uploadStream.on('error', (error) => {
+            console.error('GCS upload error:', error);
+            reject(error);
+          });
 
-        uploadStream.on('finish', () => {
-          console.log(`File uploaded to GCS: ${gcsPath}`);
-          resolve();
-        });
+          uploadStream.on('finish', () => {
+            console.log(`File uploaded to GCS: ${gcsPath}`);
+            resolve();
+          });
 
-        stream.pipe(uploadStream);
-      });
+          stream.pipe(uploadStream);
+        });
+      }
 
       // Create document record in database
       const documentData: InsertDocument = {
