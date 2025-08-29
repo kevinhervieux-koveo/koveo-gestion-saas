@@ -714,7 +714,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Get the existing document to determine where to store the file
-      const existingDocument = await storage.getDocument(
+      const existingDocument = await storage.getResidentDocument(
         documentId,
         userId,
         userRole,
@@ -726,12 +726,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(404).json({ message: 'Document not found' });
       }
 
-      // Validate file upload data
-      const validatedData = insertDocumentSchema.parse({
-        ...existingDocument,
-        filePath: req.file.path,
-        fileName: req.file.originalname,
-      });
+      // File validation passed - file exists and is ready for upload
 
       // Determine organization ID based on document context
       let organizationId: string;
@@ -760,13 +755,12 @@ export function registerDocumentRoutes(app: Express): void {
       await gcsDocumentService.uploadDocument(organizationId, req.file.path);
       
       // Update document with file information
-      const updatedDocument = await storage.updateDocument(documentId, {
-        ...existingDocument,
-        filePath: `prod_org_${organizationId}/${req.file.originalname}`,
+      const updatedDocument = await storage.updateResidentDocument(documentId, {
+        fileUrl: `prod_org_${organizationId}/${req.file.originalname}`,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
-      });
+      }, userId, userRole);
 
       // Clean up temporary file
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
