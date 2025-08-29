@@ -12,20 +12,25 @@ from google.cloud import storage
 from google.cloud.exceptions import NotFound, Forbidden
 
 
-def upload_secure_document(bucket_name: str, organization_id: str, file_path: str) -> None:
+def upload_secure_document(organization_id: str, file_path: str) -> None:
     """
     Uploads a document securely to Google Cloud Storage with organization-based structure.
     
     Args:
-        bucket_name (str): The name of the Google Cloud Storage bucket
         organization_id (str): The organization ID for organizing files
         file_path (str): Local path to the file to upload
         
     Raises:
+        ValueError: If the GCS_BUCKET_NAME environment variable is not set
         FileNotFoundError: If the local file doesn't exist
         PermissionError: If there are permission issues with Google Cloud Storage
         Exception: If the upload fails for other reasons
     """
+    
+    # Get bucket name from environment variable
+    bucket_name = os.getenv('GCS_BUCKET_NAME')
+    if not bucket_name:
+        raise ValueError("GCS_BUCKET_NAME environment variable is not set or is empty")
     
     # Verify the file exists
     if not os.path.exists(file_path):
@@ -37,7 +42,7 @@ def upload_secure_document(bucket_name: str, organization_id: str, file_path: st
     except Exception as e:
         raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
     
-    # Get the bucket
+    # Get the bucket from environment variable
     try:
         bucket = client.bucket(bucket_name)
     except NotFound:
@@ -68,12 +73,11 @@ def upload_secure_document(bucket_name: str, organization_id: str, file_path: st
         raise Exception(f"Failed to upload file: {str(e)}")
 
 
-def get_secure_document_url(bucket_name: str, organization_id: str, file_name: str) -> str:
+def get_secure_document_url(organization_id: str, file_name: str) -> str:
     """
     Generates a v4 signed URL for secure access to a document in Google Cloud Storage.
     
     Args:
-        bucket_name (str): The name of the Google Cloud Storage bucket
         organization_id (str): The organization ID for organizing files
         file_name (str): The name of the file to generate URL for
         
@@ -81,10 +85,16 @@ def get_secure_document_url(bucket_name: str, organization_id: str, file_name: s
         str: The v4 signed URL that expires in 15 minutes
         
     Raises:
+        ValueError: If the GCS_BUCKET_NAME environment variable is not set
         NotFound: If the specified file (blob) is not found
         PermissionError: If there are permission issues with Google Cloud Storage
         Exception: If URL generation fails for other reasons
     """
+    
+    # Get bucket name from environment variable
+    bucket_name = os.getenv('GCS_BUCKET_NAME')
+    if not bucket_name:
+        raise ValueError("GCS_BUCKET_NAME environment variable is not set or is empty")
     
     # Initialize the Google Cloud Storage client using application default credentials
     try:
@@ -92,7 +102,7 @@ def get_secure_document_url(bucket_name: str, organization_id: str, file_name: s
     except Exception as e:
         raise PermissionError(f"Failed to initialize Google Cloud Storage client: {str(e)}")
     
-    # Get the bucket
+    # Get the bucket from environment variable
     try:
         bucket = client.bucket(bucket_name)
     except NotFound:
@@ -130,16 +140,20 @@ def get_secure_document_url(bucket_name: str, organization_id: str, file_name: s
 
 def main():
     """
-    Example usage of the upload_secure_document function.
+    Example usage of the upload_secure_document and get_secure_document_url functions.
     """
     # Example usage
     try:
-        bucket_name = "your-bucket-name"
         organization_id = "org-123"
         file_path = "/path/to/your/document.pdf"
         
-        url = upload_secure_document(bucket_name, organization_id, file_path)
-        print(f"Document uploaded successfully: {url}")
+        upload_secure_document(organization_id, file_path)
+        print("Document uploaded successfully")
+        
+        # Example of getting a signed URL
+        file_name = "document.pdf"
+        url = get_secure_document_url(organization_id, file_name)
+        print(f"Secure URL generated: {url}")
         
     except Exception as e:
         print(f"Error: {e}")
