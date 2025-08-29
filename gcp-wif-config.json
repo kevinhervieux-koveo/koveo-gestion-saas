@@ -5,7 +5,7 @@
   "token_url": "https://sts.googleapis.com/v1/token",
   "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/replit-storage-admin@koveo-gestion.iam.gserviceaccount.com:generateAccessToken",
   "credential_source": {
-    "environment_id": "REPL_IDENTITY",
+    "file": "/tmp/repl-identity-token",
     "format": {
       "type": "text"
     }
