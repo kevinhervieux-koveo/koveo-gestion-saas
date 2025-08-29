@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { eq, and, sql } from 'drizzle-orm';
 import * as schema from '../../shared/schema';
 import ws from 'ws';
+import 'whatwg-fetch';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -37,8 +38,9 @@ describe('Demo User Login Page Integration', () => {
       const result = await db.execute(sql`SELECT current_database(), version()`);
       expect(result.rows).toHaveLength(1);
       
-      const dbName = result.rows[0]?.current_database;
-      const version = result.rows[0]?.version;
+      const row = result.rows[0] as { current_database: string; version: string };
+      const dbName = row.current_database;
+      const version = row.version;
       
       console.log(`✅ Connected to database: ${dbName}`);
       console.log(`✅ PostgreSQL version: ${version}`);
@@ -53,7 +55,8 @@ describe('Demo User Login Page Integration', () => {
         WHERE table_schema = 'public'
       `);
       
-      expect(Number(tableCount.rows[0]?.count)).toBeGreaterThan(10);
+      const countRow = tableCount.rows[0] as { count: string };
+      expect(Number(countRow.count)).toBeGreaterThan(10);
     });
 
     test('should have proper demo organizations in the database', async () => {
@@ -209,17 +212,38 @@ describe('Demo User Login Page Integration', () => {
       expect(loginPageUsers.rows.length).toBeGreaterThan(0);
 
       for (const user of loginPageUsers.rows) {
-        // Verify required fields for login page
-        expect(user.id).toBeDefined();
-        expect(user.email).toMatch(/^[a-zA-Z0-9._%+-]+@(demo|opendemo)\.com$/);
-        expect(user.first_name).toBeDefined();
-        expect(user.last_name).toBeDefined();
-        expect(user.role).toMatch(/^(admin|manager|tenant|resident)$/);
-        expect(user.organization_name).toMatch(/^(Demo|Open Demo)$/);
-        expect(typeof user.is_view_only).toBe('boolean');
+        // Type assertion and verify required fields for login page
+        const userRow = user as {
+          id: string;
+          email: string;
+          first_name: string;
+          last_name: string;
+          role: string;
+          organization_name: string;
+          is_view_only: boolean;
+        };
+        
+        expect(userRow.id).toBeDefined();
+        expect(userRow.email).toMatch(/^[a-zA-Z0-9._%+-]+@(demo|opendemo)\.com$/);
+        expect(userRow.first_name).toBeDefined();
+        expect(userRow.last_name).toBeDefined();
+        expect(userRow.role).toMatch(/^(admin|manager|tenant|resident)$/);
+        expect(userRow.organization_name).toMatch(/^(Demo|Open Demo)$/);
+        expect(typeof userRow.is_view_only).toBe('boolean');
+        
+        // Type assertion for row data
+        const userRow = user as {
+          id: string;
+          email: string;
+          first_name: string;
+          last_name: string;
+          role: string;
+          organization_name: string;
+          is_view_only: boolean;
+        };
         
         // Check email format matches first name and last name
-        const expectedEmailPrefix = `${user.first_name.toLowerCase()}.${user.last_name.toLowerCase()}`;
+        const expectedEmailPrefix = `${userRow.first_name.toLowerCase()}.${userRow.last_name.toLowerCase()}`;
         const normalizedEmailPrefix = expectedEmailPrefix
           .replace(/[àâäéèêëïîôöùûüÿç]/g, (char) => {
             const map: { [key: string]: string } = {
@@ -233,10 +257,10 @@ describe('Demo User Login Page Integration', () => {
             return map[char] || char;
           });
         
-        const emailPrefix = user.email.split('@')[0];
+        const emailPrefix = userRow.email.split('@')[0];
         expect(emailPrefix.toLowerCase()).toBe(normalizedEmailPrefix);
         
-        console.log(`  ✓ Login format valid: ${user.first_name} ${user.last_name} (${user.email}) - ${user.role} ${user.is_view_only ? '[View Only]' : ''}`);
+        console.log(`  ✓ Login format valid: ${userRow.first_name} ${userRow.last_name} (${userRow.email}) - ${userRow.role} ${userRow.is_view_only ? '[View Only]' : ''}`);
       }
     });
 

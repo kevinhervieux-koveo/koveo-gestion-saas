@@ -107,7 +107,8 @@ class DemoSecurityTester {
     const startTime = performance.now();
     
     try {
-      const output = execSync(`npm test -- ${suite.path}`, {
+      // Use Jest directly for better performance
+      const output = execSync(`npx jest ${suite.path} --verbose --forceExit --detectOpenHandles`, {
         encoding: 'utf8',
         stdio: 'pipe'
       });

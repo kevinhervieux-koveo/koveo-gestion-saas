@@ -1,10 +1,11 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import * as schema from '../../shared/schema';
 import { hashPassword } from '../../server/auth';
 import ws from 'ws';
+import 'whatwg-fetch';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -66,7 +67,8 @@ describe('Demo User Creation and Login Integration Tests', () => {
       expect(demoOrg).toBeDefined();
       expect(openDemoOrg).toBeDefined();
       
-      console.log(`✅ Connected to database: ${result.rows[0]?.current_database}`);
+      const dbName = result.rows[0] as { current_database: string };
+      console.log(`✅ Connected to database: ${dbName.current_database}`);
       console.log(`✅ Demo organization found: ${demoOrg?.id}`);
       console.log(`✅ Open Demo organization found: ${openDemoOrg?.id}`);
     });
@@ -84,7 +86,8 @@ describe('Demo User Creation and Login Integration Tests', () => {
           )`
         );
         
-        expect(result.rows[0]?.exists).toBe(true);
+        const row = result.rows[0] as { exists: boolean };
+        expect(row.exists).toBe(true);
       }
     });
   });
