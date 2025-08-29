@@ -1,19 +1,35 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { Storage } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 import path from 'path';
-
-const execAsync = promisify(exec);
+import fs from 'fs';
 
 /**
  * Google Cloud Storage Document Service
- * Interfaces with Python functions for document upload and URL generation
+ * Uses Node.js Google Cloud SDK with Workload Identity Federation
  */
 export class GCSDocumentService {
-  private pythonScriptPath: string;
+  private storage: Storage;
+  private bucketName: string;
 
   constructor() {
-    // Path to the Python script relative to the server directory
-    this.pythonScriptPath = path.join(process.cwd(), 'upload_secure_document_simple.py');
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+    this.bucketName = process.env.GCS_BUCKET_NAME || '';
+    
+    if (!projectId || !this.bucketName) {
+      throw new Error('GOOGLE_CLOUD_PROJECT and GCS_BUCKET_NAME environment variables are required');
+    }
+
+    // Initialize Google Cloud Storage with Workload Identity
+    const auth = new GoogleAuth({
+      projectId,
+      scopes: ['https://www.googleapis.com/auth/cloud-platform']
+    });
+
+    // Initialize Google Cloud Storage with project ID only
+    // The GoogleAuth will be used automatically by the Storage client
+    this.storage = new Storage({
+      projectId
+    });
   }
 
   /**
@@ -24,13 +40,25 @@ export class GCSDocumentService {
    */
   async uploadDocument(organizationId: string, filePath: string): Promise<void> {
     try {
-      const command = `python3 -c "
-from upload_secure_document_simple import upload_secure_document
-upload_secure_document('${organizationId}', '${filePath}')
-"`;
+      // Verify file exists
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
+      const bucket = this.storage.bucket(this.bucketName);
+      const fileName = path.basename(filePath);
+      const destinationBlobName = `prod_org_${organizationId}/${fileName}`;
       
-      await execAsync(command);
-    } catch (error) {
+      // Upload the file
+      await bucket.upload(filePath, {
+        destination: destinationBlobName,
+        metadata: {
+          cacheControl: 'public, max-age=31536000', // 1 year cache
+        },
+      });
+
+      console.log(`File uploaded successfully to blob: ${destinationBlobName}`);
+    } catch (error: any) {
       throw new Error(`Failed to upload document: ${error.message}`);
     }
   }
@@ -43,14 +71,25 @@ upload_secure_document('${organizationId}', '${filePath}')
    */
   async getDocumentUrl(organizationId: string, fileName: string): Promise<string> {
     try {
-      const command = `python3 -c "
-from upload_secure_document_simple import get_secure_document_url
-print(get_secure_document_url('${organizationId}', '${fileName}'))
-"`;
-      
-      const { stdout } = await execAsync(command);
-      return stdout.trim();
-    } catch (error) {
+      const bucket = this.storage.bucket(this.bucketName);
+      const blobName = `prod_org_${organizationId}/${fileName}`;
+      const file = bucket.file(blobName);
+
+      // Check if file exists
+      const [exists] = await file.exists();
+      if (!exists) {
+        throw new Error(`File not found: ${blobName}`);
+      }
+
+      // Generate signed URL (15 minutes expiration)
+      const [signedUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      });
+
+      return signedUrl;
+    } catch (error: any) {
       throw new Error(`Failed to generate document URL: ${error.message}`);
     }
   }
@@ -61,18 +100,18 @@ print(get_secure_document_url('${organizationId}', '${fileName}'))
    */
   async checkEnvironment(): Promise<boolean> {
     try {
-      const command = `python3 -c "
-import os
-bucket_name = os.getenv('GCS_BUCKET_NAME')
-if not bucket_name:
-    raise ValueError('GCS_BUCKET_NAME not set')
-print('Environment OK')
-"`;
+      if (!process.env.GOOGLE_CLOUD_PROJECT || !process.env.GCS_BUCKET_NAME) {
+        throw new Error('Missing required environment variables: GOOGLE_CLOUD_PROJECT, GCS_BUCKET_NAME');
+      }
+
+      // Test authentication by trying to access the bucket
+      const bucket = this.storage.bucket(this.bucketName);
+      await bucket.getMetadata();
       
-      await execAsync(command);
+      console.log('✅ Google Cloud Storage environment check passed');
       return true;
-    } catch (error) {
-      console.error('GCS Environment check failed:', error.message);
+    } catch (error: any) {
+      console.error('❌ Environment check failed:', error.message);
       return false;
     }
   }
