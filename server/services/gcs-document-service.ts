@@ -109,6 +109,18 @@ export class GCSDocumentService {
       console.log(`📤 Destination: ${destinationBlobName}`);
       console.log(`📤 Bucket: ${this.bucketName}`);
       
+      // DEBUG: Read and log OIDC token for Workload Identity Federation debugging
+      try {
+        const oidcTokenPath = process.env.REPLIT_ID_TOKEN_PATH;
+        if (oidcTokenPath && fs.existsSync(oidcTokenPath)) {
+          const tokenContent = fs.readFileSync(oidcTokenPath, 'utf8');
+          const tokenStart = tokenContent.substring(0, 50);
+          console.log(`DEBUG: OIDC Token start: ${tokenStart}`);
+        }
+      } catch (debugError) {
+        console.log('DEBUG: Could not read OIDC token path for debugging');
+      }
+      
       // Upload the file
       await bucket.upload(filePath, {
         destination: destinationBlobName,
