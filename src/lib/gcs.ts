@@ -31,30 +31,24 @@ class GCSClient {
    */
   private static async initializeStorage(): Promise<Storage> {
     try {
-      // In development, try ADC first but be ready to fail gracefully
+      // In development, use Application Default Credentials
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔧 Development mode: Attempting Application Default Credentials');
+        console.log('🔧 Development mode: Using Application Default Credentials');
+        console.log('💡 Run "gcloud auth application-default login" if authentication fails');
         
         const projectId = process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
         if (!projectId) {
           throw new Error('GCP_PROJECT_ID environment variable is required');
         }
         
-        try {
-          // Test ADC credentials
-          const storage = new Storage({
-            projectId: projectId
-          });
-          
-          // Quick auth test - try to list buckets
-          await storage.getBuckets();
-          console.log('✅ Google Cloud Storage client initialized with ADC');
-          return storage;
-        } catch (adcError) {
-          console.log('⚠️  ADC authentication failed, this is expected in Replit development');
-          console.log('💡 File uploads will fallback to local storage in development');
-          throw new Error('ADC_NOT_AVAILABLE');
-        }
+        // Use ADC - will automatically find credentials from gcloud
+        const storage = new Storage({
+          projectId: projectId
+          // No credentials needed - will use ADC
+        });
+        
+        console.log('✅ Google Cloud Storage client initialized with ADC');
+        return storage;
       }
       
       // In production, use WIF

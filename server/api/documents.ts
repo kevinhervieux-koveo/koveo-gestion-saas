@@ -118,7 +118,7 @@ export function registerDocumentRoutes(app: Express): void {
         } else {
           // Verify user has access to this specific residence
           // Handle both simple {residenceId: string} and complex nested structures
-          const hasAccess = userResidences.some((ur: any) => {
+          const hasAccess = userResidences.some((ur: unknown) => {
             // Handle simple structure
             if (ur.residenceId === specificResidenceId) {
               return true;
@@ -141,7 +141,7 @@ export function registerDocumentRoutes(app: Express): void {
       } else {
         // Extract residence IDs from both simple and complex structures
         residenceIds = userResidences
-          .map((ur: any) => {
+          .map((ur: unknown) => {
             // Handle simple structure
             if (ur.residenceId) {
               return ur.residenceId;
@@ -156,7 +156,7 @@ export function registerDocumentRoutes(app: Express): void {
             }
             return null;
           })
-          .filter((id: any) => id !== null);
+          .filter((id: unknown) => id !== null);
       }
 
       const buildingIds = buildings.map((b) => b.id);
@@ -217,7 +217,7 @@ export function registerDocumentRoutes(app: Express): void {
       });
       
       // Add document type indicators for frontend compatibility
-      const enhancedDocuments = filteredDocuments.map((doc: any) => ({
+      const enhancedDocuments = filteredDocuments.map((doc) => ({
         ...doc,
         documentCategory: doc.buildingId ? 'building' : 'resident',
         entityType: doc.buildingId ? 'building' : 'residence',
@@ -229,15 +229,15 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Sort by upload date, most recent first
       allDocuments.sort(
-        (a: any, b: any) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+        (a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
       );
 
       res.json({
         documents: allDocuments,
         total: allDocuments.length,
-        buildingCount: allDocuments.filter((d: any) => d.documentCategory === 'building').length,
-        residentCount: allDocuments.filter((d: any) => d.documentCategory === 'resident').length,
-        legacyCount: allDocuments.filter((d: any) => d.documentCategory === 'legacy').length,
+        buildingCount: allDocuments.filter((d) => d.documentCategory === 'building').length,
+        residentCount: allDocuments.filter((d) => d.documentCategory === 'resident').length,
+        legacyCount: allDocuments.filter((d) => d.documentCategory === 'legacy').length,
       });
     } catch (_error) {
       console.error('Error fetching documents:', _error);
@@ -263,7 +263,7 @@ export function registerDocumentRoutes(app: Express): void {
       const residenceIds = residences.map((ur) => ur.residenceId);
       const buildingIds = buildings.map((b) => b.id);
 
-      let document: any = null;
+      let document: unknown = null;
 
       // Try to find the document in the appropriate table(s)
       const hasNewDocumentMethods = 'getBuildingDocument' in storage;
@@ -279,9 +279,9 @@ export function registerDocumentRoutes(app: Express): void {
               buildingIds
             );
             if (document) {
-              (document as any).documentCategory = 'building';
-              (document as any).entityType = 'building';
-              (document as any).entityId = (document as any).buildingId;
+              document.documentCategory = 'building';
+              document.entityType = 'building';
+              document.entityId = document.buildingId;
             }
           } catch (_error) {
             console.warn('Building document not found, continuing search');
@@ -298,9 +298,9 @@ export function registerDocumentRoutes(app: Express): void {
               residenceIds
             );
             if (document) {
-              (document as any).documentCategory = 'resident';
-              (document as any).entityType = 'residence';
-              (document as any).entityId = (document as any).residenceId;
+              document.documentCategory = 'resident';
+              document.entityType = 'residence';
+              document.entityId = document.residenceId;
             }
           } catch (_error) {
             console.warn('Resident document not found, continuing search');
@@ -319,9 +319,9 @@ export function registerDocumentRoutes(app: Express): void {
             residenceIds
           );
           if (document) {
-            (document as any).documentCategory = 'legacy';
-            (document as any).entityType = 'legacy';
-            (document as any).entityId = null;
+            document.documentCategory = 'legacy';
+            document.entityType = 'legacy';
+            document.entityId = null;
           }
         } catch (_error) {
           console.warn('Legacy document not accessible');
@@ -414,15 +414,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        const document = await (storage as any).createDocument({
-          name: validatedData.name || validatedData.title || 'Untitled',
-          description: validatedData.description,
-          documentType: validatedData.type,
-          gcsPath: '',
-          isVisibleToTenants: false,
-          buildingId: buildingId,
-          uploadedById: userId
-        });
+        const document = await storage.createBuildingDocument(validatedData);
         
         // Clean up temporary file after successful upload
         if (req.file?.path) {
@@ -556,7 +548,7 @@ export function registerDocumentRoutes(app: Express): void {
       const buildingIds = buildings.map((b) => b.id);
 
       // Use unified documents system for updates
-      let updatedDocument: any = null;
+      let updatedDocument: unknown = null;
       
       try {
         const validatedData = createDocumentSchema.partial().parse(req.body);
@@ -564,9 +556,9 @@ export function registerDocumentRoutes(app: Express): void {
         
         if (updatedDocument) {
           // Add compatibility fields for frontend
-          (updatedDocument as any).documentCategory = (updatedDocument as any).buildingId ? 'building' : 'resident';
-          (updatedDocument as any).entityType = (updatedDocument as any).buildingId ? 'building' : 'residence';
-          (updatedDocument as any).entityId = (updatedDocument as any).buildingId || (updatedDocument as any).residenceId;
+          updatedDocument.documentCategory = updatedDocument.buildingId ? 'building' : 'resident';
+          updatedDocument.entityType = updatedDocument.buildingId ? 'building' : 'residence';
+          updatedDocument.entityId = updatedDocument.buildingId || updatedDocument.residenceId;
         }
       } catch (error) {
         console.warn('Failed to update document:', error);
@@ -661,6 +653,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Get the existing document to determine where to store the file
       const documents = await storage.getDocuments({
+        id: documentId,
         userId,
         userRole
       });
@@ -702,6 +695,7 @@ export function registerDocumentRoutes(app: Express): void {
       const updatedDocument = await storage.updateDocument(documentId, {
         gcsPath: `prod_org_${organizationId}/${req.file.originalname}`,
         name: req.file.originalname,
+        mimeType: req.file.mimetype,
       });
 
       // Clean up temporary file
@@ -787,66 +781,37 @@ export function registerDocumentRoutes(app: Express): void {
         gcsPath = `general/${uniqueFileName}`;
       }
 
-      // Try GCS upload, fallback to local storage in development
-      try {
-        const gcsClient = await getGCSClient();
-        const bucket = gcsClient.bucket(bucketName);
-        const file = bucket.file(gcsPath);
+      // Upload to GCS (works in both dev with ADC and prod with WIF)
+      const gcsClient = await getGCSClient();
+      const bucket = gcsClient.bucket(bucketName);
+      const file = bucket.file(gcsPath);
 
-        // Upload file to GCS
-        await new Promise<void>((resolve, reject) => {
-          const stream = fs.createReadStream(req.file!.path);
-          const uploadStream = file.createWriteStream({
+      // Upload file to GCS
+      await new Promise<void>((resolve, reject) => {
+        const stream = fs.createReadStream(req.file!.path);
+        const uploadStream = file.createWriteStream({
+          metadata: {
+            contentType: req.file!.mimetype,
             metadata: {
-              contentType: req.file!.mimetype,
-              metadata: {
-                originalName: req.file!.originalname,
-                uploadedBy: userId,
-                uploadedAt: new Date().toISOString(),
-              },
+              originalName: req.file!.originalname,
+              uploadedBy: userId,
+              uploadedAt: new Date().toISOString(),
             },
-          });
-
-          uploadStream.on('error', (error) => {
-            console.error('GCS upload error:', error);
-            reject(error);
-          });
-
-          uploadStream.on('finish', () => {
-            console.log(`File uploaded to GCS: ${gcsPath}`);
-            resolve();
-          });
-
-          stream.pipe(uploadStream);
+          },
         });
-      } catch (gcsError) {
-        console.error('GCS upload failed:', gcsError);
-        
-        // In development, fallback to local storage
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔧 Development fallback: Saving file locally');
-          
-          const localStoragePath = path.join(process.cwd(), 'uploads');
-          if (!fs.existsSync(localStoragePath)) {
-            fs.mkdirSync(localStoragePath, { recursive: true });
-          }
-          
-          // Create directory structure
-          const localFilePath = path.join(localStoragePath, gcsPath);
-          const localFileDir = path.dirname(localFilePath);
-          if (!fs.existsSync(localFileDir)) {
-            fs.mkdirSync(localFileDir, { recursive: true });
-          }
-          
-          // Copy uploaded file to local storage (cross-device safe)
-          fs.copyFileSync(req.file!.path, localFilePath);
-          fs.unlinkSync(req.file!.path); // Clean up temp file
-          console.log(`📁 File saved locally: ${localFilePath}`);
-        } else {
-          // In production, re-throw the error
-          throw gcsError;
-        }
-      }
+
+        uploadStream.on('error', (error) => {
+          console.error('GCS upload error:', error);
+          reject(error);
+        });
+
+        uploadStream.on('finish', () => {
+          console.log(`File uploaded to GCS: ${gcsPath}`);
+          resolve();
+        });
+
+        stream.pipe(uploadStream);
+      });
 
       // Create document record in database
       const documentData: InsertDocument = {
@@ -862,7 +827,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       const newDocument = await storage.createDocument(documentData);
 
-      // Clean up temporary file (if still exists)
+      // Clean up temporary file
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
