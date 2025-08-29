@@ -65,8 +65,9 @@ import {
 interface Document {
   id: string;
   name: string;
+  description?: string;
   type: string;
-  dateReference: string;
+  dateReference?: string;
   buildingId?: string;
   residenceId?: string;
   fileUrl?: string;
@@ -95,53 +96,37 @@ interface DocumentManagerConfig {
   showVisibilityToggle?: boolean;
 }
 
-// Form schema factory
+// Form schema factory for unified document upload
 const createDocumentFormSchema = (type: 'building' | 'residence') => {
   const baseSchema = {
     name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
-    dateReference: z.string().refine(
-      (dateStr) => {
-        const date = new Date(dateStr);
-        return !isNaN(date.getTime());
-      },
-      {
-        message: 'Valid date is required',
-      }
-    ),
-    isVisibleToTenants: z.boolean().optional(),
+    description: z.string().optional(),
+    documentType: z.enum([
+      'bylaw',
+      'financial',
+      'maintenance',
+      'legal',
+      'meeting_minutes',
+      'insurance',
+      'contracts',
+      'permits',
+      'inspection',
+      'lease',
+      'communication',
+      'photos',
+      'other',
+    ]),
+    isVisibleToTenants: z.boolean().default(false),
   };
 
   if (type === 'building') {
     return z.object({
       ...baseSchema,
-      type: z.enum([
-        'bylaw',
-        'financial',
-        'maintenance',
-        'legal',
-        'meeting_minutes',
-        'insurance',
-        'contracts',
-        'permits',
-        'inspection',
-        'other',
-      ]),
       buildingId: z.string().min(1, 'Building ID is required'),
     });
   } else {
     return z.object({
       ...baseSchema,
-      type: z.enum([
-        'lease',
-        'inspection',
-        'maintenance',
-        'legal',
-        'insurance',
-        'financial',
-        'communication',
-        'photos',
-        'other',
-      ]),
       residenceId: z.string().min(1, 'Residence ID is required'),
     });
   }
@@ -175,21 +160,18 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
     resolver: zodResolver(schema),
     defaultValues: {
       name: document.name,
-      type: document.type as any,
-      dateReference: document.dateReference.split('T')[0],
+      description: document.description || '',
+      documentType: document.type as any,
       ...(config.type === 'building'
         ? { buildingId: document.buildingId }
         : { residenceId: document.residenceId }),
-      isVisibleToTenants: document.isVisibleToTenants ?? true,
+      isVisibleToTenants: document.isVisibleToTenants ?? false,
     },
   });
 
   const handleEditSave = async (data: any) => {
     try {
-      const response = (await apiRequest('PUT', `/api/documents/${document.id}`, {
-        ...data,
-        dateReference: new Date(data.dateReference).toISOString(),
-      })) as unknown as Document;
+      const response = (await apiRequest('PUT', `/api/documents/${document.id}`, data)) as unknown as Document;
       onSave(response);
       toast({
         title: 'Success',
@@ -222,7 +204,20 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
         />
         <FormField
           control={editForm.control}
-          name='type'
+          name='description'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder='Enter document description' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={editForm.control}
+          name='documentType'
           render={({ field }) => (
             <FormItem>
               <FormLabel>Document Type</FormLabel>
@@ -240,19 +235,6 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={editForm.control}
-          name='dateReference'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reference Date</FormLabel>
-              <FormControl>
-                <Input type='date' {...field} />
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -312,8 +294,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<any>(null);
-  const [isUploadingNewFile, setIsUploadingNewFile] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -327,12 +308,12 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
-      type: 'other',
-      dateReference: new Date().toISOString().split('T')[0],
+      description: '',
+      documentType: 'other',
       ...(config.type === 'building'
         ? { buildingId: config.entityId }
         : { residenceId: config.entityId }),
-      isVisibleToTenants: true,
+      isVisibleToTenants: false,
     },
   });
 
@@ -407,36 +388,55 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   // Mutations
   const createDocumentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const documentData: any = {
-        ...data,
-        dateReference: new Date(data.dateReference).toISOString(),
-      };
-
-      if (uploadedFile) {
-        documentData.fileUrl = uploadedFile.fileUrl;
-        documentData.fileName = uploadedFile.fileName;
-        documentData.fileSize = uploadedFile.fileSize.toString();
-        documentData.mimeType = uploadedFile.mimeType;
+      // Check if file is selected
+      if (!selectedFile) {
+        throw new Error('Please select a file to upload');
       }
 
-      return apiRequest('POST', '/api/documents', documentData);
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('name', data.name);
+      formData.append('description', data.description || '');
+      formData.append('documentType', data.documentType);
+      formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
+      
+      if (data.residenceId) {
+        formData.append('residenceId', data.residenceId);
+      }
+      if (data.buildingId) {
+        formData.append('buildingId', data.buildingId);
+      }
+
+      // Send POST request to the upload endpoint
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+      }
+
+      return await response.json();
     },
     onSuccess: () => {
+      // Invalidate the documents query to refetch the list
       queryClient.invalidateQueries({ queryKey });
       setIsCreateDialogOpen(false);
-      setUploadedFile(null);
+      setSelectedFile(null);
       form.reset();
       toast({
         title: 'Success',
-        description: uploadedFile
-          ? 'Document and file uploaded successfully!'
-          : 'Document created successfully.',
+        description: 'Document uploaded successfully!',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create document',
+        description: error.message || 'Failed to upload document',
         variant: 'destructive',
       });
     },
@@ -465,46 +465,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     createDocumentMutation.mutate(data);
   };
 
-  const handleNewDocumentUpload = async () => {
-    if (!entity) {
-      return null;
-    }
-
-    const response = await fetch('/api/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        organizationId: entity.organizationId,
-        [config.type === 'building' ? 'buildingId' : 'residenceId']: entity.id,
-        documentType: config.type,
-      }),
-    });
-
-    if (!response.ok) {
-      setIsUploadingNewFile(false);
-      throw new Error('Failed to get upload URL');
-    }
-
-    const data = await response.json();
-    return { method: 'PUT' as const, url: data.uploadURL };
-  };
-
-  const handleNewDocumentUploadComplete = (result: UploadResult<any, any>) => {
-    setIsUploadingNewFile(false);
-
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      setUploadedFile({
-        fileUrl: uploadedFile.uploadURL,
-        fileName: uploadedFile.name,
-        fileSize: uploadedFile.size || 0,
-        mimeType: uploadedFile.type || 'application/octet-stream',
-      });
-      toast({
-        title: 'File ready',
-        description: 'File uploaded! Now create the document to save it.',
-      });
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
@@ -673,7 +637,25 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
                         <FormField
                           control={form.control}
-                          name='type'
+                          name='description'
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description (Optional)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder='Enter document description'
+                                  {...field}
+                                  data-testid='input-document-description'
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name='documentType'
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Document Category</FormLabel>
@@ -696,19 +678,22 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name='dateReference'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Reference Date</FormLabel>
-                              <FormControl>
-                                <Input type='date' {...field} data-testid='input-reference-date' />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                        {/* File Upload Field */}
+                        <div className='space-y-2'>
+                          <Label htmlFor='file-upload'>Select File to Upload</Label>
+                          <Input
+                            id='file-upload'
+                            type='file'
+                            onChange={handleFileChange}
+                            accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff'
+                            data-testid='input-file-upload'
+                          />
+                          {selectedFile && (
+                            <div className='text-sm text-gray-600 mt-1'>
+                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                            </div>
                           )}
-                        />
+                        </div>
 
                         {config.showVisibilityToggle && (
                           <FormField
@@ -735,56 +720,29 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           />
                         )}
 
-                        {/* File Upload Section */}
-                        <div className='space-y-4'>
-                          <Label>Attach File (Optional)</Label>
-                          <div className='border-2 border-dashed border-gray-300 rounded-lg p-4'>
-                            {uploadedFile ? (
-                              <div className='text-center'>
-                                <FileText className='h-8 w-8 text-green-500 mx-auto mb-2' />
-                                <p className='text-sm text-gray-600 mb-2'>
-                                  File ready: {uploadedFile.fileName}
-                                </p>
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  size='sm'
-                                  onClick={() => setUploadedFile(null)}
-                                  data-testid='button-remove-file'
-                                >
-                                  Remove File
-                                </Button>
-                              </div>
-                            ) : (
-                              <ObjectUploader
-                                maxFileSize={10 * 1024 * 1024} // 10MB
-                                onGetUploadParameters={handleNewDocumentUpload}
-                                onComplete={handleNewDocumentUploadComplete}
-                              >
-                                <span>Upload File</span>
-                              </ObjectUploader>
-                            )}
-                          </div>
-                        </div>
 
                         <DialogFooter>
                           <Button
                             type='button'
                             variant='outline'
-                            onClick={() => setIsCreateDialogOpen(false)}
-                            disabled={createDocumentMutation.isPending || isUploadingNewFile}
+                            onClick={() => {
+                              setIsCreateDialogOpen(false);
+                              setSelectedFile(null);
+                              form.reset();
+                            }}
+                            disabled={createDocumentMutation.isPending}
                             data-testid='button-cancel-document'
                           >
                             Cancel
                           </Button>
                           <Button
                             type='submit'
-                            disabled={createDocumentMutation.isPending || isUploadingNewFile}
+                            disabled={createDocumentMutation.isPending}
                             data-testid='button-create-document'
                           >
-                            {createDocumentMutation.isPending || isUploadingNewFile
-                              ? 'Creating...'
-                              : 'Create Document'}
+                            {createDocumentMutation.isPending
+                              ? 'Uploading...'
+                              : 'Upload Document'}
                           </Button>
                         </DialogFooter>
                       </form>
