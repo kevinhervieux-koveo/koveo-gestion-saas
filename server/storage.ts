@@ -11,10 +11,6 @@ import {
   type InsertContact,
   type Document,
   type InsertDocument,
-  type DocumentBuilding,
-  type InsertDocumentBuilding,
-  type DocumentResident,
-  type InsertDocumentResident,
   type Pillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -108,29 +104,22 @@ export interface IStorage {
   deleteContact(_id: string): Promise<boolean>;
 
   // Document operations
-  getBuildingDocumentsForUser(
-    _buildingId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<Array<Document & { buildingDocument: DocumentBuilding }>>;
-  getBuildingDocument(
-    _buildingId: string,
-    _documentId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<(Document & { buildingDocument: DocumentBuilding }) | undefined>;
-  createBuildingDocument(_document: InsertDocumentBuilding): Promise<DocumentBuilding>;
-  updateBuildingDocument(
+  getDocuments(
+    _filters?: {
+      buildingId?: string;
+      residenceId?: string;
+      documentType?: string;
+      userId?: string;
+      userRole?: string;
+    }
+  ): Promise<Document[]>;
+  getDocument(_id: string): Promise<Document | undefined>;
+  createDocument(_document: InsertDocument): Promise<Document>;
+  updateDocument(
     _id: string,
-    _updates: Partial<DocumentBuilding>
-  ): Promise<DocumentBuilding | undefined>;
-  deleteBuildingDocument(_id: string): Promise<boolean>;
-  getResidentDocumentsForUser(
-    _residenceId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<Array<Document & { residentDocument: DocumentResident }>>;
-  createDocumentResident(_document: InsertDocumentResident): Promise<DocumentResident>;
+    _updates: Partial<Document>
+  ): Promise<Document | undefined>;
+  deleteDocument(_id: string): Promise<boolean>;
 
   // Permission operations
   getPermissions(): Promise<Permission[]>;
@@ -485,41 +474,41 @@ export class MemStorage implements IStorage {
     return false;
   }
 
-  async getBuildingDocumentsForUser(): Promise<
-    Array<Document & { buildingDocument: DocumentBuilding }>
-  > {
+  async getDocuments(
+    _filters?: {
+      buildingId?: string;
+      residenceId?: string;
+      documentType?: string;
+      userId?: string;
+      userRole?: string;
+    }
+  ): Promise<Document[]> {
     return [];
   }
-  async getBuildingDocument(): Promise<
-    (Document & { buildingDocument: DocumentBuilding }) | undefined
-  > {
+  
+  async getDocument(_id: string): Promise<Document | undefined> {
     return undefined;
   }
-  async createBuildingDocument(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
+  
+  async createDocument(doc: InsertDocument): Promise<Document> {
     const id = randomUUID();
     return {
       ...doc,
       id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      uploadDate: new Date(),
-      dateReference: new Date(),
-      fileUrl: doc.fileUrl || '',
-      fileName: doc.fileName || '',
-      fileSize: doc.fileSize || '',
-      mimeType: doc.mimeType || '',
     };
   }
-  async updateBuildingDocument(): Promise<DocumentBuilding | undefined> {
+  
+  async updateDocument(
+    _id: string,
+    _updates: Partial<Document>
+  ): Promise<Document | undefined> {
     return undefined;
   }
-  async deleteBuildingDocument(): Promise<boolean> {
+  
+  async deleteDocument(_id: string): Promise<boolean> {
     return false;
-  }
-  async getResidentDocumentsForUser(): Promise<
-    Array<Document & { residentDocument: DocumentResident }>
-  > {
-    return [];
   }
 
   async getPermissions(): Promise<Permission[]> {

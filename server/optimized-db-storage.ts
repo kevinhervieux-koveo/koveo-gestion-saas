@@ -19,10 +19,6 @@ import type {
   InsertResidence,
   Document,
   InsertDocument,
-  DocumentBuilding,
-  InsertDocumentBuilding,
-  DocumentResident,
-  InsertDocumentResident,
   InsertPillar,
   WorkspaceStatus,
   InsertWorkspaceStatus,
@@ -1769,25 +1765,117 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Creates building document.
    * @param document
    */
-  async createBuildingDocument(document: InsertDocumentBuilding): Promise<DocumentBuilding> {
-    return dbPerformanceMonitor.trackQuery('createBuildingDocument', async () => {
-      const result = await db.insert(schema.documentsBuildings).values(document).returning();
-
-      // Invalidate building document caches
-      queryCache.invalidate('building_documents');
-
+  // Unified Document operations
+  async getDocuments(
+    filters?: {
+      buildingId?: string;
+      residenceId?: string;
+      documentType?: string;
+      userId?: string;
+      userRole?: string;
+    }
+  ): Promise<Document[]> {
+    return this.withOptimizations(
+      'getDocuments',
+      `documents:${JSON.stringify(filters)}`,
+      'documents',
+      async () => {
+        let query = db.select().from(schema.documents);
+        
+        const conditions = [];
+        if (filters?.buildingId) {
+          conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+        }
+        if (filters?.residenceId) {
+          conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+        }
+        if (filters?.documentType) {
+          conditions.push(eq(schema.documents.documentType, filters.documentType));
+        }
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
+        
+        const result = await query.orderBy(desc(schema.documents.createdAt));
+        return result || [];
+      }
+    );
+  }
+  
+  async getDocument(id: string): Promise<Document | undefined> {
+    return this.withOptimizations(
+      'getDocument',
+      `document:${id}`,
+      'documents',
+      async () => {
+        const result = await db
+          .select()
+          .from(schema.documents)
+          .where(eq(schema.documents.id, id))
+          .limit(1);
+        return result[0];
+      }
+    );
+  }
+  
+  async createDocument(document: InsertDocument): Promise<Document> {
+    return dbPerformanceMonitor.trackQuery('createDocument', async () => {
+      console.log('📝 Creating document with data:', document);
+      const result = await db
+        .insert(schema.documents)
+        .values(document)
+        .returning();
+      console.log('📝 Database insert result:', result[0]);
+      
+      // Invalidate related caches
+      if (document.buildingId) {
+        this.cacheInvalidator.invalidateByPattern(`documents:*buildingId*${document.buildingId}*`);
+      }
+      if (document.residenceId) {
+        this.cacheInvalidator.invalidateByPattern(`documents:*residenceId*${document.residenceId}*`);
+      }
+      
       return result[0];
     });
   }
-
-  async createDocumentResident(document: InsertDocumentResident): Promise<DocumentResident> {
-    return dbPerformanceMonitor.trackQuery('createDocumentResident', async () => {
-      const result = await db.insert(schema.documentsResidents).values(document).returning();
-
-      // Invalidate resident document caches
-      queryCache.invalidate('resident_documents');
-
+  
+  async updateDocument(
+    id: string,
+    updates: Partial<Document>
+  ): Promise<Document | undefined> {
+    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
+      const result = await db
+        .update(schema.documents)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(schema.documents.id, id))
+        .returning();
+      
+      if (result[0]) {
+        // Invalidate caches
+        this.cacheInvalidator.invalidate(`document:${id}`);
+        this.cacheInvalidator.invalidateByPattern(`documents:*`);
+      }
+      
       return result[0];
+    });
+  }
+  
+  async deleteDocument(id: string): Promise<boolean> {
+    return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
+      const result = await db
+        .delete(schema.documents)
+        .where(eq(schema.documents.id, id))
+        .returning({ id: schema.documents.id });
+      
+      if (result.length > 0) {
+        // Invalidate caches
+        this.cacheInvalidator.invalidate(`document:${id}`);
+        this.cacheInvalidator.invalidateByPattern(`documents:*`);
+        return true;
+      }
+      
+      return false;
     });
   }
 

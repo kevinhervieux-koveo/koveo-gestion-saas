@@ -163,67 +163,69 @@ export function registerDocumentRoutes(app: Express): void {
 
       const allDocuments: unknown[] = [];
 
-      // Fetch documents based on type parameter
-      // Check if storage supports new document methods
-      const hasNewDocumentMethods = 'getBuildingDocumentsForUser' in storage;
-
-      if (hasNewDocumentMethods) {
-        if (!documentType || documentType === 'building') {
-          const buildingDocs = await (storage as any).getBuildingDocumentsForUser(
-            userId,
-            userRole,
-            organizationId,
-            buildingIds
-          );
-          // Add document type indicator for frontend
-          const enhancedBuildingDocs = buildingDocs.map((doc: unknown) => ({
-            ...doc,
-            documentCategory: 'building',
-            entityType: 'building',
-            entityId: doc.buildingId,
-          }));
-          allDocuments.push(...enhancedBuildingDocs);
+      // Use unified documents system
+      const filters: any = {
+        userId,
+        userRole,
+      };
+      
+      // Filter by specific residence if provided
+      if (specificResidenceId) {
+        filters.residenceId = specificResidenceId;
+      } else if (documentType === 'building') {
+        // For building documents, search in buildings user has access to
+        if (buildingIds.length > 0) {
+          // Get all documents for buildings, will filter later
         }
-
-        if (!documentType || documentType === 'resident') {
-          const residentDocs = await (storage as any).getResidentDocumentsForUser(
-            userId,
-            userRole,
-            organizationId,
-            residenceIds
-          );
-          // Add document type indicator for frontend
-          const enhancedResidentDocs = residentDocs.map((doc: unknown) => ({
-            ...doc,
-            documentCategory: 'resident',
-            entityType: 'residence',
-            entityId: doc.residenceId,
-          }));
-          allDocuments.push(...enhancedResidentDocs);
+      } else if (documentType === 'resident') {
+        // For resident documents, search in residences user has access to
+        if (residenceIds.length > 0) {
+          // Get all documents for residences, will filter later
         }
       }
-
-      // If no specific type requested, also include legacy documents during transition
-      if (!documentType) {
-        try {
-          const legacyDocs = await storage.getDocumentsForUser(
-            userId,
-            userRole,
-            organizationId,
-            residenceIds
-          );
-          const enhancedLegacyDocs = legacyDocs.map((doc) => ({
-            ...doc,
-            documentCategory: 'legacy',
-            entityType: 'legacy',
-            entityId: null,
-          }));
-          allDocuments.push(...enhancedLegacyDocs);
-        } catch (_error) {
-          // Legacy table might not exist, silently continue
-          console.warn('Legacy documents table not accessible, skipping');
+      
+      const documents = await storage.getDocuments(filters);
+      
+      // Apply role-based filtering
+      const filteredDocuments = documents.filter((doc) => {
+        // Admin can see all documents
+        if (userRole === 'admin') {
+          return true;
         }
-      }
+        
+        // Manager can see documents in their organization
+        if (userRole === 'manager' && organizationId) {
+          if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
+            return true;
+          }
+          if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
+            return true;
+          }
+        }
+        
+        // Residents/tenants can only see documents for their properties
+        if (userRole === 'resident' || userRole === 'tenant') {
+          if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
+            return true;
+          }
+          if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
+            return true;
+          }
+        }
+        
+        return false;
+      });
+      
+      // Add document type indicators for frontend compatibility
+      const enhancedDocuments = filteredDocuments.map((doc) => ({
+        ...doc,
+        documentCategory: doc.buildingId ? 'building' : 'resident',
+        entityType: doc.buildingId ? 'building' : 'residence',
+        entityId: doc.buildingId || doc.residenceId,
+        uploadDate: doc.createdAt, // For backward compatibility
+      }));
+      
+      allDocuments.push(...enhancedDocuments);
 
       // Sort by upload date, most recent first
       allDocuments.sort(
@@ -474,7 +476,19 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        const document = await storage.createDocumentResident(validatedData);
+        // Convert to unified document format
+        const unifiedDocument: InsertDocument = {
+          name: validatedData.name,
+          description: undefined,
+          documentType: validatedData.type,
+          gcsPath: validatedData.fileUrl || `temp-path-${Date.now()}`,
+          isVisibleToTenants: validatedData.isVisibleToTenants,
+          residenceId: validatedData.residenceId,
+          buildingId: undefined,
+          uploadedById: validatedData.uploadedBy,
+        };
+        
+        const document = await storage.createDocument(unifiedDocument);
         
         console.log('📝 Created resident document:', document);
         console.log('📝 Document ID:', document.id);
