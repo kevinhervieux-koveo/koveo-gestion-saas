@@ -31,21 +31,28 @@ export class GCSDocumentService {
       try {
         // Handle both JSON string and file path formats
         let credentialsObj;
-        if (credentials.startsWith('{')) {
-          // It's a JSON string
-          credentialsObj = JSON.parse(credentials);
+        if (credentials.trim().startsWith('{')) {
+          // It's a JSON string - parse it
+          credentialsObj = JSON.parse(credentials.trim());
+          
+          // Validate that it has required service account fields
+          if (credentialsObj.type === 'service_account' && credentialsObj.private_key && credentialsObj.client_email) {
+            storageConfig.credentials = credentialsObj;
+            console.log('✅ Using parsed service account credentials');
+          } else {
+            console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
+          }
         } else {
           // It might be a file path (fallback to default behavior)
           storageConfig.keyFilename = credentials;
-        }
-        
-        if (credentialsObj) {
-          storageConfig.credentials = credentialsObj;
+          console.log('✅ Using credentials file path:', credentials);
         }
       } catch (error) {
-        console.warn('Warning: Could not parse GOOGLE_APPLICATION_CREDENTIALS, using default auth:', error.message);
+        console.warn('⚠️ Could not parse GOOGLE_APPLICATION_CREDENTIALS, using default auth:', error.message);
         // Fall back to default authentication
       }
+    } else {
+      console.log('ℹ️ No credentials provided, using default authentication');
     }
 
     // Initialize Google Cloud Storage
