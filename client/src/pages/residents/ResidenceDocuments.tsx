@@ -172,13 +172,22 @@ export default function ResidenceDocuments() {
     },
     onSuccess: (newDocument) => {
       console.log('✅ Document created successfully:', newDocument);
+      console.log('🔍 Document keys:', newDocument ? Object.keys(newDocument) : 'null');
+      console.log('🔍 Document ID check:', {
+        hasId: 'id' in (newDocument || {}),
+        idValue: newDocument?.id,
+        idType: typeof newDocument?.id
+      });
+      
       if (selectedFile) {
         console.log('📤 File selected, uploading to document ID:', newDocument?.id);
         if (newDocument?.id) {
+          console.log('✅ Document ID found, starting upload...');
           setUploadingDocumentId(newDocument.id);
           uploadFile(newDocument.id);
         } else {
           console.error('❌ Document ID is missing from response');
+          console.error('❌ Full response object:', JSON.stringify(newDocument, null, 2));
           toast({
             title: 'Upload failed',
             description: 'Document was created but upload failed due to missing document ID',
