@@ -350,13 +350,13 @@ ResidentDemandsPage() {
     <PageLayout>
       <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
         <PageHeader
-          title='My Demands'
-          description='Submit and track your requests'
+          title={t('myDemands')}
+          description={t('submitAndTrackRequests')}
           actions={
             <DialogTrigger asChild>
               <Button>
                 <Plus className='h-4 w-4 mr-2' />
-                New Demand
+                {t('newDemand')}
               </Button>
             </DialogTrigger>
           }
@@ -364,7 +364,7 @@ ResidentDemandsPage() {
 
         <DialogContent className='max-w-md'>
           <DialogHeader>
-            <DialogTitle>Create New Demand</DialogTitle>
+            <DialogTitle>{t('createNewDemand')}</DialogTitle>
             <DialogDescription>Submit a new request or complaint</DialogDescription>
           </DialogHeader>
           <Form {...newDemandForm}>

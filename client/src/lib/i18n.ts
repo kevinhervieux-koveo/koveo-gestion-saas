@@ -451,6 +451,29 @@ export interface Translations {
   viewAllFeatures: string;
   readyToGetStarted: string;
   allRightsReserved: string;
+  // Building related translations
+  myBuildings: string;
+  viewBuildingsAccess: string;
+  noBuildingsFound: string;
+  // Residence Documents translations
+  residenceDocuments: string;
+  manageDocumentsResidence: string;
+  backToResidences: string;
+  documentsCount: string;
+  allResidenceDocuments: string;
+  noDocumentsFound: string;
+  noDocumentsUploadedYet: string;
+  // Demands page translations
+  myDemands: string;
+  submitAndTrackRequests: string;
+  searchDemands: string;
+  allTypes: string;
+  showingResults: string;
+  // Buildings management translations
+  buildings: string;
+  manageBuildingsOrganization: string;
+  searchBuildingsAddress: string;
+  addBuilding: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -907,6 +930,15 @@ const translations: Record<Language, Translations> = {
     viewAllFeatures: 'View All Features',
     readyToGetStarted: 'Ready to Get Started?',
     allRightsReserved: 'All rights reserved',
+    // Additional translations for missing elements
+    residenceDocuments: 'Residence Documents',
+    manageDocumentsResidence: 'Manage documents for this residence',
+    documentsCount: 'Documents ({count})',
+    noDocumentsUploadedYet: 'No documents have been uploaded for this residence yet.',
+    myDemands: 'My Demands',
+    showingResults: 'Showing {start} to {end} of {total} demands',
+    manageBuildingsOrganization: 'Manage {count} buildings in your organization',
+    searchBuildingsAddress: 'Search buildings by name or address...',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -1370,6 +1402,15 @@ const translations: Record<Language, Translations> = {
     viewAllFeatures: 'Voir toutes les fonctionnalités',
     readyToGetStarted: 'Prêt à commencer?',
     allRightsReserved: 'Tous droits réservés',
+    // Additional translations for missing elements
+    residenceDocuments: 'Documents de résidence',
+    manageDocumentsResidence: 'Gérer les documents de cette résidence',
+    documentsCount: 'Documents ({count})',
+    noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    myDemands: 'Mes demandes',
+    showingResults: 'Affichage de {start} à {end} sur {total} demandes',
+    manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
+    searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
   },
 };
 

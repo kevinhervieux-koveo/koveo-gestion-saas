@@ -48,6 +48,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { RESIDENCE_DOCUMENT_CATEGORIES, getDisplayableFileUrl } from '@/lib/documents';
+import { useLanguage } from '@/hooks/use-language';
 
 const documentFormSchema = z.object({
   name: z.string().min(1, 'Document name is required'),
@@ -80,6 +81,7 @@ export default function ResidenceDocuments() {
   const params = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -264,7 +266,7 @@ export default function ResidenceDocuments() {
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Residence Documents' subtitle='Loading documents...' />
+        <Header title={t('residenceDocuments')} subtitle='Loading documents...' />
         <div className='flex-1 flex items-center justify-center'>
           <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900'></div>
         </div>
@@ -277,7 +279,7 @@ export default function ResidenceDocuments() {
       <Header
         title={`${residence?.unitNumber ? `Unit ${residence.unitNumber}` : 'Residence'} Documents`}
         subtitle={
-          isUserTenant ? 'View documents available to you' : 'Manage documents for this residence'
+          isUserTenant ? 'View documents available to you' : t('manageDocumentsResidence')
         }
       />
 
@@ -291,7 +293,7 @@ export default function ResidenceDocuments() {
             data-testid='button-back'
           >
             <ArrowLeft className='w-4 h-4 mr-2' />
-            Back to Residences
+            {t('backToResidences')}
           </Button>
 
           {/* Controls */}
@@ -301,7 +303,7 @@ export default function ResidenceDocuments() {
                 Documents ({documents.length})
               </h2>
               <p className='text-sm text-muted-foreground'>
-                {isUserTenant ? 'Documents available to tenants' : 'All residence documents'}
+                {isUserTenant ? 'Documents available to tenants' : t('allResidenceDocuments')}
               </p>
             </div>
 
@@ -310,7 +312,7 @@ export default function ResidenceDocuments() {
                 <DialogTrigger asChild>
                   <Button data-testid='button-add-document'>
                     <Plus className='w-4 h-4 mr-2' />
-                    Add Document
+                    {t('addDocument')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className='max-w-md'>
@@ -447,11 +449,11 @@ export default function ResidenceDocuments() {
             <Card>
               <CardContent className='p-8 text-center'>
                 <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Documents Found</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noDocumentsFound')}</h3>
                 <p className='text-gray-500'>
                   {isUserTenant
                     ? 'No documents are currently available to tenants for this residence.'
-                    : 'No documents have been uploaded for this residence yet.'}
+                    : t('noDocumentsUploadedYet')}
                 </p>
               </CardContent>
             </Card>
