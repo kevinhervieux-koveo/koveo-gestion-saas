@@ -91,23 +91,6 @@ getDisplayableFileUrl(fileUrl: string): string {
     return fileUrl;
   }
 
-  // If it's a Google Cloud Storage URL, convert to objects route
-  if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
-    // Extract the path part after the bucket name
-    const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex((part) => part.includes('googleapis.com')); /**
-     * If function.
-     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-     */ /**
-     * If function.
-     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-     */
-
-    if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
-      const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
-      return `/objects/${pathAfterBucket}`;
-    }
-  }
 
   // If it starts with /objects/, use as-is
   if (fileUrl.startsWith('/objects/')) {

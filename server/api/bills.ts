@@ -8,7 +8,6 @@ import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
-import { gcsDocumentService } from '../services/gcs-document-service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -470,8 +469,7 @@ export function registerBillRoutes(app: Express) {
         const organizations = await storage.getUserOrganizations(req.user.id);
         const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-        // Upload to Google Cloud Storage using Python functions
-        await gcsDocumentService.uploadDocument(organizationId, req.file.path);
+        // Note: File upload to external storage removed
         
         // Create document path in the expected format
         const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
@@ -556,13 +554,9 @@ export function registerBillRoutes(app: Express) {
       const organizations = await storage.getUserOrganizations(req.user.id);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-      // Generate signed URL for the document
-      const signedUrl = await gcsDocumentService.getDocumentUrl(organizationId, billData.documentName);
-
-      res.json({
-        url: signedUrl,
-        fileName: billData.documentName,
-        message: 'Document URL generated successfully'
+      // Document download functionality removed (no external storage)
+      res.status(404).json({
+        message: 'Document download functionality has been disabled'
       });
     } catch (_error) {
       console.error('Error generating document URL:', _error);

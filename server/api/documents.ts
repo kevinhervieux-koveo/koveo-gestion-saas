@@ -16,9 +16,6 @@ import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { GCSDocumentService } from '../services/gcs-document-service';
-
-const gcsDocumentService = new GCSDocumentService();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -751,8 +748,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(400).json({ message: 'Document must be associated with a building or residence' });
       }
 
-      // Upload file to Google Cloud Storage
-      await gcsDocumentService.uploadDocument(organizationId, req.file.path);
+      // Note: File upload to external storage removed
       
       // Update document with file information
       const updatedDocument = await storage.updateResidentDocument(documentId, {
