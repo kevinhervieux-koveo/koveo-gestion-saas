@@ -48,18 +48,32 @@ export class GCSDocumentService {
             console.warn('⚠️ Invalid service account JSON format, falling back to default auth');
           }
         } else {
-          // It's a file path - let Google Cloud SDK handle it automatically
-          storageConfig.keyFilename = credentials;
-          console.log('✅ Using credentials file path:', credentials);
-          console.log('🔧 Google Cloud SDK will automatically load:', credentials);
+          // It's a file path - try to read and validate the file
+          console.log('🔧 Found credentials file path:', credentials);
+          
+          // WIF may not work properly in this environment, check for alternative
+          // If we have service account credentials as backup, use those instead
+          const serviceAccountCreds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+          if (serviceAccountCreds) {
+            console.log('🔄 WIF file detected but using service account JSON instead for reliability');
+            try {
+              const serviceCredentialsObj = JSON.parse(serviceAccountCreds);
+              if (serviceCredentialsObj.type === 'service_account') {
+                storageConfig.credentials = serviceCredentialsObj;
+                console.log('✅ Using service account credentials from GOOGLE_SERVICE_ACCOUNT_JSON');
+              }
+            } catch (e) {
+              console.warn('⚠️ Could not parse GOOGLE_SERVICE_ACCOUNT_JSON, falling back to keyFilename');
+              storageConfig.keyFilename = credentials;
+            }
+          } else {
+            storageConfig.keyFilename = credentials;
+            console.log('✅ Using credentials file path:', credentials);
+          }
         }
       } catch (error) {
         console.warn('⚠️ Could not process GOOGLE_APPLICATION_CREDENTIALS:', error.message);
-        // For file paths, let the SDK handle it directly without our custom config
-        if (!credentials.trim().startsWith('{')) {
-          console.log('🔄 Letting Google Cloud SDK handle file path directly');
-          // Don't set keyFilename, let the environment variable work
-        }
+        console.log('🔄 Falling back to environment-based authentication');
       }
     } else {
       console.log('ℹ️ No credentials provided, using default authentication');
