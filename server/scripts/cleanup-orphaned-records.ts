@@ -327,6 +327,6 @@ async function main() {
 }
 
 // Run the cleanup if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
