@@ -352,13 +352,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     isLoading: documentsLoading,
     error: documentsError,
   } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      if (!config.entityId) {
-        return { documents: [] };
-      }
-      return (await apiRequest('GET', `/api/documents?${queryParam}`)) as { documents: Document[] };
-    },
+    queryKey: [`/api/documents?${queryParam}`],
     enabled: !!config.entityId,
     refetchOnWindowFocus: true,
     staleTime: 0, // Always refetch to ensure we get the latest data
