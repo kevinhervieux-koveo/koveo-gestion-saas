@@ -38,7 +38,17 @@ export default function ResidenceDocuments() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <div className='flex-1 flex items-center justify-center'>
-          <p className='text-gray-500'>Residence ID is required</p>
+          <div className='text-center'>
+            <p className='text-gray-500 mb-4'>Residence ID is required</p>
+            <Button
+              variant='outline'
+              onClick={() => navigate('/residents/residence')}
+              data-testid='button-back-to-residences'
+            >
+              <ArrowLeft className='w-4 h-4 mr-2' />
+              Back to Residences
+            </Button>
+          </div>
         </div>
       </div>
     );
