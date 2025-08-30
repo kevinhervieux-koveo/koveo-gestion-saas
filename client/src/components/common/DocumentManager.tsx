@@ -1163,6 +1163,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
           </DialogHeader>
           {selectedDocument && (
             <div className='space-y-4'>
+              {console.log('Selected document in popup:', selectedDocument)}
               <div>
                 <h3 className='text-lg font-semibold'>{selectedDocument.name}</h3>
                 {selectedDocument.description && (
@@ -1192,6 +1193,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               <div className='flex gap-2 pt-4'>
                 <Button
                   onClick={() => {
+                    console.log('View button clicked, document:', selectedDocument);
                     if (isTextFile(selectedDocument)) {
                       setTextEditorDocument(selectedDocument);
                       setIsTextEditorOpen(true);
@@ -1209,7 +1211,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                 </Button>
                 <Button
                   variant='outline'
-                  onClick={() => handleDownloadDocument(selectedDocument)}
+                  onClick={() => {
+                    console.log('Download button clicked, document:', selectedDocument);
+                    handleDownloadDocument(selectedDocument);
+                  }}
                   disabled={!selectedDocument.fileUrl}
                   data-testid='button-download'
                 >
