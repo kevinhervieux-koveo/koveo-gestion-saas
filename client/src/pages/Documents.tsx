@@ -81,7 +81,7 @@ interface UploadResult<T, K> {
 // Mock ObjectUploader component (replace with actual implementation)
 const ObjectUploader = ({ children, onGetUploadParameters, onComplete, ...props }: any) => {
   return (
-    <Button size="sm" variant="outline" {...props}>
+    <Button size='sm' variant='outline' {...props}>
       {children}
     </Button>
   );
@@ -669,8 +669,8 @@ Documents() {
       {/* Documents grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {filteredDocuments.map((document) => (
-          <Card 
-            key={document.id} 
+          <Card
+            key={document.id}
             className='hover:shadow-lg transition-shadow cursor-pointer'
             onClick={() => {
               console.log('Card clicked for document:', document.title);

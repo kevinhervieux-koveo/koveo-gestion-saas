@@ -36,9 +36,11 @@ server/
 ## Core Components
 
 ### API Routes (`routes.ts`)
+
 **Purpose**: RESTful API endpoints for all application functionality
 
 **Key Features**:
+
 - Authentication and authorization endpoints
 - User and organization management
 - Property and residence operations
@@ -49,6 +51,7 @@ server/
 - Roadmap and feature management
 
 **Route Structure**:
+
 ```typescript
 // Authentication
 POST   /api/auth/login
@@ -71,9 +74,11 @@ DELETE /api/organizations/:id
 ```
 
 ### Data Storage (`storage.ts`)
+
 **Purpose**: Abstracted data access layer with multiple storage implementations
 
 **Storage Interface**:
+
 ```typescript
 interface IStorage {
   // User operations
@@ -82,24 +87,27 @@ interface IStorage {
   getUserByEmail(email: string): Promise<User | null>;
   updateUser(id: string, updates: Partial<User>): Promise<void>;
   deleteUser(id: string): Promise<void>;
-  
+
   // Organization operations
   createOrganization(org: InsertOrganization): Promise<Organization>;
   getOrganizations(): Promise<Organization[]>;
   updateOrganization(id: string, updates: Partial<Organization>): Promise<void>;
-  
+
   // ... other entity operations
 }
 ```
 
 **Storage Implementations**:
+
 - **PostgresStorage**: Production database storage with Drizzle ORM
 - **MemStorage**: In-memory storage for development and testing
 
 ### Middleware (`middleware.ts`)
+
 **Purpose**: Request processing and security middleware
 
 **Available Middleware**:
+
 - **Authentication**: JWT token validation and user context
 - **Authorization**: Role-based access control
 - **Rate Limiting**: API request throttling
@@ -111,6 +119,7 @@ interface IStorage {
 ## Authentication System
 
 ### JWT Implementation
+
 ```typescript
 // Token generation
 const generateTokens = (user: User) => {
@@ -119,18 +128,15 @@ const generateTokens = (user: User) => {
     JWT_SECRET,
     { expiresIn: '15m' }
   );
-  
-  const refreshToken = jwt.sign(
-    { userId: user.id },
-    REFRESH_SECRET,
-    { expiresIn: '7d' }
-  );
-  
+
+  const refreshToken = jwt.sign({ userId: user.id }, REFRESH_SECRET, { expiresIn: '7d' });
+
   return { accessToken, refreshToken };
 };
 ```
 
 ### Role-Based Access Control
+
 ```typescript
 // Permission middleware
 const requirePermission = (permission: string) => {
@@ -138,11 +144,11 @@ const requirePermission = (permission: string) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     if (!hasPermission(req.user.role, permission)) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
-    
+
     next();
   };
 };
@@ -151,12 +157,14 @@ const requirePermission = (permission: string) => {
 ## Database Integration
 
 ### Drizzle ORM
+
 - Type-safe database operations
 - Automatic migration generation
 - Query optimization and caching
 - Connection pooling and management
 
 ### Schema Management
+
 ```typescript
 // Example schema definition
 export const users = pgTable('users', {
@@ -173,6 +181,7 @@ export const users = pgTable('users', {
 ```
 
 ### Migration Strategy
+
 ```bash
 # Generate migration
 npm run db:generate
@@ -187,6 +196,7 @@ npm run db:reset
 ## API Design Patterns
 
 ### Consistent Response Format
+
 ```typescript
 // Success response
 {
@@ -207,6 +217,7 @@ npm run db:reset
 ```
 
 ### Request Validation
+
 ```typescript
 import { z } from 'zod';
 
@@ -236,6 +247,7 @@ app.post('/api/users', async (req, res) => {
 ## Email System
 
 ### SendGrid Integration
+
 ```typescript
 // Email service configuration
 const emailService = {
@@ -249,13 +261,14 @@ const emailService = {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     };
-    
+
     await sgMail.send(msg);
   },
 };
 ```
 
 ### Email Templates
+
 - User invitation with role assignment
 - Password reset requests
 - System notifications
@@ -265,6 +278,7 @@ const emailService = {
 ## SSL Certificate Management
 
 ### Automatic SSL with Let's Encrypt
+
 ```typescript
 // SSL certificate management
 class SslManager {
@@ -273,13 +287,13 @@ class SslManager {
       directoryUrl: acme.directory.letsencrypt.production,
       accountKey: await acme.crypto.createPrivateKey(),
     });
-    
+
     const certificate = await client.auto({
       csr: await this.generateCSR(domain),
       email: 'admin@koveogestion.com',
       termsOfServiceAgreed: true,
     });
-    
+
     return certificate;
   }
 }
@@ -288,18 +302,21 @@ class SslManager {
 ## Performance Optimization
 
 ### Caching Strategy
+
 - Redis for session storage
 - Database query result caching
 - API response caching with ETags
 - Static asset caching
 
 ### Database Optimization
+
 - Connection pooling
 - Query optimization with indexes
 - Materialized views for complex queries
 - Background job processing
 
 ### Monitoring
+
 - Request/response time tracking
 - Error rate monitoring
 - Database performance metrics
@@ -308,6 +325,7 @@ class SslManager {
 ## Security Measures
 
 ### Data Protection
+
 - Input sanitization and validation
 - SQL injection prevention
 - XSS protection
@@ -315,12 +333,14 @@ class SslManager {
 - Rate limiting and DDoS protection
 
 ### Authentication Security
+
 - Secure password hashing (bcrypt)
 - JWT token rotation
 - Session timeout management
 - Brute force protection
 
 ### API Security
+
 - HTTPS enforcement
 - Security headers (HSTS, CSP, etc.)
 - API versioning and deprecation
@@ -329,6 +349,7 @@ class SslManager {
 ## Quebec Compliance
 
 ### Law 25 (Privacy)
+
 - Data collection consent tracking
 - Right to deletion implementation
 - Data portability support
@@ -336,6 +357,7 @@ class SslManager {
 - Privacy policy enforcement
 
 ### Accessibility
+
 - API documentation in French and English
 - Accessible error messages
 - Consistent response formats
@@ -344,6 +366,7 @@ class SslManager {
 ## Development Guidelines
 
 ### Adding New Endpoints
+
 1. Define route in `routes.ts`
 2. Add validation schema with Zod
 3. Implement storage operations
@@ -353,6 +376,7 @@ class SslManager {
 7. Update API documentation
 
 ### Database Changes
+
 1. Update schema in `shared/schema.ts`
 2. Generate migration with Drizzle
 3. Update storage interface
@@ -361,6 +385,7 @@ class SslManager {
 6. Add/update tests
 
 ### Error Handling Best Practices
+
 ```typescript
 // Structured error handling
 class ApiError extends Error {
@@ -391,18 +416,21 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Route handler logic
 - Middleware functionality
 - Storage operations
 - Utility functions
 
 ### Integration Tests
+
 - API endpoint testing
 - Database integration
 - Authentication flows
 - Email service integration
 
 ### Example Test
+
 ```typescript
 describe('User API', () => {
   it('should create user with valid data', async () => {
@@ -412,12 +440,9 @@ describe('User API', () => {
       lastName: 'Doe',
       role: 'manager',
     };
-    
-    const response = await request(app)
-      .post('/api/users')
-      .send(userData)
-      .expect(201);
-    
+
+    const response = await request(app).post('/api/users').send(userData).expect(201);
+
     expect(response.body.data).toMatchObject(userData);
   });
 });
@@ -426,6 +451,7 @@ describe('User API', () => {
 ## Deployment Considerations
 
 ### Production Configuration
+
 - Environment variable management
 - Database connection pooling
 - SSL certificate automation
@@ -433,6 +459,7 @@ describe('User API', () => {
 - Logging and monitoring
 
 ### Scaling Strategy
+
 - Horizontal scaling with load balancers
 - Database read replicas
 - Caching layer implementation

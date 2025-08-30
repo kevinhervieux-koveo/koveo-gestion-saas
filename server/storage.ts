@@ -104,21 +104,16 @@ export interface IStorage {
   deleteContact(_id: string): Promise<boolean>;
 
   // Document operations
-  getDocuments(
-    _filters?: {
-      buildingId?: string;
-      residenceId?: string;
-      documentType?: string;
-      userId?: string;
-      userRole?: string;
-    }
-  ): Promise<Document[]>;
+  getDocuments(_filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]>;
   getDocument(_id: string): Promise<Document | undefined>;
   createDocument(_document: InsertDocument): Promise<Document>;
-  updateDocument(
-    _id: string,
-    _updates: Partial<Document>
-  ): Promise<Document | undefined>;
+  updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined>;
   deleteDocument(_id: string): Promise<boolean>;
 
   // Permission operations
@@ -474,22 +469,20 @@ export class MemStorage implements IStorage {
     return false;
   }
 
-  async getDocuments(
-    _filters?: {
-      buildingId?: string;
-      residenceId?: string;
-      documentType?: string;
-      userId?: string;
-      userRole?: string;
-    }
-  ): Promise<Document[]> {
+  async getDocuments(_filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]> {
     return [];
   }
-  
+
   async getDocument(_id: string): Promise<Document | undefined> {
     return undefined;
   }
-  
+
   async createDocument(doc: InsertDocument): Promise<Document> {
     const id = randomUUID();
     return {
@@ -499,14 +492,11 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
   }
-  
-  async updateDocument(
-    _id: string,
-    _updates: Partial<Document>
-  ): Promise<Document | undefined> {
+
+  async updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined> {
     return undefined;
   }
-  
+
   async deleteDocument(_id: string): Promise<boolean> {
     return false;
   }

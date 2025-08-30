@@ -102,7 +102,7 @@ export function PromptDisplay({
                     id='promptTitle'
                     placeholder='Enter title...'
                     value={promptTitle}
-                    onChange={(e) => setPromptTitle(e.target._value)}
+                    onChange={(e) => setPromptTitle(e.target.value)}
                     className='text-sm h-8 w-40'
                   />
                   <Button

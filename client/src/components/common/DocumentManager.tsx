@@ -100,10 +100,11 @@ interface DocumentManagerConfig {
 // Form schema factory for unified document upload
 const createDocumentFormSchema = (type: 'building' | 'residence') => {
   // Get valid document types based on type
-  const validTypes = type === 'building' 
-    ? BUILDING_DOCUMENT_CATEGORIES.map(cat => cat._value)
-    : RESIDENCE_DOCUMENT_CATEGORIES.map(cat => cat._value);
-    
+  const validTypes =
+    type === 'building'
+      ? BUILDING_DOCUMENT_CATEGORIES.map((cat) => cat._value)
+      : RESIDENCE_DOCUMENT_CATEGORIES.map((cat) => cat._value);
+
   const baseSchema = {
     name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
     description: z.string().optional(),
@@ -153,7 +154,10 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
     defaultValues: {
       name: document.name,
       description: document.description || '',
-      documentType: documentCategories.find(cat => cat._value === document.documentType)?._value || document.documentType || 'other',
+      documentType:
+        documentCategories.find((cat) => cat._value === document.documentType)?._value ||
+        document.documentType ||
+        'other',
       ...(config.type === 'building'
         ? { buildingId: document.buildingId }
         : { residenceId: document.residenceId }),
@@ -163,7 +167,11 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
 
   const handleEditSave = async (data: any) => {
     try {
-      const response = (await apiRequest('PUT', `/api/documents/${document.id}`, data)) as unknown as Document;
+      const response = (await apiRequest(
+        'PUT',
+        `/api/documents/${document.id}`,
+        data
+      )) as unknown as Document;
       onSave(response);
       toast({
         title: 'Success',
@@ -215,7 +223,9 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
               <FormLabel>Document Type</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger className={editForm.formState.errors.documentType ? 'border-red-500' : ''}>
+                  <SelectTrigger
+                    className={editForm.formState.errors.documentType ? 'border-red-500' : ''}
+                  >
                     <SelectValue placeholder='Select document type' />
                   </SelectTrigger>
                 </FormControl>
@@ -228,7 +238,7 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
                 </SelectContent>
               </Select>
               {editForm.formState.errors.documentType && (
-                <p className="text-sm text-red-500">Please select a valid document type</p>
+                <p className='text-sm text-red-500'>Please select a valid document type</p>
               )}
             </FormItem>
           )}
@@ -320,13 +330,12 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     queryKey: [`/api/${config.type}s`, config.entityId],
     queryFn: async () => {
       if (!config.entityId) return null;
-      const response = await apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as any;
+      const response = (await apiRequest('GET', `/api/${config.type}s/${config.entityId}`)) as any;
       const data = await response.json();
       return data;
     },
     enabled: !!config.entityId,
   });
-
 
   // Fetch documents
   const queryKey =
@@ -337,7 +346,11 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const queryParam =
     config.type === 'building' ? `buildingId=${config.entityId}` : `residenceId=${config.entityId}`;
 
-  const { data: documentsResponse, isLoading: documentsLoading, error: documentsError } = useQuery({
+  const {
+    data: documentsResponse,
+    isLoading: documentsLoading,
+    error: documentsError,
+  } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!config.entityId) {
@@ -372,8 +385,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
       const matchesYear =
-        selectedYear === 'all' ||
-        new Date(doc.createdAt).getFullYear().toString() === selectedYear;
+        selectedYear === 'all' || new Date(doc.createdAt).getFullYear().toString() === selectedYear;
       return matchesSearch && matchesCategory && matchesYear;
     });
     return filtered;
@@ -383,7 +395,9 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, Document[]> = {};
     documentCategories.forEach((category) => {
-      grouped[category._value] = filteredDocuments.filter((doc) => doc.documentType === category._value);
+      grouped[category._value] = filteredDocuments.filter(
+        (doc) => doc.documentType === category._value
+      );
     });
     return grouped;
   }, [filteredDocuments, documentCategories]);
@@ -413,7 +427,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       formData.append('description', data.description || '');
       formData.append('documentType', data.documentType);
       formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
-      
+
       if (data.residenceId) {
         formData.append('residenceId', data.residenceId);
       }
@@ -490,13 +504,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
         });
         return;
       }
-      
+
       // Create text file blob
       const blob = new Blob([textContent], { type: 'text/plain' });
       const fileName = `${data.name}.txt`;
       const textFile = new File([blob], fileName, { type: 'text/plain' });
       setSelectedFile(textFile);
-      
+
       // Use the existing upload mutation
       createDocumentMutation.mutate(data);
     } else {
@@ -584,7 +598,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Check if the entity exists (residence/building was found)
   const entityNotFound = config.entityId && !entity && !documentsLoading;
-  
+
   if (entityNotFound) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
@@ -600,11 +614,12 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                 {config.type === 'building' ? 'Building' : 'Residence'} Not Found
               </h3>
               <p className='text-gray-500'>
-                The {config.type} with ID "{config.entityId}" does not exist or you don't have access to it.
+                The {config.type} with ID "{config.entityId}" does not exist or you don't have
+                access to it.
               </p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
+              <Button
+                variant='outline'
+                className='mt-4'
                 onClick={() => navigate(`/${config.userRole}s/${config.type}s`)}
               >
                 Back to {config.type === 'building' ? 'Buildings' : 'Residences'}
@@ -804,7 +819,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                             />
                             {selectedFile && (
                               <div className='text-sm text-gray-600 mt-1'>
-                                Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                                Selected: {selectedFile.name} (
+                                {Math.round(selectedFile.size / 1024)} KB)
                               </div>
                             )}
                           </div>
@@ -850,7 +866,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           />
                         )}
 
-
                         <DialogFooter>
                           <Button
                             type='button'
@@ -874,8 +889,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           >
                             {createDocumentMutation.isPending
                               ? 'Creating...'
-                              : createMode === 'text' 
-                                ? 'Create Text File' 
+                              : createMode === 'text'
+                                ? 'Create Text File'
                                 : 'Upload Document'}
                           </Button>
                         </DialogFooter>
@@ -1169,13 +1184,21 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   <p className='text-gray-600 mt-2'>{selectedDocument.description}</p>
                 )}
               </div>
-              
+
               <div className='grid grid-cols-2 gap-4 text-sm'>
                 <div>
-                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.documentType) || selectedDocument.documentType || 'Unknown'}
+                  <strong>Category:</strong>{' '}
+                  {getCategoryLabel(documentCategories, selectedDocument.documentType) ||
+                    selectedDocument.documentType ||
+                    'Unknown'}
                 </div>
                 <div>
-                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt instanceof Date ? selectedDocument.createdAt.toISOString() : selectedDocument.createdAt)}
+                  <strong>Date:</strong>{' '}
+                  {formatDate(
+                    selectedDocument.createdAt instanceof Date
+                      ? selectedDocument.createdAt.toISOString()
+                      : selectedDocument.createdAt
+                  )}
                 </div>
                 {selectedDocument.fileSize && (
                   <div>

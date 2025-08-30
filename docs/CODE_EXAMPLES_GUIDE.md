@@ -16,6 +16,7 @@ This guide provides practical, real-world code examples for the Koveo Gestion ap
 ## Authentication & Session Management
 
 ### Complete Login Flow
+
 ```typescript
 // hooks/use-auth.tsx - Authentication context and hooks
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -151,6 +152,7 @@ export function ProtectedRoute({
 ```
 
 ### Session Persistence and Security
+
 ```typescript
 // server/middleware/auth.ts - Server-side session handling
 import session from 'express-session';
@@ -209,6 +211,7 @@ export function requireRole(roles: string[]) {
 ## Form Handling with Validation
 
 ### Advanced Form with Quebec Compliance
+
 ```typescript
 // components/forms/OrganizationForm.tsx
 import { useForm } from 'react-hook-form';
@@ -616,6 +619,7 @@ export function OrganizationForm({
 ## API Integration Patterns
 
 ### Type-Safe API Client
+
 ```typescript
 // lib/api-client.ts - Centralized API client with error handling
 import { toast } from '@/hooks/use-toast';
@@ -647,10 +651,7 @@ class ApiClient {
     this.baseURL = baseURL;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
 
     const config: RequestInit = {
@@ -682,12 +683,7 @@ class ApiClient {
       }
 
       // Network or other errors
-      throw new ApiError(
-        'Network error occurred',
-        0,
-        'NETWORK_ERROR',
-        error
-      );
+      throw new ApiError('Network error occurred', 0, 'NETWORK_ERROR', error);
     }
   }
 
@@ -850,32 +846,25 @@ export function useApiMutation<TData, TVariables>(
 export function useCreateOrganization() {
   const queryClient = useQueryClient();
 
-  return useApiMutation(
-    (data: CreateOrganizationRequest) => apiClient.createOrganization(data),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      },
-      showSuccessToast: true,
-    }
-  );
+  return useApiMutation((data: CreateOrganizationRequest) => apiClient.createOrganization(data), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+    },
+    showSuccessToast: true,
+  });
 }
 
 export function useInviteUser() {
   const queryClient = useQueryClient();
 
-  return useApiMutation(
-    (data: InviteUserRequest) => apiClient.inviteUser(data),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
-      },
-      showSuccessToast: true,
-    }
-  );
+  return useApiMutation((data: InviteUserRequest) => apiClient.inviteUser(data), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
+    },
+    showSuccessToast: true,
+  });
 }
 ```
 
 This comprehensive guide provides practical examples for building robust, Quebec-compliant applications with proper error handling, validation, and user experience considerations.
-

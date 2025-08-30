@@ -233,7 +233,9 @@ export function registerOrganizationRoutes(app: Express): void {
       console.warn('✅ Created organization:', newOrganization.name);
 
       // Organization storage hierarchy will be created automatically when documents are uploaded
-      console.log('Organization created - storage hierarchy will be created on first document upload');
+      console.log(
+        'Organization created - storage hierarchy will be created on first document upload'
+      );
 
       res.status(201).json(newOrganization);
     } catch (_error) {

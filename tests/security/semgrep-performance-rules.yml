@@ -11,14 +11,14 @@ rules:
           function $COMPONENT({ $PROPS }) {
             return <div>{$EXPENSIVE_OPERATION}</div>
           }
-    message: "Potential inefficient re-render - consider memoization"
+    message: 'Potential inefficient re-render - consider memoization'
     languages: [typescript, javascript]
     severity: INFO
 
   - id: koveo.performance.missing-usememo
     pattern: |
       const $RESULT = $DATA.filter($PREDICATE).map($TRANSFORM).sort($COMPARE)
-    message: "Expensive calculation should use useMemo"
+    message: 'Expensive calculation should use useMemo'
     languages: [typescript, javascript]
     severity: INFO
 
@@ -28,7 +28,7 @@ rules:
           onClick={() => $HANDLER($ARGS)}
       - pattern: |
           onChange={($EVENT) => $HANDLER($EVENT)}
-    message: "Event handler could benefit from useCallback"
+    message: 'Event handler could benefit from useCallback'
     languages: [typescript, javascript]
     severity: INFO
 
@@ -37,7 +37,7 @@ rules:
       for (const $ITEM of $ITEMS) {
         await $DB.select().where(eq($TABLE.id, $ITEM.id))
       }
-    message: "Potential N+1 query - consider batch loading"
+    message: 'Potential N+1 query - consider batch loading'
     languages: [typescript, javascript]
     severity: WARNING
 
@@ -47,7 +47,7 @@ rules:
           await $DB.select().from($TABLE)
       - pattern: |
           SELECT * FROM $TABLE
-    message: "Selecting all columns may be inefficient"
+    message: 'Selecting all columns may be inefficient'
     languages: [typescript, javascript, sql]
     severity: INFO
 
@@ -63,7 +63,7 @@ rules:
         queryFn: $FN,
         staleTime: $TIME
       })
-    message: "API request could benefit from caching strategy"
+    message: 'API request could benefit from caching strategy'
     languages: [typescript, javascript]
     severity: INFO
 
@@ -80,7 +80,7 @@ rules:
         $SUBSCRIPTION
         return () => $CLEANUP
       }, [])
-    message: "Potential memory leak - missing cleanup"
+    message: 'Potential memory leak - missing cleanup'
     languages: [typescript, javascript]
     severity: WARNING
 
@@ -90,7 +90,7 @@ rules:
           $STR += $OTHER
       - pattern: |
           $STRINGS.join("")
-    message: "Inefficient string concatenation"
+    message: 'Inefficient string concatenation'
     languages: [typescript, javascript]
     severity: INFO
 
@@ -100,6 +100,6 @@ rules:
           import * as $LIB from "$PACKAGE"
       - pattern: |
           import $DEFAULT from "lodash"
-    message: "Large import may increase bundle size"
+    message: 'Large import may increase bundle size'
     languages: [typescript, javascript]
     severity: INFO

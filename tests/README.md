@@ -43,37 +43,37 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  
+
   // Module resolution
   moduleNameMapping: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@server/(.*)$': '<rootDir>/server/$1'
+    '^@server/(.*)$': '<rootDir>/server/$1',
   },
-  
+
   // Coverage requirements
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',
     'server/**/*.{ts,tsx}',
     'shared/**/*.{ts,tsx}',
     '!**/*.d.ts',
-    '!**/node_modules/**'
+    '!**/node_modules/**',
   ],
-  
+
   coverageThreshold: {
     global: {
       branches: 80,
       functions: 85,
       lines: 85,
-      statements: 85
+      statements: 85,
     },
     './client/src/components/': {
       branches: 90,
       functions: 90,
       lines: 90,
-      statements: 90
-    }
-  }
+      statements: 90,
+    },
+  },
 };
 ```
 
@@ -111,7 +111,7 @@ global.console = {
   // Keep error and warn for debugging
   log: jest.fn(),
   debug: jest.fn(),
-  info: jest.fn()
+  info: jest.fn(),
 };
 ```
 
@@ -159,7 +159,7 @@ describe('UserProfile Component', () => {
     };
 
     renderWithProviders(<UserProfile user={mockUser} />);
-    
+
     expect(screen.getByText('Marie Dubois')).toBeInTheDocument();
     expect(screen.getByText('marie.dubois@example.com')).toBeInTheDocument();
     expect(screen.getByText('Locataire')).toBeInTheDocument(); // French role display
@@ -178,17 +178,17 @@ describe('UserProfile Component', () => {
     const onUpdate = jest.fn();
 
     renderWithProviders(<UserProfile user={mockUser} onUpdate={onUpdate} />);
-    
+
     // Open edit mode
     fireEvent.click(screen.getByText('Modifier'));
-    
+
     // Update first name
     const firstNameInput = screen.getByLabelText('Prénom');
     fireEvent.change(firstNameInput, { target: { value: 'Jean-Pierre' } });
-    
+
     // Submit form
     fireEvent.click(screen.getByText('Sauvegarder'));
-    
+
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledWith({
         ...mockUser,
@@ -208,15 +208,15 @@ describe('UserProfile Component', () => {
     };
 
     renderWithProviders(<UserProfile user={mockUser} />);
-    
+
     fireEvent.click(screen.getByText('Modifier'));
-    
+
     // Enter invalid postal code
     const postalCodeInput = screen.getByLabelText('Code postal');
     fireEvent.change(postalCodeInput, { target: { value: '12345' } });
-    
+
     fireEvent.click(screen.getByText('Sauvegarder'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Format de code postal québécois requis (ex: H1A 1A1)')).toBeInTheDocument();
     });
@@ -248,7 +248,7 @@ describe('UserService', () => {
         lastName: 'Bouchard',
         role: 'tenant' as const,
         organizationId: 'org-123',
-        address: '123 Rue Sainte-Catherine, Montréal, QC H2X 1L3'
+        address: '123 Rue Sainte-Catherine, Montréal, QC H2X 1L3',
       };
 
       const mockCreatedUser = {
@@ -256,13 +256,13 @@ describe('UserService', () => {
         ...userData,
         passwordHash: 'encrypted-hash',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockDb.insert.mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([mockCreatedUser])
-        })
+          returning: jest.fn().mockResolvedValue([mockCreatedUser]),
+        }),
       } as any);
 
       const result = await UserService.createUser(userData);
@@ -278,12 +278,12 @@ describe('UserService', () => {
         lastName: 'User',
         role: 'resident' as const,
         organizationId: 'org-123',
-        postalCode: 'INVALID'
+        postalCode: 'INVALID',
       };
 
-      await expect(UserService.createUser(invalidUserData))
-        .rejects
-        .toThrow('Invalid Quebec postal code format');
+      await expect(UserService.createUser(invalidUserData)).rejects.toThrow(
+        'Invalid Quebec postal code format'
+      );
     });
   });
 
@@ -294,22 +294,22 @@ describe('UserService', () => {
           id: 'user-1',
           firstName: 'Pierre',
           lastName: 'Tremblay',
-          role: 'manager'
+          role: 'manager',
         },
         {
-          id: 'user-2', 
+          id: 'user-2',
           firstName: 'Lucie',
           lastName: 'Gagnon',
-          role: 'resident'
-        }
+          role: 'resident',
+        },
       ];
 
       mockDb.select.mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue(mockUsers)
-          })
-        })
+            orderBy: jest.fn().mockResolvedValue(mockUsers),
+          }),
+        }),
       } as any);
 
       const result = await UserService.getUsersByOrganization('org-123');
@@ -346,13 +346,10 @@ describe('Authentication API Integration', () => {
     it('authenticates valid Quebec user credentials', async () => {
       const credentials = {
         username: 'marie.dubois@koveo.com',
-        password: 'MotDePasse123!'
+        password: 'MotDePasse123!',
       };
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(credentials)
-        .expect(200);
+      const response = await request(app).post('/api/auth/login').send(credentials).expect(200);
 
       expect(response.body).toMatchObject({
         success: true,
@@ -360,8 +357,8 @@ describe('Authentication API Integration', () => {
           email: 'marie.dubois@koveo.com',
           firstName: 'Marie',
           lastName: 'Dubois',
-          role: 'manager'
-        }
+          role: 'manager',
+        },
       });
 
       // Verify session cookie is set
@@ -371,7 +368,7 @@ describe('Authentication API Integration', () => {
     it('rejects invalid credentials', async () => {
       const invalidCredentials = {
         username: 'marie.dubois@koveo.com',
-        password: 'WrongPassword'
+        password: 'WrongPassword',
       };
 
       const response = await request(app)
@@ -381,26 +378,23 @@ describe('Authentication API Integration', () => {
 
       expect(response.body).toMatchObject({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials',
       });
     });
 
     it('handles Quebec-specific user data correctly', async () => {
       const quebecUser = {
         username: 'jean.tremblay@koveo.com',
-        password: 'QuebecTest123!'
+        password: 'QuebecTest123!',
       };
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(quebecUser)
-        .expect(200);
+      const response = await request(app).post('/api/auth/login').send(quebecUser).expect(200);
 
       expect(response.body.user).toMatchObject({
         firstName: 'Jean',
         lastName: 'Tremblay',
         locale: 'fr-CA',
-        timezone: 'America/Montreal'
+        timezone: 'America/Montreal',
       });
     });
   });
@@ -410,12 +404,10 @@ describe('Authentication API Integration', () => {
 
     beforeEach(async () => {
       // Authenticate as manager
-      const loginResponse = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'manager@koveo.com',
-          password: 'manager123'
-        });
+      const loginResponse = await request(app).post('/api/auth/login').send({
+        username: 'manager@koveo.com',
+        password: 'manager123',
+      });
 
       authToken = loginResponse.body.token;
     });
@@ -429,7 +421,7 @@ describe('Authentication API Integration', () => {
         postalCode: 'H2X 1L3',
         buildingType: 'condo',
         totalUnits: 24,
-        yearBuilt: 1985
+        yearBuilt: 1985,
       };
 
       const response = await request(app)
@@ -443,7 +435,7 @@ describe('Authentication API Integration', () => {
         address: '123 Rue Saint-Denis',
         city: 'Montréal',
         province: 'QC',
-        postalCode: 'H2X 1L3'
+        postalCode: 'H2X 1L3',
       });
 
       expect(response.body.id).toBeDefined();
@@ -471,37 +463,46 @@ describe('Database Operations Integration', () => {
   describe('User-Building-Residence Relationships', () => {
     it('maintains referential integrity across tables', async () => {
       // Create organization and user
-      const [user] = await db.insert(users).values({
-        email: 'test@koveo.com',
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'manager',
-        organizationId: 'org-123'
-      }).returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          email: 'test@koveo.com',
+          firstName: 'Test',
+          lastName: 'User',
+          role: 'manager',
+          organizationId: 'org-123',
+        })
+        .returning();
 
       // Create building
-      const [building] = await db.insert(buildings).values({
-        name: 'Test Building',
-        address: '123 Test Street',
-        city: 'Montréal',
-        organizationId: 'org-123',
-        managerId: user.id
-      }).returning();
+      const [building] = await db
+        .insert(buildings)
+        .values({
+          name: 'Test Building',
+          address: '123 Test Street',
+          city: 'Montréal',
+          organizationId: 'org-123',
+          managerId: user.id,
+        })
+        .returning();
 
       // Create residence
-      const [residence] = await db.insert(residences).values({
-        buildingId: building.id,
-        unitNumber: '101',
-        floor: 1,
-        squareFootage: 800
-      }).returning();
+      const [residence] = await db
+        .insert(residences)
+        .values({
+          buildingId: building.id,
+          unitNumber: '101',
+          floor: 1,
+          squareFootage: 800,
+        })
+        .returning();
 
       // Verify relationships
       const result = await db
         .select({
           userName: users.firstName,
           buildingName: buildings.name,
-          unitNumber: residences.unitNumber
+          unitNumber: residences.unitNumber,
         })
         .from(users)
         .innerJoin(buildings, eq(buildings.managerId, users.id))
@@ -511,7 +512,7 @@ describe('Database Operations Integration', () => {
       expect(result[0]).toMatchObject({
         userName: 'Test',
         buildingName: 'Test Building',
-        unitNumber: '101'
+        unitNumber: '101',
       });
     });
 
@@ -523,23 +524,26 @@ describe('Database Operations Integration', () => {
           address: '123 Test Street',
           city: 'Montréal',
           postalCode: 'INVALID', // Should fail validation
-          organizationId: 'org-123'
+          organizationId: 'org-123',
         })
       ).rejects.toThrow();
 
       // Test that condo buildings require syndic information
-      const [condoBuilding] = await db.insert(buildings).values({
-        name: 'Condo Test',
-        address: '456 Test Avenue',
-        city: 'Québec',
-        postalCode: 'G1A 1A1',
-        buildingType: 'condo',
-        organizationId: 'org-123',
-        syndicInfo: {
-          name: 'Syndicat Test',
-          registrationNumber: 'SYN-123-QC'
-        }
-      }).returning();
+      const [condoBuilding] = await db
+        .insert(buildings)
+        .values({
+          name: 'Condo Test',
+          address: '456 Test Avenue',
+          city: 'Québec',
+          postalCode: 'G1A 1A1',
+          buildingType: 'condo',
+          organizationId: 'org-123',
+          syndicInfo: {
+            name: 'Syndicat Test',
+            registrationNumber: 'SYN-123-QC',
+          },
+        })
+        .returning();
 
       expect(condoBuilding.syndicInfo).toBeDefined();
     });
@@ -572,7 +576,7 @@ test.describe('Quebec Property Manager Workflow', () => {
 
     // Create new building
     await page.click('[data-testid="add-building-button"]');
-    
+
     await page.fill('[data-testid="building-name"]', 'Résidence du Vieux-Port');
     await page.fill('[data-testid="building-address"]', '789 Rue de la Commune');
     await page.fill('[data-testid="building-city"]', 'Montréal');
@@ -584,8 +588,9 @@ test.describe('Quebec Property Manager Workflow', () => {
     await page.click('[data-testid="save-building"]');
 
     // Verify building was created
-    await expect(page.locator('[data-testid="success-message"]'))
-      .toContainText('Immeuble créé avec succès');
+    await expect(page.locator('[data-testid="success-message"]')).toContainText(
+      'Immeuble créé avec succès'
+    );
 
     // Add residence to building
     await page.click('[data-testid="add-residence"]');
@@ -598,7 +603,7 @@ test.describe('Quebec Property Manager Workflow', () => {
     // Verify bilingual interface
     await page.click('[data-testid="language-toggle"]');
     await expect(page.locator('h1')).toContainText('Dashboard');
-    
+
     // Switch back to French
     await page.click('[data-testid="language-toggle"]');
     await expect(page.locator('h1')).toContainText('Tableau de bord');
@@ -613,29 +618,33 @@ test.describe('Quebec Property Manager Workflow', () => {
 
     // Navigate to maintenance
     await page.click('[data-testid="nav-maintenance"]');
-    
+
     // Create maintenance request
     await page.click('[data-testid="new-request"]');
-    
+
     await page.fill('[data-testid="request-title"]', 'Problème de chauffage');
-    await page.fill('[data-testid="request-description"]', 'Le chauffage ne fonctionne pas dans la chambre principale. Température très froide.');
+    await page.fill(
+      '[data-testid="request-description"]',
+      'Le chauffage ne fonctionne pas dans la chambre principale. Température très froide.'
+    );
     await page.selectOption('[data-testid="priority"]', 'high');
     await page.selectOption('[data-testid="category"]', 'heating');
 
     await page.click('[data-testid="submit-request"]');
 
     // Verify request was created
-    await expect(page.locator('[data-testid="success-message"]'))
-      .toContainText('Demande soumise avec succès');
+    await expect(page.locator('[data-testid="success-message"]')).toContainText(
+      'Demande soumise avec succès'
+    );
 
     // Check request appears in list
-    await expect(page.locator('[data-testid="request-list"]'))
-      .toContainText('Problème de chauffage');
+    await expect(page.locator('[data-testid="request-list"]')).toContainText(
+      'Problème de chauffage'
+    );
 
     // Verify request status
     const requestRow = page.locator('[data-testid="request-row"]').first();
-    await expect(requestRow.locator('[data-testid="status"]'))
-      .toContainText('Soumise');
+    await expect(requestRow.locator('[data-testid="status"]')).toContainText('Soumise');
   });
 });
 ```
@@ -659,40 +668,40 @@ describe('Mobile Navigation', () => {
 
   it('handles touch gestures correctly', async () => {
     render(<MobileNavigation />);
-    
+
     const hamburgerButton = screen.getByTestId('mobile-menu-toggle');
-    
+
     // Test touch start/end events
     fireEvent.touchStart(hamburgerButton);
     fireEvent.touchEnd(hamburgerButton);
-    
+
     // Menu should be open
     const mobileMenu = screen.getByTestId('mobile-menu');
     expect(mobileMenu).toBeVisible();
-    
+
     // Test swipe to close
     fireEvent.touchStart(mobileMenu, {
       touches: [{ clientX: 200, clientY: 100 }]
     });
-    
+
     fireEvent.touchMove(mobileMenu, {
       touches: [{ clientX: 50, clientY: 100 }]
     });
-    
+
     fireEvent.touchEnd(mobileMenu);
-    
+
     // Menu should close after swipe
     expect(mobileMenu).not.toBeVisible();
   });
 
   it('provides accessible touch targets', () => {
     render(<MobileNavigation />);
-    
+
     const touchTargets = screen.getAllByRole('button');
-    
+
     touchTargets.forEach(target => {
       const { width, height } = target.getBoundingClientRect();
-      
+
       // Ensure minimum 44px touch target (iOS guideline)
       expect(width).toBeGreaterThanOrEqual(44);
       expect(height).toBeGreaterThanOrEqual(44);
@@ -714,14 +723,14 @@ expect.extend(toHaveNoViolations);
 describe('Building Form Accessibility', () => {
   it('meets WCAG 2.1 AA standards', async () => {
     const { container } = render(<BuildingForm />);
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
 
   it('provides proper French and English labels', () => {
     render(<BuildingForm locale="fr" />);
-    
+
     // Check for proper French labels
     expect(screen.getByLabelText('Nom de l\'immeuble')).toBeInTheDocument();
     expect(screen.getByLabelText('Adresse')).toBeInTheDocument();
@@ -730,29 +739,29 @@ describe('Building Form Accessibility', () => {
 
   it('supports keyboard navigation', async () => {
     render(<BuildingForm />);
-    
+
     const firstInput = screen.getByLabelText('Building Name');
     firstInput.focus();
     expect(firstInput).toHaveFocus();
-    
+
     // Tab through form fields
     fireEvent.keyDown(firstInput, { key: 'Tab' });
-    
+
     const addressInput = screen.getByLabelText('Address');
     expect(addressInput).toHaveFocus();
   });
 
   it('announces form errors to screen readers', async () => {
     render(<BuildingForm />);
-    
+
     // Submit empty form
     const submitButton = screen.getByRole('button', { name: /save|sauvegarder/i });
     fireEvent.click(submitButton);
-    
+
     // Check for aria-describedby attributes on error fields
     const nameInput = screen.getByLabelText(/building name|nom de l'immeuble/i);
     expect(nameInput).toHaveAttribute('aria-describedby');
-    
+
     const errorMessage = screen.getByRole('alert');
     expect(errorMessage).toBeInTheDocument();
   });
@@ -768,20 +777,20 @@ describe('Building Form Accessibility', () => {
 describe('Quebec Bilingual Compliance', () => {
   it('provides complete French translations', async () => {
     const { t } = useTranslation('fr');
-    
+
     // Test core application strings
     const coreStrings = [
       'navigation.dashboard',
-      'navigation.buildings', 
+      'navigation.buildings',
       'navigation.maintenance',
       'navigation.bills',
       'forms.save',
       'forms.cancel',
       'errors.required_field',
-      'success.data_saved'
+      'success.data_saved',
     ];
-    
-    coreStrings.forEach(key => {
+
+    coreStrings.forEach((key) => {
       const translation = t(key);
       expect(translation).not.toBe(key); // Should not return key if translation exists
       expect(translation).toBeTruthy();
@@ -790,34 +799,24 @@ describe('Quebec Bilingual Compliance', () => {
 
   it('handles Quebec-specific date formats', () => {
     const testDate = new Date('2024-03-15');
-    
+
     const frenchFormat = formatDate(testDate, 'fr-CA');
     expect(frenchFormat).toBe('15 mars 2024');
-    
+
     const englishFormat = formatDate(testDate, 'en-CA');
     expect(englishFormat).toBe('March 15, 2024');
   });
 
   it('validates Quebec postal codes correctly', () => {
-    const validPostalCodes = [
-      'H1A 1A1',
-      'G1A 1A1', 
-      'J0A 1A0',
-      'K1A 1A1'
-    ];
-    
-    const invalidPostalCodes = [
-      '90210',
-      'SW1A 1AA',
-      'H1A1A1',
-      '123-456'
-    ];
-    
-    validPostalCodes.forEach(code => {
+    const validPostalCodes = ['H1A 1A1', 'G1A 1A1', 'J0A 1A0', 'K1A 1A1'];
+
+    const invalidPostalCodes = ['90210', 'SW1A 1AA', 'H1A1A1', '123-456'];
+
+    validPostalCodes.forEach((code) => {
       expect(validateQuebecPostalCode(code)).toBe(true);
     });
-    
-    invalidPostalCodes.forEach(code => {
+
+    invalidPostalCodes.forEach((code) => {
       expect(validateQuebecPostalCode(code)).toBe(false);
     });
   });
@@ -831,26 +830,26 @@ describe('Quebec Bilingual Compliance', () => {
 describe('Law 25 Privacy Compliance', () => {
   it('requires explicit consent for data collection', async () => {
     render(<UserRegistrationForm />);
-    
+
     // Try to submit without privacy consent
     await fillRegistrationForm({
       firstName: 'Marie',
       lastName: 'Dubois',
       email: 'marie.dubois@example.com'
     });
-    
+
     const submitButton = screen.getByRole('button', { name: /register|s'inscrire/i });
     fireEvent.click(submitButton);
-    
+
     // Should show privacy consent error
     expect(screen.getByText(/consentement requis|consent required/i)).toBeInTheDocument();
-    
+
     // Provide consent
     const consentCheckbox = screen.getByLabelText(/privacy policy|politique de confidentialité/i);
     fireEvent.click(consentCheckbox);
-    
+
     fireEvent.click(submitButton);
-    
+
     // Should now succeed
     await waitFor(() => {
       expect(screen.queryByText(/consentement requis|consent required/i)).not.toBeInTheDocument();
@@ -859,12 +858,12 @@ describe('Law 25 Privacy Compliance', () => {
 
   it('implements data portability rights', async () => {
     const userId = 'user-123';
-    
+
     const response = await request(app)
       .get(`/api/users/${userId}/export`)
       .set('Authorization', `Bearer ${userToken}`)
       .expect(200);
-    
+
     expect(response.body).toMatchObject({
       user: expect.any(Object),
       buildings: expect.any(Array),
@@ -877,13 +876,13 @@ describe('Law 25 Privacy Compliance', () => {
 
   it('handles data deletion requests', async () => {
     const userId = 'user-to-delete';
-    
+
     // Request data deletion
     await request(app)
       .delete(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
-    
+
     // Verify user data is deleted
     const userCheck = await request(app)
       .get(`/api/users/${userId}`)
@@ -903,23 +902,20 @@ describe('API Performance', () => {
   it('handles concurrent user requests efficiently', async () => {
     const concurrentRequests = 50;
     const startTime = Date.now();
-    
-    const requests = Array.from({ length: concurrentRequests }, (_, index) => 
-      request(app)
-        .get('/api/buildings')
-        .set('Authorization', `Bearer ${testToken}`)
-        .expect(200)
+
+    const requests = Array.from({ length: concurrentRequests }, (_, index) =>
+      request(app).get('/api/buildings').set('Authorization', `Bearer ${testToken}`).expect(200)
     );
-    
+
     const responses = await Promise.all(requests);
     const endTime = Date.now();
     const totalTime = endTime - startTime;
-    
+
     // Should handle 50 concurrent requests in under 2 seconds
     expect(totalTime).toBeLessThan(2000);
-    
+
     // All responses should be valid
-    responses.forEach(response => {
+    responses.forEach((response) => {
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
     });
@@ -928,21 +924,21 @@ describe('API Performance', () => {
   it('maintains response times under load', async () => {
     const measurementCount = 100;
     const responseTimes: number[] = [];
-    
+
     for (let i = 0; i < measurementCount; i++) {
       const start = Date.now();
-      
+
       await request(app)
         .get('/api/dashboard/stats')
         .set('Authorization', `Bearer ${testToken}`)
         .expect(200);
-      
+
       responseTimes.push(Date.now() - start);
     }
-    
+
     const averageTime = responseTimes.reduce((a, b) => a + b) / responseTimes.length;
     const p95Time = responseTimes.sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)];
-    
+
     expect(averageTime).toBeLessThan(200); // Average under 200ms
     expect(p95Time).toBeLessThan(500); // 95th percentile under 500ms
   });
@@ -991,7 +987,7 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:14
@@ -1002,36 +998,36 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linting
         run: npm run lint
-      
+
       - name: Run type checking
         run: npm run type-check
-      
+
       - name: Run unit tests
         run: npm run test:unit
-        
+
       - name: Run integration tests
         run: npm run test:integration
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
-      
+
       - name: Run Quebec compliance tests
         run: npm run test:quebec
-      
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
         with:
@@ -1051,26 +1047,26 @@ export const testUsers = {
     firstName: 'Administrateur',
     lastName: 'Système',
     role: 'admin' as const,
-    organizationId: 'org-demo'
+    organizationId: 'org-demo',
   },
-  
+
   manager: {
     id: 'manager-456',
-    email: 'gestionnaire@koveo.com', 
+    email: 'gestionnaire@koveo.com',
     firstName: 'Marie',
     lastName: 'Dubois',
     role: 'manager' as const,
-    organizationId: 'org-demo'
+    organizationId: 'org-demo',
   },
-  
+
   tenant: {
     id: 'tenant-789',
     email: 'locataire@koveo.com',
     firstName: 'Jean',
-    lastName: 'Tremblay', 
+    lastName: 'Tremblay',
     role: 'tenant' as const,
-    organizationId: 'org-demo'
-  }
+    organizationId: 'org-demo',
+  },
 };
 
 export const testBuildings = {
@@ -1082,8 +1078,8 @@ export const testBuildings = {
     province: 'QC',
     postalCode: 'H2X 1L3',
     buildingType: 'condo' as const,
-    totalUnits: 24
-  }
+    totalUnits: 24,
+  },
 };
 ```
 
@@ -1105,23 +1101,23 @@ export const testBuildings = {
 const qualityChecks = {
   coverage: {
     minimum: 85,
-    current: await getCoveragePercentage()
+    current: await getCoveragePercentage(),
   },
-  
+
   accessibility: {
     violations: await runAxeTests(),
-    maxViolations: 0
+    maxViolations: 0,
   },
-  
+
   performance: {
     averageResponseTime: await measureAPIPerformance(),
-    maxResponseTime: 200
+    maxResponseTime: 200,
   },
-  
+
   quebecCompliance: {
     translationCoverage: await checkTranslations(),
-    minimumCoverage: 100
-  }
+    minimumCoverage: 100,
+  },
 };
 
 // Fail build if quality gates not met

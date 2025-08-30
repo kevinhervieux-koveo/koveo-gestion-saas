@@ -5,18 +5,21 @@ This directory contains comprehensive SQL injection security tests for the Koveo
 ## Test Files
 
 ### `sql-injection.test.ts`
+
 - **Full integration tests** that test API endpoints for SQL injection vulnerabilities
 - Tests authentication, user management, invitation system, and suggestion endpoints
 - Includes time-based, boolean-based, and second-order injection tests
 - Tests error message information disclosure prevention
 
-### `sql-injection-advanced.test.ts` 
+### `sql-injection-advanced.test.ts`
+
 - **Advanced attack vector tests** including raw SQL usage, Unicode attacks, and database-specific functions
 - Tests query scoping security and privilege escalation attempts
 - Covers PostgreSQL-specific injection attempts and transaction-based attacks
 - Tests input validation edge cases and column/table enumeration
 
 ### `sql-injection-unit.test.ts`
+
 - **Unit tests** that focus on core database operations without full app setup
 - Tests Drizzle ORM parameterized query protection
 - Verifies safe handling of malicious input in basic CRUD operations
@@ -25,26 +28,31 @@ This directory contains comprehensive SQL injection security tests for the Koveo
 ## Security Features Tested
 
 ### ✅ Parameterized Queries
+
 - Drizzle ORM automatically uses parameterized queries
 - All user input is safely escaped and treated as literal values
 - No direct SQL string concatenation vulnerabilities
 
 ### ✅ Input Validation
+
 - Email format validation prevents malicious email injections
 - UUID validation rejects malformed input attempts
 - Role enum validation prevents role manipulation
 
 ### ✅ Query Scoping
+
 - User context-based access control prevents unauthorized data access
 - Building and residence access is properly scoped by user permissions
 - Organization-level access controls prevent cross-tenant data leakage
 
 ### ✅ Error Handling
+
 - Database errors are sanitized and don't reveal internal structure
 - Generic error messages prevent information disclosure
 - No stack traces or query details exposed to attackers
 
 ### ✅ Advanced Protection
+
 - Unicode injection attempts are safely handled
 - Null byte injection is prevented
 - Long payload attacks don't cause buffer overflows

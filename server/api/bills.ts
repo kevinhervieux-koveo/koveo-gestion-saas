@@ -467,10 +467,11 @@ export function registerBillRoutes(app: Express) {
 
         // Get organization ID for document organization
         const organizations = await storage.getUserOrganizations(req.user.id);
-        const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+        const organizationId =
+          organizations.length > 0 ? organizations[0].organizationId : 'default';
 
         // Note: File upload to external storage removed
-        
+
         // Create document path in the expected format
         const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
 
@@ -556,7 +557,7 @@ export function registerBillRoutes(app: Express) {
 
       // Document download functionality removed (no external storage)
       res.status(404).json({
-        message: 'Document download functionality has been disabled'
+        message: 'Document download functionality has been disabled',
       });
     } catch (_error) {
       console.error('Error generating document URL:', _error);

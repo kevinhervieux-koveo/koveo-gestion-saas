@@ -167,7 +167,7 @@ export function useFeatureFormData(feature: Feature | null) {
    * @returns Void.
    */
   const updateFormData = useCallback((field: string, _value: string | boolean | unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: _value }));
     setIsDirty(true);
   }, []);
 
@@ -182,7 +182,7 @@ export function useFeatureFormData(feature: Feature | null) {
         ...prev.rbacRoles,
         [role]: {
           ...prev.rbacRoles[role as keyof typeof prev.rbacRoles],
-          [field]: value,
+          [field]: _value,
         },
       },
     }));

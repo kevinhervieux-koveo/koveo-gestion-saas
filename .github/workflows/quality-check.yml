@@ -2,10 +2,10 @@ name: Quality Check & Code Review
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     types: [opened, synchronize, reopened]
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
 
 # Enforce that all checks pass before merge
@@ -141,18 +141,18 @@ jobs:
       - name: Enhanced security vulnerability scan
         run: |
           echo "🔒 Running enhanced security vulnerability scan..."
-          
+
           # Run comprehensive audit
           npm audit --json > audit-results.json || true
-          
+
           # Parse results
           CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-results.json)
           HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-results.json)
-          
+
           echo "📊 Security scan results:"
           echo "  Critical: $CRITICAL"
           echo "  High: $HIGH"
-          
+
           # Fail on critical vulnerabilities or too many high ones
           if [ $CRITICAL -gt 0 ] || [ $HIGH -gt 3 ]; then
             echo "❌ Security vulnerabilities exceed acceptable limits"
@@ -160,10 +160,10 @@ jobs:
             echo "🇨🇦 This violates Quebec Law 25 security requirements"
             exit 1
           fi
-          
+
           # Run Quebec-specific security checks
           npm run security:quebec || echo "⚠️  Quebec security check not available"
-          
+
           echo "✅ Security scan passed"
 
       - name: Check bundle size
@@ -272,33 +272,33 @@ jobs:
       - name: Check all job results
         run: |
           echo "🎯 Final Quality Gate Assessment"
-          
+
           # Check if any required jobs failed
           if [ "${{ needs.static-analysis.result }}" != "success" ]; then
             echo "❌ Static analysis failed"
             exit 1
           fi
-          
+
           if [ "${{ needs.testing.result }}" != "success" ]; then
             echo "❌ Testing suite failed"
             exit 1
           fi
-          
+
           if [ "${{ needs.quality-analysis.result }}" != "success" ]; then
             echo "❌ Quality analysis failed"
             exit 1
           fi
-          
+
           if [ "${{ needs.quebec-compliance.result }}" != "success" ]; then
             echo "❌ Quebec compliance failed"
             exit 1
           fi
-          
+
           if [ "${{ needs.build-validation.result }}" != "success" ]; then
             echo "❌ Build validation failed"
             exit 1
           fi
-          
+
           echo "✅ All quality gates passed!"
           echo "🚀 Code is ready for merge"
 
@@ -308,27 +308,27 @@ jobs:
         with:
           script: |
             const { context } = require('@actions/github');
-            
+
             const comment = `## 🎯 Quality Check Results
-            
+
             ✅ **All quality gates passed!**
-            
+
             **Checks completed:**
             - ✅ Static analysis (TypeScript, ESLint, Prettier)
             - ✅ Testing suite (Unit, Integration, E2E)
             - ✅ Quality analysis (Coverage, Complexity, Security)
             - ✅ Quebec compliance (Bilingual, Accessibility, Privacy)
             - ✅ Build validation
-            
+
             **Quality metrics:**
             - Code coverage: ≥80% (enforced)
             - Code complexity: ≤10 (enforced)
             - Security vulnerabilities: 0 critical/high (enforced)
             - JSDoc documentation: Required for public APIs
             - Bilingual support: ≥80% coverage (enforced)
-            
+
             This PR is ready for code review! 🚀`;
-            
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

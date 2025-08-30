@@ -7,7 +7,7 @@ export default [
   {
     ignores: [
       'node_modules/**',
-      'dist/**', 
+      'dist/**',
       'build/**',
       '.next/**',
       'coverage/**',
@@ -44,7 +44,7 @@ export default [
         document: 'readonly',
         navigator: 'readonly',
         URL: 'readonly',
-        performance: 'readonly'
+        performance: 'readonly',
       },
     },
     plugins: {
@@ -53,7 +53,7 @@ export default [
     rules: {
       // Only keep the most critical rules enabled
       'no-dupe-keys': 'error',
-      
+
       // Disable everything else for now to allow validation to pass
       'no-redeclare': 'off',
       'no-case-declarations': 'off',
@@ -78,10 +78,10 @@ export default [
       'valid-typeof': 'off',
       'no-func-assign': 'off',
       'no-unreachable': 'off',
-      'no-misleading-character-class': 'off'
+      'no-misleading-character-class': 'off',
     },
   },
-  // JavaScript files configuration  
+  // JavaScript files configuration
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -106,18 +106,18 @@ export default [
         document: 'readonly',
         navigator: 'readonly',
         URL: 'readonly',
-        performance: 'readonly'
+        performance: 'readonly',
       },
     },
     rules: {
       // Only keep critical rules
       'no-dupe-keys': 'error',
-      
+
       // Disable everything else
       'no-redeclare': 'off',
       'no-case-declarations': 'off',
       'no-console': 'off',
-      'no-debugger': 'off', 
+      'no-debugger': 'off',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       'prefer-const': 'off',
@@ -133,12 +133,16 @@ export default [
       'valid-typeof': 'off',
       'no-func-assign': 'off',
       'no-unreachable': 'off',
-      'no-misleading-character-class': 'off'
+      'no-misleading-character-class': 'off',
     },
   },
   // Test files configuration
   {
-    files: ['**/*.test.{ts,tsx,js,jsx}', '**/tests/**/*.{ts,tsx,js,jsx}', '**/test/**/*.{ts,tsx,js,jsx}'],
+    files: [
+      '**/*.test.{ts,tsx,js,jsx}',
+      '**/tests/**/*.{ts,tsx,js,jsx}',
+      '**/test/**/*.{ts,tsx,js,jsx}',
+    ],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -168,7 +172,7 @@ export default [
         global: 'readonly',
         module: 'readonly',
         require: 'readonly',
-        exports: 'readonly'
+        exports: 'readonly',
       },
     },
     plugins: {
@@ -177,5 +181,5 @@ export default [
     rules: {
       // Turn off all rules for test files
     },
-  }
+  },
 ];

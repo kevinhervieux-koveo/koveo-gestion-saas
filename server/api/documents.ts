@@ -168,7 +168,7 @@ export function registerDocumentRoutes(app: Express): void {
         userId,
         userRole,
       };
-      
+
       // Filter by specific residence if provided
       if (specificResidenceId) {
         filters.residenceId = specificResidenceId;
@@ -183,16 +183,16 @@ export function registerDocumentRoutes(app: Express): void {
           // Get all documents for residences, will filter later
         }
       }
-      
+
       const documents = await storage.getDocuments(filters);
-      
+
       // Apply role-based filtering with tenant visibility rules
       const filteredDocuments = documents.filter((doc) => {
         // Admin can see all documents
         if (userRole === 'admin') {
           return true;
         }
-        
+
         // Manager can see all documents in their organization
         if (userRole === 'manager' && organizationId) {
           if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
@@ -202,7 +202,7 @@ export function registerDocumentRoutes(app: Express): void {
             return true;
           }
         }
-        
+
         // Resident access rules
         if (userRole === 'resident') {
           // Residents can see documents in their residence
@@ -218,19 +218,19 @@ export function registerDocumentRoutes(app: Express): void {
             return userBuildingIds.includes(doc.buildingId);
           }
         }
-        
+
         // Tenant access rules - more restrictive
         if (userRole === 'tenant') {
           // Tenants can only see documents marked as visible to tenants
           if (!doc.isVisibleToTenants) {
             return false;
           }
-          
+
           // Tenants can see visible documents in their residence
           if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
             return true;
           }
-          
+
           // Tenants can see visible building documents related to their residences
           if (doc.buildingId) {
             // Check if any of user's residences belong to this building
@@ -240,10 +240,10 @@ export function registerDocumentRoutes(app: Express): void {
             return userBuildingIds.includes(doc.buildingId);
           }
         }
-        
+
         return false;
       });
-      
+
       // Add document type indicators for frontend compatibility
       const enhancedDocuments = filteredDocuments.map((doc) => ({
         ...doc,
@@ -252,7 +252,7 @@ export function registerDocumentRoutes(app: Express): void {
         entityId: doc.buildingId || doc.residenceId,
         uploadDate: doc.createdAt, // For backward compatibility
       }));
-      
+
       allDocuments.push(...enhancedDocuments);
 
       // Sort by upload date, most recent first
@@ -444,7 +444,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         const document = await storage.createBuildingDocument(validatedData);
-        
+
         // Clean up temporary file after successful upload
         if (req.file?.path) {
           try {
@@ -453,7 +453,7 @@ export function registerDocumentRoutes(app: Express): void {
             console.warn('Failed to cleanup temp file:', cleanupError);
           }
         }
-        
+
         res.status(201).json({
           ...document,
           documentCategory: 'building',
@@ -516,19 +516,19 @@ export function registerDocumentRoutes(app: Express): void {
           buildingId: undefined,
           uploadedById: validatedData.uploadedBy,
         };
-        
+
         const document = await storage.createDocument(unifiedDocument);
-        
+
         console.log('📝 Created resident document:', document);
         console.log('📝 Document ID:', document.id);
-        
+
         const response = {
           ...document,
           documentCategory: 'resident',
           entityType: 'residence',
           entityId: document.residenceId,
         };
-        
+
         console.log('📤 Sending response:', response);
         res.status(201).json(response);
       } else {
@@ -545,7 +545,7 @@ export function registerDocumentRoutes(app: Express): void {
           console.warn('Failed to cleanup temp file on error:', cleanupError);
         }
       }
-      
+
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',
@@ -578,11 +578,11 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Use unified documents system for updates
       let updatedDocument: unknown = null;
-      
+
       try {
         const validatedData = createDocumentSchema.partial().parse(req.body);
         updatedDocument = await storage.updateDocument(documentId, validatedData);
-        
+
         if (updatedDocument) {
           // Add compatibility fields for frontend
           updatedDocument.documentCategory = updatedDocument.buildingId ? 'building' : 'resident';
@@ -626,7 +626,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Use unified documents system for deletion
       let deleted = false;
-      
+
       try {
         deleted = await storage.deleteDocument(documentId);
       } catch (error) {
@@ -645,119 +645,128 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Upload endpoint that matches frontend expectation: /api/documents/:id/upload
-  app.post('/api/documents/:id/upload', requireAuth, upload.single('file'), async (req: any, res) => {
-    try {
-      const user = req.user;
-      const userRole = user.role;
-      const userId = user.id;
-      const documentId = req.params.id; // The :id in the URL is the document ID (from frontend)
-      const { documentType = 'resident', residenceId, ...otherData } = req.body;
+  app.post(
+    '/api/documents/:id/upload',
+    requireAuth,
+    upload.single('file'),
+    async (req: any, res) => {
+      try {
+        const user = req.user;
+        const userRole = user.role;
+        const userId = user.id;
+        const documentId = req.params.id; // The :id in the URL is the document ID (from frontend)
+        const { documentType = 'resident', residenceId, ...otherData } = req.body;
 
-      console.log('📤 Upload request received:', {
-        documentId,
-        userId,
-        userRole,
-        hasFile: !!req.file,
-        fileInfo: req.file ? {
-          fieldname: req.file.fieldname,
-          originalname: req.file.originalname,
-          encoding: req.file.encoding,
-          mimetype: req.file.mimetype,
-          size: req.file.size,
-          path: req.file.path
-        } : null,
-        bodyKeys: Object.keys(req.body),
-        contentType: req.headers['content-type']
-      });
-
-      // Validate permissions - only admin, manager, and resident can create documents
-      if (!['admin', 'manager', 'resident'].includes(userRole)) {
-        return res.status(403).json({ message: 'Insufficient permissions to create documents' });
-      }
-
-      if (!req.file) {
-        console.error('❌ No file received in upload request');
-        return res.status(400).json({ message: 'File is required for upload' });
-      }
-
-      // Get the existing document to determine where to store the file
-      const documents = await storage.getDocuments({
-        id: documentId,
-        userId,
-        userRole
-      });
-
-      const existingDocument = documents.find(doc => doc.id === documentId);
-
-      if (!existingDocument) {
-        return res.status(404).json({ message: 'Document not found' });
-      }
-
-      // File validation passed - file exists and is ready for upload
-
-      // Determine organization ID based on document context
-      let organizationId: string;
-
-      if (existingDocument.buildingId) {
-        const building = await storage.getBuilding(existingDocument.buildingId);
-        if (!building) {
-          return res.status(404).json({ message: 'Building not found' });
-        }
-        organizationId = building.organizationId;
-      } else if (existingDocument.residenceId) {
-        const residence = await storage.getResidence(existingDocument.residenceId);
-        if (!residence) {
-          return res.status(404).json({ message: 'Residence not found' });
-        }
-        const building = await storage.getBuilding(residence.buildingId);
-        if (!building) {
-          return res.status(404).json({ message: 'Building not found' });
-        }
-        organizationId = building.organizationId;
-      } else {
-        return res.status(400).json({ message: 'Document must be associated with a building or residence' });
-      }
-
-      // Note: File upload to external storage removed
-      
-      // Update document with file information
-      const updatedDocument = await storage.updateDocument(documentId, {
-        gcsPath: `prod_org_${organizationId}/${req.file.originalname}`,
-        name: req.file.originalname,
-        mimeType: req.file.mimetype,
-      });
-
-      // Clean up temporary file
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-
-      res.status(200).json({
-        document: updatedDocument,
-        message: 'File uploaded successfully',
-      });
-    } catch (error: any) {
-      console.error('Error creating document:', error);
-
-      // Clean up temporary file on error
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (cleanupError) {
-          console.error('Error cleaning up file:', cleanupError);
-        }
-      }
-
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors,
+        console.log('📤 Upload request received:', {
+          documentId,
+          userId,
+          userRole,
+          hasFile: !!req.file,
+          fileInfo: req.file
+            ? {
+                fieldname: req.file.fieldname,
+                originalname: req.file.originalname,
+                encoding: req.file.encoding,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                path: req.file.path,
+              }
+            : null,
+          bodyKeys: Object.keys(req.body),
+          contentType: req.headers['content-type'],
         });
-      }
 
-      res.status(500).json({ message: 'Failed to upload document' });
+        // Validate permissions - only admin, manager, and resident can create documents
+        if (!['admin', 'manager', 'resident'].includes(userRole)) {
+          return res.status(403).json({ message: 'Insufficient permissions to create documents' });
+        }
+
+        if (!req.file) {
+          console.error('❌ No file received in upload request');
+          return res.status(400).json({ message: 'File is required for upload' });
+        }
+
+        // Get the existing document to determine where to store the file
+        const documents = await storage.getDocuments({
+          id: documentId,
+          userId,
+          userRole,
+        });
+
+        const existingDocument = documents.find((doc) => doc.id === documentId);
+
+        if (!existingDocument) {
+          return res.status(404).json({ message: 'Document not found' });
+        }
+
+        // File validation passed - file exists and is ready for upload
+
+        // Determine organization ID based on document context
+        let organizationId: string;
+
+        if (existingDocument.buildingId) {
+          const building = await storage.getBuilding(existingDocument.buildingId);
+          if (!building) {
+            return res.status(404).json({ message: 'Building not found' });
+          }
+          organizationId = building.organizationId;
+        } else if (existingDocument.residenceId) {
+          const residence = await storage.getResidence(existingDocument.residenceId);
+          if (!residence) {
+            return res.status(404).json({ message: 'Residence not found' });
+          }
+          const building = await storage.getBuilding(residence.buildingId);
+          if (!building) {
+            return res.status(404).json({ message: 'Building not found' });
+          }
+          organizationId = building.organizationId;
+        } else {
+          return res
+            .status(400)
+            .json({ message: 'Document must be associated with a building or residence' });
+        }
+
+        // Note: File upload to external storage removed
+
+        // Update document with file information
+        const updatedDocument = await storage.updateDocument(documentId, {
+          gcsPath: `prod_org_${organizationId}/${req.file.originalname}`,
+          name: req.file.originalname,
+          mimeType: req.file.mimetype,
+        });
+
+        // Clean up temporary file
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        res.status(200).json({
+          document: updatedDocument,
+          message: 'File uploaded successfully',
+        });
+      } catch (error: any) {
+        console.error('Error creating document:', error);
+
+        // Clean up temporary file on error
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (cleanupError) {
+            console.error('Error cleaning up file:', cleanupError);
+          }
+        }
+
+        if (error.name === 'ZodError') {
+          return res.status(400).json({
+            message: 'Validation error',
+            errors: error.errors,
+          });
+        }
+
+        res.status(500).json({ message: 'Failed to upload document' });
+      }
     }
-  });
+  );
 
   // POST /api/documents/upload - Upload file to GCS and create unified document record
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req, res) => {
@@ -787,9 +796,10 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Determine GCS bucket based on environment
-      const bucketName = process.env.NODE_ENV === 'production' 
-        ? process.env.GCS_PROD_BUCKET_NAME 
-        : process.env.GCS_DEV_BUCKET_NAME;
+      const bucketName =
+        process.env.NODE_ENV === 'production'
+          ? process.env.GCS_PROD_BUCKET_NAME
+          : process.env.GCS_DEV_BUCKET_NAME;
 
       if (!bucketName) {
         console.error('GCS bucket name not configured');
@@ -800,7 +810,7 @@ export function registerDocumentRoutes(app: Express): void {
       const fileExtension = path.extname(req.file.originalname);
       const baseFileName = path.basename(req.file.originalname, fileExtension);
       const uniqueFileName = `${uuidv4()}-${baseFileName}${fileExtension}`;
-      
+
       let gcsPath: string;
       if (validatedData.residenceId) {
         gcsPath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
@@ -846,20 +856,20 @@ export function registerDocumentRoutes(app: Express): void {
           });
         } catch (gcsError) {
           console.log('⚠️ GCS upload failed, using local storage for development');
-          
+
           // Fallback to local storage
           const localStoragePath = path.join(process.cwd(), 'uploads');
           if (!fs.existsSync(localStoragePath)) {
             fs.mkdirSync(localStoragePath, { recursive: true });
           }
-          
+
           // Create directory structure
           const localFilePath = path.join(localStoragePath, gcsPath);
           const localFileDir = path.dirname(localFilePath);
           if (!fs.existsSync(localFileDir)) {
             fs.mkdirSync(localFileDir, { recursive: true });
           }
-          
+
           // Copy uploaded file to local storage
           fs.copyFileSync(req.file!.path, localFilePath);
           console.log(`🔧 Development: File saved locally at ${localFilePath}`);
@@ -922,7 +932,6 @@ export function registerDocumentRoutes(app: Express): void {
         message: 'Document uploaded successfully',
         document: newDocument,
       });
-
     } catch (error: any) {
       console.error('Document upload error:', error);
 
@@ -983,7 +992,9 @@ export function registerDocumentRoutes(app: Express): void {
       const buildings = await storage.getBuildings();
 
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map((ur) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id).filter(Boolean);
+      const residenceIds = residences
+        .map((ur) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
+        .filter(Boolean);
       const buildingIds = buildings.map((b) => b.id);
 
       // Find the document
@@ -991,17 +1002,17 @@ export function registerDocumentRoutes(app: Express): void {
         userId,
         userRole,
       };
-      
+
       const documents = await storage.getDocuments(filters);
-      const document = documents.find(doc => doc.id === documentId);
-      
+      const document = documents.find((doc) => doc.id === documentId);
+
       if (!document) {
         return res.status(404).json({ message: 'Document not found' });
       }
 
       // Check permissions with tenant visibility rules
       let hasAccess = false;
-      
+
       if (userRole === 'admin') {
         hasAccess = true;
       } else if (userRole === 'manager' && organizationId) {
@@ -1060,19 +1071,19 @@ export function registerDocumentRoutes(app: Express): void {
               const bucketName = process.env.GCS_BUCKET_NAME || 'koveo-gestion-documents';
               const bucket = gcsClient.bucket(bucketName);
               const file = bucket.file(document.gcsPath);
-              
+
               // Check if file exists in GCS
               const [exists] = await file.exists();
               if (!exists) {
                 return res.status(404).json({ message: 'File not found in storage' });
               }
-              
+
               // Generate signed URL for secure access
               const [signedUrl] = await file.getSignedUrl({
                 action: 'read',
                 expires: Date.now() + 15 * 60 * 1000, // 15 minutes
               });
-              
+
               // Redirect to signed URL or stream the file
               if (isDownload) {
                 // For downloads, redirect to signed URL with attachment header
@@ -1080,9 +1091,10 @@ export function registerDocumentRoutes(app: Express): void {
               } else {
                 // For viewing, stream the file directly
                 const stream = file.createReadStream();
-                
+
                 // Set headers with proper filename extension
-                let fileName = document.fileName || document.name || path.basename(document.gcsPath);
+                let fileName =
+                  document.fileName || document.name || path.basename(document.gcsPath);
                 if (!path.extname(fileName) && document.gcsPath) {
                   const originalExt = path.extname(document.gcsPath);
                   if (originalExt) {
@@ -1090,7 +1102,7 @@ export function registerDocumentRoutes(app: Express): void {
                   }
                 }
                 res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-                
+
                 // Set content type
                 const ext = path.extname(fileName).toLowerCase();
                 if (ext === '.pdf') {
@@ -1102,7 +1114,7 @@ export function registerDocumentRoutes(app: Express): void {
                 } else {
                   res.setHeader('Content-Type', 'application/octet-stream');
                 }
-                
+
                 return stream.pipe(res);
               }
             } catch (gcsError) {
@@ -1110,25 +1122,28 @@ export function registerDocumentRoutes(app: Express): void {
               return res.status(500).json({ message: 'Failed to serve file from storage' });
             }
           }
-          
+
           // Development: Serve from local storage
           let filePath = document.gcsPath;
-          
+
           // Check if it's an absolute path
           if (document.gcsPath.startsWith('/')) {
             filePath = document.gcsPath;
-          } 
+          }
           // Check if it's a relative GCS path
-          else if (document.gcsPath.includes('residences/') || document.gcsPath.includes('buildings/')) {
+          else if (
+            document.gcsPath.includes('residences/') ||
+            document.gcsPath.includes('buildings/')
+          ) {
             // For development, try to find the file in common upload directories
             const possiblePaths = [
               path.join(process.cwd(), 'uploads', document.gcsPath), // Main fallback location
               `/tmp/uploads/${document.gcsPath}`,
               `/uploads/${document.gcsPath}`,
               `./uploads/${document.gcsPath}`,
-              path.join('/tmp', document.gcsPath)
+              path.join('/tmp', document.gcsPath),
             ];
-            
+
             // Try to find the file in any of these locations
             for (const possiblePath of possiblePaths) {
               if (fs.existsSync(possiblePath)) {
@@ -1142,12 +1157,12 @@ export function registerDocumentRoutes(app: Express): void {
           else if (document.gcsPath.includes('tmp')) {
             filePath = document.gcsPath;
           }
-          
+
           // Try to serve the file
           if (fs.existsSync(filePath)) {
             // Get the original filename with extension, or construct one from the document name
             let fileName = document.fileName || document.name || path.basename(document.gcsPath);
-            
+
             // If the fileName doesn't have an extension, add it from the original file path
             if (!path.extname(fileName) && document.gcsPath) {
               const originalExt = path.extname(document.gcsPath);
@@ -1155,13 +1170,13 @@ export function registerDocumentRoutes(app: Express): void {
                 fileName += originalExt;
               }
             }
-            
+
             if (isDownload) {
               res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             } else {
               res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
             }
-            
+
             // Set appropriate content type based on file extension
             const ext = path.extname(fileName).toLowerCase();
             if (ext === '.pdf') {
@@ -1173,20 +1188,22 @@ export function registerDocumentRoutes(app: Express): void {
             } else if (ext === '.gif') {
               res.setHeader('Content-Type', 'image/gif');
             } else if (ext === '.doc' || ext === '.docx') {
-              res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+              res.setHeader(
+                'Content-Type',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              );
             } else {
               res.setHeader('Content-Type', 'application/octet-stream');
             }
-            
+
             console.log(`📂 Serving file: ${filePath} as ${fileName}`);
             return res.sendFile(path.resolve(filePath));
           }
-          
+
           // If file not found locally, log for debugging
           console.log(`❌ File not found at gcsPath: ${document.gcsPath}`);
           console.log(`❌ Tried filePath: ${filePath}`);
           return res.status(404).json({ message: 'File not found on server' });
-          
         } catch (error) {
           console.error('Error serving file:', error);
           return res.status(500).json({ message: 'Failed to serve file' });
@@ -1199,5 +1216,4 @@ export function registerDocumentRoutes(app: Express): void {
       res.status(500).json({ message: 'Failed to serve document file' });
     }
   });
-
 }

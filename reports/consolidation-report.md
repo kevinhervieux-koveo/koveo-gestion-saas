@@ -8,10 +8,10 @@ Found **1** consolidation opportunities across the codebase.
 
 ## Redundancy Patterns
 
-
 ### 1. DOCUMENT_CATEGORIES (constant)
 
 **Files affected:** 8
+
 - `client/src/lib/documents.ts`
 - `client/src/pages/manager/BuildingDocuments.tsx`
 - `client/src/pages/manager/ResidenceDocuments.tsx`
@@ -25,7 +25,6 @@ Found **1** consolidation opportunities across the codebase.
 Consolidate into client/src/lib/documents.ts - already created with BUILDING_DOCUMENT_CATEGORIES, RESIDENCE_DOCUMENT_CATEGORIES, and GENERAL_DOCUMENT_CATEGORIES
 
 ---
-
 
 ## Recommended Actions
 

@@ -13,10 +13,11 @@ This directory contains comprehensive documentation about the Koveo Gestion proj
 ## Quick Reference
 
 ### Directory Structure
+
 ```
 koveo-gestion/
 ├── client/                 # Frontend React application
-├── server/                 # Backend Express application  
+├── server/                 # Backend Express application
 ├── shared/                 # Shared code and types
 ├── docs/                   # Documentation
 ├── tests/                  # Test files
@@ -25,6 +26,7 @@ koveo-gestion/
 ```
 
 ### Key Principles
+
 1. **Separation of Concerns** - Clear boundaries between frontend, backend, and shared code
 2. **Feature-Based Organization** - Group related functionality together
 3. **Consistent Naming** - Standard naming conventions across all files

@@ -7,9 +7,11 @@ This directory contains all form components for the Koveo Gestion application. F
 ## Available Forms
 
 ### FeatureForm (`feature-form.tsx`)
+
 **Purpose**: Create and manage feature requests for the product roadmap
 
 **Key Features**:
+
 - Comprehensive feature planning with business objectives
 - AI-powered development prompt generation
 - Integration with roadmap system
@@ -17,6 +19,7 @@ This directory contains all form components for the Koveo Gestion application. F
 - Multi-tab interface for detailed planning
 
 **Complete Implementation Example**:
+
 ```typescript
 // Parent component usage with state management
 import { useState } from 'react';
@@ -27,22 +30,22 @@ import { Plus } from 'lucide-react';
 export function FeaturesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
-  
+
   const handleCreateFeature = () => {
     setEditingFeature(null);
     setIsCreateDialogOpen(true);
   };
-  
+
   const handleEditFeature = (feature: Feature) => {
     setEditingFeature(feature);
     setIsCreateDialogOpen(true);
   };
-  
+
   const handleCloseDialog = () => {
     setIsCreateDialogOpen(false);
     setEditingFeature(null);
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -52,9 +55,9 @@ export function FeaturesPage() {
           Create Feature
         </Button>
       </div>
-      
+
       <FeaturesList onEdit={handleEditFeature} />
-      
+
       <FeatureForm
         feature={editingFeature}
         open={isCreateDialogOpen}
@@ -69,7 +72,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useFeatureManagement() {
   const queryClient = useQueryClient();
-  
+
   // Fetch features with filtering
   const {
     data: features = [],
@@ -81,15 +84,15 @@ export function useFeatureManagement() {
       const response = await fetch('/api/features', {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch features');
       }
-      
+
       return response.json();
     },
   });
-  
+
   // Create feature mutation
   const createFeature = useMutation({
     mutationFn: async (featureData: CreateFeatureRequest) => {
@@ -99,12 +102,12 @@ export function useFeatureManagement() {
         body: JSON.stringify(featureData),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create feature');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -122,7 +125,7 @@ export function useFeatureManagement() {
       });
     },
   });
-  
+
   // Update feature mutation
   const updateFeature = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateFeatureRequest }) => {
@@ -132,12 +135,12 @@ export function useFeatureManagement() {
         body: JSON.stringify(data),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update feature');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -148,7 +151,7 @@ export function useFeatureManagement() {
       });
     },
   });
-  
+
   return {
     features,
     isLoading,
@@ -162,20 +165,24 @@ export function useFeatureManagement() {
 ```
 
 **Props**:
+
 - `feature?: Feature` - Existing feature data for editing
 - `open: boolean` - Dialog visibility state
 - `onOpenChange: (open: boolean) => void` - Dialog state handler
 
 ### OrganizationForm (`organization-form.tsx`)
+
 **Purpose**: Create and edit organization records with Quebec compliance
 
 **Key Features**:
+
 - Quebec-specific validation (postal codes, provinces)
 - Multi-organization type support (syndicate, coop, management company)
 - Comprehensive contact information management
 - Registration number tracking
 
 **Complete Implementation with Quebec Validation**:
+
 ```typescript
 // Advanced Quebec-compliant organization form usage
 import { useState } from 'react';
@@ -185,7 +192,7 @@ import { useQuery } from '@tanstack/react-query';
 export function OrganizationManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
-  
+
   // Fetch organizations with Quebec filtering
   const { data: organizations = [] } = useQuery({
     queryKey: ['/api/organizations'],
@@ -196,17 +203,17 @@ export function OrganizationManagement() {
       return response.json();
     },
   });
-  
+
   const handleCreateOrganization = () => {
     setEditingOrg(null);
     setIsFormOpen(true);
   };
-  
+
   const handleEditOrganization = (org: Organization) => {
     setEditingOrg(org);
     setIsFormOpen(true);
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -217,7 +224,7 @@ export function OrganizationManagement() {
           Nouvelle Organisation
         </Button>
       </div>
-      
+
       {/* Organizations list with Quebec indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {organizations.map((org) => (
@@ -229,7 +236,7 @@ export function OrganizationManagement() {
           />
         ))}
       </div>
-      
+
       <OrganizationForm
         organization={editingOrg}
         open={isFormOpen}
@@ -240,10 +247,10 @@ export function OrganizationManagement() {
 }
 
 // Quebec-specific organization card component
-function OrganizationCard({ 
-  organization, 
-  onEdit, 
-  showQuebecBadge 
+function OrganizationCard({
+  organization,
+  onEdit,
+  showQuebecBadge
 }: {
   organization: Organization;
   onEdit: () => void;
@@ -262,7 +269,7 @@ function OrganizationCard({
         </div>
         <CardDescription>{organization.type}</CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-2">
         <div className="text-sm text-gray-600">
           <div>{organization.address}</div>
@@ -270,28 +277,28 @@ function OrganizationCard({
             {organization.city}, {organization.province} {organization.postalCode}
           </div>
         </div>
-        
+
         {organization.phone && (
           <div className="text-sm">
             <Phone className="w-3 h-3 inline mr-1" />
             {organization.phone}
           </div>
         )}
-        
+
         {organization.email && (
           <div className="text-sm">
             <Mail className="w-3 h-3 inline mr-1" />
             {organization.email}
           </div>
         )}
-        
+
         {organization.registrationNumber && (
           <div className="text-xs text-gray-500">
             NEQ: {organization.registrationNumber}
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter>
         <Button variant="outline" size="sm" onClick={onEdit}>
           Modifier
@@ -303,18 +310,22 @@ function OrganizationCard({
 ```
 
 ### UserForm (`user-form.tsx`)
+
 **Purpose**: User creation and profile management
 
 **Key Features**:
+
 - Role-based access control integration
 - Quebec compliance for personal data
 - Email validation and formatting
 - Password complexity requirements
 
 ### InvitationForm (`invitation-form.tsx`)
+
 **Purpose**: Send user invitations with role assignments
 
 **Key Features**:
+
 - Role selection with proper permissions
 - Organization assignment
 - Email validation and formatting
@@ -327,6 +338,7 @@ function OrganizationCard({
 All forms in this directory follow these consistent patterns:
 
 #### 1. Schema Validation
+
 ```typescript
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -341,6 +353,7 @@ type FormData = z.infer<typeof formSchema>;
 ```
 
 #### 2. Form Hook Setup
+
 ```typescript
 import { useForm } from 'react-hook-form';
 
@@ -355,6 +368,7 @@ const form = useForm<FormData>({
 ```
 
 #### 3. Mutation Handling
+
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -369,22 +383,24 @@ const mutation = useMutation({
     onOpenChange(false);
   },
   onError: (error) => {
-    toast({ 
-      title: 'Error', 
+    toast({
+      title: 'Error',
       description: error.message,
-      variant: 'destructive' 
+      variant: 'destructive',
     });
   },
 });
 ```
 
 #### 4. Quebec Compliance
+
 - Canadian postal code validation: `/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/`
 - Province defaults to 'QC' (Quebec)
 - Bilingual field labels and error messages
 - WCAG 2.1 AA accessibility compliance
 
 #### 5. Error Handling
+
 - Form validation errors displayed inline
 - Server errors shown via toast notifications
 - Loading states during submission
@@ -393,17 +409,18 @@ const mutation = useMutation({
 ## Form Components Structure
 
 ### Standard Form Layout
+
 ```typescript
 <Dialog open={open} onOpenChange={onOpenChange}>
   <DialogContent className="max-w-2xl">
     <DialogHeader>
       <DialogTitle>{formTitle}</DialogTitle>
     </DialogHeader>
-    
+
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Form fields */}
-        
+
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
@@ -419,6 +436,7 @@ const mutation = useMutation({
 ```
 
 ### Field Components
+
 ```typescript
 <FormField
   control={form.control}
@@ -468,28 +486,31 @@ const mutation = useMutation({
 ## Testing Strategy
 
 ### Unit Tests
+
 - Form validation with various inputs
 - Error handling scenarios
 - Success path testing
 - Accessibility compliance
 
 ### Integration Tests
+
 - API integration with form submission
 - State management and cache updates
 - User interaction flows
 - Error recovery scenarios
 
 ### Example Test Structure
+
 ```typescript
 describe('FeatureForm', () => {
   it('should validate required fields', () => {
     // Test validation logic
   });
-  
+
   it('should submit valid data', async () => {
     // Test successful submission
   });
-  
+
   it('should handle server errors', async () => {
     // Test error scenarios
   });
@@ -499,6 +520,7 @@ describe('FeatureForm', () => {
 ## Maintenance
 
 ### Regular Tasks
+
 - Update validation schemas when API changes
 - Review and update error messages
 - Ensure accessibility compliance
@@ -506,6 +528,7 @@ describe('FeatureForm', () => {
 - Monitor form completion rates and optimize UX
 
 ### Version Updates
+
 - Keep React Hook Form updated
 - Update Zod schemas for new validation features
 - Review and update UI components

@@ -13,6 +13,7 @@ The Dynamic Financial System replaces the traditional `money_flow` table with a 
 ## System Architecture
 
 ### Before: Money Flow Table System
+
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │ Bills & Fees    │───▶│ Daily Cron Job   │───▶│ money_flow      │
@@ -33,6 +34,7 @@ Problems:
 ```
 
 ### After: Dynamic Financial Calculator
+
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │ Bills & Fees    │───▶│ Real-time Calc   │───▶│ Smart Cache     │
@@ -78,27 +80,27 @@ GET /api/dynamic-budgets/cache/stats
     {
       "year": 2024,
       "month": 12,
-      "totalIncome": 25000.00,
-      "totalExpenses": 18500.00,
-      "netCashFlow": 6500.00,
+      "totalIncome": 25000.0,
+      "totalExpenses": 18500.0,
+      "netCashFlow": 6500.0,
       "incomeByCategory": {
-        "monthly_fees": 24000.00,
-        "parking_fees": 1000.00
+        "monthly_fees": 24000.0,
+        "parking_fees": 1000.0
       },
       "expensesByCategory": {
-        "maintenance_expense": 8000.00,
-        "utilities": 4500.00,
-        "insurance": 3000.00,
-        "administrative_expense": 3000.00
+        "maintenance_expense": 8000.0,
+        "utilities": 4500.0,
+        "insurance": 3000.0,
+        "administrative_expense": 3000.0
       }
     }
   ],
   "summary": {
-    "totalIncome": 300000.00,
-    "totalExpenses": 222000.00,
-    "netCashFlow": 78000.00,
-    "averageMonthlyIncome": 25000.00,
-    "averageMonthlyExpenses": 18500.00
+    "totalIncome": 300000.0,
+    "totalExpenses": 222000.0,
+    "netCashFlow": 78000.0,
+    "averageMonthlyIncome": 25000.0,
+    "averageMonthlyExpenses": 18500.0
   },
   "meta": {
     "buildingId": "abc-123",
@@ -139,7 +141,9 @@ async function getBudgetData(buildingId: string, dateRange: DateRange) {
 
 // NEW: Real-time calculation with caching
 async function getBudgetData(buildingId: string, dateRange: DateRange, forceRefresh = false) {
-  return fetch(`/api/dynamic-budgets/${buildingId}?startYear=${dateRange.start}&endYear=${dateRange.end}&forceRefresh=${forceRefresh}`);
+  return fetch(
+    `/api/dynamic-budgets/${buildingId}?startYear=${dateRange.start}&endYear=${dateRange.end}&forceRefresh=${forceRefresh}`
+  );
 }
 ```
 
@@ -150,10 +154,10 @@ async function getBudgetData(buildingId: string, dateRange: DateRange, forceRefr
 async function handleBillUpdate(billId: string) {
   // Update bill data
   await updateBill(billId, billData);
-  
+
   // Cache is automatically invalidated by the system
   // No manual intervention needed
-  
+
   // Optional: Force refresh if immediate data needed
   if (needsImmediateUpdate) {
     await fetch(`/api/dynamic-budgets/${buildingId}/refresh`, { method: 'POST' });
@@ -165,29 +169,29 @@ async function handleBillUpdate(billId: string) {
 
 ### Storage Requirements
 
-| System | Storage per Building | 25 Years of Data |
-|--------|---------------------|------------------|
-| Money Flow Table | ~2.5MB per building | 62.5GB for 1000 buildings |
-| Dynamic Calculator | ~2KB cache per calculation | 50MB for 1000 buildings |
-| **Savings** | **99.92% reduction** | **99.92% less storage** |
+| System             | Storage per Building       | 25 Years of Data          |
+| ------------------ | -------------------------- | ------------------------- |
+| Money Flow Table   | ~2.5MB per building        | 62.5GB for 1000 buildings |
+| Dynamic Calculator | ~2KB cache per calculation | 50MB for 1000 buildings   |
+| **Savings**        | **99.92% reduction**       | **99.92% less storage**   |
 
 ### Query Performance
 
-| Operation | Money Flow | Dynamic Calculator | Improvement |
-|-----------|------------|-------------------|------------|
-| Monthly Budget | 150-300ms | 15-45ms | 5-10x faster |
-| Yearly Summary | 800-1200ms | 80-150ms | 8-10x faster |
-| Multi-building | 3-5 seconds | 300-600ms | 8-10x faster |
-| Cache Hit | N/A | 5-15ms | 20-60x faster |
+| Operation      | Money Flow  | Dynamic Calculator | Improvement   |
+| -------------- | ----------- | ------------------ | ------------- |
+| Monthly Budget | 150-300ms   | 15-45ms            | 5-10x faster  |
+| Yearly Summary | 800-1200ms  | 80-150ms           | 8-10x faster  |
+| Multi-building | 3-5 seconds | 300-600ms          | 8-10x faster  |
+| Cache Hit      | N/A         | 5-15ms             | 20-60x faster |
 
 ### Cost Analysis
 
-| Component | Old System (Monthly) | New System (Monthly) | Savings |
-|-----------|---------------------|---------------------|---------|
-| Database Storage | $180 | $8 | $172 (95.6%) |
-| CPU (Daily Jobs) | $45 | $2 | $43 (95.6%) |
-| Query Processing | $85 | $25 | $60 (70.6%) |
-| **Total** | **$310** | **$35** | **$275 (88.7%)** |
+| Component        | Old System (Monthly) | New System (Monthly) | Savings          |
+| ---------------- | -------------------- | -------------------- | ---------------- |
+| Database Storage | $180                 | $8                   | $172 (95.6%)     |
+| CPU (Daily Jobs) | $45                  | $2                   | $43 (95.6%)      |
+| Query Processing | $85                  | $25                  | $60 (70.6%)      |
+| **Total**        | **$310**             | **$35**              | **$275 (88.7%)** |
 
 ## System Health Monitoring
 
@@ -233,21 +237,25 @@ curl /api/dynamic-budgets/cache/stats
 ## Migration Strategy
 
 ### Phase 1: Parallel Operation (Week 1-2)
+
 - Deploy dynamic system alongside existing money_flow
 - Test with subset of buildings
 - Compare results for accuracy
 
 ### Phase 2: Gradual Migration (Week 3-4)
+
 - Update frontend components to use new API
 - Monitor performance and cache hit rates
 - Keep money_flow as fallback
 
 ### Phase 3: Full Migration (Week 5-6)
+
 - Switch all traffic to dynamic system
 - Disable money_flow generation jobs
 - Remove old money_flow data after verification
 
 ### Phase 4: Cleanup (Week 7-8)
+
 - Remove money_flow table and related code
 - Update documentation
 - Monitor system performance
@@ -257,16 +265,19 @@ curl /api/dynamic-budgets/cache/stats
 ### Common Issues
 
 **Q: Data seems outdated after bill changes**
+
 - Check if cache invalidation is working
 - Manually refresh cache: `POST /api/dynamic-budgets/{buildingId}/refresh`
 - Verify the bill update triggers are working
 
 **Q: Performance is slower than expected**
+
 - Check cache hit rate in `/api/dynamic-budgets/cache/stats`
 - Ensure cache table has proper indexes
 - Consider increasing cache duration for stable data
 
 **Q: Missing financial data**
+
 - Verify bill schedules are properly configured
 - Check if residence monthly fees are set correctly
 - Review calculation logic in DynamicFinancialCalculator

@@ -22,7 +22,11 @@ export default function ResidenceDocuments() {
   });
 
   // Get residence info
-  const { data: residence, isError: residenceError, error } = useQuery({
+  const {
+    data: residence,
+    isError: residenceError,
+    error,
+  } = useQuery({
     queryKey: ['/api/residences', residenceId],
     queryFn: async () => {
       console.log('🔍 ResidenceDocuments: Fetching residence data for ID:', residenceId);
@@ -88,7 +92,9 @@ export default function ResidenceDocuments() {
               </Button>
               <Button
                 variant='outline'
-                onClick={() => navigate('/residents/residences/e27ac924-8120-4904-a791-d1e9db544d58/documents')}
+                onClick={() =>
+                  navigate('/residents/residences/e27ac924-8120-4904-a791-d1e9db544d58/documents')
+                }
                 data-testid='button-go-to-valid-residence'
                 className='w-full'
               >
@@ -102,9 +108,10 @@ export default function ResidenceDocuments() {
   }
 
   const isUserTenant = user?.role === 'tenant';
-  const residenceName = residence?.unitNumber || residence?.unit_number 
-    ? `Unit ${residence.unitNumber || residence.unit_number}` 
-    : 'Residence';
+  const residenceName =
+    residence?.unitNumber || residence?.unit_number
+      ? `Unit ${residence.unitNumber || residence.unit_number}`
+      : 'Residence';
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

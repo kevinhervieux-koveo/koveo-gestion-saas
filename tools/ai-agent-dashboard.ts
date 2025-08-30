@@ -125,13 +125,14 @@ export class AIAgentDashboard {
    * @returns Promise resolving to current dashboard metrics.
    */
   public async collectMetrics(): Promise<DashboardMetrics> {
-    const [projectHealth, codeAnalysis, workspaceContext, recommendations, insights] = await Promise.all([
-      agentToolkit.getProjectHealth(),
-      agentToolkit.analyzeCode(),
-      this.getWorkspaceContext(),
-      this.getRecommendations(),
-      workflowAssistant.generateProjectInsights()
-    ]);
+    const [projectHealth, codeAnalysis, workspaceContext, recommendations, insights] =
+      await Promise.all([
+        agentToolkit.getProjectHealth(),
+        agentToolkit.analyzeCode(),
+        this.getWorkspaceContext(),
+        this.getRecommendations(),
+        workflowAssistant.generateProjectInsights(),
+      ]);
 
     const metrics: DashboardMetrics = {
       timestamp: new Date().toISOString(),
@@ -141,31 +142,31 @@ export class AIAgentDashboard {
         documentation: projectHealth.documentation,
         testing: projectHealth.testing,
         security: projectHealth.security,
-        performance: projectHealth.performance
+        performance: projectHealth.performance,
       },
       codeAnalysis: {
         complexity: codeAnalysis.complexity,
         maintainability: codeAnalysis.maintainability,
         testCoverage: codeAnalysis.testCoverage,
         typeScriptErrors: codeAnalysis.typeScriptErrors,
-        lintWarnings: codeAnalysis.lintWarnings
+        lintWarnings: codeAnalysis.lintWarnings,
       },
       workspaceContext: {
         workingFiles: workspaceContext.workingFiles,
         focusArea: workspaceContext.focusArea,
-        recentActivity: workspaceContext.recentActivity
+        recentActivity: workspaceContext.recentActivity,
       },
       recommendations: {
         priority: recommendations.priority.length,
         exploratory: recommendations.exploratory.length,
-        maintenance: recommendations.maintenance.length
+        maintenance: recommendations.maintenance.length,
       },
-      insights: insights.map(insight => ({
+      insights: insights.map((insight) => ({
         category: insight.category,
         severity: insight.severity,
         title: insight.title,
-        impact: insight.impact
-      }))
+        impact: insight.impact,
+      })),
     };
 
     this.metricsHistory.push(metrics);
@@ -184,11 +185,11 @@ export class AIAgentDashboard {
     recentActivity: string[];
   }> {
     const context = JSON.parse(contextManager.generateContextSummary());
-    
+
     return {
       workingFiles: context.workingSet || 0,
       focusArea: context.focusArea || 'general',
-      recentActivity: context.recentFiles?.map((f: { path: string }) => f.path).slice(0, 5) || []
+      recentActivity: context.recentFiles?.map((f: { path: string }) => f.path).slice(0, 5) || [],
     };
   }
 
@@ -364,13 +365,18 @@ export class AIAgentDashboard {
         <div class="insights-section">
             <h3 style="color: #00ff88; margin-bottom: 15px;">🔍 Project Insights</h3>
             <div class="insights-list">
-                ${metrics.insights.slice(0, 8).map(insight => `
+                ${metrics.insights
+                  .slice(0, 8)
+                  .map(
+                    (insight) => `
                     <div class="insight-item ${insight.severity}">
                         <div class="insight-category">${insight.category}</div>
                         <div class="insight-title">${insight.title}</div>
                         <div class="metric-detail">Impact Score: ${insight.impact}</div>
                     </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
             </div>
         </div>
 
@@ -378,12 +384,16 @@ export class AIAgentDashboard {
         <div class="insights-section">
             <h3 style="color: #00ff88; margin-bottom: 15px;">📁 Recent Activity</h3>
             <div class="insights-list">
-                ${metrics.workspaceContext.recentActivity.map(file => `
+                ${metrics.workspaceContext.recentActivity
+                  .map(
+                    (file) => `
                     <div class="insight-item">
                         <div class="insight-title">${file}</div>
                         <div class="insight-category">recent file</div>
                     </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
             </div>
         </div>
 
@@ -410,14 +420,15 @@ export class AIAgentDashboard {
   private calculateAgentPerformance(): AgentPerformance {
     const sessionDuration = (Date.now() - this.sessionStart.getTime()) / 1000 / 60; // minutes
     const recentMetrics = this.metricsHistory.slice(-10);
-    
+
     // Calculate efficiency based on health improvements
     let efficiency = 75; // Base efficiency
     if (recentMetrics.length > 1) {
       const latest = recentMetrics[recentMetrics.length - 1];
       const previous = recentMetrics[recentMetrics.length - 2];
-      
-      const healthImprovement = latest.projectHealth.overallScore - previous.projectHealth.overallScore;
+
+      const healthImprovement =
+        latest.projectHealth.overallScore - previous.projectHealth.overallScore;
       efficiency += Math.max(-25, Math.min(25, healthImprovement * 2));
     }
 
@@ -427,7 +438,7 @@ export class AIAgentDashboard {
       tasksCompleted: Math.floor(sessionDuration / 5), // Estimate based on time
       errorRate: 5, // Simplified calculation
       userSatisfaction: 85, // Would come from user feedback
-      efficiency: Math.max(0, Math.min(100, efficiency))
+      efficiency: Math.max(0, Math.min(100, efficiency)),
     };
   }
 
@@ -441,8 +452,12 @@ export class AIAgentDashboard {
     const memoryPercentage = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
     let status: SystemStatus['status'] = 'optimal';
-    if (memoryPercentage > 80) {status = 'warning';}
-    if (memoryPercentage > 95) {status = 'critical';}
+    if (memoryPercentage > 80) {
+      status = 'warning';
+    }
+    if (memoryPercentage > 95) {
+      status = 'critical';
+    }
 
     return {
       status,
@@ -450,7 +465,7 @@ export class AIAgentDashboard {
       memoryUsage: memoryPercentage,
       diskUsage: 45, // Simplified - would need actual disk check
       networkLatency: 12, // Simplified - would need actual network check
-      lastBackup: new Date().toISOString()
+      lastBackup: new Date().toISOString(),
     };
   }
 
@@ -463,12 +478,16 @@ export class AIAgentDashboard {
     const performance = this.calculateAgentPerformance();
     const systemStatus = this.getSystemStatus();
 
-    return JSON.stringify({
-      metrics,
-      performance,
-      systemStatus,
-      history: this.metricsHistory.slice(-20) // Last 20 entries
-    }, null, 2);
+    return JSON.stringify(
+      {
+        metrics,
+        performance,
+        systemStatus,
+        history: this.metricsHistory.slice(-20), // Last 20 entries
+      },
+      null,
+      2
+    );
   }
 
   /**
@@ -478,12 +497,12 @@ export class AIAgentDashboard {
   public async saveDashboard(): Promise<string> {
     const html = await this.generateDashboardHTML();
     const dashboardPath = path.join(this.projectRoot, '.ai-agent', 'dashboard.html');
-    
+
     const dir = path.dirname(dashboardPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     fs.writeFileSync(dashboardPath, html);
     return dashboardPath;
   }
@@ -504,12 +523,12 @@ export class AIAgentDashboard {
   } | null {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    
-    const recentMetrics = this.metricsHistory.filter(m => 
-      new Date(m.timestamp) > cutoff
-    );
 
-    if (recentMetrics.length < 2) {return null;}
+    const recentMetrics = this.metricsHistory.filter((m) => new Date(m.timestamp) > cutoff);
+
+    if (recentMetrics.length < 2) {
+      return null;
+    }
 
     const first = recentMetrics[0];
     const last = recentMetrics[recentMetrics.length - 1];
@@ -517,16 +536,25 @@ export class AIAgentDashboard {
     return {
       projectHealth: {
         change: last.projectHealth.overallScore - first.projectHealth.overallScore,
-        trend: last.projectHealth.overallScore > first.projectHealth.overallScore ? 'improving' : 'declining'
+        trend:
+          last.projectHealth.overallScore > first.projectHealth.overallScore
+            ? 'improving'
+            : 'declining',
       },
       codeQuality: {
         change: last.codeAnalysis.maintainability - first.codeAnalysis.maintainability,
-        trend: last.codeAnalysis.maintainability > first.codeAnalysis.maintainability ? 'improving' : 'declining'
+        trend:
+          last.codeAnalysis.maintainability > first.codeAnalysis.maintainability
+            ? 'improving'
+            : 'declining',
       },
       testCoverage: {
         change: last.codeAnalysis.testCoverage - first.codeAnalysis.testCoverage,
-        trend: last.codeAnalysis.testCoverage > first.codeAnalysis.testCoverage ? 'improving' : 'declining'
-      }
+        trend:
+          last.codeAnalysis.testCoverage > first.codeAnalysis.testCoverage
+            ? 'improving'
+            : 'declining',
+      },
     };
   }
 }

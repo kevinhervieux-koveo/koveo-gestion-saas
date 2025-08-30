@@ -19,9 +19,11 @@
 ## Authentication Endpoints
 
 ### POST /api/auth/login
+
 **Purpose**: Authenticate user with username/password
 
 **Request Body**:
+
 ```typescript
 interface LoginRequest {
   username: string;
@@ -30,6 +32,7 @@ interface LoginRequest {
 ```
 
 **Example Request**:
+
 ```typescript
 // Frontend implementation
 const loginUser = async (credentials: LoginRequest) => {
@@ -62,6 +65,7 @@ const handleLogin = async (formData: LoginRequest) => {
 ```
 
 **Success Response**:
+
 ```typescript
 interface LoginResponse {
   success: true;
@@ -79,18 +83,21 @@ interface LoginResponse {
 ```
 
 **Error Response** (401 Unauthorized):
+
 ```typescript
 {
   success: false;
-  message: "Invalid username or password";
-  code: "AUTH_INVALID_CREDENTIALS";
+  message: 'Invalid username or password';
+  code: 'AUTH_INVALID_CREDENTIALS';
 }
 ```
 
 ### POST /api/auth/logout
+
 **Purpose**: End user session
 
 **Response**:
+
 ```typescript
 {
   success: boolean;
@@ -99,9 +106,11 @@ interface LoginResponse {
 ```
 
 ### GET /api/auth/user
+
 **Purpose**: Get current authenticated user information
 
 **Response**:
+
 ```typescript
 {
   id: string;
@@ -118,14 +127,17 @@ interface LoginResponse {
 ## User Management
 
 ### GET /api/users
+
 **Purpose**: List all users with optional filtering
 
 **Query Parameters**:
+
 - `organizationId`: Filter by organization
 - `role`: Filter by user role
 - `isActive`: Filter active/inactive users
 
 **Response**:
+
 ```typescript
 {
   users: User[];
@@ -134,23 +146,26 @@ interface LoginResponse {
 ```
 
 ### POST /api/users
+
 **Purpose**: Create new user with role-based permissions
 
 **Request Body**:
+
 ```typescript
 interface CreateUserRequest {
-  username: string;        // Unique username (3-50 characters)
-  email: string;          // Valid email address
-  firstName: string;      // First name (1-100 characters)
-  lastName: string;       // Last name (1-100 characters)
+  username: string; // Unique username (3-50 characters)
+  email: string; // Valid email address
+  firstName: string; // First name (1-100 characters)
+  lastName: string; // Last name (1-100 characters)
   role: 'admin' | 'manager' | 'tenant' | 'resident';
   organizationId: string; // Must be valid organization ID
-  password: string;       // Min 8 characters, complexity requirements
-  residenceId?: string;   // Required for tenant/resident roles
+  password: string; // Min 8 characters, complexity requirements
+  residenceId?: string; // Required for tenant/resident roles
 }
 ```
 
 **Complete Implementation Example**:
+
 ```typescript
 // Frontend: User creation with validation
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -237,6 +252,7 @@ export function CreateUserForm() {
 ```
 
 **Success Response**:
+
 ```typescript
 {
   success: true;
@@ -250,12 +266,13 @@ export function CreateUserForm() {
     organizationId: string;
     isActive: boolean;
     createdAt: string;
-  };
-  message: "User created successfully";
+  }
+  message: 'User created successfully';
 }
 ```
 
 **Validation Error Response** (400 Bad Request):
+
 ```typescript
 {
   success: false;
@@ -270,30 +287,35 @@ export function CreateUserForm() {
 ```
 
 ### PUT /api/users/:id
+
 **Purpose**: Update user information
 
 **Request Body**: Partial user object with fields to update
 
 ### DELETE /api/users/:id
+
 **Purpose**: Deactivate user account
 
 ### POST /api/users/invite
+
 **Purpose**: Send invitation to new user with role and residence assignment
 
 **Request Body**:
+
 ```typescript
 interface InviteUserRequest {
-  email: string;           // Valid email address
+  email: string; // Valid email address
   role: 'admin' | 'manager' | 'tenant' | 'resident';
-  organizationId: string;  // Organization to invite user to
-  residenceId?: string;    // Required for tenant/resident roles
-  invitedBy: string;       // ID of user sending invitation
-  message?: string;        // Optional personal message
-  expiresAt?: string;      // Optional expiration date (ISO string)
+  organizationId: string; // Organization to invite user to
+  residenceId?: string; // Required for tenant/resident roles
+  invitedBy: string; // ID of user sending invitation
+  message?: string; // Optional personal message
+  expiresAt?: string; // Optional expiration date (ISO string)
 }
 ```
 
 **Advanced Implementation Example**:
+
 ```typescript
 // Custom hook for invitation management
 export function useInviteUser() {
@@ -469,6 +491,7 @@ export function InvitationForm() {
 ```
 
 **Success Response**:
+
 ```typescript
 {
   success: true;
@@ -488,35 +511,38 @@ export function InvitationForm() {
 ```
 
 **Error Responses**:
+
 ```typescript
 // 409 Conflict - User already exists
 {
   success: false;
-  message: "User with this email already exists";
-  code: "USER_EXISTS";
+  message: 'User with this email already exists';
+  code: 'USER_EXISTS';
 }
 
 // 403 Forbidden - Insufficient permissions
 {
   success: false;
-  message: "Insufficient permissions to invite users with this role";
-  code: "INSUFFICIENT_PERMISSIONS";
+  message: 'Insufficient permissions to invite users with this role';
+  code: 'INSUFFICIENT_PERMISSIONS';
 }
 
 // 400 Bad Request - Invalid residence
 {
   success: false;
   message: "Selected residence is not available or doesn't exist";
-  code: "INVALID_RESIDENCE";
+  code: 'INVALID_RESIDENCE';
 }
 ```
 
 ## Organization Management
 
 ### GET /api/organizations
+
 **Purpose**: List all organizations (admin only)
 
 **Response**:
+
 ```typescript
 {
   organizations: Organization[];
@@ -524,9 +550,11 @@ export function InvitationForm() {
 ```
 
 ### POST /api/organizations
+
 **Purpose**: Create new organization
 
 **Request Body**:
+
 ```typescript
 {
   name: string;
@@ -538,12 +566,15 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/organizations/:id
+
 **Purpose**: Update organization details
 
 ### GET /api/organizations/:id/stats
+
 **Purpose**: Get organization statistics and metrics
 
 **Response**:
+
 ```typescript
 {
   totalBuildings: number;
@@ -557,12 +588,15 @@ export function InvitationForm() {
 ## Building Management
 
 ### GET /api/buildings
+
 **Purpose**: List buildings for organization
 
 **Query Parameters**:
+
 - `organizationId`: Required for filtering
 
 **Response**:
+
 ```typescript
 {
   buildings: Building[];
@@ -570,9 +604,11 @@ export function InvitationForm() {
 ```
 
 ### POST /api/buildings
+
 **Purpose**: Create new building
 
 **Request Body**:
+
 ```typescript
 {
   name: string;
@@ -587,27 +623,34 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/buildings/:id
+
 **Purpose**: Update building information
 
 ### DELETE /api/buildings/:id
+
 **Purpose**: Deactivate building
 
 ### GET /api/buildings/:id/residences
+
 **Purpose**: Get all residences in a building
 
 ## Residence Management
 
 ### GET /api/residences
+
 **Purpose**: List residences with filtering
 
 **Query Parameters**:
+
 - `buildingId`: Filter by building
 - `isActive`: Filter active/inactive
 
 ### POST /api/residences
+
 **Purpose**: Create new residence
 
 **Request Body**:
+
 ```typescript
 {
   buildingId: string;
@@ -620,12 +663,15 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/residences/:id
+
 **Purpose**: Update residence details
 
 ### POST /api/user-residences
+
 **Purpose**: Associate user with residence
 
 **Request Body**:
+
 ```typescript
 {
   userId: string;
@@ -639,17 +685,21 @@ export function InvitationForm() {
 ## Financial Management
 
 ### GET /api/bills
+
 **Purpose**: List bills with filtering
 
 **Query Parameters**:
+
 - `residenceId`: Filter by residence
 - `status`: Filter by payment status
 - `type`: Filter by bill type
 
 ### POST /api/bills
+
 **Purpose**: Create new bill
 
 **Request Body**:
+
 ```typescript
 {
   residenceId: string;
@@ -662,15 +712,19 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/bills/:id
+
 **Purpose**: Update bill (typically status changes)
 
 ### GET /api/budgets
+
 **Purpose**: List budgets for building/organization
 
 ### POST /api/budgets
+
 **Purpose**: Create annual budget
 
 **Request Body**:
+
 ```typescript
 {
   buildingId: string;
@@ -684,17 +738,21 @@ export function InvitationForm() {
 ## Maintenance Requests
 
 ### GET /api/maintenance-requests
+
 **Purpose**: List maintenance requests
 
 **Query Parameters**:
+
 - `residenceId`: Filter by residence
 - `status`: Filter by request status
 - `priority`: Filter by priority level
 
 ### POST /api/maintenance-requests
+
 **Purpose**: Submit new maintenance request
 
 **Request Body**:
+
 ```typescript
 {
   residenceId: string;
@@ -707,12 +765,15 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/maintenance-requests/:id
+
 **Purpose**: Update maintenance request status
 
 ### POST /api/maintenance-requests/:id/assign
+
 **Purpose**: Assign maintenance request to user
 
 **Request Body**:
+
 ```typescript
 {
   assignedTo: string;
@@ -724,18 +785,22 @@ export function InvitationForm() {
 ## Document Management
 
 ### GET /api/documents
+
 **Purpose**: List documents with access control
 
 **Query Parameters**:
+
 - `organizationId`: Filter by organization
 - `buildingId`: Filter by building
 - `category`: Filter by document type
 - `isPublic`: Filter public/private documents
 
 ### POST /api/documents
+
 **Purpose**: Upload new document
 
 **Request Body** (multipart/form-data):
+
 ```typescript
 {
   file: File;
@@ -749,21 +814,26 @@ export function InvitationForm() {
 ```
 
 ### DELETE /api/documents/:id
+
 **Purpose**: Delete document (with permission checks)
 
 ## Notification System
 
 ### GET /api/notifications
+
 **Purpose**: Get user notifications
 
 **Query Parameters**:
+
 - `isRead`: Filter read/unread notifications
 - `type`: Filter by notification type
 
 ### POST /api/notifications
+
 **Purpose**: Create new notification
 
 **Request Body**:
+
 ```typescript
 {
   userId: string;
@@ -776,21 +846,26 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/notifications/:id/read
+
 **Purpose**: Mark notification as read
 
 ## Roadmap & Features
 
 ### GET /api/features
+
 **Purpose**: List platform features and roadmap items
 
 **Query Parameters**:
+
 - `showOnRoadmap`: Filter roadmap visibility
 - `category`: Filter by feature category
 
 ### POST /api/features
+
 **Purpose**: Create new feature (admin only)
 
 **Request Body**:
+
 ```typescript
 {
   title: string;
@@ -803,25 +878,31 @@ export function InvitationForm() {
 ```
 
 ### PUT /api/features/:id
+
 **Purpose**: Update feature status
 
 ## Demo Organization Sync
 
 ### POST /api/demo-organization/sync
+
 **Purpose**: Synchronize demo organization data
 
 **Headers**:
+
 - `x-sync-api-key`: Required API key for synchronization
 
 ### GET /api/demo-organization/export
+
 **Purpose**: Export demo organization data
 
 ### GET /api/demo-organization/status
+
 **Purpose**: Check synchronization status
 
 ## Response Formats
 
 ### Success Response
+
 ```typescript
 {
   success: true;
@@ -831,6 +912,7 @@ export function InvitationForm() {
 ```
 
 ### Error Response
+
 ```typescript
 {
   success: false;
@@ -843,6 +925,7 @@ export function InvitationForm() {
 ```
 
 ### Pagination Response
+
 ```typescript
 {
   data: any[];
@@ -858,6 +941,7 @@ export function InvitationForm() {
 ## Error Handling
 
 ### HTTP Status Codes
+
 - `200`: Success
 - `201`: Created
 - `400`: Bad Request
@@ -868,6 +952,7 @@ export function InvitationForm() {
 - `500`: Internal Server Error
 
 ### Common Error Codes
+
 - `AUTH_REQUIRED`: Authentication required
 - `PERMISSION_DENIED`: Insufficient permissions
 - `VALIDATION_ERROR`: Request validation failed
@@ -881,4 +966,3 @@ Most endpoints require authentication via session cookies. Admin-only endpoints 
 ## Rate Limiting
 
 API requests are limited to 1000 requests per hour per user to prevent abuse.
-

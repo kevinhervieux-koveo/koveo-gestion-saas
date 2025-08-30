@@ -16,7 +16,7 @@ rules:
       - pattern: '"Administrateur"'
       - pattern: '"Locataire"'
       - pattern: '"Résident"'
-    message: "Hardcoded French text detected - consider using translation keys for i18n support"
+    message: 'Hardcoded French text detected - consider using translation keys for i18n support'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -38,7 +38,7 @@ rules:
       - pattern: '"Logout"'
       - pattern: '"Login"'
       - pattern: '"Settings"'
-    message: "Hardcoded English text detected - consider using translation keys for i18n support"
+    message: 'Hardcoded English text detected - consider using translation keys for i18n support'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -68,7 +68,7 @@ rules:
             const { t } = useLanguage();
             ...
           }
-    message: "Component may need translation support - consider using useLanguage hook"
+    message: 'Component may need translation support - consider using useLanguage hook'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -108,7 +108,7 @@ rules:
               {JSON.parse($DATA)}
             </$TAG>
           )
-    message: "Expensive operation in render - consider memoization or moving to useEffect"
+    message: 'Expensive operation in render - consider memoization or moving to useEffect'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -132,7 +132,7 @@ rules:
             const [...] = useEffect(...);
             ...
           }
-    message: "Consider wrapping with React.memo for performance optimization"
+    message: 'Consider wrapping with React.memo for performance optimization'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -147,7 +147,7 @@ rules:
           import $LIB from 'lodash'
       - pattern: |
           import $LIB from 'moment'
-    message: "Large library import detected - consider tree shaking or alternatives"
+    message: 'Large library import detected - consider tree shaking or alternatives'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -173,7 +173,7 @@ rules:
           } catch ($ERROR) {
             ...
           }
-    message: "Async operation may need error boundary or proper error handling"
+    message: 'Async operation may need error boundary or proper error handling'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -191,7 +191,7 @@ rules:
           export function $COMPONENT($PROPS: $TYPE) {
             ...
           }
-    message: "Component missing TypeScript prop types - add interface for better type safety"
+    message: 'Component missing TypeScript prop types - add interface for better type safety'
     languages: [typescript]
     severity: INFO
     metadata:
@@ -212,7 +212,7 @@ rules:
           for ($ITEM in $ITEMS) {
             const [$STATE, $SETTER] = useState($INITIAL);
           }
-    message: "Hooks must be called at the top level - not inside loops, conditions, or nested functions"
+    message: 'Hooks must be called at the top level - not inside loops, conditions, or nested functions'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -234,7 +234,7 @@ rules:
           <input aria-label="$LABEL" />
       - pattern: |
           <img src="$SRC" alt="$ALT" />
-    message: "Missing accessibility attributes - add aria-label, alt text, or other a11y attributes"
+    message: 'Missing accessibility attributes - add aria-label, alt text, or other a11y attributes'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -251,7 +251,7 @@ rules:
           import { $IMPORT } from '$MODULE';
           ...
           $IMPORT
-    message: "Potentially unused import detected - remove to reduce bundle size"
+    message: 'Potentially unused import detected - remove to reduce bundle size'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -272,7 +272,7 @@ rules:
           z.object({ ..., email: z.string().email(), ... })
       - pattern: |
           if (validateEmail($EMAIL)) { ... }
-    message: "Tenant data operations require validation for Law 25 compliance"
+    message: 'Tenant data operations require validation for Law 25 compliance'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -287,7 +287,7 @@ rules:
           building.keyCode = $USER_INPUT
       - pattern: |
           console.log("Access code:", $CODE)
-    message: "Building access codes must be generated securely and never logged"
+    message: 'Building access codes must be generated securely and never logged'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -305,7 +305,7 @@ rules:
           z.object({ description: z.string().min(10), ... })
       - pattern: |
           if ($DESC && $DESC.length > 10) { ... }
-    message: "Maintenance operations should validate input data for data integrity"
+    message: 'Maintenance operations should validate input data for data integrity'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -324,7 +324,7 @@ rules:
       metavariable: $...ARGS
       patterns:
         - pattern-regex: '.*(?i)(rent|amount|balance|payment|bank|account).*'
-    message: "Potential financial data exposure in client-side code or logs"
+    message: 'Potential financial data exposure in client-side code or logs'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -343,7 +343,7 @@ rules:
           hasRoleOrHigher($USER.role, "admin")
       - pattern: |
           checkPermission($USER, $RESOURCE, $ACTION)
-    message: "Use proper RBAC functions instead of direct role comparison for security"
+    message: 'Use proper RBAC functions instead of direct role comparison for security'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -365,7 +365,7 @@ rules:
           auditLog.record($ACTION, $USER, $DATA)
       - pattern: |
           logger.audit($MESSAGE, $CONTEXT)
-    message: "Critical operations should include audit logging for compliance"
+    message: 'Critical operations should include audit logging for compliance'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -378,7 +378,7 @@ rules:
           $DB.select().from($TABLE).where(eq($TABLE.id, $ID))
       - pattern: |
           await Promise.all($ARRAY.map(async $ITEM => $DB_CALL))
-    message: "Database query optimization opportunity - consider indexing or batching"
+    message: 'Database query optimization opportunity - consider indexing or batching'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -411,7 +411,7 @@ rules:
           consent: true
       - pattern: |
           acceptsTerms: $VALUE
-    message: "Consent collection mechanism - ensure Law 25 compliance requirements are met"
+    message: 'Consent collection mechanism - ensure Law 25 compliance requirements are met'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -427,7 +427,7 @@ rules:
           process.env.SECRET_KEY
       - pattern: |
           localStorage.setItem("token", $TOKEN)
-    message: "Potential secret exposure in client-side code - move to server-side"
+    message: 'Potential secret exposure in client-side code - move to server-side'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -444,12 +444,12 @@ rules:
           setTimeout($STRING, $DELAY)
       - pattern: |
           setInterval($STRING, $DELAY)
-    message: "Unsafe eval-like function usage - potential XSS/injection risk"
+    message: 'Unsafe eval-like function usage - potential XSS/injection risk'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
       category: security
-      cwe: "CWE-95: Code Injection"
+      cwe: 'CWE-95: Code Injection'
 
   # Database Security
   - id: koveo.database.missing-sanitization
@@ -460,7 +460,7 @@ rules:
           db.query("SELECT * FROM " + $TABLE)
       - pattern: |
           `INSERT INTO ${$TABLE} VALUES (${$VALUES})`
-    message: "Database query with potential injection risk - use parameterized queries"
+    message: 'Database query with potential injection risk - use parameterized queries'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -479,7 +479,7 @@ rules:
           app.post("/api/$ENDPOINT", rateLimit(), async ($REQ, $RES) => { ... })
       - pattern: |
           router.post("/$ENDPOINT", rateLimit(), async ($REQ, $RES) => { ... })
-    message: "API endpoint may need rate limiting for DoS protection"
+    message: 'API endpoint may need rate limiting for DoS protection'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -502,7 +502,7 @@ rules:
           app.$METHOD("/api/$ENDPOINT", validateInput, async (req, res) => {
             ...
           })
-    message: "API endpoint should validate input data with Zod schema or middleware"
+    message: 'API endpoint should validate input data with Zod schema or middleware'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:

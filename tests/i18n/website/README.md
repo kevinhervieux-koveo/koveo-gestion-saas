@@ -6,7 +6,7 @@ This directory contains the refactored website translation tests, previously con
 
 - **`test-providers.tsx`** - Shared test utilities and providers
 - **`language-coverage.test.tsx`** - Translation completeness validation
-- **`language-switcher.test.tsx`** - Language switching functionality 
+- **`language-switcher.test.tsx`** - Language switching functionality
 - **`page-content.test.tsx`** - Page-specific content translation
 - **`form-elements.test.tsx`** - Form and UI element translations
 - **`quebec-compliance.test.tsx`** - Quebec Law 25 compliance
@@ -37,6 +37,7 @@ npm test tests/i18n/website/quebec-compliance.test.tsx
 ## Coverage Areas
 
 The test suite covers:
+
 - ✅ Complete translation key coverage (English ↔ French)
 - ✅ Quebec French terminology compliance
 - ✅ Language switching UI behavior

@@ -1,6 +1,5 @@
 import type { Express } from 'express';
 
-
 /**
  * Register company history routes for fetching company information and documents.
  * @param app
@@ -158,7 +157,7 @@ export function registerCompanyHistoryRoutes(app: Express): void {
       res.json({
         documents,
         total: documents.length,
-        message: 'Document storage has been disabled'
+        message: 'Document storage has been disabled',
       });
     } catch (_error) {
       console.error('Error listing company documents:', _error);

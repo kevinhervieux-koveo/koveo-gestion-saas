@@ -9,12 +9,14 @@ Koveo Gestion is optimized for deployment on Replit with automatic database opti
 ## Prerequisites
 
 ### Required Services
+
 - **Replit Account**: Professional or Team plan recommended
 - **Neon Database**: Serverless PostgreSQL instance
 - **SendGrid Account**: Email service provider (optional)
 - **Domain Name**: Custom domain for production (optional)
 
 ### Environment Preparation
+
 - Tested codebase with passing tests
 - Database migrations ready
 - Environment variables configured
@@ -62,14 +64,14 @@ async function initializeDatabase() {
     // Apply schema changes
     console.log('🔧 Applying database schema changes...');
     await db.execute(sql`SELECT 1`); // Test connection
-    
+
     // Run optimizations
     console.log('⚡ Optimizing database performance...');
     await DatabaseOptimizationService.applyOptimizations();
-    
+
     // Setup materialized views
     await DatabaseOptimizationService.createMaterializedViews();
-    
+
     console.log('✅ Database initialization complete');
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -128,26 +130,26 @@ The deployment process includes automatic optimizations:
 // Deployment initialization sequence
 async function deploymentSequence() {
   console.log('🚀 Starting Koveo Gestion deployment...');
-  
+
   // 1. Database optimizations
   await DatabaseOptimizationService.initialize();
-  
+
   // 2. SSL certificate setup
   if (process.env.ENABLE_SSL_RENEWAL === 'true') {
     await SSLService.initialize();
   }
-  
+
   // 3. Background job initialization
   await BackgroundJobService.startAll();
-  
+
   // 4. Demo data synchronization
   if (process.env.SYNC_DEMO_ON_DEPLOY === 'true') {
     await DemoOrganizationService.syncToProd();
   }
-  
+
   // 5. Health checks
   await HealthCheckService.validateDeployment();
-  
+
   console.log('✅ Deployment completed successfully');
 }
 ```
@@ -158,18 +160,18 @@ The system automatically applies performance optimizations:
 
 ```sql
 -- Automatic index creation
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_active_email 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_active_email
 ON users(email) WHERE is_active = true;
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_buildings_org_active 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_buildings_org_active
 ON buildings(organization_id, is_active);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_unpaid 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bills_unpaid
 ON bills(residence_id, due_date) WHERE status IN ('sent', 'overdue');
 
 -- Materialized views for reporting
 CREATE MATERIALIZED VIEW mv_building_stats AS
-SELECT 
+SELECT
   b.id,
   b.name,
   COUNT(r.id) as total_units,
@@ -191,7 +193,7 @@ The application includes automatic Let's Encrypt integration:
 class SSLService {
   static async initialize() {
     console.log('[SSL-RENEWAL] [INFO] SSL service initialized');
-    
+
     // Schedule automatic renewal
     cron.schedule('0 2 * * *', async () => {
       await this.renewCertificates();
@@ -201,15 +203,15 @@ class SSLService {
   static async renewCertificates() {
     try {
       const domains = this.getConfiguredDomains();
-      
+
       for (const domain of domains) {
         const client = new acme.Client({
           directoryUrl: acme.directory.letsencrypt.production,
-          accountKey: await this.getAccountKey()
+          accountKey: await this.getAccountKey(),
         });
 
         const [key, csr] = await acme.crypto.createCsr({
-          commonName: domain
+          commonName: domain,
         });
 
         const cert = await client.auto({
@@ -217,7 +219,7 @@ class SSLService {
           email: process.env.SSL_EMAIL,
           termsOfServiceAgreed: true,
           challengeCreateFn: this.createChallenge,
-          challengeRemoveFn: this.removeChallenge
+          challengeRemoveFn: this.removeChallenge,
         });
 
         await this.saveCertificate(domain, key, cert);
@@ -239,31 +241,32 @@ class PerformanceMonitoringService {
   static initialize() {
     // Track database query performance
     this.monitorDatabaseQueries();
-    
+
     // Monitor API response times
     this.monitorAPIPerformance();
-    
+
     // Track system resources
     this.monitorSystemResources();
   }
 
   private static monitorDatabaseQueries() {
     const originalQuery = db.execute;
-    
-    db.execute = async function(query: any) {
+
+    db.execute = async function (query: any) {
       const startTime = Date.now();
       const result = await originalQuery.call(this, query);
       const duration = Date.now() - startTime;
-      
-      if (duration > 100) { // Log slow queries
+
+      if (duration > 100) {
+        // Log slow queries
         console.log(`Slow query detected: ${query.sql} took ${duration}ms`);
-        
+
         // Alert if extremely slow
         if (duration > 1000) {
           await AlertService.sendSlowQueryAlert(query.sql, duration);
         }
       }
-      
+
       return result;
     };
   }
@@ -272,18 +275,18 @@ class PerformanceMonitoringService {
     // Express middleware for response time tracking
     app.use((req, res, next) => {
       const startTime = Date.now();
-      
+
       res.on('finish', () => {
         const duration = Date.now() - startTime;
-        
+
         console.log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
-        
+
         // Alert on slow API responses
         if (duration > 2000) {
           AlertService.sendSlowAPIAlert(req.path, duration);
         }
       });
-      
+
       next();
     });
   }
@@ -299,7 +302,7 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     version: process.env.APP_VERSION,
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -307,26 +310,26 @@ app.get('/healthz', async (req, res) => {
   try {
     // Test database connection
     await db.execute(sql`SELECT 1`);
-    
+
     // Test critical services
     const checks = await Promise.all([
       HealthCheckService.checkDatabase(),
       HealthCheckService.checkEmail(),
-      HealthCheckService.checkFileSystem()
+      HealthCheckService.checkFileSystem(),
     ]);
-    
-    const allHealthy = checks.every(check => check.healthy);
-    
+
+    const allHealthy = checks.every((check) => check.healthy);
+
     res.status(allHealthy ? 200 : 503).json({
       status: allHealthy ? 'healthy' : 'unhealthy',
       checks,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -334,10 +337,10 @@ app.get('/healthz', async (req, res) => {
 app.get('/ready', async (req, res) => {
   // Check if application is ready to serve requests
   const isReady = await HealthCheckService.checkReadiness();
-  
+
   res.status(isReady ? 200 : 503).json({
     status: isReady ? 'ready' : 'not ready',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 ```
@@ -363,17 +366,17 @@ class ErrorTrackingService {
     // Express error handler
     app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       console.error('Express Error:', error);
-      
+
       this.reportError(error, 'express_error', {
         url: req.url,
         method: req.method,
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       });
 
       res.status(500).json({
         message: 'Internal server error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
   }
@@ -386,7 +389,7 @@ class ErrorTrackingService {
       context,
       timestamp: new Date(),
       nodeVersion: process.version,
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
     };
 
     // Log to console
@@ -426,19 +429,19 @@ class BackupService {
   static async createDatabaseBackup() {
     try {
       console.log('🔄 Starting database backup...');
-      
+
       const backupName = `koveo-gestion-db-${new Date().toISOString().split('T')[0]}`;
-      
+
       // For Neon database, use their backup API
       const backup = await this.createNeonBackup(backupName);
-      
+
       // Store backup metadata
       await db.insert(backupsTable).values({
         name: backupName,
         type: 'database',
         size: backup.size,
         location: backup.location,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       console.log('✅ Database backup completed:', backupName);
@@ -453,7 +456,7 @@ class BackupService {
     // This is a placeholder for the actual backup logic
     return {
       size: 0,
-      location: `neon://backups/${name}`
+      location: `neon://backups/${name}`,
     };
   }
 }
@@ -467,20 +470,20 @@ class BackupService {
 class RollbackService {
   static async performRollback(version: string) {
     console.log(`🔄 Starting rollback to version ${version}...`);
-    
+
     try {
       // 1. Stop current application
       await this.gracefulShutdown();
-      
+
       // 2. Restore database from backup
       await this.restoreDatabase(version);
-      
+
       // 3. Deploy previous version
       await this.deployVersion(version);
-      
+
       // 4. Verify deployment
       await this.verifyRollback();
-      
+
       console.log('✅ Rollback completed successfully');
     } catch (error) {
       console.error('❌ Rollback failed:', error);
@@ -492,12 +495,12 @@ class RollbackService {
   private static async gracefulShutdown() {
     // Close database connections
     await db.end();
-    
+
     // Stop background jobs
     await BackgroundJobService.stopAll();
-    
+
     // Drain existing requests
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       server.close(resolve);
     });
   }
@@ -531,23 +534,23 @@ class DomainService {
       // Check DNS propagation
       const dnsRecords = await dns.resolve4(domain);
       console.log(`DNS records for ${domain}:`, dnsRecords);
-      
+
       // Verify domain ownership
       const ownershipToken = await this.generateOwnershipToken();
       const verification = await this.verifyDomainOwnership(domain, ownershipToken);
-      
+
       if (!verification.valid) {
         throw new Error('Domain ownership verification failed');
       }
-      
+
       // Request SSL certificate
       await SSLService.requestCertificate(domain);
-      
+
       return {
         domain,
         verified: true,
         ssl: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       console.error('Domain validation failed:', error);
@@ -582,37 +585,37 @@ class MaintenanceService {
 
   private static async dailyMaintenance() {
     console.log('🔧 Starting daily maintenance...');
-    
+
     // Clean up old sessions
     await this.cleanupOldSessions();
-    
+
     // Update database statistics
     await this.updateDatabaseStats();
-    
+
     // Clear expired caches
     await this.clearExpiredCaches();
-    
+
     // Generate daily reports
     await this.generateDailyReports();
-    
+
     console.log('✅ Daily maintenance completed');
   }
 
   private static async weeklyMaintenance() {
     console.log('🔧 Starting weekly maintenance...');
-    
+
     // Full database vacuum
     await this.vacuumDatabase();
-    
+
     // Rotate log files
     await this.rotateLogFiles();
-    
+
     // Update search indexes
     await this.updateSearchIndexes();
-    
+
     // Security audit
     await this.performSecurityAudit();
-    
+
     console.log('✅ Weekly maintenance completed');
   }
 }
@@ -682,10 +685,10 @@ class SecurityMonitoringService {
   static initialize() {
     // Monitor failed login attempts
     this.monitorFailedLogins();
-    
+
     // Track unusual access patterns
     this.monitorAccessPatterns();
-    
+
     // Watch for potential attacks
     this.monitorSecurityThreats();
   }

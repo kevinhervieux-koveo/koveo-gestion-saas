@@ -91,7 +91,6 @@ getDisplayableFileUrl(fileUrl: string): string {
     return fileUrl;
   }
 
-
   // If it starts with /objects/, use as-is
   if (fileUrl.startsWith('/objects/')) {
     return fileUrl;

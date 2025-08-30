@@ -63,7 +63,7 @@ export class ReplitIntegrationEnhancer {
   private detectReplitEnvironment(): void {
     try {
       const _replitConfig = this.loadReplitConfig();
-      
+
       this.environment = {
         replId: process.env.REPL_ID || 'unknown',
         replUrl: process.env.REPLIT_URL || '',
@@ -74,9 +74,9 @@ export class ReplitIntegrationEnhancer {
         isDevelopment: !process.env.NODE_ENV || process.env.NODE_ENV === 'development',
         capabilities: this.detectCapabilities(),
         secrets: this.auditSecrets(),
-        databases: this.detectDatabases()
+        databases: this.detectDatabases(),
       };
-      
+
       console.warn('🔧 Replit environment detected:', this.environment.replId);
     } catch (_error) {
       console.warn('⚠️ Could not fully detect Replit environment:', _error);
@@ -93,7 +93,7 @@ export class ReplitIntegrationEnhancer {
       const content = fs.readFileSync(replitFile, 'utf-8');
       // Parse .replit file (simple key=value format)
       const config: Record<string, string> = {};
-      content.split('\n').forEach(line => {
+      content.split('\n').forEach((line) => {
         const match = line.match(/^(\w+)\s*=\s*(.+)$/);
         if (match) {
           config[match[1]] = match[2].replace(/['"]/g, '');
@@ -110,33 +110,33 @@ export class ReplitIntegrationEnhancer {
    */
   private detectCapabilities(): string[] {
     const capabilities: string[] = [];
-    
+
     // Check for database
     if (process.env.DATABASE_URL) {
       capabilities.push('database');
     }
-    
+
     // Check for object storage
     if (process.env.BUCKET_NAME) {
       capabilities.push('object_storage');
     }
-    
+
     // Check for environment variables
     if (process.env.REPLIT_DB_URL) {
       capabilities.push('replit_db');
     }
-    
+
     // Check for secrets
     const secretsDir = path.join(this.projectRoot, '.env');
     if (fs.existsSync(secretsDir)) {
       capabilities.push('secrets');
     }
-    
+
     // Check for hosting capability
     if (process.env.REPLIT_URL) {
       capabilities.push('hosting');
     }
-    
+
     return capabilities;
   }
 
@@ -146,7 +146,7 @@ export class ReplitIntegrationEnhancer {
    */
   private auditSecrets(): Record<string, boolean> {
     const secrets: Record<string, boolean> = {};
-    
+
     // Common secret patterns
     const commonSecrets = [
       'DATABASE_URL',
@@ -156,13 +156,13 @@ export class ReplitIntegrationEnhancer {
       'JWT_SECRET',
       'SESSION_SECRET',
       'GOOGLE_CLIENT_ID',
-      'GITHUB_TOKEN'
+      'GITHUB_TOKEN',
     ];
-    
-    commonSecrets.forEach(secret => {
+
+    commonSecrets.forEach((secret) => {
       secrets[secret] = !!process.env[secret];
     });
-    
+
     return secrets;
   }
 
@@ -172,23 +172,23 @@ export class ReplitIntegrationEnhancer {
    */
   private detectDatabases(): Array<{ name: string; type: string; connected: boolean }> {
     const databases = [];
-    
+
     if (process.env.DATABASE_URL) {
       databases.push({
         name: 'PostgreSQL',
         type: 'postgresql',
-        connected: this.testDatabaseConnection()
+        connected: this.testDatabaseConnection(),
       });
     }
-    
+
     if (process.env.REPLIT_DB_URL) {
       databases.push({
         name: 'Replit DB',
         type: 'key-value',
-        connected: true
+        connected: true,
       });
     }
-    
+
     return databases;
   }
 
@@ -217,36 +217,36 @@ export class ReplitIntegrationEnhancer {
     const optimizations: string[] = [];
     const recommendations: string[] = [];
     const warnings: string[] = [];
-    
+
     // Check memory optimization
     if (this.shouldOptimizeMemory()) {
       await this.optimizeMemoryUsage();
       optimizations.push('Memory usage optimized');
     }
-    
+
     // Check package.json scripts
     await this.optimizePackageScripts();
     optimizations.push('Package scripts optimized for Replit');
-    
+
     // Check environment variables
     const missingSecrets = this.checkRequiredSecrets();
     if (missingSecrets.length > 0) {
       warnings.push(`Missing required secrets: ${missingSecrets.join(', ')}`);
       recommendations.push('Add missing API keys and secrets for full functionality');
     }
-    
+
     // Check deployment readiness
     const deploymentIssues = await this.checkDeploymentReadiness();
     if (deploymentIssues.length > 0) {
       warnings.push(...deploymentIssues);
       recommendations.push('Fix deployment issues before going to production');
     }
-    
+
     // Optimize build configuration
     if (await this.optimizeBuildConfig()) {
       optimizations.push('Build configuration optimized');
     }
-    
+
     return { optimizations, recommendations, warnings };
   }
 
@@ -267,12 +267,12 @@ export class ReplitIntegrationEnhancer {
   private async optimizeMemoryUsage(): Promise<void> {
     // Set Node.js memory flags for Replit
     process.env.NODE_OPTIONS = '--max_old_space_size=512 --max_semi_space_size=32';
-    
+
     // Create optimized start script
     const packagePath = path.join(this.projectRoot, 'package.json');
     if (fs.existsSync(packagePath)) {
       const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
-      
+
       if (!pkg.scripts.dev?.includes('--max_old_space_size')) {
         pkg.scripts.dev = `node --max_old_space_size=512 ${pkg.scripts.dev || 'server/index.js'}`;
         fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
@@ -286,19 +286,21 @@ export class ReplitIntegrationEnhancer {
    */
   private async optimizePackageScripts(): Promise<void> {
     const packagePath = path.join(this.projectRoot, 'package.json');
-    if (!fs.existsSync(packagePath)) {return;}
-    
+    if (!fs.existsSync(packagePath)) {
+      return;
+    }
+
     const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
-    
+
     // Add Replit-specific scripts
     const replitScripts = {
       'repl:health': 'node -e "console.warn(\'Health check passed\')"',
       'repl:setup': 'npm install && npm run db:push',
       'repl:deploy': 'npm run build && npm run db:migrate:deploy',
       'repl:logs': 'tail -f ~/.local/share/replit/logs/*',
-      'repl:monitor': 'node tools/replit-monitor.js'
+      'repl:monitor': 'node tools/replit-monitor.js',
     };
-    
+
     let updated = false;
     Object.entries(replitScripts).forEach(([key, value]) => {
       if (!pkg.scripts[key]) {
@@ -306,7 +308,7 @@ export class ReplitIntegrationEnhancer {
         updated = true;
       }
     });
-    
+
     if (updated) {
       fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
     }
@@ -318,7 +320,7 @@ export class ReplitIntegrationEnhancer {
    */
   private checkRequiredSecrets(): string[] {
     const required = ['DATABASE_URL', 'JWT_SECRET', 'SESSION_SECRET'];
-    return required.filter(secret => !process.env[secret]);
+    return required.filter((secret) => !process.env[secret]);
   }
 
   /**
@@ -327,19 +329,19 @@ export class ReplitIntegrationEnhancer {
    */
   private async checkDeploymentReadiness(): Promise<string[]> {
     const issues: string[] = [];
-    
+
     // Check build process
     try {
       execSync('npm run build', { stdio: 'pipe', timeout: 30000 });
     } catch (_error) {
       issues.push('Build process fails - fix build errors before deployment');
     }
-    
+
     // Check for production environment variables
     if (!process.env.NODE_ENV) {
       issues.push('NODE_ENV not set - should be "production" for deployment');
     }
-    
+
     // Check for SSL certificates if needed
     const sslDir = path.join(this.projectRoot, 'ssl-certificates');
     if (fs.existsSync(sslDir)) {
@@ -348,7 +350,7 @@ export class ReplitIntegrationEnhancer {
         issues.push('SSL certificate directory is empty');
       }
     }
-    
+
     return issues;
   }
 
@@ -358,12 +360,12 @@ export class ReplitIntegrationEnhancer {
    */
   private async optimizeBuildConfig(): Promise<boolean> {
     let optimized = false;
-    
+
     // Check vite.config.ts optimization
     const viteConfigPath = path.join(this.projectRoot, 'vite.config.ts');
     if (fs.existsSync(viteConfigPath)) {
       let content = fs.readFileSync(viteConfigPath, 'utf-8');
-      
+
       // Add Replit-specific optimizations
       if (!content.includes('host: "0.0.0.0"')) {
         content = content.replace(
@@ -373,7 +375,7 @@ export class ReplitIntegrationEnhancer {
         );
         optimized = true;
       }
-      
+
       if (!content.includes('build: {')) {
         content = content.replace(
           'export default defineConfig({',
@@ -390,12 +392,12 @@ export class ReplitIntegrationEnhancer {
         );
         optimized = true;
       }
-      
+
       if (optimized) {
         fs.writeFileSync(viteConfigPath, content);
       }
     }
-    
+
     return optimized;
   }
 
@@ -405,7 +407,7 @@ export class ReplitIntegrationEnhancer {
    */
   public createMonitoringDashboard(): string {
     const dashboardPath = path.join(this.projectRoot, 'replit-dashboard.html');
-    
+
     const dashboardContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -809,7 +811,7 @@ export class ReplitIntegrationEnhancer {
     </script>
 </body>
 </html>`;
-    
+
     fs.writeFileSync(dashboardPath, dashboardContent);
     return dashboardPath;
   }
@@ -823,9 +825,9 @@ export class ReplitIntegrationEnhancer {
       this.deploymentInfo = {
         status: 'not_deployed',
         lastDeployment: undefined,
-        version: undefined
+        version: undefined,
       };
-      
+
       // Check if deployed on Replit
       if (this.environment?.replUrl) {
         try {
@@ -837,7 +839,7 @@ export class ReplitIntegrationEnhancer {
         }
       }
     }
-    
+
     return { ...this.deploymentInfo };
   }
 
@@ -855,8 +857,10 @@ export class ReplitIntegrationEnhancer {
    */
   public generateEnvironmentReport(): string {
     const env = this.environment;
-    if (!env) {return 'Replit environment not detected';}
-    
+    if (!env) {
+      return 'Replit environment not detected';
+    }
+
     const report = `
 # Replit Environment Report
 Generated: ${new Date().toISOString()}
@@ -869,7 +873,7 @@ Generated: ${new Date().toISOString()}
 - **Mode**: ${env.isDevelopment ? 'Development' : 'Production'}
 
 ## Capabilities
-${env.capabilities.map(cap => `- ✅ ${cap}`).join('\n')}
+${env.capabilities.map((cap) => `- ✅ ${cap}`).join('\n')}
 
 ## Secrets Status
 ${Object.entries(env.secrets)
@@ -877,14 +881,12 @@ ${Object.entries(env.secrets)
   .join('\n')}
 
 ## Databases
-${env.databases.map(db => 
-  `- ${db.connected ? '🟢' : '🔴'} ${db.name} (${db.type})`
-).join('\n')}
+${env.databases.map((db) => `- ${db.connected ? '🟢' : '🔴'} ${db.name} (${db.type})`).join('\n')}
 
 ## Recommendations
 ${this.generateRecommendations().join('\n')}
 `;
-    
+
     return report;
   }
 
@@ -894,37 +896,39 @@ ${this.generateRecommendations().join('\n')}
    */
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
-    
-    if (!this.environment) {return recommendations;}
-    
+
+    if (!this.environment) {
+      return recommendations;
+    }
+
     const { capabilities, secrets } = this.environment;
-    
+
     // Database recommendations
     if (!capabilities.includes('database')) {
       recommendations.push('- Consider adding PostgreSQL database for data persistence');
     }
-    
+
     // Security recommendations
     if (!secrets.JWT_SECRET) {
       recommendations.push('- Add JWT_SECRET for secure authentication');
     }
-    
+
     if (!secrets.SESSION_SECRET) {
       recommendations.push('- Add SESSION_SECRET for secure sessions');
     }
-    
+
     // Performance recommendations
     if (capabilities.includes('hosting')) {
       recommendations.push('- Enable automatic deployment for seamless updates');
       recommendations.push('- Configure monitoring and alerting for production');
     }
-    
+
     // Development recommendations
     if (this.environment.isDevelopment) {
       recommendations.push('- Set up automated testing workflows');
       recommendations.push('- Configure code quality gates before deployment');
     }
-    
+
     return recommendations;
   }
 

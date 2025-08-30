@@ -76,14 +76,14 @@ export class AIAgentToolkit {
     const gitBranch = this.getGitBranch();
     const lastCommit = this.getLastCommit();
     const workingFiles = this.getWorkingFiles();
-    
+
     return {
       projectRoot: this.projectRoot,
       currentBranch: gitBranch,
       lastCommit,
       workingFiles,
       activeFeatures: this.getActiveFeatures(),
-      pendingTasks: this.getPendingTasks()
+      pendingTasks: this.getPendingTasks(),
     };
   }
 
@@ -93,9 +93,9 @@ export class AIAgentToolkit {
    */
   private getGitBranch(): string {
     try {
-      return execSync('git branch --show-current', { 
-        encoding: 'utf-8', 
-        cwd: this.projectRoot 
+      return execSync('git branch --show-current', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
       }).trim();
     } catch {
       return 'main';
@@ -108,10 +108,12 @@ export class AIAgentToolkit {
    */
   private getLastCommit(): string {
     try {
-      return execSync('git rev-parse HEAD', { 
-        encoding: 'utf-8', 
-        cwd: this.projectRoot 
-      }).trim().substring(0, 8);
+      return execSync('git rev-parse HEAD', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
+      })
+        .trim()
+        .substring(0, 8);
     } catch {
       return 'unknown';
     }
@@ -123,13 +125,14 @@ export class AIAgentToolkit {
    */
   private getWorkingFiles(): string[] {
     try {
-      const output = execSync('git status --porcelain', { 
-        encoding: 'utf-8', 
-        cwd: this.projectRoot 
+      const output = execSync('git status --porcelain', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
       });
-      return output.split('\n')
-        .filter(line => line.trim())
-        .map(line => line.substring(3).trim());
+      return output
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => line.substring(3).trim());
     } catch {
       return [];
     }
@@ -141,7 +144,7 @@ export class AIAgentToolkit {
    */
   private getActiveFeatures(): string[] {
     const features: string[] = [];
-    
+
     // Check ROADMAP.md
     const roadmapPath = path.join(this.projectRoot, 'ROADMAP.md');
     if (fs.existsSync(roadmapPath)) {
@@ -149,7 +152,7 @@ export class AIAgentToolkit {
       const inProgressMatch = content.match(/## In Progress\s*\n([\s\S]*?)(?=\n##|$)/i);
       if (inProgressMatch) {
         const items = inProgressMatch[1].match(/- \[.\] (.+)/g) || [];
-        features.push(...items.map(item => item.replace(/- \[.\] /, '')));
+        features.push(...items.map((item) => item.replace(/- \[.\] /, '')));
       }
     }
 
@@ -162,19 +165,17 @@ export class AIAgentToolkit {
    */
   private getPendingTasks(): string[] {
     const tasks: string[] = [];
-    
+
     try {
       const files = glob.sync('**/*.{ts,tsx,js,jsx,md}', {
         cwd: this.projectRoot,
-        ignore: ['node_modules/**', 'dist/**', 'coverage/**']
+        ignore: ['node_modules/**', 'dist/**', 'coverage/**'],
       });
 
-      files.forEach(file => {
+      files.forEach((file) => {
         const content = fs.readFileSync(path.join(this.projectRoot, file), 'utf-8');
         const todoMatches = content.match(/TODO:?\s*(.+)/gi) || [];
-        tasks.push(...todoMatches.map(match => 
-          `${file}: ${match.replace(/TODO:?\s*/i, '')}`
-        ));
+        tasks.push(...todoMatches.map((match) => `${file}: ${match.replace(/TODO:?\s*/i, '')}`));
       });
     } catch (_error) {
       console.warn('Error scanning for TODOs:', _error);
@@ -194,14 +195,14 @@ export class AIAgentToolkit {
       testCoverage: 0,
       typeScriptErrors: 0,
       lintWarnings: 0,
-      suggestions: []
+      suggestions: [],
     };
 
     try {
       // TypeScript errors
-      const tscOutput = execSync('npx tsc --noEmit --skipLibCheck', { 
-        encoding: 'utf-8', 
-        cwd: this.projectRoot 
+      const tscOutput = execSync('npx tsc --noEmit --skipLibCheck', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
       });
       analysis.typeScriptErrors = (tscOutput.match(/error TS\d+:/g) || []).length;
     } catch (_error: unknown) {
@@ -211,9 +212,9 @@ export class AIAgentToolkit {
 
     try {
       // Lint warnings
-      const lintOutput = execSync('npx eslint . --format json', { 
-        encoding: 'utf-8', 
-        cwd: this.projectRoot 
+      const lintOutput = execSync('npx eslint . --format json', {
+        encoding: 'utf-8',
+        cwd: this.projectRoot,
       });
       const lintResults = JSON.parse(lintOutput);
       /**
@@ -223,15 +224,21 @@ export class AIAgentToolkit {
         warningCount?: number;
         errorCount?: number;
       }
-      analysis.lintWarnings = lintResults.reduce((total: number, file: LintResult) => 
-        total + (file.warningCount || 0) + (file.errorCount || 0), 0);
+      analysis.lintWarnings = lintResults.reduce(
+        (total: number, file: LintResult) =>
+          total + (file.warningCount || 0) + (file.errorCount || 0),
+        0
+      );
     } catch (_error: unknown) {
       try {
         const errorOutput = (_error as { stdout?: string }).stdout || '';
         if (errorOutput) {
           const lintResults = JSON.parse(errorOutput);
-          analysis.lintWarnings = lintResults.reduce((total: number, file: LintResult) => 
-            total + (file.warningCount || 0) + (file.errorCount || 0), 0);
+          analysis.lintWarnings = lintResults.reduce(
+            (total: number, file: LintResult) =>
+              total + (file.warningCount || 0) + (file.errorCount || 0),
+            0
+          );
         }
       } catch {
         analysis.lintWarnings = 0;
@@ -241,7 +248,7 @@ export class AIAgentToolkit {
     // Calculate complexity based on file count and structure
     const sourceFiles = glob.sync('**/*.{ts,tsx}', {
       cwd: this.projectRoot,
-      ignore: ['node_modules/**', 'dist/**', '**/*.test.*']
+      ignore: ['node_modules/**', 'dist/**', '**/*.test.*'],
     });
 
     analysis.complexity = Math.min(100, sourceFiles.length * 2);
@@ -281,7 +288,7 @@ export class AIAgentToolkit {
    */
   public async getProjectHealth(): Promise<ProjectHealth> {
     const codeAnalysis = await this.analyzeCode();
-    
+
     const health: ProjectHealth = {
       overallScore: 0,
       codeQuality: Math.max(0, 100 - codeAnalysis.typeScriptErrors * 5 - codeAnalysis.lintWarnings),
@@ -289,12 +296,17 @@ export class AIAgentToolkit {
       testing: codeAnalysis.testCoverage,
       security: await this.calculateSecurityScore(),
       performance: await this.calculatePerformanceScore(),
-      issues: []
+      issues: [],
     };
 
     // Calculate overall score
     health.overallScore = Math.round(
-      (health.codeQuality + health.documentation + health.testing + health.security + health.performance) / 5
+      (health.codeQuality +
+        health.documentation +
+        health.testing +
+        health.security +
+        health.performance) /
+        5
     );
 
     // Generate issues
@@ -303,7 +315,7 @@ export class AIAgentToolkit {
         severity: 'high',
         category: 'Code Quality',
         description: 'Code quality score is below acceptable threshold',
-        solution: 'Fix TypeScript errors and lint warnings'
+        solution: 'Fix TypeScript errors and lint warnings',
       });
     }
 
@@ -312,7 +324,7 @@ export class AIAgentToolkit {
         severity: 'medium',
         category: 'Testing',
         description: 'Test coverage is insufficient',
-        solution: 'Add more unit and integration tests'
+        solution: 'Add more unit and integration tests',
       });
     }
 
@@ -321,7 +333,7 @@ export class AIAgentToolkit {
         severity: 'medium',
         category: 'Documentation',
         description: 'Documentation coverage is low',
-        solution: 'Add more documentation and improve existing docs'
+        solution: 'Add more documentation and improve existing docs',
       });
     }
 
@@ -335,18 +347,20 @@ export class AIAgentToolkit {
   private async calculateDocumentationScore(): Promise<number> {
     const mdFiles = glob.sync('**/*.md', {
       cwd: this.projectRoot,
-      ignore: ['node_modules/**', 'dist/**']
+      ignore: ['node_modules/**', 'dist/**'],
     });
 
     const sourceFiles = glob.sync('**/*.{ts,tsx}', {
       cwd: this.projectRoot,
-      ignore: ['node_modules/**', 'dist/**', '**/*.test.*']
+      ignore: ['node_modules/**', 'dist/**', '**/*.test.*'],
     });
 
-    if (sourceFiles.length === 0) {return 100;}
+    if (sourceFiles.length === 0) {
+      return 100;
+    }
 
     let documentedFiles = 0;
-    sourceFiles.forEach(file => {
+    sourceFiles.forEach((file) => {
       const content = fs.readFileSync(path.join(this.projectRoot, file), 'utf-8');
       if (content.includes('/**') || content.includes('//')) {
         documentedFiles++;
@@ -355,7 +369,7 @@ export class AIAgentToolkit {
 
     const docRatio = documentedFiles / sourceFiles.length;
     const mdFileBonus = Math.min(mdFiles.length * 10, 30);
-    
+
     return Math.min(100, docRatio * 70 + mdFileBonus);
   }
 
@@ -371,12 +385,12 @@ export class AIAgentToolkit {
       // Check for common security issues
       const files = glob.sync('**/*.{ts,tsx,js,jsx}', {
         cwd: this.projectRoot,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
 
-      files.forEach(file => {
+      files.forEach((file) => {
         const content = fs.readFileSync(path.join(this.projectRoot, file), 'utf-8');
-        
+
         // Check for hardcoded secrets
         if (/api[_-]?key\s*=\s*["'][^"']+["']/i.test(content)) {
           score -= 20;
@@ -398,16 +412,16 @@ export class AIAgentToolkit {
 
       // Check for package vulnerabilities
       try {
-        execSync('npm audit --audit-level=high --json', { 
+        execSync('npm audit --audit-level=high --json', {
           cwd: this.projectRoot,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
       } catch (_error: unknown) {
         try {
           // Use child_process result instead of eval-like parsing
-          const auditOutput = execSync('npm audit --audit-level=high --json', { 
+          const auditOutput = execSync('npm audit --audit-level=high --json', {
             cwd: this.projectRoot,
-            encoding: 'utf-8'
+            encoding: 'utf-8',
           });
           const auditResult = JSON.parse(auditOutput);
           const vulnCount = auditResult.metadata?.vulnerabilities?.total || 0;
@@ -416,7 +430,6 @@ export class AIAgentToolkit {
           score -= 5; // Penalty for audit failure
         }
       }
-
     } catch (_error) {
       score -= 5; // Penalty for security check failure
     }
@@ -437,8 +450,8 @@ export class AIAgentToolkit {
       if (fs.existsSync(distPath)) {
         const files = fs.readdirSync(distPath, { recursive: true });
         let totalSize = 0;
-        
-        files.forEach(file => {
+
+        files.forEach((file) => {
           const filePath = path.join(distPath, file as string);
           if (fs.statSync(filePath).isFile()) {
             totalSize += fs.statSync(filePath).size;
@@ -446,19 +459,22 @@ export class AIAgentToolkit {
         });
 
         const sizeMB = totalSize / (1024 * 1024);
-        if (sizeMB > 10) {score -= 20;}
-        else if (sizeMB > 5) {score -= 10;}
+        if (sizeMB > 10) {
+          score -= 20;
+        } else if (sizeMB > 5) {
+          score -= 10;
+        }
       }
 
       // Check for performance anti-patterns
       const files = glob.sync('**/*.{ts,tsx}', {
         cwd: this.projectRoot,
-        ignore: ['node_modules/**', 'dist/**', '**/*.test.*']
+        ignore: ['node_modules/**', 'dist/**', '**/*.test.*'],
       });
 
-      files.forEach(file => {
+      files.forEach((file) => {
         const content = fs.readFileSync(path.join(this.projectRoot, file), 'utf-8');
-        
+
         // Check for console statements in production code
         if (/console\.log/g.test(content) && !file.includes('test')) {
           score -= 2;
@@ -469,7 +485,6 @@ export class AIAgentToolkit {
           score -= 5;
         }
       });
-
     } catch (_error) {
       score -= 5; // Penalty for performance check failure
     }
@@ -520,7 +535,7 @@ export class AIAgentToolkit {
       context: this._context,
       health,
       codeAnalysis,
-      suggestions
+      suggestions,
     };
 
     return JSON.stringify(report, null, 2);
@@ -536,20 +551,24 @@ export class AIAgentToolkit {
     topIssues: string[];
   }> {
     const health = await this.getProjectHealth();
-    
+
     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-    if (health.overallScore < 70) {status = 'warning';}
-    if (health.overallScore < 50) {status = 'critical';}
+    if (health.overallScore < 70) {
+      status = 'warning';
+    }
+    if (health.overallScore < 50) {
+      status = 'critical';
+    }
 
     const topIssues = health.issues
-      .filter(issue => issue.severity === 'high' || issue.severity === 'critical')
-      .map(issue => issue.description)
+      .filter((issue) => issue.severity === 'high' || issue.severity === 'critical')
+      .map((issue) => issue.description)
       .slice(0, 3);
 
     return {
       status,
       score: health.overallScore,
-      topIssues
+      topIssues,
     };
   }
 }

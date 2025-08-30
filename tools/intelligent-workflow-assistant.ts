@@ -87,21 +87,21 @@ export class IntelligentWorkflowAssistant {
             type: 'validation',
             description: 'Run TypeScript check',
             payload: { command: 'npx tsc --noEmit' },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'validation',
             description: 'Run linting',
             payload: { command: 'npx eslint . --max-warnings 0' },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'validation',
             description: 'Run organization tests',
             payload: { command: 'npx jest tests/organization --passWithNoTests' },
-            priority: 2
-          }
-        ]
+            priority: 2,
+          },
+        ],
       },
       {
         name: 'dependency-audit',
@@ -113,21 +113,21 @@ export class IntelligentWorkflowAssistant {
             type: 'command',
             description: 'Security audit',
             payload: { command: 'npm audit --audit-level=moderate' },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'command',
             description: 'Check for outdated packages',
             payload: { command: 'npm outdated' },
-            priority: 2
+            priority: 2,
           },
           {
             type: 'analysis',
             description: 'Analyze bundle size',
             payload: { target: 'dist/' },
-            priority: 3
-          }
-        ]
+            priority: 3,
+          },
+        ],
       },
       {
         name: 'documentation-sync',
@@ -139,15 +139,15 @@ export class IntelligentWorkflowAssistant {
             type: 'validation',
             description: 'Check documentation coverage',
             payload: { command: 'npx jest tests/organization/documentation-validation.test.ts' },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'file_operation',
             description: 'Update API documentation',
             payload: { pattern: 'docs/**/*.md' },
-            priority: 2
-          }
-        ]
+            priority: 2,
+          },
+        ],
       },
       {
         name: 'performance-monitoring',
@@ -159,15 +159,15 @@ export class IntelligentWorkflowAssistant {
             type: 'analysis',
             description: 'Analyze bundle size',
             payload: { target: 'dist/public' },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'validation',
             description: 'Check for performance anti-patterns',
             payload: { pattern: '**/*.{ts,tsx}' },
-            priority: 2
-          }
-        ]
+            priority: 2,
+          },
+        ],
       },
       {
         name: 'code-quality-enhancement',
@@ -179,16 +179,16 @@ export class IntelligentWorkflowAssistant {
             type: 'analysis',
             description: 'Analyze code complexity',
             payload: { tools: ['complexity-report'] },
-            priority: 1
+            priority: 1,
           },
           {
             type: 'validation',
             description: 'Check for unused code',
             payload: { command: 'npx ts-unused-exports tsconfig.json' },
-            priority: 2
-          }
-        ]
-      }
+            priority: 2,
+          },
+        ],
+      },
     ];
   }
 
@@ -198,14 +198,17 @@ export class IntelligentWorkflowAssistant {
    * @param recentChanges - Array of recently changed file paths.
    * @returns Array of workflow suggestions based on detected patterns.
    */
-  public detectWorkflowPatterns(currentFiles: string[], recentChanges: string[]): WorkflowSuggestion[] {
+  public detectWorkflowPatterns(
+    currentFiles: string[],
+    recentChanges: string[]
+  ): WorkflowSuggestion[] {
     const suggestions: WorkflowSuggestion[] = [];
 
     // Analyze file patterns
-    const hasTestFiles = currentFiles.some(f => f.includes('.test.'));
-    const hasComponentFiles = currentFiles.some(f => f.includes('components/'));
-    const hasSchemaChanges = recentChanges.some(f => f.includes('schema'));
-    const hasAPIChanges = recentChanges.some(f => f.includes('routes') || f.includes('api'));
+    const hasTestFiles = currentFiles.some((f) => f.includes('.test.'));
+    const hasComponentFiles = currentFiles.some((f) => f.includes('components/'));
+    const hasSchemaChanges = recentChanges.some((f) => f.includes('schema'));
+    const hasAPIChanges = recentChanges.some((f) => f.includes('routes') || f.includes('api'));
 
     // Test-related workflow
     if (hasComponentFiles && !hasTestFiles) {
@@ -215,7 +218,7 @@ export class IntelligentWorkflowAssistant {
         description: 'Create tests for components without test coverage',
         estimatedTime: 15,
         benefits: ['Improved test coverage', 'Better code reliability'],
-        risks: ['Time investment', 'False positives in test detection']
+        risks: ['Time investment', 'False positives in test detection'],
       });
     }
 
@@ -227,12 +230,12 @@ export class IntelligentWorkflowAssistant {
         description: 'Update API documentation for schema/route changes',
         estimatedTime: 10,
         benefits: ['Accurate documentation', 'Better developer experience'],
-        risks: ['Documentation might become outdated quickly']
+        risks: ['Documentation might become outdated quickly'],
       });
     }
 
     // Performance workflow
-    const largeFiles = currentFiles.filter(f => {
+    const largeFiles = currentFiles.filter((f) => {
       try {
         const stats = fs.statSync(path.join(this.projectRoot, f));
         return stats.size > 50000; // Files larger than 50KB
@@ -248,19 +251,19 @@ export class IntelligentWorkflowAssistant {
         description: 'Optimize or refactor large files for better maintainability',
         estimatedTime: 30,
         benefits: ['Better code organization', 'Improved performance'],
-        risks: ['Potential breaking changes', 'Refactoring complexity']
+        risks: ['Potential breaking changes', 'Refactoring complexity'],
       });
     }
 
     // Security workflow
-    if (recentChanges.some(f => f.includes('auth') || f.includes('security'))) {
+    if (recentChanges.some((f) => f.includes('auth') || f.includes('security'))) {
       suggestions.push({
         pattern: 'security-review',
         confidence: 95,
         description: 'Conduct security review for authentication/security changes',
         estimatedTime: 20,
         benefits: ['Enhanced security', 'Compliance assurance'],
-        risks: ['False security alerts', 'Over-engineering']
+        risks: ['False security alerts', 'Over-engineering'],
       });
     }
 
@@ -273,21 +276,24 @@ export class IntelligentWorkflowAssistant {
    * @param dryRun Whether to run in dry-run mode without executing actions.
    * @returns Promise resolving to execution results.
    */
-  public async executeWorkflow(patternName: string, dryRun: boolean = false): Promise<{
+  public async executeWorkflow(
+    patternName: string,
+    dryRun: boolean = false
+  ): Promise<{
     success: boolean;
-    results: Array<{ action: string; success: boolean; output: string; }>;
+    results: Array<{ action: string; success: boolean; output: string }>;
     summary: string;
   }> {
-    const pattern = this.patterns.find(p => p.name === patternName);
+    const pattern = this.patterns.find((p) => p.name === patternName);
     if (!pattern) {
       return {
         success: false,
         results: [],
-        summary: `Workflow pattern '${patternName}' not found`
+        summary: `Workflow pattern '${patternName}' not found`,
       };
     }
 
-    const results: Array<{ action: string; success: boolean; output: string; }> = [];
+    const results: Array<{ action: string; success: boolean; output: string }> = [];
     let overallSuccess = true;
 
     console.warn(`${dryRun ? '[DRY RUN] ' : ''}Executing workflow: ${pattern.description}`);
@@ -295,12 +301,12 @@ export class IntelligentWorkflowAssistant {
     for (const action of pattern.actions.sort((a, b) => a.priority - b.priority)) {
       try {
         console.warn(`${dryRun ? '[DRY RUN] ' : ''}Running: ${action.description}`);
-        
+
         if (dryRun) {
           results.push({
             action: action.description,
             success: true,
-            output: `[DRY RUN] Would execute: ${JSON.stringify(action.payload)}`
+            output: `[DRY RUN] Would execute: ${JSON.stringify(action.payload)}`,
           });
           continue;
         }
@@ -311,11 +317,14 @@ export class IntelligentWorkflowAssistant {
         switch (action.type) {
           case 'command':
             try {
-              const command = action.payload && typeof action.payload === 'object' && 'command' in action.payload ? (action.payload as { command: string }).command : '';
+              const command =
+                action.payload && typeof action.payload === 'object' && 'command' in action.payload
+                  ? (action.payload as { command: string }).command
+                  : '';
               output = execSync(command, {
                 cwd: this.projectRoot,
                 encoding: 'utf-8',
-                stdio: 'pipe'
+                stdio: 'pipe',
               });
             } catch (_error: unknown) {
               success = false;
@@ -325,15 +334,20 @@ export class IntelligentWorkflowAssistant {
 
           case 'validation':
             try {
-              const command = action.payload && typeof action.payload === 'object' && 'command' in action.payload ? (action.payload as { command: string }).command : '';
+              const command =
+                action.payload && typeof action.payload === 'object' && 'command' in action.payload
+                  ? (action.payload as { command: string }).command
+                  : '';
               output = execSync(command, {
                 cwd: this.projectRoot,
                 encoding: 'utf-8',
-                stdio: 'pipe'
+                stdio: 'pipe',
               });
             } catch (_error: unknown) {
               success = false;
-              output = (_error as { stdout?: string }).stdout || (_error instanceof Error ? _error.message : 'Command failed');
+              output =
+                (_error as { stdout?: string }).stdout ||
+                (_error instanceof Error ? _error.message : 'Command failed');
             }
             break;
 
@@ -353,18 +367,17 @@ export class IntelligentWorkflowAssistant {
         results.push({
           action: action.description,
           success,
-          output: output.substring(0, 500) // Limit output length
+          output: output.substring(0, 500), // Limit output length
         });
 
         if (!success) {
           overallSuccess = false;
         }
-
       } catch (_error: unknown) {
         results.push({
           action: action.description,
           success: false,
-          output: _error instanceof Error ? _error.message : 'Action failed'
+          output: _error instanceof Error ? _error.message : 'Action failed',
         });
         overallSuccess = false;
       }
@@ -373,12 +386,12 @@ export class IntelligentWorkflowAssistant {
     // Record execution
     this.workflowHistory.set(patternName, new Date());
 
-    const summary = `Workflow '${patternName}' ${overallSuccess ? 'completed successfully' : 'completed with errors'}. ${results.filter(r => r.success).length}/${results.length} actions succeeded.`;
+    const summary = `Workflow '${patternName}' ${overallSuccess ? 'completed successfully' : 'completed with errors'}. ${results.filter((r) => r.success).length}/${results.length} actions succeeded.`;
 
     return {
       success: overallSuccess,
       results,
-      summary
+      summary,
     };
   }
 
@@ -388,7 +401,12 @@ export class IntelligentWorkflowAssistant {
    * @returns Promise resolving to analysis results string.
    */
   private async performAnalysis(payload: unknown): Promise<string> {
-    if (payload && typeof payload === 'object' && 'target' in payload && typeof (payload as { target: string }).target === 'string') {
+    if (
+      payload &&
+      typeof payload === 'object' &&
+      'target' in payload &&
+      typeof (payload as { target: string }).target === 'string'
+    ) {
       // Analyze target directory/file
       const targetPath = path.join(this.projectRoot, (payload as { target: string }).target);
       if (!fs.existsSync(targetPath)) {
@@ -406,14 +424,19 @@ export class IntelligentWorkflowAssistant {
             return size;
           }
         }, 0);
-        
+
         return `Directory analysis: ${files.length} files, ${Math.round(totalSize / 1024)}KB total`;
       } else {
         return `File analysis: ${Math.round(stats.size / 1024)}KB`;
       }
     }
 
-    if (payload && typeof payload === 'object' && 'tools' in payload && Array.isArray((payload as { tools: string[] }).tools)) {
+    if (
+      payload &&
+      typeof payload === 'object' &&
+      'tools' in payload &&
+      Array.isArray((payload as { tools: string[] }).tools)
+    ) {
       // Run analysis tools
       const results: string[] = [];
       for (const tool of (payload as { tools: string[] }).tools) {
@@ -421,11 +444,13 @@ export class IntelligentWorkflowAssistant {
           const _output = execSync(`npx ${tool}`, {
             cwd: this.projectRoot,
             encoding: 'utf-8',
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
           results.push(`${tool}: Success`);
         } catch (_error: unknown) {
-          results.push(`${tool}: ${_error instanceof Error ? _error.message.substring(0, 100) : 'Tool failed'}`);
+          results.push(
+            `${tool}: ${_error instanceof Error ? _error.message.substring(0, 100) : 'Tool failed'}`
+          );
         }
       }
       return results.join('; ');
@@ -440,12 +465,17 @@ export class IntelligentWorkflowAssistant {
    * @returns Promise resolving to operation result message.
    */
   private async performFileOperation(payload: unknown): Promise<string> {
-    if (payload && typeof payload === 'object' && 'pattern' in payload && typeof (payload as { pattern: string }).pattern === 'string') {
+    if (
+      payload &&
+      typeof payload === 'object' &&
+      'pattern' in payload &&
+      typeof (payload as { pattern: string }).pattern === 'string'
+    ) {
       const files = glob.sync((payload as { pattern: string }).pattern, {
         cwd: this.projectRoot,
-        ignore: ['node_modules/**', 'dist/**']
+        ignore: ['node_modules/**', 'dist/**'],
       });
-      
+
       return `Found ${files.length} files matching pattern: ${(payload as { pattern: string }).pattern}`;
     }
 
@@ -461,11 +491,11 @@ export class IntelligentWorkflowAssistant {
 
     // Architecture insights
     const componentFiles = glob.sync('client/src/components/**/*.tsx', {
-      cwd: this.projectRoot
+      cwd: this.projectRoot,
     });
 
     const pageFiles = glob.sync('client/src/pages/**/*.tsx', {
-      cwd: this.projectRoot
+      cwd: this.projectRoot,
     });
 
     if (componentFiles.length > pageFiles.length * 3) {
@@ -475,8 +505,11 @@ export class IntelligentWorkflowAssistant {
         title: 'Component-Heavy Architecture',
         description: 'High component-to-page ratio suggests good code reusability',
         evidence: [`${componentFiles.length} components vs ${pageFiles.length} pages`],
-        recommendations: ['Continue componentization approach', 'Consider component library documentation'],
-        impact: 20
+        recommendations: [
+          'Continue componentization approach',
+          'Consider component library documentation',
+        ],
+        impact: 20,
       });
     }
 
@@ -485,7 +518,7 @@ export class IntelligentWorkflowAssistant {
       const _tscOutput = execSync('npx tsc --noEmit --skipLibCheck', {
         cwd: this.projectRoot,
         encoding: 'utf-8',
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
     } catch (_error: unknown) {
       const errors = ((_error as { stdout?: string }).stdout || '').match(/error TS\d+:/g) || [];
@@ -496,8 +529,11 @@ export class IntelligentWorkflowAssistant {
           title: 'TypeScript Errors Detected',
           description: `${errors.length} TypeScript errors found in codebase`,
           evidence: [`${errors.length} TypeScript compilation errors`],
-          recommendations: ['Fix TypeScript errors for better type safety', 'Consider stricter TypeScript configuration'],
-          impact: errors.length * 5
+          recommendations: [
+            'Fix TypeScript errors for better type safety',
+            'Consider stricter TypeScript configuration',
+          ],
+          impact: errors.length * 5,
         });
       }
     }
@@ -508,7 +544,7 @@ export class IntelligentWorkflowAssistant {
       try {
         const files = fs.readdirSync(distPath, { recursive: true });
         let totalSize = 0;
-        files.forEach(file => {
+        files.forEach((file) => {
           try {
             const filePath = path.join(distPath, file as string);
             totalSize += fs.statSync(filePath).size;
@@ -525,13 +561,17 @@ export class IntelligentWorkflowAssistant {
             title: 'Large Bundle Size',
             description: `Build output is ${sizeMB.toFixed(1)}MB`,
             evidence: [`Total bundle size: ${sizeMB.toFixed(1)}MB`],
-            recommendations: ['Analyze bundle composition', 'Consider code splitting', 'Optimize large dependencies'],
-            impact: Math.round(sizeMB * 10)
+            recommendations: [
+              'Analyze bundle composition',
+              'Consider code splitting',
+              'Optimize large dependencies',
+            ],
+            impact: Math.round(sizeMB * 10),
           });
         }
       } catch (_error) {
-    // Error handled silently
-  }
+        // Error handled silently
+      }
     }
 
     // Security insights
@@ -539,7 +579,7 @@ export class IntelligentWorkflowAssistant {
       const auditOutput = execSync('npm audit --json', {
         cwd: this.projectRoot,
         encoding: 'utf-8',
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
       const auditResult = JSON.parse(auditOutput);
       const highSeverity = auditResult.metadata?.vulnerabilities?.high || 0;
@@ -552,8 +592,12 @@ export class IntelligentWorkflowAssistant {
           title: 'Security Vulnerabilities Found',
           description: `${critical} critical and ${highSeverity} high severity vulnerabilities`,
           evidence: [`npm audit found ${critical + highSeverity} high-risk vulnerabilities`],
-          recommendations: ['Run npm audit fix', 'Update vulnerable dependencies', 'Review security policies'],
-          impact: critical * 50 + highSeverity * 20
+          recommendations: [
+            'Run npm audit fix',
+            'Update vulnerable dependencies',
+            'Review security policies',
+          ],
+          impact: critical * 50 + highSeverity * 20,
         });
       }
     } catch (_error) {
@@ -561,8 +605,12 @@ export class IntelligentWorkflowAssistant {
     }
 
     // Maintenance insights
-    const packageJson = JSON.parse(fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8'));
-    const depCount = Object.keys(packageJson.dependencies || {}).length + Object.keys(packageJson.devDependencies || {}).length;
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8')
+    );
+    const depCount =
+      Object.keys(packageJson.dependencies || {}).length +
+      Object.keys(packageJson.devDependencies || {}).length;
 
     if (depCount > 100) {
       insights.push({
@@ -571,8 +619,12 @@ export class IntelligentWorkflowAssistant {
         title: 'High Dependency Count',
         description: `Project has ${depCount} dependencies`,
         evidence: [`${depCount} total dependencies in package.json`],
-        recommendations: ['Audit unused dependencies', 'Consider dependency consolidation', 'Regular dependency updates'],
-        impact: Math.round(depCount / 10)
+        recommendations: [
+          'Audit unused dependencies',
+          'Consider dependency consolidation',
+          'Regular dependency updates',
+        ],
+        impact: Math.round(depCount / 10),
       });
     }
 
@@ -587,11 +639,13 @@ export class IntelligentWorkflowAssistant {
    * @param _context.projectPhase Current phase of the project.
    * @returns Promise resolving to categorized workflow suggestions.
    */
-  public async recommendWorkflows(_context: {
-    recentFiles?: string[];
-    userIntent?: string;
-    projectPhase?: string;
-  } = {}): Promise<{
+  public async recommendWorkflows(
+    _context: {
+      recentFiles?: string[];
+      userIntent?: string;
+      projectPhase?: string;
+    } = {}
+  ): Promise<{
     immediate: WorkflowSuggestion[];
     scheduled: WorkflowSuggestion[];
     optional: WorkflowSuggestion[];
@@ -609,7 +663,7 @@ export class IntelligentWorkflowAssistant {
         description: 'Run comprehensive pre-deployment validation',
         estimatedTime: 25,
         benefits: ['Reduced deployment issues', 'Better reliability'],
-        risks: ['Deployment delays', 'False positives']
+        risks: ['Deployment delays', 'False positives'],
       });
     }
 
@@ -620,14 +674,14 @@ export class IntelligentWorkflowAssistant {
         description: 'Regular development quality validation',
         estimatedTime: 10,
         benefits: ['Early issue detection', 'Better code quality'],
-        risks: ['Development slowdown']
+        risks: ['Development slowdown'],
       });
     }
 
     return {
-      immediate: allSuggestions.filter(s => s.confidence >= 90),
-      scheduled: allSuggestions.filter(s => s.confidence >= 70 && s.confidence < 90),
-      optional: allSuggestions.filter(s => s.confidence < 70)
+      immediate: allSuggestions.filter((s) => s.confidence >= 90),
+      scheduled: allSuggestions.filter((s) => s.confidence >= 70 && s.confidence < 90),
+      optional: allSuggestions.filter((s) => s.confidence < 70),
     };
   }
 
@@ -640,13 +694,13 @@ export class IntelligentWorkflowAssistant {
       executedWorkflows: Array.from(this.workflowHistory.entries()).map(([name, date]) => ({
         name,
         lastExecuted: date.toISOString(),
-        daysSince: Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+        daysSince: Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)),
       })),
-      availablePatterns: this.patterns.map(p => ({
+      availablePatterns: this.patterns.map((p) => ({
         name: p.name,
         description: p.description,
-        frequency: p.frequency
-      }))
+        frequency: p.frequency,
+      })),
     };
 
     return JSON.stringify(report, null, 2);

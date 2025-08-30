@@ -50,12 +50,14 @@ WARMUP_ON_DEPLOY=true
 ### Development Environment
 
 #### Export Demo Data
+
 ```bash
 # Export Demo organization data to JSON file
 tsx scripts/sync-demo-organization.ts
 ```
 
 #### Sync to Production (if direct DB access)
+
 ```bash
 # Set production database URL
 export PRODUCTION_DATABASE_URL="postgresql://prod-user:password@prod-host:5432/prod-db"
@@ -67,12 +69,14 @@ tsx scripts/sync-demo-organization.ts
 ### Production Environment
 
 #### Import from JSON File
+
 ```bash
 # Place demo-organization-export.json in root directory
 tsx scripts/import-demo-organization.ts
 ```
 
 #### Automated Deployment
+
 ```bash
 # Run deployment hooks (includes Demo sync if enabled)
 tsx scripts/deployment-hooks.ts
@@ -83,17 +87,19 @@ tsx scripts/deployment-hooks.ts
 ### Manual Deployment
 
 1. **Development**:
+
    ```bash
    # Export Demo data
    tsx scripts/sync-demo-organization.ts
-   
+
    # This creates demo-organization-export.json
    ```
 
 2. **Production**:
+
    ```bash
    # Upload demo-organization-export.json to production
-   
+
    # Import Demo data
    tsx scripts/import-demo-organization.ts
    ```
@@ -108,6 +114,7 @@ NODE_ENV=production
 ```
 
 Then run deployment hooks:
+
 ```bash
 tsx scripts/deployment-hooks.ts
 ```
@@ -128,6 +135,7 @@ npm run deploy:hooks
 ```
 
 **Note**: Package.json scripts need to be added manually:
+
 ```json
 {
   "scripts": {
@@ -190,30 +198,38 @@ The sync process handles all Demo organization related data:
 ### Common Issues
 
 1. **Missing Demo Organization**:
+
    ```
    Error: Demo organization not found in development database
    ```
+
    - Ensure Demo organization exists in development
    - Check organization name is exactly "Demo"
 
 2. **Database Connection**:
+
    ```
    Error: DATABASE_URL must be set
    ```
+
    - Verify DATABASE_URL environment variable
    - Check database connectivity
 
 3. **Foreign Key Constraints**:
+
    ```
    Error: Foreign key constraint violation
    ```
+
    - Ensure deletion order respects relationships
    - Check for orphaned records
 
 4. **File Not Found**:
+
    ```
    Error: Export file demo-organization-export.json not found
    ```
+
    - Run export script first
    - Verify file was created and uploaded to production
 
@@ -226,13 +242,13 @@ After sync, verify the Demo organization was properly synchronized:
 SELECT * FROM organizations WHERE name = 'Demo';
 
 -- Check Demo organization data
-SELECT 
+SELECT
   (SELECT COUNT(*) FROM buildings WHERE organization_id = o.id) as buildings_count,
-  (SELECT COUNT(*) FROM residences r 
-   JOIN buildings b ON r.building_id = b.id 
+  (SELECT COUNT(*) FROM residences r
+   JOIN buildings b ON r.building_id = b.id
    WHERE b.organization_id = o.id) as residences_count,
   (SELECT COUNT(*) FROM user_organizations WHERE organization_id = o.id) as users_count
-FROM organizations o 
+FROM organizations o
 WHERE o.name = 'Demo';
 ```
 

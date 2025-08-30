@@ -49,17 +49,17 @@ declare global {
   }
 
   var File: {
-    new(_fileBits: BlobPart[], _fileName: string, _options?: FilePropertyBag): File;
+    new (_fileBits: BlobPart[], _fileName: string, _options?: FilePropertyBag): File;
     prototype: File;
   };
-  
+
   var FormData: {
-    new(_form?: HTMLFormElement): FormData;
+    new (_form?: HTMLFormElement): FormData;
     prototype: FormData;
   };
 
   var Blob: {
-    new(_blobParts?: BlobPart[], _options?: BlobPropertyBag): Blob;
+    new (_blobParts?: BlobPart[], _options?: BlobPropertyBag): Blob;
     prototype: Blob;
   };
 

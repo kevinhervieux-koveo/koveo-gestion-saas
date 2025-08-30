@@ -1,9 +1,11 @@
 # Page Routing Management Guide for Koveo Gestion
 
 ## Overview
+
 This document provides comprehensive guidelines for managing pages and routing in the Koveo Gestion application. It addresses the routing issues we encountered (like the persistent /admin/dashboard problem) and provides best practices to prevent similar issues in the future.
 
 ## Table of Contents
+
 1. [Application Routing Architecture](#application-routing-architecture)
 2. [Page Structure](#page-structure)
 3. [Route Categories](#route-categories)
@@ -16,12 +18,14 @@ This document provides comprehensive guidelines for managing pages and routing i
 ## Application Routing Architecture
 
 ### Client-Side Routing
+
 - **Framework**: Wouter (lightweight React router)
 - **Main Router**: `client/src/App.tsx`
 - **Route Protection**: Authentication-based via `useAuth` hook
 - **Lazy Loading**: Pages use optimized loaders with memory cleanup
 
 ### Server-Side Handling
+
 - **API Routes**: `/api/*` handled by Express in `server/routes.ts`
 - **Client Routes**: All non-API routes serve the React SPA via Vite
 
@@ -43,6 +47,7 @@ client/src/pages/
 ## Route Categories
 
 ### Public Routes (No Authentication Required)
+
 ```text
 / - Home page
 /login - Login page
@@ -52,6 +57,7 @@ client/src/pages/
 ### Protected Routes (Authentication Required)
 
 #### Admin Routes
+
 ```text
 /admin/organizations - Organization management
 /admin/documentation - Documentation management
@@ -63,6 +69,7 @@ client/src/pages/
 ```
 
 #### Owner Routes
+
 ```text
 /owner/dashboard - Owner dashboard
 /owner/documentation - Documentation access
@@ -74,6 +81,7 @@ client/src/pages/
 ```
 
 #### Manager Routes
+
 ```text
 /manager/buildings - Building management
 /manager/residences - Residence management
@@ -84,6 +92,7 @@ client/src/pages/
 ```
 
 #### Resident Routes
+
 ```text
 /dashboard - Main dashboard (default after login)
 /residents/residence - Residence details
@@ -92,6 +101,7 @@ client/src/pages/
 ```
 
 #### Settings Routes
+
 ```text
 /settings/settings - User settings
 /settings/bug-reports - Bug reporting
@@ -101,6 +111,7 @@ client/src/pages/
 ## Adding New Pages
 
 ### Step 1: Create the Page Component
+
 ```typescript
 // client/src/pages/[role]/[page-name].tsx
 import { useAuth } from '@/hooks/use-auth';
@@ -117,6 +128,7 @@ export default function NewPage() {
 ```
 
 ### Step 2: Add Lazy Loader in App.tsx
+
 ```typescript
 // In client/src/App.tsx - Add after other lazy loaders
 const NewPage = createOptimizedLoader(
@@ -127,12 +139,14 @@ const NewPage = createOptimizedLoader(
 ```
 
 ### Step 3: Add Route in Router Component
+
 ```typescript
 // In client/src/App.tsx - Router component
 <Route path='/[role]/[page-name]' component={NewPage} />
 ```
 
 ### Step 4: Update Sidebar Navigation
+
 ```typescript
 // In client/src/components/layout/sidebar.tsx
 {
@@ -144,6 +158,7 @@ const NewPage = createOptimizedLoader(
 ```
 
 ### Step 5: Clear Build Cache
+
 ```bash
 # After adding new routes, always clear cache
 rm -rf client/dist
@@ -165,6 +180,7 @@ npm run build
    - Remove the actual page file from pages directory
 
 4. **Clear ALL Build Caches**
+
    ```bash
    # This is CRITICAL to prevent cached routes from persisting
    rm -rf client/dist
@@ -180,9 +196,11 @@ npm run build
 ## Common Issues and Solutions
 
 ### Issue 1: Removed Route Still Accessible
+
 **Problem**: Page still loads after being removed from source code
 **Cause**: Cached JavaScript bundles in client/dist
 **Solution**:
+
 ```bash
 # Complete cache clear procedure
 rm -rf client/dist
@@ -192,17 +210,21 @@ npm run build
 ```
 
 ### Issue 2: Route Not Found After Adding
+
 **Problem**: New route returns 404
 **Cause**: Route not properly registered or build not updated
 **Solution**:
+
 - Verify route is added in App.tsx
 - Check that component export is default
 - Rebuild the application
 
 ### Issue 3: Permission Issues
+
 **Problem**: Users can't access routes they should
 **Cause**: RBAC misconfiguration
 **Solution**:
+
 - Check role assignments in sidebar.tsx
 - Verify user role in database
 - Review RBAC rules in server/rbac.ts
@@ -210,6 +232,7 @@ npm run build
 ## Testing Routes
 
 ### Manual Testing Checklist
+
 - [ ] Route loads correctly when accessed directly
 - [ ] Navigation from sidebar works
 - [ ] Authentication redirects work properly
@@ -218,11 +241,13 @@ npm run build
 - [ ] Back/forward browser navigation works
 
 ### Automated Testing
+
 See `tests/routing/` directory for automated route tests
 
 ## Build Cache Management
 
 ### Development Build Cache
+
 ```bash
 # Location of dev caches
 .vite/                    # Vite dev server cache
@@ -230,6 +255,7 @@ node_modules/.vite/       # Dependency pre-bundling cache
 ```
 
 ### Production Build Cache
+
 ```bash
 # Location of production builds
 client/dist/              # Production build output
@@ -237,12 +263,14 @@ client/dist/assets/       # Bundled JavaScript and CSS
 ```
 
 ### When to Clear Cache
+
 1. After removing any route or page
 2. When routes behave unexpectedly
 3. After major routing refactors
 4. When deploying to production
 
 ### Cache Clear Commands
+
 ```bash
 # Development cache clear
 rm -rf .vite node_modules/.vite
@@ -302,4 +330,3 @@ When migrating routes (e.g., /admin/dashboard to /owner/dashboard):
 ## Conclusion
 
 Proper route management is critical for application stability. The most common issue is cached JavaScript files serving removed routes. Always follow the complete cache clearing procedure when removing routes, and implement the automated tests to catch routing issues early.
-

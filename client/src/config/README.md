@@ -11,6 +11,7 @@ This directory contains centralized configuration files that define application-
 **Purpose**: Centralized navigation structure and role-based access control
 
 **Key Features**:
+
 - Single source of truth for all navigation items
 - Type-safe navigation definitions with TypeScript interfaces
 - Role hierarchy configuration and permission checking
@@ -18,6 +19,7 @@ This directory contains centralized configuration files that define application-
 - Icon and route definitions for all menu items
 
 **Usage**:
+
 ```typescript
 import { getFilteredNavigation, hasRoleOrHigher } from '@/config/navigation';
 
@@ -29,12 +31,14 @@ const canAccess = hasRoleOrHigher(user?.role, 'admin');
 ```
 
 **Structure**:
+
 - `NavigationItem`: Individual menu items with href, icon, and optional role requirements
 - `NavigationSection`: Grouped navigation sections (Admin, Manager, Residents, Settings)
 - `NAVIGATION_CONFIG`: Complete navigation structure array
 - `ROLE_HIERARCHY`: Permission levels (tenant=1, resident=1, manager=2, admin=3)
 
 **Benefits**:
+
 - **Consistency**: All navigation references use the same configuration
 - **Maintainability**: Changes to navigation structure happen in one place
 - **Type Safety**: TypeScript interfaces prevent configuration errors
@@ -54,6 +58,7 @@ When adding new configuration files:
 ## Best Practices
 
 ### Type Safety
+
 ```typescript
 // Define clear interfaces
 export interface ConfigSection {
@@ -72,6 +77,7 @@ export const CONFIG = {
 ```
 
 ### Documentation
+
 ```typescript
 /**
  * Application-wide theme configuration.
@@ -83,6 +89,7 @@ export const THEME_CONFIG = {
 ```
 
 ### Validation
+
 ```typescript
 // Include validation functions where appropriate
 export function validateConfig(config: AppConfig): boolean {
@@ -107,6 +114,7 @@ import { NAVIGATION_CONFIG } from '@/config/navigation';
 ```
 
 This approach ensures:
+
 - Consistency across the application
 - Single point of truth for changes
 - Better testability and maintainability

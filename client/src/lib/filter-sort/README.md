@@ -62,7 +62,7 @@ import { FilterSort } from '@/components/filter-sort/FilterSort';
 
 function MyComponent() {
   const { data: items = [] } = useQuery(['items']);
-  
+
   const {
     filteredData,
     filters,
@@ -96,7 +96,7 @@ function MyComponent() {
         resultCount={resultCount}
         totalCount={items.length}
       />
-      
+
       {/* Display filtered data */}
       {filteredData.map(item => (
         <ItemCard key={item.id} item={item} />
@@ -109,6 +109,7 @@ function MyComponent() {
 ## Filter Types
 
 ### Text Filter
+
 ```typescript
 {
   id: 'title',
@@ -121,6 +122,7 @@ function MyComponent() {
 ```
 
 ### Number Filter
+
 ```typescript
 {
   id: 'price',
@@ -133,6 +135,7 @@ function MyComponent() {
 ```
 
 ### Select Filter
+
 ```typescript
 {
   id: 'category',
@@ -147,6 +150,7 @@ function MyComponent() {
 ```
 
 ### Date Filter
+
 ```typescript
 {
   id: 'date',
@@ -221,26 +225,28 @@ Enable state persistence to remember user's filter preferences:
 
 ### FilterSortConfig
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| filters | FilterConfig[] | Yes | Array of filter configurations |
-| sortOptions | SortConfig[] | Yes | Array of sort options |
-| presets | FilterSortPreset[] | No | Predefined filter combinations |
-| searchable | boolean | No | Enable global search |
-| searchPlaceholder | string | No | Placeholder for search input |
-| searchFields | string[] | No | Fields to search in |
-| allowMultipleFilters | boolean | No | Allow multiple filters per field |
-| persistState | boolean | No | Save filter state to localStorage |
-| storageKey | string | No | Key for localStorage |
+| Property             | Type               | Required | Description                       |
+| -------------------- | ------------------ | -------- | --------------------------------- |
+| filters              | FilterConfig[]     | Yes      | Array of filter configurations    |
+| sortOptions          | SortConfig[]       | Yes      | Array of sort options             |
+| presets              | FilterSortPreset[] | No       | Predefined filter combinations    |
+| searchable           | boolean            | No       | Enable global search              |
+| searchPlaceholder    | string             | No       | Placeholder for search input      |
+| searchFields         | string[]           | No       | Fields to search in               |
+| allowMultipleFilters | boolean            | No       | Allow multiple filters per field  |
+| persistState         | boolean            | No       | Save filter state to localStorage |
+| storageKey           | string             | No       | Key for localStorage              |
 
 ### useFilterSort Hook
 
 **Parameters:**
+
 - `data`: Array of items to filter/sort
 - `config`: FilterSortConfig object
 - `initialState`: Optional initial filter state
 
 **Returns:**
+
 - `filteredData`: Filtered and sorted data
 - `filters`: Current active filters
 - `sort`: Current sort configuration
@@ -266,6 +272,7 @@ Enable state persistence to remember user's filter preferences:
 ## Examples
 
 ### Property Management
+
 ```typescript
 const propertyFilters: FilterSortConfig = {
   filters: [
@@ -275,9 +282,9 @@ const propertyFilters: FilterSortConfig = {
       label: 'Building',
       type: 'select',
       icon: Building,
-      options: buildings.map(b => ({ 
-        label: b.name, 
-        value: b.id 
+      options: buildings.map((b) => ({
+        label: b.name,
+        value: b.id,
       })),
     },
     {
@@ -321,6 +328,7 @@ const propertyFilters: FilterSortConfig = {
 ```
 
 ### Task Management
+
 ```typescript
 const taskFilters: FilterSortConfig = {
   filters: [
@@ -342,9 +350,9 @@ const taskFilters: FilterSortConfig = {
       field: 'assignedTo',
       label: 'Assigned To',
       type: 'select',
-      options: users.map(u => ({ 
-        label: u.name, 
-        value: u.id 
+      options: users.map((u) => ({
+        label: u.name,
+        value: u.id,
       })),
     },
     {

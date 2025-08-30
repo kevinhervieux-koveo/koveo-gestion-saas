@@ -35,9 +35,14 @@ function buildServer() {
       mkdirSync(distConfigDir, { recursive: true });
     }
 
-    // Copy permissions.json
-    console.warn('Copying permissions.json...');
-    copyFileSync(join('config', 'permissions.json'), join('dist', 'config', 'permissions.json'));
+    // Copy permissions.json if it exists
+    const permissionsPath = join('config', 'permissions.json');
+    if (existsSync(permissionsPath)) {
+      console.warn('Copying permissions.json...');
+      copyFileSync(permissionsPath, join('dist', 'config', 'permissions.json'));
+    } else {
+      console.warn('permissions.json not found, skipping...');
+    }
 
     console.warn('✅ Server build completed successfully');
   } catch (_error) {

@@ -93,24 +93,24 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       files: {
         modified: [],
         created: [],
-        deleted: []
+        deleted: [],
       },
       testResults: {
         passed: 0,
         failed: 0,
-        coverage: 0
+        coverage: 0,
       },
       lintResults: {
         errors: 0,
         warnings: 0,
-        fixedIssues: 0
+        fixedIssues: 0,
       },
       performance: {
         memoryUsage: 0,
         cpuUsage: 0,
         buildTime: 0,
-        hotReloadTime: 0
-      }
+        hotReloadTime: 0,
+      },
     };
   }
 
@@ -120,17 +120,17 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   private setupRealtimeMonitoring(): void {
     // Create WebSocket server for real-time updates
     this.wsServer = new WebSocketServer({ port: 8080 });
-    
+
     this.wsServer.on('connection', (ws) => {
       this.activeConnections.add(ws);
-      
+
       // Send current session state immediately
       this.broadcastUpdate('session_state', this.currentSession);
-      
+
       ws.on('close', () => {
         this.activeConnections.delete(ws);
       });
-      
+
       ws.on('message', (message) => {
         try {
           const data = JSON.parse(message.toString());
@@ -153,15 +153,15 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
   private handleWebSocketMessage(data: any, ws: WebSocket): void {
     switch (data.type) {
       case 'request_health_check':
-        this.performHealthCheck().then(result => {
+        this.performHealthCheck().then((result) => {
           ws.send(JSON.stringify({ type: 'health_check_result', data: result }));
         });
         break;
-      
+
       case 'request_task_execution':
         this.queueTask(data.task, data.priority || 1, data.context);
         break;
-      
+
       case 'request_session_reset':
         this.resetSession();
         this.broadcastUpdate('session_reset', this.currentSession);
@@ -177,8 +177,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    */
   private broadcastUpdate(type: string, data: unknown): void {
     const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() });
-    
-    this.activeConnections.forEach(ws => {
+
+    this.activeConnections.forEach((ws) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(message);
       }
@@ -202,7 +202,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     try {
       const memUsage = process.memoryUsage();
       this.currentSession.performance.memoryUsage = Math.round(memUsage.heapUsed / 1024 / 1024);
-      
+
       // Get CPU usage (simplified)
       const startUsage = process.cpuUsage();
       setTimeout(() => {
@@ -224,16 +224,16 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    */
   public queueTask(task: string, priority: number = 1, context?: unknown): string {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.taskQueue.push({ id: taskId, task, priority, context });
     this.taskQueue.sort((a, b) => b.priority - a.priority); // Higher priority first
-    
+
     this.broadcastUpdate('task_queued', { id: taskId, task, priority });
-    
+
     if (!this.isProcessing) {
       this.processTaskQueue();
     }
-    
+
     return taskId;
   }
 
@@ -241,34 +241,35 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Process the task queue sequentially.
    */
   private async processTaskQueue(): Promise<void> {
-    if (this.isProcessing || this.taskQueue.length === 0) {return;}
-    
+    if (this.isProcessing || this.taskQueue.length === 0) {
+      return;
+    }
+
     this.isProcessing = true;
-    
+
     while (this.taskQueue.length > 0) {
       const task = this.taskQueue.shift()!;
-      
+
       this.currentSession.currentTask = task.task;
       this.broadcastUpdate('task_started', task);
-      
+
       try {
         const result = await this.executeTask(task);
         this.broadcastUpdate('task_completed', { task, result });
-        
+
         // Update session metrics
         this.updateSessionMetrics(result);
-        
       } catch (_error) {
         const failureResult: TaskResult = {
           success: false,
           message: _error instanceof Error ? _error.message : 'Unknown error',
-          duration: 0
+          duration: 0,
         };
-        
+
         this.broadcastUpdate('task_failed', { task, _result: failureResult });
       }
     }
-    
+
     this.currentSession.currentTask = 'idle';
     this.isProcessing = false;
   }
@@ -280,9 +281,13 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * @param task.task
    * @param task.context
    */
-  private async executeTask(task: { id: string; task: string; context?: any }): Promise<TaskResult> {
+  private async executeTask(task: {
+    id: string;
+    task: string;
+    context?: any;
+  }): Promise<TaskResult> {
     const startTime = Date.now();
-    
+
     // Add stage tracking
     const stage: {
       stage: string;
@@ -293,14 +298,14 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     } = {
       stage: task.task,
       status: 'active',
-      startTime: new Date()
+      startTime: new Date(),
     };
-    
+
     this.currentSession.progressStages.push(stage);
-    
+
     try {
       let result: TaskResult;
-      
+
       // Route task to appropriate handler
       if (task.task.includes('lint') || task.task.includes('eslint')) {
         result = await this.executeLintTask(task);
@@ -313,18 +318,17 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       } else {
         result = await this.executeGenericTask(task);
       }
-      
+
       // Update stage status
       stage.status = result.success ? 'completed' : 'failed';
       stage.endTime = new Date();
-      
+
       result.duration = Date.now() - startTime;
       return result;
-      
     } catch (_error) {
       stage.status = 'failed';
       stage.endTime = new Date();
-      
+
       throw _error;
     }
   }
@@ -337,47 +341,53 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     return new Promise((resolve) => {
       const process = spawn('npm', ['run', 'lint:check'], {
         cwd: this.projectRoot,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
-      
+
       let output = '';
       let errorOutput = '';
-      
+
       process.stdout?.on('data', (_data) => {
         output += data.toString();
       });
-      
+
       process.stderr?.on('data', (_data) => {
         errorOutput += data.toString();
       });
-      
+
       process.on('close', (code) => {
         // Parse ESLint output for metrics
         const errorMatches: string[] = output.match(/(\d+) error/g) || [];
         const warningMatches: string[] = output.match(/(\d+) warning/g) || [];
-        
+
         const errors = errorMatches.reduce((sum: number, match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
-        
+
         const warnings = warningMatches.reduce((sum: number, match: string) => {
           return sum + parseInt(match.match(/\d+/)?.[0] || '0');
         }, 0);
-        
+
         this.currentSession.lintResults.errors = errors;
         this.currentSession.lintResults.warnings = warnings;
-        
+
         resolve({
           success: code === 0,
-          message: code === 0 ? 'Linting passed' : `Linting failed with ${errors} errors, ${warnings} warnings`,
+          message:
+            code === 0
+              ? 'Linting passed'
+              : `Linting failed with ${errors} errors, ${warnings} warnings`,
           data: { errors, warnings, output: output.slice(-1000) }, // Last 1000 chars
           duration: 0,
           metrics: {
             linesChanged: 0,
             testsRun: 0,
-            issuesFixed: Math.max(0, (this.currentSession.lintResults.fixedIssues || 0) - (errors || 0)),
-            performanceImpact: 0
-          }
+            issuesFixed: Math.max(
+              0,
+              (this.currentSession.lintResults.fixedIssues || 0) - (errors || 0)
+            ),
+            performanceImpact: 0,
+          },
         });
       });
     });
@@ -391,31 +401,31 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     return new Promise((resolve) => {
       const process = spawn('npm', ['test', '--', '--coverage', '--passWithNoTests'], {
         cwd: this.projectRoot,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
-      
+
       let output = '';
-      
+
       process.stdout?.on('data', (data) => {
         output += data.toString();
       });
-      
+
       process.stderr?.on('data', (data) => {
         output += data.toString();
       });
-      
+
       process.on('close', (code) => {
         // Parse Jest output
         const passedMatch = output.match(/(\d+) passed/);
         const failedMatch = output.match(/(\d+) failed/);
         const coverageMatch = output.match(/All files\s+\|\s+([\d.]+)/);
-        
+
         const passed = passedMatch ? parseInt(passedMatch[1]) : 0;
         const failed = failedMatch ? parseInt(failedMatch[1]) : 0;
         const coverage = coverageMatch ? parseFloat(coverageMatch[1]) : 0;
-        
+
         this.currentSession.testResults = { passed, failed, coverage };
-        
+
         resolve({
           success: code === 0,
           message: `Tests: ${passed} passed, ${failed} failed. Coverage: ${coverage.toFixed(1)}%`,
@@ -425,8 +435,8 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
             linesChanged: 0,
             testsRun: passed + failed,
             issuesFixed: 0,
-            performanceImpact: 0
-          }
+            performanceImpact: 0,
+          },
         });
       });
     });
@@ -438,32 +448,32 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    */
   private async executeBuildTask(task: unknown): Promise<TaskResult> {
     const startTime = Date.now();
-    
+
     return new Promise((resolve) => {
       const process = spawn('npm', ['run', 'build'], {
         cwd: this.projectRoot,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
-      
+
       let output = '';
-      
+
       process.stdout?.on('data', (data) => {
         output += data.toString();
       });
-      
+
       process.stderr?.on('data', (data) => {
         output += data.toString();
       });
-      
+
       process.on('close', (code) => {
         const buildTime = Date.now() - startTime;
         this.currentSession.performance.buildTime = buildTime;
-        
+
         resolve({
           success: code === 0,
           message: code === 0 ? `Build completed in ${buildTime}ms` : 'Build failed',
           data: { buildTime, output: output.slice(-500) },
-          duration: buildTime
+          duration: buildTime,
         });
       });
     });
@@ -477,14 +487,14 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
     return new Promise((resolve) => {
       const process = spawn('npm', ['run', 'format'], {
         cwd: this.projectRoot,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
-      
+
       process.on('close', (code) => {
         resolve({
           success: code === 0,
           message: code === 0 ? 'Code formatted successfully' : 'Format failed',
-          duration: 0
+          duration: 0,
         });
       });
     });
@@ -500,20 +510,20 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         const output = execSync((task as any).task, {
           cwd: this.projectRoot,
           encoding: 'utf-8',
-          timeout: 30000 // 30 seconds timeout
+          timeout: 30000, // 30 seconds timeout
         });
-        
+
         resolve({
           success: true,
           message: 'Command executed successfully',
           data: { output: output.slice(-500) },
-          duration: 0
+          duration: 0,
         });
       } catch (_error) {
         resolve({
           success: false,
           message: _error instanceof Error ? _error.message : 'Command failed',
-          duration: 0
+          duration: 0,
         });
       }
     });
@@ -529,10 +539,10 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       // Update file tracking would go here
       // This is a simplified version
     }
-    
+
     this.broadcastUpdate('metrics_updated', {
       session: this.currentSession,
-      latestResult: result
+      latestResult: result,
     });
   }
 
@@ -547,20 +557,20 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
         memory: process.memoryUsage(),
         uptime: process.uptime(),
         nodeVersion: process.version,
-        platform: process.platform
+        platform: process.platform,
       },
       project: {
         packageJson: this.checkPackageJson(),
         dependencies: this.checkDependencies(),
-        scripts: this.getAvailableScripts()
+        scripts: this.getAvailableScripts(),
       },
       queue: {
         pending: this.taskQueue.length,
         processing: this.isProcessing,
-        currentTask: this.currentSession.currentTask
-      }
+        currentTask: this.currentSession.currentTask,
+      },
     };
-    
+
     return healthData;
   }
 
@@ -578,7 +588,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
           version: packageJson.version,
           scripts: Object.keys(packageJson.scripts || {}),
           dependencies: Object.keys(packageJson.dependencies || {}),
-          devDependencies: Object.keys(packageJson.devDependencies || {})
+          devDependencies: Object.keys(packageJson.devDependencies || {}),
         };
       }
       return { exists: false };
@@ -595,12 +605,13 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
       const nodeModulesPath = path.join(this.projectRoot, 'node_modules');
       return {
         installed: fs.existsSync(nodeModulesPath),
-        lastModified: fs.existsSync(nodeModulesPath) 
-          ? fs.statSync(nodeModulesPath).mtime 
-          : null
+        lastModified: fs.existsSync(nodeModulesPath) ? fs.statSync(nodeModulesPath).mtime : null,
       };
     } catch (_error) {
-      return { installed: false, _error: _error instanceof Error ? _error.message : 'Unknown error' };
+      return {
+        installed: false,
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      };
     }
   }
 
@@ -640,7 +651,7 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    * Cleanup resources.
    */
   public cleanup(): void {
-    this.activeConnections.forEach(ws => ws.close());
+    this.activeConnections.forEach((ws) => ws.close());
     this.wsServer?.close();
     this.removeAllListeners();
   }
@@ -650,34 +661,39 @@ export class EnhancedAgentOrchestrator extends EventEmitter {
    */
   public startIntelligentWatching(): void {
     const chokidar = require('chokidar');
-    
-    const watcher = chokidar.watch([
-      path.join(this.projectRoot, 'client/src/**/*.{ts,tsx}'),
-      path.join(this.projectRoot, 'server/**/*.ts'),
-      path.join(this.projectRoot, 'shared/**/*.ts')
-    ], {
-      ignored: /node_modules|\.git|dist|build/,
-      persistent: true
-    });
-    
+
+    const watcher = chokidar.watch(
+      [
+        path.join(this.projectRoot, 'client/src/**/*.{ts,tsx}'),
+        path.join(this.projectRoot, 'server/**/*.ts'),
+        path.join(this.projectRoot, 'shared/**/*.ts'),
+      ],
+      {
+        ignored: /node_modules|\.git|dist|build/,
+        persistent: true,
+      }
+    );
+
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    
+
     watcher.on('change', (filePath: string) => {
       // Track file changes
       const relativePath = path.relative(this.projectRoot, filePath);
       if (!this.currentSession.files.modified.includes(relativePath)) {
         this.currentSession.files.modified.push(relativePath);
       }
-      
+
       // Debounced automatic quality check
-      if (debounceTimer) {clearTimeout(debounceTimer);}
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
       debounceTimer = setTimeout(() => {
         this.queueTask('npm run lint:check', 2, { trigger: 'file_change', file: relativePath });
       }, 2000);
-      
+
       this.broadcastUpdate('file_changed', { file: relativePath });
     });
-    
+
     console.warn('🔍 Intelligent file watching started');
   }
 }

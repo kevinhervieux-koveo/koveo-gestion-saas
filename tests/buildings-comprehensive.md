@@ -1,6 +1,7 @@
 # Buildings Management Test Suite Documentation
 
 ## Overview
+
 Comprehensive test coverage for the Buildings Management functionality in Koveo Gestion, including unit tests, integration tests, validation tests, and end-to-end workflow tests.
 
 ## Test Categories
@@ -10,6 +11,7 @@ Comprehensive test coverage for the Buildings Management functionality in Koveo 
 **Purpose**: Test individual components and functions in isolation
 
 **Coverage**:
+
 - ✅ Building data validation
 - ✅ Search functionality (name, address, city, organization)
 - ✅ Role-based access control logic
@@ -19,6 +21,7 @@ Comprehensive test coverage for the Buildings Management functionality in Koveo 
 - ✅ Error handling and edge cases
 
 **Key Test Cases**:
+
 ```javascript
 // Valid building validation
 const validBuilding = {
@@ -26,7 +29,7 @@ const validBuilding = {
   organizationId: 'org-123',
   postalCode: 'H3A 1A1',
   parkingSpaces: 0, // Zero values allowed
-  storageSpaces: 0
+  storageSpaces: 0,
 };
 
 // Role-based permissions
@@ -46,6 +49,7 @@ searchBuildings(buildings, 'René-Lévesque'); // Special characters
 **Purpose**: Test server-side validation and API contract compliance
 
 **Coverage**:
+
 - ✅ Required field validation (name, organizationId)
 - ✅ String length limits (name: 200, address: 300, city: 100)
 - ✅ Numeric range validation (yearBuilt: 1800-2030, units: 0-10000)
@@ -57,6 +61,7 @@ searchBuildings(buildings, 'René-Lévesque'); // Special characters
 - ✅ Security considerations (injection prevention)
 
 **Validation Rules**:
+
 ```javascript
 const buildingValidationRules = {
   name: { required: true, minLength: 1, maxLength: 200 },
@@ -66,7 +71,7 @@ const buildingValidationRules = {
   totalUnits: { type: 'integer', min: 0, max: 10000 },
   totalFloors: { type: 'integer', min: 1, max: 200 },
   parkingSpaces: { type: 'integer', min: 0, max: 50000 },
-  storageSpaces: { type: 'integer', min: 0, max: 50000 }
+  storageSpaces: { type: 'integer', min: 0, max: 50000 },
 };
 ```
 
@@ -75,6 +80,7 @@ const buildingValidationRules = {
 **Purpose**: Test complete user workflows from UI interaction to API response
 
 **Coverage**:
+
 - ✅ Complete building creation workflow (Admin)
 - ✅ Building edit workflow with zero value handling
 - ✅ Building deletion workflow with confirmation
@@ -85,6 +91,7 @@ const buildingValidationRules = {
 - ✅ Accessibility and keyboard navigation
 
 **User Workflows**:
+
 ```javascript
 // Admin workflow: Create → Edit → Delete
 1. Login as admin
@@ -107,6 +114,7 @@ const buildingValidationRules = {
 **Purpose**: Standalone test runner for core business logic
 
 **Features**:
+
 - ✅ No external dependencies
 - ✅ Real-time test execution
 - ✅ Clear pass/fail indicators
@@ -115,6 +123,7 @@ const buildingValidationRules = {
 - ✅ Data integrity checks
 
 **Test Results**:
+
 ```
 🚀 Starting Buildings Management Tests...
 
@@ -138,16 +147,17 @@ const buildingValidationRules = {
 ## Quebec-Specific Features Testing
 
 ### Postal Code Validation
+
 ```javascript
 // Valid Quebec postal codes
-['H3A 1A1', 'G1R 2B5', 'J5A 1B2'] // ✅ Pass
-['12345', 'ABC123', 'H3A1A'] // ❌ Fail
+['H3A 1A1', 'G1R 2B5', 'J5A 1B2'][('12345', 'ABC123', 'H3A1A')]; // ✅ Pass // ❌ Fail
 
 // Pattern: Letter-Digit-Letter Space Digit-Letter-Digit
 const quebecPattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
 ```
 
 ### French Character Support
+
 ```javascript
 // Buildings with French names and addresses
 {
@@ -161,14 +171,16 @@ const quebecPattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
 ## Role-Based Access Control Testing
 
 ### Permission Matrix
-| Role | View | Create | Edit | Delete |
-|------|------|--------|------|--------|
-| Admin | ✅ | ✅ | ✅ | ✅ |
-| Manager | ✅ | ❌ | ✅ | ❌ |
-| Tenant | ❌ | ❌ | ❌ | ❌ |
-| Resident | ❌ | ❌ | ❌ | ❌ |
+
+| Role     | View | Create | Edit | Delete |
+| -------- | ---- | ------ | ---- | ------ |
+| Admin    | ✅   | ✅     | ✅   | ✅     |
+| Manager  | ✅   | ❌     | ✅   | ❌     |
+| Tenant   | ❌   | ❌     | ❌   | ❌     |
+| Resident | ❌   | ❌     | ❌   | ❌     |
 
 ### Special Access Rules
+
 - **Koveo Organization**: Global access to ALL buildings from ALL organizations
 - **Regular Organizations**: Access limited to buildings within same organization
 - **Resident/Tenant**: Redirected to access denied page
@@ -176,6 +188,7 @@ const quebecPattern = /^[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d$/;
 ## Zero Value Handling
 
 ### Critical Fix Implemented
+
 ```javascript
 // Before (incorrect): field.value || ''
 // After (correct): field.value ?? ''
@@ -191,6 +204,7 @@ onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.tar
 ## Search Functionality Testing
 
 ### Search Capabilities
+
 - **By Name**: "Maple" → finds "Maple Heights"
 - **By Address**: "Sainte-Catherine" → finds buildings on that street
 - **By City**: "Montreal" → finds buildings in Montreal
@@ -202,16 +216,19 @@ onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.tar
 ## Error Handling and Edge Cases
 
 ### Form Validation Errors
+
 - Missing required fields show specific error messages
 - Invalid data types are caught and reported
 - Malformed input is handled gracefully
 
 ### API Error Handling
+
 - Network failures show user-friendly messages
 - Validation errors are displayed in context
 - Loading states prevent multiple submissions
 
 ### Security Considerations
+
 - Input sanitization prevents injection attacks
 - Role-based access is enforced server-side
 - UUID validation prevents unauthorized access
@@ -219,11 +236,13 @@ onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.tar
 ## Performance Considerations
 
 ### Database Query Optimization
+
 - Indexed searches on name, address, city
 - Organization-based filtering
 - Active building filtering (is_active = true)
 
 ### Frontend Optimization
+
 - Real-time search with debouncing
 - Lazy loading for large building lists
 - Efficient re-rendering with React Query
@@ -231,11 +250,12 @@ onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.tar
 ## Test Execution
 
 ### Running Individual Test Suites
+
 ```bash
 # Unit tests
 npm test tests/unit/buildings-basic.test.tsx
 
-# Integration tests  
+# Integration tests
 npm test tests/integration/buildings-validation.test.ts
 
 # E2E tests
@@ -246,6 +266,7 @@ node test-buildings.js
 ```
 
 ### Coverage Requirements
+
 - **Unit Tests**: 80% code coverage minimum
 - **Integration Tests**: All API endpoints covered
 - **E2E Tests**: Critical user workflows covered
@@ -254,6 +275,7 @@ node test-buildings.js
 ## Maintenance and Updates
 
 ### When to Update Tests
+
 - New building fields added
 - Validation rules changed
 - New user roles introduced
@@ -261,6 +283,7 @@ node test-buildings.js
 - UI components modified
 
 ### Test Quality Metrics
+
 - ✅ All tests pass consistently
 - ✅ Clear test descriptions and assertions
 - ✅ Comprehensive edge case coverage

@@ -2,19 +2,19 @@
 // Note: @testing-library/jest-dom will be imported by individual test files if needed
 
 // Mock implementations for browser APIs
-(global as any).ResizeObserver = function() {
+(global as any).ResizeObserver = function () {
   return {
-    observe: function() {},
-    unobserve: function() {},
-    disconnect: function() {},
+    observe: function () {},
+    unobserve: function () {},
+    disconnect: function () {},
   };
 };
 
-(global as any).IntersectionObserver = function() {
+(global as any).IntersectionObserver = function () {
   return {
-    observe: function() {},
-    unobserve: function() {},
-    disconnect: function() {},
+    observe: function () {},
+    unobserve: function () {},
+    disconnect: function () {},
   };
 };
 
@@ -28,28 +28,32 @@ if (typeof TextEncoder === 'undefined') {
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: function(query: string) {
+  value: function (query: string) {
     return {
       matches: false,
       media: query,
       onchange: null,
-      addListener: function() {}, // deprecated
-      removeListener: function() {}, // deprecated
-      addEventListener: function() {},
-      removeEventListener: function() {},
-      dispatchEvent: function() {},
+      addListener: function () {}, // deprecated
+      removeListener: function () {}, // deprecated
+      addEventListener: function () {},
+      removeEventListener: function () {},
+      dispatchEvent: function () {},
     };
   },
 });
 
 // Mock sessionStorage and localStorage
 const createMockStorage = () => ({
-  getItem: function() { return null; },
-  setItem: function() {},
-  removeItem: function() {},
-  clear: function() {},
+  getItem: function () {
+    return null;
+  },
+  setItem: function () {},
+  removeItem: function () {},
+  clear: function () {},
   length: 0,
-  key: function() { return null; },
+  key: function () {
+    return null;
+  },
 });
 
 Object.defineProperty(window, 'sessionStorage', {

@@ -105,7 +105,8 @@ export function UserCalendar() {
         view: 'month',
       });
 
-      const data = await apiRequest<UserCalendarData>(`/api/common-spaces/user-calendar?${params}`);
+      const response = await apiRequest('GET', `/api/common-spaces/user-calendar?${params}`);
+      const data: UserCalendarData = await response.json();
       const icsContent = generateICSContent(data.calendar.bookings);
 
       const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });

@@ -381,7 +381,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         profileImage: insertUser.profileImage,
         language: insertUser.language || 'fr',
         role: insertUser.role,
-        isActive: insertUser.isActive ?? true,
+        isActive: true, // Default value for new users
       };
 
       console.log('🔍 Creating user with data:', {
@@ -441,11 +441,18 @@ export class OptimizedDatabaseStorage implements IStorage {
       `user_orgs:${userId}`,
       'users',
       async () => {
-        const user = await this.getUser(userId);
-        if (!user || !user.organizationId) {
-          return [];
-        }
-        return [{ organizationId: user.organizationId }];
+        const result = await db
+          .select({
+            organizationId: schema.userOrganizations.organizationId,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, userId),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+        return result;
       }
     );
   }
@@ -1660,24 +1667,21 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   // Old building document methods removed - using unified documents table
 
-
   // Unified Document operations
-  async getDocuments(
-    filters?: {
-      buildingId?: string;
-      residenceId?: string;
-      documentType?: string;
-      userId?: string;
-      userRole?: string;
-    }
-  ): Promise<Document[]> {
+  async getDocuments(filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]> {
     return this.withOptimizations(
       'getDocuments',
       `documents:${JSON.stringify(filters)}`,
       'documents',
       async () => {
         let query = db.select().from(schema.documents);
-        
+
         const conditions = [];
         if (filters?.buildingId) {
           conditions.push(eq(schema.documents.buildingId, filters.buildingId));
@@ -1688,100 +1692,85 @@ export class OptimizedDatabaseStorage implements IStorage {
         if (filters?.documentType) {
           conditions.push(eq(schema.documents.documentType, filters.documentType));
         }
-        
+
         if (conditions.length > 0) {
           query = query.where(and(...conditions));
         }
-        
+
         const result = await query.orderBy(desc(schema.documents.createdAt));
         return result || [];
       }
     );
   }
-  
+
   async getDocument(id: string): Promise<Document | undefined> {
-    return this.withOptimizations(
-      'getDocument',
-      `document:${id}`,
-      'documents',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.documents)
-          .where(eq(schema.documents.id, id))
-          .limit(1);
-        return result[0];
-      }
-    );
+    return this.withOptimizations('getDocument', `document:${id}`, 'documents', async () => {
+      const result = await db
+        .select()
+        .from(schema.documents)
+        .where(eq(schema.documents.id, id))
+        .limit(1);
+      return result[0];
+    });
   }
-  
+
   async createDocument(document: InsertDocument): Promise<Document> {
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
       console.log('📝 Creating document with data:', document);
-      const result = await db
-        .insert(schema.documents)
-        .values(document)
-        .returning();
+      const result = await db.insert(schema.documents).values(document).returning();
       console.log('📝 Database insert result:', result[0]);
-      
+
       // Invalidate related caches
       if (document.buildingId) {
         this.cacheInvalidator.invalidateByPattern(`documents:*buildingId*${document.buildingId}*`);
       }
       if (document.residenceId) {
-        this.cacheInvalidator.invalidateByPattern(`documents:*residenceId*${document.residenceId}*`);
+        this.cacheInvalidator.invalidateByPattern(
+          `documents:*residenceId*${document.residenceId}*`
+        );
       }
-      
+
       return result[0];
     });
   }
-  
-  async updateDocument(
-    id: string,
-    updates: Partial<Document>
-  ): Promise<Document | undefined> {
+
+  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
     return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
       const result = await db
         .update(schema.documents)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(schema.documents.id, id))
         .returning();
-      
+
       if (result[0]) {
         // Invalidate caches
         this.cacheInvalidator.invalidate(`document:${id}`);
         this.cacheInvalidator.invalidateByPattern(`documents:*`);
       }
-      
+
       return result[0];
     });
   }
-  
+
   async deleteDocument(id: string): Promise<boolean> {
     return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
       const result = await db
         .delete(schema.documents)
         .where(eq(schema.documents.id, id))
         .returning({ id: schema.documents.id });
-      
+
       if (result.length > 0) {
         // Invalidate caches
         this.cacheInvalidator.invalidate(`document:${id}`);
         this.cacheInvalidator.invalidateByPattern(`documents:*`);
         return true;
       }
-      
+
       return false;
     });
   }
 
-
-
   // Old resident document methods removed - using unified documents table
-
-
-
-
 
   // Legacy Document operations (kept for migration purposes)
 
@@ -1806,99 +1795,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         return await db.select().from(schema.documents).orderBy(desc(schema.documents.uploadDate));
       }
     );
-  }
-
-  /**
-   * Gets specific legacy document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param residenceIds
-   */
-  async getDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    residenceIds?: string[]
-  ): Promise<Document | undefined> {
-    return this.withOptimizations(
-      'getDocument',
-      `legacy_doc:${id}:${userId}`,
-      'documents',
-      async () => {
-        const result = await db.select().from(schema.documents).where(eq(schema.documents.id, id));
-        return result[0];
-      }
-    );
-  }
-
-  /**
-   * Creates legacy document.
-   * @param document
-   */
-  async createDocument(document: InsertDocument): Promise<Document> {
-    return dbPerformanceMonitor.trackQuery('createDocument', async () => {
-      const result = await db.insert(schema.documents).values(document).returning();
-
-      queryCache.invalidate('documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Updates legacy document with permission check.
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async updateDocument(
-    id: string,
-    updates: Partial<InsertDocument>,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<Document | undefined> {
-    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
-      const result = await db
-        .update(schema.documents)
-        .set(updates)
-        .where(eq(schema.documents.id, id))
-        .returning();
-
-      queryCache.invalidate('documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Deletes legacy document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async deleteDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<boolean> {
-    return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
-      const result = await db
-        .delete(schema.documents)
-        .where(eq(schema.documents.id, id))
-        .returning();
-
-      queryCache.invalidate('documents');
-
-      return result.length > 0;
-    });
   }
 
   // Password reset operations

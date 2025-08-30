@@ -24,37 +24,19 @@
   "workflows": {
     "preCommitValidation": {
       "enabled": true,
-      "steps": [
-        "typescript-check",
-        "linting",
-        "organization-tests"
-      ]
+      "steps": ["typescript-check", "linting", "organization-tests"]
     },
     "securityAudit": {
       "enabled": true,
-      "steps": [
-        "npm-audit",
-        "dependency-check",
-        "secret-scan"
-      ]
+      "steps": ["npm-audit", "dependency-check", "secret-scan"]
     },
     "qualityAssurance": {
       "enabled": true,
-      "steps": [
-        "lint-check",
-        "format-check",
-        "test-coverage",
-        "complexity-analysis"
-      ]
+      "steps": ["lint-check", "format-check", "test-coverage", "complexity-analysis"]
     },
     "deploymentPipeline": {
       "enabled": true,
-      "steps": [
-        "build-verification",
-        "test-suite",
-        "security-scan",
-        "performance-check"
-      ]
+      "steps": ["build-verification", "test-suite", "security-scan", "performance-check"]
     }
   },
   "integrations": {

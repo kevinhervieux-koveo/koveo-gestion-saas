@@ -1406,7 +1406,7 @@ const translations: Record<Language, Translations> = {
     residenceDocuments: 'Documents de résidence',
     manageDocumentsResidence: 'Gérer les documents de cette résidence',
     documentsCount: 'Documents ({count})',
-    noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    noDocumentsUploadedYet: "Aucun document n'a encore été téléchargé pour cette résidence.",
     myDemands: 'Mes demandes',
     showingResults: 'Affichage de {start} à {end} sur {total} demandes',
     manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',

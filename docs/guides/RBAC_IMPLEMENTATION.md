@@ -7,26 +7,31 @@ I have successfully implemented a comprehensive Role-Based Access Control (RBAC)
 ## Access Rules Implemented
 
 ### 1. Demo Organization (Public Access)
+
 - **Rule**: Everybody can see the Demo organization
 - **Implementation**: Demo organization is always included in accessible organizations for all users
 - **Status**: ✅ Implemented
 
 ### 2. Demo Organization Users (Limited Access)
+
 - **Rule**: Users in the Demo organization can't see anybody else
 - **Implementation**: Demo users can only access Demo organization, no other organizations
 - **Status**: ✅ Implemented
 
 ### 3. Koveo Organization (Full Access)
+
 - **Rule**: Users in Koveo organization can see everything and everybody
 - **Implementation**: Koveo users have `can_access_all_organizations = true`
 - **Status**: ✅ Implemented
 
 ### 4. Normal Organizations (Limited Access)
+
 - **Rule**: Users in normal organizations (like "563 montée des pionniers") can only see what's in their organization and the Demo
 - **Implementation**: Normal org users can access their own organization + Demo (public)
 - **Status**: ✅ Implemented
 
 ### 5. Residents/Tenants (Residence-Level Access)
+
 - **Rule**: Residents and tenants have access to their residences and buildings only
 - **Implementation**: Residence-level access control based on user_residences table
 - **Status**: ✅ Implemented
@@ -65,8 +70,8 @@ organizations (id, name, type, is_active)
 
 -- User-Organization relationships with access levels
 user_organizations (
-  user_id, 
-  organization_id, 
+  user_id,
+  organization_id,
   can_access_all_organizations, -- Koveo admin flag
   is_active
 )
@@ -82,46 +87,53 @@ user_residences (
 
 ### Access Control Matrix
 
-| User Type | Demo Org | Koveo Org | Normal Orgs | Own Residences | Other Residences |
-|-----------|----------|-----------|-------------|----------------|------------------|
-| Demo Users | ✅ Full | ❌ None | ❌ None | ✅ Own Only | ❌ None |
-| Koveo Admin | ✅ Full | ✅ Full | ✅ Full | ✅ All | ✅ All |
-| Normal Org Admin/Manager | ✅ View | ❌ None | ✅ Own Org | ✅ Org Buildings | ❌ Other Orgs |
-| Residents/Tenants | ✅ View | ❌ None | ✅ Own Org View | ✅ Own Only | ❌ None |
+| User Type                | Demo Org | Koveo Org | Normal Orgs     | Own Residences   | Other Residences |
+| ------------------------ | -------- | --------- | --------------- | ---------------- | ---------------- |
+| Demo Users               | ✅ Full  | ❌ None   | ❌ None         | ✅ Own Only      | ❌ None          |
+| Koveo Admin              | ✅ Full  | ✅ Full   | ✅ Full         | ✅ All           | ✅ All           |
+| Normal Org Admin/Manager | ✅ View  | ❌ None   | ✅ Own Org      | ✅ Org Buildings | ❌ Other Orgs    |
+| Residents/Tenants        | ✅ View  | ❌ None   | ✅ Own Org View | ✅ Own Only      | ❌ None          |
 
 ## API Endpoints with RBAC
 
 ### Organizations
+
 - `GET /api/organizations` - Returns only accessible organizations
 - `GET /api/organizations/:id` - Checks organization access
 - `GET /api/organizations/:id/buildings` - Lists buildings in accessible organization
 
 ### Buildings
+
 - `GET /api/buildings` - Returns only accessible buildings
 - `GET /api/buildings/:id` - Checks building access
 - `GET /api/buildings/:id/residences` - Lists residences in accessible building
 
 ### Residences
+
 - `GET /api/residences` - Returns only accessible residences
 - `GET /api/residences/:id` - Checks residence access
 
 ### User Access Info
+
 - `GET /api/users/me/organizations` - User's accessible organizations
 - `GET /api/users/me/residences` - User's accessible residences
 
 ## Security Features
 
 ### 1. Middleware Protection
+
 - All routes protected with `requireAuth` middleware
 - Organization/building/residence-specific middleware available
 - Dynamic access checking based on user context
 
 ### 2. Database Query Filtering
+
 - Automatic filtering at database level using `inArray()` conditions
 - Prevents data leakage through SQL injection or bypass attempts
 - Efficient queries with proper indexes
 
 ### 3. Role-Based Logic
+
 - Admin/Manager roles: Organization-wide access within permissions
 - Tenant/Resident roles: Residence-specific access only
 - Special handling for Koveo organization (full access)
@@ -130,6 +142,7 @@ user_residences (
 ## Testing Data Created
 
 The system has been tested with:
+
 - **3 Organizations**: Demo (public), Koveo (admin), 563 montée des pionniers (normal)
 - **3 Buildings**: 2 in Demo, 1 in 563 montée des pionniers
 - **15 Residences**: Distributed across buildings
@@ -138,6 +151,7 @@ The system has been tested with:
 ## Usage Examples
 
 ### For Frontend Components
+
 ```typescript
 // Get user's accessible organizations
 const organizations = await fetch('/api/users/me/organizations');
@@ -150,6 +164,7 @@ const residences = await fetch('/api/users/me/residences');
 ```
 
 ### For Backend Routes
+
 ```typescript
 // Use RBAC middleware
 app.get('/api/some-route', requireAuth, requireOrganizationAccess('organizationId'), handler);
@@ -175,8 +190,9 @@ const hasAccess = await canUserAccessOrganization(userId, organizationId);
 ## Status: ✅ COMPLETE
 
 The RBAC system is fully implemented and operational with all requested access rules:
+
 - Demo organization is public ✅
 - Demo users can't see other organizations ✅
-- Koveo users can see everything ✅ 
+- Koveo users can see everything ✅
 - 563 montée des pionniers users can see themselves + Demo ✅
 - Residents/tenants only see their own residences ✅

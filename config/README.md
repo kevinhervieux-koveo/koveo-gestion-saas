@@ -8,7 +8,7 @@ This permissions system provides granular access control for all features and da
 
 - **Admin** (101 permissions): Full system access
 - **Manager** (62 permissions): Property management operations
-- **Owner** (40 permissions): Property owner operations  
+- **Owner** (40 permissions): Property owner operations
 - **Tenant** (13 permissions): Basic resident operations
 
 ## Files
@@ -69,6 +69,7 @@ const userMgmtPerms = PERMISSION_CATEGORIES.USER_MANAGEMENT;
 All permissions follow the pattern: `{action}:{resource}`
 
 ### Actions
+
 - `read` - View/retrieve data
 - `create` - Add new records
 - `update` - Modify existing records
@@ -80,6 +81,7 @@ All permissions follow the pattern: `{action}:{resource}`
 - `access` - Feature access
 
 ### Resources
+
 - `user`, `organization`, `building`, `residence`
 - `bill`, `budget`, `maintenance_request`, `document`
 - `feature`, `actionable_item`, `notification`
@@ -117,13 +119,15 @@ if (validation.success) {
 ## Role Descriptions
 
 ### Admin
+
 - Complete system administration
 - User and organization management
 - Security and backup operations
 - Performance monitoring
 - All development framework features
 
-### Manager  
+### Manager
+
 - Property and building management
 - Financial operations (bills, budgets)
 - Maintenance request coordination
@@ -131,6 +135,7 @@ if (validation.success) {
 - Analytics and reporting
 
 ### Owner
+
 - Property oversight
 - Budget management
 - Maintenance requests
@@ -138,6 +143,7 @@ if (validation.success) {
 - Basic analytics
 
 ### Tenant
+
 - Profile management
 - View personal bills and budgets
 - Create maintenance requests

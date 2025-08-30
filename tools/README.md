@@ -1,14 +1,17 @@
 # AI Agent Tools
 
 ## Overview
+
 This directory contains a comprehensive suite of tools designed to enhance the Replit AI agent's capabilities for development workflow automation, intelligent assistance, and project optimization.
 
 ## Tools Included
 
 ### 1. AI Agent Toolkit (`ai-agent-toolkit.ts`)
+
 **Core functionality for AI agent operations**
 
 Features:
+
 - **Project Health Analysis**: Comprehensive scoring across code quality, documentation, testing, security, and performance
 - **Code Analysis**: TypeScript error detection, lint warnings, test coverage, and maintainability scoring
 - **Quick Health Checks**: Fast status assessments for immediate feedback
@@ -16,6 +19,7 @@ Features:
 - **Export Capabilities**: Full analysis export for reporting and tracking
 
 Key Methods:
+
 ```typescript
 const health = await agentToolkit.getProjectHealth();
 const codeAnalysis = await agentToolkit.analyzeCode();
@@ -24,9 +28,11 @@ const suggestions = agentToolkit.generateAgentSuggestions();
 ```
 
 ### 2. Smart Context Manager (`smart-context-manager.ts`)
+
 **Intelligent workspace context management**
 
 Features:
+
 - **File Context Analysis**: Deep analysis of file relationships, dependencies, and importance
 - **Working Set Management**: Smart tracking of current development focus
 - **Related File Detection**: Automatic discovery of connected files
@@ -34,6 +40,7 @@ Features:
 - **Focus Area Tracking**: Understanding of current development area
 
 Key Methods:
+
 ```typescript
 contextManager.updateWorkingSet(files, 'feature-development');
 const recommendations = contextManager.getSmartRecommendations('testing');
@@ -42,9 +49,11 @@ const summary = contextManager.generateContextSummary();
 ```
 
 ### 3. Intelligent Workflow Assistant (`intelligent-workflow-assistant.ts`)
+
 **Advanced workflow automation and pattern detection**
 
 Features:
+
 - **Pattern Detection**: Automatic detection of development workflow patterns
 - **Workflow Execution**: Automated execution of common development tasks
 - **Project Insights**: AI-powered analysis of project architecture and quality
@@ -52,6 +61,7 @@ Features:
 - **Validation Workflows**: Pre-commit checks, security audits, and quality validation
 
 Key Methods:
+
 ```typescript
 const suggestions = workflowAssistant.detectWorkflowPatterns(files, changes);
 const result = await workflowAssistant.executeWorkflow('pre-commit-validation');
@@ -60,9 +70,11 @@ const recommendations = await workflowAssistant.recommendWorkflows(context);
 ```
 
 ### 4. AI Agent Dashboard (`ai-agent-dashboard.ts`)
+
 **Comprehensive monitoring and visualization**
 
 Features:
+
 - **Real-time Metrics**: Live project health and performance monitoring
 - **Interactive Dashboard**: HTML dashboard with visual metrics and trends
 - **Historical Tracking**: Metrics history and trend analysis
@@ -70,6 +82,7 @@ Features:
 - **System Status**: Resource usage and system health monitoring
 
 Key Methods:
+
 ```typescript
 const metrics = await agentDashboard.collectMetrics();
 const dashboardPath = await agentDashboard.saveDashboard();
@@ -80,6 +93,7 @@ const exportData = await agentDashboard.exportDashboardData();
 ## Command Line Interface
 
 ### CLI Tool (`../scripts/ai-agent-cli.ts`)
+
 A comprehensive command-line interface for all AI agent tools.
 
 #### Available Commands
@@ -116,6 +130,7 @@ npx tsx scripts/ai-agent-cli.ts quick --clean       # Clean up and optimize
 ## Testing
 
 ### Test Suite (`../scripts/test-ai-agent-tools.ts`)
+
 Comprehensive test and demonstration of all tools.
 
 ```bash
@@ -123,6 +138,7 @@ npx tsx scripts/test-ai-agent-tools.ts
 ```
 
 This will run through all major features and display:
+
 - Project health analysis
 - Code quality assessment
 - Context management
@@ -133,6 +149,7 @@ This will run through all major features and display:
 ## Integration Examples
 
 ### 1. Pre-commit Workflow
+
 ```typescript
 import { workflowAssistant } from './tools/intelligent-workflow-assistant';
 
@@ -145,21 +162,22 @@ if (!result.success) {
 ```
 
 ### 2. Development Context Tracking
+
 ```typescript
 import { contextManager } from './tools/smart-context-manager';
 
 // Update context when working on features
-contextManager.updateWorkingSet([
-  'client/src/components/FeatureForm.tsx',
-  'server/routes/features.ts',
-  'shared/schema.ts'
-], 'feature-development');
+contextManager.updateWorkingSet(
+  ['client/src/components/FeatureForm.tsx', 'server/routes/features.ts', 'shared/schema.ts'],
+  'feature-development'
+);
 
 // Get smart suggestions for next steps
 const recommendations = contextManager.getSmartRecommendations('testing');
 ```
 
 ### 3. Continuous Health Monitoring
+
 ```typescript
 import { agentToolkit } from './tools/ai-agent-toolkit';
 
@@ -171,6 +189,7 @@ if (health.status === 'critical') {
 ```
 
 ### 4. Dashboard Integration
+
 ```typescript
 import { agentDashboard } from './tools/ai-agent-dashboard';
 
@@ -182,12 +201,15 @@ console.log(`📊 Dashboard available at: ${dashboardPath}`);
 ## Configuration
 
 ### Environment Variables
+
 - `AI_AGENT_LOG_LEVEL`: Set logging level (debug, info, warn, error)
 - `AI_AGENT_CACHE_DIR`: Custom cache directory (default: `.ai-agent`)
 - `AI_AGENT_DASHBOARD_PORT`: Custom port for dashboard server
 
 ### Workflow Patterns
+
 The workflow assistant includes pre-configured patterns:
+
 - `pre-commit-validation`: TypeScript check, linting, organization tests
 - `dependency-audit`: Security audit, outdated package check, bundle analysis
 - `documentation-sync`: Documentation coverage and API doc updates
@@ -197,19 +219,25 @@ The workflow assistant includes pre-configured patterns:
 ## Best Practices
 
 ### 1. Regular Health Checks
+
 Run health checks regularly to catch issues early:
+
 ```bash
 npx tsx scripts/ai-agent-cli.ts health --quick
 ```
 
 ### 2. Context-Aware Development
+
 Update working context when switching tasks:
+
 ```typescript
 contextManager.updateWorkingSet(newFiles, 'bug-fixing');
 ```
 
 ### 3. Automated Workflows
+
 Integrate workflows into your development process:
+
 ```bash
 # Before committing
 npx tsx scripts/ai-agent-cli.ts workflow --execute pre-commit-validation
@@ -219,7 +247,9 @@ npx tsx scripts/ai-agent-cli.ts workflow --execute dependency-audit
 ```
 
 ### 4. Dashboard Monitoring
+
 Generate dashboards for project reviews:
+
 ```bash
 npx tsx scripts/ai-agent-cli.ts dashboard --save --open
 ```
@@ -234,7 +264,9 @@ npx tsx scripts/ai-agent-cli.ts dashboard --save --open
 4. **Workflow Execution**: Check that required tools (eslint, tsc) are available
 
 ### Debug Mode
+
 Enable debug logging:
+
 ```bash
 AI_AGENT_LOG_LEVEL=debug npx tsx scripts/ai-agent-cli.ts health
 ```
@@ -260,6 +292,7 @@ When adding new tools or features:
 ## Architecture
 
 The tools are designed with:
+
 - **Modularity**: Each tool can be used independently
 - **Singleton Pattern**: Shared instances for consistency
 - **Async/Await**: Modern async handling

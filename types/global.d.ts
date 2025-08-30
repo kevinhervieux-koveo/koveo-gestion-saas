@@ -10,7 +10,7 @@ declare global {
       fetch: unknown;
     }
   }
-  
+
   /**
    * Global window interface extensions.
    */
@@ -74,12 +74,12 @@ declare module 'wouter/memory' {
     reset: () => void;
     _value: string;
   }
-  
+
   /**
    * Hook return value type for wouter memory location.
    */
   type HookReturnValue = [string, (_path: string) => void];
-  
+
   /**
    * Memory location hook for testing.
    * @param _options - Configuration options for memory location.

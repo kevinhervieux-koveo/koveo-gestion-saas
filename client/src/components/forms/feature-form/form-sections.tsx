@@ -45,7 +45,7 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
             id='featureName'
             placeholder='What is this feature called?'
             value={formData.featureName}
-            onChange={(e) => onUpdateFormData('featureName', e.target._value)}
+            onChange={(e) => onUpdateFormData('featureName', e.target.value)}
             required
           />
         </div>
@@ -88,7 +88,7 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
           id='featureDescription'
           placeholder="Describe what this feature does and why it's needed"
           value={formData.featureDescription}
-          onChange={(e) => onUpdateFormData('featureDescription', e.target._value)}
+          onChange={(e) => onUpdateFormData('featureDescription', e.target.value)}
           rows={3}
           required
         />
@@ -135,7 +135,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
             id='businessObjective'
             placeholder='What business problem does this solve? What value does it provide?'
             value={formData.businessObjective}
-            onChange={(e) => onUpdateFormData('businessObjective', e.target._value)}
+            onChange={(e) => onUpdateFormData('businessObjective', e.target.value)}
           />
         </div>
 
@@ -145,7 +145,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
             id='targetUsers'
             placeholder='Who will use this feature? (Admins, Managers, Tenants, Residents)'
             value={formData.targetUsers}
-            onChange={(e) => onUpdateFormData('targetUsers', e.target._value)}
+            onChange={(e) => onUpdateFormData('targetUsers', e.target.value)}
           />
         </div>
       </div>
@@ -157,7 +157,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
             id='successMetrics'
             placeholder='How will we measure the success of this feature?'
             value={formData.successMetrics}
-            onChange={(e) => onUpdateFormData('successMetrics', e.target._value)}
+            onChange={(e) => onUpdateFormData('successMetrics', e.target.value)}
           />
         </div>
 
@@ -167,7 +167,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
             id='timeline'
             placeholder='When does this need to be completed?'
             value={formData.timeline}
-            onChange={(e) => onUpdateFormData('timeline', e.target._value)}
+            onChange={(e) => onUpdateFormData('timeline', e.target.value)}
           />
         </div>
       </div>
@@ -237,7 +237,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
             id='dependencies'
             placeholder='What other features, APIs, or systems does this depend on?'
             value={formData.dependencies}
-            onChange={(e) => onUpdateFormData('dependencies', e.target._value)}
+            onChange={(e) => onUpdateFormData('dependencies', e.target.value)}
           />
         </div>
       </div>
@@ -249,7 +249,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
             id='dataRequirements'
             placeholder='What data needs to be stored, modified, or accessed?'
             value={formData.dataRequirements}
-            onChange={(e) => onUpdateFormData('dataRequirements', e.target._value)}
+            onChange={(e) => onUpdateFormData('dataRequirements', e.target.value)}
           />
         </div>
 
@@ -259,7 +259,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
             id='integrationNeeds'
             placeholder='External APIs, services, or third-party integrations needed'
             value={formData.integrationNeeds}
-            onChange={(e) => onUpdateFormData('integrationNeeds', e.target._value)}
+            onChange={(e) => onUpdateFormData('integrationNeeds', e.target.value)}
           />
         </div>
       </div>
@@ -270,7 +270,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
           id='securityConsiderations'
           placeholder='Authentication, authorization, data privacy concerns'
           value={formData.securityConsiderations}
-          onChange={(e) => onUpdateFormData('securityConsiderations', e.target._value)}
+          onChange={(e) => onUpdateFormData('securityConsiderations', e.target.value)}
         />
       </div>
     </div>
@@ -303,7 +303,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
             id='userFlow'
             placeholder='Describe the step-by-step user interaction with this feature'
             value={formData.userFlow}
-            onChange={(e) => onUpdateFormData('userFlow', e.target._value)}
+            onChange={(e) => onUpdateFormData('userFlow', e.target.value)}
           />
         </div>
 
@@ -313,7 +313,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
             id='uiRequirements'
             placeholder='Specific UI components, layouts, or visual requirements'
             value={formData.uiRequirements}
-            onChange={(e) => onUpdateFormData('uiRequirements', e.target._value)}
+            onChange={(e) => onUpdateFormData('uiRequirements', e.target.value)}
           />
         </div>
       </div>
@@ -324,7 +324,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
           id='accessibilityNeeds'
           placeholder='Screen reader support, keyboard navigation, color contrast'
           value={formData.accessibilityNeeds}
-          onChange={(e) => onUpdateFormData('accessibilityNeeds', e.target._value)}
+          onChange={(e) => onUpdateFormData('accessibilityNeeds', e.target.value)}
         />
       </div>
     </div>
@@ -357,7 +357,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
             id='performanceRequirements'
             placeholder='Load times, data processing speed, scalability needs'
             value={formData.performanceRequirements}
-            onChange={(e) => onUpdateFormData('performanceRequirements', e.target._value)}
+            onChange={(e) => onUpdateFormData('performanceRequirements', e.target.value)}
           />
         </div>
 
@@ -367,7 +367,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
             id='testingStrategy'
             placeholder='Unit tests, integration tests, user acceptance criteria'
             value={formData.testingStrategy}
-            onChange={(e) => onUpdateFormData('testingStrategy', e.target._value)}
+            onChange={(e) => onUpdateFormData('testingStrategy', e.target.value)}
           />
         </div>
       </div>
@@ -378,7 +378,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
           id='additionalNotes'
           placeholder='Any other important information, constraints, or context'
           value={formData.additionalNotes}
-          onChange={(e) => onUpdateFormData('additionalNotes', e.target._value)}
+          onChange={(e) => onUpdateFormData('additionalNotes', e.target.value)}
           rows={3}
         />
       </div>

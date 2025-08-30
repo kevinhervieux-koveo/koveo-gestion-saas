@@ -67,7 +67,7 @@ export default function BuildingDocuments() {
           entityName: building?.name,
           entityAddress: building?.address,
           allowCreate: false, // Residents can't create building documents
-          allowEdit: false,   // Residents can't edit building documents
+          allowEdit: false, // Residents can't edit building documents
           allowDelete: false, // Residents can't delete building documents
           showVisibilityToggle: false,
         }}

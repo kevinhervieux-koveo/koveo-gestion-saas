@@ -5,6 +5,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
 ## Test Suite Overview
 
 ### 1. Translation Tests (`website-translation.test.tsx`)
+
 - **Purpose**: Validates bilingual (English/French) support with Quebec Law 25 compliance
 - **Coverage**:
   - Complete French translations for all English keys
@@ -15,6 +16,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Accessibility with proper aria labels
 
 ### 2. Roadmap Features Tests (`roadmap-features.test.tsx`)
+
 - **Purpose**: Ensures completed features are accurately presented on the website
 - **Coverage**:
   - Phase 1 Pillar Automation Engine features
@@ -24,6 +26,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Integration between different features
 
 ### 3. Terminology Validation Tests (`terminology-validation.test.tsx`)
+
 - **Purpose**: Prevents inappropriate terms ("terme à éviter" compliance)
 - **Coverage**:
   - Quebec-specific property management terminology
@@ -34,6 +37,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Context-appropriate business language
 
 ### 4. False Representation Tests (`false-representation.test.tsx`)
+
 - **Purpose**: Ensures accuracy and prevents misleading claims
 - **Coverage**:
   - Feature capability accuracy
@@ -45,6 +49,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Timeline and availability accuracy
 
 ### 5. Button Functionality Tests (`button-functionality.test.tsx`)
+
 - **Purpose**: Validates all interactive buttons work correctly
 - **Coverage**:
   - Navigation buttons (Get Started, Sign In, Dashboard)
@@ -57,6 +62,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Mobile responsiveness
 
 ### 6. Routing Consistency Tests (`routing-consistency.test.tsx`)
+
 - **Purpose**: Ensures navigation and routing work consistently
 - **Coverage**:
   - Public route accessibility
@@ -70,6 +76,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Deep linking support
 
 ### 7. Continuous Improvement Tests (`continuous-improvement.test.tsx`)
+
 - **Purpose**: Validates ongoing quality improvement processes
 - **Coverage**:
   - Quality metrics monitoring evidence
@@ -82,6 +89,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Community and ecosystem development
 
 ### 8. UI Consistency Tests (`ui-consistency.test.tsx`)
+
 - **Purpose**: Ensures visual and design consistency
 - **Coverage**:
   - Color scheme consistency (primary blue: blue-600/blue-700)
@@ -95,6 +103,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
   - Error state handling
 
 ### 9. Platform Trial Forms Tests (`platform-trial-forms.test.tsx`)
+
 - **Purpose**: Tests forms and CTAs for trying the platform
 - **Coverage**:
   - Main call-to-action buttons
@@ -110,16 +119,19 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
 ## Quebec Compliance Requirements
 
 ### Legal Compliance
+
 - **Quebec Law 25**: Data protection and privacy compliance
 - **Property Management Regulations**: Quebec-specific legal requirements
 - **Bilingual Requirements**: French and English language support
 
 ### Terminology Standards
+
 - **Quebec French**: Proper terminology (gestionnaire immobilier, locataire, courriel)
 - **Property Management**: Quebec-specific terms and regulations
 - **Professional Language**: Avoiding marketing hyperbole
 
 ### Technical Standards
+
 - **Accessibility**: WCAG compliance for all users
 - **Performance**: Optimized loading and responsiveness
 - **Security**: Quebec Law 25 data protection standards
@@ -127,6 +139,7 @@ This comprehensive testing suite validates all aspects of the Koveo Gestion Queb
 ## Running the Tests
 
 ### Individual Test Suites
+
 ```bash
 # Run specific test category
 npx jest tests/website/website-translation.test.tsx
@@ -135,6 +148,7 @@ npx jest tests/website/ui-consistency.test.tsx
 ```
 
 ### Complete Website Test Suite
+
 ```bash
 # Run all website tests
 npx jest tests/website/ --maxWorkers=1
@@ -149,18 +163,21 @@ npx jest tests/website/ --watch --maxWorkers=1
 ### Test Categories by Priority
 
 #### Critical Tests (Must Pass)
+
 - Translation validation
 - Quebec Law 25 compliance
 - Button functionality
 - Routing consistency
 
 #### Important Tests (High Priority)
+
 - Roadmap features presentation
 - Terminology validation
 - False representation prevention
 - Platform trial forms
 
 #### Quality Tests (Continuous Improvement)
+
 - UI consistency
 - Continuous improvement processes
 - Performance validation
@@ -169,6 +186,7 @@ npx jest tests/website/ --watch --maxWorkers=1
 ## Test Configuration
 
 The tests use the following configuration:
+
 - **Framework**: Jest with React Testing Library
 - **Timeout**: 10 seconds per test
 - **Retries**: 2 attempts for flaky tests
@@ -178,18 +196,21 @@ The tests use the following configuration:
 ## Quebec-Specific Validation
 
 ### Language Requirements
+
 - English and Quebec French support
 - Terminology compliance (courriel vs email)
 - Accent and diacritics validation
 - Professional language standards
 
 ### Legal Requirements
+
 - Quebec Law 25 compliance messaging
 - Data protection guarantees
 - Privacy policy references
 - Regulatory compliance accuracy
 
 ### Business Requirements
+
 - Property management focus
 - Quebec market understanding
 - Local expertise demonstration
@@ -198,12 +219,14 @@ The tests use the following configuration:
 ## Maintenance and Updates
 
 ### Regular Test Updates
+
 - **Monthly**: Review Quebec terminology compliance
 - **Quarterly**: Update feature presentation tests
 - **Bi-annually**: Comprehensive UI consistency review
 - **As needed**: Legal compliance updates
 
 ### Test Quality Assurance
+
 - **Code Review**: All test changes require review
 - **Documentation**: Keep test documentation updated
 - **Coverage**: Maintain high test coverage
@@ -212,6 +235,7 @@ The tests use the following configuration:
 ## Contributing to Website Tests
 
 ### Adding New Tests
+
 1. Follow existing test patterns and naming conventions
 2. Include Quebec compliance validation where applicable
 3. Add proper documentation and comments
@@ -219,6 +243,7 @@ The tests use the following configuration:
 5. Update this README with new test descriptions
 
 ### Test Quality Standards
+
 - Tests should be deterministic and reliable
 - Mock only external dependencies, test real UI behavior
 - Include both positive and negative test cases
@@ -228,6 +253,7 @@ The tests use the following configuration:
 ## Contact and Support
 
 For questions about website testing:
+
 - Review existing test patterns in the test files
 - Check Quebec compliance requirements in the codebase
 - Consult the property management domain documentation

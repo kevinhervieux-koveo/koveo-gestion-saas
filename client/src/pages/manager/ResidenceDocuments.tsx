@@ -43,9 +43,7 @@ export default function ResidenceDocuments() {
   }
 
   const isManager = user?.role === 'manager' || user?.role === 'admin';
-  const residenceName = residence?.unitNumber 
-    ? `Unit ${residence.unitNumber}` 
-    : 'Residence';
+  const residenceName = residence?.unitNumber ? `Unit ${residence.unitNumber}` : 'Residence';
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

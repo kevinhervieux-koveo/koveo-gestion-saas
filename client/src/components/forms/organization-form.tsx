@@ -128,11 +128,11 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
   const onSubmit = (_data: OrganizationFormData) => {
     // Convert empty strings to undefined for optional fields
     const cleanData: InsertOrganization = {
-      ...data,
-      phone: data.phone || undefined,
-      email: data.email || undefined,
-      website: data.website || undefined,
-      registrationNumber: data.registrationNumber || undefined,
+      ..._data,
+      phone: _data.phone || undefined,
+      email: _data.email || undefined,
+      website: _data.website || undefined,
+      registrationNumber: _data.registrationNumber || undefined,
     };
 
     createOrganizationMutation.mutate(cleanData);

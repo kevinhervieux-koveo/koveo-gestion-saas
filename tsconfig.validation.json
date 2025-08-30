@@ -8,13 +8,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true
   },
-  "include": [
-    "client/src/**/*",
-    "shared/**/*",
-    "server/**/*",
-    "scripts/**/*",
-    "config/**/*"
-  ],
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "scripts/**/*", "config/**/*"],
   "exclude": [
     "node_modules",
     "build",
