@@ -151,8 +151,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
 
   // API queries and mutations
   const queryKey = config.type === 'building' 
-    ? ['/api/documents', { buildingId: config.entityId }]
-    : ['/api/documents', { residenceId: config.entityId }];
+    ? [`/api/documents?buildingId=${config.entityId}`]
+    : [`/api/documents?residenceId=${config.entityId}`];
 
   const { data: entity } = useQuery({
     queryKey: config.type === 'building' ? ['/api/manager/buildings', config.entityId] : ['/api/residences', config.entityId],
@@ -164,8 +164,15 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     enabled: !!config.entityId,
   });
 
+
   // Filter and group documents
   const filteredDocuments = useMemo(() => {
+    // Ensure documents is an array before filtering
+    if (!documents || !Array.isArray(documents)) {
+      console.log('🔍 DocumentManager: Documents is not an array:', documents);
+      return [];
+    }
+    
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
