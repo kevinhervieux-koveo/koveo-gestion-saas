@@ -13,7 +13,7 @@ export default function ResidenceDocuments() {
 
   // Get residenceId from URL (both path param and query param)
   const urlParams = new URLSearchParams(window.location.search);
-  const residenceId = params.residenceId || urlParams.get('residenceId');
+  const residenceId = (params as any).residenceId || urlParams.get('residenceId');
 
   // Get current user
   const { data: user } = useQuery({

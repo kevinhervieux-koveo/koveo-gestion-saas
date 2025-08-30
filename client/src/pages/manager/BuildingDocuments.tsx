@@ -11,7 +11,7 @@ export default function BuildingDocuments() {
 
   // Get buildingId from URL (both path param and query param)
   const urlParams = new URLSearchParams(window.location.search);
-  const buildingId = params.buildingId || urlParams.get('buildingId');
+  const buildingId = (params as any).buildingId || urlParams.get('buildingId');
 
   // Get current user
   const { data: user } = useQuery({

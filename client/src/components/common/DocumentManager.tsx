@@ -341,16 +341,19 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const queryParam =
     config.type === 'building' ? `buildingId=${config.entityId}` : `residenceId=${config.entityId}`;
 
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
+  const { data: documentsResponse, isLoading: documentsLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!config.entityId) {
-        return [];
+        return { documents: [] };
       }
-      return (await apiRequest('GET', `/api/documents?${queryParam}`)) as unknown as Document[];
+      return await apiRequest('GET', `/api/documents?${queryParam}`);
     },
     enabled: !!config.entityId,
   });
+
+  // Extract documents array from response
+  const documents = documentsResponse?.documents || [];
 
   // Calculate available years
   const availableYears = useMemo(() => {
