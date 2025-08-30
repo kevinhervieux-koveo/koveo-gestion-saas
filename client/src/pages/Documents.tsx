@@ -673,8 +673,14 @@ Documents() {
             key={document.id} 
             className='hover:shadow-lg transition-shadow cursor-pointer'
             onClick={() => {
+              console.log('Card clicked for document:', document.title);
+              console.log('Document fileUrl:', document.fileUrl);
               if (document.fileUrl) {
+                console.log('Opening document in new tab');
                 window.open(document.fileUrl, '_blank');
+              } else {
+                console.log('No fileUrl available for this document');
+                alert('This document does not have a file URL available.');
               }
             }}
             data-testid={`document-card-${document.id}`}
