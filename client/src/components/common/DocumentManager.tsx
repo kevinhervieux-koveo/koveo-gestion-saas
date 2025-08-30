@@ -60,9 +60,6 @@ import {
 import TextFileEditor from './TextFileEditor';
 
 // Common document interface
-/**
- *
- */
 interface Document {
   id: string;
   name: string;
@@ -74,36 +71,25 @@ interface Document {
   gcsPath: string;
   fileName?: string;
   fileSize?: number;
-  mimeType?: string;
-  uploadedById: string;
-  createdAt: Date;
-  updatedAt: Date;
   isVisibleToTenants?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Configuration for different document types
-/**
- *
- */
 interface DocumentManagerConfig {
   type: 'building' | 'residence';
-  userRole: 'manager' | 'resident';
   entityId: string;
   entityName?: string;
   entityAddress?: string;
-  allowCreate?: boolean;
-  allowEdit?: boolean;
-  allowDelete?: boolean;
-  showVisibilityToggle?: boolean;
+  userRole: 'manager' | 'resident';
+  allowUpload: boolean;
+  allowEdit: boolean;
+  allowDelete: boolean;
 }
 
-// Form schema factory for unified document upload
-const createDocumentFormSchema = (type: 'building' | 'residence') => {
-  // Get valid document types based on type
-  const validTypes =
-    type === 'building'
-      ? BUILDING_DOCUMENT_CATEGORIES.map((cat) => cat._value)
-      : RESIDENCE_DOCUMENT_CATEGORIES.map((cat) => cat._value);
+const createDocumentSchema = (type: 'building' | 'residence') => {
+  const documentCategories = type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
+  const validTypes = documentCategories.map((cat) => cat._value);
 
   const baseSchema = {
     name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
@@ -125,195 +111,31 @@ const createDocumentFormSchema = (type: 'building' | 'residence') => {
   }
 };
 
-/**
- *
- */
-interface EditDocumentFormProps {
-  document: Document;
-  config: DocumentManagerConfig;
-  onSave: (updatedDocument: Document) => void;
-  onCancel: () => void;
-}
-
-/**
- *
- * @param root0
- * @param root0.document
- * @param root0.config
- * @param root0.onSave
- * @param root0.onCancel
- */
-function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFormProps) {
-  const { toast } = useToast();
-  const documentCategories =
-    config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
-  const schema = createDocumentFormSchema(config.type);
-
-  const editForm = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      name: document.name,
-      description: document.description || '',
-      documentType:
-        documentCategories.find((cat) => cat._value === document.documentType)?._value ||
-        document.documentType ||
-        'other',
-      ...(config.type === 'building'
-        ? { buildingId: document.buildingId }
-        : { residenceId: document.residenceId }),
-      isVisibleToTenants: document.isVisibleToTenants ?? false,
-    },
-  });
-
-  const handleEditSave = async (data: any) => {
-    try {
-      const response = (await apiRequest(
-        'PUT',
-        `/api/documents/${document.id}`,
-        data
-      )) as unknown as Document;
-      onSave(response);
-      toast({
-        title: 'Success',
-        description: 'Document updated successfully',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update document',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  return (
-    <Form {...editForm}>
-      <form onSubmit={editForm.handleSubmit(handleEditSave)} className='space-y-4'>
-        <FormField
-          control={editForm.control}
-          name='name'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={editForm.control}
-          name='description'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder='Enter document description' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={editForm.control}
-          name='documentType'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Type</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger
-                    className={editForm.formState.errors.documentType ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder='Select document type' />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {documentCategories.map((category) => (
-                    <SelectItem key={category._value} value={category._value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {editForm.formState.errors.documentType && (
-                <p className='text-sm text-red-500'>Please select a valid document type</p>
-              )}
-            </FormItem>
-          )}
-        />
-        {config.showVisibilityToggle && (
-          <FormField
-            control={editForm.control}
-            name='isVisibleToTenants'
-            render={({ field }) => (
-              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                <div className='space-y-0.5'>
-                  <FormLabel className='text-base'>Visible to Tenants</FormLabel>
-                  <div className='text-sm text-muted-foreground'>
-                    Allow tenants to view this document
-                  </div>
-                </div>
-                <FormControl>
-                  <input type='checkbox' checked={field.value} onChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
-        <DialogFooter>
-          <Button type='button' variant='outline' onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type='submit'>Save Changes</Button>
-        </DialogFooter>
-      </form>
-    </Form>
-  );
-}
-
-/**
- *
- */
-interface DocumentManagerProps {
-  config: DocumentManagerConfig;
-}
-
-/**
- *
- * @param root0
- * @param root0.config
- */
-export default function DocumentManager({ config }: DocumentManagerProps) {
+export default function DocumentManager({ config }: { config: DocumentManagerConfig }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
-  // State variables
+  // State management
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [createMode, setCreateMode] = useState<'upload' | 'text'>('upload');
-  const [textContent, setTextContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isTextEditorOpen, setIsTextEditorOpen] = useState(false);
   const [textEditorDocument, setTextEditorDocument] = useState<Document | null>(null);
-  const itemsPerPage = 12;
 
-  // Get document categories and form schema
-  const documentCategories =
-    config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
-  const schema = createDocumentFormSchema(config.type);
+  const itemsPerPage = 12;
+  const documentSchema = createDocumentSchema(config.type);
+  const documentCategories = config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
 
   // Form setup
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(documentSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -325,54 +147,22 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     },
   });
 
-  // Fetch entity data (building or residence)
+  // API queries and mutations
+  const queryKey = config.type === 'building' 
+    ? ['/api/documents', { buildingId: config.entityId }]
+    : ['/api/documents', { residenceId: config.entityId }];
+
   const { data: entity } = useQuery({
-    queryKey: [`/api/${config.type === 'building' ? 'manager/buildings' : 'residences'}`, config.entityId],
-    queryFn: async () => {
-      if (!config.entityId) return null;
-      const endpoint = config.type === 'building' 
-        ? `/api/manager/buildings/${config.entityId}`
-        : `/api/residences/${config.entityId}`;
-      return (await apiRequest('GET', endpoint)) as any;
-    },
+    queryKey: config.type === 'building' ? ['/api/manager/buildings', config.entityId] : ['/api/residences', config.entityId],
     enabled: !!config.entityId,
   });
 
-  // Fetch documents
-  const queryKey =
-    config.type === 'building'
-      ? ['/api/documents', 'building', config.entityId]
-      : ['/api/documents', 'residence', config.entityId];
-
-  const queryParam =
-    config.type === 'building' ? `buildingId=${config.entityId}` : `residenceId=${config.entityId}`;
-
-  const {
-    data: documentsResponse,
-    isLoading: documentsLoading,
-    error: documentsError,
-  } = useQuery({
-    queryKey: [`/api/documents?${queryParam}`],
+  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+    queryKey,
     enabled: !!config.entityId,
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Always refetch to ensure we get the latest data
   });
 
-  // Extract documents array from response
-  const documents = documentsResponse?.documents || [];
-
-  // Calculate available years
-  const availableYears = useMemo(() => {
-    if (!Array.isArray(documents)) {
-      return [];
-    }
-    const years = documents
-      .map((doc: Document) => new Date(doc.createdAt).getFullYear().toString())
-      .filter(Boolean);
-    return [...new Set(years)].sort((a, b) => b.localeCompare(a));
-  }, [documents]);
-
-  // Filter documents
+  // Filter and group documents
   const filteredDocuments = useMemo(() => {
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -384,7 +174,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     return filtered;
   }, [documents, searchTerm, selectedCategory, selectedYear]);
 
-  // Group documents by category
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, Document[]> = {};
     documentCategories.forEach((category) => {
@@ -395,25 +184,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     return grouped;
   }, [filteredDocuments, documentCategories]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage;
-  const endItem = Math.min(startItem + itemsPerPage, filteredDocuments.length);
-  const paginatedDocuments = filteredDocuments.slice(startItem, endItem);
-
-  // Mutations
-  const createDocumentMutation = useMutation({
+  // Upload mutation
+  const uploadMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Check if file is selected or text content is provided
       if (!selectedFile) {
-        if (createMode === 'text') {
-          throw new Error('Text content is required');
-        } else {
-          throw new Error('Please select a file to upload');
-        }
+        throw new Error('No file selected');
       }
 
-      // Create FormData object
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('name', data.name);
@@ -428,33 +205,26 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
         formData.append('buildingId', data.buildingId);
       }
 
-      // Send POST request to the upload endpoint
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
-        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+        throw new Error('Internal server error');
       }
 
-      return await response.json();
+      return response.json();
     },
     onSuccess: () => {
-      // Invalidate all document queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      queryClient.invalidateQueries({ queryKey });
-      setIsCreateDialogOpen(false);
-      setSelectedFile(null);
-      setCreateMode('upload');
-      setTextContent('');
-      form.reset();
       toast({
         title: 'Success',
-        description: 'Document uploaded successfully!',
+        description: 'Document uploaded successfully',
       });
+      queryClient.invalidateQueries({ queryKey });
+      setIsUploadDialogOpen(false);
+      form.reset();
+      setSelectedFile(null);
     },
     onError: (error: any) => {
       toast({
@@ -465,16 +235,19 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     },
   });
 
-  const deleteDocumentMutation = useMutation({
-    mutationFn: (documentId: string) => apiRequest('DELETE', `/api/documents/${documentId}`),
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (documentId: string) => {
+      return apiRequest(`/api/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+    },
     onSuccess: () => {
-      // Invalidate all document queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      queryClient.invalidateQueries({ queryKey });
       toast({
         title: 'Success',
         description: 'Document deleted successfully',
       });
+      queryClient.invalidateQueries({ queryKey });
     },
     onError: (error: any) => {
       toast({
@@ -487,66 +260,24 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Event handlers
   const handleCreateDocument = async (data: any) => {
-    if (createMode === 'text') {
-      // Create a text file from content
-      if (!textContent.trim()) {
-        toast({
-          title: 'Error',
-          description: 'Please enter some text content',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Create text file blob
-      const blob = new Blob([textContent], { type: 'text/plain' });
-      const fileName = `${data.name}.txt`;
-      const textFile = new File([blob], fileName, { type: 'text/plain' });
-      setSelectedFile(textFile);
-
-      // Use the existing upload mutation
-      createDocumentMutation.mutate(data);
-    } else {
-      // Regular file upload or document creation
-      createDocumentMutation.mutate(data);
-    }
+    await uploadMutation.mutateAsync(data);
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const handleDeleteDocument = (document: Document) => {
+  const handleDeleteDocument = async (document: Document) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
-      deleteDocumentMutation.mutate(document.id);
+      await deleteMutation.mutateAsync(document.id);
     }
-  };
-
-  const isTextFile = (document: Document) => {
-    if (document.mimeType) {
-      return document.mimeType.startsWith('text/') || document.mimeType === 'application/json';
-    }
-    if (document.fileName) {
-      const ext = document.fileName.toLowerCase().split('.').pop();
-      return ['txt', 'text', 'json', 'md', 'csv', 'log'].includes(ext || '');
-    }
-    return false;
   };
 
   const handleViewDocument = (document: Document) => {
-    // Set the selected document and open the view dialog
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
-    setIsEditMode(false);
   };
 
   const handleDownloadDocument = (document: Document) => {
     if (document.gcsPath) {
       const link = window.document.createElement('a');
-      link.href = getDisplayableFileUrl(document.gcsPath);
+      link.href = `/api/documents/${document.id}/file?download=true`;
       link.download = document.fileName || document.name;
       window.document.body.appendChild(link);
       link.click();
@@ -559,9 +290,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) {
-      return 'Unknown size';
-    }
+    if (!bytes) return 'Unknown size';
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
@@ -589,7 +318,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     );
   }
 
-  // Check if the entity exists (residence/building was found)
   const entityNotFound = config.entityId && !entity && !documentsLoading;
 
   if (entityNotFound) {
@@ -656,14 +384,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   placeholder='Search documents...'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-9'
-                  data-testid='search-documents'
+                  className='pl-10'
+                  data-testid='input-search'
                 />
               </div>
-
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className='w-full sm:w-48' data-testid='filter-category'>
-                  <SelectValue placeholder='Filter by category' />
+                <SelectTrigger className='w-full sm:w-48' data-testid='select-category'>
+                  <SelectValue placeholder='All Categories' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='all'>All Categories</SelectItem>
@@ -674,43 +401,28 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className='w-full sm:w-32' data-testid='filter-year'>
-                  <SelectValue placeholder='Year' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Years</SelectItem>
-                  {availableYears.map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {config.allowCreate && (
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            {/* Upload Button */}
+            {config.allowUpload && (
+              <div className='flex justify-between items-center'>
+                <div></div>
+                <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className='w-full sm:w-auto' data-testid='button-add-document'>
-                      <Plus className='h-4 w-4 mr-2' />
-                      Add Document
+                    <Button data-testid='button-upload'>
+                      <Plus className='w-4 h-4 mr-2' />
+                      Upload Document
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className='max-w-2xl'>
+                  <DialogContent className='max-w-md'>
                     <DialogHeader>
                       <DialogTitle>Create New Document</DialogTitle>
                       <DialogDescription>
-                        Add a new document to this {config.type}. You can attach a file or create a
-                        document entry only.
+                        Add a new document to this {config.type}. You can attach a file or create a document entry only.
                       </DialogDescription>
                     </DialogHeader>
-
                     <Form {...form}>
-                      <form
-                        onSubmit={form.handleSubmit(handleCreateDocument)}
-                        className='space-y-4'
-                      >
+                      <form onSubmit={form.handleSubmit(handleCreateDocument)} className='space-y-4'>
                         <FormField
                           control={form.control}
                           name='name'
@@ -718,11 +430,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                             <FormItem>
                               <FormLabel>Document Name</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder='Enter document name'
-                                  {...field}
-                                  data-testid='input-document-name'
-                                />
+                                <Input {...field} data-testid='input-document-name' />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -736,11 +444,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                             <FormItem>
                               <FormLabel>Description (Optional)</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder='Enter document description'
-                                  {...field}
-                                  data-testid='input-document-description'
-                                />
+                                <Input {...field} data-testid='input-description' />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -756,7 +460,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid='select-document-type'>
-                                    <SelectValue placeholder='Select document category' />
+                                    <SelectValue placeholder='Select category' />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -772,384 +476,193 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           )}
                         />
 
-                        {/* Creation Mode Selection */}
-                        <div className='space-y-3'>
-                          <Label>Document Creation Method</Label>
-                          <div className='flex gap-4'>
-                            <label className='flex items-center space-x-2 cursor-pointer'>
-                              <input
-                                type='radio'
-                                value='upload'
-                                checked={createMode === 'upload'}
-                                onChange={(e) => setCreateMode(e.target.value as 'upload' | 'text')}
-                                data-testid='radio-upload-mode'
-                              />
-                              <span>Upload File</span>
-                            </label>
-                            <label className='flex items-center space-x-2 cursor-pointer'>
-                              <input
-                                type='radio'
-                                value='text'
-                                checked={createMode === 'text'}
-                                onChange={(e) => setCreateMode(e.target.value as 'upload' | 'text')}
-                                data-testid='radio-text-mode'
-                              />
-                              <span>Create Text File</span>
-                            </label>
-                          </div>
+                        <div>
+                          <Label htmlFor='file-upload'>Select File to Upload</Label>
+                          <Input
+                            id='file-upload'
+                            type='file'
+                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            className='mt-1'
+                            data-testid='input-file'
+                          />
+                          {selectedFile && (
+                            <p className='text-sm text-gray-500 mt-1'>
+                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                            </p>
+                          )}
                         </div>
 
-                        {/* File Upload Field */}
-                        {createMode === 'upload' && (
-                          <div className='space-y-2'>
-                            <Label htmlFor='file-upload'>Select File to Upload</Label>
-                            <Input
-                              id='file-upload'
-                              type='file'
-                              onChange={handleFileChange}
-                              accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff'
-                              data-testid='input-file-upload'
-                            />
-                            {selectedFile && (
-                              <div className='text-sm text-gray-600 mt-1'>
-                                Selected: {selectedFile.name} (
-                                {Math.round(selectedFile.size / 1024)} KB)
+                        <FormField
+                          control={form.control}
+                          name='isVisibleToTenants'
+                          render={({ field }) => (
+                            <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
+                              <FormControl>
+                                <input
+                                  type='checkbox'
+                                  checked={field.value}
+                                  onChange={(e) => field.onChange(e.target.checked)}
+                                  data-testid='checkbox-visible-tenants'
+                                />
+                              </FormControl>
+                              <div className='space-y-1 leading-none'>
+                                <FormLabel>Visible to Tenants</FormLabel>
+                                <p className='text-sm text-muted-foreground'>
+                                  Allow tenants to view this document
+                                </p>
                               </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Text Content Field */}
-                        {createMode === 'text' && (
-                          <div className='space-y-2'>
-                            <Label htmlFor='text-content'>Text Content</Label>
-                            <textarea
-                              id='text-content'
-                              value={textContent}
-                              onChange={(e) => setTextContent(e.target.value)}
-                              placeholder='Enter your text content here...'
-                              className='w-full min-h-32 p-3 border border-gray-300 rounded-md font-mono text-sm'
-                              data-testid='textarea-text-content'
-                            />
-                          </div>
-                        )}
-
-                        {config.showVisibilityToggle && (
-                          <FormField
-                            control={form.control}
-                            name='isVisibleToTenants'
-                            render={({ field }) => (
-                              <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                                <div className='space-y-0.5'>
-                                  <FormLabel className='text-base'>Visible to Tenants</FormLabel>
-                                  <div className='text-sm text-muted-foreground'>
-                                    Allow tenants to view this document
-                                  </div>
-                                </div>
-                                <FormControl>
-                                  <input
-                                    type='checkbox'
-                                    checked={field.value}
-                                    onChange={field.onChange}
-                                    data-testid='toggle-tenant-visibility'
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        )}
+                            </FormItem>
+                          )}
+                        />
 
                         <DialogFooter>
                           <Button
                             type='button'
                             variant='outline'
-                            onClick={() => {
-                              setIsCreateDialogOpen(false);
-                              setSelectedFile(null);
-                              setCreateMode('upload');
-                              setTextContent('');
-                              form.reset();
-                            }}
-                            disabled={createDocumentMutation.isPending}
-                            data-testid='button-cancel-document'
+                            onClick={() => setIsUploadDialogOpen(false)}
                           >
                             Cancel
                           </Button>
-                          <Button
-                            type='submit'
-                            disabled={createDocumentMutation.isPending}
-                            data-testid='button-create-document'
-                          >
-                            {createDocumentMutation.isPending
-                              ? 'Creating...'
-                              : createMode === 'text'
-                                ? 'Create Text File'
-                                : 'Upload Document'}
+                          <Button type='submit' disabled={uploadMutation.isPending} data-testid='button-create'>
+                            {uploadMutation.isPending ? 'Uploading...' : 'Create'}
                           </Button>
                         </DialogFooter>
                       </form>
                     </Form>
                   </DialogContent>
                 </Dialog>
-              )}
-            </div>
-
-            {/* Summary */}
-            {config.userRole === 'resident' && (
-              <div className='text-sm text-gray-600'>
-                Showing {startItem + 1}-{endItem} of {filteredDocuments.length} documents
-                {selectedCategory !== 'all' &&
-                  ` in ${getCategoryLabel(documentCategories, selectedCategory)}`}
-                {selectedYear !== 'all' && ` from ${selectedYear}`}
               </div>
             )}
           </div>
 
-          {/* Documents Display */}
+          {/* Documents Display - Always grouped by category */}
           {documentsLoading ? (
             <div className='text-center py-8'>Loading documents...</div>
+          ) : filteredDocuments.length === 0 ? (
+            <Card>
+              <CardContent className='p-8 text-center'>
+                <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Documents Found</h3>
+                <p className='text-gray-500'>
+                  {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all'
+                    ? 'No documents match your current filters.'
+                    : `No documents are available for this ${config.type}.`}
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            <>
-              {filteredDocuments.length === 0 ? (
-                <Card>
-                  <CardContent className='p-8 text-center'>
-                    <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                    <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Documents Found</h3>
-                    <p className='text-gray-500'>
-                      {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all'
-                        ? 'No documents match your current filters.'
-                        : `No documents are available for this ${config.type}.`}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className='space-y-6'>
-                  {/* Category View or Paginated View */}
-                  {config.userRole === 'manager' || selectedCategory !== 'all' ? (
-                    documentCategories.map((category) => {
-                      const categoryDocuments = documentsByCategory[category._value] || [];
-                      if (categoryDocuments.length === 0) {
-                        return null;
-                      }
+            <div className='space-y-6'>
+              {/* Category View - Always show documents grouped by category */}
+              {documentCategories.map((category) => {
+                const categoryDocuments = documentsByCategory[category._value] || [];
+                if (categoryDocuments.length === 0) {
+                  return null;
+                }
 
-                      return (
-                        <Card key={category._value} data-testid={`category-${category._value}`}>
-                          <CardHeader>
-                            <CardTitle className='flex items-center gap-2'>
-                              <FileText className='h-5 w-5' />
-                              {category.label}
-                              <Badge variant='secondary'>{categoryDocuments.length}</Badge>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                              {categoryDocuments.map((document) => (
-                                <Card
-                                  key={document.id}
-                                  className='cursor-pointer hover:shadow-md transition-shadow'
-                                  data-testid={`document-card-${document.id}`}
-                                  onClick={() => handleViewDocument(document)}
+                return (
+                  <Card key={category._value} data-testid={`category-${category._value}`}>
+                    <CardHeader>
+                      <CardTitle className='flex items-center gap-2'>
+                        <FileText className='h-5 w-5' />
+                        {category.label}
+                        <Badge variant='secondary'>{categoryDocuments.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        {categoryDocuments.map((document) => (
+                          <Card
+                            key={document.id}
+                            className='cursor-pointer hover:shadow-md transition-shadow'
+                            data-testid={`document-card-${document.id}`}
+                            onClick={() => handleViewDocument(document)}
+                          >
+                            <CardContent className='p-4'>
+                              <div className='flex items-start justify-between mb-2'>
+                                <h4
+                                  className='font-medium text-sm truncate flex-1 mr-2'
+                                  data-testid={`document-name-${document.id}`}
                                 >
-                                  <CardContent className='p-4'>
-                                    <div className='flex items-start justify-between mb-2'>
-                                      <h4
-                                        className='font-medium text-sm truncate flex-1 mr-2'
-                                        data-testid={`document-name-${document.id}`}
+                                  {document.name}
+                                </h4>
+                                <div className='flex gap-1'>
+                                  {document.gcsPath && (
+                                    <>
+                                      <Button
+                                        size='sm'
+                                        variant='ghost'
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewDocument(document);
+                                        }}
+                                        data-testid={`button-view-${document.id}`}
                                       >
-                                        {document.name}
-                                      </h4>
-                                      <div className='flex gap-1'>
-                                        {document.gcsPath && (
-                                          <>
-                                            <Button
-                                              size='sm'
-                                              variant='ghost'
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleViewDocument(document);
-                                              }}
-                                              data-testid={`button-view-${document.id}`}
-                                            >
-                                              <FileText className='h-3 w-3' />
-                                            </Button>
-                                            <Button
-                                              size='sm'
-                                              variant='ghost'
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDownloadDocument(document);
-                                              }}
-                                              data-testid={`button-download-${document.id}`}
-                                            >
-                                              <Download className='h-3 w-3' />
-                                            </Button>
-                                          </>
-                                        )}
-                                        {config.allowEdit && (
-                                          <Button
-                                            size='sm'
-                                            variant='ghost'
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setSelectedDocument(document);
-                                              setIsEditMode(true);
-                                              setIsViewDialogOpen(true);
-                                            }}
-                                            data-testid={`button-edit-${document.id}`}
-                                          >
-                                            <Edit className='h-3 w-3' />
-                                          </Button>
-                                        )}
-                                        {config.allowDelete && (
-                                          <Button
-                                            size='sm'
-                                            variant='ghost'
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteDocument(document);
-                                            }}
-                                            className='text-red-600 hover:text-red-700'
-                                            data-testid={`button-delete-${document.id}`}
-                                          >
-                                            <Trash2 className='h-3 w-3' />
-                                          </Button>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <p
-                                      className='text-xs text-gray-500 mb-2'
-                                      data-testid={`document-date-${document.id}`}
+                                        <FileText className='h-3 w-3' />
+                                      </Button>
+                                      <Button
+                                        size='sm'
+                                        variant='ghost'
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDownloadDocument(document);
+                                        }}
+                                        data-testid={`button-download-${document.id}`}
+                                      >
+                                        <Download className='h-3 w-3' />
+                                      </Button>
+                                    </>
+                                  )}
+                                  {config.allowEdit && (
+                                    <Button
+                                      size='sm'
+                                      variant='ghost'
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedDocument(document);
+                                        setIsEditMode(true);
+                                        setIsViewDialogOpen(true);
+                                      }}
+                                      data-testid={`button-edit-${document.id}`}
                                     >
-                                      {formatDate(document.dateReference)}
-                                    </p>
-                                    {document.gcsPath && (
-                                      <Badge variant='outline' className='text-xs'>
-                                        {formatFileSize(document.fileSize)}
-                                      </Badge>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })
-                  ) : (
-                    /* Simple List View for Residents */
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <FileText className='h-5 w-5' />
-                          All Documents
-                          <Badge variant='secondary'>{filteredDocuments.length}</Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                          {paginatedDocuments.map((document) => (
-                            <Card
-                              key={document.id}
-                              className='cursor-pointer hover:shadow-md transition-shadow'
-                              data-testid={`document-card-${document.id}`}
-                              onClick={() => handleViewDocument(document)}
-                            >
-                              <CardContent className='p-4'>
-                                <div className='flex items-start justify-between mb-2'>
-                                  <h4 className='font-medium text-sm truncate flex-1 mr-2'>
-                                    {document.name}
-                                  </h4>
-                                  <div className='flex gap-1'>
-                                    {document.gcsPath && (
-                                      <>
-                                        <Button
-                                          size='sm'
-                                          variant='ghost'
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleViewDocument(document);
-                                          }}
-                                        >
-                                          <FileText className='h-3 w-3' />
-                                        </Button>
-                                        <Button
-                                          size='sm'
-                                          variant='ghost'
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDownloadDocument(document);
-                                          }}
-                                        >
-                                          <Download className='h-3 w-3' />
-                                        </Button>
-                                      </>
-                                    )}
-                                  </div>
+                                      <Edit className='h-3 w-3' />
+                                    </Button>
+                                  )}
+                                  {config.allowDelete && (
+                                    <Button
+                                      size='sm'
+                                      variant='ghost'
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteDocument(document);
+                                      }}
+                                      className='text-red-600 hover:text-red-700'
+                                      data-testid={`button-delete-${document.id}`}
+                                    >
+                                      <Trash2 className='h-3 w-3' />
+                                    </Button>
+                                  )}
                                 </div>
-                                <p className='text-xs text-gray-500 mb-2'>
-                                  {formatDate(document.dateReference)}
-                                </p>
-                                {document.gcsPath && (
-                                  <Badge variant='outline' className='text-xs'>
-                                    {formatFileSize(document.fileSize)}
-                                  </Badge>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Pagination for residents */}
-                  {config.userRole === 'resident' && totalPages > 1 && (
-                    <div className='flex items-center justify-center gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        data-testid='button-previous-page'
-                      >
-                        <ChevronLeft className='w-4 h-4 mr-1' />
-                        Previous
-                      </Button>
-                      <div className='flex items-center gap-1'>
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                          if (pageNum > totalPages) {
-                            return null;
-                          }
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={pageNum === currentPage ? 'default' : 'outline'}
-                              size='sm'
-                              className='w-8 h-8 p-0'
-                              onClick={() => setCurrentPage(pageNum)}
-                              data-testid={`button-page-${pageNum}`}
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        })}
+                              </div>
+                              <p
+                                className='text-xs text-gray-500 mb-2'
+                                data-testid={`document-date-${document.id}`}
+                              >
+                                {formatDate(document.createdAt)}
+                              </p>
+                              {document.gcsPath && (
+                                <Badge variant='outline' className='text-xs'>
+                                  {formatFileSize(document.fileSize)}
+                                </Badge>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        data-testid='button-next-page'
-                      >
-                        Next
-                        <ChevronRight className='w-4 h-4 ml-1' />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
@@ -1187,11 +700,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                 </div>
                 <div>
                   <strong>Date:</strong>{' '}
-                  {formatDate(
-                    selectedDocument.createdAt instanceof Date
-                      ? selectedDocument.createdAt.toISOString()
-                      : selectedDocument.createdAt
-                  )}
+                  {formatDate(selectedDocument.createdAt)}
                 </div>
                 {selectedDocument.fileSize && (
                   <div>
@@ -1208,17 +717,11 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               <div className='flex gap-2 pt-4'>
                 <Button
                   onClick={() => {
-                    if (isTextFile(selectedDocument)) {
-                      setTextEditorDocument(selectedDocument);
-                      setIsTextEditorOpen(true);
-                      setIsViewDialogOpen(false);
-                    } else if (selectedDocument.gcsPath) {
-                      // For now, use API endpoint for file viewing
+                    if (selectedDocument.gcsPath) {
                       const fileUrl = `/api/documents/${selectedDocument.id}/file`;
                       window.open(fileUrl, '_blank');
                     }
                   }}
-                  variant='outline'
                   disabled={!selectedDocument.gcsPath}
                   data-testid='button-view'
                 >
@@ -1229,7 +732,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   variant='outline'
                   onClick={() => {
                     if (selectedDocument.gcsPath) {
-                      // Create download link using API endpoint
                       const link = window.document.createElement('a');
                       link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
                       link.download = selectedDocument.fileName || selectedDocument.name;
@@ -1273,59 +775,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Edit Document Dialog */}
-      <Dialog
-        open={isViewDialogOpen && isEditMode}
-        onOpenChange={(open) => {
-          setIsViewDialogOpen(open);
-          if (!open) {
-            setIsEditMode(false);
-            setSelectedDocument(null);
-          }
-        }}
-      >
-        <DialogContent className='max-w-2xl'>
-          <DialogHeader>
-            <DialogTitle>Edit Document</DialogTitle>
-            <DialogDescription>Update document information and settings.</DialogDescription>
-          </DialogHeader>
-          {selectedDocument && (
-            <EditDocumentForm
-              document={selectedDocument}
-              config={config}
-              onSave={(updatedDocument) => {
-                setSelectedDocument(updatedDocument);
-                setIsViewDialogOpen(false);
-                setIsEditMode(false);
-                queryClient.invalidateQueries({ queryKey });
-              }}
-              onCancel={() => {
-                setIsViewDialogOpen(false);
-                setIsEditMode(false);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Text File Editor */}
-      {textEditorDocument && (
-        <TextFileEditor
-          document={textEditorDocument}
-          isOpen={isTextEditorOpen}
-          onClose={() => {
-            setIsTextEditorOpen(false);
-            setTextEditorDocument(null);
-          }}
-          onSave={(updatedDocument) => {
-            queryClient.invalidateQueries({ queryKey });
-            setIsTextEditorOpen(false);
-            setTextEditorDocument(null);
-          }}
-          readOnly={!config.allowEdit}
-        />
-      )}
     </div>
   );
 }
