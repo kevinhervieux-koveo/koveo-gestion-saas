@@ -49,6 +49,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { RESIDENCE_DOCUMENT_CATEGORIES, getDisplayableFileUrl } from '@/lib/documents';
 import { useLanguage } from '@/hooks/use-language';
+import TextFileEditor from '@/components/common/TextFileEditor';
 
 const documentFormSchema = z.object({
   name: z.string().min(1, 'Document name is required'),
@@ -86,6 +87,8 @@ export default function ResidenceDocuments() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingDocumentId, setUploadingDocumentId] = useState<string | null>(null);
+  const [isTextEditorOpen, setIsTextEditorOpen] = useState(false);
+  const [textEditorDocument, setTextEditorDocument] = useState<Document | null>(null);
 
   // Get residenceId from URL (both path param and query param)
   const urlParams = new URLSearchParams(window.location.search);
@@ -331,6 +334,29 @@ export default function ResidenceDocuments() {
     }
   };
 
+  const isTextFile = (document: Document) => {
+    if (document.mimeType) {
+      return document.mimeType.startsWith('text/') || document.mimeType === 'application/json';
+    }
+    if (document.fileName) {
+      const ext = document.fileName.toLowerCase().split('.').pop();
+      return ['txt', 'text', 'json', 'md', 'csv', 'log'].includes(ext || '');
+    }
+    return false;
+  };
+
+  const handleViewDocument = (document: Document) => {
+    if (document.fileUrl) {
+      if (isTextFile(document)) {
+        setTextEditorDocument(document);
+        setIsTextEditorOpen(true);
+      } else {
+        const url = getDisplayableFileUrl(document.fileUrl);
+        window.open(url, '_blank');
+      }
+    }
+  };
+
   const handleDownload = (document: Document) => {
     if (document.fileUrl) {
       const url = getDisplayableFileUrl(document.fileUrl);
@@ -539,8 +565,9 @@ export default function ResidenceDocuments() {
                 .map((document) => (
                   <Card
                     key={document.id}
-                    className='hover:shadow-lg transition-shadow'
+                    className='hover:shadow-lg transition-shadow cursor-pointer'
                     data-testid={`card-document-${document.id}`}
+                    onClick={() => handleViewDocument(document)}
                   >
                     <CardHeader>
                       <CardTitle className='flex items-center gap-2 text-sm'>
@@ -564,9 +591,12 @@ export default function ResidenceDocuments() {
                           <Button
                             variant='outline'
                             size='sm'
-                            onClick={() => handleDownload(document)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDocument(document);
+                            }}
                             className='w-full'
-                            data-testid={`button-download-${document.id}`}
+                            data-testid={`button-view-${document.id}`}
                           >
                             <Download className='w-3 h-3 mr-1' />
                             View Document
@@ -577,7 +607,10 @@ export default function ResidenceDocuments() {
                           <Button
                             variant='ghost'
                             size='sm'
-                            onClick={() => handleDeleteDocument(document)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDocument(document);
+                            }}
                             className='w-full text-red-600 hover:text-red-700 hover:bg-red-50'
                             data-testid={`button-delete-${document.id}`}
                           >
@@ -593,6 +626,24 @@ export default function ResidenceDocuments() {
           )}
         </div>
       </div>
+
+      {/* Text File Editor */}
+      {textEditorDocument && (
+        <TextFileEditor
+          document={textEditorDocument}
+          isOpen={isTextEditorOpen}
+          onClose={() => {
+            setIsTextEditorOpen(false);
+            setTextEditorDocument(null);
+          }}
+          onSave={(updatedDocument) => {
+            queryClient.invalidateQueries({ queryKey: ['/api/documents', 'resident', residenceId] });
+            setIsTextEditorOpen(false);
+            setTextEditorDocument(null);
+          }}
+          readOnly={isUserTenant}
+        />
+      )}
     </div>
   );
 }
