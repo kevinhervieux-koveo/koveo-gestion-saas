@@ -1190,32 +1190,32 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               </div>
 
               <div className='flex gap-2 pt-4'>
-                {selectedDocument.fileUrl && (
-                  <>
-                    <Button
-                      onClick={() => {
-                        if (isTextFile(selectedDocument)) {
-                          setTextEditorDocument(selectedDocument);
-                          setIsTextEditorOpen(true);
-                          setIsViewDialogOpen(false);
-                        } else {
-                          window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
-                        }
-                      }}
-                      className='flex-1'
-                    >
-                      <FileText className='w-4 h-4 mr-2' />
-                      Preview
-                    </Button>
-                    <Button
-                      variant='outline'
-                      onClick={() => handleDownloadDocument(selectedDocument)}
-                    >
-                      <Download className='w-4 h-4 mr-2' />
-                      Download
-                    </Button>
-                  </>
-                )}
+                <Button
+                  onClick={() => {
+                    if (isTextFile(selectedDocument)) {
+                      setTextEditorDocument(selectedDocument);
+                      setIsTextEditorOpen(true);
+                      setIsViewDialogOpen(false);
+                    } else if (selectedDocument.fileUrl) {
+                      window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
+                    }
+                  }}
+                  variant='outline'
+                  disabled={!selectedDocument.fileUrl && !isTextFile(selectedDocument)}
+                  data-testid='button-view'
+                >
+                  <FileText className='w-4 h-4 mr-2' />
+                  View
+                </Button>
+                <Button
+                  variant='outline'
+                  onClick={() => handleDownloadDocument(selectedDocument)}
+                  disabled={!selectedDocument.fileUrl}
+                  data-testid='button-download'
+                >
+                  <Download className='w-4 h-4 mr-2' />
+                  Download
+                </Button>
                 {config.allowEdit && (
                   <Button
                     variant='outline'
