@@ -327,11 +327,16 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     queryKey: [`/api/${config.type}s`, config.entityId],
     queryFn: async () => {
       if (!config.entityId) return null;
+      console.log('🔍 DocumentManager: Fetching entity data for', config.type, config.entityId);
       const result = await apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as any;
+      console.log('🔍 DocumentManager: Entity API response:', result);
       return result;
     },
     enabled: !!config.entityId,
   });
+
+  console.log('🔍 DocumentManager: Entity data:', entity);
+  console.log('🔍 DocumentManager: Config:', config);
 
   // Fetch documents
   const queryKey =
@@ -348,7 +353,9 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       if (!config.entityId) {
         return { documents: [] };
       }
+      console.log('🔍 DocumentManager: Making API call to:', `/api/documents?${queryParam}`);
       const response = await apiRequest('GET', `/api/documents?${queryParam}`);
+      console.log('🔍 DocumentManager: Raw API response:', response);
       return response as unknown as { documents: Document[] };
     },
     enabled: !!config.entityId,
@@ -358,6 +365,9 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Extract documents array from response
   const documents = documentsResponse?.documents || [];
+  console.log('🔍 DocumentManager: documentsResponse:', documentsResponse);
+  console.log('🔍 DocumentManager: documents array:', documents);
+  console.log('🔍 DocumentManager: documents.length:', documents.length);
 
   // Calculate available years
   const availableYears = useMemo(() => {
@@ -372,14 +382,17 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Filter documents
   const filteredDocuments = useMemo(() => {
+    console.log('🔍 DocumentManager: Filtering documents. Raw documents:', documents);
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
       const matchesYear =
         selectedYear === 'all' ||
         new Date(doc.createdAt || doc.uploadDate).getFullYear().toString() === selectedYear;
+      console.log('🔍 DocumentManager: Document', doc.name, 'matches - search:', matchesSearch, 'category:', matchesCategory, 'year:', matchesYear);
       return matchesSearch && matchesCategory && matchesYear;
     });
+    console.log('🔍 DocumentManager: Filtered', filtered.length, 'documents from', documents.length, 'total');
     return filtered;
   }, [documents, searchTerm, selectedCategory, selectedYear]);
 
