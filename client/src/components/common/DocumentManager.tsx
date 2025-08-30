@@ -1173,13 +1173,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               <div>
                 <h3 className='text-lg font-semibold'>{selectedDocument.name}</h3>
                 {selectedDocument.description && (
-                  <p className='text-gray-600 mt-1'>{selectedDocument.description}</p>
+                  <p className='text-gray-600 mt-2'>{selectedDocument.description}</p>
                 )}
               </div>
               
               <div className='grid grid-cols-2 gap-4 text-sm'>
                 <div>
-                  <strong>Type:</strong> {getCategoryLabel(documentCategories, selectedDocument.type)}
+                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.type)}
                 </div>
                 <div>
                   <strong>Date:</strong> {formatDate(selectedDocument.createdAt.toString())}
@@ -1212,7 +1212,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                       className='flex-1'
                     >
                       <FileText className='w-4 h-4 mr-2' />
-                      View Document
+                      Preview
                     </Button>
                     <Button
                       variant='outline'
@@ -1232,6 +1232,19 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                   >
                     <Edit className='w-4 h-4 mr-2' />
                     Edit
+                  </Button>
+                )}
+                {config.allowDelete && (
+                  <Button
+                    variant='outline'
+                    onClick={() => {
+                      handleDeleteDocument(selectedDocument);
+                      setIsViewDialogOpen(false);
+                    }}
+                    className='text-red-600 hover:text-red-700'
+                  >
+                    <Trash2 className='w-4 h-4 mr-2' />
+                    Delete
                   </Button>
                 )}
               </div>
