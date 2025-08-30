@@ -1179,10 +1179,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               
               <div className='grid grid-cols-2 gap-4 text-sm'>
                 <div>
-                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.type)}
+                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.type) || selectedDocument.type || 'Unknown'}
                 </div>
                 <div>
-                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt.toString())}
+                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt instanceof Date ? selectedDocument.createdAt.toISOString() : selectedDocument.createdAt)}
                 </div>
                 {selectedDocument.fileSize && (
                   <div>
