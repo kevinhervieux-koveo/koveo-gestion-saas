@@ -161,7 +161,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       const buildingIds = buildings.map((b) => b.id);
 
-      const allDocuments: unknown[] = [];
+      const allDocuments: any[] = [];
 
       // Use unified documents system
       const filters: any = {
@@ -186,14 +186,14 @@ export function registerDocumentRoutes(app: Express): void {
       
       const documents = await storage.getDocuments(filters);
       
-      // Apply role-based filtering
+      // Apply role-based filtering with tenant visibility rules
       const filteredDocuments = documents.filter((doc) => {
         // Admin can see all documents
         if (userRole === 'admin') {
           return true;
         }
         
-        // Manager can see documents in their organization
+        // Manager can see all documents in their organization
         if (userRole === 'manager' && organizationId) {
           if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
             return true;
@@ -203,13 +203,41 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
         
-        // Residents/tenants can only see documents for their properties
-        if (userRole === 'resident' || userRole === 'tenant') {
+        // Resident access rules
+        if (userRole === 'resident') {
+          // Residents can see documents in their residence
           if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
             return true;
           }
-          if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
+          // Residents can see building documents related to their residences
+          if (doc.buildingId) {
+            // Check if any of user's residences belong to this building
+            const userBuildingIds = userResidences
+              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
+              .filter(Boolean);
+            return userBuildingIds.includes(doc.buildingId);
+          }
+        }
+        
+        // Tenant access rules - more restrictive
+        if (userRole === 'tenant') {
+          // Tenants can only see documents marked as visible to tenants
+          if (!doc.isVisibleToTenants) {
+            return false;
+          }
+          
+          // Tenants can see visible documents in their residence
+          if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
             return true;
+          }
+          
+          // Tenants can see visible building documents related to their residences
+          if (doc.buildingId) {
+            // Check if any of user's residences belong to this building
+            const userBuildingIds = userResidences
+              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
+              .filter(Boolean);
+            return userBuildingIds.includes(doc.buildingId);
           }
         }
         
@@ -940,6 +968,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Serve document files
+  // Serve document files with full access control
   app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -970,7 +999,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(404).json({ message: 'Document not found' });
       }
 
-      // Check permissions
+      // Check permissions with tenant visibility rules
       let hasAccess = false;
       
       if (userRole === 'admin') {
@@ -982,12 +1011,38 @@ export function registerDocumentRoutes(app: Express): void {
         if (document.residenceId && residenceIds.includes(document.residenceId)) {
           hasAccess = true;
         }
-      } else if ((userRole === 'resident' || userRole === 'tenant')) {
+      } else if (userRole === 'resident') {
+        // Residents can access documents in their residence
         if (document.residenceId && residenceIds.includes(document.residenceId)) {
           hasAccess = true;
         }
-        if (document.buildingId && buildingIds.includes(document.buildingId)) {
-          hasAccess = true;
+        // Residents can access building documents related to their residences
+        if (document.buildingId) {
+          const userBuildingIds = residences
+            .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
+            .filter(Boolean);
+          if (userBuildingIds.includes(document.buildingId)) {
+            hasAccess = true;
+          }
+        }
+      } else if (userRole === 'tenant') {
+        // Tenants can only access documents marked as visible to tenants
+        if (!document.isVisibleToTenants) {
+          hasAccess = false;
+        } else {
+          // Tenants can access visible documents in their residence
+          if (document.residenceId && residenceIds.includes(document.residenceId)) {
+            hasAccess = true;
+          }
+          // Tenants can access visible building documents related to their residences
+          if (document.buildingId) {
+            const userBuildingIds = residences
+              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
+              .filter(Boolean);
+            if (userBuildingIds.includes(document.buildingId)) {
+              hasAccess = true;
+            }
+          }
         }
       }
 
@@ -995,9 +1050,68 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // For development, serve from local storage or GCS path
+      // Handle file serving for both development and production
       if (document.gcsPath) {
         try {
+          // Production: Serve from GCS
+          if (process.env.NODE_ENV === 'production') {
+            try {
+              const gcsClient = await getGCSClient();
+              const bucketName = process.env.GCS_BUCKET_NAME || 'koveo-gestion-documents';
+              const bucket = gcsClient.bucket(bucketName);
+              const file = bucket.file(document.gcsPath);
+              
+              // Check if file exists in GCS
+              const [exists] = await file.exists();
+              if (!exists) {
+                return res.status(404).json({ message: 'File not found in storage' });
+              }
+              
+              // Generate signed URL for secure access
+              const [signedUrl] = await file.getSignedUrl({
+                action: 'read',
+                expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+              });
+              
+              // Redirect to signed URL or stream the file
+              if (isDownload) {
+                // For downloads, redirect to signed URL with attachment header
+                return res.redirect(signedUrl);
+              } else {
+                // For viewing, stream the file directly
+                const stream = file.createReadStream();
+                
+                // Set headers with proper filename extension
+                let fileName = document.fileName || document.name || path.basename(document.gcsPath);
+                if (!path.extname(fileName) && document.gcsPath) {
+                  const originalExt = path.extname(document.gcsPath);
+                  if (originalExt) {
+                    fileName += originalExt;
+                  }
+                }
+                res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+                
+                // Set content type
+                const ext = path.extname(fileName).toLowerCase();
+                if (ext === '.pdf') {
+                  res.setHeader('Content-Type', 'application/pdf');
+                } else if (ext === '.jpg' || ext === '.jpeg') {
+                  res.setHeader('Content-Type', 'image/jpeg');
+                } else if (ext === '.png') {
+                  res.setHeader('Content-Type', 'image/png');
+                } else {
+                  res.setHeader('Content-Type', 'application/octet-stream');
+                }
+                
+                return stream.pipe(res);
+              }
+            } catch (gcsError) {
+              console.error('GCS file serving error:', gcsError);
+              return res.status(500).json({ message: 'Failed to serve file from storage' });
+            }
+          }
+          
+          // Development: Serve from local storage
           let filePath = document.gcsPath;
           
           // Check if it's an absolute path
