@@ -341,13 +341,15 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const queryParam =
     config.type === 'building' ? `buildingId=${config.entityId}` : `residenceId=${config.entityId}`;
 
-  const { data: documentsResponse, isLoading: documentsLoading } = useQuery({
+  const { data: documentsResponse, isLoading: documentsLoading, error: documentsError } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!config.entityId) {
         return { documents: [] };
       }
+      console.log('🔍 DocumentManager: Fetching documents for', config.type, config.entityId, 'with URL:', `/api/documents?${queryParam}`);
       const response = await apiRequest('GET', `/api/documents?${queryParam}`);
+      console.log('🔍 DocumentManager: API response:', response);
       return response as unknown as { documents: Document[] };
     },
     enabled: !!config.entityId,
