@@ -99,24 +99,15 @@ interface DocumentManagerConfig {
 
 // Form schema factory for unified document upload
 const createDocumentFormSchema = (type: 'building' | 'residence') => {
+  // Get valid document types based on type
+  const validTypes = type === 'building' 
+    ? BUILDING_DOCUMENT_CATEGORIES.map(cat => cat._value)
+    : RESIDENCE_DOCUMENT_CATEGORIES.map(cat => cat._value);
+    
   const baseSchema = {
     name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
     description: z.string().optional(),
-    documentType: z.enum([
-      'bylaw',
-      'financial',
-      'maintenance',
-      'legal',
-      'meeting_minutes',
-      'insurance',
-      'contracts',
-      'permits',
-      'inspection',
-      'lease',
-      'communication',
-      'photos',
-      'other',
-    ]),
+    documentType: z.enum(validTypes as [string, ...string[]]),
     isVisibleToTenants: z.boolean().default(false),
   };
 
@@ -162,7 +153,7 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
     defaultValues: {
       name: document.name,
       description: document.description || '',
-      documentType: document.type as any,
+      documentType: documentCategories.find(cat => cat._value === document.type)?._value || document.type || 'other',
       ...(config.type === 'building'
         ? { buildingId: document.buildingId }
         : { residenceId: document.residenceId }),
@@ -224,7 +215,7 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
               <FormLabel>Document Type</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className={editForm.formState.errors.documentType ? 'border-red-500' : ''}>
                     <SelectValue placeholder='Select document type' />
                   </SelectTrigger>
                 </FormControl>
@@ -236,7 +227,9 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              {editForm.formState.errors.documentType && (
+                <p className="text-sm text-red-500">Please select a valid document type</p>
+              )}
             </FormItem>
           )}
         />
