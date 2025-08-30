@@ -995,39 +995,73 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // For development, serve from local storage if gcsPath points to a local file
+      // For development, serve from local storage or GCS path
       if (document.gcsPath) {
         try {
-          // Check if it's a local file path
-          if (document.gcsPath.startsWith('/') || document.gcsPath.includes('tmp')) {
-            // Local file serving
-            if (fs.existsSync(document.gcsPath)) {
-              const fileName = document.fileName || document.name || 'document';
-              
-              if (isDownload) {
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-              } else {
-                res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+          let filePath = document.gcsPath;
+          
+          // Check if it's an absolute path
+          if (document.gcsPath.startsWith('/')) {
+            filePath = document.gcsPath;
+          } 
+          // Check if it's a relative GCS path
+          else if (document.gcsPath.includes('residences/') || document.gcsPath.includes('buildings/')) {
+            // For development, try to find the file in common upload directories
+            const possiblePaths = [
+              `/tmp/uploads/${document.gcsPath}`,
+              `/uploads/${document.gcsPath}`,
+              `./uploads/${document.gcsPath}`,
+              path.join(process.cwd(), 'uploads', document.gcsPath),
+              path.join('/tmp', document.gcsPath)
+            ];
+            
+            // Try to find the file in any of these locations
+            for (const possiblePath of possiblePaths) {
+              if (fs.existsSync(possiblePath)) {
+                filePath = possiblePath;
+                break;
               }
-              
-              // Set appropriate content type
-              const ext = path.extname(fileName).toLowerCase();
-              if (ext === '.pdf') {
-                res.setHeader('Content-Type', 'application/pdf');
-              } else if (ext === '.jpg' || ext === '.jpeg') {
-                res.setHeader('Content-Type', 'image/jpeg');
-              } else if (ext === '.png') {
-                res.setHeader('Content-Type', 'image/png');
-              } else {
-                res.setHeader('Content-Type', 'application/octet-stream');
-              }
-              
-              return res.sendFile(path.resolve(document.gcsPath));
             }
           }
+          // Check if it's a temp file path
+          else if (document.gcsPath.includes('tmp')) {
+            filePath = document.gcsPath;
+          }
           
-          // GCS file serving would go here in production
-          return res.status(404).json({ message: 'File not found' });
+          // Try to serve the file
+          if (fs.existsSync(filePath)) {
+            const fileName = document.fileName || document.name || path.basename(document.gcsPath);
+            
+            if (isDownload) {
+              res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            } else {
+              res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+            }
+            
+            // Set appropriate content type based on file extension
+            const ext = path.extname(fileName).toLowerCase();
+            if (ext === '.pdf') {
+              res.setHeader('Content-Type', 'application/pdf');
+            } else if (ext === '.jpg' || ext === '.jpeg') {
+              res.setHeader('Content-Type', 'image/jpeg');
+            } else if (ext === '.png') {
+              res.setHeader('Content-Type', 'image/png');
+            } else if (ext === '.gif') {
+              res.setHeader('Content-Type', 'image/gif');
+            } else if (ext === '.doc' || ext === '.docx') {
+              res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            } else {
+              res.setHeader('Content-Type', 'application/octet-stream');
+            }
+            
+            console.log(`📂 Serving file: ${filePath} as ${fileName}`);
+            return res.sendFile(path.resolve(filePath));
+          }
+          
+          // If file not found locally, log for debugging
+          console.log(`❌ File not found at gcsPath: ${document.gcsPath}`);
+          console.log(`❌ Tried filePath: ${filePath}`);
+          return res.status(404).json({ message: 'File not found on server' });
           
         } catch (error) {
           console.error('Error serving file:', error);
