@@ -368,7 +368,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       return [];
     }
     const years = documents
-      .map((doc: Document) => new Date(doc.createdAt || doc.uploadDate).getFullYear().toString())
+      .map((doc: Document) => new Date(doc.createdAt).getFullYear().toString())
       .filter(Boolean);
     return [...new Set(years)].sort((a, b) => b.localeCompare(a));
   }, [documents]);
@@ -377,10 +377,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const filteredDocuments = useMemo(() => {
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
       const matchesYear =
         selectedYear === 'all' ||
-        new Date(doc.createdAt || doc.uploadDate).getFullYear().toString() === selectedYear;
+        new Date(doc.createdAt).getFullYear().toString() === selectedYear;
       return matchesSearch && matchesCategory && matchesYear;
     });
     return filtered;
@@ -390,7 +390,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, Document[]> = {};
     documentCategories.forEach((category) => {
-      grouped[category._value] = filteredDocuments.filter((doc) => doc.documentType === category._value);
+      grouped[category._value] = filteredDocuments.filter((doc) => doc.type === category._value);
     });
     return grouped;
   }, [filteredDocuments, documentCategories]);
@@ -537,14 +537,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const handleViewDocument = (document: Document) => {
-    if (document.fileUrl) {
-      if (isTextFile(document)) {
-        setTextEditorDocument(document);
-        setIsTextEditorOpen(true);
-      } else {
-        window.open(getDisplayableFileUrl(document.fileUrl), '_blank');
-      }
-    }
+    console.log('Card clicked for document:', document.name);
+    console.log('Document fileUrl:', document.fileUrl);
+    
+    // Set the selected document and open the view dialog
+    setSelectedDocument(document);
+    setIsViewDialogOpen(true);
+    setIsEditMode(false);
   };
 
   const handleDownloadDocument = (document: Document) => {
@@ -1156,6 +1155,93 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
           )}
         </div>
       </div>
+
+      {/* View Document Dialog */}
+      <Dialog
+        open={isViewDialogOpen && !isEditMode}
+        onOpenChange={(open) => {
+          setIsViewDialogOpen(open);
+          if (!open) {
+            setSelectedDocument(null);
+          }
+        }}
+      >
+        <DialogContent className='max-w-2xl'>
+          <DialogHeader>
+            <DialogTitle>Document Details</DialogTitle>
+            <DialogDescription>View document information and access options.</DialogDescription>
+          </DialogHeader>
+          {selectedDocument && (
+            <div className='space-y-4'>
+              <div>
+                <h3 className='text-lg font-semibold'>{selectedDocument.name}</h3>
+                {selectedDocument.description && (
+                  <p className='text-gray-600 mt-1'>{selectedDocument.description}</p>
+                )}
+              </div>
+              
+              <div className='grid grid-cols-2 gap-4 text-sm'>
+                <div>
+                  <strong>Type:</strong> {getCategoryLabel(documentCategories, selectedDocument.type)}
+                </div>
+                <div>
+                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt.toString())}
+                </div>
+                {selectedDocument.fileSize && (
+                  <div>
+                    <strong>Size:</strong> {formatFileSize(selectedDocument.fileSize)}
+                  </div>
+                )}
+                {selectedDocument.fileName && (
+                  <div>
+                    <strong>File:</strong> {selectedDocument.fileName}
+                  </div>
+                )}
+              </div>
+
+              <div className='flex gap-2 pt-4'>
+                {selectedDocument.fileUrl && (
+                  <>
+                    <Button
+                      onClick={() => {
+                        if (isTextFile(selectedDocument)) {
+                          setTextEditorDocument(selectedDocument);
+                          setIsTextEditorOpen(true);
+                          setIsViewDialogOpen(false);
+                        } else {
+                          window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
+                        }
+                      }}
+                      className='flex-1'
+                    >
+                      <FileText className='w-4 h-4 mr-2' />
+                      View Document
+                    </Button>
+                    <Button
+                      variant='outline'
+                      onClick={() => handleDownloadDocument(selectedDocument)}
+                    >
+                      <Download className='w-4 h-4 mr-2' />
+                      Download
+                    </Button>
+                  </>
+                )}
+                {config.allowEdit && (
+                  <Button
+                    variant='outline'
+                    onClick={() => {
+                      setIsEditMode(true);
+                    }}
+                  >
+                    <Edit className='w-4 h-4 mr-2' />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Document Dialog */}
       <Dialog
