@@ -537,9 +537,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const handleViewDocument = (document: Document) => {
-    console.log('Card clicked for document:', document.name);
-    console.log('Document fileUrl:', document.fileUrl);
-    
     // Set the selected document and open the view dialog
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
