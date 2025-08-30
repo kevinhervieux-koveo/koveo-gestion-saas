@@ -21,14 +21,8 @@ export default function BuildingDocuments() {
 
   // Get building info
   const { data: building } = useQuery({
-    queryKey: ['/api/buildings', buildingId],
-    queryFn: async () => {
-      const response = await fetch(`/api/buildings/${buildingId}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch building');
-      return response.json();
-    },
+    queryKey: ['/api/manager/buildings', buildingId],
+    queryFn: () => apiRequest('GET', `/api/manager/buildings/${buildingId}`) as Promise<any>,
     enabled: !!buildingId,
   });
 

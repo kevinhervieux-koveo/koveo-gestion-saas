@@ -327,12 +327,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Fetch entity data (building or residence)
   const { data: entity } = useQuery({
-    queryKey: [`/api/${config.type}s`, config.entityId],
+    queryKey: [`/api/${config.type === 'building' ? 'manager/buildings' : 'residences'}`, config.entityId],
     queryFn: async () => {
       if (!config.entityId) return null;
-      const response = (await apiRequest('GET', `/api/${config.type}s/${config.entityId}`)) as any;
-      const data = await response.json();
-      return data;
+      const endpoint = config.type === 'building' 
+        ? `/api/manager/buildings/${config.entityId}`
+        : `/api/residences/${config.entityId}`;
+      return (await apiRequest('GET', endpoint)) as any;
     },
     enabled: !!config.entityId,
   });
@@ -356,9 +357,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       if (!config.entityId) {
         return { documents: [] };
       }
-      const response = await apiRequest('GET', `/api/documents?${queryParam}`);
-      const data = await response.json();
-      return data as { documents: Document[] };
+      return (await apiRequest('GET', `/api/documents?${queryParam}`)) as { documents: Document[] };
     },
     enabled: !!config.entityId,
     refetchOnWindowFocus: true,
