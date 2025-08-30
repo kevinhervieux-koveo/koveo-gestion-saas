@@ -57,7 +57,6 @@ import { exists, sql as sqlOp } from 'drizzle-orm';
  * Enhanced database storage with built-in caching and performance monitoring.
  */
 export class OptimizedDatabaseStorage implements IStorage {
-  private cacheInvalidator = new CacheInvalidator();
 
   /**
    *
@@ -1724,12 +1723,10 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       // Invalidate related caches
       if (document.buildingId) {
-        this.cacheInvalidator.invalidateByPattern(`documents:*buildingId*${document.buildingId}*`);
+        queryCache.invalidate('documents', `*buildingId*${document.buildingId}*`);
       }
       if (document.residenceId) {
-        this.cacheInvalidator.invalidateByPattern(
-          `documents:*residenceId*${document.residenceId}*`
-        );
+        queryCache.invalidate('documents', `*residenceId*${document.residenceId}*`);
       }
 
       return result[0];
@@ -1746,8 +1743,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       if (result[0]) {
         // Invalidate caches
-        this.cacheInvalidator.invalidate(`document:${id}`);
-        this.cacheInvalidator.invalidateByPattern(`documents:*`);
+        queryCache.invalidate('documents', `document:${id}`);
+        queryCache.invalidate('documents', '*');
       }
 
       return result[0];
@@ -1763,8 +1760,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       if (result.length > 0) {
         // Invalidate caches
-        this.cacheInvalidator.invalidate(`document:${id}`);
-        this.cacheInvalidator.invalidateByPattern(`documents:*`);
+        queryCache.invalidate('documents', `document:${id}`);
+        queryCache.invalidate('documents', '*');
         return true;
       }
 
