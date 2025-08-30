@@ -67,7 +67,7 @@ interface Document {
   id: string;
   name: string;
   description?: string;
-  type: string;
+  documentType: string;
   dateReference?: string;
   buildingId?: string;
   residenceId?: string;
@@ -153,7 +153,7 @@ function EditDocumentForm({ document, config, onSave, onCancel }: EditDocumentFo
     defaultValues: {
       name: document.name,
       description: document.description || '',
-      documentType: documentCategories.find(cat => cat._value === document.type)?._value || document.type || 'other',
+      documentType: documentCategories.find(cat => cat._value === document.documentType)?._value || document.documentType || 'other',
       ...(config.type === 'building'
         ? { buildingId: document.buildingId }
         : { residenceId: document.residenceId }),
@@ -370,7 +370,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const filteredDocuments = useMemo(() => {
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
       const matchesYear =
         selectedYear === 'all' ||
         new Date(doc.createdAt).getFullYear().toString() === selectedYear;
@@ -383,7 +383,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, Document[]> = {};
     documentCategories.forEach((category) => {
-      grouped[category._value] = filteredDocuments.filter((doc) => doc.type === category._value);
+      grouped[category._value] = filteredDocuments.filter((doc) => doc.documentType === category._value);
     });
     return grouped;
   }, [filteredDocuments, documentCategories]);
@@ -1172,7 +1172,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               
               <div className='grid grid-cols-2 gap-4 text-sm'>
                 <div>
-                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.type) || selectedDocument.type || 'Unknown'}
+                  <strong>Category:</strong> {getCategoryLabel(documentCategories, selectedDocument.documentType) || selectedDocument.documentType || 'Unknown'}
                 </div>
                 <div>
                   <strong>Date:</strong> {formatDate(selectedDocument.createdAt instanceof Date ? selectedDocument.createdAt.toISOString() : selectedDocument.createdAt)}
