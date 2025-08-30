@@ -1008,10 +1008,10 @@ export function registerDocumentRoutes(app: Express): void {
           else if (document.gcsPath.includes('residences/') || document.gcsPath.includes('buildings/')) {
             // For development, try to find the file in common upload directories
             const possiblePaths = [
+              path.join(process.cwd(), 'uploads', document.gcsPath), // Main fallback location
               `/tmp/uploads/${document.gcsPath}`,
               `/uploads/${document.gcsPath}`,
               `./uploads/${document.gcsPath}`,
-              path.join(process.cwd(), 'uploads', document.gcsPath),
               path.join('/tmp', document.gcsPath)
             ];
             
@@ -1019,6 +1019,7 @@ export function registerDocumentRoutes(app: Express): void {
             for (const possiblePath of possiblePaths) {
               if (fs.existsSync(possiblePath)) {
                 filePath = possiblePath;
+                console.log(`📂 Found file at: ${filePath}`);
                 break;
               }
             }
