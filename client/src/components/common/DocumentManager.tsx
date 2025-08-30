@@ -903,6 +903,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                   key={document.id}
                                   className='cursor-pointer hover:shadow-md transition-shadow'
                                   data-testid={`document-card-${document.id}`}
+                                  onClick={() => handleViewDocument(document)}
                                 >
                                   <CardContent className='p-4'>
                                     <div className='flex items-start justify-between mb-2'>
@@ -918,7 +919,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                             <Button
                                               size='sm'
                                               variant='ghost'
-                                              onClick={() => handleViewDocument(document)}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleViewDocument(document);
+                                              }}
                                               data-testid={`button-view-${document.id}`}
                                             >
                                               <FileText className='h-3 w-3' />
@@ -926,7 +930,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                             <Button
                                               size='sm'
                                               variant='ghost'
-                                              onClick={() => handleDownloadDocument(document)}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDownloadDocument(document);
+                                              }}
                                               data-testid={`button-download-${document.id}`}
                                             >
                                               <Download className='h-3 w-3' />
@@ -937,7 +944,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                           <Button
                                             size='sm'
                                             variant='ghost'
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                              e.stopPropagation();
                                               setSelectedDocument(document);
                                               setIsEditMode(true);
                                               setIsViewDialogOpen(true);
@@ -951,7 +959,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                           <Button
                                             size='sm'
                                             variant='ghost'
-                                            onClick={() => handleDeleteDocument(document)}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteDocument(document);
+                                            }}
                                             className='text-red-600 hover:text-red-700'
                                             data-testid={`button-delete-${document.id}`}
                                           >
@@ -996,6 +1007,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                               key={document.id}
                               className='cursor-pointer hover:shadow-md transition-shadow'
                               data-testid={`document-card-${document.id}`}
+                              onClick={() => handleViewDocument(document)}
                             >
                               <CardContent className='p-4'>
                                 <div className='flex items-start justify-between mb-2'>
@@ -1008,14 +1020,20 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                         <Button
                                           size='sm'
                                           variant='ghost'
-                                          onClick={() => handleViewDocument(document)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewDocument(document);
+                                          }}
                                         >
                                           <FileText className='h-3 w-3' />
                                         </Button>
                                         <Button
                                           size='sm'
                                           variant='ghost'
-                                          onClick={() => handleDownloadDocument(document)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDownloadDocument(document);
+                                          }}
                                         >
                                           <Download className='h-3 w-3' />
                                         </Button>
