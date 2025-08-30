@@ -327,9 +327,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     queryKey: [`/api/${config.type}s`, config.entityId],
     queryFn: async () => {
       if (!config.entityId) return null;
-      console.log('🔍 DocumentManager: Fetching entity data for', config.type, config.entityId);
-      const result = await apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as Promise<any>;
-      console.log('🔍 DocumentManager: Entity API response:', result);
+      const result = await apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as any;
       return result;
     },
     enabled: !!config.entityId,
@@ -350,9 +348,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       if (!config.entityId) {
         return { documents: [] };
       }
-      console.log('🔍 DocumentManager: Fetching documents for', config.type, config.entityId, 'with URL:', `/api/documents?${queryParam}`);
       const response = await apiRequest('GET', `/api/documents?${queryParam}`);
-      console.log('🔍 DocumentManager: API response:', response);
       return response as unknown as { documents: Document[] };
     },
     enabled: !!config.entityId,
@@ -369,28 +365,29 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       return [];
     }
     const years = documents
-      .map((doc: Document) => new Date(doc.dateReference).getFullYear().toString())
+      .map((doc: Document) => new Date(doc.createdAt || doc.uploadDate).getFullYear().toString())
       .filter(Boolean);
     return [...new Set(years)].sort((a, b) => b.localeCompare(a));
   }, [documents]);
 
   // Filter documents
   const filteredDocuments = useMemo(() => {
-    return documents.filter((doc: Document) => {
+    const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
       const matchesYear =
         selectedYear === 'all' ||
-        new Date(doc.dateReference).getFullYear().toString() === selectedYear;
+        new Date(doc.createdAt || doc.uploadDate).getFullYear().toString() === selectedYear;
       return matchesSearch && matchesCategory && matchesYear;
     });
+    return filtered;
   }, [documents, searchTerm, selectedCategory, selectedYear]);
 
   // Group documents by category
   const documentsByCategory = useMemo(() => {
     const grouped: Record<string, Document[]> = {};
     documentCategories.forEach((category) => {
-      grouped[category._value] = filteredDocuments.filter((doc) => doc.type === category._value);
+      grouped[category._value] = filteredDocuments.filter((doc) => doc.documentType === category._value);
     });
     return grouped;
   }, [filteredDocuments, documentCategories]);

@@ -184,9 +184,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
       
-      console.log('🔍 Documents API: Calling storage.getDocuments with filters:', filters);
       const documents = await storage.getDocuments(filters);
-      console.log('🔍 Documents API: Storage returned', documents?.length || 0, 'documents:', documents);
       
       // Apply role-based filtering
       const filteredDocuments = documents.filter((doc) => {
@@ -241,7 +239,6 @@ export function registerDocumentRoutes(app: Express): void {
         residentCount: allDocuments.filter((d) => d.documentCategory === 'resident').length,
         legacyCount: allDocuments.filter((d) => d.documentCategory === 'legacy').length,
       };
-      console.log('🔍 Documents API: Final response:', response);
       res.json(response);
     } catch (_error) {
       console.error('Error fetching documents:', _error);
