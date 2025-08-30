@@ -71,11 +71,11 @@ interface Document {
   dateReference?: string;
   buildingId?: string;
   residenceId?: string;
-  fileUrl?: string;
+  gcsPath: string;
   fileName?: string;
   fileSize?: number;
   mimeType?: string;
-  uploadedBy: string;
+  uploadedById: string;
   createdAt: Date;
   updatedAt: Date;
   isVisibleToTenants?: boolean;
@@ -537,9 +537,9 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   };
 
   const handleDownloadDocument = (document: Document) => {
-    if (document.fileUrl) {
+    if (document.gcsPath) {
       const link = window.document.createElement('a');
-      link.href = getDisplayableFileUrl(document.fileUrl);
+      link.href = getDisplayableFileUrl(document.gcsPath);
       link.download = document.fileName || document.name;
       window.document.body.appendChild(link);
       link.click();
@@ -951,7 +951,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                         {document.name}
                                       </h4>
                                       <div className='flex gap-1'>
-                                        {document.fileUrl && (
+                                        {document.gcsPath && (
                                           <>
                                             <Button
                                               size='sm'
@@ -1014,7 +1014,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                     >
                                       {formatDate(document.dateReference)}
                                     </p>
-                                    {document.fileUrl && (
+                                    {document.gcsPath && (
                                       <Badge variant='outline' className='text-xs'>
                                         {formatFileSize(document.fileSize)}
                                       </Badge>
@@ -1052,7 +1052,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                     {document.name}
                                   </h4>
                                   <div className='flex gap-1'>
-                                    {document.fileUrl && (
+                                    {document.gcsPath && (
                                       <>
                                         <Button
                                           size='sm'
@@ -1081,7 +1081,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                                 <p className='text-xs text-gray-500 mb-2'>
                                   {formatDate(document.dateReference)}
                                 </p>
-                                {document.fileUrl && (
+                                {document.gcsPath && (
                                   <Badge variant='outline' className='text-xs'>
                                     {formatFileSize(document.fileSize)}
                                   </Badge>
@@ -1163,7 +1163,6 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
           </DialogHeader>
           {selectedDocument && (
             <div className='space-y-4'>
-              {console.log('Selected document in popup:', selectedDocument)}
               <div>
                 <h3 className='text-lg font-semibold'>{selectedDocument.name}</h3>
                 {selectedDocument.description && (
@@ -1193,17 +1192,16 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
               <div className='flex gap-2 pt-4'>
                 <Button
                   onClick={() => {
-                    console.log('View button clicked, document:', selectedDocument);
                     if (isTextFile(selectedDocument)) {
                       setTextEditorDocument(selectedDocument);
                       setIsTextEditorOpen(true);
                       setIsViewDialogOpen(false);
-                    } else if (selectedDocument.fileUrl) {
-                      window.open(getDisplayableFileUrl(selectedDocument.fileUrl), '_blank');
+                    } else if (selectedDocument.gcsPath) {
+                      window.open(getDisplayableFileUrl(selectedDocument.gcsPath), '_blank');
                     }
                   }}
                   variant='outline'
-                  disabled={!selectedDocument.fileUrl && !isTextFile(selectedDocument)}
+                  disabled={!selectedDocument.gcsPath}
                   data-testid='button-view'
                 >
                   <FileText className='w-4 h-4 mr-2' />
@@ -1211,11 +1209,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                 </Button>
                 <Button
                   variant='outline'
-                  onClick={() => {
-                    console.log('Download button clicked, document:', selectedDocument);
-                    handleDownloadDocument(selectedDocument);
-                  }}
-                  disabled={!selectedDocument.fileUrl}
+                  onClick={() => handleDownloadDocument(selectedDocument)}
+                  disabled={!selectedDocument.gcsPath}
                   data-testid='button-download'
                 >
                   <Download className='w-4 h-4 mr-2' />
