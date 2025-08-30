@@ -1034,11 +1034,21 @@ export function registerDocumentRoutes(app: Express): void {
             // Get the original filename with extension, or construct one from the document name
             let fileName = document.fileName || document.name || path.basename(document.gcsPath);
             
+            // Debug logging
+            console.log(`🔍 Debug filename logic:`);
+            console.log(`  - document.fileName: ${document.fileName}`);
+            console.log(`  - document.name: ${document.name}`);
+            console.log(`  - path.basename(gcsPath): ${path.basename(document.gcsPath)}`);
+            console.log(`  - Initial fileName: ${fileName}`);
+            console.log(`  - path.extname(fileName): ${path.extname(fileName)}`);
+            
             // If the fileName doesn't have an extension, add it from the original file path
             if (!path.extname(fileName) && document.gcsPath) {
               const originalExt = path.extname(document.gcsPath);
+              console.log(`  - Original extension from gcsPath: ${originalExt}`);
               if (originalExt) {
                 fileName += originalExt;
+                console.log(`  - Final fileName with extension: ${fileName}`);
               }
             }
             
