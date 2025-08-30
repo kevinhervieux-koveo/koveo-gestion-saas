@@ -1031,7 +1031,16 @@ export function registerDocumentRoutes(app: Express): void {
           
           // Try to serve the file
           if (fs.existsSync(filePath)) {
-            const fileName = document.fileName || document.name || path.basename(document.gcsPath);
+            // Get the original filename with extension, or construct one from the document name
+            let fileName = document.fileName || document.name || path.basename(document.gcsPath);
+            
+            // If the fileName doesn't have an extension, add it from the original file path
+            if (!path.extname(fileName) && document.gcsPath) {
+              const originalExt = path.extname(document.gcsPath);
+              if (originalExt) {
+                fileName += originalExt;
+              }
+            }
             
             if (isDownload) {
               res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
