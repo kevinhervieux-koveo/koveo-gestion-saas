@@ -1197,7 +1197,9 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                       setIsTextEditorOpen(true);
                       setIsViewDialogOpen(false);
                     } else if (selectedDocument.gcsPath) {
-                      window.open(getDisplayableFileUrl(selectedDocument.gcsPath), '_blank');
+                      // For now, use API endpoint for file viewing
+                      const fileUrl = `/api/documents/${selectedDocument.id}/file`;
+                      window.open(fileUrl, '_blank');
                     }
                   }}
                   variant='outline'
@@ -1209,7 +1211,17 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                 </Button>
                 <Button
                   variant='outline'
-                  onClick={() => handleDownloadDocument(selectedDocument)}
+                  onClick={() => {
+                    if (selectedDocument.gcsPath) {
+                      // Create download link using API endpoint
+                      const link = window.document.createElement('a');
+                      link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
+                      link.download = selectedDocument.fileName || selectedDocument.name;
+                      window.document.body.appendChild(link);
+                      link.click();
+                      window.document.body.removeChild(link);
+                    }
+                  }}
                   disabled={!selectedDocument.gcsPath}
                   data-testid='button-download'
                 >

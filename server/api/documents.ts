@@ -939,4 +939,107 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Serve document files
+  app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userRole = user.role;
+      const userId = user.id;
+      const documentId = req.params.id;
+      const isDownload = req.query.download === 'true';
+
+      // Get user's organization and residences for permission checking
+      const organizations = await storage.getUserOrganizations(userId);
+      const residences = await storage.getUserResidences(userId);
+      const buildings = await storage.getBuildings();
+
+      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+      const residenceIds = residences.map((ur) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id).filter(Boolean);
+      const buildingIds = buildings.map((b) => b.id);
+
+      // Find the document
+      const filters = {
+        userId,
+        userRole,
+      };
+      
+      const documents = await storage.getDocuments(filters);
+      const document = documents.find(doc => doc.id === documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+
+      // Check permissions
+      let hasAccess = false;
+      
+      if (userRole === 'admin') {
+        hasAccess = true;
+      } else if (userRole === 'manager' && organizationId) {
+        if (document.buildingId && buildingIds.includes(document.buildingId)) {
+          hasAccess = true;
+        }
+        if (document.residenceId && residenceIds.includes(document.residenceId)) {
+          hasAccess = true;
+        }
+      } else if ((userRole === 'resident' || userRole === 'tenant')) {
+        if (document.residenceId && residenceIds.includes(document.residenceId)) {
+          hasAccess = true;
+        }
+        if (document.buildingId && buildingIds.includes(document.buildingId)) {
+          hasAccess = true;
+        }
+      }
+
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // For development, serve from local storage if gcsPath points to a local file
+      if (document.gcsPath) {
+        try {
+          // Check if it's a local file path
+          if (document.gcsPath.startsWith('/') || document.gcsPath.includes('tmp')) {
+            // Local file serving
+            if (fs.existsSync(document.gcsPath)) {
+              const fileName = document.fileName || document.name || 'document';
+              
+              if (isDownload) {
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+              } else {
+                res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+              }
+              
+              // Set appropriate content type
+              const ext = path.extname(fileName).toLowerCase();
+              if (ext === '.pdf') {
+                res.setHeader('Content-Type', 'application/pdf');
+              } else if (ext === '.jpg' || ext === '.jpeg') {
+                res.setHeader('Content-Type', 'image/jpeg');
+              } else if (ext === '.png') {
+                res.setHeader('Content-Type', 'image/png');
+              } else {
+                res.setHeader('Content-Type', 'application/octet-stream');
+              }
+              
+              return res.sendFile(path.resolve(document.gcsPath));
+            }
+          }
+          
+          // GCS file serving would go here in production
+          return res.status(404).json({ message: 'File not found' });
+          
+        } catch (error) {
+          console.error('Error serving file:', error);
+          return res.status(500).json({ message: 'Failed to serve file' });
+        }
+      }
+
+      return res.status(404).json({ message: 'No file associated with this document' });
+    } catch (error) {
+      console.error('Error serving document file:', error);
+      res.status(500).json({ message: 'Failed to serve document file' });
+    }
+  });
+
 }
