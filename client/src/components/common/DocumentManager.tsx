@@ -588,6 +588,40 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     );
   }
 
+  // Check if the entity exists (residence/building was found)
+  const entityNotFound = config.entityId && !entity && !documentsLoading;
+  
+  if (entityNotFound) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header
+          title={`${config.type === 'building' ? 'Building' : 'Residence'} Not Found`}
+          subtitle={`The ${config.type} ID provided does not exist`}
+        />
+        <div className='flex-1 overflow-auto p-6'>
+          <Card>
+            <CardContent className='flex flex-col items-center justify-center py-12'>
+              <Building className='h-12 w-12 text-gray-400 mb-4' />
+              <h3 className='text-lg font-medium text-gray-900 mb-2'>
+                {config.type === 'building' ? 'Building' : 'Residence'} Not Found
+              </h3>
+              <p className='text-gray-500'>
+                The {config.type} with ID "{config.entityId}" does not exist or you don't have access to it.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => navigate(`/${config.userRole}s/${config.type}s`)}
+              >
+                Back to {config.type === 'building' ? 'Buildings' : 'Residences'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
