@@ -353,7 +353,7 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   });
 
   // Extract documents array from response
-  const documents = documentsResponse?.documents || [];
+  const documents = Array.isArray(documentsResponse?.documents) ? documentsResponse.documents : [];
 
   // Calculate available years
   const availableYears = useMemo(() => {
@@ -435,7 +435,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       return await response.json();
     },
     onSuccess: () => {
-      // Invalidate the documents query to refetch the list
+      // Invalidate all document queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       queryClient.invalidateQueries({ queryKey });
       setIsCreateDialogOpen(false);
       setSelectedFile(null);
@@ -459,6 +460,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const deleteDocumentMutation = useMutation({
     mutationFn: (documentId: string) => apiRequest('DELETE', `/api/documents/${documentId}`),
     onSuccess: () => {
+      // Invalidate all document queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       queryClient.invalidateQueries({ queryKey });
       toast({
         title: 'Success',
@@ -585,8 +588,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.entityName || entity?.name || config.type} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityAddress || entity?.address || `this ${config.type}`}`}
+        title={`${config.entityName || entity?.name || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || entity?.name || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
