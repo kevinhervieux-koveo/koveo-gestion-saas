@@ -627,8 +627,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.entityName || (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : entity?.name) || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : entity?.name) || `this ${config.type}`}${config.entityAddress || entity?.building?.address ? ` - ${config.entityAddress || entity?.building?.address}` : ''}`}
+        title={`${config.type === 'building' ? (entity?.name || 'Building') : (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : 'Residence')} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.type === 'building' ? (entity?.name || 'this building') : (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : 'this residence')}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
