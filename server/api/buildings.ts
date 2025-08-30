@@ -661,35 +661,48 @@ export function registerBuildingRoutes(app: Express): void {
       let hasAccess = false;
       let accessType = '';
 
-      // Check organization-based access for Admin and Manager
-      if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-        const userOrgs = await db
-          .select({
-            organizationId: userOrganizations.organizationId,
-          })
-          .from(userOrganizations)
-          .where(
-            and(eq(userOrganizations.userId, currentUser.id), eq(userOrganizations.isActive, true))
-          );
+      // Check if user belongs to Koveo organization (special global access)
+      const userOrgs = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          organizationName: organizations.name,
+          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(
+          and(eq(userOrganizations.userId, currentUser.id), eq(userOrganizations.isActive, true))
+        );
 
-        if (userOrgs.length > 0) {
-          const orgIds = userOrgs.map((uo) => uo.organizationId);
+      const hasGlobalAccess =
+        currentUser.role === 'admin' ||
+        userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
-          // Check if building belongs to user's organizations
-          const buildingOrg = await db
-            .select({ id: buildings.id })
-            .from(buildings)
-            .where(
-              and(
-                eq(buildings.id, buildingId),
-                inArray(buildings.organizationId, orgIds),
-                eq(buildings.isActive, true)
-              )
-            );
+      if (hasGlobalAccess) {
+        hasAccess = true;
+        accessType = 'global';
+      } else {
+        // Check organization-based access for Admin and Manager
+        if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+          if (userOrgs.length > 0) {
+            const orgIds = userOrgs.map((uo) => uo.organizationId);
 
-          if (buildingOrg.length > 0) {
-            hasAccess = true;
-            accessType = 'organization';
+            // Check if building belongs to user's organizations
+            const buildingOrg = await db
+              .select({ id: buildings.id })
+              .from(buildings)
+              .where(
+                and(
+                  eq(buildings.id, buildingId),
+                  inArray(buildings.organizationId, orgIds),
+                  eq(buildings.isActive, true)
+                )
+              );
+
+            if (buildingOrg.length > 0) {
+              hasAccess = true;
+              accessType = 'organization';
+            }
           }
         }
       }
