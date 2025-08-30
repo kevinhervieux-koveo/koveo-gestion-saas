@@ -325,10 +325,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   // Fetch entity data (building or residence)
   const { data: entity } = useQuery({
     queryKey: [`/api/${config.type}s`, config.entityId],
-    queryFn: () =>
-      config.entityId
-        ? (apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as Promise<any>)
-        : Promise.resolve(null),
+    queryFn: async () => {
+      if (!config.entityId) return null;
+      console.log('🔍 DocumentManager: Fetching entity data for', config.type, config.entityId);
+      const result = await apiRequest('GET', `/api/${config.type}s/${config.entityId}`) as Promise<any>;
+      console.log('🔍 DocumentManager: Entity API response:', result);
+      return result;
+    },
     enabled: !!config.entityId,
   });
 
@@ -627,8 +630,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.entityName || (entity?.unit_number || entity?.unitNumber ? `Unit ${entity.unit_number || entity.unitNumber}` : entity?.name) || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || (entity?.unit_number || entity?.unitNumber ? `Unit ${entity.unit_number || entity.unitNumber}` : entity?.name) || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
+        title={`${config.entityName || (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : entity?.name) || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : entity?.name) || `this ${config.type}`}${config.entityAddress || entity?.building?.address ? ` - ${config.entityAddress || entity?.building?.address}` : ''}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
