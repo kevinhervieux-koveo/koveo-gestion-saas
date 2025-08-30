@@ -45,8 +45,8 @@ export default function ResidenceDocuments() {
   }
 
   const isUserTenant = user?.role === 'tenant';
-  const residenceName = residence?.unitNumber 
-    ? `Unit ${residence.unitNumber}` 
+  const residenceName = residence?.unit_number || residence?.unitNumber 
+    ? `Unit ${residence.unit_number || residence.unitNumber}` 
     : 'Residence';
 
   return (

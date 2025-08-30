@@ -591,8 +591,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.entityName || (entity?.unitNumber ? `Unit ${entity.unitNumber}` : entity?.name) || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || (entity?.unitNumber ? `Unit ${entity.unitNumber}` : entity?.name) || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
+        title={`${config.entityName || (entity?.unit_number || entity?.unitNumber ? `Unit ${entity.unit_number || entity.unitNumber}` : entity?.name) || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || (entity?.unit_number || entity?.unitNumber ? `Unit ${entity.unit_number || entity.unitNumber}` : entity?.name) || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
