@@ -82,9 +82,11 @@ interface DocumentManagerConfig {
   entityName?: string;
   entityAddress?: string;
   userRole: 'manager' | 'resident';
-  allowUpload: boolean;
-  allowEdit: boolean;
-  allowDelete: boolean;
+  allowCreate?: boolean;
+  allowEdit?: boolean;
+  allowDelete?: boolean;
+  allowUpload?: boolean;
+  showVisibilityToggle?: boolean;
 }
 
 const createDocumentSchema = (type: 'building' | 'residence') => {
@@ -157,7 +159,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     enabled: !!config.entityId,
   });
 
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey,
     enabled: !!config.entityId,
   });
@@ -404,7 +406,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
             </div>
 
             {/* Upload Button */}
-            {config.allowUpload && (
+            {(config.allowUpload || config.allowCreate) && (
               <div className='flex justify-between items-center'>
                 <div></div>
                 <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
@@ -612,7 +614,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       </Button>
                                     </>
                                   )}
-                                  {config.allowEdit && (
+                                  {(config.allowEdit) && (
                                     <Button
                                       size='sm'
                                       variant='ghost'
@@ -627,7 +629,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       <Edit className='h-3 w-3' />
                                     </Button>
                                   )}
-                                  {config.allowDelete && (
+                                  {(config.allowDelete) && (
                                     <Button
                                       size='sm'
                                       variant='ghost'
@@ -746,7 +748,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   <Download className='w-4 h-4 mr-2' />
                   Download
                 </Button>
-                {config.allowEdit && (
+                {(config.allowEdit) && (
                   <Button
                     variant='outline'
                     onClick={() => {
@@ -757,7 +759,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     Edit
                   </Button>
                 )}
-                {config.allowDelete && (
+                {(config.allowDelete) && (
                   <Button
                     variant='outline'
                     onClick={() => {
