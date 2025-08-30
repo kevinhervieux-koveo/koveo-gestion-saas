@@ -347,13 +347,16 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       if (!config.entityId) {
         return { documents: [] };
       }
-      return await apiRequest('GET', `/api/documents?${queryParam}`);
+      const response = await apiRequest('GET', `/api/documents?${queryParam}`);
+      return response as { documents: Document[] };
     },
     enabled: !!config.entityId,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch to ensure we get the latest data
   });
 
   // Extract documents array from response
-  const documents = Array.isArray(documentsResponse?.documents) ? documentsResponse.documents : [];
+  const documents = documentsResponse?.documents || [];
 
   // Calculate available years
   const availableYears = useMemo(() => {
@@ -588,8 +591,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.entityName || entity?.name || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || entity?.name || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
+        title={`${config.entityName || entity?.unitNumber ? `Unit ${entity.unitNumber}` : entity?.name || (config.type === 'residence' ? 'Residence' : 'Building')} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.entityName || entity?.unitNumber ? `Unit ${entity.unitNumber}` : entity?.name || `this ${config.type}`}${config.entityAddress || entity?.address ? ` - ${config.entityAddress || entity?.address}` : ''}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
