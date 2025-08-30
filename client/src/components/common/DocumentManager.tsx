@@ -57,6 +57,7 @@ import {
   RESIDENCE_DOCUMENT_CATEGORIES,
   getCategoryLabel,
 } from '@/lib/documents';
+import TextFileEditor from './TextFileEditor';
 
 // Common document interface
 /**
@@ -295,7 +296,11 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [createMode, setCreateMode] = useState<'upload' | 'text'>('upload');
+  const [textContent, setTextContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isTextEditorOpen, setIsTextEditorOpen] = useState(false);
+  const [textEditorDocument, setTextEditorDocument] = useState<Document | null>(null);
   const itemsPerPage = 12;
 
   // Get document categories and form schema
@@ -388,9 +393,13 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
   // Mutations
   const createDocumentMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Check if file is selected
+      // Check if file is selected or text content is provided
       if (!selectedFile) {
-        throw new Error('Please select a file to upload');
+        if (createMode === 'text') {
+          throw new Error('Text content is required');
+        } else {
+          throw new Error('Please select a file to upload');
+        }
       }
 
       // Create FormData object
@@ -427,6 +436,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
       queryClient.invalidateQueries({ queryKey });
       setIsCreateDialogOpen(false);
       setSelectedFile(null);
+      setCreateMode('upload');
+      setTextContent('');
       form.reset();
       toast({
         title: 'Success',
@@ -462,7 +473,29 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
 
   // Event handlers
   const handleCreateDocument = async (data: any) => {
-    createDocumentMutation.mutate(data);
+    if (createMode === 'text') {
+      // Create a text file from content
+      if (!textContent.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Please enter some text content',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Create text file blob
+      const blob = new Blob([textContent], { type: 'text/plain' });
+      const fileName = `${data.name}.txt`;
+      const textFile = new File([blob], fileName, { type: 'text/plain' });
+      setSelectedFile(textFile);
+      
+      // Use the existing upload mutation
+      createDocumentMutation.mutate(data);
+    } else {
+      // Regular file upload or document creation
+      createDocumentMutation.mutate(data);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -478,9 +511,25 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
     }
   };
 
+  const isTextFile = (document: Document) => {
+    if (document.mimeType) {
+      return document.mimeType.startsWith('text/') || document.mimeType === 'application/json';
+    }
+    if (document.fileName) {
+      const ext = document.fileName.toLowerCase().split('.').pop();
+      return ['txt', 'text', 'json', 'md', 'csv', 'log'].includes(ext || '');
+    }
+    return false;
+  };
+
   const handleViewDocument = (document: Document) => {
     if (document.fileUrl) {
-      window.open(getDisplayableFileUrl(document.fileUrl), '_blank');
+      if (isTextFile(document)) {
+        setTextEditorDocument(document);
+        setIsTextEditorOpen(true);
+      } else {
+        window.open(getDisplayableFileUrl(document.fileUrl), '_blank');
+      }
     }
   };
 
@@ -678,22 +727,66 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                           )}
                         />
 
-                        {/* File Upload Field */}
-                        <div className='space-y-2'>
-                          <Label htmlFor='file-upload'>Select File to Upload</Label>
-                          <Input
-                            id='file-upload'
-                            type='file'
-                            onChange={handleFileChange}
-                            accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff'
-                            data-testid='input-file-upload'
-                          />
-                          {selectedFile && (
-                            <div className='text-sm text-gray-600 mt-1'>
-                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
-                            </div>
-                          )}
+                        {/* Creation Mode Selection */}
+                        <div className='space-y-3'>
+                          <Label>Document Creation Method</Label>
+                          <div className='flex gap-4'>
+                            <label className='flex items-center space-x-2 cursor-pointer'>
+                              <input
+                                type='radio'
+                                value='upload'
+                                checked={createMode === 'upload'}
+                                onChange={(e) => setCreateMode(e.target.value as 'upload' | 'text')}
+                                data-testid='radio-upload-mode'
+                              />
+                              <span>Upload File</span>
+                            </label>
+                            <label className='flex items-center space-x-2 cursor-pointer'>
+                              <input
+                                type='radio'
+                                value='text'
+                                checked={createMode === 'text'}
+                                onChange={(e) => setCreateMode(e.target.value as 'upload' | 'text')}
+                                data-testid='radio-text-mode'
+                              />
+                              <span>Create Text File</span>
+                            </label>
+                          </div>
                         </div>
+
+                        {/* File Upload Field */}
+                        {createMode === 'upload' && (
+                          <div className='space-y-2'>
+                            <Label htmlFor='file-upload'>Select File to Upload</Label>
+                            <Input
+                              id='file-upload'
+                              type='file'
+                              onChange={handleFileChange}
+                              accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff'
+                              data-testid='input-file-upload'
+                            />
+                            {selectedFile && (
+                              <div className='text-sm text-gray-600 mt-1'>
+                                Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Text Content Field */}
+                        {createMode === 'text' && (
+                          <div className='space-y-2'>
+                            <Label htmlFor='text-content'>Text Content</Label>
+                            <textarea
+                              id='text-content'
+                              value={textContent}
+                              onChange={(e) => setTextContent(e.target.value)}
+                              placeholder='Enter your text content here...'
+                              className='w-full min-h-32 p-3 border border-gray-300 rounded-md font-mono text-sm'
+                              data-testid='textarea-text-content'
+                            />
+                          </div>
+                        )}
 
                         {config.showVisibilityToggle && (
                           <FormField
@@ -728,6 +821,8 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                             onClick={() => {
                               setIsCreateDialogOpen(false);
                               setSelectedFile(null);
+                              setCreateMode('upload');
+                              setTextContent('');
                               form.reset();
                             }}
                             disabled={createDocumentMutation.isPending}
@@ -741,8 +836,10 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
                             data-testid='button-create-document'
                           >
                             {createDocumentMutation.isPending
-                              ? 'Uploading...'
-                              : 'Upload Document'}
+                              ? 'Creating...'
+                              : createMode === 'text' 
+                                ? 'Create Text File' 
+                                : 'Upload Document'}
                           </Button>
                         </DialogFooter>
                       </form>
@@ -1028,6 +1125,24 @@ export default function DocumentManager({ config }: DocumentManagerProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Text File Editor */}
+      {textEditorDocument && (
+        <TextFileEditor
+          document={textEditorDocument}
+          isOpen={isTextEditorOpen}
+          onClose={() => {
+            setIsTextEditorOpen(false);
+            setTextEditorDocument(null);
+          }}
+          onSave={(updatedDocument) => {
+            queryClient.invalidateQueries({ queryKey });
+            setIsTextEditorOpen(false);
+            setTextEditorDocument(null);
+          }}
+          readOnly={!config.allowEdit}
+        />
+      )}
     </div>
   );
 }
