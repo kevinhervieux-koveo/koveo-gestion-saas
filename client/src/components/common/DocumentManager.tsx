@@ -159,46 +159,26 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     enabled: !!config.entityId,
   });
 
-  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = useQuery<Document[]>({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey,
     enabled: !!config.entityId,
     queryFn: async () => {
-      console.log('🔍 Making API call to:', queryKey[0]);
       const response = await fetch(queryKey[0], {
         credentials: 'include',
       });
       
       if (!response.ok) {
-        console.error('🔍 API call failed:', response.status, response.statusText);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('🔍 API response received:', data);
       // The API returns {documents: Array, total: number, ...} but we need just the documents array
       return data.documents || [];
     },
   });
 
-  // Debug: Log what we're getting from the API
-  console.log('🔍 DocumentManager DEBUG:', {
-    queryKey,
-    documents,
-    documentsType: typeof documents,
-    isArray: Array.isArray(documents),
-    length: documents?.length,
-    isLoading: documentsLoading,
-    entityId: config.entityId
-  });
-
-
   // Filter and group documents
   const filteredDocuments = useMemo(() => {
-    // Ensure documents is an array before filtering
-    if (!documents || !Array.isArray(documents)) {
-      console.log('🔍 DocumentManager: Documents is not an array:', documents);
-      return [];
-    }
     
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
