@@ -235,16 +235,24 @@ async function loadFullApplication(): Promise<void> {
     // Load API routes FIRST to ensure they have priority over static files  
     log('📥 Setting up essential API routes...');
     
-    // Set up minimal API routes without the complex routes-minimal import
-    app.get('/api/health', (req, res) => {
-      res.json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-    
-    app.post('/api/test', (req, res) => {
-      res.json({ message: 'API working', body: req.body });
-    });
-    
-    log('✅ Essential API routes loaded (minimal setup)');
+    // Load full routes including authentication routes
+    try {
+      const { registerRoutes } = await import('./routes-minimal.js');
+      await registerRoutes(app);
+      log('✅ Full application routes loaded including authentication');
+    } catch (routesError: any) {
+      log(`❌ Failed to load full routes: ${routesError.message}`, 'error');
+      // Fallback to minimal API routes
+      app.get('/api/health', (req, res) => {
+        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+      });
+      
+      app.post('/api/test', (req, res) => {
+        res.json({ message: 'API working', body: req.body });
+      });
+      
+      log('✅ Essential API routes loaded (minimal setup)');
+    }
 
     // Setup frontend serving AFTER API routes are registered
     // Use production serving when NODE_ENV=production and we have a built dist directory
