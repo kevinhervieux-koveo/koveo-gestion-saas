@@ -34,4 +34,4 @@ const config = {
   }
 };
 
-module.exports = { config };
+export { config };

@@ -6,6 +6,7 @@ import express from 'express';
 import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
+import { registerRoutes } from './routes.js';
 
 const app = express();
 // Configure port - always use environment PORT or fallback to 5000
@@ -244,7 +245,6 @@ async function loadFullApplication(): Promise<void> {
     
     // Load full routes including authentication routes
     try {
-      const { registerRoutes } = await import('./routes.ts');
       await registerRoutes(app);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
@@ -265,8 +265,8 @@ async function loadFullApplication(): Promise<void> {
     // Use production serving when NODE_ENV=production and we have a built dist directory
     // Or when explicitly forced with FORCE_PRODUCTION_SERVE
     const fs = await import('fs');
-    const path = await import('path');
-    const hasProductionBuild = fs.existsSync(path.resolve(process.cwd(), 'dist', 'public'));
+    const pathModule = await import('path');
+    const hasProductionBuild = fs.existsSync(pathModule.resolve(process.cwd(), 'dist', 'public'));
     const isActualProduction =
       process.env.NODE_ENV === 'production' &&
       (hasProductionBuild || process.env.FORCE_PRODUCTION_SERVE === 'true');
@@ -291,10 +291,7 @@ async function loadFullApplication(): Promise<void> {
       log('🔄 Setting up production static file serving (deployment detected)...');
 
       // Use production server logic which handles API routes correctly
-      const path = await import('path');
-      const fs = await import('fs');
-
-      const distPath = path.resolve(process.cwd(), 'dist', 'public');
+      const distPath = pathModule.resolve(process.cwd(), 'dist', 'public');
 
       if (!fs.existsSync(distPath)) {
         log(`⚠️ Build directory not found at: ${distPath}`, 'error');
