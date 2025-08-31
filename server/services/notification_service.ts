@@ -55,11 +55,11 @@ export class NotificationService {
       // Create notifications for all administrators
       const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
-        type: 'system',
+        type: 'system' as const,
         title,
         message,
         relatedEntityId: null, // Could be SSL certificate ID if needed
-        relatedEntityType: 'ssl_certificate',
+        relatedEntityType: 'system',
       }));
 
       await db.insert(notifications).values(notificationInserts);
@@ -67,10 +67,10 @@ export class NotificationService {
       console.warn(
         `SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`
       );
-    } catch (_error) {
-      console.error('Failed to send SSL expiry notification:', _error);
+    } catch (error) {
+      console.error('Failed to send SSL expiry notification:', error);
       throw new Error(
-        `Failed to send SSL expiry notification: ${_error instanceof Error ? _error.message : 'Unknown error'}`
+        `Failed to send SSL expiry notification: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -113,11 +113,11 @@ export class NotificationService {
 
       const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
-        type: 'system',
+        type: 'system' as const,
         title,
         message,
         relatedEntityId: null,
-        relatedEntityType: 'ssl_certificate',
+        relatedEntityType: 'system',
       }));
 
       await db.insert(notifications).values(notificationInserts);
@@ -177,11 +177,11 @@ export class NotificationService {
 
       const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
-        type: 'system',
+        type: 'system' as const,
         title,
         message,
         relatedEntityId: null,
-        relatedEntityType: 'ssl_certificate',
+        relatedEntityType: 'system',
       }));
 
       await db.insert(notifications).values(notificationInserts);

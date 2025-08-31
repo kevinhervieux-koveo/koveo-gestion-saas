@@ -34,6 +34,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
+import type { Building as BuildingType, Residence } from '@shared/schemas/property';
 import {
   Upload,
   Download,
@@ -90,7 +91,8 @@ interface DocumentManagerConfig {
 }
 
 const createDocumentSchema = (type: 'building' | 'residence') => {
-  const documentCategories = type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
+  const documentCategories =
+    type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
   const validTypes = documentCategories.map((cat) => cat._value);
 
   const baseSchema = {
@@ -133,7 +135,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
 
   const itemsPerPage = 12;
   const documentSchema = createDocumentSchema(config.type);
-  const documentCategories = config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
+  const documentCategories =
+    config.type === 'building' ? BUILDING_DOCUMENT_CATEGORIES : RESIDENCE_DOCUMENT_CATEGORIES;
 
   // Form setup
   const form = useForm({
@@ -150,12 +153,16 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
   });
 
   // API queries and mutations
-  const queryKey = config.type === 'building' 
-    ? [`/api/documents?buildingId=${config.entityId}`]
-    : [`/api/documents?residenceId=${config.entityId}`];
+  const queryKey =
+    config.type === 'building'
+      ? [`/api/documents?buildingId=${config.entityId}`]
+      : [`/api/documents?residenceId=${config.entityId}`];
 
-  const { data: entity } = useQuery({
-    queryKey: config.type === 'building' ? ['/api/manager/buildings', config.entityId] : ['/api/residences', config.entityId],
+  const { data: entity } = useQuery<BuildingType | Residence>({
+    queryKey:
+      config.type === 'building'
+        ? ['/api/manager/buildings', config.entityId]
+        : ['/api/residences', config.entityId],
     enabled: !!config.entityId,
   });
 
@@ -166,11 +173,11 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
       const response = await fetch(queryKey[0], {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       // The API returns {documents: Array, total: number, ...} but we need just the documents array
       return data.documents || [];
@@ -179,7 +186,6 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
 
   // Filter and group documents
   const filteredDocuments = useMemo(() => {
-    
     const filtered = documents.filter((doc: Document) => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.documentType === selectedCategory;
@@ -369,8 +375,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`${config.type === 'building' ? (entity?.name || 'Building') : (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : 'Residence')} Documents`}
-        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.type === 'building' ? (entity?.name || 'this building') : (entity?.unitNumber || entity?.unit_number ? `Unit ${entity?.unitNumber || entity?.unit_number}` : 'this residence')}`}
+        title={`${config.type === 'building' ? (entity as BuildingType)?.name || 'Building' : (entity as Residence)?.unitNumber ? `Unit ${(entity as Residence).unitNumber}` : 'Residence'} Documents`}
+        subtitle={`${config.userRole === 'manager' ? 'Manage' : 'View'} documents for ${config.type === 'building' ? (entity as BuildingType)?.name || 'this building' : (entity as Residence)?.unitNumber ? `Unit ${(entity as Residence).unitNumber}` : 'this residence'}`}
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -432,11 +438,15 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     <DialogHeader>
                       <DialogTitle>Create New Document</DialogTitle>
                       <DialogDescription>
-                        Add a new document to this {config.type}. You can attach a file or create a document entry only.
+                        Add a new document to this {config.type}. You can attach a file or create a
+                        document entry only.
                       </DialogDescription>
                     </DialogHeader>
                     <Form {...form}>
-                      <form onSubmit={form.handleSubmit(handleCreateDocument)} className='space-y-4'>
+                      <form
+                        onSubmit={form.handleSubmit(handleCreateDocument)}
+                        className='space-y-4'
+                      >
                         <FormField
                           control={form.control}
                           name='name'
@@ -501,7 +511,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                           />
                           {selectedFile && (
                             <p className='text-sm text-gray-500 mt-1'>
-                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}{' '}
+                              KB)
                             </p>
                           )}
                         </div>
@@ -537,7 +548,11 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                           >
                             Cancel
                           </Button>
-                          <Button type='submit' disabled={uploadMutation.isPending} data-testid='button-create'>
+                          <Button
+                            type='submit'
+                            disabled={uploadMutation.isPending}
+                            data-testid='button-create'
+                          >
                             {uploadMutation.isPending ? 'Uploading...' : 'Create'}
                           </Button>
                         </DialogFooter>
@@ -626,7 +641,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       </Button>
                                     </>
                                   )}
-                                  {(config.allowEdit) && (
+                                  {config.allowEdit && (
                                     <Button
                                       size='sm'
                                       variant='ghost'
@@ -641,7 +656,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       <Edit className='h-3 w-3' />
                                     </Button>
                                   )}
-                                  {(config.allowDelete) && (
+                                  {config.allowDelete && (
                                     <Button
                                       size='sm'
                                       variant='ghost'
@@ -713,8 +728,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     'Unknown'}
                 </div>
                 <div>
-                  <strong>Date:</strong>{' '}
-                  {formatDate(selectedDocument.createdAt)}
+                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt)}
                 </div>
                 {selectedDocument.fileSize && (
                   <div>
@@ -760,7 +774,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   <Download className='w-4 h-4 mr-2' />
                   Download
                 </Button>
-                {(config.allowEdit) && (
+                {config.allowEdit && (
                   <Button
                     variant='outline'
                     onClick={() => {
@@ -771,7 +785,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     Edit
                   </Button>
                 )}
-                {(config.allowDelete) && (
+                {config.allowDelete && (
                   <Button
                     variant='outline'
                     onClick={() => {

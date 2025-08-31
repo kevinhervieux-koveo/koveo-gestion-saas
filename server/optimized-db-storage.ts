@@ -57,7 +57,6 @@ import { exists, sql as sqlOp } from 'drizzle-orm';
  * Enhanced database storage with built-in caching and performance monitoring.
  */
 export class OptimizedDatabaseStorage implements IStorage {
-
   /**
    *
    */

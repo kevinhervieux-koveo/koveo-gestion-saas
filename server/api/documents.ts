@@ -174,7 +174,7 @@ export function registerDocumentRoutes(app: Express): void {
       if (specificResidenceId) {
         filters.residenceId = specificResidenceId;
       }
-      
+
       // Filter by specific building if provided
       if (specificBuildingId) {
         filters.buildingId = specificBuildingId;
@@ -191,14 +191,14 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       const documents = await storage.getDocuments(filters);
-      
+
       // Debug logging
       console.log('🔍 [DOCUMENTS API DEBUG]:', {
         filters,
         documentsFound: documents?.length || 0,
         specificResidenceId,
         userRole,
-        userId
+        userId,
       });
 
       // Apply role-based filtering with tenant visibility rules
@@ -209,7 +209,7 @@ export function registerDocumentRoutes(app: Express): void {
             return false;
           }
         }
-        
+
         // Admin can see all documents
         if (userRole === 'admin') {
           return true;

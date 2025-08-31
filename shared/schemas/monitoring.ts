@@ -183,7 +183,20 @@ export const qualityIssues = pgTable('quality_issues', {
 
 // Insert schemas
 export const insertMetricEffectivenessTrackingSchema = z.object({
-  metricType: z.string(),
+  metricType: z.enum([
+    'code_coverage',
+    'code_quality',
+    'security_vulnerabilities',
+    'build_time',
+    'translation_coverage',
+    'api_response_time',
+    'deployment_success_rate',
+    'user_satisfaction',
+    'performance_score',
+    'test_reliability',
+    'quebec_compliance_score',
+    'maintenance_productivity',
+  ]),
   calculatedValue: z.number(),
   actualOutcome: z.number(),
   accuracy: z.number(),
@@ -198,7 +211,20 @@ export const insertMetricEffectivenessTrackingSchema = z.object({
 });
 
 export const insertMetricPredictionSchema = z.object({
-  metricType: z.string(),
+  metricType: z.enum([
+    'code_coverage',
+    'code_quality',
+    'security_vulnerabilities',
+    'build_time',
+    'translation_coverage',
+    'api_response_time',
+    'deployment_success_rate',
+    'user_satisfaction',
+    'performance_score',
+    'test_reliability',
+    'quebec_compliance_score',
+    'maintenance_productivity',
+  ]),
   predictedValue: z.number(),
   confidenceLevel: z.number(),
   thresholdUsed: z.number(),
@@ -213,7 +239,7 @@ export const insertMetricPredictionSchema = z.object({
 
 export const insertPredictionValidationSchema = z.object({
   predictionId: z.string().uuid(),
-  validationStatus: z.string(),
+  validationStatus: z.enum(['validated', 'failed', 'partially_validated', 'needs_review']),
   actualOutcome: z.number(),
   validationMethod: z.string(),
   validatorId: z.string().uuid().optional(),

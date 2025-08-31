@@ -293,7 +293,7 @@ export const insertMaintenanceRequestSchema = z.object({
 
 export const insertNotificationSchema = z.object({
   userId: z.string().uuid(),
-  type: z.string(),
+  type: z.enum(['bill_reminder', 'maintenance_update', 'announcement', 'system', 'emergency']),
   title: z.string(),
   message: z.string(),
   relatedEntityId: z.string().uuid().optional(),
