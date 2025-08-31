@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, count, sql, inArray } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, inArray } from 'drizzle-orm';
 // QueryOptimizer will be imported dynamically when needed
 import { queryCache, CacheInvalidator } from './query-cache';
 import * as schema from '@shared/schema';
@@ -460,28 +460,10 @@ export class DatabaseStorage implements IStorage {
    * @returns Promise that resolves to array of full residence objects with building information.
    */
   // getUserResidences with caching
-  async getUserResidences(userId: string): Promise<Residence[]> {
+  async getUserResidences(userId: string): Promise<Array<{ residenceId: string }>> {
     const result = await db
       .select({
-        id: schema.residences.id,
-        unitNumber: schema.residences.unitNumber,
-        floor: schema.residences.floor,
-        squareFootage: schema.residences.squareFootage,
-        bedrooms: schema.residences.bedrooms,
-        bathrooms: schema.residences.bathrooms,
-        balcony: schema.residences.balcony,
-        parkingSpaceNumbers: schema.residences.parkingSpaceNumbers,
-        storageSpaceNumbers: schema.residences.storageSpaceNumbers,
-        isActive: schema.residences.isActive,
-        buildingId: schema.residences.buildingId,
-        building: {
-          id: schema.buildings.id,
-          name: schema.buildings.name,
-          address: schema.buildings.address,
-          city: schema.buildings.city,
-          province: schema.buildings.province,
-          postalCode: schema.buildings.postalCode,
-        },
+        residenceId: schema.residences.id,
       })
       .from(schema.userResidences)
       .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
@@ -963,5 +945,343 @@ export class DatabaseStorage implements IStorage {
   async deleteFeature(id: string): Promise<boolean> {
     const result = await db.delete(schema.features).where(eq(schema.features.id, id)).returning();
     return result.length > 0;
+  }
+
+  /**
+   * Get a specific feature by ID
+   */
+  async getFeature(id: string): Promise<Feature | undefined> {
+    const result = await db.select().from(schema.features).where(eq(schema.features.id, id));
+    return result[0];
+  }
+
+  // Permission operations
+  async getPermissions(): Promise<Permission[]> {
+    return await db.select().from(schema.permissions);
+  }
+
+  async getRolePermissions(): Promise<RolePermission[]> {
+    return await db.select().from(schema.rolePermissions);
+  }
+
+  async getUserPermissions(): Promise<UserPermission[]> {
+    return await db.select().from(schema.userPermissions);
+  }
+
+  // Contact operations
+  async getContacts(): Promise<Contact[]> {
+    return await db.select().from(schema.contacts);
+  }
+
+  async getContactsByEntity(
+    entityId: string,
+    entity: 'organization' | 'building' | 'residence'
+  ): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(schema.contacts)
+      .where(
+        and(
+          eq(schema.contacts.entityId, entityId),
+          eq(schema.contacts.entity, entity)
+        )
+      );
+  }
+
+  async getContactsForResidence(residenceId: string): Promise<Array<Contact & { user: User }>> {
+    const result = await db
+      .select({
+        id: schema.contacts.id,
+        entityId: schema.contacts.entityId,
+        entity: schema.contacts.entity,
+        category: schema.contacts.category,
+        userId: schema.contacts.userId,
+        firstName: schema.contacts.firstName,
+        lastName: schema.contacts.lastName,
+        email: schema.contacts.email,
+        phone: schema.contacts.phone,
+        isActive: schema.contacts.isActive,
+        createdAt: schema.contacts.createdAt,
+        updatedAt: schema.contacts.updatedAt,
+        user: {
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          lastLoginAt: schema.users.lastLoginAt,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt,
+        }
+      })
+      .from(schema.contacts)
+      .innerJoin(schema.users, eq(schema.contacts.userId, schema.users.id))
+      .where(eq(schema.contacts.entityId, residenceId));
+    
+    return result.map(row => ({
+      ...row,
+      user: row.user
+    })) as Array<Contact & { user: User }>;
+  }
+
+  async createContact(contact: InsertContact): Promise<Contact> {
+    const result = await db.insert(schema.contacts).values(contact).returning();
+    return result[0];
+  }
+
+  async updateContact(id: string, updates: Partial<Contact>): Promise<Contact | undefined> {
+    const result = await db
+      .update(schema.contacts)
+      .set(updates)
+      .where(eq(schema.contacts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteContact(id: string): Promise<boolean> {
+    const result = await db.delete(schema.contacts).where(eq(schema.contacts.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Document operations
+  async getDocuments(filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]> {
+    let query = db.select().from(schema.documents);
+    
+    if (filters) {
+      const conditions = [];
+      if (filters.buildingId) {
+        conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+      }
+      if (filters.residenceId) {
+        conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+      }
+      if (filters.documentType) {
+        conditions.push(eq(schema.documents.documentType, filters.documentType));
+      }
+      if (filters.userId) {
+        conditions.push(eq(schema.documents.userId, filters.userId));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query;
+  }
+
+  async getDocument(id: string): Promise<Document | undefined> {
+    const result = await db.select().from(schema.documents).where(eq(schema.documents.id, id));
+    return result[0];
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const result = await db.insert(schema.documents).values(document).returning();
+    return result[0];
+  }
+
+  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
+    const result = await db
+      .update(schema.documents)
+      .set(updates)
+      .where(eq(schema.documents.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDocument(id: string): Promise<boolean> {
+    const result = await db.delete(schema.documents).where(eq(schema.documents.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Actionable item operations
+  async getActionableItems(): Promise<ActionableItem[]> {
+    return await db.select().from(schema.actionableItems);
+  }
+
+  async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
+    const result = await db.insert(schema.actionableItems).values(item).returning();
+    return result[0];
+  }
+
+  async updateActionableItem(
+    id: string,
+    updates: Partial<ActionableItem>
+  ): Promise<ActionableItem | undefined> {
+    const result = await db
+      .update(schema.actionableItems)
+      .set(updates)
+      .where(eq(schema.actionableItems.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteActionableItem(id: string): Promise<boolean> {
+    const result = await db.delete(schema.actionableItems).where(eq(schema.actionableItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Invitation operations
+  async getInvitations(): Promise<Invitation[]> {
+    return await db.select().from(schema.invitations);
+  }
+
+  async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
+    const result = await db.insert(schema.invitations).values(invitation).returning();
+    return result[0];
+  }
+
+  async getInvitationByToken(token: string): Promise<Invitation | undefined> {
+    const result = await db
+      .select()
+      .from(schema.invitations)
+      .where(eq(schema.invitations.token, token));
+    return result[0];
+  }
+
+  async updateInvitation(id: string, updates: Partial<Invitation>): Promise<Invitation | undefined> {
+    const result = await db
+      .update(schema.invitations)
+      .set(updates)
+      .where(eq(schema.invitations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> {
+    return await db.select().from(schema.invitationAuditLogs);
+  }
+
+  async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
+    const result = await db.insert(schema.invitationAuditLogs).values(log).returning();
+    return result[0];
+  }
+
+  // Demand comment operations
+  async getCommentsByDemand(demandId: string): Promise<DemandComment[]> {
+    return await db
+      .select()
+      .from(schema.demandComments)
+      .where(eq(schema.demandComments.demandId, demandId));
+  }
+
+  async createDemandComment(comment: InsertDemandComment): Promise<DemandComment> {
+    const result = await db.insert(schema.demandComments).values(comment).returning();
+    return result[0];
+  }
+
+  // Bug operations
+  async getBugs(): Promise<Bug[]> {
+    return await db.select().from(schema.bugs);
+  }
+
+  async getBug(id: string): Promise<Bug | undefined> {
+    const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+    return result[0];
+  }
+
+  async createBug(bug: InsertBug): Promise<Bug> {
+    const result = await db.insert(schema.bugs).values(bug).returning();
+    return result[0];
+  }
+
+  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+    const result = await db
+      .update(schema.bugs)
+      .set(updates)
+      .where(eq(schema.bugs.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Feature request operations
+  async getFeatureRequests(): Promise<FeatureRequest[]> {
+    return await db.select().from(schema.featureRequests);
+  }
+
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
+    const result = await db.select().from(schema.featureRequests).where(eq(schema.featureRequests.id, id));
+    return result[0];
+  }
+
+  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
+    const result = await db.insert(schema.featureRequests).values(request).returning();
+    return result[0];
+  }
+
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>
+  ): Promise<FeatureRequest | undefined> {
+    const result = await db
+      .update(schema.featureRequests)
+      .set(updates)
+      .where(eq(schema.featureRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async addFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      const result = await db.insert(schema.featureRequestUpvotes).values({
+        featureRequestId,
+        userId,
+      }).returning();
+      
+      return {
+        success: true,
+        message: 'Upvote added successfully',
+        data: result[0]
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to add upvote',
+        data: error
+      };
+    }
+  }
+
+  async removeFeatureRequestUpvote(
+    featureRequestId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      const result = await db
+        .delete(schema.featureRequestUpvotes)
+        .where(
+          and(
+            eq(schema.featureRequestUpvotes.featureRequestId, featureRequestId),
+            eq(schema.featureRequestUpvotes.userId, userId)
+          )
+        )
+        .returning();
+      
+      return {
+        success: true,
+        message: 'Upvote removed successfully',
+        data: result[0]
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to remove upvote',
+        data: error
+      };
+    }
   }
 }
