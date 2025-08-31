@@ -396,6 +396,14 @@ export class MemStorage implements IStorage {
       bankAccountNumber: building.bankAccountNumber || '',
       bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : '',
       bankAccountUpdatedAt: new Date(),
+      inflationSettings: '',
+      parkingSpaces: building.parkingSpaces || 0,
+      storageSpaces: building.storageSpaces || 0,
+      amenities: building.amenities || null,
+      managementCompany: building.managementCompany || null,
+      bankAccountNotes: null,
+      bankAccountStartDate: null,
+      bankAccountStartAmount: null,
     };
     this.buildings.set(id, newBuilding);
     return newBuilding;
@@ -435,6 +443,7 @@ export class MemStorage implements IStorage {
       balcony: residence.balcony || false,
       parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
       storageSpaceNumbers: residence.storageSpaceNumbers || [],
+      ownershipPercentage: residence.ownershipPercentage?.toString() || '0',
       monthlyFees: residence.monthlyFees?.toString() || '0',
     };
     this.residences.set(id, newResidence);
@@ -595,8 +604,7 @@ export class MemStorage implements IStorage {
     const newMetric: QualityMetric = {
       ...metric,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      timestamp: new Date(),
     };
     this.qualityMetrics.set(id, newMetric);
     return newMetric;
@@ -612,6 +620,7 @@ export class MemStorage implements IStorage {
     const newConfig: FrameworkConfiguration = {
       ...config,
       id,
+      description: config.description || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -639,6 +648,7 @@ export class MemStorage implements IStorage {
     const newSuggestion: ImprovementSuggestion = {
       ...suggestion,
       id,
+      status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
       createdAt: new Date(),
       updatedAt: new Date(),
       acknowledgedAt: null,
@@ -678,9 +688,8 @@ export class MemStorage implements IStorage {
       targetUsers: feature.targetUsers || '',
       successMetrics: feature.successMetrics || '',
       technicalComplexity: feature.technicalComplexity || '',
-      dependencies: feature.dependencies || [],
+      dependencies: feature.dependencies?.join(',') || '',
       userFlow: feature.userFlow || '',
-      isPublicRoadmap: feature.isPublicRoadmap || false,
       upvoteCount: 0,
       startDate: null,
       completedDate: null,
@@ -710,7 +719,6 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
       estimatedHours: item.estimatedHours || 0,
-      priority: item.priority || 'medium',
       dependencies: item.dependencies || [],
       completedAt: null,
       startedAt: null,
@@ -740,13 +748,19 @@ export class MemStorage implements IStorage {
     const newInvitation: Invitation = {
       ...invitation,
       id,
+      token: randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      buildingId: invitation.buildingId || '',
-      personalMessage: invitation.personalMessage || '',
-      invitationContext: invitation.invitationContext || '',
-      securityLevel: invitation.securityLevel || '',
-      isRevocable: invitation.isRevocable || true,
+      status: 'pending',
+      ipAddress: '',
+      userAgent: '',
+      isUsed: false,
+      usedAt: null,
+      createdByUserId: invitation.invitedByUserId,
+      acceptedByUserId: null,
+      acceptedAt: null,
+      revokedAt: null,
+      revokedByUserId: null,
       lastAccessedAt: null,
     };
     this.invitations.set(id, newInvitation);
@@ -771,7 +785,16 @@ export class MemStorage implements IStorage {
   }
   async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
     const id = randomUUID();
-    const newLog: InvitationAuditLog = { ...log, id, createdAt: new Date() };
+    const newLog: InvitationAuditLog = { 
+      ...log, 
+      id, 
+      createdAt: new Date(),
+      ipAddress: log.ipAddress || '',
+      userAgent: log.userAgent || '',
+      details: log.details || {},
+      previousStatus: log.previousStatus || 'pending',
+      newStatus: log.newStatus || 'pending'
+    };
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
   }
@@ -785,7 +808,7 @@ export class MemStorage implements IStorage {
       ...comment,
       id,
       createdAt: new Date(),
-      orderIndex: comment.orderIndex?.toString() || '0',
+      updatedAt: new Date(),
     };
   }
 
@@ -800,6 +823,7 @@ export class MemStorage implements IStorage {
     const newBug: Bug = {
       ...bug,
       id,
+      status: 'new',
       createdAt: new Date(),
       updatedAt: new Date(),
       reproductionSteps: bug.reproductionSteps || '',
@@ -807,6 +831,7 @@ export class MemStorage implements IStorage {
       resolvedAt: null,
       resolvedBy: null,
       notes: null,
+      environment: bug.environment || '',
     };
     this.bugs.set(id, newBug);
     return newBug;
@@ -830,9 +855,15 @@ export class MemStorage implements IStorage {
     const newRequest: FeatureRequest = {
       ...request,
       id,
+      status: 'submitted',
       createdAt: new Date(),
       updatedAt: new Date(),
       upvoteCount: 0,
+      assignedTo: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      estimatedHours: null,
+      mergedIntoId: null,
     };
     this.featureRequests.set(id, newRequest);
     return newRequest;
