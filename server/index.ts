@@ -78,26 +78,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Static file serving for production
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from dist/public directory
-  app.use(express.static('dist/public', {
-    index: 'index.html',
-    dotfiles: 'deny',
-    maxAge: '1d'
-  }));
-  
-  // Catch-all handler for SPA routing - must be after API routes
-  app.get('*', (req, res) => {
-    // Don't intercept API calls
-    if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    
-    // Serve index.html for all other routes (SPA support)
-    res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
-  });
-}
+// Static file serving will be configured after API routes are loaded
 
 // Export app for testing
 export { app };
