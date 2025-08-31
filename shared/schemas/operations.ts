@@ -189,19 +189,21 @@ export const demands = pgTable('demands', {
  * Demand comments table for tracking communication on demands.
  * Supports threaded conversations on demand requests.
  */
-export const demandComments = pgTable('demand_comments', {
-  id: uuid('id')
+export const demandComments = pgTable('demands_comments', {
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   demandId: uuid('demand_id')
     .notNull()
     .references(() => demands.id),
-  orderIndex: decimal('order_index', { precision: 10, scale: 2 }).notNull(),
-  comment: text('comment').notNull(),
-  createdBy: uuid('created_by')
+  commenterId: text('commenter_id')
     .notNull()
     .references(() => users.id),
+  commentText: text('comment_text').notNull(),
+  commentType: text('comment_type'),
+  isInternal: boolean('is_internal').default(false),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 /**
@@ -317,12 +319,13 @@ export const insertDemandSchema = z.object({
 
 export const insertDemandCommentSchema = z.object({
   demandId: z.string().uuid(),
-  orderIndex: z.number().int(),
-  comment: z
+  commenterId: z.string().uuid(),
+  commentText: z
     .string()
     .min(1, 'Comment content is required')
     .max(1000, 'Comment must not exceed 1000 characters'),
-  createdBy: z.string().uuid(),
+  commentType: z.string().optional(),
+  isInternal: z.boolean().default(false),
 });
 
 export const insertBugSchema = z.object({

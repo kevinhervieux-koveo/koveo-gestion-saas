@@ -455,9 +455,10 @@ export function registerDemandRoutes(app: Express) {
         .select({
           id: demandComments.id,
           demandId: demandComments.demandId,
-          orderIndex: demandComments.orderIndex,
-          comment: demandComments.comment,
-          createdBy: demandComments.createdBy,
+          commentText: demandComments.commentText,
+          commentType: demandComments.commentType,
+          isInternal: demandComments.isInternal,
+          commenterId: demandComments.commenterId,
           createdAt: demandComments.createdAt,
           author: {
             id: users.id,
@@ -467,9 +468,9 @@ export function registerDemandRoutes(app: Express) {
           },
         })
         .from(demandComments)
-        .innerJoin(users, eq(demandComments.createdBy, users.id))
+        .innerJoin(users, eq(demandComments.commenterId, users.id))
         .where(eq(demandComments.demandId, id))
-        .orderBy(asc(demandComments.orderIndex), asc(demandComments.createdAt));
+        .orderBy(asc(demandComments.createdAt));
 
       res.json(comments);
     } catch (error: any) {
@@ -489,7 +490,7 @@ export function registerDemandRoutes(app: Express) {
       const validatedData = insertDemandCommentSchema.parse({
         ...commentData,
         demandId: id,
-        createdBy: user.id,
+        commenterId: user.id,
       });
 
       // Check if user has access to the demand (similar logic as above)
@@ -498,18 +499,6 @@ export function registerDemandRoutes(app: Express) {
       if (demand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
       }
-
-      // Get next order index
-      const lastComment = await db
-        .select({ orderIndex: demandComments.orderIndex })
-        .from(demandComments)
-        .where(eq(demandComments.demandId, id))
-        .orderBy(desc(demandComments.orderIndex))
-        .limit(1);
-
-      const nextOrderIndex = lastComment.length > 0 ? parseFloat(lastComment[0].orderIndex) + 1 : 1;
-
-      const orderIndex = nextOrderIndex;
 
       const newComment = await db.insert(demandComments).values(validatedData).returning();
 

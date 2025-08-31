@@ -270,36 +270,14 @@ async function loadFullApplication(): Promise<void> {
     );
 
     if (isViteDevMode) {
-      log('🔄 Setting up production build serving for development...');
+      log('🔄 Setting up Vite development server...');
       
       try {
-        log('📥 Importing express static...');
-        const express_static = (await import('express')).static;
-        log('📁 Importing path...');
-        const path = await import('path');
-        
-        log('🔍 Resolving dist path...');
-        const distPath = path.resolve(process.cwd(), 'dist', 'public');
-        log(`📍 Dist path resolved: ${distPath}`);
-        
-        log('🔗 Setting up static file serving...');
-        app.use(express_static(distPath));
-        log('✅ Static file serving configured');
-        
-        log('🔗 Setting up SPA fallback routing...');
-        app.get('*', (req, res, next) => {
-          // Skip API routes - let them be handled by API middleware
-          if (req.originalUrl.startsWith('/api/')) {
-            return next();
-          }
-          
-          res.sendFile(path.resolve(distPath, 'index.html'));
-        });
-        log('✅ SPA fallback routing configured');
-        
-        log('✅ Production build serving configured for development');
+        const { setupVite } = await import('./vite.js');
+        await setupVite(app, server);
+        log('✅ Vite development server configured');
       } catch (frontendError: any) {
-        log(`❌ Frontend serving setup failed: ${frontendError.message}`, 'error');
+        log(`❌ Vite setup failed: ${frontendError.message}`, 'error');
         throw frontendError;
       }
     } else {
