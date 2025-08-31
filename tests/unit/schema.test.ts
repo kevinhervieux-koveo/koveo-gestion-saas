@@ -11,10 +11,10 @@ describe('Schema Validation Tests', () => {
     const validUserData = {
       username: 'marie.tremblay',
       email: 'test@example.com',
-      password: 'password123',
+      password: 'Password123!',
       firstName: 'Marie',
       lastName: 'Tremblay',
-      phone: '+1-514-555-0123',
+      phone: '514-555-0123',
       language: 'fr',
       role: 'tenant' as const,
     };
@@ -31,7 +31,7 @@ describe('Schema Validation Tests', () => {
     });
 
     it('should require password with minimum 8 characters', () => {
-      const validData = { ...validUserData, password: 'validpass123' };
+      const validData = { ...validUserData, password: 'ValidPass123!' };
       const result = insertUserSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });

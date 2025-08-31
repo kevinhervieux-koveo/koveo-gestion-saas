@@ -1,5 +1,5 @@
 // Jest setup file - global test configuration
-// Note: @testing-library/jest-dom will be imported by individual test files if needed
+import '@testing-library/jest-dom';
 
 // Mock implementations for browser APIs
 (global as any).ResizeObserver = function () {

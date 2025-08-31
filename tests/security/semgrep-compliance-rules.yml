@@ -9,7 +9,7 @@ rules:
           user.consent.marketing = $BOOL
       - pattern: |
           consentForm.submit($DATA)
-    message: 'Consent tracking detected - ensure Law 25 compliance with granular consent options'
+    message: "Consent tracking detected - ensure Law 25 compliance with granular consent options"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -24,7 +24,7 @@ rules:
           router.delete("/api/user/delete-account", ...)
       - pattern: |
           router.put("/api/user/data-correction", ...)
-    message: 'Data subject rights endpoint - ensure full Law 25 compliance implementation'
+    message: "Data subject rights endpoint - ensure full Law 25 compliance implementation"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -39,7 +39,7 @@ rules:
           processSensitiveInformation($INFO)
       - pattern: |
           shareDataWithThirdParty($PARTY, $DATA)
-    message: 'High-risk data processing may require privacy impact assessment under Law 25'
+    message: "High-risk data processing may require privacy impact assessment under Law 25"
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -54,7 +54,7 @@ rules:
           "Privacy Policy"
       - pattern: |
           "Data Processing Agreement"
-    message: 'Legal documents must be available in French per Quebec Law 25'
+    message: "Legal documents must be available in French per Quebec Law 25"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -69,7 +69,7 @@ rules:
           notifySecurityIncident($INCIDENT)
       - pattern: |
           reportDataBreach($DETAILS)
-    message: 'Security incident logging - ensure Law 25 breach notification procedures'
+    message: "Security incident logging - ensure Law 25 breach notification procedures"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -85,7 +85,7 @@ rules:
           resident.privateData
       - pattern: |
           tenantProfile.sensitiveData
-    message: 'Tenant privacy data access - ensure proper authorization and Law 25 compliance'
+    message: "Tenant privacy data access - ensure proper authorization and Law 25 compliance"
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -100,7 +100,7 @@ rules:
           securitySystem.credentials
       - pattern: |
           buildingAccess.keyManagement
-    message: 'Building security data handling requires strict access controls'
+    message: "Building security data handling requires strict access controls"
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -115,7 +115,7 @@ rules:
           workOrder.accessInformation
       - pattern: |
           serviceCall.privateNotes
-    message: 'Maintenance data may contain private tenant information'
+    message: "Maintenance data may contain private tenant information"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -130,7 +130,7 @@ rules:
           billDocument.generate($DATA)
       - pattern: |
           paymentRecord.store($TRANSACTION)
-    message: 'Financial documents require encryption and access controls'
+    message: "Financial documents require encryption and access controls"
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -146,7 +146,7 @@ rules:
           // @ts-nocheck
       - pattern: |
           any
-    message: 'Avoid TypeScript strict mode bypasses for better type safety'
+    message: "Avoid TypeScript strict mode bypasses for better type safety"
     languages: [typescript]
     severity: INFO
     metadata:
@@ -165,7 +165,7 @@ rules:
           }
       - pattern: |
           .catch(() => {})
-    message: 'Improve error handling with proper error reporting and user feedback'
+    message: "Improve error handling with proper error reporting and user feedback"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -184,7 +184,7 @@ rules:
       router.$METHOD("$PATH", async (req, res) => {
         ...
       })
-    message: 'API endpoints should have JSDoc documentation'
+    message: "API endpoints should have JSDoc documentation"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -199,7 +199,7 @@ rules:
           console.error($MSG)
     pattern-not: |
       logger.$LEVEL($MSG)
-    message: 'Use structured logging instead of console.log for better monitoring'
+    message: "Use structured logging instead of console.log for better monitoring"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -215,7 +215,7 @@ rules:
           hasPermission($USER, $PERMISSION)
       - pattern: |
           authorizeAccess($USER, $RESOURCE)
-    message: 'RBAC implementation detected - ensure comprehensive permission checking'
+    message: "RBAC implementation detected - ensure comprehensive permission checking"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -230,7 +230,7 @@ rules:
           req.session.$PROPERTY = $VALUE
       - pattern: |
           sessionStore.set($ID, $DATA)
-    message: 'Session management operation - ensure secure session handling'
+    message: "Session management operation - ensure secure session handling"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -245,7 +245,7 @@ rules:
           createAuditEntry($EVENT)
       - pattern: |
           logUserAction($ACTION, $DETAILS)
-    message: 'Audit trail implementation - ensure comprehensive activity logging'
+    message: "Audit trail implementation - ensure comprehensive activity logging"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -261,7 +261,7 @@ rules:
           useLanguage()
       - pattern: |
           translations.fr[$KEY]
-    message: 'Translation usage detected - verify Quebec French completeness'
+    message: "Translation usage detected - verify Quebec French completeness"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -276,7 +276,7 @@ rules:
           currencyFormat($AMOUNT)
       - pattern: |
           addressFormat($ADDRESS)
-    message: 'Cultural adaptation point - ensure Quebec cultural preferences'
+    message: "Cultural adaptation point - ensure Quebec cultural preferences"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -293,7 +293,7 @@ rules:
           "postal_code"
       - pattern: |
           addressLine1
-    message: 'Address formatting - ensure Quebec postal code format (A1A 1A1)'
+    message: "Address formatting - ensure Quebec postal code format (A1A 1A1)"
     languages: [typescript, javascript]
     severity: INFO
     metadata:
