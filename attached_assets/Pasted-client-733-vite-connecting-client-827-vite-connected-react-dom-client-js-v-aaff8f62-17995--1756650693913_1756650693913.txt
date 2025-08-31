@@ -1,0 +1,520 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+react-dom_client.js?v=aaff8f62:17995 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+use-auth.tsx:63  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ use-auth.tsx:63
+fetchFn @ @tanstack_react-query.js?v=aaff8f62:852
+run @ @tanstack_react-query.js?v=aaff8f62:491
+start @ @tanstack_react-query.js?v=aaff8f62:533
+fetch @ @tanstack_react-query.js?v=aaff8f62:891
+#executeFetch @ @tanstack_react-query.js?v=aaff8f62:2047
+onSubscribe @ @tanstack_react-query.js?v=aaff8f62:1923
+subscribe @ @tanstack_react-query.js?v=aaff8f62:19
+(anonymous) @ @tanstack_react-query.js?v=aaff8f62:3089
+subscribeToStore @ react-dom_client.js?v=aaff8f62:4638
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17486
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+commitHookEffectListMount @ react-dom_client.js?v=aaff8f62:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=aaff8f62:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9899
+flushPassiveEffects @ react-dom_client.js?v=aaff8f62:11302
+flushPendingEffects @ react-dom_client.js?v=aaff8f62:11276
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11632
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+flushSpawnedWork @ react-dom_client.js?v=aaff8f62:11254
+commitRoot @ react-dom_client.js?v=aaff8f62:11081
+commitRootWhenReady @ react-dom_client.js?v=aaff8f62:10512
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10457
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<AuthProvider>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+App @ App.tsx:443
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ main.tsx:5
+use-auth.tsx:98 Session expired, redirecting to login page
+(anonymous) @ use-auth.tsx:98
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17486
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+commitHookEffectListMount @ react-dom_client.js?v=aaff8f62:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=aaff8f62:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=aaff8f62:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=aaff8f62:9899
+flushPassiveEffects @ react-dom_client.js?v=aaff8f62:11302
+flushPendingEffects @ react-dom_client.js?v=aaff8f62:11276
+flushSpawnedWork @ react-dom_client.js?v=aaff8f62:11250
+commitRoot @ react-dom_client.js?v=aaff8f62:11081
+commitRootWhenReady @ react-dom_client.js?v=aaff8f62:10512
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=aaff8f62:11558
+(anonymous) @ react-dom_client.js?v=aaff8f62:11649
+<AuthProvider>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+App @ App.tsx:443
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ main.tsx:5
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+login:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input data-replit-metadata=​"client/​src/​pages/​auth/​login.tsx:​447:​28" data-component-name=​"Input" class=​"flex w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:​border-0 file:​bg-transparent file:​text-sm file:​font-medium file:​text-foreground placeholder:​text-muted-foreground focus-visible:​outline-none focus-visible:​ring-2 focus-visible:​ring-ring focus-visible:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 md:​text-sm h-11 pr-10" placeholder=​"Votre mot de passe" data-testid=​"input-password" type=​"password" value name=​"password">​flex
+react-dom_client.js?v=aaff8f62:11645 [Violation] 'setTimeout' handler took 130ms
+react-dom_client.js?v=aaff8f62:11645 [Violation] 'setTimeout' handler took 59ms
+react-dom_client.js?v=aaff8f62:11645 [Violation] 'setTimeout' handler took 66ms
+[Violation] 'click' handler took 1364ms
+queryClient.ts:217 Mutation error: TypeError: Failed to execute 'fetch' on 'Window': '/api/documents/0a7a24fb-7ef5-42f8-800e-23a8905ce219' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:48:21)
+    at Object.mutationFn (DocumentManager.tsx:257:14)
+    at Object.fn (@tanstack_react-query.js?v=aaff8f62:1200:29)
+    at run (@tanstack_react-query.js?v=aaff8f62:491:49)
+    at Object.start (@tanstack_react-query.js?v=aaff8f62:533:9)
+    at Mutation.execute (@tanstack_react-query.js?v=aaff8f62:1235:40)
+    at async handleDeleteDocument (DocumentManager.tsx:284:7)
+onError @ queryClient.ts:217
+execute @ @tanstack_react-query.js?v=aaff8f62:1255
+await in execute
+mutate @ @tanstack_react-query.js?v=aaff8f62:2642
+handleDeleteDocument @ DocumentManager.tsx:284
+onClick @ DocumentManager.tsx:652
+executeDispatch @ react-dom_client.js?v=aaff8f62:11736
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+processDispatchQueue @ react-dom_client.js?v=aaff8f62:11772
+(anonymous) @ react-dom_client.js?v=aaff8f62:12182
+batchedUpdates$1 @ react-dom_client.js?v=aaff8f62:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=aaff8f62:11877
+dispatchEvent @ react-dom_client.js?v=aaff8f62:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=aaff8f62:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+_c @ button.tsx:45
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateForwardRef @ react-dom_client.js?v=aaff8f62:6461
+beginWork @ react-dom_client.js?v=aaff8f62:7864
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=aaff8f62:11558
+(anonymous) @ react-dom_client.js?v=aaff8f62:11649
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ DocumentManager.tsx:647
+(anonymous) @ DocumentManager.tsx:589
+DocumentManager @ DocumentManager.tsx:572
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=aaff8f62:11558
+(anonymous) @ react-dom_client.js?v=aaff8f62:11649
+<DocumentManager>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+ResidenceDocuments @ ResidenceDocuments.tsx:131
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7613
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<...>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+component @ App.tsx:366
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<component>
+exports.createElement @ chunk-BQYK6RGN.js?v=aaff8f62:776
+h_route @ wouter.js?v=aaff8f62:183
+Route @ wouter.js?v=aaff8f62:215
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+DocumentManager.tsx:286 Uncaught (in promise) TypeError: Failed to execute 'fetch' on 'Window': '/api/documents/0a7a24fb-7ef5-42f8-800e-23a8905ce219' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:48:21)
+    at Object.mutationFn (DocumentManager.tsx:257:14)
+    at Object.fn (@tanstack_react-query.js?v=aaff8f62:1200:29)
+    at run (@tanstack_react-query.js?v=aaff8f62:491:49)
+    at Object.start (@tanstack_react-query.js?v=aaff8f62:533:9)
+    at Mutation.execute (@tanstack_react-query.js?v=aaff8f62:1235:40)
+    at async handleDeleteDocument (DocumentManager.tsx:284:7)
+apiRequest @ queryClient.ts:48
+mutationFn @ DocumentManager.tsx:257
+fn @ @tanstack_react-query.js?v=aaff8f62:1200
+run @ @tanstack_react-query.js?v=aaff8f62:491
+start @ @tanstack_react-query.js?v=aaff8f62:533
+execute @ @tanstack_react-query.js?v=aaff8f62:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=aaff8f62:2642
+handleDeleteDocument @ DocumentManager.tsx:284
+onClick @ DocumentManager.tsx:652
+executeDispatch @ react-dom_client.js?v=aaff8f62:11736
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+processDispatchQueue @ react-dom_client.js?v=aaff8f62:11772
+(anonymous) @ react-dom_client.js?v=aaff8f62:12182
+batchedUpdates$1 @ react-dom_client.js?v=aaff8f62:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=aaff8f62:11877
+dispatchEvent @ react-dom_client.js?v=aaff8f62:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=aaff8f62:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+_c @ button.tsx:45
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateForwardRef @ react-dom_client.js?v=aaff8f62:6461
+beginWork @ react-dom_client.js?v=aaff8f62:7864
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=aaff8f62:11558
+(anonymous) @ react-dom_client.js?v=aaff8f62:11649
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ DocumentManager.tsx:647
+(anonymous) @ DocumentManager.tsx:589
+DocumentManager @ DocumentManager.tsx:572
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopSync @ react-dom_client.js?v=aaff8f62:10728
+renderRootSync @ react-dom_client.js?v=aaff8f62:10711
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=aaff8f62:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aaff8f62:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=aaff8f62:11558
+(anonymous) @ react-dom_client.js?v=aaff8f62:11649
+<DocumentManager>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+ResidenceDocuments @ ResidenceDocuments.tsx:131
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7613
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<...>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+component @ App.tsx:366
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<component>
+exports.createElement @ chunk-BQYK6RGN.js?v=aaff8f62:776
+h_route @ wouter.js?v=aaff8f62:183
+Route @ wouter.js?v=aaff8f62:215
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+memory-monitor.ts:159 Memory usage high: 276MB (98%)
+checkAndCleanup @ memory-monitor.ts:159
+(anonymous) @ memory-monitor.ts:83
+memory-monitor.ts:163 Triggering memory cleanup...
+checkAndCleanup @ memory-monitor.ts:163
+(anonymous) @ memory-monitor.ts:83
+react-dom_client.js?v=aaff8f62:11645 [Violation] 'setTimeout' handler took 75ms
+[Violation] 'click' handler took 1377ms
+queryClient.ts:217 Mutation error: TypeError: Failed to execute 'fetch' on 'Window': '/api/documents/0a7a24fb-7ef5-42f8-800e-23a8905ce219' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:48:21)
+    at Object.mutationFn (DocumentManager.tsx:257:14)
+    at Object.fn (@tanstack_react-query.js?v=aaff8f62:1200:29)
+    at run (@tanstack_react-query.js?v=aaff8f62:491:49)
+    at Object.start (@tanstack_react-query.js?v=aaff8f62:533:9)
+    at Mutation.execute (@tanstack_react-query.js?v=aaff8f62:1235:40)
+    at async handleDeleteDocument (DocumentManager.tsx:284:7)
+onError @ queryClient.ts:217
+execute @ @tanstack_react-query.js?v=aaff8f62:1255
+await in execute
+mutate @ @tanstack_react-query.js?v=aaff8f62:2642
+handleDeleteDocument @ DocumentManager.tsx:284
+onClick @ DocumentManager.tsx:652
+executeDispatch @ react-dom_client.js?v=aaff8f62:11736
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+processDispatchQueue @ react-dom_client.js?v=aaff8f62:11772
+(anonymous) @ react-dom_client.js?v=aaff8f62:12182
+batchedUpdates$1 @ react-dom_client.js?v=aaff8f62:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=aaff8f62:11877
+dispatchEvent @ react-dom_client.js?v=aaff8f62:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=aaff8f62:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+_c @ button.tsx:45
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateForwardRef @ react-dom_client.js?v=aaff8f62:6461
+beginWork @ react-dom_client.js?v=aaff8f62:7864
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ DocumentManager.tsx:647
+(anonymous) @ DocumentManager.tsx:589
+DocumentManager @ DocumentManager.tsx:572
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<DocumentManager>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+ResidenceDocuments @ ResidenceDocuments.tsx:63
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7613
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<...>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+component @ App.tsx:342
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<component>
+exports.createElement @ chunk-BQYK6RGN.js?v=aaff8f62:776
+h_route @ wouter.js?v=aaff8f62:183
+Route @ wouter.js?v=aaff8f62:215
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+DocumentManager.tsx:286 Uncaught (in promise) TypeError: Failed to execute 'fetch' on 'Window': '/api/documents/0a7a24fb-7ef5-42f8-800e-23a8905ce219' is not a valid HTTP method.
+    at apiRequest (queryClient.ts:48:21)
+    at Object.mutationFn (DocumentManager.tsx:257:14)
+    at Object.fn (@tanstack_react-query.js?v=aaff8f62:1200:29)
+    at run (@tanstack_react-query.js?v=aaff8f62:491:49)
+    at Object.start (@tanstack_react-query.js?v=aaff8f62:533:9)
+    at Mutation.execute (@tanstack_react-query.js?v=aaff8f62:1235:40)
+    at async handleDeleteDocument (DocumentManager.tsx:284:7)
+apiRequest @ queryClient.ts:48
+mutationFn @ DocumentManager.tsx:257
+fn @ @tanstack_react-query.js?v=aaff8f62:1200
+run @ @tanstack_react-query.js?v=aaff8f62:491
+start @ @tanstack_react-query.js?v=aaff8f62:533
+execute @ @tanstack_react-query.js?v=aaff8f62:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=aaff8f62:2642
+handleDeleteDocument @ DocumentManager.tsx:284
+onClick @ DocumentManager.tsx:652
+executeDispatch @ react-dom_client.js?v=aaff8f62:11736
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+processDispatchQueue @ react-dom_client.js?v=aaff8f62:11772
+(anonymous) @ react-dom_client.js?v=aaff8f62:12182
+batchedUpdates$1 @ react-dom_client.js?v=aaff8f62:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=aaff8f62:11877
+dispatchEvent @ react-dom_client.js?v=aaff8f62:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=aaff8f62:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+_c @ button.tsx:45
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateForwardRef @ react-dom_client.js?v=aaff8f62:6461
+beginWork @ react-dom_client.js?v=aaff8f62:7864
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+(anonymous) @ DocumentManager.tsx:647
+(anonymous) @ DocumentManager.tsx:589
+DocumentManager @ DocumentManager.tsx:572
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<DocumentManager>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+ResidenceDocuments @ ResidenceDocuments.tsx:63
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7613
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<...>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=aaff8f62:250
+component @ App.tsx:342
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
+<component>
+exports.createElement @ chunk-BQYK6RGN.js?v=aaff8f62:776
+h_route @ wouter.js?v=aaff8f62:183
+Route @ wouter.js?v=aaff8f62:215
+react_stack_bottom_frame @ react-dom_client.js?v=aaff8f62:17424
+renderWithHooks @ react-dom_client.js?v=aaff8f62:4206
+updateFunctionComponent @ react-dom_client.js?v=aaff8f62:6619
+beginWork @ react-dom_client.js?v=aaff8f62:7654
+runWithFiberInDEV @ react-dom_client.js?v=aaff8f62:1485
+performUnitOfWork @ react-dom_client.js?v=aaff8f62:10868
+workLoopConcurrentByScheduler @ react-dom_client.js?v=aaff8f62:10864
+renderRootConcurrent @ react-dom_client.js?v=aaff8f62:10844
+performWorkOnRoot @ react-dom_client.js?v=aaff8f62:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=aaff8f62:11623
+performWorkUntilDeadline @ react-dom_client.js?v=aaff8f62:36
