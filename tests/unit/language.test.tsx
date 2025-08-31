@@ -29,18 +29,18 @@ function TestComponent(): JSX.Element {
 }
 
 describe('Language Provider', () => {
-  it('should provide English as default language', () => {
+  it('should provide French as default language', () => {
     render(
       <LanguageProvider>
         <TestComponent />
       </LanguageProvider>
     );
 
-    expect(screen.getByTestId('current-language')).toHaveTextContent('en');
-    expect(screen.getByTestId('dashboard-text')).toHaveTextContent('Dashboard');
+    expect(screen.getByTestId('current-language')).toHaveTextContent('fr');
+    expect(screen.getByTestId('dashboard-text')).toHaveTextContent('Tableau de bord');
   });
 
-  it('should switch to French when language is changed', async () => {
+  it('should switch to English when language is changed', async () => {
     const user = userEvent.setup();
 
     render(
@@ -51,7 +51,7 @@ describe('Language Provider', () => {
 
     await user.click(screen.getByTestId('language-toggle'));
 
-    expect(screen.getByTestId('current-language')).toHaveTextContent('fr');
-    expect(screen.getByTestId('dashboard-text')).toHaveTextContent('Tableau de bord');
+    expect(screen.getByTestId('current-language')).toHaveTextContent('en');
+    expect(screen.getByTestId('dashboard-text')).toHaveTextContent('Dashboard');
   });
 });

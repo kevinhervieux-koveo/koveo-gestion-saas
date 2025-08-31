@@ -1,6 +1,14 @@
 // Jest setup file - global test configuration
 import '@testing-library/jest-dom';
 
+// Mock runQuery function for integration tests
+global.runQuery = jest.fn(() => Promise.resolve([]));
+
+// Set up test database URL if missing
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/koveo_test';
+}
+
 // Mock implementations for browser APIs
 (global as any).ResizeObserver = function () {
   return {

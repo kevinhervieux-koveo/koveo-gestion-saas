@@ -14,10 +14,8 @@ module.exports = async () => {
     delete process.env.DATABASE_URL;
   }
 
-  // Use test database if specified
-  if (process.env.TEST_DATABASE_URL) {
-    process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
-  }
+  // Set test database URL for all tests
+  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/koveo_test';
 
   console.log('🛡️  Jest running in safe test environment');
 };
