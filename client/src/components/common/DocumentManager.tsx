@@ -254,9 +254,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (documentId: string) => {
-      return apiRequest(`/api/documents/${documentId}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/documents/${documentId}`);
     },
     onSuccess: () => {
       toast({
