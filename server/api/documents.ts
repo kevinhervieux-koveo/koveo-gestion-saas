@@ -191,6 +191,15 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       const documents = await storage.getDocuments(filters);
+      
+      // Debug logging
+      console.log('🔍 [DOCUMENTS API DEBUG]:', {
+        filters,
+        documentsFound: documents?.length || 0,
+        specificResidenceId,
+        userRole,
+        userId
+      });
 
       // Apply role-based filtering with tenant visibility rules
       const filteredDocuments = documents.filter((doc) => {
