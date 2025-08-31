@@ -1055,9 +1055,11 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Create demo user with default password
+      // Create demo user with secure random password
       const bcrypt = require('bcryptjs');
-      const hashedPassword = await bcrypt.hash('Demo@123456', 12);
+      const crypto = require('crypto');
+      const randomPassword = crypto.randomBytes(12).toString('base64');
+      const hashedPassword = await bcrypt.hash(`Demo${randomPassword}!`, 12);
 
       const userData = {
         firstName: sanitizeName(firstName),
@@ -1065,9 +1067,8 @@ export function registerUserRoutes(app: Express): void {
         email: normalizeEmail(email),
         username: generateUsernameFromEmail(email),
         password: hashedPassword,
+        language: 'fr', // Default to French for Quebec
         role: role as any,
-        organizationId,
-        residenceId: residenceId || null,
         isActive: true,
       };
 
@@ -1076,15 +1077,14 @@ export function registerUserRoutes(app: Express): void {
       // Log the user creation
       await logUserCreation({
         userId: newUser.id,
-        createdBy: currentUser.id,
-        method: 'demo_creation',
+        method: 'direct',
         organizationId,
         residenceId: residenceId || null,
         role,
       });
 
       // Clear cache
-      queryCache.clearUserCache();
+      queryCache.invalidate('users', 'all_users');
 
       res.status(201).json({
         message: 'Demo user created successfully',

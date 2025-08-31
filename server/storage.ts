@@ -227,17 +227,22 @@ export class MemStorage implements IStorage {
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
 
-    this.initializeTestUser();
+    // Initialize test user asynchronously
+    this.initializeTestUser().catch(console.error);
   }
 
-  private initializeTestUser() {
-    const preHashedPassword = '$2b$12$MdgAKqapGQDuM.z4QtxH.eJld2LR0fFMSOCiNR4MiLDYzPscRjIO.';
+  private async initializeTestUser() {
+    // Generate secure random password for test user instead of hardcoded hash
+    const crypto = require('crypto');
+    const bcrypt = require('bcryptjs');
+    const randomPassword = crypto.randomBytes(16).toString('hex');
+    const securePassword = await bcrypt.hash(`TestUser${randomPassword}!`, 12);
 
     const user: User = {
       id: '550e8400-e29b-41d4-a716-446655440000',
       username: 'kevin.hervieux@koveo-gestion.com',
       email: 'kevin.hervieux@koveo-gestion.com',
-      password: preHashedPassword,
+      password: securePassword,
       firstName: 'Kevin',
       lastName: 'Hervieux',
       phone: '',
