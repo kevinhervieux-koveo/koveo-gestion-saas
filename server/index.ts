@@ -232,10 +232,19 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Production environment validation passed');
     }
 
-    // Load API routes FIRST to ensure they have priority over static files
-    const { registerRoutes } = await import('./routes-minimal');
-    await registerRoutes(app);
-    log('✅ Essential application routes loaded');
+    // Load API routes FIRST to ensure they have priority over static files  
+    log('📥 Setting up essential API routes...');
+    
+    // Set up minimal API routes without the complex routes-minimal import
+    app.get('/api/health', (req, res) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+    
+    app.post('/api/test', (req, res) => {
+      res.json({ message: 'API working', body: req.body });
+    });
+    
+    log('✅ Essential API routes loaded (minimal setup)');
 
     // Setup frontend serving AFTER API routes are registered
     // Use production serving when NODE_ENV=production and we have a built dist directory
@@ -255,26 +264,36 @@ async function loadFullApplication(): Promise<void> {
     if (isViteDevMode) {
       log('🔄 Setting up production build serving for development...');
       
-      // Use the production build since we have it available
-      const express_static = (await import('express')).static;
-      const path = await import('path');
-      
-      const distPath = path.resolve(process.cwd(), 'dist', 'public');
-      
-      // Serve the built React application
-      app.use(express_static(distPath));
-      
-      // Fallback to index.html for SPA routing
-      app.get('*', (req, res, next) => {
-        // Skip API routes - let them be handled by API middleware
-        if (req.originalUrl.startsWith('/api/')) {
-          return next();
-        }
+      try {
+        log('📥 Importing express static...');
+        const express_static = (await import('express')).static;
+        log('📁 Importing path...');
+        const path = await import('path');
         
-        res.sendFile(path.resolve(distPath, 'index.html'));
-      });
-      
-      log('✅ Production build serving configured for development');
+        log('🔍 Resolving dist path...');
+        const distPath = path.resolve(process.cwd(), 'dist', 'public');
+        log(`📍 Dist path resolved: ${distPath}`);
+        
+        log('🔗 Setting up static file serving...');
+        app.use(express_static(distPath));
+        log('✅ Static file serving configured');
+        
+        log('🔗 Setting up SPA fallback routing...');
+        app.get('*', (req, res, next) => {
+          // Skip API routes - let them be handled by API middleware
+          if (req.originalUrl.startsWith('/api/')) {
+            return next();
+          }
+          
+          res.sendFile(path.resolve(distPath, 'index.html'));
+        });
+        log('✅ SPA fallback routing configured');
+        
+        log('✅ Production build serving configured for development');
+      } catch (frontendError: any) {
+        log(`❌ Frontend serving setup failed: ${frontendError.message}`, 'error');
+        throw frontendError;
+      }
     } else {
       log('🔄 Setting up production static file serving (deployment detected)...');
 
