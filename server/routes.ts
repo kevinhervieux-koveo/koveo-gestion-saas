@@ -1,13 +1,19 @@
 // Main routes file that loads route definitions
 import express from 'express';
-import { setupAuthRoutes } from './auth';
+import { setupAuthRoutes, sessionConfig } from './auth';
 import path from 'path';
 import fs from 'fs';
 
 export async function registerRoutes(app: express.Application) {
+  console.log('🔄 Setting up session middleware...');
+  
+  // CRITICAL: Apply session middleware BEFORE authentication routes
+  app.use(sessionConfig);
+  console.log('✅ Session middleware configured');
+  
   console.log('🔄 Loading authentication routes...');
   
-  // Setup authentication routes first - critical for login functionality
+  // Setup authentication routes - session middleware must be applied first
   setupAuthRoutes(app);
   console.log('✅ Authentication routes loaded on /api/auth/');
   
