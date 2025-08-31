@@ -164,6 +164,17 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     enabled: !!config.entityId,
   });
 
+  // Debug: Log what we're getting from the API
+  console.log('🔍 DocumentManager DEBUG:', {
+    queryKey,
+    documents,
+    documentsType: typeof documents,
+    isArray: Array.isArray(documents),
+    length: documents?.length,
+    isLoading: documentsLoading,
+    entityId: config.entityId
+  });
+
 
   // Filter and group documents
   const filteredDocuments = useMemo(() => {
