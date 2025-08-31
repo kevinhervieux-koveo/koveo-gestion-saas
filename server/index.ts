@@ -243,7 +243,7 @@ async function loadFullApplication(): Promise<void> {
     
     // Load full routes including authentication routes
     try {
-      const { registerRoutes } = await import('./routes.js');
+      const { registerRoutes } = await import('./routes.ts');
       await registerRoutes(app);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
@@ -279,7 +279,7 @@ async function loadFullApplication(): Promise<void> {
       log('🔄 Setting up Vite development server...');
       
       try {
-        const { setupVite } = await import('./vite.js');
+        const { setupVite } = await import('./vite.ts');
         await setupVite(app, server);
         log('✅ Vite development server configured');
       } catch (frontendError: any) {

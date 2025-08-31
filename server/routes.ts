@@ -1,7 +1,16 @@
 // Main routes file that loads route definitions
 import express from 'express';
+import { setupAuthRoutes } from './auth';
+import path from 'path';
+import fs from 'fs';
 
 export async function registerRoutes(app: express.Application) {
+  console.log('🔄 Loading authentication routes...');
+  
+  // Setup authentication routes first - critical for login functionality
+  setupAuthRoutes(app);
+  console.log('✅ Authentication routes loaded on /api/auth/');
+  
   // Basic API routes
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -11,5 +20,38 @@ export async function registerRoutes(app: express.Application) {
     res.json({ message: 'API working', body: req.body });
   });
   
-  // Add more routes as needed
+  // Static file serving - MUST come after API routes to prevent conflicts
+  const distPath = path.resolve(process.cwd(), 'dist', 'public');
+  
+  if (fs.existsSync(distPath)) {
+    console.log('✅ Setting up static file serving from', distPath);
+    app.use(express.static(distPath));
+    
+    // SPA fallback - serve index.html for non-API routes
+    app.get('*', (req, res) => {
+      // Don't serve index.html for API routes
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+      }
+      
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Application not found - build missing');
+      }
+    });
+  } else {
+    console.log('⚠️ Static files not found, only API routes available');
+    
+    // Fallback for missing static files
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+      }
+      res.status(503).send('Application is starting up...');
+    });
+  }
+  
+  console.log('✅ All routes registered successfully');
 }
