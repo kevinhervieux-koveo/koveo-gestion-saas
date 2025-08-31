@@ -311,7 +311,15 @@ export class MemStorage implements IStorage {
 
   // Minimal implementations for other required methods
   async createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken> {
-    return { ..._token, id: randomUUID(), createdAt: new Date(), usedAt: null, isUsed: false };
+    return {
+      ..._token,
+      id: randomUUID(),
+      createdAt: new Date(),
+      usedAt: null,
+      isUsed: false,
+      ipAddress: _token.ipAddress || '',
+      userAgent: _token.userAgent || '',
+    };
   }
   async getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined> {
     return undefined;

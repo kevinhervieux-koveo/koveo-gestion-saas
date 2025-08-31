@@ -95,7 +95,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 
       log('✅ Production checks passed');
     }
-    server = app.listen(port, host, () => {
+    server = app.listen(port, host, async () => {
       log(`🚀 Server ready and health checks available on port ${port}`);
       log(`🌐 Health check URLs:`);
       log(`   - http://${host}:${port}/health`);
@@ -113,13 +113,15 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 
       // Different startup for development vs production
       if (process.env.NODE_ENV === 'development') {
-        log('🔄 Development mode: Loading features in background...');
-        setTimeout(() => {
-          loadFullApplication().catch((error) => {
-            log(`⚠️ Full application load failed: ${error.message}`, 'error');
-            // Continue - health checks still work
-          });
-        }, 100); // Very short delay for development
+        log('🔄 Development mode: Setting up frontend immediately...');
+        // In development, we need Vite middleware BEFORE server starts accepting requests
+        try {
+          await loadFullApplication();
+          log('✅ Development setup complete with frontend serving');
+        } catch (error: any) {
+          log(`❌ Frontend setup failed: ${error.message}`, 'error');
+          log(`❌ Stack trace: ${error.stack}`, 'error');
+        }
       } else {
         // Production: Load application immediately with better error handling
         log('🔄 Production mode: Loading application features...');
@@ -251,15 +253,28 @@ async function loadFullApplication(): Promise<void> {
     );
 
     if (isViteDevMode) {
-      log('🔄 Setting up Vite for frontend development...');
-      const { setupVite } = await import('./vite');
-      await setupVite(app, server);
-      log('✅ Vite development server configured');
-
-      // Verify Vite is working
-      app.get('/test-vite', (req, res) => {
-        res.json({ vite: 'configured', mode: 'development' });
+      log('🔄 Setting up production build serving for development...');
+      
+      // Use the production build since we have it available
+      const express_static = (await import('express')).static;
+      const path = await import('path');
+      
+      const distPath = path.resolve(process.cwd(), 'dist', 'public');
+      
+      // Serve the built React application
+      app.use(express_static(distPath));
+      
+      // Fallback to index.html for SPA routing
+      app.get('*', (req, res, next) => {
+        // Skip API routes - let them be handled by API middleware
+        if (req.originalUrl.startsWith('/api/')) {
+          return next();
+        }
+        
+        res.sendFile(path.resolve(distPath, 'index.html'));
       });
+      
+      log('✅ Production build serving configured for development');
     } else {
       log('🔄 Setting up production static file serving (deployment detected)...');
 

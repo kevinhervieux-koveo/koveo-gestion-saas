@@ -108,7 +108,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...data,
+          ..._data,
           parkingSpaceNumbers: parkingSpaces,
           storageSpaceNumbers: storageSpaces,
         }),
@@ -131,7 +131,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     onError: (_error: unknown) => {
       toast({
         title: 'Error',
-        description: (error as Error)?.message || 'Failed to update residence',
+        description: (_error as Error)?.message || 'Failed to update residence',
         variant: 'destructive',
       });
     },
@@ -148,8 +148,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeParkingSpace = (_index: number) => {
-    setParkingSpaces(parkingSpaces.filter((_, i) => i !== _index));
+  const removeParkingSpace = (index: number) => {
+    setParkingSpaces(parkingSpaces.filter((_, i) => i !== index));
   };
 
   const addStorageSpace = () => {
@@ -159,8 +159,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeStorageSpace = (_index: number) => {
-    setStorageSpaces(storageSpaces.filter((_, i) => i !== _index));
+  const removeStorageSpace = (index: number) => {
+    setStorageSpaces(storageSpaces.filter((_, i) => i !== index));
   };
 
   return (
@@ -277,10 +277,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {parkingSpaces.map((space, _index) => (
+            {parkingSpaces.map((space, index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X className='w-3 h-3 cursor-pointer' onClick={() => removeParkingSpace(_index)} />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeParkingSpace(index)} />
               </Badge>
             ))}
           </div>
@@ -289,7 +289,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add parking space number'
               value={newParkingSpace}
-              onChange={(e) => setNewParkingSpace(e.target._value)}
+              onChange={(e) => setNewParkingSpace(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addParkingSpace())}
             />
             <Button type='button' onClick={addParkingSpace} size='sm'>
@@ -306,10 +306,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {storageSpaces.map((space, _index) => (
+            {storageSpaces.map((space, index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X className='w-3 h-3 cursor-pointer' onClick={() => removeStorageSpace(_index)} />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeStorageSpace(index)} />
               </Badge>
             ))}
           </div>
@@ -318,7 +318,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add storage space number'
               value={newStorageSpace}
-              onChange={(e) => setNewStorageSpace(e.target._value)}
+              onChange={(e) => setNewStorageSpace(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addStorageSpace())}
             />
             <Button type='button' onClick={addStorageSpace} size='sm'>
