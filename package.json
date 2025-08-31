@@ -107,7 +107,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@replit/vite-plugin-cartographer": "^0.2.8",
+    "@replit/vite-plugin-cartographer": "^0.3.0",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@sendgrid/mail": "^8.1.5",
     "@tailwindcss/typography": "^0.5.16",
