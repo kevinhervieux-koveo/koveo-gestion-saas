@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { registerRoutes } from '../../../server/routes-minimal';
+import { registerRoutes } from '../../../server/routes';
 import { setupVite, serveStatic } from '../../../server/vite';
 import * as path from 'path';
 import * as fs from 'fs';

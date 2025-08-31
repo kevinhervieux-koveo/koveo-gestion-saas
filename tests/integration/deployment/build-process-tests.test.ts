@@ -211,7 +211,7 @@ describe('Build Process Validation Tests', () => {
         expect(serverContent).toContain('listen');
 
         // Should be bundled (not have import statements for local files)
-        expect(serverContent).not.toContain('import.*routes-minimal');
+        expect(serverContent).not.toContain('import.*routes');
 
         // Should handle production static serving
         expect(serverContent.includes('static') || serverContent.includes('sendFile')).toBe(true);

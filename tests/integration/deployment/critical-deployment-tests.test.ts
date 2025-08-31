@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { registerRoutes } from '../../../server/routes-minimal';
+import { registerRoutes } from '../../../server/routes';
 import { setupVite, serveStatic } from '../../../server/vite';
 import { createServer } from 'http';
 import * as path from 'path';
@@ -493,7 +493,7 @@ describe('CRITICAL: Deployment Validation Tests', () => {
 
       // Test that routes can be imported without errors
       expect(async () => {
-        await import('../../../server/routes-minimal');
+        await import('../../../server/routes');
       }).not.toThrow();
     });
   });
