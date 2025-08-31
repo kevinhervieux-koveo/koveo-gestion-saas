@@ -871,9 +871,7 @@ class ProductionFallbackStorage implements IStorage {
         error.message?.includes('neondb_owner') ||
         error.cause?.message?.includes('password authentication failed')
       ) {
-        console.warn(
-          '🔄 Database authentication failed, switching to memory storage for production stability'
-        );
+        // Database authentication failed, switching to memory storage for production stability
         this.usingFallback = true;
 
         // Initialize memory storage with production admin user
@@ -929,20 +927,18 @@ class ProductionFallbackStorage implements IStorage {
     // For memory storage, we'll just ensure the user has access to the organization
     // This is handled by the user's role being 'admin' which gives access to all organizations
 
-    console.log(
-      '✅ Production fallback: Admin user and default organization initialized in memory storage'
-    );
+    // Production fallback initialized successfully
   }
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    console.log('🔍 ProductionFallbackStorage.getUserByEmail called with:', email);
+    // Debug logging removed
     try {
       const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-      console.log('🔍 ProductionFallbackStorage result:', user ? 'FOUND' : 'NOT FOUND');
+      // Debug logging removed
       return user;
     } catch (error) {
-      console.error('🔍 ProductionFallbackStorage error:', error);
+      // Error handling maintained without debug logging
       throw error;
     }
   }

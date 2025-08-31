@@ -4,7 +4,6 @@
  */
 import express from 'express';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
-import { createUltraHealthEndpoints } from './ultra-health';
 import { log } from './vite';
 
 const app = express();
@@ -36,8 +35,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Ultra-fast health endpoints FIRST - these respond immediately
-createUltraHealthEndpoints(app);
+// Health endpoints - fast response
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+  });
+});
 app.get('/health', createFastHealthCheck());
 app.get('/healthz', createFastHealthCheck());
 app.get('/ready', createFastHealthCheck());
@@ -237,7 +243,7 @@ async function loadFullApplication(): Promise<void> {
     
     // Load full routes including authentication routes
     try {
-      const { registerRoutes } = await import('./routes-minimal.js');
+      const { registerRoutes } = await import('./routes.js');
       await registerRoutes(app);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
@@ -296,7 +302,7 @@ async function loadFullApplication(): Promise<void> {
         log(`✅ Found build directory: ${distPath}`);
       }
 
-      // Static file serving is handled in routes-minimal.ts
+      // Static file serving is handled in routes.ts
       // Remove duplicate handlers to avoid conflicts
 
       log('✅ Production static file serving configured with API route protection');
