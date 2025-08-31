@@ -649,6 +649,7 @@ export class MemStorage implements IStorage {
       ...suggestion,
       id,
       status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
+      category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
       createdAt: new Date(),
       updatedAt: new Date(),
       acknowledgedAt: null,

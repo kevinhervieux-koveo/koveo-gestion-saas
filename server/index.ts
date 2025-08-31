@@ -3,6 +3,7 @@
  * This version prioritizes fast startup and immediate health check availability
  */
 import express from 'express';
+import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
 
@@ -77,7 +78,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Static file serving will be set up immediately when server starts
+// Static file serving for production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from dist/public directory
+  app.use(express.static('dist/public', {
+    index: 'index.html',
+    dotfiles: 'deny',
+    maxAge: '1d'
+  }));
+  
+  // Catch-all handler for SPA routing - must be after API routes
+  app.get('*', (req, res) => {
+    // Don't intercept API calls
+    if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // Serve index.html for all other routes (SPA support)
+    res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
+  });
+}
 
 // Export app for testing
 export { app };
