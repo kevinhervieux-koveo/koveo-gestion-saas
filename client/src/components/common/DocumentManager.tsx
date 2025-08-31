@@ -175,7 +175,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
       
       const data = await response.json();
       console.log('🔍 API response received:', data);
-      return data;
+      // The API returns {documents: Array, total: number, ...} but we need just the documents array
+      return data.documents || [];
     },
   });
 
