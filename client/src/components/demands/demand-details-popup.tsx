@@ -80,9 +80,10 @@ interface Demand {
 interface DemandComment {
   id: string;
   demandId: string;
-  comment: string;
-  orderIndex: number;
-  createdBy: string;
+  commentText: string;
+  commentType?: string;
+  isInternal?: boolean;
+  commenterId: string;
   createdAt: string;
   author: {
     id: string;
@@ -313,7 +314,7 @@ export default function DemandDetailsPopup({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment, orderIndex: comments.length + 1 }),
+        body: JSON.stringify({ commentText: comment }),
       });
       if (!response.ok) {
         throw new Error('Failed to add comment');
@@ -606,7 +607,7 @@ export default function DemandDetailsPopup({
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
                     </div>
-                    <p className='text-sm whitespace-pre-wrap'>{comment.comment}</p>
+                    <p className='text-sm whitespace-pre-wrap'>{comment.commentText}</p>
                   </CardContent>
                 </Card>
               ))}
