@@ -90,7 +90,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       await QueryOptimizer.applyCoreOptimizations();
       // Database optimizations applied
     } catch (error) {
-      console.error('Failed to apply database optimizations:', error);
+      
     }
   }
 
@@ -337,9 +337,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getUser(id: string): Promise<User | undefined> {
     return this.withOptimizations('getUser', `user:${id}`, 'users', async () => {
-      console.log(`🔍 Storage.getUser: Querying database for user ID: ${id}`);
+      
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-      console.log(`🔍 Storage.getUser: Database returned ${result.length} results for ID ${id}`);
+      
       if (result.length > 0) {
         console.log(`🔍 Storage.getUser: Found user:`, {
           id: result[0].id,
@@ -347,7 +347,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           role: result[0].role,
         });
       } else {
-        console.log(`❌ Storage.getUser: No user found in database for ID ${id}`);
+        
       }
       return result[0];
     });
@@ -396,11 +396,11 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       try {
         const inserted = await db.insert(schema.users).values([userData]).returning();
-        console.log('✅ User created successfully with ID:', inserted[0]?.id);
+        
         return inserted;
       } catch (error) {
-        console.error('❌ Database insertion failed:', error);
-        console.error('📊 Failed user data:', userData);
+        
+        
         throw error;
       }
     });
@@ -1660,7 +1660,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       return results || [];
     } catch (error) {
-      console.error('Error fetching user permissions:', error);
+      
       return [];
     }
   }
@@ -1716,9 +1716,9 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   async createDocument(document: InsertDocument): Promise<Document> {
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
-      console.log('📝 Creating document with data:', document);
+      
       const result = await db.insert(schema.documents).values(document).returning();
-      console.log('📝 Database insert result:', result[0]);
+      
 
       // Invalidate related caches
       if (document.buildingId) {
@@ -2020,7 +2020,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         .orderBy(desc(schema.bugs.createdAt));
       return result || [];
     } catch (error) {
-      console.error('Error fetching bugs:', error);
+      
       return [];
     }
   }
