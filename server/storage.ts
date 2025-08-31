@@ -390,15 +390,12 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
       totalUnits: building.totalUnits || 0,
-      floors: building.floors || 0,
+      totalFloors: building.totalFloors || 0,
       yearBuilt: building.yearBuilt || 0,
       buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
       bankAccountNumber: building.bankAccountNumber || '',
-      bankAccountMinimums: building.bankAccountMinimums || {},
+      bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : '',
       bankAccountUpdatedAt: new Date(),
-      inflationSettings: building.inflationSettings || '',
-      managementFeePercentage: building.managementFeePercentage || 0,
-      reserveFundPercentage: building.reserveFundPercentage || 0,
     };
     this.buildings.set(id, newBuilding);
     return newBuilding;
@@ -436,8 +433,8 @@ export class MemStorage implements IStorage {
       bedrooms: residence.bedrooms || 0,
       bathrooms: residence.bathrooms?.toString() || '0',
       balcony: residence.balcony || false,
-      parking: residence.parking || false,
-      storage: residence.storage || false,
+      parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
+      storageSpaceNumbers: residence.storageSpaceNumbers || [],
       monthlyFees: residence.monthlyFees?.toString() || '0',
     };
     this.residences.set(id, newResidence);
@@ -468,8 +465,12 @@ export class MemStorage implements IStorage {
     return {
       ...contact,
       id,
+      name: contact.name,
       email: contact.email || '',
       phone: contact.phone || '',
+      entity: contact.entity as 'organization' | 'building' | 'residence',
+      entityId: contact.entityId,
+      contactCategory: contact.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'emergency' | 'other',
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -501,6 +502,9 @@ export class MemStorage implements IStorage {
     return {
       ...doc,
       id,
+      description: doc.description || '',
+      buildingId: doc.buildingId || '',
+      residenceId: doc.residenceId || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -535,7 +539,11 @@ export class MemStorage implements IStorage {
     const newPillar: Pillar = {
       ...pillar,
       id,
+      name: pillar.name,
       description: pillar.description || '',
+      status: pillar.status,
+      order: pillar.order.toString(),
+      configuration: pillar.configuration || {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -561,8 +569,9 @@ export class MemStorage implements IStorage {
     const newStatus: WorkspaceStatus = {
       ...status,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      status: status.status,
+      component: status.component,
+      lastUpdated: new Date(),
     };
     this.workspaceStatuses.set(status.component, newStatus);
     return newStatus;

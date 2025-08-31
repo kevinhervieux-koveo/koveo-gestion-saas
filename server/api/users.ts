@@ -1075,12 +1075,13 @@ export function registerUserRoutes(app: Express): void {
       const newUser = await storage.createUser(userData as InsertUser);
 
       // Log the user creation
-      await logUserCreation({
+      logUserCreation({
         userId: newUser.id,
+        email: newUser.email,
         method: 'direct',
-        organizationId,
-        residenceId: residenceId || null,
         role,
+        success: true,
+        timestamp: new Date(),
       });
 
       // Clear cache
