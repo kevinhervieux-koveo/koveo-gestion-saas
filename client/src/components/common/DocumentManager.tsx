@@ -159,9 +159,24 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     enabled: !!config.entityId,
   });
 
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
+  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = useQuery<Document[]>({
     queryKey,
     enabled: !!config.entityId,
+    queryFn: async () => {
+      console.log('🔍 Making API call to:', queryKey[0]);
+      const response = await fetch(queryKey[0], {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        console.error('🔍 API call failed:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🔍 API response received:', data);
+      return data;
+    },
   });
 
   // Debug: Log what we're getting from the API
