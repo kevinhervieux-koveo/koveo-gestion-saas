@@ -1070,7 +1070,7 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(schema.documents.documentType, filters.documentType));
       }
       if (filters.userId) {
-        conditions.push(eq(schema.documents.userId, filters.userId));
+        conditions.push(eq(schema.documents.uploadedById, filters.userId));
       }
       
       if (conditions.length > 0) {
