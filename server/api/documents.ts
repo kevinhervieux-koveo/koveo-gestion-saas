@@ -92,28 +92,38 @@ const uploadDocumentRecordSchema = z.object({
 export function registerDocumentRoutes(app: Express): void {
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] 📄 GET /api/documents - Starting request`, {
+      userId: req.user?.id,
+      userRole: req.user?.role,
+      query: req.query
+    });
+    
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       
       // Production debugging: Log the request details
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] DocumentRecords API called with:', {
-          userId,
-          userRole,
-          query: req.query,
-          timestamp: new Date().toISOString()
-        });
-      }
+      console.log(`[${timestamp}] 🔍 User data extracted:`, {
+        userId,
+        userRole,
+        hasValidUser: !!user
+      });
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
 
       // Get user's organization and residences for filtering
+      console.log(`[${timestamp}] 🔍 Fetching user data from storage...`);
       const organizations = await storage.getUserOrganizations(userId);
+      console.log(`[${timestamp}] 🏢 Found ${organizations.length} organizations`);
+      
       const userResidences = await storage.getUserResidences(userId);
+      console.log(`[${timestamp}] 🏠 Found ${userResidences.length} user residences`);
+      
       const buildings = await storage.getBuildings();
+      console.log(`[${timestamp}] 🏢 Found ${buildings.length} buildings`);
 
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
 
@@ -311,7 +321,9 @@ export function registerDocumentRoutes(app: Express): void {
       };
       res.json(response);
     } catch (_error) {
-      console.error('Error fetching documents:', _error);
+      const errorTimestamp = new Date().toISOString();
+      console.error(`[${errorTimestamp}] ❌ GET /api/documents FAILED:`, _error);
+      console.error(`[${errorTimestamp}] Error stack:`, _error instanceof Error ? _error.stack : 'No stack trace');
       res.status(500).json({ message: 'Failed to fetch documents' });
     }
   });
@@ -865,14 +877,18 @@ export function registerDocumentRoutes(app: Express): void {
           message: 'File uploaded successfully',
         });
       } catch (error: any) {
-        console.error('Error creating document:', error);
+        const errorTimestamp = new Date().toISOString();
+        console.error(`[${errorTimestamp}] ❌ POST /api/documents/upload FAILED:`, error);
+        console.error(`[${errorTimestamp}] Error type:`, error.constructor.name);
+        console.error(`[${errorTimestamp}] Error message:`, error.message);
+        console.error(`[${errorTimestamp}] Error stack:`, error.stack);
 
         // Clean up temporary file on error
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
           try {
             fs.unlinkSync(req.file.path);
           } catch (cleanupError) {
-            console.error('Error cleaning up file:', cleanupError);
+            console.error(`[${errorTimestamp}] Error cleaning up file:`, cleanupError);
           }
         }
 
@@ -890,16 +906,16 @@ export function registerDocumentRoutes(app: Express): void {
 
   // POST /api/documents/upload - Upload file to GCS and create unified document record
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] 📋 POST /api/documents/upload - Starting upload`, {
+      hasFile: !!req.file,
+      fileName: req.file?.originalname,
+      fileSize: req.file?.size,
+      body: req.body,
+      userId: req.user?.id
+    });
+    
     try {
-      // Production debugging: Log upload attempt
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] DocumentRecord upload attempt:', {
-          hasFile: !!req.file,
-          fileName: req.file?.originalname,
-          body: req.body,
-          timestamp: new Date().toISOString()
-        });
-      }
       
       // Check if file was uploaded
       if (!req.file) {
