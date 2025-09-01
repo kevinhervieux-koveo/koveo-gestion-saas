@@ -13,6 +13,9 @@ import { registerBillRoutes } from './api/bills.js';
 import { registerResidenceRoutes } from './api/residences.js';
 import { registerDemandRoutes } from './api/demands.js';
 import { registerFeatureRequestRoutes } from './api/feature-requests.js';
+import { registerContactRoutes } from './api/contacts.js';
+import { registerCommonSpacesRoutes } from './api/common-spaces.js';
+import { registerPermissionsRoutes } from './api/permissions.js';
 
 export async function registerRoutes(app: Express) {
   console.log('🔄 Setting up session middleware...');
@@ -37,6 +40,9 @@ export async function registerRoutes(app: Express) {
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
   registerFeatureRequestRoutes(app);
+  registerContactRoutes(app);
+  registerCommonSpacesRoutes(app);
+  registerPermissionsRoutes(app);
   console.log('✅ All API routes registered');
   
   // Basic API routes
