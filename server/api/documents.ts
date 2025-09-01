@@ -847,10 +847,35 @@ export function registerDocumentRoutes(app: Express): void {
         gcsPath = `general/${uniqueFileName}`;
       }
 
-      // Handle file storage - fallback to local storage in development if GCS fails
-      if (process.env.NODE_ENV === 'development') {
+      // Handle file storage - use local storage for now since GCS is not fully configured
+      // In Replit environment or when GCS is unavailable, use local storage
+      const useLocalStorage = true; // Force local storage for now
+      
+      if (useLocalStorage || process.env.NODE_ENV === 'development') {
         try {
-          console.log('🔧 Development: Attempting GCS upload...');
+          // Use local storage
+          const localStoragePath = path.join(process.cwd(), 'uploads');
+          if (!fs.existsSync(localStoragePath)) {
+            fs.mkdirSync(localStoragePath, { recursive: true });
+          }
+
+          // Create directory structure
+          const localFilePath = path.join(localStoragePath, gcsPath);
+          const localFileDir = path.dirname(localFilePath);
+          if (!fs.existsSync(localFileDir)) {
+            fs.mkdirSync(localFileDir, { recursive: true });
+          }
+
+          // Copy uploaded file to local storage
+          fs.copyFileSync(req.file!.path, localFilePath);
+          console.log(`📁 File saved at ${localFilePath}`);
+        } catch (localError) {
+          console.error('Local storage error:', localError);
+          throw new Error('Failed to save file locally');
+        }
+      } else {
+        // Production: Try GCS but fallback to local if it fails
+        try {
           const gcsClient = await getGCSClient();
           const bucket = gcsClient.bucket(bucketName);
           const file = bucket.file(gcsPath);
@@ -875,15 +900,14 @@ export function registerDocumentRoutes(app: Express): void {
             });
 
             uploadStream.on('finish', () => {
-              console.log(`✅ File uploaded to GCS: ${gcsPath}`);
+              console.log(`File uploaded to GCS: ${gcsPath}`);
               resolve();
             });
 
             stream.pipe(uploadStream);
           });
         } catch (gcsError) {
-          console.log('⚠️ GCS upload failed, using local storage for development');
-
+          console.error('GCS upload failed in production, using local storage:', gcsError);
           // Fallback to local storage
           const localStoragePath = path.join(process.cwd(), 'uploads');
           if (!fs.existsSync(localStoragePath)) {
@@ -899,40 +923,8 @@ export function registerDocumentRoutes(app: Express): void {
 
           // Copy uploaded file to local storage
           fs.copyFileSync(req.file!.path, localFilePath);
-          console.log(`🔧 Development: File saved locally at ${localFilePath}`);
+          console.log(`📁 Production fallback: File saved locally at ${localFilePath}`);
         }
-      } else {
-        // Production: Upload to GCS
-        const gcsClient = await getGCSClient();
-        const bucket = gcsClient.bucket(bucketName);
-        const file = bucket.file(gcsPath);
-
-        // Upload file to GCS
-        await new Promise<void>((resolve, reject) => {
-          const stream = fs.createReadStream(req.file!.path);
-          const uploadStream = file.createWriteStream({
-            metadata: {
-              contentType: req.file!.mimetype,
-              metadata: {
-                originalName: req.file!.originalname,
-                uploadedBy: userId,
-                uploadedAt: new Date().toISOString(),
-              },
-            },
-          });
-
-          uploadStream.on('error', (error) => {
-            console.error('GCS upload error:', error);
-            reject(error);
-          });
-
-          uploadStream.on('finish', () => {
-            console.log(`File uploaded to GCS: ${gcsPath}`);
-            resolve();
-          });
-
-          stream.pipe(uploadStream);
-        });
       }
 
       // Create document record in database
