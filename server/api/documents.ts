@@ -202,7 +202,7 @@ export function registerDocumentRoutes(app: Express): void {
         console.log('[PROD DEBUG] About to call storage.getDocuments with filters:', filters);
       }
       
-      const documents = await storage.getDocuments(filters) as DocumentRecord[];
+      const documents = await storage.getDocuments(filters);
 
       // Production debugging: Log after database call
       if (process.env.NODE_ENV === 'production') {
@@ -382,7 +382,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Fallback to legacy documents if not found and no type specified
       if (!document && !documentType) {
         try {
-          document = await storage.getDocument(documentId) as DocumentRecord;
+          document = await storage.getDocument(documentId);
           if (document) {
             (document as any).documentCategory = 'legacy';
             (document as any).entityType = 'legacy';
@@ -564,7 +564,7 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedById,
         };
 
-        const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
+        const document = await storage.createDocument(unifiedDocument) ;
 
         // Clean up temporary file after successful upload
         if (req.file?.path) {
@@ -638,7 +638,7 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedById,
         };
 
-        const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
+        const document = await storage.createDocument(unifiedDocument) ;
 
         console.log('📝 Created resident document:', document);
         console.log('📝 DocumentRecord ID:', document.id);
