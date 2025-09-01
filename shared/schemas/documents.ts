@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
@@ -110,7 +110,7 @@ export type DocumentResident = typeof documentsResidents.$inferSelect;
  * Stores documents that can be associated with either residences, buildings, or neither.
  */
 export const documents = pgTable('documents', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
@@ -118,9 +118,9 @@ export const documents = pgTable('documents', {
   documentType: text('document_type').notNull(),
   gcsPath: text('gcs_path').notNull().unique(),
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
-  residenceId: uuid('residence_id').references(() => residences.id),
-  buildingId: uuid('building_id').references(() => buildings.id),
-  uploadedById: uuid('uploaded_by_id').notNull(),
+  residenceId: varchar('residence_id').references(() => residences.id),
+  buildingId: varchar('building_id').references(() => buildings.id),
+  uploadedById: varchar('uploaded_by_id').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

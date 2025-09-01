@@ -48,7 +48,7 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
@@ -71,7 +71,7 @@ export const users = pgTable('users', {
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
@@ -97,10 +97,10 @@ export const userOrganizations = pgTable('user_organizations', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  organizationId: uuid('organization_id')
+  organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   organizationRole: userRoleEnum('organization_role').notNull().default('tenant'),

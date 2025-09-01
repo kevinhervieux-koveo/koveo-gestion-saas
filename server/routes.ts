@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express) {
       
       // Test storage connection
       try {
-        const testResult = await storage.getDocuments('test-residence-id');
+        const testResult = await storage.getDocuments({ residenceId: 'test-residence-id' });
         result.storageTest = 'success';
         result.documentsTableAccess = 'working';
       } catch (error) {
