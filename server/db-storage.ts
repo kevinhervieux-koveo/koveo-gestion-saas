@@ -1187,11 +1187,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> {
-    return await db.select().from(schema.invitationAuditLogs);
+    return await db.select().from(schema.invitationAuditLog);
   }
 
   async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
-    const result = await db.insert(schema.invitationAuditLogs).values(log).returning();
+    const result = await db.insert(schema.invitationAuditLog).values(log).returning();
     return result[0];
   }
 
