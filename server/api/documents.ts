@@ -1255,7 +1255,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Handle file serving for both development and production
       if (document.gcsPath) {
         try {
-          // Production: Serve from GCS
+          // Production: Try GCS first, fallback to local storage if unavailable
           if (process.env.NODE_ENV === 'production') {
             try {
               const gcsClient = await getGCSClient();
@@ -1311,12 +1311,12 @@ export function registerDocumentRoutes(app: Express): void {
                 return stream.pipe(res);
               }
             } catch (gcsError) {
-              console.error('GCS file serving error:', gcsError);
-              return res.status(500).json({ message: 'Failed to serve file from storage' });
+              console.warn('🔄 GCS unavailable in production, falling back to local storage:', gcsError.message);
+              // Fall through to local storage handling below
             }
           }
 
-          // Development: Serve from local storage
+          // Development OR Production fallback: Serve from local storage
           let filePath = document.gcsPath;
 
           // Check if it's an absolute path

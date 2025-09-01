@@ -31,6 +31,18 @@ class GCSClient {
    */
   private static async initializeStorage(): Promise<Storage> {
     try {
+      // PRODUCTION FIX: Check if GCS credentials are available before attempting initialization
+      const hasGCSCredentials = process.env.NODE_ENV === 'development' || (
+        process.env.GCP_SERVICE_ACCOUNT_EMAIL && 
+        (process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT) &&
+        fs.existsSync('/var/run/secrets/google/token')
+      );
+      
+      if (!hasGCSCredentials) {
+        console.warn('⚠️ GCS credentials not available, documents will use local storage fallback');
+        throw new Error('GCS credentials not configured - using local storage fallback');
+      }
+      
       // In development, use Application Default Credentials
       if (process.env.NODE_ENV === 'development') {
         console.log('🔧 Development mode: Using Application Default Credentials');
@@ -106,10 +118,11 @@ class GCSClient {
       return storage;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Failed to initialize Google Cloud Storage client:', errorMessage);
+      console.warn('⚠️ Google Cloud Storage not available:', errorMessage);
+      console.log('📁 Falling back to local storage for document handling');
 
-      // Re-throw with more context
-      throw new Error(`Google Cloud Storage initialization failed: ${errorMessage}`);
+      // Don't re-throw - let callers handle the fallback
+      throw new Error(`GCS_NOT_AVAILABLE: ${errorMessage}`);
     }
   }
 
