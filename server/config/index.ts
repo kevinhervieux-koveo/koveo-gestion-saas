@@ -8,7 +8,6 @@ import { z } from 'zod';
 const envSchema = z.object({
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DATABASE_URL_DEV: z.string().optional(),
   SESSION_SECRET: z.string().optional(),
   REPL_SLUG: z.string().optional(),
   REPL_OWNER: z.string().optional(),
@@ -82,8 +81,8 @@ export const config = {
 
   // Database configuration
   database: {
-    // Use development database if available and we're in development, otherwise production
-    url: envConfig.isDevelopment && env.DATABASE_URL_DEV ? env.DATABASE_URL_DEV : env.DATABASE_URL,
+    // Always use DATABASE_URL (configured differently in workspace vs deployment secrets)
+    url: env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
   },
