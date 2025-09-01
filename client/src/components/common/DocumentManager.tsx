@@ -454,7 +454,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                       Upload Document
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className='max-w-md'>
+                  <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
                     <DialogHeader>
                       <DialogTitle>Create New Document</DialogTitle>
                       <DialogDescription>
@@ -462,41 +462,42 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                         text-only document entry.
                       </DialogDescription>
                     </DialogHeader>
+                    
+                    {/* Document Creation Mode - Moved to top for visibility */}
+                    <div className='space-y-3 border-b pb-4'>
+                      <Label className='text-sm font-medium'>Choose Document Type</Label>
+                      <div className='flex space-x-3'>
+                        <button
+                          type='button'
+                          onClick={() => setCreateMode('file')}
+                          className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            createMode === 'file'
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          data-testid='button-file-mode'
+                        >
+                          📁 Upload File
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => setCreateMode('text')}
+                          className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            createMode === 'text'
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          data-testid='button-text-mode'
+                        >
+                          📝 Text Document
+                        </button>
+                      </div>
+                    </div>
                     <Form {...form}>
                       <form
                         onSubmit={form.handleSubmit(handleCreateDocument)}
                         className='space-y-4'
                       >
-                        {/* Document Creation Mode */}
-                        <div className='space-y-3'>
-                          <Label>Document Type</Label>
-                          <div className='flex space-x-4'>
-                            <button
-                              type='button'
-                              onClick={() => setCreateMode('file')}
-                              className={`flex-1 p-3 rounded-lg border text-sm transition-colors ${
-                                createMode === 'file'
-                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                              data-testid='button-file-mode'
-                            >
-                              📁 Upload File
-                            </button>
-                            <button
-                              type='button'
-                              onClick={() => setCreateMode('text')}
-                              className={`flex-1 p-3 rounded-lg border text-sm transition-colors ${
-                                createMode === 'text'
-                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                              data-testid='button-text-mode'
-                            >
-                              📝 Text Document
-                            </button>
-                          </div>
-                        </div>
                         <FormField
                           control={form.control}
                           name='name'
