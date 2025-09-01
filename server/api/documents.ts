@@ -219,7 +219,7 @@ export function registerDocumentRoutes(app: Express): void {
         console.log('[PROD DEBUG] About to call storage.getDocuments with filters:', filters);
       }
       
-      const documents = await storage.getDocuments(filters);
+      const documents = await storage.getDocuments(filters) as DocumentRecord[];
 
       // Production debugging: Log after database call
       if (process.env.NODE_ENV === 'production') {
@@ -351,7 +351,7 @@ export function registerDocumentRoutes(app: Express): void {
       const residenceIds = residences.map((ur) => ur.residenceId);
       const buildingIds = buildings.map((b) => b.id);
 
-      let document: unknown = null;
+      let document: DocumentRecord | null = null;
 
       // Try to find the document in the appropriate table(s)
       const hasNewDocumentRecordMethods = 'getBuildingDocumentRecord' in storage;
@@ -399,7 +399,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Fallback to legacy documents if not found and no type specified
       if (!document && !documentType) {
         try {
-          document = await storage.getDocumentById(documentId);
+          document = await storage.getDocument(documentId) as DocumentRecord;
           if (document) {
             (document as any).documentCategory = 'legacy';
             (document as any).entityType = 'legacy';
@@ -532,7 +532,7 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
-        const validatedData = createBuildingDocumentRecordSchema.parse({
+        const validatedData = createBuildingDocumentSchema.parse({
           ...otherData,
           buildingId,
           uploadedBy: userId,
@@ -581,7 +581,7 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedBy,
         };
 
-        const document = await storage.createDocument(unifiedDocument);
+        const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
 
         // Clean up temporary file after successful upload
         if (req.file?.path) {
@@ -606,7 +606,7 @@ export function registerDocumentRoutes(app: Express): void {
             .json({ message: 'residenceId is required for resident documents' });
         }
 
-        const validatedData = createResidentDocumentRecordSchema.parse({
+        const validatedData = createResidentDocumentSchema.parse({
           ...otherData,
           residenceId,
           uploadedBy: userId,
@@ -655,7 +655,7 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedBy,
         };
 
-        const document = await storage.createDocument(unifiedDocument);
+        const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
 
         console.log('📝 Created resident document:', document);
         console.log('📝 DocumentRecord ID:', document.id);
