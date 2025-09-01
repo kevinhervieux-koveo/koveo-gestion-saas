@@ -1,10 +1,20 @@
 // Main routes file that loads route definitions
-import express from 'express';
+import express, { Express } from 'express';
 import { setupAuthRoutes, sessionConfig } from './auth';
 import path from 'path';
 import fs from 'fs';
 
-export async function registerRoutes(app: express.Application) {
+// Import API route registration functions
+import { registerOrganizationRoutes } from './api/organizations.js';
+import { registerUserRoutes } from './api/users.js';
+import { registerBuildingRoutes } from './api/buildings.js';
+import { registerDocumentRoutes } from './api/documents.js';
+import { registerBillRoutes } from './api/bills.js';
+import { registerResidenceRoutes } from './api/residences.js';
+import { registerDemandRoutes } from './api/demands.js';
+import { registerFeatureRequestRoutes } from './api/feature-requests.js';
+
+export async function registerRoutes(app: Express) {
   console.log('🔄 Setting up session middleware...');
   
   // CRITICAL: Apply session middleware BEFORE authentication routes
@@ -16,6 +26,18 @@ export async function registerRoutes(app: express.Application) {
   // Setup authentication routes - session middleware must be applied first
   setupAuthRoutes(app);
   console.log('✅ Authentication routes loaded on /api/auth/');
+  
+  // Register all API routes
+  console.log('🔄 Loading API routes...');
+  registerOrganizationRoutes(app);
+  registerUserRoutes(app);
+  registerBuildingRoutes(app);
+  registerDocumentRoutes(app);
+  registerBillRoutes(app);
+  registerResidenceRoutes(app);
+  registerDemandRoutes(app);
+  registerFeatureRequestRoutes(app);
+  console.log('✅ All API routes registered');
   
   // Basic API routes
   app.get('/api/health', (req, res) => {
