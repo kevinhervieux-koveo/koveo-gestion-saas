@@ -412,7 +412,7 @@ export function registerDocumentRoutes(app: Express): void {
           name: otherData.name || 'Untitled Document',
           description: otherData.description || textContent.substring(0, 200) + (textContent.length > 200 ? '...' : ''),
           documentType: documentType || 'other',
-          gcsPath: `text-documents/${userId}/${Date.now()}.txt`, // Virtual path for text documents
+          gcsPath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -444,7 +444,7 @@ export function registerDocumentRoutes(app: Express): void {
           if (!fs.existsSync(textFilePath)) {
             fs.mkdirSync(textFilePath, { recursive: true });
           }
-          fileName = `${Date.now()}.txt`;
+          fileName = `${uuidv4()}.txt`;
           const fullPath = path.join(textFilePath, fileName);
           fs.writeFileSync(fullPath, textContent, 'utf8');
         } catch (fsError) {
@@ -467,8 +467,37 @@ export function registerDocumentRoutes(app: Express): void {
               entityId: buildingId || residenceId,
             },
           });
-        } catch (dbError) {
+        } catch (dbError: any) {
           console.error('Error creating document in database:', dbError);
+          
+          // Handle specific constraint violations
+          if (dbError?.message?.includes('unique constraint') || dbError?.code === '23505') {
+            // Retry with a new UUID if path conflict occurs
+            const retryPath = `text-documents/${userId}/${uuidv4()}.txt`;
+            const retryFileName = `${uuidv4()}.txt`;
+            
+            try {
+              // Update paths and retry
+              documentData.gcsPath = retryPath;
+              const fullRetryPath = path.join(textFilePath, retryFileName);
+              fs.writeFileSync(fullRetryPath, textContent, 'utf8');
+              
+              const document = await storage.createDocument(documentData);
+              return res.status(201).json({
+                message: 'Text document created successfully',
+                document: {
+                  ...document,
+                  documentCategory: buildingId ? 'building' : 'resident',
+                  entityType: buildingId ? 'building' : 'residence',
+                  entityId: buildingId || residenceId,
+                },
+              });
+            } catch (retryError) {
+              console.error('Retry failed:', retryError);
+              return res.status(500).json({ message: 'Failed to create document after retry' });
+            }
+          }
+          
           return res.status(500).json({ message: 'Failed to create document in database' });
         }
       }
@@ -1016,18 +1045,48 @@ export function registerDocumentRoutes(app: Express): void {
         uploadedById: userId,
       };
 
-      const newDocument = await storage.createDocument(documentData);
+      try {
+        const newDocument = await storage.createDocument(documentData);
 
-      // Clean up temporary file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
+        // Clean up temporary file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        // Return success response
+        res.status(201).json({
+          message: 'Document uploaded successfully',
+          document: newDocument,
+        });
+      } catch (dbError: any) {
+        console.error('Database error during document creation:', dbError);
+        
+        // Handle unique constraint violations
+        if (dbError?.message?.includes('unique constraint') || dbError?.code === '23505') {
+          // Generate a new unique path and retry
+          const retryGcsPath = gcsPath.replace(uniqueFileName, `${uuidv4()}-${baseFileName}${fileExtension}`);
+          
+          try {
+            documentData.gcsPath = retryGcsPath;
+            const newDocument = await storage.createDocument({...documentData, gcsPath: retryGcsPath});
+            
+            // Clean up temporary file
+            if (fs.existsSync(req.file.path)) {
+              fs.unlinkSync(req.file.path);
+            }
+            
+            return res.status(201).json({
+              message: 'Document uploaded successfully',
+              document: newDocument,
+            });
+          } catch (retryError) {
+            console.error('Retry failed for document creation:', retryError);
+            throw new Error('Failed to create document after retry');
+          }
+        }
+        
+        throw dbError; // Re-throw if not a unique constraint error
       }
-
-      // Return success response
-      res.status(201).json({
-        message: 'Document uploaded successfully',
-        document: newDocument,
-      });
     } catch (error: any) {
       console.error('Document upload error:', error);
 
@@ -1053,6 +1112,14 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(500).json({
           message: 'File upload failed',
           error: 'Storage service error',
+        });
+      }
+
+      // Handle unique constraint violations (path conflicts)
+      if (error?.message?.includes('unique constraint') || error?.code === '23505') {
+        return res.status(409).json({
+          message: 'Document path conflict - please try uploading again',
+          error: 'Path already exists',
         });
       }
 
