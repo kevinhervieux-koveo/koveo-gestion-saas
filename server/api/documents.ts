@@ -3,7 +3,6 @@ import { requireAuth, requireRole } from '../auth';
 import { storage } from '../storage';
 import {
   insertDocumentSchema,
-  type Document,
   type InsertDocument,
   insertDocumentBuildingSchema,
   type DocumentBuilding,
@@ -12,6 +11,21 @@ import {
   type DocumentResident,
   type InsertDocumentResident,
 } from '../../shared/schemas/documents';
+
+// Temporary explicit Document type to fix TypeScript issues
+type Document = {
+  id: string;
+  name: string;
+  description?: string;
+  documentType: string;
+  gcsPath: string;
+  isVisibleToTenants: boolean;
+  residenceId?: string;
+  buildingId?: string;
+  uploadedById: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
 import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
@@ -919,8 +933,18 @@ export function registerDocumentRoutes(app: Express): void {
         buildingId: req.body.buildingId || undefined,
       };
 
+      // Production debugging: Log form data before validation
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] Form data before validation:', formData);
+      }
+
       // Validate form data
       const validatedData = uploadDocumentSchema.parse(formData);
+      
+      // Production debugging: Log after validation
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] Form data validation passed:', validatedData);
+      }
 
       // Get user info from auth middleware
       const userId = req.user?.id;
@@ -1045,8 +1069,22 @@ export function registerDocumentRoutes(app: Express): void {
         uploadedById: userId,
       };
 
+      // Production debugging: Log before database create
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] About to create document in database:', documentData);
+      }
+
       // Create document record in database
       const newDocument = await storage.createDocument(documentData);
+      
+      // Production debugging: Log after database create
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] Document created successfully:', { 
+          id: newDocument?.id, 
+          name: newDocument?.name,
+          gcsPath: newDocument?.gcsPath 
+        });
+      }
 
       // Clean up temporary file
       if (fs.existsSync(req.file.path)) {
