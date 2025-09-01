@@ -93,9 +93,20 @@ const PostgreSqlStore = connectPg(session);
  * Includes fallback for database connection issues in production.
  */
 function createSessionStore() {
-  // Use memory store for now since neon HTTP client doesn't work with connect-pg-simple
-  // This ensures sessions work while we use the HTTP database connection
-  // Using memory session store for Neon compatibility
+  try {
+    // For production, try to use PostgreSQL session store
+    if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+      return new PostgreSqlStore({
+        conString: process.env.DATABASE_URL,
+        tableName: 'session',
+        createTableIfMissing: true,
+      });
+    }
+  } catch (error) {
+    console.warn('Failed to initialize PostgreSQL session store, falling back to memory store:', error);
+  }
+  
+  // Fallback to memory store for development or if PostgreSQL store fails
   return undefined; // Will use default memory store
 }
 
@@ -106,8 +117,8 @@ export const sessionConfig = session({
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: false, // Disable secure for Replit development environment
-    httpOnly: false, // Disable httpOnly to allow JavaScript access for debugging
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true, // Enable httpOnly for security in production
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
     sameSite: 'lax', // Keep lax for same-site compatibility
     // Don't set domain - let it default to current domain
