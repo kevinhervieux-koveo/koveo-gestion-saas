@@ -186,6 +186,7 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
   'user',
+  'users', // Added to handle existing production data
   'organization',
   'building',
   'residence',

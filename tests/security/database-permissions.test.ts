@@ -42,7 +42,7 @@ describe('Database-Only Permissions System', () => {
         name: uniqueName,
         displayName: 'Test Permission',
         description: 'Test permission for database-only validation',
-        resourceType: 'users',
+        resourceType: 'user',
         action: 'read',
         isActive: true,
       })
