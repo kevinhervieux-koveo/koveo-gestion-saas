@@ -86,10 +86,6 @@ export type {
 export type {
   Document,
   InsertDocument,
-  DocumentBuilding,
-  InsertDocumentBuilding,
-  DocumentResident,
-  InsertDocumentResident,
 } from './schemas/documents';
 
 export type {
@@ -128,8 +124,6 @@ export {
 } from './schemas/operations';
 export {
   documents,
-  documentsBuildings,
-  documentsResidents,
 } from './schemas/documents';
 export {
   developmentPillars,

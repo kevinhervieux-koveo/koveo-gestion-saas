@@ -4,28 +4,11 @@ import { storage } from '../storage';
 import {
   insertDocumentSchema,
   type InsertDocument,
-  insertDocumentBuildingSchema,
-  type DocumentBuilding,
-  type InsertDocumentBuilding,
-  insertDocumentResidentSchema,
-  type DocumentResident,
-  type InsertDocumentResident,
+  type Document,
 } from '../../shared/schemas/documents';
 
-// Explicit DocumentRecord type to avoid collision with DOM Document
-type DocumentRecord = {
-  id: string;
-  name: string;
-  description?: string;
-  documentType: string;
-  gcsPath: string;
-  isVisibleToTenants: boolean;
-  residenceId?: string;
-  buildingId?: string;
-  uploadedById: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+// Use the generated Document type from schema to avoid DOM Document collision
+type DocumentRecord = Document;
 import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
@@ -75,13 +58,13 @@ const createDocumentSchema = insertDocumentSchema.extend({
   isVisibleToTenants: z.boolean().default(false),
 });
 
-const createBuildingDocumentSchema = insertDocumentBuildingSchema.extend({
+const createBuildingDocumentSchema = insertDocumentSchema.extend({
   type: z.enum(DOCUMENT_CATEGORIES),
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
 });
 
-const createResidentDocumentSchema = insertDocumentResidentSchema.extend({
+const createResidentDocumentSchema = insertDocumentSchema.extend({
   type: z.enum(DOCUMENT_CATEGORIES),
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
@@ -535,7 +518,7 @@ export function registerDocumentRoutes(app: Express): void {
         const validatedData = createBuildingDocumentSchema.parse({
           ...otherData,
           buildingId,
-          uploadedBy: userId,
+          uploadedById: userId,
           filePath: req.file ? req.file.path : undefined,
           // fileName is handled via name field
         });
@@ -578,7 +561,7 @@ export function registerDocumentRoutes(app: Express): void {
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           residenceId: undefined,
           buildingId: validatedData.buildingId,
-          uploadedById: validatedData.uploadedBy,
+          uploadedById: validatedData.uploadedById,
         };
 
         const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
@@ -609,7 +592,7 @@ export function registerDocumentRoutes(app: Express): void {
         const validatedData = createResidentDocumentSchema.parse({
           ...otherData,
           residenceId,
-          uploadedBy: userId,
+          uploadedById: userId,
           filePath: req.file ? req.file.path : undefined,
           // fileName is handled via name field
         });
@@ -652,7 +635,7 @@ export function registerDocumentRoutes(app: Express): void {
           isVisibleToTenants: validatedData.isVisibleToTenants,
           residenceId: validatedData.residenceId,
           buildingId: undefined,
-          uploadedById: validatedData.uploadedBy,
+          uploadedById: validatedData.uploadedById,
         };
 
         const document = await storage.createDocument(unifiedDocument) as DocumentRecord;
@@ -1018,7 +1001,7 @@ export function registerDocumentRoutes(app: Express): void {
                 contentType: req.file!.mimetype,
                 metadata: {
                   originalName: req.file!.originalname,
-                  uploadedBy: userId,
+                  uploadedById: userId,
                   uploadedAt: new Date().toISOString(),
                 },
               },
