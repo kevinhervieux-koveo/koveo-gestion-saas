@@ -384,19 +384,85 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
-  // Create a new document with optional file upload
+  // Create a new document (supports both file upload and text-only documents)
   app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
-      const { documentType, buildingId, residenceId, ...otherData } = req.body;
+      const { documentType, buildingId, residenceId, textContent, ...otherData } = req.body;
 
       // Validate permissions - only admin, manager, and resident can create documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
 
+      // Check if this is a text-only document or file upload
+      const isTextDocument = !req.file && textContent;
+      const isFileDocument = !!req.file;
+
+      if (!isTextDocument && !isFileDocument) {
+        return res.status(400).json({ message: 'Either a file or text content is required' });
+      }
+
+      // For text documents, create unified document directly
+      if (isTextDocument) {
+        // Create text document without file storage
+        const documentData: InsertDocument = {
+          name: otherData.name || 'Untitled Document',
+          description: otherData.description || textContent.substring(0, 200) + (textContent.length > 200 ? '...' : ''),
+          documentType: documentType || 'other',
+          gcsPath: `text-documents/${userId}/${Date.now()}.txt`, // Virtual path for text documents
+          isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
+          residenceId: residenceId || undefined,
+          buildingId: buildingId || undefined,
+          uploadedById: userId,
+        };
+
+        // Permission checks
+        if (buildingId && userRole === 'manager') {
+          const organizations = await storage.getUserOrganizations(userId);
+          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const building = await storage.getBuilding(buildingId);
+          if (!building || building.organizationId !== organizationId) {
+            return res.status(403).json({ message: 'Cannot assign document to building outside your organization' });
+          }
+        }
+
+        if (residenceId && userRole === 'resident') {
+          const residences = await storage.getUserResidences(userId);
+          const residenceIds = residences.map((ur) => ur.residenceId);
+          if (!residenceIds.includes(residenceId)) {
+            return res.status(403).json({ message: 'Cannot assign document to residence you do not own' });
+          }
+        }
+
+        // Save text content to local file system for text documents
+        const textFilePath = path.join(process.cwd(), 'uploads', 'text-documents', userId);
+        if (!fs.existsSync(textFilePath)) {
+          fs.mkdirSync(textFilePath, { recursive: true });
+        }
+        const fileName = `${Date.now()}.txt`;
+        const fullPath = path.join(textFilePath, fileName);
+        fs.writeFileSync(fullPath, textContent, 'utf8');
+        
+        // Update GCS path to actual local path
+        documentData.gcsPath = `text-documents/${userId}/${fileName}`;
+
+        const document = await storage.createDocument(documentData);
+        
+        return res.status(201).json({
+          message: 'Text document created successfully',
+          document: {
+            ...document,
+            documentCategory: buildingId ? 'building' : 'resident',
+            entityType: buildingId ? 'building' : 'residence',
+            entityId: buildingId || residenceId,
+          },
+        });
+      }
+
+      // Handle file uploads (existing logic)
       // Determine document type based on buildingId/residenceId if not explicitly provided
       let finalDocumentType = documentType;
       if (!finalDocumentType) {
@@ -1130,6 +1196,8 @@ export function registerDocumentRoutes(app: Express): void {
                   res.setHeader('Content-Type', 'image/jpeg');
                 } else if (ext === '.png') {
                   res.setHeader('Content-Type', 'image/png');
+                } else if (ext === '.txt') {
+                  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
                 } else {
                   res.setHeader('Content-Type', 'application/octet-stream');
                 }
@@ -1152,7 +1220,8 @@ export function registerDocumentRoutes(app: Express): void {
           // Check if it's a relative GCS path
           else if (
             document.gcsPath.includes('residences/') ||
-            document.gcsPath.includes('buildings/')
+            document.gcsPath.includes('buildings/') ||
+            document.gcsPath.includes('text-documents/')
           ) {
             // For development, try to find the file in common upload directories
             const possiblePaths = [
@@ -1211,6 +1280,8 @@ export function registerDocumentRoutes(app: Express): void {
                 'Content-Type',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
               );
+            } else if (ext === '.txt') {
+              res.setHeader('Content-Type', 'text/plain; charset=utf-8');
             } else {
               res.setHeader('Content-Type', 'application/octet-stream');
             }

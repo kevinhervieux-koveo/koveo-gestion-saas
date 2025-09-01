@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -123,6 +124,8 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
   // State management
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<'file' | 'text'>('file');
+  const [textContent, setTextContent] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -206,52 +209,69 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
     return grouped;
   }, [filteredDocuments, documentCategories]);
 
-  // Upload mutation
-  const uploadMutation = useMutation({
+  // Create mutation (supports both file upload and text-only)
+  const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      if (!selectedFile) {
-        throw new Error('No file selected');
+      if (createMode === 'file') {
+        if (!selectedFile) {
+          throw new Error('No file selected');
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('name', data.name);
+        formData.append('description', data.description || '');
+        formData.append('documentType', data.documentType);
+        formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
+
+        if (data.residenceId) {
+          formData.append('residenceId', data.residenceId);
+        }
+        if (data.buildingId) {
+          formData.append('buildingId', data.buildingId);
+        }
+
+        const response = await fetch('/api/documents/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Internal server error');
+        }
+
+        return response.json();
+      } else {
+        // Text-only document creation
+        const payload = {
+          name: data.name,
+          description: data.description || '',
+          documentType: data.documentType,
+          isVisibleToTenants: data.isVisibleToTenants,
+          textContent: textContent,
+          ...( data.residenceId ? { residenceId: data.residenceId } : {}),
+          ...( data.buildingId ? { buildingId: data.buildingId } : {}),
+        };
+
+        return apiRequest('POST', '/api/documents', payload);
       }
-
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('name', data.name);
-      formData.append('description', data.description || '');
-      formData.append('documentType', data.documentType);
-      formData.append('isVisibleToTenants', data.isVisibleToTenants.toString());
-
-      if (data.residenceId) {
-        formData.append('residenceId', data.residenceId);
-      }
-      if (data.buildingId) {
-        formData.append('buildingId', data.buildingId);
-      }
-
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Internal server error');
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({
         title: 'Success',
-        description: 'Document uploaded successfully',
+        description: createMode === 'file' ? 'Document uploaded successfully' : 'Document created successfully',
       });
       queryClient.invalidateQueries({ queryKey });
       setIsUploadDialogOpen(false);
       form.reset();
       setSelectedFile(null);
+      setTextContent('');
+      setCreateMode('file');
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to upload document',
+        description: error.message || (createMode === 'file' ? 'Failed to upload document' : 'Failed to create document'),
         variant: 'destructive',
       });
     },
@@ -280,7 +300,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
 
   // Event handlers
   const handleCreateDocument = async (data: any) => {
-    await uploadMutation.mutateAsync(data);
+    await createMutation.mutateAsync(data);
   };
 
   const handleDeleteDocument = async (document: Document) => {
@@ -439,7 +459,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                       <DialogTitle>Create New Document</DialogTitle>
                       <DialogDescription>
                         Add a new document to this {config.type}. You can attach a file or create a
-                        document entry only.
+                        text-only document entry.
                       </DialogDescription>
                     </DialogHeader>
                     <Form {...form}>
@@ -447,6 +467,36 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                         onSubmit={form.handleSubmit(handleCreateDocument)}
                         className='space-y-4'
                       >
+                        {/* Document Creation Mode */}
+                        <div className='space-y-3'>
+                          <Label>Document Type</Label>
+                          <div className='flex space-x-4'>
+                            <button
+                              type='button'
+                              onClick={() => setCreateMode('file')}
+                              className={`flex-1 p-3 rounded-lg border text-sm transition-colors ${
+                                createMode === 'file'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              data-testid='button-file-mode'
+                            >
+                              📁 Upload File
+                            </button>
+                            <button
+                              type='button'
+                              onClick={() => setCreateMode('text')}
+                              className={`flex-1 p-3 rounded-lg border text-sm transition-colors ${
+                                createMode === 'text'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              data-testid='button-text-mode'
+                            >
+                              📝 Text Document
+                            </button>
+                          </div>
+                        </div>
                         <FormField
                           control={form.control}
                           name='name'
@@ -500,22 +550,40 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                           )}
                         />
 
-                        <div>
-                          <Label htmlFor='file-upload'>Select File to Upload</Label>
-                          <Input
-                            id='file-upload'
-                            type='file'
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className='mt-1'
-                            data-testid='input-file'
-                          />
-                          {selectedFile && (
+                        {/* File Upload or Text Content */}
+                        {createMode === 'file' ? (
+                          <div>
+                            <Label htmlFor='file-upload'>Select File to Upload</Label>
+                            <Input
+                              id='file-upload'
+                              type='file'
+                              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                              className='mt-1'
+                              data-testid='input-file'
+                            />
+                            {selectedFile && (
+                              <p className='text-sm text-gray-500 mt-1'>
+                                Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}{' '}
+                                KB)
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <Label htmlFor='text-content'>Document Content</Label>
+                            <Textarea
+                              id='text-content'
+                              value={textContent}
+                              onChange={(e) => setTextContent(e.target.value)}
+                              placeholder='Enter the document content here...'
+                              className='mt-1 min-h-[120px]'
+                              data-testid='textarea-content'
+                            />
                             <p className='text-sm text-gray-500 mt-1'>
-                              Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}{' '}
-                              KB)
+                              This will create a text document that can be viewed and edited online.
                             </p>
-                          )}
-                        </div>
+                          </div>
+                        )}
 
                         <FormField
                           control={form.control}
@@ -550,10 +618,12 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                           </Button>
                           <Button
                             type='submit'
-                            disabled={uploadMutation.isPending}
+                            disabled={createMutation.isPending || (createMode === 'file' && !selectedFile) || (createMode === 'text' && !textContent.trim())}
                             data-testid='button-create'
                           >
-                            {uploadMutation.isPending ? 'Uploading...' : 'Create'}
+                            {createMutation.isPending 
+                              ? (createMode === 'file' ? 'Uploading...' : 'Creating...') 
+                              : 'Create'}
                           </Button>
                         </DialogFooter>
                       </form>
