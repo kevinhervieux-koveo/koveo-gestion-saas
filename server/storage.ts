@@ -1479,5 +1479,5 @@ class ProductionFallbackStorage implements IStorage {
   }
 }
 
-// Always use optimized database storage - no fallbacks
-export const storage = new OptimizedDatabaseStorage();
+// Temporarily use basic database storage to fix upload issues
+export const storage = new DatabaseStorage();
