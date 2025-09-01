@@ -994,13 +994,12 @@ export function registerDocumentRoutes(app: Express): void {
         gcsPath = `general/${uniqueFileName}`;
       }
 
-      // Handle file storage - use local storage for now since GCS is not fully configured
-      // In Replit environment or when GCS is unavailable, use local storage
-      const useLocalStorage = true; // Force local storage for now
+      // DISABLED GCS: Force local storage for all environments
+      console.log('📁 GCS disabled - using local storage for all document operations');
       
-      if (useLocalStorage || process.env.NODE_ENV === 'development') {
-        try {
-          // Use local storage
+      // Always use local storage (GCS disabled)
+      try {
+        // Use local storage
           const localStoragePath = path.join(process.cwd(), 'uploads');
           if (!fs.existsSync(localStoragePath)) {
             fs.mkdirSync(localStoragePath, { recursive: true });
@@ -1016,62 +1015,9 @@ export function registerDocumentRoutes(app: Express): void {
           // Copy uploaded file to local storage
           fs.copyFileSync(req.file!.path, localFilePath);
           console.log(`📁 File saved at ${localFilePath}`);
-        } catch (localError) {
-          console.error('Local storage error:', localError);
-          throw new Error('Failed to save file locally');
-        }
-      } else {
-        // Production: Try GCS but fallback to local if it fails
-        try {
-          const gcsClient = await getGCSClient();
-          const bucket = gcsClient.bucket(bucketName);
-          const file = bucket.file(gcsPath);
-
-          // Upload file to GCS
-          await new Promise<void>((resolve, reject) => {
-            const stream = fs.createReadStream(req.file!.path);
-            const uploadStream = file.createWriteStream({
-              metadata: {
-                contentType: req.file!.mimetype,
-                metadata: {
-                  originalName: req.file!.originalname,
-                  uploadedById: userId,
-                  uploadedAt: new Date().toISOString(),
-                },
-              },
-            });
-
-            uploadStream.on('error', (error) => {
-              console.error('GCS upload error:', error);
-              reject(error);
-            });
-
-            uploadStream.on('finish', () => {
-              console.log(`File uploaded to GCS: ${gcsPath}`);
-              resolve();
-            });
-
-            stream.pipe(uploadStream);
-          });
-        } catch (gcsError) {
-          console.error('GCS upload failed in production, using local storage:', gcsError);
-          // Fallback to local storage
-          const localStoragePath = path.join(process.cwd(), 'uploads');
-          if (!fs.existsSync(localStoragePath)) {
-            fs.mkdirSync(localStoragePath, { recursive: true });
-          }
-
-          // Create directory structure
-          const localFilePath = path.join(localStoragePath, gcsPath);
-          const localFileDir = path.dirname(localFilePath);
-          if (!fs.existsSync(localFileDir)) {
-            fs.mkdirSync(localFileDir, { recursive: true });
-          }
-
-          // Copy uploaded file to local storage
-          fs.copyFileSync(req.file!.path, localFilePath);
-          console.log(`📁 Production fallback: File saved locally at ${localFilePath}`);
-        }
+      } catch (localError) {
+        console.error('Local storage error:', localError);
+        throw new Error('Failed to save file locally');
       }
 
       // Create document record in database
@@ -1252,71 +1198,11 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // Handle file serving for both development and production
+      // DISABLED GCS: Always serve from local storage
       if (document.gcsPath) {
+        console.log('📁 GCS disabled - serving from local storage');
         try {
-          // Production: Try GCS first, fallback to local storage if unavailable
-          if (process.env.NODE_ENV === 'production') {
-            try {
-              const gcsClient = await getGCSClient();
-              const bucketName = process.env.GCS_BUCKET_NAME || 'koveo-gestion-documents';
-              const bucket = gcsClient.bucket(bucketName);
-              const file = bucket.file(document.gcsPath);
-
-              // Check if file exists in GCS
-              const [exists] = await file.exists();
-              if (!exists) {
-                return res.status(404).json({ message: 'File not found in storage' });
-              }
-
-              // Generate signed URL for secure access
-              const [signedUrl] = await file.getSignedUrl({
-                action: 'read',
-                expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-              });
-
-              // Redirect to signed URL or stream the file
-              if (isDownload) {
-                // For downloads, redirect to signed URL with attachment header
-                return res.redirect(signedUrl);
-              } else {
-                // For viewing, stream the file directly
-                const stream = file.createReadStream();
-
-                // Set headers with proper filename extension
-                let fileName =
-                  (document as any).fileName || document.name || path.basename(document.gcsPath);
-                if (!path.extname(fileName) && document.gcsPath) {
-                  const originalExt = path.extname(document.gcsPath);
-                  if (originalExt) {
-                    fileName += originalExt;
-                  }
-                }
-                res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-
-                // Set content type
-                const ext = path.extname(fileName).toLowerCase();
-                if (ext === '.pdf') {
-                  res.setHeader('Content-Type', 'application/pdf');
-                } else if (ext === '.jpg' || ext === '.jpeg') {
-                  res.setHeader('Content-Type', 'image/jpeg');
-                } else if (ext === '.png') {
-                  res.setHeader('Content-Type', 'image/png');
-                } else if (ext === '.txt') {
-                  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-                } else {
-                  res.setHeader('Content-Type', 'application/octet-stream');
-                }
-
-                return stream.pipe(res);
-              }
-            } catch (gcsError) {
-              console.warn('🔄 GCS unavailable in production, falling back to local storage:', gcsError.message);
-              // Fall through to local storage handling below
-            }
-          }
-
-          // Development OR Production fallback: Serve from local storage
+          // Always serve from local storage (GCS disabled)
           let filePath = document.gcsPath;
 
           // Check if it's an absolute path
