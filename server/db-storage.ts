@@ -21,7 +21,34 @@ import type {
   InsertImprovementSuggestion,
   Feature,
   InsertFeature,
+  Document,
+  InsertDocument,
+  Contact,
+  InsertContact,
+  Permission,
+  RolePermission,
+  UserPermission,
+  Pillar,
+  InsertPillar,
+  ActionableItem,
+  InsertActionableItem,
+  Invitation,
+  InsertInvitation,
+  InvitationAuditLog,
+  InsertInvitationAuditLog,
+  PasswordResetToken,
+  InsertPasswordResetToken,
+  Bug,
+  InsertBug,
+  FeatureRequest,
+  InsertFeatureRequest,
 } from '@shared/schema';
+import type {
+  Demand,
+  InsertDemand,
+  DemandComment,
+  InsertDemandComment,
+} from '@shared/schemas/operations';
 import type { IStorage } from './storage';
 // Use shared database connection to avoid multiple pools in production
 import { db, sql } from './db';

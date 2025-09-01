@@ -1479,5 +1479,7 @@ class ProductionFallbackStorage implements IStorage {
   }
 }
 
-// Use optimized database storage with all features including password reset
-export const storage = new OptimizedDatabaseStorage();
+// Use database storage - OptimizedDatabaseStorage has type errors in production
+// Switching to DatabaseStorage to fix document upload issues
+import { DatabaseStorage } from './db-storage';
+export const storage = new DatabaseStorage();
