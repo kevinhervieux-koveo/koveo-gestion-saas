@@ -479,7 +479,8 @@ export function registerDocumentRoutes(app: Express): void {
             try {
               // Update paths and retry
               documentData.gcsPath = retryPath;
-              const fullRetryPath = path.join(textFilePath, retryFileName);
+              const retryTextFilePath = path.join(process.cwd(), 'uploads', 'text-documents', userId);
+              const fullRetryPath = path.join(retryTextFilePath, retryFileName);
               fs.writeFileSync(fullRetryPath, textContent, 'utf8');
               
               const document = await storage.createDocument(documentData);
