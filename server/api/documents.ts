@@ -126,6 +126,7 @@ export function registerDocumentRoutes(app: Express): void {
       console.log(`[${timestamp}] 🏢 Found ${buildings.length} buildings`);
 
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+      console.log(`[${timestamp}] 🏢 Organization ID determined:`, organizationId);
 
       // If specific residence ID provided, filter to only that residence
       let residenceIds: string[];
@@ -207,20 +208,22 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
 
-      // Production debugging: Log before database call
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] About to call storage.getDocuments with filters:', filters);
-      }
+      // CRITICAL DEBUG POINT: This is where 500 errors likely occur
+      console.log(`[${timestamp}] 🎯 CRITICAL: About to call storage.getDocuments with filters:`, filters);
+      console.log(`[${timestamp}] 🔧 Storage instance:`, storage.constructor.name);
+      console.log(`[${timestamp}] 📊 Filters being passed:`, JSON.stringify(filters, null, 2));
       
       const documents = await storage.getDocuments(filters);
 
-      // Production debugging: Log after database call
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] storage.getDocuments returned:', {
-          documentsCount: documents?.length || 0,
-          documentsPreview: documents?.slice(0, 2)?.map(d => ({ id: d.id, name: d.name, uploadedById: d.uploadedById }))
-        });
-      }
+      // CRITICAL: Log successful database response
+      console.log(`[${timestamp}] ✅ CRITICAL: storage.getDocuments SUCCESS - returned ${documents?.length || 0} documents`);
+      console.log(`[${timestamp}] 📋 Document preview:`, documents?.slice(0, 3)?.map(d => ({ 
+        id: d.id, 
+        name: d.name, 
+        uploadedById: d.uploadedById,
+        buildingId: d.buildingId,
+        residenceId: d.residenceId 
+      })));
 
       // Debug logging
       console.log('🔍 [DOCUMENTS API DEBUG]:', {
@@ -1068,22 +1071,24 @@ export function registerDocumentRoutes(app: Express): void {
         uploadedById: userId,
       };
 
-      // Production debugging: Log before database create
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] About to create document in database:', documentData);
-      }
+      // CRITICAL DEBUG POINT: Database creation
+      console.log(`[${timestamp}] 🎯 CRITICAL: About to create document in database:`, {
+        name: documentData.name,
+        type: documentData.documentType,
+        buildingId: documentData.buildingId,
+        residenceId: documentData.residenceId,
+        uploadedById: documentData.uploadedById
+      });
 
-      // Create document record in database
+      // Create document record in database  
       const newDocument = await storage.createDocument(documentData);
       
-      // Production debugging: Log after database create
-      if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] DocumentRecord created successfully:', { 
-          id: newDocument?.id, 
-          name: newDocument?.name,
-          gcsPath: newDocument?.gcsPath 
-        });
-      }
+      // CRITICAL: Log successful database creation
+      console.log(`[${timestamp}] ✅ CRITICAL: DocumentRecord created successfully:`, { 
+        id: newDocument?.id, 
+        name: newDocument?.name,
+        gcsPath: newDocument?.gcsPath 
+      });
 
       // Clean up temporary file
       if (fs.existsSync(req.file.path)) {
