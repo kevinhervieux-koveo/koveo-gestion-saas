@@ -869,7 +869,7 @@ export function registerDocumentRoutes(app: Express): void {
   );
 
   // POST /api/documents/upload - Upload file to GCS and create unified document record
-  app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req, res) => {
+  app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       // Check if file was uploaded
       if (!req.file) {
