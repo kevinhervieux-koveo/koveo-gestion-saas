@@ -99,6 +99,16 @@ export function registerDocumentRoutes(app: Express): void {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
+      
+      // Production debugging: Log the request details
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] Documents API called with:', {
+          userId,
+          userRole,
+          query: req.query,
+          timestamp: new Date().toISOString()
+        });
+      }
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
@@ -190,7 +200,20 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
 
+      // Production debugging: Log before database call
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] About to call storage.getDocuments with filters:', filters);
+      }
+      
       const documents = await storage.getDocuments(filters);
+
+      // Production debugging: Log after database call
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] storage.getDocuments returned:', {
+          documentsCount: documents?.length || 0,
+          documentsPreview: documents?.slice(0, 2)?.map(d => ({ id: d.id, name: d.name, uploadedById: d.uploadedById }))
+        });
+      }
 
       // Debug logging
       console.log('🔍 [DOCUMENTS API DEBUG]:', {
@@ -871,6 +894,16 @@ export function registerDocumentRoutes(app: Express): void {
   // POST /api/documents/upload - Upload file to GCS and create unified document record
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
+      // Production debugging: Log upload attempt
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[PROD DEBUG] Document upload attempt:', {
+          hasFile: !!req.file,
+          fileName: req.file?.originalname,
+          body: req.body,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       // Check if file was uploaded
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
