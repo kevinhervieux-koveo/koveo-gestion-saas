@@ -93,20 +93,9 @@ const PostgreSqlStore = connectPg(session);
  * Includes fallback for database connection issues in production.
  */
 function createSessionStore() {
-  try {
-    // For production, try to use PostgreSQL session store
-    if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
-      return new PostgreSqlStore({
-        conString: process.env.DATABASE_URL,
-        tableName: 'session',
-        createTableIfMissing: true,
-      });
-    }
-  } catch (error) {
-    console.warn('Failed to initialize PostgreSQL session store, falling back to memory store:', error);
-  }
-  
-  // Fallback to memory store for development or if PostgreSQL store fails
+  // PRODUCTION FIX: connect-pg-simple doesn't work with Neon HTTP connections
+  // Temporarily use memory store for all environments until we implement a Neon-compatible session store
+  console.log('📝 Session store: Using memory store (Neon HTTP incompatible with connect-pg-simple)');
   return undefined; // Will use default memory store
 }
 
