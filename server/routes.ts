@@ -53,6 +53,42 @@ export async function registerRoutes(app: Express) {
   app.post('/api/test', (req, res) => {
     res.json({ message: 'API working', body: req.body });
   });
+
+  // Debug endpoint to test production database access
+  app.get('/api/debug/documents', async (req, res) => {
+    try {
+      console.log('🔍 Production debug endpoint called');
+      
+      const result = {
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'unknown',
+        databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing',
+        storageTest: 'attempting...'
+      };
+
+      // Import storage here to avoid circular dependencies
+      const { storage } = await import('./storage.js');
+      
+      // Test storage connection
+      try {
+        const testResult = await storage.getDocuments('test-residence-id');
+        result.storageTest = 'success';
+        result.documentsTableAccess = 'working';
+      } catch (error) {
+        result.storageTest = 'failed';
+        result.error = error.message;
+        console.error('🚨 Storage test failed:', error);
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('🚨 Debug endpoint failed:', error);
+      res.status(500).json({ 
+        error: 'Debug endpoint failed', 
+        message: error.message
+      });
+    }
+  });
   
   // Static file serving - MUST come after API routes to prevent conflicts
   const distPath = path.resolve(process.cwd(), 'dist', 'public');

@@ -12,8 +12,8 @@ import {
   type InsertDocumentResident,
 } from '../../shared/schemas/documents';
 
-// Temporary explicit Document type to fix TypeScript issues
-type Document = {
+// Explicit DocumentRecordRecord type to avoid collision with DOM DocumentRecord
+type DocumentRecordRecord = {
   id: string;
   name: string;
   description?: string;
@@ -50,7 +50,7 @@ const upload = multer({
   },
 });
 
-// Document categories for validation - synchronized with frontend
+// DocumentRecord categories for validation - synchronized with frontend
 const DOCUMENT_CATEGORIES = [
   'bylaw',
   'financial',
@@ -88,7 +88,7 @@ const createResidentDocumentSchema = insertDocumentResidentSchema.extend({
 });
 
 // Schema for unified document upload
-const uploadDocumentSchema = z.object({
+const uploadDocumentRecordSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),
   documentType: z.enum(DOCUMENT_CATEGORIES),
@@ -102,7 +102,7 @@ const uploadDocumentSchema = z.object({
  * @param app
  */
 /**
- * RegisterDocumentRoutes function.
+ * RegisterDocumentRecordRoutes function.
  * @param app
  * @returns Function result.
  */
@@ -116,7 +116,7 @@ export function registerDocumentRoutes(app: Express): void {
       
       // Production debugging: Log the request details
       if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] Documents API called with:', {
+        console.log('[PROD DEBUG] DocumentRecords API called with:', {
           userId,
           userRole,
           query: req.query,
@@ -186,7 +186,7 @@ export function registerDocumentRoutes(app: Express): void {
 
       const buildingIds = buildings.map((b) => b.id);
 
-      const allDocuments: any[] = [];
+      const allDocumentRecords: any[] = [];
 
       // Use unified documents system
       const filters: any = {
@@ -216,14 +216,14 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Production debugging: Log before database call
       if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] About to call storage.getDocuments with filters:', filters);
+        console.log('[PROD DEBUG] About to call storage.getDocumentRecords with filters:', filters);
       }
       
-      const documents = await storage.getDocuments(filters);
+      const documents = await storage.getDocumentRecords(filters);
 
       // Production debugging: Log after database call
       if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] storage.getDocuments returned:', {
+        console.log('[PROD DEBUG] storage.getDocumentRecords returned:', {
           documentsCount: documents?.length || 0,
           documentsPreview: documents?.slice(0, 2)?.map(d => ({ id: d.id, name: d.name, uploadedById: d.uploadedById }))
         });
@@ -239,7 +239,7 @@ export function registerDocumentRoutes(app: Express): void {
       });
 
       // Apply role-based filtering with tenant visibility rules
-      const filteredDocuments = documents.filter((doc) => {
+      const filteredDocumentRecords = documents.filter((doc) => {
         // If filtering by specific building, only show documents for that building
         if (specificBuildingId) {
           if (doc.buildingId !== specificBuildingId) {
@@ -304,7 +304,7 @@ export function registerDocumentRoutes(app: Express): void {
       });
 
       // Add document type indicators for frontend compatibility
-      const enhancedDocuments = filteredDocuments.map((doc) => ({
+      const enhancedDocumentRecords = filteredDocumentRecords.map((doc) => ({
         ...doc,
         documentCategory: doc.buildingId ? 'building' : 'resident',
         entityType: doc.buildingId ? 'building' : 'residence',
@@ -312,19 +312,19 @@ export function registerDocumentRoutes(app: Express): void {
         uploadDate: doc.createdAt, // For backward compatibility
       }));
 
-      allDocuments.push(...enhancedDocuments);
+      allDocumentRecords.push(...enhancedDocumentRecords);
 
       // Sort by upload date, most recent first
-      allDocuments.sort(
+      allDocumentRecords.sort(
         (a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
       );
 
       const response = {
-        documents: allDocuments,
-        total: allDocuments.length,
-        buildingCount: allDocuments.filter((d) => d.documentCategory === 'building').length,
-        residentCount: allDocuments.filter((d) => d.documentCategory === 'resident').length,
-        legacyCount: allDocuments.filter((d) => d.documentCategory === 'legacy').length,
+        documents: allDocumentRecords,
+        total: allDocumentRecords.length,
+        buildingCount: allDocumentRecords.filter((d) => d.documentCategory === 'building').length,
+        residentCount: allDocumentRecords.filter((d) => d.documentCategory === 'resident').length,
+        legacyCount: allDocumentRecords.filter((d) => d.documentCategory === 'legacy').length,
       };
       res.json(response);
     } catch (_error) {
@@ -354,12 +354,12 @@ export function registerDocumentRoutes(app: Express): void {
       let document: unknown = null;
 
       // Try to find the document in the appropriate table(s)
-      const hasNewDocumentMethods = 'getBuildingDocument' in storage;
+      const hasNewDocumentRecordMethods = 'getBuildingDocumentRecord' in storage;
 
-      if (hasNewDocumentMethods) {
+      if (hasNewDocumentRecordMethods) {
         if (!documentType || documentType === 'building') {
           try {
-            document = await (storage as any).getBuildingDocument(
+            document = await (storage as any).getBuildingDocumentRecord(
               documentId,
               userId,
               userRole,
@@ -378,7 +378,7 @@ export function registerDocumentRoutes(app: Express): void {
 
         if (!document && (!documentType || documentType === 'resident')) {
           try {
-            document = await (storage as any).getResidentDocument(
+            document = await (storage as any).getResidentDocumentRecord(
               documentId,
               userId,
               userRole,
@@ -399,7 +399,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Fallback to legacy documents if not found and no type specified
       if (!document && !documentType) {
         try {
-          document = await storage.getDocument(documentId);
+          document = await storage.getDocumentRecord(documentId);
           if (document) {
             (document as any).documentCategory = 'legacy';
             (document as any).entityType = 'legacy';
@@ -411,7 +411,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (!document) {
-        return res.status(404).json({ message: 'Document not found or access denied' });
+        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
       }
 
       res.json(document);
@@ -435,18 +435,18 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Check if this is a text-only document or file upload
-      const isTextDocument = !req.file && textContent;
-      const isFileDocument = !!req.file;
+      const isTextDocumentRecord = !req.file && textContent;
+      const isFileDocumentRecord = !!req.file;
 
-      if (!isTextDocument && !isFileDocument) {
+      if (!isTextDocumentRecord && !isFileDocumentRecord) {
         return res.status(400).json({ message: 'Either a file or text content is required' });
       }
 
       // For text documents, create unified document directly
-      if (isTextDocument) {
+      if (isTextDocumentRecord) {
         // Create text document without file storage
-        const documentData: InsertDocument = {
-          name: otherData.name || 'Untitled Document',
+        const documentData: InsertDocumentRecord = {
+          name: otherData.name || 'Untitled DocumentRecord',
           description: otherData.description || textContent.substring(0, 200) + (textContent.length > 200 ? '...' : ''),
           documentType: documentType || 'other',
           gcsPath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
@@ -493,7 +493,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentData.gcsPath = `text-documents/${userId}/${fileName}`;
 
         // Create document record in database
-        const document = await storage.createDocument(documentData);
+        const document = await storage.createDocumentRecord(documentData);
         
         return res.status(201).json({
           message: 'Text document created successfully',
@@ -508,12 +508,12 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Handle file uploads (existing logic)
       // Determine document type based on buildingId/residenceId if not explicitly provided
-      let finalDocumentType = documentType;
-      if (!finalDocumentType) {
+      let finalDocumentRecordType = documentType;
+      if (!finalDocumentRecordType) {
         if (buildingId && !residenceId) {
-          finalDocumentType = 'building';
+          finalDocumentRecordType = 'building';
         } else if (residenceId && !buildingId) {
-          finalDocumentType = 'resident';
+          finalDocumentRecordType = 'resident';
         } else if (buildingId && residenceId) {
           return res.status(400).json({
             message: 'Please specify documentType when providing both buildingId and residenceId',
@@ -526,13 +526,13 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
 
-      if (finalDocumentType === 'building') {
+      if (finalDocumentRecordType === 'building') {
         // Validate and create building document
         if (!buildingId) {
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
-        const validatedData = createBuildingDocumentSchema.parse({
+        const validatedData = createBuildingDocumentRecordSchema.parse({
           ...otherData,
           buildingId,
           uploadedBy: userId,
@@ -570,7 +570,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Create unified document instead of separate building document
-        const unifiedDocument: InsertDocument = {
+        const unifiedDocumentRecord: InsertDocumentRecord = {
           name: validatedData.name || validatedData.title || 'Untitled',
           description: validatedData.description,
           documentType: validatedData.type,
@@ -581,7 +581,7 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedBy,
         };
 
-        const document = await storage.createDocument(unifiedDocument);
+        const document = await storage.createDocumentRecord(unifiedDocumentRecord);
 
         // Clean up temporary file after successful upload
         if (req.file?.path) {
@@ -598,7 +598,7 @@ export function registerDocumentRoutes(app: Express): void {
           entityType: 'building',
           entityId: document.buildingId,
         });
-      } else if (finalDocumentType === 'resident') {
+      } else if (finalDocumentRecordType === 'resident') {
         // Validate and create resident document
         if (!residenceId) {
           return res
@@ -606,7 +606,7 @@ export function registerDocumentRoutes(app: Express): void {
             .json({ message: 'residenceId is required for resident documents' });
         }
 
-        const validatedData = createResidentDocumentSchema.parse({
+        const validatedData = createResidentDocumentRecordSchema.parse({
           ...otherData,
           residenceId,
           uploadedBy: userId,
@@ -644,7 +644,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Convert to unified document format
-        const unifiedDocument: InsertDocument = {
+        const unifiedDocumentRecord: InsertDocumentRecord = {
           name: validatedData.name,
           description: undefined,
           documentType: validatedData.type,
@@ -655,10 +655,10 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedBy,
         };
 
-        const document = await storage.createDocument(unifiedDocument);
+        const document = await storage.createDocumentRecord(unifiedDocumentRecord);
 
         console.log('📝 Created resident document:', document);
-        console.log('📝 Document ID:', document.id);
+        console.log('📝 DocumentRecord ID:', document.id);
 
         const response = {
           ...document,
@@ -715,27 +715,27 @@ export function registerDocumentRoutes(app: Express): void {
       const buildingIds = buildings.map((b) => b.id);
 
       // Use unified documents system for updates
-      let updatedDocument: unknown = null;
+      let updatedDocumentRecord: unknown = null;
 
       try {
-        const validatedData = createDocumentSchema.partial().parse(req.body);
-        updatedDocument = await storage.updateDocument(documentId, validatedData);
+        const validatedData = createDocumentRecordSchema.partial().parse(req.body);
+        updatedDocumentRecord = await storage.updateDocumentRecord(documentId, validatedData);
 
-        if (updatedDocument) {
+        if (updatedDocumentRecord) {
           // Add compatibility fields for frontend
-          (updatedDocument as any).documentCategory = (updatedDocument as any).buildingId ? 'building' : 'resident';
-          (updatedDocument as any).entityType = (updatedDocument as any).buildingId ? 'building' : 'residence';
-          (updatedDocument as any).entityId = (updatedDocument as any).buildingId || (updatedDocument as any).residenceId;
+          (updatedDocumentRecord as any).documentCategory = (updatedDocumentRecord as any).buildingId ? 'building' : 'resident';
+          (updatedDocumentRecord as any).entityType = (updatedDocumentRecord as any).buildingId ? 'building' : 'residence';
+          (updatedDocumentRecord as any).entityId = (updatedDocumentRecord as any).buildingId || (updatedDocumentRecord as any).residenceId;
         }
       } catch (error) {
         console.warn('Failed to update document:', error);
       }
 
-      if (!updatedDocument) {
-        return res.status(404).json({ message: 'Document not found or access denied' });
+      if (!updatedDocumentRecord) {
+        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
       }
 
-      res.json(updatedDocument);
+      res.json(updatedDocumentRecord);
     } catch (_error) {
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
@@ -766,13 +766,13 @@ export function registerDocumentRoutes(app: Express): void {
       let deleted = false;
 
       try {
-        deleted = await storage.deleteDocument(documentId);
+        deleted = await storage.deleteDocumentRecord(documentId);
       } catch (error) {
         console.error('Failed to delete document:', error);
       }
 
       if (!deleted) {
-        return res.status(404).json({ message: 'Document not found or access denied' });
+        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
       }
 
       res.status(204).send();
@@ -825,15 +825,15 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Get the existing document to determine where to store the file
-        const documents = await storage.getDocuments({
+        const documents = await storage.getDocumentRecords({
           userId,
           userRole,
         });
 
-        const existingDocument = documents.find((doc) => doc.id === documentId);
+        const existingDocumentRecord = documents.find((doc) => doc.id === documentId);
 
-        if (!existingDocument) {
-          return res.status(404).json({ message: 'Document not found' });
+        if (!existingDocumentRecord) {
+          return res.status(404).json({ message: 'DocumentRecord not found' });
         }
 
         // File validation passed - file exists and is ready for upload
@@ -841,14 +841,14 @@ export function registerDocumentRoutes(app: Express): void {
         // Determine organization ID based on document context
         let organizationId: string;
 
-        if (existingDocument.buildingId) {
-          const building = await storage.getBuilding(existingDocument.buildingId);
+        if (existingDocumentRecord.buildingId) {
+          const building = await storage.getBuilding(existingDocumentRecord.buildingId);
           if (!building) {
             return res.status(404).json({ message: 'Building not found' });
           }
           organizationId = building.organizationId;
-        } else if (existingDocument.residenceId) {
-          const residence = await storage.getResidence(existingDocument.residenceId);
+        } else if (existingDocumentRecord.residenceId) {
+          const residence = await storage.getResidence(existingDocumentRecord.residenceId);
           if (!residence) {
             return res.status(404).json({ message: 'Residence not found' });
           }
@@ -860,13 +860,13 @@ export function registerDocumentRoutes(app: Express): void {
         } else {
           return res
             .status(400)
-            .json({ message: 'Document must be associated with a building or residence' });
+            .json({ message: 'DocumentRecord must be associated with a building or residence' });
         }
 
         // Note: File upload to external storage removed
 
         // Update document with file information
-        const updatedDocument = await storage.updateDocument(documentId, {
+        const updatedDocumentRecord = await storage.updateDocumentRecord(documentId, {
           gcsPath: `prod_org_${organizationId}/${req.file.originalname}`,
           name: req.file.originalname,
           // Remove mimeType as it's not in schema
@@ -878,7 +878,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         res.status(200).json({
-          document: updatedDocument,
+          document: updatedDocumentRecord,
           message: 'File uploaded successfully',
         });
       } catch (error: any) {
@@ -910,7 +910,7 @@ export function registerDocumentRoutes(app: Express): void {
     try {
       // Production debugging: Log upload attempt
       if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] Document upload attempt:', {
+        console.log('[PROD DEBUG] DocumentRecord upload attempt:', {
           hasFile: !!req.file,
           fileName: req.file?.originalname,
           body: req.body,
@@ -939,7 +939,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Validate form data
-      const validatedData = uploadDocumentSchema.parse(formData);
+      const validatedData = uploadDocumentRecordSchema.parse(formData);
       
       // Production debugging: Log after validation
       if (process.env.NODE_ENV === 'production') {
@@ -1058,7 +1058,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Create document record in database
-      const documentData: InsertDocument = {
+      const documentData: InsertDocumentRecord = {
         name: validatedData.name,
         description: validatedData.description,
         documentType: validatedData.documentType,
@@ -1075,14 +1075,14 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Create document record in database
-      const newDocument = await storage.createDocument(documentData);
+      const newDocumentRecord = await storage.createDocumentRecord(documentData);
       
       // Production debugging: Log after database create
       if (process.env.NODE_ENV === 'production') {
-        console.log('[PROD DEBUG] Document created successfully:', { 
-          id: newDocument?.id, 
-          name: newDocument?.name,
-          gcsPath: newDocument?.gcsPath 
+        console.log('[PROD DEBUG] DocumentRecord created successfully:', { 
+          id: newDocumentRecord?.id, 
+          name: newDocumentRecord?.name,
+          gcsPath: newDocumentRecord?.gcsPath 
         });
       }
 
@@ -1093,11 +1093,11 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Return success response
       res.status(201).json({
-        message: 'Document uploaded successfully',
-        document: newDocument,
+        message: 'DocumentRecord uploaded successfully',
+        document: newDocumentRecord,
       });
     } catch (error: any) {
-      console.error('Document upload error:', error);
+      console.error('DocumentRecord upload error:', error);
 
       // Clean up temporary file on error
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
@@ -1127,7 +1127,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Handle unique constraint violations (path conflicts)
       if (error?.message?.includes('unique constraint') || error?.code === '23505') {
         return res.status(409).json({
-          message: 'Document path conflict - please try uploading again',
+          message: 'DocumentRecord path conflict - please try uploading again',
           error: 'Path already exists',
         });
       }
@@ -1143,7 +1143,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Generic error response
       res.status(500).json({
         message: 'Internal server error',
-        error: 'Document upload failed',
+        error: 'DocumentRecord upload failed',
       });
     }
   });
@@ -1175,11 +1175,11 @@ export function registerDocumentRoutes(app: Express): void {
         userRole,
       };
 
-      const documents = await storage.getDocuments(filters);
+      const documents = await storage.getDocumentRecords(filters);
       const document = documents.find((doc) => doc.id === documentId);
 
       if (!document) {
-        return res.status(404).json({ message: 'Document not found' });
+        return res.status(404).json({ message: 'DocumentRecord not found' });
       }
 
       // Check permissions with tenant visibility rules
@@ -1393,4 +1393,5 @@ export function registerDocumentRoutes(app: Express): void {
       res.status(500).json({ message: 'Failed to serve document file' });
     }
   });
+
 }
