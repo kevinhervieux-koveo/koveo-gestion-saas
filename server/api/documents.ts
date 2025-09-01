@@ -90,13 +90,17 @@ const uploadDocumentRecordSchema = z.object({
  * @returns Function result.
  */
 export function registerDocumentRoutes(app: Express): void {
+  console.log(`[${new Date().toISOString()}] 🔧 Registering document routes...`);
+  
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] 📄 GET /api/documents - Starting request`, {
       userId: req.user?.id,
       userRole: req.user?.role,
-      query: req.query
+      query: req.query,
+      url: req.url,
+      method: req.method
     });
     
     try {
@@ -110,20 +114,31 @@ export function registerDocumentRoutes(app: Express): void {
         userRole,
         hasValidUser: !!user
       });
+      
+      // Critical: Check if storage object exists and is properly initialized
+      console.log(`[${timestamp}] 💾 Storage check:`, {
+        storageExists: !!storage,
+        storageType: storage?.constructor?.name,
+        storageMethod: typeof storage?.getDocuments
+      });
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
 
       // Get user's organization and residences for filtering
       console.log(`[${timestamp}] 🔍 Fetching user data from storage...`);
+      
+      console.log(`[${timestamp}] 📋 Calling getUserOrganizations(${userId})...`);
       const organizations = await storage.getUserOrganizations(userId);
-      console.log(`[${timestamp}] 🏢 Found ${organizations.length} organizations`);
+      console.log(`[${timestamp}] ✅ getUserOrganizations SUCCESS - Found ${organizations.length} organizations`);
       
+      console.log(`[${timestamp}] 📋 Calling getUserResidences(${userId})...`);
       const userResidences = await storage.getUserResidences(userId);
-      console.log(`[${timestamp}] 🏠 Found ${userResidences.length} user residences`);
+      console.log(`[${timestamp}] ✅ getUserResidences SUCCESS - Found ${userResidences.length} user residences`);
       
+      console.log(`[${timestamp}] 📋 Calling getBuildings()...`);
       const buildings = await storage.getBuildings();
-      console.log(`[${timestamp}] 🏢 Found ${buildings.length} buildings`);
+      console.log(`[${timestamp}] ✅ getBuildings SUCCESS - Found ${buildings.length} buildings`);
 
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
       console.log(`[${timestamp}] 🏢 Organization ID determined:`, organizationId);
