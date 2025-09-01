@@ -969,16 +969,8 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Determine GCS bucket based on environment
-      const bucketName =
-        process.env.NODE_ENV === 'production'
-          ? process.env.GCS_PROD_BUCKET_NAME
-          : process.env.GCS_DEV_BUCKET_NAME;
-
-      if (!bucketName) {
-        console.error('GCS bucket name not configured');
-        return res.status(500).json({ message: 'Storage configuration error' });
-      }
+      // GCS DISABLED: Skip bucket configuration (using local storage only)
+      console.log('📁 GCS disabled - skipping bucket configuration check');
 
       // Generate unique GCS path
       const fileExtension = path.extname(req.file.originalname);
@@ -999,22 +991,42 @@ export function registerDocumentRoutes(app: Express): void {
       
       // Always use local storage (GCS disabled)
       try {
-        // Use local storage
-          const localStoragePath = path.join(process.cwd(), 'uploads');
+        // Use local storage with robust error handling
+        const localStoragePath = path.join(process.cwd(), 'uploads');
+        
+        // Ensure uploads directory exists
+        try {
           if (!fs.existsSync(localStoragePath)) {
             fs.mkdirSync(localStoragePath, { recursive: true });
+            console.log(`📁 Created uploads directory: ${localStoragePath}`);
           }
+        } catch (dirError) {
+          console.error('Failed to create uploads directory:', dirError);
+          throw new Error('Cannot create uploads directory - check permissions');
+        }
 
-          // Create directory structure
-          const localFilePath = path.join(localStoragePath, gcsPath);
-          const localFileDir = path.dirname(localFilePath);
+        // Create directory structure for file
+        const localFilePath = path.join(localStoragePath, gcsPath);
+        const localFileDir = path.dirname(localFilePath);
+        
+        try {
           if (!fs.existsSync(localFileDir)) {
             fs.mkdirSync(localFileDir, { recursive: true });
+            console.log(`📁 Created subdirectory: ${localFileDir}`);
           }
+        } catch (subdirError) {
+          console.error('Failed to create file subdirectory:', subdirError);
+          throw new Error('Cannot create file directory - check permissions');
+        }
 
-          // Copy uploaded file to local storage
+        // Copy uploaded file to local storage
+        try {
           fs.copyFileSync(req.file!.path, localFilePath);
-          console.log(`📁 File saved at ${localFilePath}`);
+          console.log(`📁 File saved successfully at ${localFilePath}`);
+        } catch (copyError) {
+          console.error('Failed to copy file:', copyError);
+          throw new Error('Cannot save file - check disk space and permissions');
+        }
       } catch (localError) {
         console.error('Local storage error:', localError);
         throw new Error('Failed to save file locally');
