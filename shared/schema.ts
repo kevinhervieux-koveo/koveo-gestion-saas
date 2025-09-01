@@ -127,6 +127,11 @@ export {
   notifications,
 } from './schemas/operations';
 export {
+  documents,
+  documentsBuildings,
+  documentsResidents,
+} from './schemas/documents';
+export {
   developmentPillars,
   workspaceStatus,
   qualityMetrics,
