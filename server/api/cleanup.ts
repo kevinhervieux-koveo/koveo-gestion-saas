@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { documentsBuildings, documentsResidents } from '../../shared/schema';
+import { documents } from '../../shared/schema';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
 
@@ -15,25 +15,20 @@ router.post('/cleanup-storage', async (req, res) => {
     res.json({ message: 'Storage cleanup temporarily disabled - needs update for new GCS system' });
     return;
 
-    // Get all file URLs from both document tables
-    const buildingDocs = await db
-      .select({ fileUrl: documentsBuildings.fileUrl })
-      .from(documentsBuildings)
-      .where(isNotNull(documentsBuildings.fileUrl));
-
-    const residentDocs = await db
-      .select({ fileUrl: documentsResidents.fileUrl })
-      .from(documentsResidents)
-      .where(isNotNull(documentsResidents.fileUrl));
+    // Get all file paths from documents table
+    const allDocs = await db
+      .select({ gcsPath: documents.gcsPath })
+      .from(documents)
+      .where(isNotNull(documents.gcsPath));
 
     // Combine all referenced file URLs and extract object paths from hierarchical structure
     const referencedObjectPaths = new Set();
 
-    [...buildingDocs, ...residentDocs].forEach((doc) => {
-      if (doc.fileUrl) {
+    allDocs.forEach((doc) => {
+      if (doc.gcsPath) {
         try {
           // Convert URL to object path - handles hierarchical paths
-          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.fileUrl);
+          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.gcsPath);
           if (normalizedPath.startsWith('/objects/')) {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
@@ -120,23 +115,17 @@ router.post('/cleanup-storage', async (req, res) => {
  */
 router.get('/storage-stats', async (req, res) => {
   try {
-    // Get database file counts
-    const buildingDocs = await db
-      .select({ id: documentsBuildings.id })
-      .from(documentsBuildings)
-      .where(isNotNull(documentsBuildings.fileUrl));
+    // Get database file count
+    const allDocs = await db
+      .select({ id: documents.id })
+      .from(documents)
+      .where(isNotNull(documents.gcsPath));
 
-    const residentDocs = await db
-      .select({ id: documentsResidents.id })
-      .from(documentsResidents)
-      .where(isNotNull(documentsResidents.fileUrl));
-
-    const totalDbFiles = buildingDocs.length + residentDocs.length;
+    const totalDbFiles = allDocs.length;
 
     res.json({
       database: {
-        buildingDocuments: buildingDocs.length,
-        residentDocuments: residentDocs.length,
+        totalDocuments: allDocs.length,
         total: totalDbFiles,
       },
       message: `Database contains ${totalDbFiles} documents with attached files`,

@@ -667,8 +667,8 @@ export function registerUserRoutes(app: Express): void {
             .where(eq(schema.userResidences.userId, currentUser.id)),
           db
             .select()
-            .from(schema.documentsResidents)
-            .where(eq(schema.documentsResidents.uploadedBy, currentUser.id)),
+            .from(schema.documents)
+            .where(eq(schema.documents.uploadedById, currentUser.id)),
           db
             .select()
             .from(schema.notifications)
@@ -737,8 +737,8 @@ export function registerUserRoutes(app: Express): void {
           .where(eq(schema.userOrganizations.userId, currentUser.id)),
         db.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
         db
-          .delete(schema.documentsResidents)
-          .where(eq(schema.documentsResidents.uploadedBy, currentUser.id)),
+          .delete(schema.documents)
+          .where(eq(schema.documents.uploadedById, currentUser.id)),
 
         // Delete user-created content
         db.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
@@ -881,8 +881,8 @@ export function registerUserRoutes(app: Express): void {
           .where(eq(schema.userOrganizations.userId, targetUserId)),
         db.delete(schema.userResidences).where(eq(schema.userResidences.userId, targetUserId)),
         db
-          .delete(schema.documentsResidents)
-          .where(eq(schema.documentsResidents.uploadedBy, targetUserId)),
+          .delete(schema.documents)
+          .where(eq(schema.documents.uploadedById, targetUserId)),
 
         // Delete invitations
         db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
