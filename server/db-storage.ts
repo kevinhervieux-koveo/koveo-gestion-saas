@@ -698,7 +698,7 @@ export class DatabaseStorage implements IStorage {
    *
    */
   async getPillars(): Promise<Pillar[]> {
-    return await db.select().from(schema.pillars);
+    return await db.select().from(schema.developmentPillars);
   }
 
   /**
@@ -708,8 +708,8 @@ export class DatabaseStorage implements IStorage {
   async getPillar(id: string): Promise<Pillar | undefined> {
     const result = await db
       .select()
-      .from(schema.pillars)
-      .where(eq(schema.pillars.id, id));
+      .from(schema.developmentPillars)
+      .where(eq(schema.developmentPillars.id, id));
     return result[0];
   }
 
@@ -718,7 +718,7 @@ export class DatabaseStorage implements IStorage {
    * @param insertPillar
    */
   async createPillar(insertPillar: InsertPillar): Promise<Pillar> {
-    const result = await db.insert(schema.pillars).values(insertPillar).returning();
+    const result = await db.insert(schema.developmentPillars).values(insertPillar).returning();
     return result[0];
   }
 
@@ -732,9 +732,9 @@ export class DatabaseStorage implements IStorage {
     updates: Partial<Pillar>
   ): Promise<Pillar | undefined> {
     const result = await db
-      .update(schema.pillars)
+      .update(schema.developmentPillars)
       .set(updates)
-      .where(eq(schema.pillars.id, id))
+      .where(eq(schema.developmentPillars.id, id))
       .returning();
     return result[0];
   }
@@ -819,7 +819,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(schema.frameworkConfiguration)
-      .where(eq(schema.frameworkConfiguration.key, _key));
+      .where(eq(schema.frameworkConfiguration._key, _key));
     return result[0];
   }
 

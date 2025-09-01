@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express) {
       console.log(`[${timestamp}] ✅ Storage imported successfully`);
       
       console.log(`[${timestamp}] 🧪 Testing basic storage method...`);
-      const testResult = await storage.getDocuments({ residenceId: 'test' });
+      const testResult = await storage.getDocuments({ residenceId: 'e27ac924-8120-4904-a791-d1e9db544d58' });
       console.log(`[${timestamp}] ✅ Storage test successful`);
       
       res.json({ 
