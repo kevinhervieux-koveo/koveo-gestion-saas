@@ -110,10 +110,9 @@ export class DatabaseStorage implements IStorage {
             phone: '514-555-0103',
             profileImage: null,
             language: 'fr',
-            role: 'demo_resident',
+            role: 'demo_resident' as const,
             isActive: true,
             lastLoginAt: null,
-            organizationId: demoOrgId,
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -127,10 +126,9 @@ export class DatabaseStorage implements IStorage {
             phone: '514-555-0101',
             profileImage: null,
             language: 'fr',
-            role: 'demo_tenant',
+            role: 'demo_tenant' as const,
             isActive: true,
             lastLoginAt: null,
-            organizationId: demoOrgId,
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -144,10 +142,9 @@ export class DatabaseStorage implements IStorage {
             phone: '514-555-0102',
             profileImage: null,
             language: 'fr',
-            role: 'demo_tenant',
+            role: 'demo_tenant' as const,
             isActive: true,
             lastLoginAt: null,
-            organizationId: demoOrgId,
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -161,10 +158,9 @@ export class DatabaseStorage implements IStorage {
             phone: '514-555-0104',
             profileImage: null,
             language: 'fr',
-            role: 'demo_manager',
+            role: 'demo_manager' as const,
             isActive: true,
             lastLoginAt: null,
-            organizationId: demoOrgId,
             createdAt: new Date('2025-08-28T20:03:47.100Z'),
             updatedAt: new Date('2025-08-28T20:03:47.100Z'),
           },
@@ -701,19 +697,19 @@ export class DatabaseStorage implements IStorage {
   /**
    *
    */
-  async getPillars(): Promise<DevelopmentPillar[]> {
-    return await db.select().from(schema.developmentPillars);
+  async getPillars(): Promise<Pillar[]> {
+    return await db.select().from(schema.pillars);
   }
 
   /**
    *
    * @param id
    */
-  async getPillar(id: string): Promise<DevelopmentPillar | undefined> {
+  async getPillar(id: string): Promise<Pillar | undefined> {
     const result = await db
       .select()
-      .from(schema.developmentPillars)
-      .where(eq(schema.developmentPillars.id, id));
+      .from(schema.pillars)
+      .where(eq(schema.pillars.id, id));
     return result[0];
   }
 
@@ -721,8 +717,8 @@ export class DatabaseStorage implements IStorage {
    *
    * @param insertPillar
    */
-  async createPillar(insertPillar: InsertPillar): Promise<DevelopmentPillar> {
-    const result = await db.insert(schema.developmentPillars).values(insertPillar).returning();
+  async createPillar(insertPillar: InsertPillar): Promise<Pillar> {
+    const result = await db.insert(schema.pillars).values(insertPillar).returning();
     return result[0];
   }
 
@@ -733,12 +729,12 @@ export class DatabaseStorage implements IStorage {
    */
   async updatePillar(
     id: string,
-    updates: Partial<DevelopmentPillar>
-  ): Promise<DevelopmentPillar | undefined> {
+    updates: Partial<Pillar>
+  ): Promise<Pillar | undefined> {
     const result = await db
-      .update(schema.developmentPillars)
+      .update(schema.pillars)
       .set(updates)
-      .where(eq(schema.developmentPillars.id, id))
+      .where(eq(schema.pillars.id, id))
       .returning();
     return result[0];
   }
