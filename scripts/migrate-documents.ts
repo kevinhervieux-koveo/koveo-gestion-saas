@@ -163,12 +163,12 @@ async function migrateDocuments() {
         FROM documents
       `);
 
-      legacyDocuments = result.rows.map((row: unknown) => ({
-        id: row.id,
-        name: row.name,
-        uploadDate: new Date(row.upload_date),
-        dateReference: row.date_reference ? new Date(row.date_reference) : null,
-        type: row.type,
+      legacyDocuments = result.rows.map((row: any) => ({
+        id: row.id as string,
+        name: row.name as string,
+        uploadDate: new Date(row.upload_date as string),
+        dateReference: row.date_reference ? new Date(row.date_reference as string) : null,
+        type: row.type as string,
         buildings: String(row.buildings),
         residence: String(row.residence),
         tenant: String(row.tenant),
@@ -283,7 +283,7 @@ async function migrateDocuments() {
     console.warn('   5. Once verified, you can remove the legacy documents table');
   } catch (_error) {
     console.error('❌ Migration failed:', _error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -305,7 +305,7 @@ async function rollbackMigration() {
     console.warn('✅ Migration rollback completed');
   } catch (_error) {
     console.error('❌ Rollback failed:', _error);
-    throw error;
+    throw _error;
   }
 }
 
