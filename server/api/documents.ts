@@ -438,28 +438,39 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Save text content to local file system for text documents
-        const textFilePath = path.join(process.cwd(), 'uploads', 'text-documents', userId);
-        if (!fs.existsSync(textFilePath)) {
-          fs.mkdirSync(textFilePath, { recursive: true });
+        let fileName: string;
+        try {
+          const textFilePath = path.join(process.cwd(), 'uploads', 'text-documents', userId);
+          if (!fs.existsSync(textFilePath)) {
+            fs.mkdirSync(textFilePath, { recursive: true });
+          }
+          fileName = `${Date.now()}.txt`;
+          const fullPath = path.join(textFilePath, fileName);
+          fs.writeFileSync(fullPath, textContent, 'utf8');
+        } catch (fsError) {
+          console.error('Error saving text document to filesystem:', fsError);
+          return res.status(500).json({ message: 'Failed to save text document' });
         }
-        const fileName = `${Date.now()}.txt`;
-        const fullPath = path.join(textFilePath, fileName);
-        fs.writeFileSync(fullPath, textContent, 'utf8');
         
         // Update GCS path to actual local path
         documentData.gcsPath = `text-documents/${userId}/${fileName}`;
 
-        const document = await storage.createDocument(documentData);
-        
-        return res.status(201).json({
-          message: 'Text document created successfully',
-          document: {
-            ...document,
-            documentCategory: buildingId ? 'building' : 'resident',
-            entityType: buildingId ? 'building' : 'residence',
-            entityId: buildingId || residenceId,
-          },
-        });
+        try {
+          const document = await storage.createDocument(documentData);
+          
+          return res.status(201).json({
+            message: 'Text document created successfully',
+            document: {
+              ...document,
+              documentCategory: buildingId ? 'building' : 'resident',
+              entityType: buildingId ? 'building' : 'residence',
+              entityId: buildingId || residenceId,
+            },
+          });
+        } catch (dbError) {
+          console.error('Error creating document in database:', dbError);
+          return res.status(500).json({ message: 'Failed to create document in database' });
+        }
       }
 
       // Handle file uploads (existing logic)
