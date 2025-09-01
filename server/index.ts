@@ -8,6 +8,9 @@ import { createFastHealthCheck, createStatusCheck, createRootHandler } from './h
 import { log } from './vite';
 import { registerRoutes } from './routes.js';
 
+// Production debugging: Log server startup
+console.log('🚀 Server starting with enhanced debugging...');
+
 const app = express();
 // Configure port - always use environment PORT or fallback to 5000
 const port = parseInt(process.env.PORT || '5000', 10);

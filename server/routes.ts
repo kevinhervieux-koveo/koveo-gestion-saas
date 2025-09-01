@@ -54,38 +54,44 @@ export async function registerRoutes(app: Express) {
     res.json({ message: 'API working', body: req.body });
   });
 
-  // Debug endpoint to test production database access
-  app.get('/api/debug/documents', async (req, res) => {
+  // Simple production diagnostic endpoint
+  app.get('/api/debug/simple', (req, res) => {
+    console.log('🔍 Simple debug endpoint called');
+    res.json({ 
+      status: 'working',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'unknown',
+      databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing'
+    });
+  });
+
+  // Complex storage test endpoint  
+  app.get('/api/debug/storage', async (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] 🔍 Storage debug endpoint called`);
+    
     try {
-      console.log('🔍 Production debug endpoint called');
+      console.log(`[${timestamp}] 📦 Testing storage import...`);
+      const { storage } = await import('./storage');
+      console.log(`[${timestamp}] ✅ Storage imported successfully`);
       
-      const result = {
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'unknown',
-        databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing',
-        storageTest: 'attempting...'
-      };
-
-      // Import storage here to avoid circular dependencies
-      const { storage } = await import('./storage.js');
+      console.log(`[${timestamp}] 🧪 Testing basic storage method...`);
+      const testResult = await storage.getDocuments({ residenceId: 'test' });
+      console.log(`[${timestamp}] ✅ Storage test successful`);
       
-      // Test storage connection
-      try {
-        const testResult = await storage.getDocuments({ residenceId: 'test-residence-id' });
-        result.storageTest = 'success';
-        result.documentsTableAccess = 'working';
-      } catch (error) {
-        result.storageTest = 'failed';
-        result.error = error.message;
-        console.error('🚨 Storage test failed:', error);
-      }
-
-      res.json(result);
-    } catch (error) {
-      console.error('🚨 Debug endpoint failed:', error);
+      res.json({ 
+        success: true,
+        timestamp,
+        documentsCount: testResult.length,
+        storageType: storage.constructor.name
+      });
+    } catch (error: any) {
+      console.error(`[${timestamp}] ❌ Storage test failed:`, error);
       res.status(500).json({ 
-        error: 'Debug endpoint failed', 
-        message: error.message
+        success: false,
+        timestamp,
+        error: error.message,
+        stack: error.stack
       });
     }
   });
