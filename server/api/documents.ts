@@ -470,6 +470,110 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Migrate owner users to admin before enum cleanup
+  app.post('/api/documents/migrate-owner-to-admin', async (req, res) => {
+    try {
+      // Step 1: Check how many users have 'owner' role
+      const ownerUsersCheck = await db.execute(sql`
+        SELECT id, email, first_name, last_name 
+        FROM users 
+        WHERE role = 'owner'
+      `);
+
+      const ownerCount = ownerUsersCheck.rows.length;
+
+      if (ownerCount === 0) {
+        return res.json({
+          message: 'No owner users found - migration not needed',
+          owner_count: 0,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Step 2: Update all owner users to admin
+      await db.execute(sql`
+        UPDATE users 
+        SET role = 'admin' 
+        WHERE role = 'owner'
+      `);
+
+      // Step 3: Update user_organizations table if it exists
+      try {
+        await db.execute(sql`
+          UPDATE user_organizations 
+          SET organization_role = 'admin' 
+          WHERE organization_role = 'owner'
+        `);
+      } catch (e) {
+        // Table might not exist, that's OK
+      }
+
+      // Step 4: Remove 'owner' from enum
+      await db.execute(sql`
+        ALTER TYPE user_role RENAME TO user_role_old
+      `);
+
+      await db.execute(sql`
+        CREATE TYPE user_role AS ENUM ('admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident')
+      `);
+
+      // Step 5: Update all tables to use new enum
+      await db.execute(sql`
+        ALTER TABLE users 
+        ALTER COLUMN role TYPE user_role 
+        USING role::text::user_role
+      `);
+
+      try {
+        await db.execute(sql`
+          ALTER TABLE user_organizations 
+          ALTER COLUMN organization_role TYPE user_role 
+          USING organization_role::text::user_role
+        `);
+      } catch (e) {
+        // Table might not exist
+      }
+
+      try {
+        await db.execute(sql`
+          ALTER TABLE role_permissions 
+          ALTER COLUMN role TYPE user_role 
+          USING role::text::user_role
+        `);
+      } catch (e) {
+        // Table might not exist
+      }
+
+      try {
+        await db.execute(sql`
+          ALTER TABLE invitations 
+          ALTER COLUMN role TYPE user_role 
+          USING role::text::user_role
+        `);
+      } catch (e) {
+        // Column might not exist
+      }
+
+      // Step 6: Drop old enum
+      await db.execute(sql`DROP TYPE user_role_old`);
+
+      res.json({
+        message: 'Successfully migrated owner users to admin',
+        migrated_users: ownerUsersCheck.rows,
+        owner_count: ownerCount,
+        new_enum_values: ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'],
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Owner to admin migration failed',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
