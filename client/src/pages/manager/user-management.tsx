@@ -100,20 +100,6 @@ export default function UserManagement() {
     retry: false, // Don't retry to avoid confusion
   });
 
-  // Debug: Check what data structure we're actually receiving
-  React.useEffect(() => {
-    if (users.length > 0) {
-      console.log('🔍 [FRONTEND DEBUG] First user data:', {
-        email: users[0].email,
-        hasOrganizations: !!users[0].organizations,
-        organizationsLength: users[0].organizations?.length,
-        organizationsData: users[0].organizations,
-        hasBuildings: !!users[0].buildings,
-        buildingsLength: users[0].buildings?.length,
-        buildingsData: users[0].buildings
-      });
-    }
-  }, [users]);
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -406,52 +392,8 @@ export default function UserManagement() {
     ],
   };
 
-  // Force complete cache clear to get fresh assignment data
-  React.useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    queryClient.removeQueries({ queryKey: ['/api/users'] });
-    queryClient.clear(); // Clear entire cache
-    console.log('🧹 [CACHE] Cleared all React Query cache');
-  }, []);
 
-  // Debug what's actually received
-  React.useEffect(() => {
-    console.log('🔍 [FRONTEND] Users received:', users);
-    console.log('🔍 [FRONTEND] Users loading:', usersLoading);
-    console.log('🔍 [FRONTEND] Users error:', usersError);
-    if (users.length > 0) {
-      console.log('🔍 [FRONTEND] First user structure:', JSON.stringify(users[0], null, 2));
-      console.log('🔍 [FRONTEND] First user organizations:', users[0].organizations);
-      console.log('🔍 [FRONTEND] Organizations type check:', typeof users[0].organizations);
-      console.log('🔍 [FRONTEND] Is array?', Array.isArray(users[0].organizations));
-    }
-  }, [users, usersLoading, usersError]);
 
-  // Add direct API test
-  React.useEffect(() => {
-    const testDirectAPI = async () => {
-      try {
-        console.log('🧪 [TEST] Making direct API call...');
-        const response = await fetch('/api/users', {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🧪 [TEST] Direct API response:', {
-            count: data.length,
-            firstUserOrgs: data[0]?.organizations,
-            firstUserOrgCount: data[0]?.organizations?.length
-          });
-        } else {
-          console.log('🧪 [TEST] Direct API failed:', response.status, response.statusText);
-        }
-      } catch (error) {
-        console.log('🧪 [TEST] Direct API error:', error);
-      }
-    };
-    
-    testDirectAPI(); // Always test to compare with React Query
-  }, [usersLoading, users]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
@@ -728,35 +670,37 @@ export default function UserManagement() {
                       User List ({filteredTotal} of {totalUsers} users)
                     </h3>
 
-                    {/* User Table */}
+                    {/* User Table - Rebuilt */}
                     <div className='overflow-x-auto'>
-                      <table className='w-full border-collapse border border-gray-300'>
+                      <table className='w-full border-collapse border border-gray-300' data-testid='table-user-list'>
                         <thead>
                           <tr className='bg-gray-100'>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Name</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Email</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Role</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Status</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-name'>Name</th>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-email'>Email</th>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-role'>Role</th>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-status'>Status</th>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-organizations'>
                               Organization(s)
                             </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-buildings'>
                               Buildings
                             </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-residences'>
                               Residences
                             </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Actions</th>
+                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-actions'>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {currentUsers.map((user) => (
-                            <tr key={user.id} className='hover:bg-gray-50'>
-                              <td className='border border-gray-300 px-4 py-2'>
+                            <tr key={user.id} className='hover:bg-gray-50' data-testid={`row-user-${user.id}`}>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-name-${user.id}`}>
                                 {user.firstName} {user.lastName}
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>{user.email}</td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-email-${user.id}`}>
+                                {user.email}
+                              </td>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-role-${user.id}`}>
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${
                                     user.role === 'admin'
@@ -765,89 +709,91 @@ export default function UserManagement() {
                                         ? 'bg-blue-100 text-blue-800'
                                         : 'bg-green-100 text-green-800'
                                   }`}
+                                  data-testid={`badge-role-${user.id}`}
                                 >
                                   {user.role}
                                 </span>
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-status-${user.id}`}>
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${
                                     user.isActive
                                       ? 'bg-green-100 text-green-800'
                                       : 'bg-gray-100 text-gray-800'
                                   }`}
+                                  data-testid={`badge-status-${user.id}`}
                                 >
                                   {user.isActive ? 'Active' : 'Inactive'}
                                 </span>
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-organizations-${user.id}`}>
                                 <div className='space-y-1'>
                                   {user.organizations?.length > 0 ? (
                                     user.organizations.map((org, idx) => (
                                       <div
                                         key={idx}
                                         className='text-xs bg-blue-50 px-2 py-1 rounded'
+                                        data-testid={`org-badge-${user.id}-${idx}`}
                                       >
                                         {org.name}
                                       </div>
                                     ))
                                   ) : (
-                                    <div className='text-gray-400 text-xs'>
-                                      <div>No organizations</div>
-                                      <div className='mt-1 text-red-600 text-xs'>
-                                        Debug: {String(user.organizations)} | Type: {typeof user.organizations} | Length: {user.organizations?.length || 'undefined'}
-                                      </div>
+                                    <div className='text-gray-400 text-xs' data-testid={`no-organizations-${user.id}`}>
+                                      No organizations
                                     </div>
                                   )}
                                 </div>
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-buildings-${user.id}`}>
                                 <div className='space-y-1'>
                                   {user.buildings?.length > 0 ? (
                                     user.buildings.slice(0, 3).map((building, idx) => (
                                       <div
                                         key={idx}
                                         className='text-xs bg-purple-50 px-2 py-1 rounded'
+                                        data-testid={`building-badge-${user.id}-${idx}`}
                                       >
                                         {building.name}
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>
-                                      No buildings {JSON.stringify(user.buildings)}
+                                    <span className='text-gray-400 text-xs' data-testid={`no-buildings-${user.id}`}>
+                                      No buildings
                                     </span>
                                   )}
                                   {user.buildings?.length > 3 && (
-                                    <div className='text-xs text-gray-500'>
+                                    <div className='text-xs text-gray-500' data-testid={`more-buildings-${user.id}`}>
                                       +{user.buildings.length - 3} more
                                     </div>
                                   )}
                                 </div>
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-residences-${user.id}`}>
                                 <div className='space-y-1'>
                                   {user.residences?.length > 0 ? (
                                     user.residences.slice(0, 3).map((residence, idx) => (
                                       <div
                                         key={idx}
                                         className='text-xs bg-green-50 px-2 py-1 rounded'
+                                        data-testid={`residence-badge-${user.id}-${idx}`}
                                       >
                                         Unit {residence.unitNumber}
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>
-                                      No residences {JSON.stringify(user.residences)}
+                                    <span className='text-gray-400 text-xs' data-testid={`no-residences-${user.id}`}>
+                                      No residences
                                     </span>
                                   )}
                                   {user.residences?.length > 3 && (
-                                    <div className='text-xs text-gray-500'>
+                                    <div className='text-xs text-gray-500' data-testid={`more-residences-${user.id}`}>
                                       +{user.residences.length - 3} more
                                     </div>
                                   )}
                                 </div>
                               </td>
-                              <td className='border border-gray-300 px-4 py-2'>
+                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-actions-${user.id}`}>
                                 <div className='flex gap-2 flex-wrap'>
                                   <Button
                                     size='sm'
