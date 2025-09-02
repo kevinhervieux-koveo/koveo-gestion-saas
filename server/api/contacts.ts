@@ -128,6 +128,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
+    } catch (error: any) {
+      console.error('❌ Error fetching contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -189,6 +191,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newContact);
+    } catch (error: any) {
+      console.error('❌ Error creating contact:', error);
       res.status(500).json({ message: 'Failed to create contact' });
     }
   });
@@ -225,6 +229,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.json(updatedContact);
+    } catch (error: any) {
+      console.error('❌ Error updating contact:', error);
       res.status(500).json({ message: 'Failed to update contact' });
     }
   });
@@ -259,6 +265,8 @@ export function registerContactRoutes(app: Express) {
         .where(eq(contacts.id, id));
 
       res.json({ message: 'Contact deleted successfully' });
+    } catch (error: any) {
+      console.error('❌ Error deleting contact:', error);
       res.status(500).json({ message: 'Failed to delete contact' });
     }
   });

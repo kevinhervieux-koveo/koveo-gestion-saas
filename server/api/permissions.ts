@@ -108,6 +108,8 @@ export function registerPermissionsRoutes(app: Express) {
         permissions,
         rolePermissions,
       });
+    } catch (error: any) {
+      console.error('❌ Error fetching permissions matrix:', error);
       res.status(500).json({ message: 'Failed to fetch permissions matrix' });
     }
   });
@@ -117,6 +119,8 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const userPermissions = await storage.getUserPermissions();
       res.json(userPermissions);
+    } catch (error: any) {
+      console.error('❌ Error fetching user permissions:', error);
       res.status(500).json({ message: 'Failed to fetch user permissions' });
     }
   });

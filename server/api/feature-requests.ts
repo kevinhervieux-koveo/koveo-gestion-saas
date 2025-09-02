@@ -238,6 +238,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`📝 Updated feature request ${id} by user ${currentUser.id}`);
       res.json(featureRequest);
+    } catch (error: any) {
+      console.error('❌ Error updating feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update feature request',
@@ -287,6 +289,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`🗑️ Deleted feature request ${id} by user ${currentUser.id}`);
       res.status(204).send();
+    } catch (error: any) {
+      console.error('❌ Error deleting feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete feature request',
@@ -343,6 +347,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`👍 User ${currentUser.id} upvoted feature request ${id}`);
       res.json(result.data);
+    } catch (error: any) {
+      console.error('❌ Error upvoting feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to upvote feature request',
@@ -384,6 +390,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`👎 User ${currentUser.id} removed upvote from feature request ${id}`);
       res.json(result.data);
+    } catch (error: any) {
+      console.error('❌ Error removing upvote from feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to remove upvote from feature request',

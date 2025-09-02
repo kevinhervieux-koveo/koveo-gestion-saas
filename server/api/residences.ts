@@ -391,9 +391,13 @@ export function registerResidenceRoutes(app: Express) {
       try {
         delayedUpdateService.scheduleResidenceUpdate(id);
         // Don't fail the residence update if scheduling fails
+      } catch (e) {
+        console.warn('⚠️ Failed to schedule residence update:', e);
       }
 
       res.json(updated[0]);
+    } catch (error: any) {
+      console.error('❌ Error updating residence:', error);
       res.status(500).json({ message: 'Failed to update residence' });
     }
   });
@@ -464,6 +468,8 @@ export function registerResidenceRoutes(app: Express) {
           message: `Successfully created ${createdResidences.length} residences`,
           residences: createdResidences,
         });
+      } catch (error: any) {
+        console.error('❌ Error generating residences:', error);
         res.status(500).json({ message: 'Failed to generate residences' });
       }
     }

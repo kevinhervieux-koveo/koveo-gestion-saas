@@ -450,6 +450,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(bookings.startTime);
 
       res.json(spaceBookings);
+    } catch (error: any) {
+      console.error('❌ Error fetching bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch bookings',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -608,6 +610,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         message: 'Booking created successfully',
         booking: newBooking[0],
       });
+    } catch (error: any) {
+      console.error('❌ Error creating booking:', error);
       res.status(500).json({
         message: 'Failed to create booking',
         error: error instanceof Error ? error.message : 'Unknown error',

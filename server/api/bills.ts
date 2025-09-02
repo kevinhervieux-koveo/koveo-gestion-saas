@@ -699,6 +699,8 @@ export function registerBillRoutes(app: Express) {
         billsCreated: result.billsCreated,
         generatedUntil: result.generatedUntil,
       });
+    } catch (_error: any) {
+      console.error('❌ Error generating future bills:', _error);
       res.status(500).json({
         message: 'Failed to generate future bills',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -731,6 +733,8 @@ export function registerBillRoutes(app: Express) {
       ];
 
       res.json(categories);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bill categories:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill categories',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -812,6 +816,8 @@ export function registerBillRoutes(app: Express) {
         parentBill: bill[0],
         generatedBills: stats,
       });
+    } catch (_error: any) {
+      console.error('❌ Error getting generated bills statistics:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
         _error: _error instanceof Error ? _error.message : 'Unknown error',

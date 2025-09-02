@@ -1221,6 +1221,8 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       res.json(document);
+    } catch (error: any) {
+      console.error('❌ Error fetching document:', error);
       res.status(500).json({ message: 'Failed to fetch document' });
     }
   });
@@ -1477,14 +1479,18 @@ export function registerDocumentRoutes(app: Express): void {
           message: 'Invalid documentType. Must be either \"building\" or \"resident\"',
         });
       }
+    } catch (_error: any) {
       // Clean up temporary file on error
       if (req.file?.path) {
         try {
           fs.unlinkSync(req.file.path);
         } catch (cleanupError) {
+          console.warn('⚠️ Failed to cleanup temporary file:', cleanupError);
         }
       }
 
+      console.error('❌ Error creating document:', _error);
+      
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',
@@ -1527,6 +1533,8 @@ export function registerDocumentRoutes(app: Express): void {
           (updatedDocument as any).entityType = (updatedDocument as any).buildingId ? 'building' : 'residence';
           (updatedDocument as any).entityId = (updatedDocument as any).buildingId || (updatedDocument as any).residenceId;
         }
+      } catch (e) {
+        console.warn('⚠️ Error in document update:', e);
       }
 
       if (!updatedDocument) {
@@ -1534,6 +1542,9 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       res.json(updatedDocument);
+    } catch (_error: any) {
+      console.error('❌ Error updating document:', _error);
+      
       if (_error instanceof z.ZodError) {
         return res.status(400).json({
           message: 'Invalid document data',
@@ -1563,6 +1574,8 @@ export function registerDocumentRoutes(app: Express): void {
 
       try {
         deleted = await storage.deleteDocument(documentId);
+      } catch (e) {
+        console.warn('⚠️ Error deleting document:', e);
       }
 
       if (!deleted) {
@@ -1570,6 +1583,8 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       res.status(204).send();
+    } catch (error: any) {
+      console.error('❌ Error in document deletion:', error);
       res.status(500).json({ message: 'Failed to delete document' });
     }
   });
@@ -2082,11 +2097,15 @@ export function registerDocumentRoutes(app: Express): void {
           console.log(`❌ File not found at gcsPath: ${document.gcsPath}`);
           console.log(`❌ Tried filePath: ${filePath}`);
           return res.status(404).json({ message: 'File not found on server' });
+        } catch (fileError: any) {
+          console.error('❌ Error serving file:', fileError);
           return res.status(500).json({ message: 'Failed to serve file' });
         }
       }
 
       return res.status(404).json({ message: 'No file associated with this document' });
+    } catch (error: any) {
+      console.error('❌ Error serving document file:', error);
       res.status(500).json({ message: 'Failed to serve document file' });
     }
   });
