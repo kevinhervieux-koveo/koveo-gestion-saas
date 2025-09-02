@@ -394,6 +394,8 @@ export default function UserManagement() {
   React.useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     queryClient.removeQueries({ queryKey: ['/api/users'] });
+    queryClient.clear(); // Clear entire cache
+    console.log('🧹 [CACHE] Cleared all React Query cache');
   }, []);
 
   // Debug what's actually received
@@ -432,9 +434,7 @@ export default function UserManagement() {
       }
     };
     
-    if (!usersLoading && users.length === 0) {
-      testDirectAPI();
-    }
+    testDirectAPI(); // Always test to compare with React Query
   }, [usersLoading, users]);
 
   // Apply filters, search, and sort
