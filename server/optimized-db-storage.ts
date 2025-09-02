@@ -149,8 +149,9 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
     // Clear any existing cache to ensure fresh data
     queryCache.invalidate('users', 'all_users_assignments_v2');
+    queryCache.invalidate('users', 'all_users_assignments_v3');
     
-    return this.withOptimizations('getUsersWithAssignments', 'all_users_assignments_v3', 'users', async () => {
+    try {
       // Get all users first
       const users = await db
         .select()
@@ -159,72 +160,96 @@ export class OptimizedDatabaseStorage implements IStorage {
         .limit(100)
         .orderBy(desc(schema.users.createdAt));
 
+      console.log(`🔍 [ASSIGNMENT DEBUG] Found ${users.length} users to process`);
+
       // For each user, fetch their assignments
       const usersWithAssignments = await Promise.all(
         users.map(async (user) => {
-          // Get user organizations
-          const userOrgs = await db
-            .select({
-              id: schema.organizations.id,
-              name: schema.organizations.name,
-              type: schema.organizations.type,
-            })
-            .from(schema.userOrganizations)
-            .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
-            .where(
-              and(
-                eq(schema.userOrganizations.userId, user.id),
-                eq(schema.userOrganizations.isActive, true),
-                eq(schema.organizations.isActive, true)
-              )
-            );
+          try {
+            // Get user organizations
+            const userOrgs = await db
+              .select({
+                id: schema.organizations.id,
+                name: schema.organizations.name,
+                type: schema.organizations.type,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.organizations.isActive, true)
+                )
+              );
 
-          // Get user buildings (through organization relationships)
-          const userBuildings = await db
-            .select({
-              id: schema.buildings.id,
-              name: schema.buildings.name,
-            })
-            .from(schema.userOrganizations)
-            .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
-            .where(
-              and(
-                eq(schema.userOrganizations.userId, user.id),
-                eq(schema.userOrganizations.isActive, true),
-                eq(schema.buildings.isActive, true)
-              )
-            );
+            // Get user buildings (through organization relationships)
+            const userBuildings = await db
+              .select({
+                id: schema.buildings.id,
+                name: schema.buildings.name,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.buildings.isActive, true)
+                )
+              );
 
-          // Get user residences
-          const userResidences = await db
-            .select({
-              id: schema.residences.id,
-              unitNumber: schema.residences.unitNumber,
-              buildingId: schema.residences.buildingId,
-              buildingName: schema.buildings.name,
-            })
-            .from(schema.userResidences)
-            .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
-            .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-            .where(
-              and(
-                eq(schema.userResidences.userId, user.id),
-                eq(schema.userResidences.isActive, true),
-                eq(schema.residences.isActive, true)
-              )
-            );
+            // Get user residences
+            const userResidences = await db
+              .select({
+                id: schema.residences.id,
+                unitNumber: schema.residences.unitNumber,
+                buildingId: schema.residences.buildingId,
+                buildingName: schema.buildings.name,
+              })
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(
+                and(
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true)
+                )
+              );
 
-          return {
-            ...user,
-            organizations: userOrgs,
-            buildings: userBuildings,
-            residences: userResidences,
-          };
+            const result = {
+              ...user,
+              organizations: userOrgs || [],
+              buildings: userBuildings || [],
+              residences: userResidences || [],
+            };
+
+            if (userOrgs.length > 0 || userBuildings.length > 0 || userResidences.length > 0) {
+              console.log(`🔍 [ASSIGNMENT DEBUG] User ${user.email}: ${userOrgs.length} orgs, ${userBuildings.length} buildings, ${userResidences.length} residences`);
+            }
+
+            return result;
+          } catch (error) {
+            console.error(`❌ [ASSIGNMENT DEBUG] Error processing user ${user.email}:`, error);
+            // Return user with empty assignments if there's an error
+            return {
+              ...user,
+              organizations: [],
+              buildings: [],
+              residences: [],
+            };
+          }
         })
       );
 
+      console.log(`🔍 [ASSIGNMENT DEBUG] Processed ${usersWithAssignments.length} users with assignments`);
       return usersWithAssignments;
-    });
+    } catch (error) {
+      console.error('❌ [ASSIGNMENT DEBUG] Critical error in getUsersWithAssignments:', error);
+      // Return empty array on critical error
+      return [];
+    }
   }
 
   /**
