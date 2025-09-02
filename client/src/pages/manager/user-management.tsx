@@ -402,6 +402,18 @@ export default function UserManagement() {
 
   // Enhanced user data with relationships
   const enhancedUsers = useMemo(() => {
+    // Debug logging to trace the issue
+    console.log('🔍 Debug data for enhancedUsers:', {
+      usersCount: users.length,
+      organizationsCount: organizations.length,
+      buildingsCount: buildings.length,
+      residencesCount: residences.length,
+      userOrganizationsCount: userOrganizations.length,
+      userResidencesCount: userResidences.length,
+      sampleUserOrganization: userOrganizations[0],
+      sampleUserResidence: userResidences[0],
+    });
+
     return users.map((user) => {
       const userOrgRelations = userOrganizations.filter((uo) => uo.userId === user.id);
       const userOrgs = userOrgRelations
@@ -416,6 +428,17 @@ export default function UserManagement() {
       const userBuildings = userRes
         .map((res) => buildings.find((building) => building.id === res.buildingId))
         .filter(Boolean);
+
+      // Debug for first few users
+      if (users.indexOf(user) < 3) {
+        console.log(`🔍 User ${user.email} assignments:`, {
+          userOrgRelations: userOrgRelations.length,
+          userOrgs: userOrgs.length,
+          userResRelations: userResRelations.length,
+          userRes: userRes.length,
+          userBuildings: userBuildings.length,
+        });
+      }
 
       return {
         ...user,
