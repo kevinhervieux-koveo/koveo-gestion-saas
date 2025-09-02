@@ -381,7 +381,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Get available roles based on organization type
   const getAvailableRoles = () => {
     const selectedOrg = organizations?.find((org) => org.id === form.watch('organizationId'));
-    const isDemoOrg = selectedOrg?.type === 'Demo';
+    const isDemoOrg = selectedOrg?.type === 'demo';
 
     if (isDemoOrg) {
       // For demo organizations, allow both demo roles and regular roles
@@ -428,7 +428,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           // Reset role when switching between demo and regular orgs
                           form.setValue(
                             'role',
-                            selectedOrg?.type === 'Demo' ? 'demo_tenant' : 'tenant'
+                            selectedOrg?.type === 'demo' ? 'demo_tenant' : 'tenant'
                           );
                         }}
                         disabled={currentUser?.role === 'manager'}
@@ -444,7 +444,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
                           return (
                             <option key={org.id} value={org.id} disabled={!canInvite}>
-                              {org.name} {org.type === 'Demo' ? '(Demo)' : ''}
+                              {org.name} {org.type === 'demo' ? '(Demo)' : ''}
                             </option>
                           );
                         })}
