@@ -93,8 +93,10 @@ export default function UserManagement() {
     isLoading: usersLoading,
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users', 'enhanced', Date.now()], // Force fresh fetch every time
+    queryKey: ['/api/users'], // Simple key that matches the backend route
     enabled: true,
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache
   });
 
   // Fetch organizations
@@ -137,7 +139,7 @@ export default function UserManagement() {
         description: 'User updated successfully',
       });
       setSelectedUsers(new Set());
-      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (_error: Error) => {
       toast({
@@ -164,7 +166,7 @@ export default function UserManagement() {
         description: 'User updated successfully',
       });
       setEditingUser(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
@@ -261,7 +263,7 @@ export default function UserManagement() {
         description: 'Organization assignments updated successfully',
       });
       setEditingUserOrganizations(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
@@ -293,7 +295,7 @@ export default function UserManagement() {
         description: 'Residence assignments updated successfully',
       });
       setEditingUserResidences(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
@@ -324,7 +326,7 @@ export default function UserManagement() {
       });
       setDeletingUser(null);
       // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
       // Force refetch to ensure UI updates
@@ -390,8 +392,8 @@ export default function UserManagement() {
 
   // Force complete cache clear to get fresh assignment data
   React.useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
-    queryClient.removeQueries({ queryKey: ['/api/users', 'with-assignments'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    queryClient.removeQueries({ queryKey: ['/api/users'] });
   }, []);
 
   // Debug what's actually received
@@ -901,7 +903,7 @@ export default function UserManagement() {
           onOpenChange={setShowInviteDialog}
           onSuccess={() => {
             // Refresh users list after successful invitation
-            queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/users'] });
           }}
         />
 
