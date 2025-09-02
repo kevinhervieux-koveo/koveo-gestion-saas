@@ -384,6 +384,7 @@ export function registerUserRoutes(app: Express): void {
    * GET /api/admin/all-user-organizations - Get user-organization relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-organizations', requireAuth, async (req: any, res) => {
+    console.log('🔍 [API] all-user-organizations endpoint called by user:', req.user?.email);
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -462,6 +463,7 @@ export function registerUserRoutes(app: Express): void {
    * GET /api/admin/all-user-residences - Get user-residence relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-residences', requireAuth, async (req: any, res) => {
+    console.log('🔍 [API] all-user-residences endpoint called by user:', req.user?.email);
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
