@@ -207,14 +207,26 @@ Documents() {
 
   const documents = documentsResponse?.documents || [];
 
-  // Get buildings for assignment
-  const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
-    queryKey: ['/api/manager/buildings'],
+  // Get buildings for assignment (user-specific)
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: ['/api/users', user?.id, 'buildings'],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await apiRequest('GET', `/api/users/${user.id}/buildings`);
+      return response.json();
+    },
+    enabled: !!user?.id,
   });
 
-  // Get residences for assignment
+  // Get residences for assignment (user-specific)
   const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ['/api/residences'],
+    queryKey: ['/api/users', user?.id, 'residences'],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await apiRequest('GET', `/api/users/${user.id}/residences`);
+      return response.json();
+    },
+    enabled: !!user?.id,
   });
 
   // Get organizations
@@ -222,7 +234,6 @@ Documents() {
     queryKey: ['/api/admin/organizations'],
   });
 
-  const buildings = buildingsResponse?.buildings || [];
   const organizations = organizationsResponse?.organizations || [];
 
   // Create document mutation

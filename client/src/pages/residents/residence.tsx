@@ -386,9 +386,7 @@ export default function Residence() {
             <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
             <h3 className='text-lg font-medium mb-2'>{t('noResidencesFound')}</h3>
             <p className='text-gray-600'>
-              {user?.role && ['admin', 'manager'].includes(user.role)
-                ? t('noResidencesFoundOrg')
-                : t('notAssignedResidences')}
+              {t('notAssignedResidences')}
             </p>
           </div>
         </div>
