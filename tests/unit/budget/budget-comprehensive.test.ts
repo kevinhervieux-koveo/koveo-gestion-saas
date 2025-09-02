@@ -57,7 +57,13 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       const assessmentPerUnit = annualDeficit / totalUnits;
 
       // Step 3: Generate payment schedule
-      const paymentSchedule = [];
+      const paymentSchedule: Array<{
+        month: number;
+        regularIncome: number;
+        regularExpenses: number;
+        specialAssessment: number;
+        netCashFlow: number;
+      }> = [];
       for (let month = 1; month <= 12; month++) {
         paymentSchedule.push({
           month,
@@ -97,7 +103,11 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
 
       // Calculate expenses with inflation over 5 years
       const inflationRate = 0.035; // 3.5% annual inflation
-      const projectedExpenses = [];
+      const projectedExpenses: Array<{
+        year: number;
+        expenses: number;
+        increase: number;
+      }> = [];
 
       for (let year = 0; year < 5; year++) {
         const adjustedExpenses = baseExpenses * Math.pow(1 + inflationRate, year);
@@ -212,7 +222,12 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
   describe('Budget Performance and Optimization', () => {
     it('measures calculation performance with large datasets', () => {
       // Generate large dataset for performance testing
-      const largeDataset = [];
+      const largeDataset: Array<{
+        id: string;
+        amount: number;
+        category: string;
+        date: string;
+      }> = [];
       for (let i = 0; i < 1000; i++) {
         largeDataset.push({
           id: `bill-${i}`,
@@ -358,7 +373,7 @@ describe('Comprehensive Budget Testing with Demo Organization Data', () => {
       // Validate extreme value handling
       expect(yearRange).toBe(200);
       expect(extremeData.amount).toBeLessThan(Number.MAX_SAFE_INTEGER);
-      expect(dailyAmount).toBeFinite();
+      expect(Number.isFinite(dailyAmount)).toBe(true);
       expect(dailyAmount).toBeGreaterThan(0);
 
       // Test precision with very small amounts
