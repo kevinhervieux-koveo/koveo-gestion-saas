@@ -399,6 +399,19 @@ export default function UserManagement() {
   const filteredUsers = useMemo(() => {
     let result = [...users];
 
+    // Debug: Log data structure
+    if (users.length > 0) {
+      console.log('🔍 [FRONTEND] First user data structure:', {
+        email: users[0].email,
+        organizationsExists: !!users[0].organizations,
+        organizationsLength: users[0].organizations?.length,
+        buildingsExists: !!users[0].buildings,
+        buildingsLength: users[0].buildings?.length,
+        residencesExists: !!users[0].residences,
+        residencesLength: users[0].residences?.length,
+      });
+    }
+
     // Apply search
     if (search) {
       const searchLower = search.toLowerCase();
