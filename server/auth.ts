@@ -72,6 +72,8 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
     }
 
     return result.length > 0;
+  } catch (error: any) {
+    console.error('❌ Permission check failed:', error);
     return false;
   }
 }
@@ -100,6 +102,8 @@ function createSessionStore() {
     });
     console.log('✅ Session store: PostgreSQL session store created successfully');
     return store;
+  } catch (error: any) {
+    console.error('❌ Session store creation failed:', error);
     return undefined; // Will use default memory store as fallback
   }
 }

@@ -70,53 +70,8 @@ export function registerDemandRoutes(app: Express) {
         .innerJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
-      // Declare variables outside the conditions to fix scope issues
-      let orgIds: string[] = [];
-      let residenceIds: string[] = [];
-
-      // Apply role-based filtering
-      if (user.role === 'admin') {
-        // Admin can see all demands
-      } else if (user.role === 'manager') {
-        // Manager can see demands in their organization's buildings
-        const userOrgs = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
-
-        orgIds = userOrgs.map((org) => org.organizationId);
-
-        if (orgIds.length > 0) {
-          query = query.innerJoin(organizations, eq(buildings.organizationId, organizations.id));
-          // Add organization filter later with other conditions
-        } else {
-          return res.json([]); // No organization access
-        }
-      } else {
-        // Residents and tenants can see demands from their residences or demands they submitted
-        const userResidenceData = await db
-          .select({ residenceId: userResidences.residenceId })
-          .from(userResidences)
-          .where(eq(userResidences.userId, user.id));
-
-        residenceIds = userResidenceData.map((ur) => ur.residenceId);
-      }
-
-      // Apply filters
-      const conditions = [];
-
-      // Add role-based conditions
-      if (user.role === 'manager' && orgIds.length > 0) {
-        conditions.push(inArray(buildings.organizationId, orgIds));
-      } else if (user.role !== 'admin') {
-        if (residenceIds.length > 0) {
-          conditions.push(
-            or(eq(demands.submitterId, user.id), inArray(demands.residenceId, residenceIds))
-          );
-        } else {
-          conditions.push(eq(demands.submitterId, user.id));
-        }
-      }
+      // Apply filters - all users only see demands they created
+      const conditions = [eq(demands.submitterId, user.id)];
 
       // Add filter conditions
       if (buildingId) {
@@ -214,44 +169,9 @@ export function registerDemandRoutes(app: Express) {
 
       const demandData = demand[0];
 
-      // Check access permissions
-      if (user.role !== 'admin') {
-        if (user.role === 'manager') {
-          // Check if manager has access to this building's organization
-          const userOrgs = await db
-            .select({ organizationId: userOrganizations.organizationId })
-            .from(userOrganizations)
-            .where(eq(userOrganizations.userId, user.id));
-
-          const buildingOrg = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demandData.buildingId))
-            .limit(1);
-
-          const hasAccess = userOrgs.some(
-            (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
-          );
-
-          if (!hasAccess) {
-            return res.status(403).json({ message: 'Access denied' });
-          }
-        } else {
-          // Residents/tenants can only view their own demands or demands from their residences
-          const userResidenceData = await db
-            .select({ residenceId: userResidences.residenceId })
-            .from(userResidences)
-            .where(eq(userResidences.userId, user.id));
-
-          const residenceIds = userResidenceData.map((ur) => ur.residenceId);
-
-          if (
-            demandData.submitterId !== user.id &&
-            !residenceIds.includes(demandData.residenceId)
-          ) {
-            return res.status(403).json({ message: 'Access denied' });
-          }
-        }
+      // Check access permissions - users can only view their own demands
+      if (demandData.submitterId !== user.id) {
+        return res.status(403).json({ message: 'Access denied' });
       }
 
       res.json(demandData);
@@ -323,46 +243,8 @@ export function registerDemandRoutes(app: Express) {
 
       const demand = currentDemand[0];
 
-      // Check permissions
-      let canUpdate = false;
-      if (user.role === 'admin') {
-        canUpdate = true;
-      } else if (user.role === 'manager') {
-        // Check if manager has access to this building's organization
-        const userOrgs = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
-
-        const buildingOrg = await db
-          .select({ organizationId: buildings.organizationId })
-          .from(buildings)
-          .where(eq(buildings.id, demand.buildingId))
-          .limit(1);
-
-        canUpdate = userOrgs.some(
-          (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
-        );
-      } else if (demand.submitterId === user.id) {
-        // Users can update their own demands (limited fields)
-        canUpdate = true;
-        // Restrict what residents can update
-        const allowedFields = [
-          'description',
-          'type',
-          'assignationResidenceId',
-          'assignationBuildingId',
-        ];
-        const restrictedUpdates: any = {};
-        for (const [key, value] of Object.entries(updates)) {
-          if (allowedFields.includes(key)) {
-            restrictedUpdates[key] = value;
-          }
-        }
-        Object.assign(updates, restrictedUpdates);
-      }
-
-      if (!canUpdate) {
+      // Check permissions - users can only update their own demands
+      if (demand.submitterId !== user.id) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
@@ -393,32 +275,8 @@ export function registerDemandRoutes(app: Express) {
 
       const demand = currentDemand[0];
 
-      // Check permissions
-      let canDelete = false;
-      if (user.role === 'admin') {
-        canDelete = true;
-      } else if (user.role === 'manager') {
-        // Check if manager has access to this building's organization
-        const userOrgs = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
-
-        const buildingOrg = await db
-          .select({ organizationId: buildings.organizationId })
-          .from(buildings)
-          .where(eq(buildings.id, demand.buildingId))
-          .limit(1);
-
-        canDelete = userOrgs.some(
-          (org) => buildingOrg.length > 0 && org.organizationId === buildingOrg[0].organizationId
-        );
-      } else if (demand.submitterId === user.id && demand.status === 'draft') {
-        // Users can only delete their own draft demands
-        canDelete = true;
-      }
-
-      if (!canDelete) {
+      // Check permissions - users can only delete their own demands
+      if (demand.submitterId !== user.id) {
         return res.status(403).json({ message: 'Access denied' });
       }
 

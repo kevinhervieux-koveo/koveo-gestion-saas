@@ -139,11 +139,15 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       } else {
         // Production: Load application immediately with better error handling
         log('🔄 Production mode: Loading application features...');
-        setTimeout(() => {
+        setTimeout(async () => {
+          try {
+            await loadFullApplication();
+            log('✅ Production setup complete');
+          } catch (error: any) {
             log(`❌ Application load failed in production: ${error.message}`, 'error');
             log(`❌ Stack trace: ${error.stack}`, 'error');
             // In production, we want to know about failures but keep health checks working
-          });
+          }
         }, 10); // Minimal delay for production
       }
     });
@@ -199,6 +203,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 }
 
 // Handle uncaught exceptions and rejections
+process.on('uncaughtException', (error: Error) => {
   log(`❌ Uncaught Exception: ${error.message}`, 'error');
   log(`❌ Stack: ${error.stack}`, 'error');
   process.exit(1);
@@ -312,13 +317,17 @@ async function loadFullApplication(): Promise<void> {
 
     // Start heavy database work in background AFTER routes are ready
     const dbDelay = process.env.NODE_ENV === 'production' ? 500 : 1000;
-    setTimeout(() => {
+    setTimeout(async () => {
+      try {
+        await initializeDatabaseInBackground();
+        log('✅ Background database initialization completed');
+      } catch (error: any) {
         log(`⚠️ Background database initialization failed: ${error.message}`, 'error');
         // Don't crash in production for database optimization failures
         if (process.env.NODE_ENV === 'production') {
           log('⚠️ Continuing in production mode despite database optimization failure');
         }
-      });
+      }
     }, dbDelay);
   } catch (error: any) {
     log(`❌ Failed to load full application: ${error.message}`, 'error');

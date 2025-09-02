@@ -86,41 +86,13 @@ const userIdSchema = z.object({
  * @param user
  */
 async function getAccessibleBuildingIds(user: any): Promise<string[]> {
-  if (user.role === 'admin' && user.canAccessAllOrganizations) {
-    // Admin with global access can see all buildings
-    const allBuildings = await db
-      .select({ id: buildings.id })
-      .from(buildings)
-      .where(eq(buildings.isActive, true));
-    return allBuildings.map((b) => b.id);
-  }
-
-  if (['admin', 'manager'].includes(user.role)) {
-    // Manager or admin without global access: only buildings from their organizations
-    if (!user.organizations || user.organizations.length === 0) {
-      return []; // No organizations = no buildings
-    }
-
-    const orgBuildings = await db
-      .select({ id: buildings.id })
-      .from(buildings)
-      .where(
-        and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
-      );
-    return orgBuildings.map((b) => b.id);
-  }
-
-  if (['resident', 'tenant'].includes(user.role)) {
-    // Residents/tenants can only access buildings where they have residences
-    const userBuildingIds = await db
-      .select({ buildingId: schema.residences.buildingId })
-      .from(userResidences)
-      .innerJoin(schema.residences, eq(userResidences.residenceId, schema.residences.id))
-      .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
-    return userBuildingIds.map((b) => b.buildingId);
-  }
-
-  return []; // No access by default
+  // All users can only access buildings where they have residences
+  const userBuildingIds = await db
+    .select({ buildingId: schema.residences.buildingId })
+    .from(userResidences)
+    .innerJoin(schema.residences, eq(userResidences.residenceId, schema.residences.id))
+    .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+  return userBuildingIds.map((b) => b.buildingId);
 }
 
 /**
@@ -382,6 +354,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(buildings.name, commonSpaces.name);
 
       res.json(spaces);
+    } catch (error: any) {
       res.status(500).json({
         message: 'Failed to fetch common spaces',
         error: error instanceof Error ? error.message : 'Unknown error',
