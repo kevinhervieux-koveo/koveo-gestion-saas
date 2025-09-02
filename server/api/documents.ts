@@ -574,6 +574,116 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Remove all remaining enum dependencies
+  app.post('/api/documents/remove-all-enum-dependencies', async (req, res) => {
+    try {
+      const results = [];
+
+      // Remove default from users.role
+      try {
+        await db.execute(sql`
+          ALTER TABLE users 
+          ALTER COLUMN role DROP DEFAULT
+        `);
+        results.push('users.role default removed');
+      } catch (e) {
+        results.push(`users.role: ${e.message}`);
+      }
+
+      // Remove default from user_organizations.organization_role
+      try {
+        await db.execute(sql`
+          ALTER TABLE user_organizations 
+          ALTER COLUMN organization_role DROP DEFAULT
+        `);
+        results.push('user_organizations.organization_role default removed');
+      } catch (e) {
+        results.push(`user_organizations.organization_role: ${e.message}`);
+      }
+
+      // Check remaining dependencies
+      const remainingDeps = await db.execute(sql`
+        SELECT 
+          t.table_name,
+          c.column_name,
+          c.column_default
+        FROM information_schema.tables t
+        JOIN information_schema.columns c ON t.table_name = c.table_name
+        WHERE c.data_type = 'USER-DEFINED' 
+        AND c.udt_name = 'user_role'
+        AND c.column_default IS NOT NULL
+      `);
+
+      res.json({
+        message: 'Removed all enum dependencies',
+        operations: results,
+        remaining_dependencies: remainingDeps.rows,
+        next_step: 'Run npm run db:push now',
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to remove enum dependencies',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Restore all default values after schema sync
+  app.post('/api/documents/restore-all-defaults', async (req, res) => {
+    try {
+      const results = [];
+
+      // Restore users.role default
+      try {
+        await db.execute(sql`
+          ALTER TABLE users 
+          ALTER COLUMN role SET DEFAULT 'tenant'
+        `);
+        results.push('users.role default restored to tenant');
+      } catch (e) {
+        results.push(`users.role restore failed: ${e.message}`);
+      }
+
+      // Restore user_organizations.organization_role default
+      try {
+        await db.execute(sql`
+          ALTER TABLE user_organizations 
+          ALTER COLUMN organization_role SET DEFAULT 'tenant'
+        `);
+        results.push('user_organizations.organization_role default restored to tenant');
+      } catch (e) {
+        results.push(`user_organizations.organization_role restore failed: ${e.message}`);
+      }
+
+      // Restore invitations.role default
+      try {
+        await db.execute(sql`
+          ALTER TABLE invitations 
+          ALTER COLUMN role SET DEFAULT 'tenant'
+        `);
+        results.push('invitations.role default restored to tenant');
+      } catch (e) {
+        results.push(`invitations.role restore failed: ${e.message}`);
+      }
+
+      res.json({
+        message: 'Restored all default values',
+        operations: results,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to restore defaults',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
