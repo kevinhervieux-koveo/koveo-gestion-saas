@@ -1,7 +1,7 @@
 name: Enforce Code Review Requirements
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, edited, synchronize]
     branches: [main, develop]
 
@@ -147,7 +147,7 @@ jobs:
             commentBody += '---\n';
             commentBody += '*This check is automated. All mandatory requirements must be met before merge.*';
 
-            // Post comment (ignore errors)
+            // Post comment (ignore errors completely)
             try {
               await github.rest.issues.createComment({
                 issue_number: pr.number,
@@ -155,14 +155,18 @@ jobs:
                 repo: context.repo.repo,
                 body: commentBody
               });
+              console.log('✅ Posted PR review comment successfully');
             } catch (error) {
               console.log('⚠️ Could not post comment due to permissions, but continuing with status check');
+              console.log('📝 Review checklist will be available in workflow logs instead');
             }
 
-            // Set status check
+            // Set status check (this is the important part)
             if (failures.length > 0) {
               console.log('❌ PR requirements check failed');
-              process.exit(1);
+              console.log('❌ Blocking merge due to requirement failures');
+              core.setFailed('PR requirements not met');
             } else {
               console.log('✅ PR requirements check passed');
+              console.log('🚀 PR is ready for review and merge');
             }
