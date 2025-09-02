@@ -36,7 +36,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import type { Building as BuildingType, Residence } from '@shared/schemas/property';
-import type { User } from '@shared/schemas/user';
 import {
   Upload,
   Download,
@@ -162,29 +161,12 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
       ? [`/api/documents?buildingId=${config.entityId}`]
       : [`/api/documents?residenceId=${config.entityId}`];
 
-  // Get current user
-  const { data: user } = useQuery<User>({
-    queryKey: ['/api/auth/user'],
-  });
-
   const { data: entity } = useQuery<BuildingType | Residence>({
     queryKey:
       config.type === 'building'
-        ? ['/api/users', user?.id, 'buildings', config.entityId]
-        : ['/api/users', user?.id, 'residences', config.entityId],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      if (config.type === 'building') {
-        const response = await fetch(`/api/users/${user.id}/buildings`);
-        const buildings = await response.json();
-        return buildings.find((b: BuildingType) => b.id === config.entityId);
-      } else {
-        const response = await fetch(`/api/users/${user.id}/residences`);
-        const residences = await response.json();
-        return residences.find((r: Residence) => r.id === config.entityId);
-      }
-    },
-    enabled: !!config.entityId && !!user?.id,
+        ? ['/api/manager/buildings', config.entityId]
+        : ['/api/residences', config.entityId],
+    enabled: !!config.entityId,
   });
 
   const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({

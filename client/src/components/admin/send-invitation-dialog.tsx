@@ -207,26 +207,24 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     enabled: open,
   });
 
-  // Fetch buildings for current user
+  // Fetch buildings
   const { data: buildings } = useQuery<BuildingType[]>({
-    queryKey: ['/api/users', currentUser?.id, 'buildings'],
+    queryKey: ['/api/buildings'],
     queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const response = await apiRequest('GET', `/api/users/${currentUser.id}/buildings`);
+      const response = await apiRequest('GET', '/api/buildings');
       return response.json();
     },
-    enabled: open && !!currentUser?.id,
+    enabled: open,
   });
 
-  // Fetch residences for current user
+  // Fetch residences
   const { data: residences } = useQuery<Residence[]>({
-    queryKey: ['/api/users', currentUser?.id, 'residences'],
+    queryKey: ['/api/residences'],
     queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const response = await apiRequest('GET', `/api/users/${currentUser.id}/residences`);
+      const response = await apiRequest('GET', '/api/residences');
       return response.json();
     },
-    enabled: open && !!currentUser?.id,
+    enabled: open,
   });
 
   // Helper functions for filtering data based on selections
