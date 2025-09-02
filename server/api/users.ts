@@ -384,6 +384,8 @@ export function registerUserRoutes(app: Express): void {
 
       const residences = await storage.getUserResidences(currentUser.id);
       res.json(residences);
+    } catch (error: any) {
+      console.error('❌ Error getting user residences:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
@@ -461,6 +463,8 @@ export function registerUserRoutes(app: Express): void {
       }
 
       res.json(userOrganizations);
+    } catch (error: any) {
+      console.error('❌ Error getting all user organizations:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user organizations',
@@ -560,6 +564,8 @@ export function registerUserRoutes(app: Express): void {
       }
 
       res.json(userResidences);
+    } catch (error: any) {
+      console.error('❌ Error getting all user residences:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
@@ -607,6 +613,7 @@ export function registerUserRoutes(app: Express): void {
       const validatedResponse = permissionsResponseSchema.parse(responseData);
 
       res.json(validatedResponse);
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(500).json({
           error: 'Internal server error',
@@ -615,6 +622,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      console.error('❌ Error fetching user permissions:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user permissions',
@@ -684,6 +692,8 @@ export function registerUserRoutes(app: Express): void {
         userId,
         organizationIds,
       });
+    } catch (error: any) {
+      console.error('❌ Error updating organization assignments:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization assignments',
@@ -716,6 +726,8 @@ export function registerUserRoutes(app: Express): void {
 
       const residences = await storage.getUserResidences(userId);
       res.json(residences);
+    } catch (error: any) {
+      console.error('❌ Error getting user residences:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
@@ -834,6 +846,8 @@ export function registerUserRoutes(app: Express): void {
       );
 
       res.json({ buildings: buildingsWithStats });
+    } catch (error: any) {
+      console.error('❌ Error getting user buildings:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user buildings',
@@ -959,6 +973,8 @@ export function registerUserRoutes(app: Express): void {
         userId,
         assignmentCount: residenceAssignments.length,
       });
+    } catch (error: any) {
+      console.error('❌ Error updating residence assignments:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update residence assignments',
@@ -1042,6 +1058,8 @@ export function registerUserRoutes(app: Express): void {
         `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`
       );
       res.json(exportData);
+    } catch (error: any) {
+      console.error('❌ Error exporting user data:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to export user data',
@@ -1115,6 +1133,8 @@ export function registerUserRoutes(app: Express): void {
           'Account successfully deleted. All personal data has been permanently removed from our systems.',
         deletionDate: new Date().toISOString(),
       });
+    } catch (error: any) {
+      console.error('❌ Error deleting account:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete account. Please contact support.',
@@ -1156,6 +1176,8 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error('❌ Error updating user profile:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update profile',
@@ -1281,6 +1303,8 @@ export function registerUserRoutes(app: Express): void {
         deletedUserId: targetUserId,
         deletedUserEmail: targetUser.email,
       });
+    } catch (error: any) {
+      console.error('❌ Error deleting user account:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete user account',
@@ -1332,6 +1356,8 @@ export function registerUserRoutes(app: Express): void {
       res.json({
         message: 'Password changed successfully',
       });
+    } catch (error: any) {
+      console.error('❌ Error changing password:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to change password',
@@ -1432,6 +1458,8 @@ export function registerUserRoutes(app: Express): void {
           role: newUser.role,
         },
       });
+    } catch (error: any) {
+      console.error('❌ Error creating demo user:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create demo user',

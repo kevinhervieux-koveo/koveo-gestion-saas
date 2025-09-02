@@ -148,6 +148,8 @@ export function registerBillRoutes(app: Express) {
         .orderBy(desc(bills.startDate));
 
       res.json(billsList);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bills:', _error);
       res.status(500).json({
         message: 'Failed to fetch bills',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -193,6 +195,8 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(bill[0]);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bill:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -242,10 +246,14 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the new bill
       try {
         delayedUpdateService.scheduleBillUpdate(newBill[0].id);
+      } catch (schedulingError) {
+        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill creation if scheduling fails
       }
 
       res.status(201).json(newBill[0]);
+    } catch (_error: any) {
+      console.error('❌ Error creating bill:', _error);
       res.status(500).json({
         message: 'Failed to create bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -320,6 +328,8 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(updatedBill[0]);
+    } catch (_error: any) {
+      console.error('❌ Error updating bill (PATCH):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -393,10 +403,14 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the updated bill
       try {
         delayedUpdateService.scheduleBillUpdate(id);
+      } catch (schedulingError) {
+        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill update if scheduling fails
       }
 
       res.json(updatedBill[0]);
+    } catch (_error: any) {
+      console.error('❌ Error updating bill (PUT):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -424,6 +438,8 @@ export function registerBillRoutes(app: Express) {
         message: 'Bill deleted successfully',
         bill: deletedBill[0],
       });
+    } catch (_error: any) {
+      console.error('❌ Error deleting bill:', _error);
       res.status(500).json({
         message: 'Failed to delete bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -462,6 +478,8 @@ export function registerBillRoutes(app: Express) {
         if (req.file.mimetype.startsWith('image/')) {
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+          } catch (aiError) {
+            console.warn('⚠️ AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
         }
@@ -489,7 +507,9 @@ export function registerBillRoutes(app: Express) {
           bill: updatedBill[0],
           analysisResult,
         });
-
+      } catch (_error: any) {
+        console.error('❌ Error uploading document:', _error);
+        
         // Clean up temporary file if it exists
         if (req.file?.path) {
           try {
@@ -536,6 +556,8 @@ export function registerBillRoutes(app: Express) {
       res.status(404).json({
         message: 'Document download functionality has been disabled',
       });
+    } catch (_error: any) {
+      console.error('❌ Error downloading document:', _error);
       res.status(500).json({
         message: 'Failed to generate document download URL',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -599,6 +621,8 @@ export function registerBillRoutes(app: Express) {
         analysis,
         scheduleSignestion,
       });
+    } catch (_error: any) {
+      console.error('❌ Error applying AI analysis:', _error);
       res.status(500).json({
         message: 'Failed to apply AI analysis',
         _error: _error instanceof Error ? _error.message : 'Unknown error',

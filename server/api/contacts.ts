@@ -45,6 +45,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
+    } catch (error: any) {
+      console.error('❌ Error fetching entity contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -82,6 +84,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(residenceContacts);
+    } catch (error: any) {
+      console.error('❌ Error fetching residence contacts:', error);
       res.status(500).json({ message: 'Failed to fetch residence contacts' });
     }
   });

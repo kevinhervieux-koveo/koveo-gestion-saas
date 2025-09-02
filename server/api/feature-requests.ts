@@ -42,6 +42,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`✅ Found ${featureRequests.length} feature requests for user ${currentUser.id}`);
       res.json(featureRequests);
+    } catch (error: any) {
+      console.error('❌ Error fetching feature requests:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch feature requests',
@@ -86,6 +88,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
       }
 
       res.json(featureRequest);
+    } catch (error: any) {
+      console.error('❌ Error fetching feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch feature request',
@@ -125,6 +129,8 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);
       res.status(201).json(featureRequest);
+    } catch (error: any) {
+      console.error('❌ Error creating feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create feature request',

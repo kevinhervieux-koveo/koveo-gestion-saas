@@ -33,6 +33,8 @@ export function registerResidenceRoutes(app: Express) {
         .from(userResidences)
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
       res.json(userResidencesList);
+    } catch (error: any) {
+      console.error('❌ Error fetching user residences:', error);
       res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
@@ -67,6 +69,8 @@ export function registerResidenceRoutes(app: Express) {
           );
 
         res.json(assignedUsers);
+      } catch (error: any) {
+        console.error('❌ Error fetching assigned users:', error);
         res.status(500).json({ message: 'Failed to fetch assigned users' });
       }
     }
@@ -95,6 +99,8 @@ export function registerResidenceRoutes(app: Express) {
           .where(eq(users.id, userId));
 
         res.json({ message: 'User updated successfully' });
+      } catch (error: any) {
+        console.error('❌ Error updating assigned user:', error);
         res.status(500).json({ message: 'Failed to update assigned user' });
       }
     }
@@ -138,6 +144,7 @@ export function registerResidenceRoutes(app: Express) {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
+        console.log(
           `🌟 Admin user or user with global access detected - granting access to ALL residences`
         );
 
@@ -280,6 +287,8 @@ export function registerResidenceRoutes(app: Express) {
       }));
 
       res.json(residencesList);
+    } catch (error: any) {
+      console.error('❌ Error fetching residences:', error);
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
@@ -348,6 +357,8 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants,
       });
+    } catch (error: any) {
+      console.error('❌ Error fetching residence:', error);
       res.status(500).json({ message: 'Failed to fetch residence' });
     }
   });

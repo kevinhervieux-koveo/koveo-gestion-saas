@@ -107,6 +107,7 @@ export function registerDocumentRoutes(app: Express): void {
         result: result.rows[0],
         url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
       };
+    } catch (error: any) {
       return {
         success: false,
         error: error.message,
@@ -127,6 +128,7 @@ export function registerDocumentRoutes(app: Express): void {
         success: true,
         document_count: result.rows[0]?.document_count || 0
       };
+    } catch (error: any) {
       return {
         success: false,
         error: error.message,
@@ -152,6 +154,7 @@ export function registerDocumentRoutes(app: Express): void {
         success: true,
         production_enum_values: result.rows.map(row => row.enumlabel)
       };
+    } catch (error: any) {
       return {
         success: false,
         error: error.message
@@ -195,6 +198,7 @@ export function registerDocumentRoutes(app: Express): void {
         orphan_users: orphanUsers.rows,
         test_user_status: testUser.rows[0] || null
       };
+    } catch (error: any) {
       return {
         success: false,
         error: error.message
@@ -231,6 +235,8 @@ export function registerDocumentRoutes(app: Express): void {
         safe_to_push_schema: true,
         timestamp: new Date().toISOString()
       });
+    } catch (error: any) {
+      console.error('❌ Error during enum cleanup:', error);
       res.status(500).json({
         error: 'Enum cleanup failed',
         message: error.message,
@@ -298,7 +304,8 @@ export function registerDocumentRoutes(app: Express): void {
         linked_users: orphanUsers.rows.map(u => ({ id: u.id, email: u.email, role: u.role })),
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error fixing user-organization links:', error);
       res.status(500).json({
         error: 'Failed to fix user-organization links',
         message: error.message,
@@ -376,7 +383,8 @@ export function registerDocumentRoutes(app: Express): void {
         user_role_usage: userRoleUsage.rows,
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error during enum migration:', error);
       res.status(500).json({
         error: 'Enum migration failed',
         message: error.message,
@@ -422,7 +430,8 @@ export function registerDocumentRoutes(app: Express): void {
         next_step: 'Run npm run db:push now, then call /api/documents/restore-invitations-default',
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error fixing invitations dependency:', error);
       res.status(500).json({
         error: 'Failed to fix invitations dependency',
         message: error.message,
@@ -452,7 +461,8 @@ export function registerDocumentRoutes(app: Express): void {
         current_default: verification.rows[0]?.column_default,
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error restoring invitations default:', error);
       res.status(500).json({
         error: 'Failed to restore invitations default',
         message: error.message,
@@ -555,7 +565,8 @@ export function registerDocumentRoutes(app: Express): void {
         new_enum_values: ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'],
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error migrating owner users to admin:', error);
       res.status(500).json({
         error: 'Owner to admin migration failed',
         message: error.message,
@@ -611,7 +622,8 @@ export function registerDocumentRoutes(app: Express): void {
         next_step: 'Run npm run db:push now',
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error removing enum dependencies:', error);
       res.status(500).json({
         error: 'Failed to remove enum dependencies',
         message: error.message,
@@ -663,7 +675,8 @@ export function registerDocumentRoutes(app: Express): void {
         operations: results,
         timestamp: new Date().toISOString()
       });
-
+    } catch (error: any) {
+      console.error('❌ Error restoring defaults:', error);
       res.status(500).json({
         error: 'Failed to restore defaults',
         message: error.message,
@@ -786,7 +799,8 @@ export function registerDocumentRoutes(app: Express): void {
         timestamp: new Date().toISOString(),
         success: true
       });
-
+    } catch (error: any) {
+      console.error('❌ Error during schema synchronization:', error);
       res.status(500).json({
         error: 'Schema synchronization failed',
         message: error.message,
@@ -839,6 +853,8 @@ export function registerDocumentRoutes(app: Express): void {
           user_organization_links: await checkUserOrganizationLinks()
         }
       });
+    } catch (error: any) {
+      console.error('❌ Error running diagnostic:', error);
       res.status(500).json({
         error: 'Diagnostic failed',
         message: error.message
@@ -1113,6 +1129,7 @@ export function registerDocumentRoutes(app: Express): void {
         legacyCount: allDocumentRecords.filter((d) => d.documentCategory === 'legacy').length,
       };
       res.json(response);
+    } catch (_error: any) {
       const errorEntry = logError('GET /api/documents', _error, req.user);
       res.status(500).json({ 
         message: 'Failed to fetch documents',
@@ -1160,6 +1177,8 @@ export function registerDocumentRoutes(app: Express): void {
               (document as any).entityType = 'building';
               (document as any).entityId = (document as any).buildingId;
             }
+          } catch (e) {
+            console.warn('⚠️ Error fetching building document:', e);
           }
         }
 
@@ -1177,6 +1196,8 @@ export function registerDocumentRoutes(app: Express): void {
               (document as any).entityType = 'residence';
               (document as any).entityId = (document as any).residenceId;
             }
+          } catch (e) {
+            console.warn('⚠️ Error fetching resident document:', e);
           }
         }
       }
@@ -1190,6 +1211,8 @@ export function registerDocumentRoutes(app: Express): void {
             (document as any).entityType = 'legacy';
             (document as any).entityId = null;
           }
+        } catch (e) {
+          console.warn('⚠️ Error fetching legacy document:', e);
         }
       }
 
