@@ -39,6 +39,11 @@ export const sslCertificates = pgTable('ssl_certificates', {
   dnsProvider: text('dns_provider'),
   lastRenewalAttempt: timestamp('last_renewal_attempt'),
   nextRenewalDate: timestamp('next_renewal_date'),
+  // Additional SSL management fields
+  certificateChain: text('certificate_chain'),
+  renewalError: text('renewal_error'),
+  dnsCredentials: text('dns_credentials'),
+  notificationEmails: text('notification_emails'),
   createdBy: uuid('created_by')
     .notNull()
     .references(() => users.id),

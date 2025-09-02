@@ -161,6 +161,12 @@ export const actionableItems = pgTable('actionable_items', {
   dependencies: jsonb('dependencies'), // Array of other actionable item IDs
   acceptanceCriteria: text('acceptance_criteria'),
   implementation_notes: text('implementation_notes'),
+  // AI-generated analysis fields
+  technicalDetails: text('technical_details'),
+  implementationPrompt: text('implementation_prompt'),
+  testingRequirements: text('testing_requirements'),
+  estimatedEffort: text('estimated_effort'),
+  orderIndex: integer('order_index').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   startedAt: timestamp('started_at'),

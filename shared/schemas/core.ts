@@ -241,6 +241,8 @@ export const rolePermissions = pgTable('role_permissions', {
   permissionId: uuid('permission_id')
     .notNull()
     .references(() => permissions.id),
+  grantedBy: uuid('granted_by').references(() => users.id),
+  grantedAt: timestamp('granted_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
