@@ -93,7 +93,7 @@ export default function UserManagement() {
     isLoading: usersLoading,
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users', 'with-assignments'], // Force cache refresh
+    queryKey: ['/api/users', 'enhanced', Date.now()], // Force fresh fetch every time
     enabled: true,
   });
 
@@ -137,7 +137,7 @@ export default function UserManagement() {
         description: 'User updated successfully',
       });
       setSelectedUsers(new Set());
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
     },
     onError: (_error: Error) => {
       toast({
@@ -164,7 +164,7 @@ export default function UserManagement() {
         description: 'User updated successfully',
       });
       setEditingUser(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
     },
     onError: (error: Error) => {
       toast({
@@ -261,7 +261,7 @@ export default function UserManagement() {
         description: 'Organization assignments updated successfully',
       });
       setEditingUserOrganizations(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
@@ -293,7 +293,7 @@ export default function UserManagement() {
         description: 'Residence assignments updated successfully',
       });
       setEditingUserResidences(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
@@ -324,7 +324,7 @@ export default function UserManagement() {
       });
       setDeletingUser(null);
       // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
       // Force refetch to ensure UI updates
@@ -388,26 +388,11 @@ export default function UserManagement() {
     ],
   };
 
-  // Force complete cache clear and debug what's actually received
+  // Force complete cache clear to get fresh assignment data
   React.useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    queryClient.removeQueries({ queryKey: ['/api/users'] });
-    queryClient.clear();
+    queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
+    queryClient.removeQueries({ queryKey: ['/api/users', 'with-assignments'] });
   }, []);
-
-  // Users now come with assignment data included from the API
-  React.useEffect(() => {
-    console.log('🔍 [FRONTEND] Component mounted, users.length:', users.length);
-    console.log('🔍 [FRONTEND] Users loading state:', usersLoading);
-    console.log('🔍 [FRONTEND] Users error:', usersError);
-    if (users.length > 0) {
-      console.log('🔍 [FRONTEND] First user:', users[0]);
-      console.log('🔍 [FRONTEND] Has organizations property?', 'organizations' in users[0]);
-      console.log('🔍 [FRONTEND] Organizations value:', users[0].organizations);
-      console.log('🔍 [FRONTEND] Full user keys:', Object.keys(users[0]));
-      alert(`DEBUG: User has ${users[0].organizations?.length || 0} organizations`);
-    }
-  }, [users, usersLoading, usersError]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
@@ -900,7 +885,7 @@ export default function UserManagement() {
           onOpenChange={setShowInviteDialog}
           onSuccess={() => {
             // Refresh users list after successful invitation
-            queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/users', 'with-assignments'] });
           }}
         />
 
