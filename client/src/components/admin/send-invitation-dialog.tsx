@@ -384,33 +384,20 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const availableRoles = useMemo(() => {
     // Return empty array if no organization is selected
     if (!organizationId) {
-      console.log('🔍 [ROLE DEBUG] No organization selected, returning empty roles');
-      return [];
+        return [];
     }
 
     const selectedOrg = organizations?.find((org) => org.id === organizationId);
     const isDemoOrg = selectedOrg?.type === 'demo';
 
-    console.log('🔍 [ROLE DEBUG] Organization selection:', {
-      organizationId,
-      selectedOrg,
-      isDemoOrg,
-      availableOrgs: organizations?.map(o => ({ id: o.id, name: o.name, type: o.type }))
-    });
 
     if (isDemoOrg) {
       // For demo organizations, allow both demo roles and regular roles
       const roles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
-      console.log('✅ [ROLE DEBUG] Demo org roles:', roles);
-      // Also show alert to make sure we can see this
-      if (organizationId && roles.length > 4) {
-        console.log('🎉 DEMO ROLES ACTIVE - You should see demo roles now!', roles);
-      }
       return roles;
     }
 
     const roles = ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
-    console.log('🔍 [ROLE DEBUG] Regular org roles:', roles);
     return roles;
   }, [organizationId, organizations, hasRole]);
 
