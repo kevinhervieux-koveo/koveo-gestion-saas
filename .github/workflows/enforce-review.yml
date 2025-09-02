@@ -142,13 +142,17 @@ jobs:
             commentBody += '---\n';
             commentBody += '*This check is automated. All mandatory requirements must be met before merge.*';
 
-            // Post comment
-            await github.rest.issues.createComment({
-              issue_number: pr.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: commentBody
-            });
+            // Post comment (ignore errors)
+            try {
+              await github.rest.issues.createComment({
+                issue_number: pr.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody
+              });
+            } catch (error) {
+              console.log('⚠️ Could not post comment due to permissions, but continuing with status check');
+            }
 
             // Set status check
             if (failures.length > 0) {
