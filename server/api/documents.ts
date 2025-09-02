@@ -393,6 +393,52 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Fix invitations table enum dependency
+  app.post('/api/documents/fix-invitations-dependency', async (req, res) => {
+    try {
+      // Step 1: Check current invitations table structure
+      const invitationsSchema = await db.execute(sql`
+        SELECT column_name, data_type, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'invitations' AND column_name = 'role'
+      `);
+
+      // Step 2: Remove default value from invitations.role column temporarily
+      await db.execute(sql`
+        ALTER TABLE invitations 
+        ALTER COLUMN role DROP DEFAULT
+      `);
+
+      // Step 3: Check what other tables might have enum dependencies
+      const enumDependencies = await db.execute(sql`
+        SELECT 
+          t.table_name,
+          c.column_name,
+          c.column_default
+        FROM information_schema.tables t
+        JOIN information_schema.columns c ON t.table_name = c.table_name
+        WHERE c.data_type = 'USER-DEFINED' 
+        AND c.udt_name = 'user_role'
+        AND c.column_default IS NOT NULL
+      `);
+
+      res.json({
+        message: 'Successfully removed invitations table enum dependency',
+        removed_defaults: invitationsSchema.rows,
+        remaining_dependencies: enumDependencies.rows,
+        next_step: 'Run npm run db:push now',
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to fix invitations dependency',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
