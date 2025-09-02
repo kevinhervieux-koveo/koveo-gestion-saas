@@ -1902,7 +1902,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       `legacy_docs:${userId}:${userRole}`,
       'documents',
       async () => {
-        return await db.select().from(schema.documents).orderBy(desc(schema.documents.uploadDate));
+        return await db.select().from(schema.documents).orderBy(desc(schema.documents.createdAt));
       }
     );
   }
