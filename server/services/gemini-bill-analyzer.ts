@@ -125,6 +125,8 @@ export class GeminiBillAnalyzer {
       } else {
         throw new Error('Empty response from Gemini');
       }
+    } catch (error: any) {
+      console.error('❌ Error analyzing bill document:', error);
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
   }
@@ -195,6 +197,8 @@ export class GeminiBillAnalyzer {
 
       const result = JSON.parse(response.text || '{}');
       return result;
+    } catch (error: any) {
+      console.error('❌ Error suggesting payment schedule:', error);
       return {
         paymentType: 'unique',
         reasoning: 'Default to unique payment due to analysis error',

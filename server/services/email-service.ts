@@ -228,6 +228,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
+    } catch (error: any) {
+      console.error('❌ Error sending email:', error);
       return false;
     }
   }
@@ -394,6 +396,7 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
+    } catch (error: any) {
       console.error('❌ Error details:', JSON.stringify(error, null, 2));
       return false;
     }
@@ -428,6 +431,8 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
+    } catch (error: any) {
+      console.error('❌ Error sending email:', error);
       return false;
     }
   }

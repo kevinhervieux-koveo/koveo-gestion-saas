@@ -35,6 +35,7 @@ export class MonthlyBudgetService {
           const buildingBudgets = await this.populateBudgetsForBuilding(building);
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
+          console.log(
             `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
           );
           // Continue with other buildings

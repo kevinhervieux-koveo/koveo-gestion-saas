@@ -25,6 +25,8 @@ export class BillGenerationService {
       const existingBills = await db.select().from(bills).where(eq(bills.reference, parentBillId));
 
       return existingBills;
+    } catch (error: any) {
+      console.error('❌ Error getting bills by reference:', error);
       return [];
     }
   }
@@ -43,7 +45,8 @@ export class BillGenerationService {
           updatedAt: new Date(),
         })
         .where(eq(bills.id, billId));
-
+    } catch (error: any) {
+      console.error('❌ Error setting recurrence end date:', error);
       throw error;
     }
   }
@@ -77,6 +80,7 @@ export class BillGenerationService {
     // Check if there are already auto-generated bills to avoid duplicates
     const existingBills = await this.getBillsByReference(parentBill.id);
     if (existingBills.length > 0) {
+      console.log(
         `⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`
       );
       return {
@@ -339,7 +343,10 @@ export class BillGenerationService {
             or(eq(bills.status, 'draft'), eq(bills.status, 'sent'))
           )
         );
-
+      console.log(`🗑️ Cleaned up auto-generated bills for parent bill ${parentBillId}`);
+    } catch (error: any) {
+      console.error('❌ Error cleaning up generated bills:', error);
+      throw error;
     }
   }
 
@@ -350,6 +357,9 @@ export class BillGenerationService {
   private async insertBillsBatch(billBatch: unknown[]): Promise<void> {
     try {
       await db.insert(bills).values(billBatch);
+      console.log(`✅ Batch inserted ${billBatch.length} bills`);
+    } catch (error: any) {
+      console.error('❌ Error inserting bill batch:', error);
       throw error;
     }
   }
@@ -420,6 +430,7 @@ export class BillGenerationService {
   ): Promise<{
     billsDeleted: number;
   }> {
+    console.log(
       `🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`
     );
 

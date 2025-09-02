@@ -42,6 +42,7 @@ class DelayedUpdateService {
     }
 
     this.pendingBillUpdates.add(billId);
+    console.log(
       `⏰ Scheduling money flow update for bill ${billId} in ${this.DELAY_MINUTES} minutes`
     );
 
@@ -73,6 +74,7 @@ class DelayedUpdateService {
     }
 
     this.pendingResidenceUpdates.add(residenceId);
+    console.log(
       `⏰ Scheduling money flow update for residence ${residenceId} in ${this.DELAY_MINUTES} minutes`
     );
 
@@ -81,6 +83,7 @@ class DelayedUpdateService {
 
         // Generate money flow entries for the residence
         const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+        console.log(
           `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
         );
 
@@ -103,12 +106,14 @@ class DelayedUpdateService {
   private async scheduleBudgetUpdate(buildingId: string): Promise<void> {
     // Avoid duplicate updates for the same building
     if (this.pendingBuildingBudgetUpdates.has(buildingId)) {
+      console.log(
         `🏢 Building ${buildingId} already has a pending budget update, skipping duplicate`
       );
       return;
     }
 
     this.pendingBuildingBudgetUpdates.add(buildingId);
+    console.log(
       `⏰ Scheduling budget update for building ${buildingId} in ${this.DELAY_MINUTES} minutes`
     );
 
@@ -140,6 +145,8 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
+    } catch (error: any) {
+      console.error('❌ Error getting building ID:', error);
       return null;
     }
   }
@@ -161,6 +168,8 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
+    } catch (error: any) {
+      console.error('❌ Error getting building ID:', error);
       return null;
     }
   }
@@ -189,6 +198,7 @@ class DelayedUpdateService {
 
     // Generate money flow entries for the residence
     const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+    console.log(
       `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
     );
 

@@ -243,6 +243,8 @@ export function withCache<T>(
       queryCache.set(cacheType, cacheKey, result);
 
       resolve(result);
+    } catch (error: any) {
+      reject(error);
     }
   });
 }
@@ -354,6 +356,8 @@ export class CacheWarmer {
     try {
       // This would be implemented with actual database calls
       // Example: Pre-load active users, organizations, etc.
+    } catch (error: any) {
+      console.error('❌ Error warming caches:', error);
     }
   }
 }

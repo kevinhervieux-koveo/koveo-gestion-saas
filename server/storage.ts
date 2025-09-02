@@ -992,6 +992,7 @@ class ProductionFallbackStorage implements IStorage {
       const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
       // Debug logging removed
       return user;
+    } catch (error: any) {
       // Error handling maintained without debug logging
       throw error;
     }

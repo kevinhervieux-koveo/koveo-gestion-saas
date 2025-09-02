@@ -74,6 +74,7 @@ export class InvitationSecurityMonitor {
    * @param alert
    */
   static async triggerAlert(alert: SecurityAlert) {
+    console.log('🚨 Security Alert:', {
       description: alert.description,
       userId: alert.userId,
       ipAddress: alert.ipAddress,
@@ -84,6 +85,8 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
+      } catch (error: any) {
+        console.error('❌ Error in security alert callback:', error);
       }
     });
 
