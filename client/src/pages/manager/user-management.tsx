@@ -1050,9 +1050,7 @@ export default function UserManagement() {
               <OrganizationEditForm
                 user={editingUserOrganizations}
                 organizations={organizations}
-                userOrganizations={userOrganizations.filter(
-                  (uo) => uo.userId === editingUserOrganizations.id
-                )}
+                userOrganizations={[]}
                 onSave={(organizationIds) => {
                   editOrganizationsMutation.mutate({
                     userId: editingUserOrganizations.id,
@@ -1085,9 +1083,7 @@ export default function UserManagement() {
                 user={editingUserResidences}
                 residences={residences}
                 buildings={buildings}
-                userResidences={userResidences.filter(
-                  (ur) => ur.userId === editingUserResidences.id
-                )}
+                userResidences={[]}
                 onSave={(residenceAssignments) => {
                   editResidencesMutation.mutate({
                     userId: editingUserResidences.id,
