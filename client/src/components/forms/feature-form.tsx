@@ -266,14 +266,13 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
-    } catch (error) {
-      console.error('Error clearing draft:', error);
-    }
-
+      
       toast({
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
+    } catch (error) {
+      console.error('Error clearing draft:', error);
     }
   }, [feature?.id, toast, getDraftKey]);
 
