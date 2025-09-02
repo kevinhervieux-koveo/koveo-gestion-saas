@@ -874,6 +874,144 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Document Dialog */}
+      <Dialog
+        open={isViewDialogOpen && isEditMode}
+        onOpenChange={(open) => {
+          setIsViewDialogOpen(open);
+          if (!open) {
+            setSelectedDocument(null);
+            setIsEditMode(false);
+          }
+        }}
+      >
+        <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle>Edit Document</DialogTitle>
+            <DialogDescription>
+              Update the document information. Note: File content cannot be changed, only metadata.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedDocument && (
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(async (data) => {
+                  try {
+                    const response = await apiRequest('PUT', `/api/documents/${selectedDocument.id}`, data);
+                    toast({
+                      title: 'Success',
+                      description: 'Document updated successfully',
+                    });
+                    queryClient.invalidateQueries({ queryKey });
+                    setIsViewDialogOpen(false);
+                    setIsEditMode(false);
+                    setSelectedDocument(null);
+                  } catch (error: any) {
+                    toast({
+                      title: 'Error',
+                      description: error.message || 'Failed to update document',
+                      variant: 'destructive',
+                    });
+                  }
+                })}
+                className='space-y-4'
+              >
+                <FormField
+                  control={form.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Document Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || selectedDocument.name} data-testid='input-edit-name' />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='description'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || selectedDocument.description || ''} data-testid='input-edit-description' />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='documentType'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Document Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || selectedDocument.documentType}>
+                        <FormControl>
+                          <SelectTrigger data-testid='select-edit-type'>
+                            <SelectValue placeholder='Select category' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {documentCategories.map((category) => (
+                            <SelectItem key={category._value} value={category._value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='isVisibleToTenants'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
+                      <FormControl>
+                        <input
+                          type='checkbox'
+                          checked={field.value !== undefined ? field.value : selectedDocument.isVisibleToTenants}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          data-testid='checkbox-edit-visible-tenants'
+                        />
+                      </FormControl>
+                      <div className='space-y-1 leading-none'>
+                        <FormLabel>Visible to Tenants</FormLabel>
+                        <p className='text-sm text-muted-foreground'>
+                          Allow tenants to view this document
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                      setIsEditMode(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type='submit' data-testid='button-save-edit'>
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
