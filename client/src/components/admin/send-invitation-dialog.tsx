@@ -506,7 +506,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             </div>
                           </SelectItem>
                         )) : (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="no-organization" disabled>
                             Please select an organization first
                           </SelectItem>
                         )}
