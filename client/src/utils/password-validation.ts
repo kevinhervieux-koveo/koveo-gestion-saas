@@ -150,7 +150,7 @@ export function getPasswordCriteria(password: string | undefined | null): Passwo
       hasLowerCase: false,
       hasNumbers: false,
       hasSymbols: false,
-      noCommonPatterns: false,
+      noCommonPatterns: true, // Empty strings don't contain common patterns
     };
   }
   return {

@@ -124,9 +124,8 @@ describe('Demands Schema Validation Tests', () => {
     it('should validate a valid comment object', () => {
       const validComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        comment: 'This is a valid comment about the demand',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: 'This is a valid comment about the demand',
       };
 
       expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
@@ -142,21 +141,19 @@ describe('Demands Schema Validation Tests', () => {
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
     });
 
-    it('should require authorId', () => {
+    it('should require commenterId', () => {
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        comment: 'Missing author ID',
+        commentText: 'Missing commenter ID',
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
     });
 
-    it('should require content', () => {
+    it('should require commentText', () => {
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
@@ -169,16 +166,14 @@ describe('Demands Schema Validation Tests', () => {
 
       const commentWithShortContent = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        comment: shortContent,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: shortContent,
       };
 
       const commentWithLongContent = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        comment: longContent,
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: longContent,
       };
 
       // Both should pass with reasonable lengths
@@ -189,26 +184,23 @@ describe('Demands Schema Validation Tests', () => {
     it('should accept valid comment data', () => {
       const comment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 1.0,
-        comment: 'Valid comment data',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: 'Valid comment data',
       };
 
       expect(() => insertDemandCommentSchema.parse(comment)).not.toThrow();
     });
 
-    it('should validate order index', () => {
+    it('should validate comment structure', () => {
       const validComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        orderIndex: 2,
-        comment: 'Comment with decimal order index',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: 'Comment with proper structure',
       };
 
       const invalidComment = {
         demandId: '423e4567-e89b-12d3-a456-426614174003',
-        comment: 'Comment without order index',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: 'Comment without commenter ID',
       };
 
       expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
