@@ -426,13 +426,44 @@ export function registerDocumentRoutes(app: Express): void {
         message: 'Successfully removed invitations table enum dependency',
         removed_defaults: invitationsSchema.rows,
         remaining_dependencies: enumDependencies.rows,
-        next_step: 'Run npm run db:push now',
+        next_step: 'Run npm run db:push now, then call /api/documents/restore-invitations-default',
         timestamp: new Date().toISOString()
       });
 
     } catch (error) {
       res.status(500).json({
         error: 'Failed to fix invitations dependency',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Restore invitations default value after schema sync
+  app.post('/api/documents/restore-invitations-default', async (req, res) => {
+    try {
+      // Restore default value to 'tenant' for invitations.role column
+      await db.execute(sql`
+        ALTER TABLE invitations 
+        ALTER COLUMN role SET DEFAULT 'tenant'
+      `);
+
+      // Verify the change
+      const verification = await db.execute(sql`
+        SELECT column_name, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'invitations' AND column_name = 'role'
+      `);
+
+      res.json({
+        message: 'Successfully restored invitations role default to tenant',
+        current_default: verification.rows[0]?.column_default,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to restore invitations default',
         message: error.message,
         timestamp: new Date().toISOString()
       });
