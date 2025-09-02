@@ -333,6 +333,54 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/user-organizations - Get current user's organizations.
+   */
+  app.get('/api/user-organizations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const organizations = await storage.getUserOrganizations(currentUser.id);
+      res.json(organizations);
+    } catch (error) {
+      console.error('Failed to get user organizations:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user organizations',
+      });
+    }
+  });
+
+  /**
+   * GET /api/user-residences - Get current user's residences.
+   */
+  app.get('/api/user-residences', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const residences = await storage.getUserResidences(currentUser.id);
+      res.json(residences);
+    } catch (error) {
+      console.error('Failed to get user residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user residences',
+      });
+    }
+  });
+
+  /**
    * GET /api/user/permissions - Retrieves the current user's permissions based on their role.
    * Protected endpoint that requires authentication.
    */
