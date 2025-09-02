@@ -85,7 +85,6 @@ export interface AccessContext {
  */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
-    console.warn('Getting accessible organizations for user:', userId);
 
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
@@ -98,21 +97,12 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
       },
     });
 
-    console.warn(
-      'User organizations found:',
-      userOrgs.map((uo) => ({
-        orgId: uo.organizationId,
-        orgName: uo.organization?.name,
-        canAccessAll: uo.canAccessAllOrganizations,
-      }))
-    );
 
     // Get Demo organization ID (always accessible)
     const demoOrg = await db.query.organizations.findFirst({
       where: eq(schema.organizations.name, 'Demo'),
     });
 
-    console.warn('Demo org found:', demoOrg?.id);
 
     const accessibleOrgIds = new Set<string>();
 
@@ -127,15 +117,10 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
         userOrg.canAccessAllOrganizations ||
         userOrg.organization?.name?.toLowerCase() === 'koveo'
       ) {
-        console.warn('User has full access - adding all organizations');
         // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true),
         });
-        console.warn(
-          'All organizations found:',
-          allOrgs.map((o) => ({ id: o.id, name: o.name }))
-        );
         allOrgs.forEach((org) => accessibleOrgIds.add(org.id));
         break;
       } else {
@@ -145,7 +130,6 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     }
 
     const result = Array.from(accessibleOrgIds);
-    console.warn('Final accessible org IDs:', result);
     return result;
   } catch (error) {
     console.error('Error getting user accessible organizations:', error);
@@ -247,7 +231,6 @@ export async function canUserPerformWriteOperation(
   // Check if user is from Open Demo organization (view-only)
   const isOpenDemo = await isOpenDemoUser(userId);
   if (isOpenDemo) {
-    console.warn(`Open Demo user ${userId} attempted restricted action: ${action}`);
     return false; // Open Demo users cannot perform any write operations
   }
 
