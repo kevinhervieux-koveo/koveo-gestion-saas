@@ -723,7 +723,7 @@ export default function UserManagement() {
                               </td>
                               <td className='border border-gray-300 px-4 py-2'>
                                 <div className='space-y-1'>
-                                  {user.organizations.length > 0 ? (
+                                  {user.organizations?.length > 0 ? (
                                     user.organizations.map((org, idx) => (
                                       <div
                                         key={idx}
@@ -733,13 +733,15 @@ export default function UserManagement() {
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>No organizations</span>
+                                    <span className='text-gray-400 text-xs'>
+                                      No organizations {JSON.stringify(user.organizations)}
+                                    </span>
                                   )}
                                 </div>
                               </td>
                               <td className='border border-gray-300 px-4 py-2'>
                                 <div className='space-y-1'>
-                                  {user.buildings.length > 0 ? (
+                                  {user.buildings?.length > 0 ? (
                                     user.buildings.slice(0, 3).map((building, idx) => (
                                       <div
                                         key={idx}
@@ -749,9 +751,11 @@ export default function UserManagement() {
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>No buildings</span>
+                                    <span className='text-gray-400 text-xs'>
+                                      No buildings {JSON.stringify(user.buildings)}
+                                    </span>
                                   )}
-                                  {user.buildings.length > 3 && (
+                                  {user.buildings?.length > 3 && (
                                     <div className='text-xs text-gray-500'>
                                       +{user.buildings.length - 3} more
                                     </div>
@@ -760,7 +764,7 @@ export default function UserManagement() {
                               </td>
                               <td className='border border-gray-300 px-4 py-2'>
                                 <div className='space-y-1'>
-                                  {user.residences.length > 0 ? (
+                                  {user.residences?.length > 0 ? (
                                     user.residences.slice(0, 3).map((residence, idx) => (
                                       <div
                                         key={idx}
@@ -770,9 +774,11 @@ export default function UserManagement() {
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>No residences</span>
+                                    <span className='text-gray-400 text-xs'>
+                                      No residences {JSON.stringify(user.residences)}
+                                    </span>
                                   )}
-                                  {user.residences.length > 3 && (
+                                  {user.residences?.length > 3 && (
                                     <div className='text-xs text-gray-500'>
                                       +{user.residences.length - 3} more
                                     </div>
