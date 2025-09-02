@@ -109,19 +109,19 @@ function createSessionStore() {
 }
 
 export const sessionConfig = session({
-  // Use memory store temporarily for debugging
+  store: createSessionStore(), // Use PostgreSQL session store for persistence
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
   resave: false, // Don't save unchanged sessions
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: false, // Disable for debugging
-    httpOnly: false, // Disable for debugging  
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax',
   },
   name: 'koveo.sid',
-  proxy: false, // Disable proxy for debugging
+  proxy: false,
 });
 
 /**

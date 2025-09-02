@@ -54,7 +54,7 @@
     "db:quick-check": "npx tsx scripts/dev-db-check.ts", 
     "db:sync-test": "./sync-test.sh",
     "db:sync-fix": "./sync-test.sh fix",
-    "db:sync-watch": "./sync-test.sh watch"
+    "db:sync-watch": "./sync-test.sh watch",
     "quality:check": "npx tsx scripts/quick-quality-check.ts",
     "quality:full": "npx tsx scripts/run-quality-check.ts",
     "quality:consolidation": "npx tsx scripts/run-consolidation-quality.ts",

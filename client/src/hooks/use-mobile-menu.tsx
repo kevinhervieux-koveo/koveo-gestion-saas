@@ -88,14 +88,32 @@ export function /**
  */
 
 MobileMenuProvider({ children }: MobileMenuProviderProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(() => {
+    // Restore mobile menu state from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('mobile-menu-open');
+      return saved === 'true';
+    }
+    return false;
+  });
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen((prev) => {
+      const newState = !prev;
+      // Persist state to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mobile-menu-open', String(newState));
+      }
+      return newState;
+    });
   };
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+    // Persist closed state to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mobile-menu-open', 'false');
+    }
   };
 
   const value = {

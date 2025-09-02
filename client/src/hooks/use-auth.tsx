@@ -82,11 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     },
     retry: false,
-    staleTime: 30 * 60 * 1000, // 30 minutes - longer to prevent frequent re-auth
-    gcTime: 60 * 60 * 1000, // 1 hour
-    refetchOnWindowFocus: true, // Check auth when user returns to tab
+    staleTime: 60 * 60 * 1000, // 1 hour - reduced frequency to prevent session issues
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours
+    refetchOnWindowFocus: false, // Disable frequent focus checks to prevent session issues
     refetchOnMount: true, // Always check on mount to handle page refreshes
-    refetchInterval: 15 * 60 * 1000, // Check every 15 minutes if user is active
+    refetchInterval: false, // Disable automatic refetch to prevent frequent session validation
   });
 
   useEffect(() => {
