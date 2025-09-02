@@ -175,16 +175,14 @@ class ValidationSuite {
 }
 
 // Run validation suite if called directly
-if (require.main === module) {
-  const suite = new ValidationSuite();
-  suite.runAllValidations()
-    .then(success => {
-      process.exit(success ? 0 : 1);
-    })
-    .catch(error => {
-      console.error(chalk.red('Validation suite crashed:'), error);
-      process.exit(1);
-    });
-}
+const suite = new ValidationSuite();
+suite.runAllValidations()
+  .then(success => {
+    process.exit(success ? 0 : 1);
+  })
+  .catch(error => {
+    console.error(chalk.red('Validation suite crashed:'), error);
+    process.exit(1);
+  });
 
 export { ValidationSuite };
