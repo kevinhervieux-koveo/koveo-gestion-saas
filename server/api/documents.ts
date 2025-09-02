@@ -15,7 +15,6 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { getGCSClient } from '../../src/lib/gcs';
 import { sql } from 'drizzle-orm';
 import { db } from '../db';
 
@@ -1255,7 +1254,7 @@ export function registerDocumentRoutes(app: Express): void {
           name: otherData.name || 'Untitled DocumentRecord',
           description: otherData.description || textContent.substring(0, 200) + (textContent.length > 200 ? '...' : ''),
           documentType: documentType || 'other',
-          gcsPath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
+          filePath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -1295,8 +1294,8 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(500).json({ message: 'Failed to save text document' });
         }
         
-        // Update GCS path to actual local path
-        documentData.gcsPath = `text-documents/${userId}/${fileName}`;
+        // Update file path to actual local path
+        documentData.filePath = `text-documents/${userId}/${fileName}`;
 
         // Create document record in database
         const document = await storage.createDocument(documentData);
@@ -1380,7 +1379,7 @@ export function registerDocumentRoutes(app: Express): void {
           name: validatedData.name || validatedData.title || 'Untitled',
           description: validatedData.description,
           documentType: validatedData.type,
-          gcsPath: validatedData.gcsPath || `temp-path-${Date.now()}`,
+          filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           residenceId: undefined,
           buildingId: validatedData.buildingId,
@@ -1453,7 +1452,7 @@ export function registerDocumentRoutes(app: Express): void {
           name: validatedData.name,
           description: undefined,
           documentType: validatedData.type,
-          gcsPath: validatedData.gcsPath || `temp-path-${Date.now()}`,
+          filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           isVisibleToTenants: validatedData.isVisibleToTenants,
           residenceId: validatedData.residenceId,
           buildingId: undefined,
@@ -1674,7 +1673,7 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Update document with file information
         const updatedDocument = await storage.updateDocument(documentId, {
-          gcsPath: `prod_org_${organizationId}/${req.file.originalname}`,
+          filePath: `prod_org_${organizationId}/${req.file.originalname}`,
           name: req.file.originalname,
           // Remove mimeType as it's not in schema
         });
@@ -1770,13 +1769,13 @@ export function registerDocumentRoutes(app: Express): void {
       const baseFileName = path.basename(req.file.originalname, fileExtension);
       const uniqueFileName = `${uuidv4()}-${baseFileName}${fileExtension}`;
 
-      let gcsPath: string;
+      let filePath: string;
       if (validatedData.residenceId) {
-        gcsPath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
+        filePath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
       } else if (validatedData.buildingId) {
-        gcsPath = `buildings/${validatedData.buildingId}/${uniqueFileName}`;
+        filePath = `buildings/${validatedData.buildingId}/${uniqueFileName}`;
       } else {
-        gcsPath = `general/${uniqueFileName}`;
+        filePath = `general/${uniqueFileName}`;
       }
 
       // DISABLED GCS: Force local storage for all environments
@@ -1799,7 +1798,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Create directory structure for file
-        const localFilePath = path.join(localStoragePath, gcsPath);
+        const localFilePath = path.join(localStoragePath, filePath);
         const localFileDir = path.dirname(localFilePath);
         
         try {
@@ -1830,7 +1829,7 @@ export function registerDocumentRoutes(app: Express): void {
         name: validatedData.name,
         description: validatedData.description,
         documentType: validatedData.documentType,
-        gcsPath: gcsPath,
+        filePath: filePath,
         isVisibleToTenants: validatedData.isVisibleToTenants,
         residenceId: validatedData.residenceId,
         buildingId: validatedData.buildingId,
@@ -1853,7 +1852,7 @@ export function registerDocumentRoutes(app: Express): void {
       console.log(`[${timestamp}] ✅ CRITICAL: DocumentRecord created successfully:`, { 
         id: newDocument?.id, 
         name: newDocument?.name,
-        gcsPath: newDocument?.gcsPath 
+        filePath: newDocument?.filePath 
       });
 
       // Clean up temporary file
@@ -2009,54 +2008,54 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // DISABLED GCS: Always serve from local storage
-      if (document.gcsPath) {
+      // Serve from local storage
+      if (document.filePath) {
         console.log('📁 GCS disabled - serving from local storage');
         try {
           // Always serve from local storage (GCS disabled)
-          let filePath = document.gcsPath;
+          let filePathToServe = document.filePath;
 
           // Check if it's an absolute path
-          if (document.gcsPath.startsWith('/')) {
-            filePath = document.gcsPath;
+          if (document.filePath.startsWith('/')) {
+            filePathToServe = document.filePath;
           }
-          // Check if it's a relative GCS path
+          // Check if it's a relative file path
           else if (
-            document.gcsPath.includes('residences/') ||
-            document.gcsPath.includes('buildings/') ||
-            document.gcsPath.includes('text-documents/')
+            document.filePath.includes('residences/') ||
+            document.filePath.includes('buildings/') ||
+            document.filePath.includes('text-documents/')
           ) {
             // For development, try to find the file in common upload directories
             const possiblePaths = [
-              path.join(process.cwd(), 'uploads', document.gcsPath), // Main fallback location
-              `/tmp/uploads/${document.gcsPath}`,
-              `/uploads/${document.gcsPath}`,
-              `./uploads/${document.gcsPath}`,
-              path.join('/tmp', document.gcsPath),
+              path.join(process.cwd(), 'uploads', document.filePath), // Main fallback location
+              `/tmp/uploads/${document.filePath}`,
+              `/uploads/${document.filePath}`,
+              `./uploads/${document.filePath}`,
+              path.join('/tmp', document.filePath),
             ];
 
             // Try to find the file in any of these locations
             for (const possiblePath of possiblePaths) {
               if (fs.existsSync(possiblePath)) {
-                filePath = possiblePath;
-                console.log(`📂 Found file at: ${filePath}`);
+                filePathToServe = possiblePath;
+                console.log(`📂 Found file at: ${filePathToServe}`);
                 break;
               }
             }
           }
           // Check if it's a temp file path
-          else if (document.gcsPath.includes('tmp')) {
-            filePath = document.gcsPath;
+          else if (document.filePath.includes('tmp')) {
+            filePathToServe = document.filePath;
           }
 
           // Try to serve the file
-          if (fs.existsSync(filePath)) {
+          if (fs.existsSync(filePathToServe)) {
             // Get the original filename with extension, or construct one from the document name
-            let fileName = (document as any).fileName || document.name || path.basename(document.gcsPath);
+            let fileName = (document as any).fileName || document.name || path.basename(document.filePath);
 
             // If the fileName doesn't have an extension, add it from the original file path
-            if (!path.extname(fileName) && document.gcsPath) {
-              const originalExt = path.extname(document.gcsPath);
+            if (!path.extname(fileName) && document.filePath) {
+              const originalExt = path.extname(document.filePath);
               if (originalExt) {
                 fileName += originalExt;
               }
@@ -2089,13 +2088,13 @@ export function registerDocumentRoutes(app: Express): void {
               res.setHeader('Content-Type', 'application/octet-stream');
             }
 
-            console.log(`📂 Serving file: ${filePath} as ${fileName}`);
-            return res.sendFile(path.resolve(filePath));
+            console.log(`📂 Serving file: ${filePathToServe} as ${fileName}`);
+            return res.sendFile(path.resolve(filePathToServe));
           }
 
           // If file not found locally, log for debugging
-          console.log(`❌ File not found at gcsPath: ${document.gcsPath}`);
-          console.log(`❌ Tried filePath: ${filePath}`);
+          console.log(`❌ File not found at filePath: ${document.filePath}`);
+          console.log(`❌ Tried filePath: ${filePathToServe}`);
           return res.status(404).json({ message: 'File not found on server' });
         } catch (fileError: any) {
           console.error('❌ Error serving file:', fileError);

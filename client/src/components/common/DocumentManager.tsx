@@ -70,7 +70,7 @@ interface Document {
   dateReference?: string;
   buildingId?: string;
   residenceId?: string;
-  gcsPath: string;
+  filePath: string;
   fileName?: string;
   fileSize?: number;
   isVisibleToTenants?: boolean;
@@ -315,7 +315,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
   };
 
   const handleDownloadDocument = (document: Document) => {
-    if (document.gcsPath) {
+    if (document.filePath) {
       const link = window.document.createElement('a');
       link.href = `/api/documents/${document.id}/file?download=true`;
       link.download = document.fileName || document.name;
@@ -686,7 +686,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                   {document.name}
                                 </h4>
                                 <div className='flex gap-1'>
-                                  {document.gcsPath && (
+                                  {document.filePath && (
                                     <>
                                       <Button
                                         size='sm'
@@ -749,7 +749,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                               >
                                 {formatDate(document.createdAt)}
                               </p>
-                              {document.gcsPath && (
+                              {document.filePath && (
                                 <Badge variant='outline' className='text-xs'>
                                   {formatFileSize(document.fileSize)}
                                 </Badge>
@@ -816,12 +816,12 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
               <div className='flex gap-2 pt-4'>
                 <Button
                   onClick={() => {
-                    if (selectedDocument.gcsPath) {
+                    if (selectedDocument.filePath) {
                       const fileUrl = `/api/documents/${selectedDocument.id}/file`;
                       window.open(fileUrl, '_blank');
                     }
                   }}
-                  disabled={!selectedDocument.gcsPath}
+                  disabled={!selectedDocument.filePath}
                   data-testid='button-view'
                 >
                   <FileText className='w-4 h-4 mr-2' />
@@ -830,7 +830,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                 <Button
                   variant='outline'
                   onClick={() => {
-                    if (selectedDocument.gcsPath) {
+                    if (selectedDocument.filePath) {
                       const link = window.document.createElement('a');
                       link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
                       link.download = selectedDocument.fileName || selectedDocument.name;
@@ -839,7 +839,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                       window.document.body.removeChild(link);
                     }
                   }}
-                  disabled={!selectedDocument.gcsPath}
+                  disabled={!selectedDocument.filePath}
                   data-testid='button-download'
                 >
                   <Download className='w-4 h-4 mr-2' />

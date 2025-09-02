@@ -4,7 +4,5 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "google-cloud-core>=2.4.3",
-    "google-cloud-storage>=3.3.0",
     "sift-stack-py>=0.8.4",
 ]

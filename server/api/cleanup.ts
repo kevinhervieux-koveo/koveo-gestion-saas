@@ -10,25 +10,25 @@ const router = Router();
  */
 router.post('/cleanup-storage', async (req, res) => {
   try {
-    // ObjectStorageService has been replaced with Python GCS functions
-    // TODO: Implement cleanup using new Python functions
-    res.json({ message: 'Storage cleanup temporarily disabled - needs update for new GCS system' });
+    // Local storage cleanup - TODO: Implement cleanup for local file system
+    // GCS functionality has been replaced with local storage
+    res.json({ message: 'Storage cleanup temporarily disabled - now using local storage instead of GCS' });
     return;
 
     // Get all file paths from documents table
     const allDocs = await db
-      .select({ gcsPath: documents.gcsPath })
+      .select({ filePath: documents.filePath })
       .from(documents)
-      .where(isNotNull(documents.gcsPath));
+      .where(isNotNull(documents.filePath));
 
     // Combine all referenced file URLs and extract object paths from hierarchical structure
     const referencedObjectPaths = new Set();
 
     allDocs.forEach((doc) => {
-      if (doc.gcsPath) {
+      if (doc.filePath) {
         try {
           // Convert URL to object path - handles hierarchical paths
-          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.gcsPath);
+          const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.filePath);
           if (normalizedPath.startsWith('/objects/')) {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
@@ -111,7 +111,7 @@ router.get('/storage-stats', async (req, res) => {
     const allDocs = await db
       .select({ id: documents.id })
       .from(documents)
-      .where(isNotNull(documents.gcsPath));
+      .where(isNotNull(documents.filePath));
 
     const totalDbFiles = allDocs.length;
 
