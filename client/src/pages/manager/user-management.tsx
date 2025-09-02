@@ -403,8 +403,39 @@ export default function UserManagement() {
     console.log('🔍 [FRONTEND] Users error:', usersError);
     if (users.length > 0) {
       console.log('🔍 [FRONTEND] First user structure:', JSON.stringify(users[0], null, 2));
+      console.log('🔍 [FRONTEND] First user organizations:', users[0].organizations);
+      console.log('🔍 [FRONTEND] Organizations type check:', typeof users[0].organizations);
+      console.log('🔍 [FRONTEND] Is array?', Array.isArray(users[0].organizations));
     }
   }, [users, usersLoading, usersError]);
+
+  // Add direct API test
+  React.useEffect(() => {
+    const testDirectAPI = async () => {
+      try {
+        console.log('🧪 [TEST] Making direct API call...');
+        const response = await fetch('/api/users', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🧪 [TEST] Direct API response:', {
+            count: data.length,
+            firstUserOrgs: data[0]?.organizations,
+            firstUserOrgCount: data[0]?.organizations?.length
+          });
+        } else {
+          console.log('🧪 [TEST] Direct API failed:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.log('🧪 [TEST] Direct API error:', error);
+      }
+    };
+    
+    if (!usersLoading && users.length === 0) {
+      testDirectAPI();
+    }
+  }, [usersLoading, users]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
