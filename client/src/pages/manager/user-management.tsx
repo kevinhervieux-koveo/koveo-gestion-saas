@@ -53,7 +53,7 @@ const editUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
   isActive: z.boolean(),
 });
 
@@ -115,21 +115,21 @@ export default function UserManagement() {
     enabled: true,
   });
 
-  // Fetch user organizations
-  const { data: userOrganizations = [] } = useQuery<any[]>({
-    queryKey: ['/api/user-organizations'],
-    enabled: true,
-  });
-
-  // Fetch user residences
-  const { data: userResidences = [] } = useQuery<any[]>({
-    queryKey: ['/api/user-residences'],
-    enabled: true,
-  });
-
-  // Get current user to check permissions
+  // Get current user to check permissions (fetch first to use in other queries)
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/user'],
+  });
+
+  // Fetch user organizations (all assignments for admin view)
+  const { data: userOrganizations = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/all-user-organizations'],
+    enabled: currentUser?.role === 'admin',
+  });
+
+  // Fetch user residences (all assignments for admin view)
+  const { data: userResidences = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/all-user-residences'],
+    enabled: currentUser?.role === 'admin',
   });
 
   // Bulk action handler
@@ -274,7 +274,7 @@ export default function UserManagement() {
       });
       setEditingUserOrganizations(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
       toast({
@@ -306,7 +306,7 @@ export default function UserManagement() {
       });
       setEditingUserResidences(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
       toast({
@@ -337,8 +337,8 @@ export default function UserManagement() {
       setDeletingUser(null);
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
       // Force refetch to ensure UI updates
       queryClient.refetchQueries({ queryKey: ['/api/users'] });
     },

@@ -381,6 +381,92 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/admin/all-user-organizations - Get all user-organization relationships (admin only).
+   */
+  app.get('/api/admin/all-user-organizations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins can access all user assignments
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only administrators can view all user assignments',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Get all user-organization relationships
+      const userOrganizations = await db
+        .select({
+          userId: schema.userOrganizations.userId,
+          organizationId: schema.userOrganizations.organizationId,
+          organizationRole: schema.userOrganizations.organizationRole,
+          isActive: schema.userOrganizations.isActive,
+        })
+        .from(schema.userOrganizations)
+        .where(eq(schema.userOrganizations.isActive, true));
+
+      res.json(userOrganizations);
+    } catch (error) {
+      console.error('Failed to get all user organizations:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get all user organizations',
+      });
+    }
+  });
+
+  /**
+   * GET /api/admin/all-user-residences - Get all user-residence relationships (admin only).
+   */
+  app.get('/api/admin/all-user-residences', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins can access all user assignments
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only administrators can view all user assignments',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Get all user-residence relationships
+      const userResidences = await db
+        .select({
+          userId: schema.userResidences.userId,
+          residenceId: schema.userResidences.residenceId,
+          relationshipType: schema.userResidences.relationshipType,
+          startDate: schema.userResidences.startDate,
+          endDate: schema.userResidences.endDate,
+          isActive: schema.userResidences.isActive,
+        })
+        .from(schema.userResidences)
+        .where(eq(schema.userResidences.isActive, true));
+
+      res.json(userResidences);
+    } catch (error) {
+      console.error('Failed to get all user residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get all user residences',
+      });
+    }
+  });
+
+  /**
    * GET /api/user/permissions - Retrieves the current user's permissions based on their role.
    * Protected endpoint that requires authentication.
    */
