@@ -46,7 +46,6 @@ export function registerUserRoutes(app: Express): void {
       // Get users with their full assignment data
       const usersWithAssignments = await storage.getUsersWithAssignments();
 
-      console.warn(`✅ Found ${usersWithAssignments.length} users for user ${currentUser.id}`);
       
 
       // Filter users based on current user's role and permissions
@@ -54,7 +53,6 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.role === 'admin') {
         // Admin can see all users
         filteredUsers = usersWithAssignments;
-        console.warn('🔥 [FILTER DEBUG] Admin user - showing all users');
       } else {
         // Managers and other users can only see users from their organizations
         // Get the organization IDs that the current user has access to
@@ -70,8 +68,6 @@ export function registerUserRoutes(app: Express): void {
           }
           return hasAccess;
         });
-        
-        console.warn('🔥 [FILTER DEBUG] Filtered users count:', filteredUsers.length);
       }
 
 

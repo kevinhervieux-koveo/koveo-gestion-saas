@@ -24,25 +24,6 @@ export function UserAssignmentsTable({
   canEditResidences = false,
   canDeleteUsers = false
 }: UserAssignmentsTableProps) {
-  // Debug logging
-  React.useEffect(() => {
-    if (users && users.length > 0) {
-      console.log('🆕 [NEW TABLE DEBUG] Received users:', users.length);
-      const firstUser = users[0];
-      console.log('🆕 [NEW TABLE DEBUG] First user data:', {
-        email: firstUser.email,
-        organizationsType: typeof firstUser.organizations,
-        organizationsIsArray: Array.isArray(firstUser.organizations),
-        organizationsData: firstUser.organizations,
-        buildingsType: typeof firstUser.buildings,
-        buildingsIsArray: Array.isArray(firstUser.buildings),
-        buildingsData: firstUser.buildings,
-        residencesType: typeof firstUser.residences,
-        residencesIsArray: Array.isArray(firstUser.residences),
-        residencesData: firstUser.residences
-      });
-    }
-  }, [users]);
 
   if (isLoading) {
     return (
@@ -62,9 +43,6 @@ export function UserAssignmentsTable({
 
   return (
     <div className="overflow-x-auto">
-      <div className="bg-green-100 border border-green-500 text-green-800 px-4 py-2 mb-4 rounded">
-        🆕 NEW TABLE COMPONENT LOADED - Users: {users.length}
-      </div>
       <table className="w-full border-collapse border border-gray-300" data-testid="users-table">
         <thead>
           <tr className="bg-gray-50">
