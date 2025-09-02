@@ -62,6 +62,9 @@ export function UserAssignmentsTable({
 
   return (
     <div className="overflow-x-auto">
+      <div className="bg-green-100 border border-green-500 text-green-800 px-4 py-2 mb-4 rounded">
+        🆕 NEW TABLE COMPONENT LOADED - Users: {users.length}
+      </div>
       <table className="w-full border-collapse border border-gray-300" data-testid="users-table">
         <thead>
           <tr className="bg-gray-50">
