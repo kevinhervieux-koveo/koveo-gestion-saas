@@ -163,6 +163,8 @@ export function registerOrganizationRoutes(app: Express): void {
       res.json({
         organizations: allOrganizations,
       });
+    } catch (error: any) {
+      console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -232,6 +234,8 @@ export function registerOrganizationRoutes(app: Express): void {
       );
 
       res.status(201).json(newOrganization);
+    } catch (error: any) {
+      console.error('❌ Error creating organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create organization',
@@ -314,6 +318,8 @@ export function registerOrganizationRoutes(app: Express): void {
         });
 
       res.json(updatedOrganization);
+    } catch (error: any) {
+      console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization',
@@ -445,6 +451,12 @@ export function registerOrganizationRoutes(app: Express): void {
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
       });
+    } catch (error: any) {
+      console.error('❌ Error analyzing deletion impact:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to analyze deletion impact',
+      });
     }
   });
 
@@ -570,6 +582,7 @@ export function registerOrganizationRoutes(app: Express): void {
       try {
         console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
+        console.error(
           '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
           storageError
         );
@@ -579,6 +592,8 @@ export function registerOrganizationRoutes(app: Express): void {
         message: 'Organization and related entities deleted successfully',
         deletedOrganization: organization[0].name,
       });
+    } catch (error: any) {
+      console.error('❌ Error deleting organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete organization and related entities',

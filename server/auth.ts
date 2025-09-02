@@ -706,6 +706,8 @@ export function setupAuthRoutes(app: any) {
           user: userData,
           message: 'User created successfully',
         });
+      } catch (error: any) {
+        console.error('❌ Registration error:', error);
         res.status(500).json({
           message: 'Registration failed',
           code: 'REGISTRATION_ERROR',
@@ -796,6 +798,8 @@ export function setupAuthRoutes(app: any) {
         message: 'If this email exists, a password reset link has been sent.',
         success: true,
       });
+    } catch (error: any) {
+      console.error('❌ Password reset request error:', error);
       res.status(500).json({
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR',
@@ -897,7 +901,8 @@ export function setupAuthRoutes(app: any) {
         message: 'Password has been reset successfully',
         success: true,
       });
-      // Password reset error handled
+    } catch (error: any) {
+      console.error('❌ Password reset error:', error);
       res.status(500).json({
         message: 'Password reset failed',
         code: 'PASSWORD_RESET_ERROR',

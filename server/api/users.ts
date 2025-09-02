@@ -67,6 +67,8 @@ export function registerUserRoutes(app: Express): void {
 
 
       res.json(filteredUsers);
+    } catch (error: any) {
+      console.error('❌ Error fetching users:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch users',
@@ -100,6 +102,8 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error('❌ Error fetching user:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user',

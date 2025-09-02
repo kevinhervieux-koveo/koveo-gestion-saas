@@ -85,12 +85,14 @@ async function handleResidenceChanges(
           }
         }
 
+        console.log(
           `✅ Created ${createdResidences.length} new residences for building ${buildingId}`
         );
       }
     } else if (newTotalUnits < currentResidenceCount) {
       // Need to delete some residences
       const residencesToDelete = currentResidenceCount - newTotalUnits;
+      console.log(
         `📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`
       );
 
