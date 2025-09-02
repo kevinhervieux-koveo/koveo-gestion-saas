@@ -391,11 +391,16 @@ export default function UserManagement() {
 
 
 
-  // Force render test - always show data structure for first user
-  if (users.length > 0) {
-    console.log('FRONTEND DEBUG - First user keys:', Object.keys(users[0]));
-    console.log('FRONTEND DEBUG - First user organizations:', users[0].organizations);
-    console.log('FRONTEND DEBUG - Organizations length:', users[0].organizations?.length);
+  // Emergency debug - this should always log
+  console.log('=== FRONTEND COMPONENT LOADING ===');
+  console.log('Users array length:', users?.length || 'undefined');
+  console.log('Users loading:', usersLoading);
+  console.log('Users error:', usersError);
+  if (users && users.length > 0) {
+    console.log('First user email:', users[0]?.email);
+    console.log('First user has organizations:', !!users[0]?.organizations);
+    console.log('First user organizations array:', users[0]?.organizations);
+    console.log('First user organizations length:', users[0]?.organizations?.length);
   }
 
   // Apply filters, search, and sort
@@ -731,13 +736,12 @@ export default function UserManagement() {
                               </td>
                               <td className='border border-gray-300 px-4 py-2' data-testid={`cell-organizations-${user.id}`}>
                                 <div className='space-y-1'>
-                                  {/* DEBUG: Show raw data */}
-                                  {user.email === 'maelacyr@gmail.com' && (
-                                    <div style={{fontSize: '8px', color: 'red'}}>
-                                      DEBUG: orgs={user.organizations?.length || 'undefined'} | 
-                                      raw={JSON.stringify(user.organizations)}
-                                    </div>
-                                  )}
+                                  {/* FORCE DEBUG: Show raw data for ALL users */}
+                                  <div style={{fontSize: '8px', color: 'red', marginBottom: '2px'}}>
+                                    DEBUG: orgs={user.organizations?.length || 'undefined'} | 
+                                    type={typeof user.organizations} | 
+                                    exists={user.organizations ? 'YES' : 'NO'}
+                                  </div>
                                   {user.organizations?.length > 0 ? (
                                     user.organizations.map((org, idx) => (
                                       <div
