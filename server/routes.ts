@@ -101,7 +101,28 @@ export async function registerRoutes(app: Express) {
   
   if (fs.existsSync(distPath)) {
     console.log('✅ Setting up static file serving from', distPath);
-    app.use(express.static(distPath));
+    
+    // Serve static assets with appropriate cache headers
+    app.use(express.static(distPath, {
+      // Disable caching for development to ensure fresh files
+      setHeaders: (res, path) => {
+        if (process.env.NODE_ENV === 'development') {
+          // Development: disable all caching for immediate updates
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        } else {
+          // Production: cache assets but allow revalidation
+          if (path.endsWith('.html')) {
+            // HTML files should not be cached to ensure routing works
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          } else {
+            // Other assets can be cached with revalidation
+            res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+          }
+        }
+      }
+    }));
     
     // SPA fallback - serve index.html for non-API routes
     app.get('*', (req, res) => {
@@ -112,6 +133,10 @@ export async function registerRoutes(app: Express) {
       
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
+        // Ensure index.html is never cached
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.sendFile(indexPath);
       } else {
         res.status(404).send('Application not found - build missing');
