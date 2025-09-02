@@ -47,6 +47,18 @@ export function registerUserRoutes(app: Express): void {
       const usersWithAssignments = await storage.getUsersWithAssignments();
 
       console.warn(`✅ Found ${usersWithAssignments.length} users for user ${currentUser.id}`);
+      
+      // DEBUG: Check what we're actually getting from storage
+      if (usersWithAssignments.length > 0) {
+        const firstUser = usersWithAssignments[0];
+        console.warn('🔍 [API DEBUG] First user from storage:', {
+          email: firstUser.email,
+          organizations: firstUser.organizations?.length || 0,
+          buildings: firstUser.buildings?.length || 0, 
+          residences: firstUser.residences?.length || 0,
+          orgNames: firstUser.organizations?.map(o => o.name) || []
+        });
+      }
 
       // Filter users based on current user's role and permissions
       let filteredUsers;
@@ -73,6 +85,17 @@ export function registerUserRoutes(app: Express): void {
         console.warn('🔥 [FILTER DEBUG] Filtered users count:', filteredUsers.length);
       }
 
+      // DEBUG: Check what we're sending to frontend
+      if (filteredUsers.length > 0) {
+        const firstFiltered = filteredUsers[0];
+        console.warn('🔍 [API DEBUG] First user being sent to frontend:', {
+          email: firstFiltered.email,
+          organizations: firstFiltered.organizations?.length || 0,
+          buildings: firstFiltered.buildings?.length || 0, 
+          residences: firstFiltered.residences?.length || 0
+        });
+      }
+
       res.json(filteredUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -82,6 +105,7 @@ export function registerUserRoutes(app: Express): void {
       });
     }
   });
+
 
   /**
    * GET /api/users/:id - Retrieves a specific user by ID.

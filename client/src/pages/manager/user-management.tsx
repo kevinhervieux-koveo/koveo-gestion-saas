@@ -94,6 +94,17 @@ export default function UserManagement() {
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
     queryKey: ['/api/users'],
+    onSuccess: (data) => {
+      console.log('🔍 [FRONTEND DEBUG] Received users from API:', data?.length);
+      if (data?.length > 0) {
+        console.log('🔍 [FRONTEND DEBUG] First user:', {
+          email: data[0].email,
+          organizations: data[0].organizations,
+          buildings: data[0].buildings,
+          residences: data[0].residences
+        });
+      }
+    }
   });
 
 
@@ -738,7 +749,7 @@ export default function UserManagement() {
                                     ))
                                   ) : (
                                     <div className='text-gray-400 text-xs' data-testid={`no-organizations-${user.id}`}>
-                                      No organizations ({typeof user.organizations})
+                                      No organizations
                                     </div>
                                   )}
                                 </div>
