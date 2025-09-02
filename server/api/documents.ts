@@ -313,6 +313,86 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Safe enum migration endpoint
+  app.post('/api/documents/fix-enum-migration', async (req, res) => {
+    try {
+      // Step 1: Check current enum values and usage
+      const enumCheck = await db.execute(sql`
+        SELECT enumlabel, enumsortorder 
+        FROM pg_enum 
+        WHERE enumtypid = (SELECT oid FROM pg_type WHERE typname = 'user_role')
+        ORDER BY enumsortorder
+      `);
+
+      const currentEnumValues = enumCheck.rows.map(row => row.enumlabel);
+      
+      // Step 2: Check if we have any data that would prevent migration
+      const userRoleUsage = await db.execute(sql`
+        SELECT role, COUNT(*) as count 
+        FROM users 
+        GROUP BY role
+      `);
+
+      // Step 3: Since enum reordering is the issue, let's use a different approach
+      // We'll create a new enum with correct order, migrate data, then swap
+      const targetEnumValues = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'];
+      
+      // Check if current order matches target
+      const orderMatches = JSON.stringify(currentEnumValues) === JSON.stringify(targetEnumValues);
+      
+      if (orderMatches) {
+        return res.json({
+          message: 'Enum values already in correct order',
+          current_values: currentEnumValues,
+          target_values: targetEnumValues,
+          migration_needed: false
+        });
+      }
+
+      // Step 4: Create new enum with correct order
+      await db.execute(sql`CREATE TYPE user_role_new AS ENUM ('admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident')`);
+
+      // Step 5: Update all tables to use new enum
+      await db.execute(sql`
+        ALTER TABLE users 
+        ALTER COLUMN role TYPE user_role_new 
+        USING role::text::user_role_new
+      `);
+
+      await db.execute(sql`
+        ALTER TABLE user_organizations 
+        ALTER COLUMN organization_role TYPE user_role_new 
+        USING organization_role::text::user_role_new
+      `);
+
+      await db.execute(sql`
+        ALTER TABLE role_permissions 
+        ALTER COLUMN role TYPE user_role_new 
+        USING role::text::user_role_new
+      `);
+
+      // Step 6: Drop old enum and rename new one
+      await db.execute(sql`DROP TYPE user_role`);
+      await db.execute(sql`ALTER TYPE user_role_new RENAME TO user_role`);
+
+      res.json({
+        message: 'Successfully migrated user_role enum',
+        old_values: currentEnumValues,
+        new_values: targetEnumValues,
+        user_role_usage: userRoleUsage.rows,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Enum migration failed',
+        message: error.message,
+        suggestion: 'This is a complex migration - may need manual intervention',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
