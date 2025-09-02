@@ -92,6 +92,18 @@ const uploadDocumentRecordSchema = z.object({
 export function registerDocumentRoutes(app: Express): void {
   console.log(`[${new Date().toISOString()}] 🔧 Registering document routes...`);
   
+  // Diagnostic endpoint to verify deployment
+  app.get('/api/documents/diagnostic', (req, res) => {
+    res.json({
+      message: 'Document API diagnostic',
+      gcs_disabled: true,
+      session_fix_applied: true,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      version: 'v2.1-gcs-disabled'
+    });
+  });
+  
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
     const timestamp = new Date().toISOString();
