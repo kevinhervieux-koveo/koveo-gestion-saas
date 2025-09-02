@@ -983,6 +983,90 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/users/me/organizations - Get organizations accessible to current user.
+   * Used by invite form to populate organization dropdown.
+   */
+  app.get('/api/users/me/organizations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      console.log(`📊 Fetching user-accessible organizations for ${currentUser.email} (${currentUser.role})`);
+
+      // Get organizations based on user role - same logic as /api/organizations
+      let organizationsQuery;
+
+      if (currentUser.role === 'admin') {
+        // Admin can see all organizations
+        organizationsQuery = db
+          .select({
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+            type: schema.organizations.type,
+            address: schema.organizations.address,
+            city: schema.organizations.city,
+            province: schema.organizations.province,
+            postalCode: schema.organizations.postalCode,
+            phone: schema.organizations.phone,
+            email: schema.organizations.email,
+            website: schema.organizations.website,
+            registrationNumber: schema.organizations.registrationNumber,
+            isActive: schema.organizations.isActive,
+            createdAt: schema.organizations.createdAt,
+          })
+          .from(schema.organizations)
+          .where(eq(schema.organizations.isActive, true))
+          .orderBy(schema.organizations.name);
+      } else {
+        // Other users see organizations they have access to through user_organizations
+        organizationsQuery = db
+          .select({
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+            type: schema.organizations.type,
+            address: schema.organizations.address,
+            city: schema.organizations.city,
+            province: schema.organizations.province,
+            postalCode: schema.organizations.postalCode,
+            phone: schema.organizations.phone,
+            email: schema.organizations.email,
+            website: schema.organizations.website,
+            registrationNumber: schema.organizations.registrationNumber,
+            isActive: schema.organizations.isActive,
+            createdAt: schema.organizations.createdAt,
+          })
+          .from(schema.organizations)
+          .innerJoin(schema.userOrganizations, eq(schema.organizations.id, schema.userOrganizations.organizationId))
+          .where(
+            and(
+              eq(schema.organizations.isActive, true),
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          )
+          .orderBy(schema.organizations.name);
+      }
+
+      const accessibleOrganizations = await organizationsQuery;
+      console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
+
+      // Return array directly (not wrapped in object) - same format as /api/organizations
+      res.json(accessibleOrganizations);
+    } catch (error: any) {
+      console.error('❌ Error fetching user organizations:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch user organizations',
+      });
+    }
+  });
+
+  /**
    * GET /api/users/me/data-export - Download user data for Law 25 compliance.
    */
   app.get('/api/users/me/data-export', requireAuth, async (req: any, res) => {
