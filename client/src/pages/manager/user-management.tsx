@@ -45,7 +45,7 @@ import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { User, Organization, Building, Residence } from '@shared/schema';
+import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 
 // Form validation schema for editing users
@@ -92,8 +92,8 @@ export default function UserManagement() {
     data: users = [],
     isLoading: usersLoading,
     error: usersError,
-  } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+  } = useQuery<UserWithAssignments[]>({
+    queryKey: ['/api/users', 'with-assignments'], // Force cache refresh
     enabled: true,
   });
 
@@ -389,16 +389,6 @@ export default function UserManagement() {
   };
 
   // Users now come with assignment data included from the API
-  React.useEffect(() => {
-    if (users.length > 0) {
-      console.log('🔍 [FRONTEND] First user data:', users[0]);
-      console.log('🔍 [FRONTEND] First user assignments:', {
-        organizations: users[0].organizations,
-        buildings: users[0].buildings,
-        residences: users[0].residences,
-      });
-    }
-  }, [users]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {

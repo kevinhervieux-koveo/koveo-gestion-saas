@@ -27,6 +27,7 @@ export * from './schemas/infrastructure';
 // These are the most frequently imported items across the codebase
 export type {
   User,
+  UserWithAssignments,
   InsertUser,
   Organization,
   InsertOrganization,

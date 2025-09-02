@@ -409,6 +409,25 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
  */
 export type User = typeof users.$inferSelect;
 
+// Extended user type with assignment data for user management
+export type UserWithAssignments = User & {
+  organizations: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
+  buildings: Array<{
+    id: string;
+    name: string;
+  }>;
+  residences: Array<{
+    id: string;
+    unitNumber: string;
+    buildingId: string;
+    buildingName: string;
+  }>;
+};
+
 /**
  *
  */
