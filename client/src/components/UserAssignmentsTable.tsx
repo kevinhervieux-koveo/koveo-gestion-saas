@@ -4,9 +4,26 @@ import type { UserWithAssignments } from '@shared/schema';
 interface UserAssignmentsTableProps {
   users: UserWithAssignments[];
   isLoading: boolean;
+  onEditUser?: (user: UserWithAssignments) => void;
+  onEditOrganizations?: (user: UserWithAssignments) => void;
+  onEditResidences?: (user: UserWithAssignments) => void;
+  onDeleteUser?: (user: UserWithAssignments) => void;
+  canEditOrganizations?: boolean;
+  canEditResidences?: boolean;
+  canDeleteUsers?: boolean;
 }
 
-export function UserAssignmentsTable({ users, isLoading }: UserAssignmentsTableProps) {
+export function UserAssignmentsTable({ 
+  users, 
+  isLoading, 
+  onEditUser,
+  onEditOrganizations,
+  onEditResidences,
+  onDeleteUser,
+  canEditOrganizations = false,
+  canEditResidences = false,
+  canDeleteUsers = false
+}: UserAssignmentsTableProps) {
   // Debug logging
   React.useEffect(() => {
     if (users && users.length > 0) {
@@ -68,6 +85,9 @@ export function UserAssignmentsTable({ users, isLoading }: UserAssignmentsTableP
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-residences">
               Residences
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-actions">
+              Actions
             </th>
           </tr>
         </thead>
@@ -177,6 +197,51 @@ export function UserAssignmentsTable({ users, isLoading }: UserAssignmentsTableP
                     <div className="text-xs text-gray-500" data-testid={`more-residences-${user.id}`}>
                       +{user.residences.length - 3} more
                     </div>
+                  )}
+                </div>
+              </td>
+              
+              {/* Actions */}
+              <td className="border border-gray-300 px-4 py-2" data-testid={`actions-${user.id}`}>
+                <div className="flex gap-2 flex-wrap">
+                  {onEditUser && (
+                    <button
+                      onClick={() => onEditUser(user)}
+                      className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                      data-testid={`edit-user-${user.id}`}
+                    >
+                      Edit User
+                    </button>
+                  )}
+                  
+                  {canEditOrganizations && onEditOrganizations && (
+                    <button
+                      onClick={() => onEditOrganizations(user)}
+                      className="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded hover:bg-purple-100"
+                      data-testid={`edit-orgs-${user.id}`}
+                    >
+                      Organizations
+                    </button>
+                  )}
+                  
+                  {canEditResidences && onEditResidences && (
+                    <button
+                      onClick={() => onEditResidences(user)}
+                      className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100"
+                      data-testid={`edit-residences-${user.id}`}
+                    >
+                      Residences
+                    </button>
+                  )}
+                  
+                  {canDeleteUsers && onDeleteUser && (
+                    <button
+                      onClick={() => onDeleteUser(user)}
+                      className="px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100"
+                      data-testid={`delete-user-${user.id}`}
+                    >
+                      Delete
+                    </button>
                   )}
                 </div>
               </td>

@@ -673,7 +673,14 @@ export default function UserManagement() {
                     {/* User Table - Completely Rebuilt */}
                     <UserAssignmentsTable 
                       users={currentUsers} 
-                      isLoading={usersLoading} 
+                      isLoading={usersLoading}
+                      onEditUser={openEditDialog}
+                      onEditOrganizations={setEditingUserOrganizations}
+                      onEditResidences={setEditingUserResidences}
+                      onDeleteUser={openDeleteDialog}
+                      canEditOrganizations={canEditOrganizations}
+                      canEditResidences={canEditResidences}
+                      canDeleteUsers={canDeleteUsers}
                     />
 
                     {/* Pagination */}
