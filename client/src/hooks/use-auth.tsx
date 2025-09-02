@@ -92,15 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUser(userData || null);
 
-    // Debug logging to understand session expiry
-    console.log('[AUTH DEBUG]', {
-      userData: userData ? 'has user' : 'null',
-      isPublicPage,
-      isLoading,
-      isError,
-      location: window.location.pathname
-    });
-
     // Only redirect if we've completed the auth check AND user is null AND not on public page
     // Important: Wait for both !isLoading AND !isError to avoid race conditions
     if (userData === null && !isPublicPage && !isLoading && !isError) {
