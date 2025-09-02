@@ -6,7 +6,7 @@ import { requireAuth } from '../auth';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
@@ -732,6 +732,126 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
+      });
+    }
+  });
+
+  /**
+   * GET /api/users/:id/buildings - Get user's accessible buildings based on their residences.
+   */
+  app.get('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: userId } = req.params;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Users can only access their own buildings unless they're admin/manager
+      if (currentUser.id !== userId && !['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Get user's residences with building information
+      const userResidences = await db
+        .select({
+          residenceId: schema.userResidences.residenceId,
+          buildingId: schema.residences.buildingId,
+        })
+        .from(schema.userResidences)
+        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .where(and(
+          eq(schema.userResidences.userId, userId),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        ));
+      
+      if (!userResidences || userResidences.length === 0) {
+        return res.json({ buildings: [] });
+      }
+
+      // Get unique building IDs from user's residences
+      const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
+      
+      if (buildingIds.length === 0) {
+        return res.json({ buildings: [] });
+      }
+
+      // Fetch building details with stats using the existing logic from /api/manager/buildings
+      const buildingDetails = await db
+        .select({
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          province: schema.buildings.province,
+          postalCode: schema.buildings.postalCode,
+          buildingType: schema.buildings.buildingType,
+          yearBuilt: schema.buildings.yearBuilt,
+          totalFloors: schema.buildings.totalFloors,
+          parkingSpaces: schema.buildings.parkingSpaces,
+          storageSpaces: schema.buildings.storageSpaces,
+          managementCompany: schema.buildings.managementCompany,
+          amenities: schema.buildings.amenities,
+          organizationId: schema.buildings.organizationId,
+          organizationName: schema.organizations.name,
+          organizationType: schema.organizations.type,
+        })
+        .from(schema.buildings)
+        .leftJoin(schema.organizations, eq(schema.buildings.organizationId, schema.organizations.id))
+        .where(and(
+          inArray(schema.buildings.id, buildingIds),
+          eq(schema.buildings.isActive, true)
+        ));
+
+      // Calculate stats for each building
+      const buildingsWithStats = await Promise.all(
+        buildingDetails.map(async (building) => {
+          const [totalUnits, occupiedUnits] = await Promise.all([
+            db
+              .select({ count: sql<number>`count(*)` })
+              .from(schema.residences)
+              .where(and(eq(schema.residences.buildingId, building.id), eq(schema.residences.isActive, true)))
+              .then(result => result[0]?.count || 0),
+            
+            db
+              .select({ count: sql<number>`count(distinct ${schema.residences.id})` })
+              .from(schema.residences)
+              .leftJoin(schema.userResidences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .where(and(
+                eq(schema.residences.buildingId, building.id),
+                eq(schema.residences.isActive, true),
+                eq(schema.userResidences.isActive, true)
+              ))
+              .then(result => result[0]?.count || 0),
+          ]);
+
+          const vacantUnits = totalUnits - occupiedUnits;
+          const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+
+          return {
+            ...building,
+            totalUnits,
+            occupiedUnits,
+            vacantUnits,
+            occupancyRate,
+          };
+        })
+      );
+
+      res.json({ buildings: buildingsWithStats });
+    } catch (error) {
+      console.error('Failed to get user buildings:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user buildings',
       });
     }
   });

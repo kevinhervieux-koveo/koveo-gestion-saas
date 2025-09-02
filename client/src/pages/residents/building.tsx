@@ -45,7 +45,13 @@ export default function MyBuilding() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch buildings accessible to the user
+  // Fetch current user
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
+  });
+
+  // Fetch buildings accessible to the user based on their residences
   const {
     data: buildingsData,
     isLoading: isLoadingBuildings,
@@ -54,11 +60,15 @@ export default function MyBuilding() {
     buildings: BuildingWithStats[];
     meta?: any;
   }>({
-    queryKey: ['/api/manager/buildings'],
+    queryKey: ['/api/users/buildings', user?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/manager/buildings');
+      if (!user?.id) {
+        return { buildings: [] };
+      }
+      const response = await apiRequest('GET', `/api/users/${user.id}/buildings`);
       return response.json();
     },
+    enabled: !!user?.id,
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
