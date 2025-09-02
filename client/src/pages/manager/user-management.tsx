@@ -96,6 +96,15 @@ export default function UserManagement() {
     queryKey: ['/api/users'],
   });
 
+  // Debug: Log what we're receiving from the API
+  console.log('🔍 FRONTEND DEBUG - Users received from API:', users?.length, 'users');
+  if (users?.length > 0) {
+    console.log('🔍 FRONTEND DEBUG - First user structure:', JSON.stringify(users[0], null, 2));
+    console.log('🔍 FRONTEND DEBUG - First user organizations:', users[0]?.organizations);
+    console.log('🔍 FRONTEND DEBUG - First user buildings:', users[0]?.buildings);
+    console.log('🔍 FRONTEND DEBUG - First user residences:', users[0]?.residences);
+  }
+
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
