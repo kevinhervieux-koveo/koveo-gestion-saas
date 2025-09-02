@@ -396,6 +396,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       // For demo organizations, allow both demo roles and regular roles
       const roles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
       console.log('✅ [ROLE DEBUG] Demo org roles:', roles);
+      // Also show alert to make sure we can see this
+      if (organizationId && roles.length > 4) {
+        console.log('🎉 DEMO ROLES ACTIVE - You should see demo roles now!', roles);
+      }
       return roles;
     }
 
@@ -477,7 +481,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('role')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      key={`role-select-${organizationId}`}
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('selectRole')} />
