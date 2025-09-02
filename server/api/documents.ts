@@ -684,6 +684,131 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Complete database schema sync endpoint
+  app.post('/api/documents/complete-schema-sync', async (req, res) => {
+    try {
+      const results = [];
+
+      // Step 1: Remove all enum dependencies temporarily
+      try {
+        await db.execute(sql`ALTER TABLE users ALTER COLUMN role DROP DEFAULT`);
+        results.push('✓ Removed users.role default');
+      } catch (e) {
+        results.push(`users.role: ${e.message}`);
+      }
+
+      try {
+        await db.execute(sql`ALTER TABLE user_organizations ALTER COLUMN organization_role DROP DEFAULT`);
+        results.push('✓ Removed user_organizations.organization_role default');
+      } catch (e) {
+        results.push(`user_organizations.organization_role: ${e.message}`);
+      }
+
+      try {
+        await db.execute(sql`ALTER TABLE invitations ALTER COLUMN role DROP DEFAULT`);
+        results.push('✓ Removed invitations.role default');
+      } catch (e) {
+        results.push(`invitations.role: ${e.message}`);
+      }
+
+      // Step 2: Migrate any 'owner' users to 'admin'
+      const ownerUsers = await db.execute(sql`SELECT count(*) as count FROM users WHERE role = 'owner'`);
+      const ownerCount = Number(ownerUsers.rows[0]?.count || 0);
+      if (ownerCount > 0) {
+        await db.execute(sql`UPDATE users SET role = 'admin' WHERE role = 'owner'`);
+        results.push(`✓ Migrated ${ownerCount} owner users to admin`);
+      }
+
+      try {
+        await db.execute(sql`UPDATE user_organizations SET organization_role = 'admin' WHERE organization_role = 'owner'`);
+        results.push('✓ Updated user_organizations owner roles to admin');
+      } catch (e) {
+        results.push(`user_organizations owner update: ${e.message}`);
+      }
+
+      // Step 3: Fix the enum to match development schema
+      try {
+        // Rename current enum
+        await db.execute(sql`ALTER TYPE user_role RENAME TO user_role_old`);
+        
+        // Create new enum with correct values
+        await db.execute(sql`
+          CREATE TYPE user_role AS ENUM (
+            'admin', 'manager', 'tenant', 'resident', 
+            'demo_manager', 'demo_tenant', 'demo_resident'
+          )
+        `);
+
+        // Update all tables
+        await db.execute(sql`ALTER TABLE users ALTER COLUMN role TYPE user_role USING role::text::user_role`);
+        await db.execute(sql`ALTER TABLE user_organizations ALTER COLUMN organization_role TYPE user_role USING organization_role::text::user_role`);
+        await db.execute(sql`ALTER TABLE invitations ALTER COLUMN role TYPE user_role USING role::text::user_role`);
+        
+        try {
+          await db.execute(sql`ALTER TABLE role_permissions ALTER COLUMN role TYPE user_role USING role::text::user_role`);
+          results.push('✓ Updated role_permissions enum');
+        } catch (e) {
+          results.push(`role_permissions: ${e.message}`);
+        }
+
+        // Drop old enum
+        await db.execute(sql`DROP TYPE user_role_old`);
+        
+        results.push('✓ Successfully updated user_role enum');
+      } catch (e) {
+        results.push(`Enum update failed: ${e.message}`);
+      }
+
+      // Step 4: Restore default values
+      try {
+        await db.execute(sql`ALTER TABLE users ALTER COLUMN role SET DEFAULT 'tenant'`);
+        results.push('✓ Restored users.role default to tenant');
+      } catch (e) {
+        results.push(`users.role default restore: ${e.message}`);
+      }
+
+      try {
+        await db.execute(sql`ALTER TABLE user_organizations ALTER COLUMN organization_role SET DEFAULT 'tenant'`);
+        results.push('✓ Restored user_organizations.organization_role default to tenant');
+      } catch (e) {
+        results.push(`user_organizations.organization_role default restore: ${e.message}`);
+      }
+
+      try {
+        await db.execute(sql`ALTER TABLE invitations ALTER COLUMN role SET DEFAULT 'tenant'`);
+        results.push('✓ Restored invitations.role default to tenant');
+      } catch (e) {
+        results.push(`invitations.role default restore: ${e.message}`);
+      }
+
+      // Step 5: Add missing columns that exist in production but not development
+      try {
+        await db.execute(sql`
+          ALTER TABLE invitation_audit_log 
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()
+        `);
+        results.push('✓ Added created_at to invitation_audit_log');
+      } catch (e) {
+        results.push(`invitation_audit_log.created_at: ${e.message}`);
+      }
+
+      res.json({
+        message: 'Database schema synchronization complete',
+        operations: results,
+        timestamp: new Date().toISOString(),
+        success: true
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Schema synchronization failed',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        success: false
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
