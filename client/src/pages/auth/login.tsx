@@ -434,6 +434,7 @@ export default function LoginPage() {
                               disabled={isLoggingIn}
                               className='h-11 pr-10'
                               data-testid='input-password'
+                              autoComplete='current-password'
                             />
                             <Button
                               type='button'

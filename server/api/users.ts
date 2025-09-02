@@ -1550,4 +1550,248 @@ export function registerUserRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * POST /api/invitations - Creates a new invitation
+   */
+  app.post('/api/invitations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can send invitations
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const {
+        organizationId,
+        residenceId,
+        email,
+        role,
+        invitedByUserId,
+        expiresAt,
+        personalMessage,
+      } = req.body;
+
+      // Validate required fields
+      if (!organizationId || !email || !role || !expiresAt) {
+        return res.status(400).json({
+          message: 'Organization, email, role, and expiry date are required',
+          code: 'MISSING_REQUIRED_FIELDS',
+        });
+      }
+
+      // Validate role permissions
+      if (currentUser.role === 'manager') {
+        // Check if manager is trying to invite admin
+        if (role === 'admin') {
+          return res.status(403).json({
+            message: 'Managers cannot invite admin users',
+            code: 'ROLE_PERMISSION_DENIED',
+          });
+        }
+
+        // Get the demo organization to check if it's a demo org
+        const targetOrg = await db
+          .select()
+          .from(schema.organizations)
+          .where(eq(schema.organizations.id, organizationId))
+          .limit(1);
+
+        if (targetOrg.length > 0 && targetOrg[0].type === 'Demo') {
+          // For demo organizations, allow normal roles (resident, tenant, manager)
+          if (!['resident', 'tenant', 'manager'].includes(role)) {
+            return res.status(403).json({
+              message: 'Invalid role for demo organization',
+              code: 'INVALID_DEMO_ROLE',
+            });
+          }
+        } else {
+          // For regular organizations, managers can invite resident, tenant, manager
+          if (!['resident', 'tenant', 'manager'].includes(role)) {
+            return res.status(403).json({
+              message: 'Managers can only invite resident, tenant, and manager roles',
+              code: 'ROLE_PERMISSION_DENIED',
+            });
+          }
+        }
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          message: 'User with this email already exists',
+          code: 'USER_EXISTS',
+        });
+      }
+
+      // Generate secure invitation token
+      const crypto = require('crypto');
+      const token = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+      // Create invitation record
+      const invitationData = {
+        organizationId,
+        residenceId: residenceId || null,
+        email,
+        token,
+        tokenHash,
+        role: role as any,
+        invitedByUserId: currentUser.id,
+        expiresAt: new Date(expiresAt),
+        personalMessage: personalMessage || null,
+      };
+
+      const [newInvitation] = await db
+        .insert(schema.invitations)
+        .values(invitationData)
+        .returning();
+
+      // Log invitation creation
+      console.log('✅ Invitation created:', {
+        id: newInvitation.id,
+        email,
+        role,
+        organizationId,
+        invitedBy: currentUser.email,
+      });
+
+      res.status(201).json({
+        message: 'Invitation sent successfully',
+        invitationId: newInvitation.id,
+      });
+    } catch (error: any) {
+      console.error('❌ Error creating invitation:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to create invitation',
+      });
+    }
+  });
+
+  /**
+   * GET /api/invitations - Gets all invitations (admin/manager only)
+   */
+  app.get('/api/invitations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can view invitations
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      let invitations;
+      if (currentUser.role === 'admin') {
+        // Admin can see all invitations
+        invitations = await db
+          .select()
+          .from(schema.invitations)
+          .orderBy(schema.invitations.createdAt);
+      } else {
+        // Managers can only see invitations they sent
+        invitations = await db
+          .select()
+          .from(schema.invitations)
+          .where(eq(schema.invitations.invitedByUserId, currentUser.id))
+          .orderBy(schema.invitations.createdAt);
+      }
+
+      res.json(invitations);
+    } catch (error: any) {
+      console.error('❌ Error fetching invitations:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch invitations',
+      });
+    }
+  });
+
+  /**
+   * POST /api/invitations/:id/resend - Resends an invitation
+   */
+  app.post('/api/invitations/:id/resend', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { id } = req.params;
+
+      // Get invitation
+      const [invitation] = await db
+        .select()
+        .from(schema.invitations)
+        .where(eq(schema.invitations.id, id))
+        .limit(1);
+
+      if (!invitation) {
+        return res.status(404).json({
+          message: 'Invitation not found',
+          code: 'INVITATION_NOT_FOUND',
+        });
+      }
+
+      // Check permissions
+      if (currentUser.role !== 'admin' && invitation.invitedByUserId !== currentUser.id) {
+        return res.status(403).json({
+          message: 'Can only resend your own invitations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Update invitation with new expiry
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + 7); // Extend by 7 days
+
+      await db
+        .update(schema.invitations)
+        .set({
+          expiresAt: newExpiresAt,
+          status: 'pending',
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.invitations.id, id));
+
+      console.log('✅ Invitation resent:', {
+        id,
+        email: invitation.email,
+        newExpiresAt,
+      });
+
+      res.json({
+        message: 'Invitation resent successfully',
+      });
+    } catch (error: any) {
+      console.error('❌ Error resending invitation:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to resend invitation',
+      });
+    }
+  });
 }
