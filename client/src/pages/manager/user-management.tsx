@@ -100,6 +100,21 @@ export default function UserManagement() {
     retry: false, // Don't retry to avoid confusion
   });
 
+  // Debug: Check what data structure we're actually receiving
+  React.useEffect(() => {
+    if (users.length > 0) {
+      console.log('🔍 [FRONTEND DEBUG] First user data:', {
+        email: users[0].email,
+        hasOrganizations: !!users[0].organizations,
+        organizationsLength: users[0].organizations?.length,
+        organizationsData: users[0].organizations,
+        hasBuildings: !!users[0].buildings,
+        buildingsLength: users[0].buildings?.length,
+        buildingsData: users[0].buildings
+      });
+    }
+  }, [users]);
+
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
