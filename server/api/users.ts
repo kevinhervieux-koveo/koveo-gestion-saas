@@ -58,14 +58,10 @@ export function registerUserRoutes(app: Express): void {
         // Get the organization IDs that the current user has access to
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         
-        console.warn('🔥 [FILTER DEBUG] Manager user - accessible org IDs:', userOrgIds);
         
         // Filter users to only include those from accessible organizations
         filteredUsers = usersWithAssignments.filter(user => {
           const hasAccess = user.organizations?.some(org => userOrgIds.includes(org.id)) || false;
-          if (!hasAccess) {
-            console.warn('🔥 [FILTER DEBUG] User excluded:', user.email, 'has orgs:', user.organizations?.length);
-          }
           return hasAccess;
         });
       }

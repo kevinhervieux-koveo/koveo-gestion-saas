@@ -160,7 +160,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .limit(100)
         .orderBy(desc(schema.users.createdAt));
 
-      console.log(`🔍 [ASSIGNMENT DEBUG] Found ${users.length} users to process`);
 
       // For each user, fetch their assignments with limited concurrency to prevent connection issues
       const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
@@ -230,13 +229,10 @@ export class OptimizedDatabaseStorage implements IStorage {
               residences: userResidences || [],
             };
 
-            if (userOrgs.length > 0 || userBuildings.length > 0 || userResidences.length > 0) {
-              console.log(`🔍 [ASSIGNMENT DEBUG] User ${user.email}: ${userOrgs.length} orgs, ${userBuildings.length} buildings, ${userResidences.length} residences`);
-            }
 
             return result;
           } catch (error) {
-            console.error(`❌ [ASSIGNMENT DEBUG] Error processing user ${user.email}:`, error);
+            console.error(`Error processing user assignments:`, error);
             // Return user with empty assignments if there's an error
             return {
               ...user,
@@ -251,10 +247,9 @@ export class OptimizedDatabaseStorage implements IStorage {
       usersWithAssignments.push(...batchResults);
       }
 
-      console.log(`🔍 [ASSIGNMENT DEBUG] Processed ${usersWithAssignments.length} users with assignments`);
       return usersWithAssignments;
     } catch (error) {
-      console.error('❌ [ASSIGNMENT DEBUG] Critical error in getUsersWithAssignments:', error);
+      console.error('Critical error in getUsersWithAssignments:', error);
       // Return empty array on critical error
       return [];
     }
