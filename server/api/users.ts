@@ -29,7 +29,7 @@ import { queryCache } from '../query-cache';
  */
 export function registerUserRoutes(app: Express): void {
   /**
-   * GET /api/users - Retrieves users based on current user's role and organizations.
+   * GET /api/users - Retrieves users with their assignments based on current user's role and organizations.
    */
   app.get('/api/users', requireAuth, async (req: any, res) => {
     try {
@@ -54,7 +54,142 @@ export function registerUserRoutes(app: Express): void {
       }
 
       console.warn(`✅ Found ${users.length} users for user ${currentUser.id}`);
-      res.json(users);
+
+      // Enhance users with assignment data
+      const enhancedUsers = await Promise.all(users.map(async (user) => {
+        let userOrganizations, userResidences;
+
+        if (currentUser.role === 'admin') {
+          // Admin sees all user assignments
+          userOrganizations = await db
+            .select({
+              organizationId: schema.userOrganizations.organizationId,
+              organizationRole: schema.userOrganizations.organizationRole,
+            })
+            .from(schema.userOrganizations)
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, user.id),
+                eq(schema.userOrganizations.isActive, true)
+              )
+            );
+
+          userResidences = await db
+            .select({
+              residenceId: schema.userResidences.residenceId,
+              relationshipType: schema.userResidences.relationshipType,
+            })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.isActive, true)
+              )
+            );
+        } else {
+          // Manager sees only assignments for users in their organizations
+          const managerOrgs = await db
+            .select({ organizationId: schema.userOrganizations.organizationId })
+            .from(schema.userOrganizations)
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, currentUser.id),
+                eq(schema.userOrganizations.isActive, true)
+              )
+            );
+
+          const orgIds = managerOrgs.map((org) => org.organizationId);
+
+          if (orgIds.length > 0) {
+            userOrganizations = await db
+              .select({
+                organizationId: schema.userOrganizations.organizationId,
+                organizationRole: schema.userOrganizations.organizationRole,
+              })
+              .from(schema.userOrganizations)
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  inArray(schema.userOrganizations.organizationId, orgIds)
+                )
+              );
+
+            // Get residences in manager's organizations
+            const accessibleResidences = await db
+              .select({ residenceId: schema.residences.id })
+              .from(schema.residences)
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(
+                and(
+                  inArray(schema.buildings.organizationId, orgIds),
+                  eq(schema.residences.isActive, true)
+                )
+              );
+
+            const residenceIds = accessibleResidences.map((res) => res.residenceId);
+
+            if (residenceIds.length > 0) {
+              userResidences = await db
+                .select({
+                  residenceId: schema.userResidences.residenceId,
+                  relationshipType: schema.userResidences.relationshipType,
+                })
+                .from(schema.userResidences)
+                .where(
+                  and(
+                    eq(schema.userResidences.userId, user.id),
+                    eq(schema.userResidences.isActive, true),
+                    inArray(schema.userResidences.residenceId, residenceIds)
+                  )
+                );
+            }
+          }
+        }
+
+        // Get organization details
+        const organizations = userOrganizations?.length ? await db
+          .select({
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+            type: schema.organizations.type,
+          })
+          .from(schema.organizations)
+          .where(
+            inArray(schema.organizations.id, userOrganizations.map(uo => uo.organizationId))
+          ) : [];
+
+        // Get residence details with building info
+        const residences = userResidences?.length ? await db
+          .select({
+            id: schema.residences.id,
+            unitNumber: schema.residences.unitNumber,
+            buildingId: schema.residences.buildingId,
+            buildingName: schema.buildings.name,
+          })
+          .from(schema.residences)
+          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+          .where(
+            inArray(schema.residences.id, userResidences.map(ur => ur.residenceId))
+          ) : [];
+
+        // Get unique buildings from residences
+        const buildings = residences?.length ? residences.map(r => ({
+          id: r.buildingId,
+          name: r.buildingName,
+        })).filter((building, index, self) => 
+          index === self.findIndex(b => b.id === building.id)
+        ) : [];
+
+        return {
+          ...user,
+          organizations: organizations || [],
+          residences: residences || [],
+          buildings: buildings || [],
+        };
+      }));
+
+      res.json(enhancedUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       res.status(500).json({

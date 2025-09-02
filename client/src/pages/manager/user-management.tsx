@@ -115,47 +115,10 @@ export default function UserManagement() {
     enabled: true,
   });
 
-  // Get current user to check permissions (fetch first to use in other queries)
+  // Get current user to check permissions
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
-
-  // Debug current user
-  React.useEffect(() => {
-    console.log('🔍 [DEBUG] Current user data:', currentUser);
-    if (currentUser) {
-      console.log('🔍 [DEBUG] User role check:', {
-        role: currentUser.role,
-        isAdmin: currentUser.role === 'admin',
-        isManager: currentUser.role === 'manager',
-        shouldEnableQueries: currentUser.role === 'admin' || currentUser.role === 'manager'
-      });
-    }
-  }, [currentUser]);
-
-  // Fetch user organizations (admin sees all, manager sees filtered by their orgs)
-  const { data: userOrganizations = [], isLoading: userOrgsLoading, error: userOrgsError } = useQuery<any[]>({
-    queryKey: ['/api/admin/all-user-organizations'],
-    enabled: !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager'),
-  });
-
-  // Fetch user residences (admin sees all, manager sees filtered by their orgs)
-  const { data: userResidences = [], isLoading: userResLoading, error: userResError } = useQuery<any[]>({
-    queryKey: ['/api/admin/all-user-residences'],
-    enabled: !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager'),
-  });
-
-  // Debug assignment queries
-  React.useEffect(() => {
-    console.log('🔍 [DEBUG] Assignment queries status:', {
-      userOrgsLoading,
-      userOrgsError: userOrgsError?.message,
-      userOrgsCount: userOrganizations.length,
-      userResLoading,
-      userResError: userResError?.message,
-      userResCount: userResidences.length,
-    });
-  }, [userOrgsLoading, userOrgsError, userOrganizations, userResLoading, userResError, userResidences]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -425,58 +388,11 @@ export default function UserManagement() {
     ],
   };
 
-  // Enhanced user data with relationships
-  const enhancedUsers = useMemo(() => {
-    // Debug logging to trace the issue
-    console.log('🔍 Debug data for enhancedUsers:', {
-      usersCount: users.length,
-      organizationsCount: organizations.length,
-      buildingsCount: buildings.length,
-      residencesCount: residences.length,
-      userOrganizationsCount: userOrganizations.length,
-      userResidencesCount: userResidences.length,
-      sampleUserOrganization: userOrganizations[0],
-      sampleUserResidence: userResidences[0],
-    });
-
-    return users.map((user) => {
-      const userOrgRelations = userOrganizations.filter((uo) => uo.userId === user.id);
-      const userOrgs = userOrgRelations
-        .map((uo) => organizations.find((org) => org.id === uo.organizationId))
-        .filter(Boolean);
-
-      const userResRelations = userResidences.filter((ur) => ur.userId === user.id);
-      const userRes = userResRelations
-        .map((ur) => residences.find((res) => res.id === ur.residenceId))
-        .filter(Boolean);
-
-      const userBuildings = userRes
-        .map((res) => buildings.find((building) => building.id === res.buildingId))
-        .filter(Boolean);
-
-      // Debug for first few users
-      if (users.indexOf(user) < 3) {
-        console.log(`🔍 User ${user.email} assignments:`, {
-          userOrgRelations: userOrgRelations.length,
-          userOrgs: userOrgs.length,
-          userResRelations: userResRelations.length,
-          userRes: userRes.length,
-          userBuildings: userBuildings.length,
-        });
-      }
-
-      return {
-        ...user,
-        organizations: userOrgs,
-        residences: userRes,
-        buildings: userBuildings,
-      };
-    });
-  }, [users, organizations, buildings, residences, userOrganizations, userResidences]);
+  // Users now come with assignment data included from the API
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
-    let result = [...enhancedUsers];
+    let result = [...users];
 
     // Apply search
     if (search) {
@@ -531,7 +447,7 @@ export default function UserManagement() {
     }
 
     return result;
-  }, [enhancedUsers, search, filters, sort]);
+  }, [users, search, filters, sort]);
 
   // Filter handlers
   const handleAddFilter = (filter: FilterValue) => {
