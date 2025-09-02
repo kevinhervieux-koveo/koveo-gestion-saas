@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -378,9 +378,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     return false;
   };
 
-  // Get available roles based on organization type
-  const getAvailableRoles = () => {
-    const organizationId = form.watch('organizationId');
+  // Get available roles based on organization type using useMemo for proper reactivity
+  const organizationId = form.watch('organizationId');
+  
+  const availableRoles = useMemo(() => {
     const selectedOrg = organizations?.find((org) => org.id === organizationId);
     const isDemoOrg = selectedOrg?.type === 'demo';
 
@@ -401,9 +402,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     const roles = ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
     console.log('🔍 [ROLE DEBUG] Regular org roles:', roles);
     return roles;
-  };
-
-  const availableRoles = getAvailableRoles();
+  }, [organizationId, organizations, hasRole]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
