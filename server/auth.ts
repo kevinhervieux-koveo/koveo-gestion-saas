@@ -93,35 +93,25 @@ const PostgreSqlStore = connectPg(session);
  * Includes fallback for database connection issues in production.
  */
 function createSessionStore() {
-  try {
-    // Use PostgreSQL session store for persistent sessions
-    console.log('📝 Session store: Attempting PostgreSQL session store...');
-    return new PostgreSqlStore({
-      pool: pool,
-      tableName: 'session',
-      createTableIfMissing: true,
-    });
-  } catch (error) {
-    console.warn('📝 Session store: PostgreSQL failed, using memory store:', error.message);
-    return undefined; // Will use default memory store as fallback
-  }
+  // Temporarily use memory store but with extended session timeout
+  console.log('📝 Session store: Using memory store with extended timeout for debugging');
+  return undefined; // Use default memory store but with longer timeout
 }
 
 export const sessionConfig = session({
   store: createSessionStore(),
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-  resave: true, // Save session even when not modified to extend expiry
+  resave: false, // Don't save session when not modified
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    httpOnly: true, // Enable httpOnly for security in production
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
-    sameSite: 'lax', // Keep lax for same-site compatibility
-    // Don't set domain - let it default to current domain
+    secure: false, // Disable secure for debugging in development
+    httpOnly: false, // Disable httpOnly for debugging
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours - very long session for debugging
+    sameSite: 'lax',
   },
   name: 'koveo.sid',
-  proxy: true, // Always trust proxy for Replit deployment
+  proxy: false, // Disable proxy for debugging
 });
 
 /**
