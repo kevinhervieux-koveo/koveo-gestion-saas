@@ -162,9 +162,14 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       console.log(`🔍 [ASSIGNMENT DEBUG] Found ${users.length} users to process`);
 
-      // For each user, fetch their assignments
-      const usersWithAssignments = await Promise.all(
-        users.map(async (user) => {
+      // For each user, fetch their assignments with limited concurrency to prevent connection issues
+      const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
+      const usersWithAssignments = [];
+      
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (user) => {
           try {
             // Get user organizations
             const userOrgs = await db
@@ -242,6 +247,9 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
         })
       );
+      
+      usersWithAssignments.push(...batchResults);
+      }
 
       console.log(`🔍 [ASSIGNMENT DEBUG] Processed ${usersWithAssignments.length} users with assignments`);
       return usersWithAssignments;
