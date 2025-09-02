@@ -585,7 +585,7 @@ export default function Buildings() {
     );
   }
 
-  if (error) {
+  if (_error) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header title='Buildings' subtitle='Error loading buildings' />
