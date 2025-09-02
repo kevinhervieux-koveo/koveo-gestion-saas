@@ -15,6 +15,8 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { getGCSClient } from '../../src/lib/gcs';
+import { sql } from 'drizzle-orm';
+import { db } from '../db';
 
 // Configure multer for file uploads
 const upload = multer({
@@ -94,6 +96,45 @@ export function registerDocumentRoutes(app: Express): void {
   
   // Error tracking for production debugging
   const errorLog: Array<{timestamp: string, error: any, endpoint: string, user?: any}> = [];
+
+  // Database connection testing functions
+  const testDatabaseConnection = async () => {
+    try {
+      const result = await db.execute(sql`SELECT 1 as test`);
+      return {
+        success: true,
+        result: result.rows[0],
+        url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
+      };
+    }
+  };
+
+  const testSampleQuery = async () => {
+    try {
+      // Test the exact query that's failing
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as document_count 
+        FROM documents 
+        LIMIT 1
+      `);
+      return {
+        success: true,
+        document_count: result.rows[0]?.document_count || 0
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        stack: error.stack?.substring(0, 200) + '...'
+      };
+    }
+  };
   
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
@@ -103,7 +144,7 @@ export function registerDocumentRoutes(app: Express): void {
       let tableSchema = null;
       
       try {
-        const result = await storage.db.execute(sql`
+        const result = await db.execute(sql`
           SELECT column_name, data_type, is_nullable, column_default 
           FROM information_schema.columns 
           WHERE table_name = 'documents' 
@@ -131,7 +172,9 @@ export function registerDocumentRoutes(app: Express): void {
         database_status: {
           documents_table_exists: tableExists,
           documents_table_schema: tableSchema,
-          schema_columns_count: tableSchema?.length || 0
+          schema_columns_count: tableSchema?.length || 0,
+          connection_test: await testDatabaseConnection(),
+          sample_query_test: await testSampleQuery()
         }
       });
     } catch (error) {
