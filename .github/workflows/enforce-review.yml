@@ -144,22 +144,11 @@ jobs:
               commentBody += '- [ ] Quebec Law 25 compliance maintained\n\n';
             }
 
-            commentBody += '---\n';
-            commentBody += '*This check is automated. All mandatory requirements must be met before merge.*';
-
-            // Post comment (ignore errors completely)
-            try {
-              await github.rest.issues.createComment({
-                issue_number: pr.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: commentBody
-              });
-              console.log('✅ Posted PR review comment successfully');
-            } catch (error) {
-              console.log('⚠️ Could not post comment due to permissions, but continuing with status check');
-              console.log('📝 Review checklist will be available in workflow logs instead');
-            }
+            // Log the review checklist to workflow output (instead of commenting)
+            console.log('\n📋 PR Review Checklist:');
+            console.log('='.repeat(50));
+            console.log(commentBody);
+            console.log('='.repeat(50));
 
             // Set status check (this is the important part)
             if (failures.length > 0) {
