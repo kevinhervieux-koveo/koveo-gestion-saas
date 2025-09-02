@@ -99,11 +99,13 @@ function createSessionStore() {
       pool: pool,
       tableName: 'session',
       createTableIfMissing: false, // Table already exists
+      errorLog: console.error, // Add error logging
     });
     console.log('✅ Session store: PostgreSQL session store created successfully');
     return store;
   } catch (error: any) {
     console.error('❌ Session store creation failed:', error);
+    console.log('⚠️ Falling back to memory store (sessions will not persist)');
     return undefined; // Will use default memory store as fallback
   }
 }
@@ -115,10 +117,11 @@ export const sessionConfig = session({
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Keep false for development to ensure cookies work
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session duration
     sameSite: 'lax',
+    path: '/', // Explicitly set path
   },
   name: 'koveo.sid',
   proxy: false,
@@ -485,11 +488,13 @@ export function setupAuthRoutes(app: any) {
       req.session.userId = user.id;
       req.session.userRole = user.role;
       req.session.role = user.role;
+      req.session.user = user; // Add complete user object for middleware compatibility
 
       console.log('🔍 [LOGIN DEBUG] Session data set:', {
         userId: req.session.userId,
         userRole: req.session.userRole,
-        sessionId: req.session.id
+        sessionId: req.session.id,
+        hasUserObject: !!req.session.user
       });
 
       // Save session explicitly to ensure it's persisted
@@ -555,8 +560,11 @@ export function setupAuthRoutes(app: any) {
     try {
       console.log('🔍 [AUTH DEBUG] Checking user session...', {
         hasSession: !!req.session,
+        sessionId: req.session?.id,
         sessionUserId: req.session?.userId,
-        sessionKeys: req.session ? Object.keys(req.session) : []
+        sessionUser: !!req.session?.user,
+        sessionKeys: req.session ? Object.keys(req.session) : [],
+        cookieHeader: req.headers.cookie
       });
 
       // Check if we have a valid session with user ID
