@@ -120,17 +120,42 @@ export default function UserManagement() {
     queryKey: ['/api/auth/user'],
   });
 
+  // Debug current user
+  React.useEffect(() => {
+    console.log('🔍 [DEBUG] Current user data:', currentUser);
+    if (currentUser) {
+      console.log('🔍 [DEBUG] User role check:', {
+        role: currentUser.role,
+        isAdmin: currentUser.role === 'admin',
+        isManager: currentUser.role === 'manager',
+        shouldEnableQueries: currentUser.role === 'admin' || currentUser.role === 'manager'
+      });
+    }
+  }, [currentUser]);
+
   // Fetch user organizations (admin sees all, manager sees filtered by their orgs)
-  const { data: userOrganizations = [] } = useQuery<any[]>({
+  const { data: userOrganizations = [], isLoading: userOrgsLoading, error: userOrgsError } = useQuery<any[]>({
     queryKey: ['/api/admin/all-user-organizations'],
-    enabled: currentUser?.role === 'admin' || currentUser?.role === 'manager',
+    enabled: !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager'),
   });
 
   // Fetch user residences (admin sees all, manager sees filtered by their orgs)
-  const { data: userResidences = [] } = useQuery<any[]>({
+  const { data: userResidences = [], isLoading: userResLoading, error: userResError } = useQuery<any[]>({
     queryKey: ['/api/admin/all-user-residences'],
-    enabled: currentUser?.role === 'admin' || currentUser?.role === 'manager',
+    enabled: !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager'),
   });
+
+  // Debug assignment queries
+  React.useEffect(() => {
+    console.log('🔍 [DEBUG] Assignment queries status:', {
+      userOrgsLoading,
+      userOrgsError: userOrgsError?.message,
+      userOrgsCount: userOrganizations.length,
+      userResLoading,
+      userResError: userResError?.message,
+      userResCount: userResidences.length,
+    });
+  }, [userOrgsLoading, userOrgsError, userOrganizations, userResLoading, userResError, userResidences]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
