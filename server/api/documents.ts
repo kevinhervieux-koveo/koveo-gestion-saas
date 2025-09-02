@@ -13,6 +13,7 @@ import { z } from 'zod';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { getGCSClient } from '../../src/lib/gcs';
 import { sql } from 'drizzle-orm';
@@ -160,6 +161,50 @@ export function registerDocumentRoutes(app: Express): void {
       };
     }
   };
+
+  const checkUserOrganizationLinks = async () => {
+    try {
+      // Check user-organization relationships
+      const userCount = await db.execute(sql`SELECT COUNT(*) as total FROM users WHERE is_active = true`);
+      const orgCount = await db.execute(sql`SELECT COUNT(*) as total FROM organizations WHERE is_active = true`);
+      const linkCount = await db.execute(sql`SELECT COUNT(*) as total FROM user_organizations WHERE is_active = true`);
+      
+      // Check users without organization links
+      const orphanUsers = await db.execute(sql`
+        SELECT u.id, u.email, u.role 
+        FROM users u 
+        LEFT JOIN user_organizations uo ON u.id = uo.user_id AND uo.is_active = true
+        WHERE u.is_active = true AND uo.user_id IS NULL
+        LIMIT 10
+      `);
+
+      // Check current test user specifically (from error logs)
+      const testUser = await db.execute(sql`
+        SELECT u.email, u.role, uo.organization_id, o.name as org_name
+        FROM users u
+        LEFT JOIN user_organizations uo ON u.id = uo.user_id AND uo.is_active = true  
+        LEFT JOIN organizations o ON uo.organization_id = o.id
+        WHERE u.id = '222f5a0d-6bc6-4f28-9f4d-32c133eed333'
+      `);
+
+      return {
+        success: true,
+        stats: {
+          total_users: userCount.rows[0]?.total || 0,
+          total_organizations: orgCount.rows[0]?.total || 0,
+          total_links: linkCount.rows[0]?.total || 0,
+          orphan_user_count: orphanUsers.rows.length
+        },
+        orphan_users: orphanUsers.rows,
+        test_user_status: testUser.rows[0] || null
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  };
   
   // Enum cleanup endpoint for safe schema migration  
   app.post('/api/documents/cleanup-enum', async (req, res) => {
@@ -195,6 +240,75 @@ export function registerDocumentRoutes(app: Express): void {
         error: 'Enum cleanup failed',
         message: error.message,
         suggestion: 'Try running npm run db:push --force instead'
+      });
+    }
+  });
+
+  // Fix user-organization relationships
+  app.post('/api/documents/fix-user-links', async (req, res) => {
+    try {
+      // Step 1: Find users without organization links
+      const orphanUsers = await db.execute(sql`
+        SELECT u.id, u.email, u.role 
+        FROM users u 
+        LEFT JOIN user_organizations uo ON u.id = uo.user_id AND uo.is_active = true
+        WHERE u.is_active = true AND uo.user_id IS NULL
+      `);
+
+      if (orphanUsers.rows.length === 0) {
+        return res.json({
+          message: 'All users already have organization links',
+          action_taken: 'none',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Step 2: Get the first available organization (or create default one)
+      let defaultOrg = await db.execute(sql`
+        SELECT id, name FROM organizations WHERE is_active = true LIMIT 1
+      `);
+
+      let organizationId: string;
+      let organizationName: string;
+
+      if (defaultOrg.rows.length === 0) {
+        // Create a default organization if none exists
+        organizationId = crypto.randomUUID();
+        organizationName = 'Default Organization';
+        await db.execute(sql`
+          INSERT INTO organizations (id, name, type, address, phone, email, is_active, created_at, updated_at)
+          VALUES (${organizationId}, ${organizationName}, 'condominium', '123 Main St', '514-555-0100', 'admin@koveo.ca', true, NOW(), NOW())
+        `);
+      } else {
+        organizationId = defaultOrg.rows[0].id as string;
+        organizationName = defaultOrg.rows[0].name as string;
+      }
+
+      // Step 3: Link all orphan users to the default organization
+      const linkPromises = orphanUsers.rows.map(user => {
+        const linkId = crypto.randomUUID();
+        return db.execute(sql`
+          INSERT INTO user_organizations (id, user_id, organization_id, role, is_active, created_at, updated_at)
+          VALUES (${linkId}, ${user.id}, ${organizationId}, ${user.role}, true, NOW(), NOW())
+        `);
+      });
+
+      await Promise.all(linkPromises);
+
+      res.json({
+        message: 'Successfully linked users to organizations',
+        users_linked: orphanUsers.rows.length,
+        organization_id: organizationId,
+        organization_name: organizationName,
+        linked_users: orphanUsers.rows.map(u => ({ id: u.id, email: u.email, role: u.role })),
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to fix user-organization links',
+        message: error.message,
+        timestamp: new Date().toISOString()
       });
     }
   });
@@ -238,7 +352,8 @@ export function registerDocumentRoutes(app: Express): void {
           schema_columns_count: tableSchema?.length || 0,
           connection_test: await testDatabaseConnection(),
           sample_query_test: await testSampleQuery(),
-          enum_check: await checkEnumValues()
+          enum_check: await checkEnumValues(),
+          user_organization_links: await checkUserOrganizationLinks()
         }
       });
     } catch (error) {
