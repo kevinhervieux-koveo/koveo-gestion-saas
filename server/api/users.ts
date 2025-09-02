@@ -85,6 +85,17 @@ export function registerUserRoutes(app: Express): void {
         } : 'No users',
       });
 
+      // Log the exact structure of the first user being sent
+      if (filteredUsers[0]) {
+        console.warn('🔥 [EXACT STRUCTURE] First user full object:', JSON.stringify({
+          id: filteredUsers[0].id,
+          email: filteredUsers[0].email,
+          organizations: filteredUsers[0].organizations,
+          buildings: filteredUsers[0].buildings,
+          residences: filteredUsers[0].residences,
+        }, null, 2));
+      }
+
       res.json(filteredUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);

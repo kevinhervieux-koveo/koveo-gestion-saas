@@ -110,9 +110,17 @@ export default function UserManagement() {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('🧪 [DIRECT API TEST] Raw API response:', data);
-          console.log('🧪 [DIRECT API TEST] First user from direct API:', data[0]);
-          console.log('🧪 [DIRECT API TEST] First user organizations from direct API:', data[0]?.organizations);
+          console.log('🧪 [DIRECT API TEST] Raw API response array length:', data.length);
+          console.log('🧪 [DIRECT API TEST] Full Raw API response:', data);
+          if (data[0]) {
+            console.log('🧪 [DIRECT API TEST] First user from direct API:', JSON.stringify(data[0], null, 2));
+            console.log('🧪 [DIRECT API TEST] First user organizations array:', data[0].organizations);
+            console.log('🧪 [DIRECT API TEST] First user buildings array:', data[0].buildings);
+            console.log('🧪 [DIRECT API TEST] First user residences array:', data[0].residences);
+            console.log('🧪 [DIRECT API TEST] Organization array length:', data[0].organizations?.length);
+            console.log('🧪 [DIRECT API TEST] Buildings array length:', data[0].buildings?.length);
+            console.log('🧪 [DIRECT API TEST] Residences array length:', data[0].residences?.length);
+          }
         } else {
           console.log('🧪 [DIRECT API TEST] API failed:', response.status, response.statusText);
         }
