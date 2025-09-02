@@ -31,7 +31,8 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 
 - **Database**: PostgreSQL via Drizzle ORM and Neon serverless database.
-- **Schema Management**: Drizzle Kit for migrations and TypeScript integration.
+- **Dual Database Environment**: Development (DATABASE_URL) and Production (DATABASE_URL_KOVEO) databases maintained in sync.
+- **Schema Management**: Drizzle Kit for migrations and TypeScript integration. All schema changes must be applied to both development and production databases.
 
 ### Authentication and Authorization
 
@@ -137,6 +138,14 @@ Preferred communication style: Simple, everyday language.
 - **Quebec Compliance Testing**: Validates French language support, Quebec-specific date formats, holidays, and cultural requirements
 - **Performance Testing**: Validates efficient handling of large event datasets (100+ events) and statistical calculations
 - **Accessibility Testing**: Validates test IDs, ARIA labels, navigation controls, and proper component structure
+
+### Database Schema Synchronization (September 2025)
+
+- **Production Database Migration**: Successfully migrated production database (DATABASE_URL_KOVEO) from legacy schema to unified documents table structure
+- **Data Preservation**: Backed up and migrated 10 existing documents during schema transformation
+- **Dual Database Approach**: Established requirement for all schema changes to be applied to both development (DATABASE_URL) and production (DATABASE_URL_KOVEO) databases
+- **Constraint Synchronization**: Applied missing unique constraints across both environments (permissions, ssl_certificates, password_reset_tokens, invitations, bills, documents)
+- **Schema Validation**: Verified complete schema parity between development and production environments
 
 ### Test Infrastructure Improvements (September 2025)
 
