@@ -1,0 +1,2255 @@
+[
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "methodName": "google.api.serviceusage.v1.ServiceUsage.EnableService",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786/services/compute.googleapis.com",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "services/compute.googleapis.com",
+          "permission": "servicemanagement.services.bind",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion/services/compute.googleapis.com"
+    },
+    "insertId": "-ui9b8qd22v6",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "",
+        "project_id": "koveo-gestion",
+        "method": "google.api.serviceusage.v1.ServiceUsage.EnableService"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:53.611192Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d",
+      "producer": "serviceusage.googleapis.com",
+      "first": true
+    },
+    "receiveTimestamp": "2025-09-02T00:04:54.437186088Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.api.serviceusage.v1.ServiceUsage.EnableService",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786/services/compute.googleapis.com",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "services/compute.googleapis.com",
+          "permission": "servicemanagement.services.bind",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion/services/compute.googleapis.com",
+      "request": {
+        "name": "projects/koveo-gestion/services/compute.googleapis.com",
+        "@type": "type.googleapis.com/google.api.serviceusage.v1.EnableServiceRequest"
+      }
+    },
+    "insertId": "184pgp7d5nzl",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com",
+        "method": "google.api.serviceusage.v1.ServiceUsage.EnableService"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:53.611192Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d",
+      "producer": "serviceusage.googleapis.com",
+      "first": true
+    },
+    "receiveTimestamp": "2025-09-02T00:04:55.145128690Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "18otuead720v",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:54.403464Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:55.138931594Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {},
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {
+          "time": "2025-09-02T00:04:54.797019573Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "iam.googleapis.com",
+      "methodName": "google.iam.admin.v1.CreateServiceAccount",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "iam.serviceAccounts.create",
+          "granted": true,
+          "resourceAttributes": {
+            "type": "iam.googleapis.com/ServiceAccount"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "service_account": {
+          "display_name": "Compute Engine default service account",
+          "email": "1064795327786-compute@developer.gserviceaccount.com"
+        },
+        "account_id": "service-1064795327786",
+        "name": "projects/koveo-gestion",
+        "@type": "type.googleapis.com/google.iam.admin.v1.CreateServiceAccountRequest"
+      },
+      "response": {
+        "project_id": "koveo-gestion",
+        "name": "projects/koveo-gestion/serviceAccounts/1064795327786-compute@developer.gserviceaccount.com",
+        "etag": "MDEwMjE5MjA=",
+        "email": "1064795327786-compute@developer.gserviceaccount.com",
+        "unique_id": "103859528138545507925",
+        "@type": "type.googleapis.com/google.iam.admin.v1.ServiceAccount",
+        "display_name": "Compute Engine default service account",
+        "oauth2_client_id": "103859528138545507925"
+      }
+    },
+    "insertId": "ogcvwye4ux9s",
+    "resource": {
+      "type": "service_account",
+      "labels": {
+        "email_id": "1064795327786-compute@developer.gserviceaccount.com",
+        "project_id": "koveo-gestion",
+        "unique_id": "103859528138545507925"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:54.772530847Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:55.935760452Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
+        "policy": {
+          "bindings": [
+            {
+              "role": "roles/owner",
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ],
+              "role": "roles/storage.objectAdmin"
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9cs/xJoU="
+        },
+        "resource": "1064795327786"
+      }
+    },
+    "insertId": "-s03muke1x2dq",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:55.039884Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:55.572261597Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "serviceData": {
+        "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+        "policyDelta": {
+          "bindingDeltas": [
+            {
+              "action": "ADD",
+              "role": "roles/editor",
+              "member": "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+            }
+          ]
+        }
+      },
+      "request": {
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
+        "policy": {
+          "bindings": [
+            {
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ],
+              "role": "roles/owner"
+            },
+            {
+              "role": "roles/storage.objectAdmin",
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccountId:103565137771853713158"
+              ],
+              "role": "roles/editor"
+            }
+          ],
+          "etag": "BwY9cs/xJoU="
+        },
+        "resource": "1064795327786"
+      },
+      "response": {
+        "bindings": [
+          {
+            "role": "roles/editor",
+            "members": [
+              "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+            ]
+          },
+          {
+            "role": "roles/owner",
+            "members": [
+              "user:kevin.hervieux@koveo-gestion.com"
+            ]
+          },
+          {
+            "role": "roles/storage.objectAdmin",
+            "members": [
+              "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+            ]
+          }
+        ],
+        "etag": "BwY9xjzyDwQ=",
+        "@type": "type.googleapis.com/google.iam.v1.Policy"
+      }
+    },
+    "insertId": "-r59pa3e65u3o",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:55.237667Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:56.462788043Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "resource": "1064795327786",
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
+        "policy": {
+          "bindings": [
+            {
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ],
+              "role": "roles/editor"
+            },
+            {
+              "role": "roles/owner",
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ],
+              "role": "roles/storage.objectAdmin"
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        }
+      }
+    },
+    "insertId": "-9dxuvue2kwtu",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:56.729616Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:57.766282751Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "13zuk94d6git",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:57.655745Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:58.746222844Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "resource": "1064795327786",
+        "policy": {
+          "bindings": [
+            {
+              "role": "roles/editor",
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ],
+              "role": "roles/owner"
+            },
+            {
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ],
+              "role": "roles/storage.objectAdmin"
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        },
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
+      }
+    },
+    "insertId": "b4l9goe7kxzc",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:57.835747Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:58.997017661Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
+        "resource": "1064795327786",
+        "policy": {
+          "etag": "BwY9xjzyDwQ=",
+          "bindings": [
+            {
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ],
+              "role": "roles/editor"
+            },
+            {
+              "role": "roles/owner",
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ]
+            },
+            {
+              "role": "roles/storage.objectAdmin",
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ]
+        }
+      }
+    },
+    "insertId": "-s9b4kpe65agm",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:04:58.933892Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:04:59.468875064Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "policy": {
+          "bindings": [
+            {
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ],
+              "role": "roles/editor"
+            },
+            {
+              "role": "roles/owner",
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ]
+            },
+            {
+              "role": "roles/storage.objectAdmin",
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ]
+            },
+            {
+              "role": "roles/compute.serviceAgent",
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ]
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        },
+        "resource": "1064795327786",
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
+      }
+    },
+    "insertId": "imjkxfe58jm4",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:00.833542Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:01.572034148Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "sv34fje1ifrw",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:00.911174Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:01.935028299Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest",
+        "resource": "1064795327786",
+        "policy": {
+          "bindings": [
+            {
+              "role": "roles/editor",
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ],
+              "role": "roles/owner"
+            },
+            {
+              "role": "roles/storage.objectAdmin",
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        }
+      }
+    },
+    "insertId": "-us99h6e6sq0i",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:02.233318Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:03.170396489Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Exception calling IAM: Service account 281492838091472 does not exist."
+      },
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "request": {
+        "resource": "1064795327786",
+        "policy": {
+          "bindings": [
+            {
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ],
+              "role": "roles/editor"
+            },
+            {
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ],
+              "role": "roles/owner"
+            },
+            {
+              "role": "roles/storage.objectAdmin",
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        },
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
+      }
+    },
+    "insertId": "-s03muke1x2k6",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:03.641890Z",
+    "severity": "ERROR",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:04.590789197Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "pj2j5tdkp9f",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:04.162592Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:04.546864230Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "service-agent-manager@system.gserviceaccount.com"
+      },
+      "requestMetadata": {
+        "callerIp": "private",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "cloudresourcemanager.googleapis.com",
+      "methodName": "SetIamPolicy",
+      "authorizationInfo": [
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projects/koveo-gestion",
+          "permission": "resourcemanager.projects.setIamPolicy",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "cloudresourcemanager.googleapis.com",
+            "name": "projects/koveo-gestion",
+            "type": "cloudresourcemanager.googleapis.com/Project"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion",
+      "serviceData": {
+        "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+        "policyDelta": {
+          "bindingDeltas": [
+            {
+              "action": "ADD",
+              "role": "roles/compute.serviceAgent",
+              "member": "serviceAccount:service-1064795327786@compute-system.iam.gserviceaccount.com"
+            }
+          ]
+        }
+      },
+      "request": {
+        "resource": "1064795327786",
+        "policy": {
+          "bindings": [
+            {
+              "role": "roles/editor",
+              "members": [
+                "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+              ]
+            },
+            {
+              "members": [
+                "user:kevin.hervieux@koveo-gestion.com"
+              ],
+              "role": "roles/owner"
+            },
+            {
+              "members": [
+                "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+              ],
+              "role": "roles/storage.objectAdmin"
+            },
+            {
+              "members": [
+                "serviceAccountId:112258694069937313960"
+              ],
+              "role": "roles/compute.serviceAgent"
+            }
+          ],
+          "etag": "BwY9xjzyDwQ="
+        },
+        "@type": "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
+      },
+      "response": {
+        "bindings": [
+          {
+            "role": "roles/compute.serviceAgent",
+            "members": [
+              "serviceAccount:service-1064795327786@compute-system.iam.gserviceaccount.com"
+            ]
+          },
+          {
+            "role": "roles/editor",
+            "members": [
+              "serviceAccount:1064795327786@cloudservices.gserviceaccount.com"
+            ]
+          },
+          {
+            "role": "roles/owner",
+            "members": [
+              "user:kevin.hervieux@koveo-gestion.com"
+            ]
+          },
+          {
+            "role": "roles/storage.objectAdmin",
+            "members": [
+              "serviceAccount:replit-storage-admin@koveo-gestion.iam.gserviceaccount.com"
+            ]
+          }
+        ],
+        "etag": "BwY9xj2C2PE=",
+        "@type": "type.googleapis.com/google.iam.v1.Policy"
+      }
+    },
+    "insertId": "-wevy7ve4hnoi",
+    "resource": {
+      "type": "project",
+      "labels": {
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:04.730208Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:05.520309043Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "13zuk94d6gjv",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "method": "google.longrunning.Operations.GetOperation",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:07.404143Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:07.686703864Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "sv34fje1ifsr",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:10.653963Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:10.892770559Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1iy6cbwd7yey",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:13.896820Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:14.424360636Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1iy6cbwd7yf7",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:17.144420Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:17.315294646Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "11s3fh8e1hcfz",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:20.379503Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:20.933747976Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1yii303e16981",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:23.626494Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:23.813785413Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "5w4nbvdojni",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:26.877951Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:28.049868671Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "sv34fje1ifuk",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:30.127703Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:30.898972367Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1x3jrivdinhh",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:33.363823Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:33.961250551Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1cud6end9yc1",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:36.613284Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:37.204796622Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "17v7eetddgff",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:39.870385Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:40.552591106Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1no4na0djr2o",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:43.116517Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:43.695027518Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "qf34ame2r8z0",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:46.374025Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:47.242307010Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "5w4nbvdojpr",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "method": "google.longrunning.Operations.GetOperation",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:49.624163Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:50.034308116Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1xx8kgodbtte",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:52.860974Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:53.022418126Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1no4na0djr3s",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "method": "google.longrunning.Operations.GetOperation",
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:56.090785Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:56.952995001Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "16qspbkdusjg",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:05:59.331418Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:05:59.541177031Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)"
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.api.serviceusage.v1.ServiceUsage.EnableService",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786/services/compute.googleapis.com",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "services/compute.googleapis.com",
+          "permission": "servicemanagement.services.bind",
+          "granted": true,
+          "permissionType": "DATA_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion/services/compute.googleapis.com",
+      "request": {
+        "name": "projects/koveo-gestion/services/compute.googleapis.com",
+        "@type": "type.googleapis.com/google.api.serviceusage.v1.EnableServiceRequest"
+      },
+      "response": {
+        "service": {
+          "name": "projects/1064795327786/services/compute.googleapis.com",
+          "config": {
+            "name": "compute.googleapis.com",
+            "title": "Compute Engine API"
+          },
+          "state": "ENABLED",
+          "parent": "projects/1064795327786"
+        },
+        "@type": "type.googleapis.com/google.api.serviceusage.v1.EnableServiceResponse"
+      }
+    },
+    "insertId": "-3lc21ye2zki4",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "project_id": "koveo-gestion",
+        "service": "serviceusage.googleapis.com",
+        "method": "google.api.serviceusage.v1.ServiceUsage.EnableService"
+      }
+    },
+    "timestamp": "2025-09-02T00:06:01.986445556Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d",
+      "producer": "serviceusage.googleapis.com",
+      "last": true
+    },
+    "receiveTimestamp": "2025-09-02T00:06:01.986445556Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)"
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.api.serviceusage.v1.ServiceUsage.EnableService",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786/services/compute.googleapis.com",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "services/compute.googleapis.com",
+          "permission": "servicemanagement.services.bind",
+          "granted": true,
+          "permissionType": "DATA_WRITE"
+        }
+      ],
+      "resourceName": "projects/koveo-gestion/services/compute.googleapis.com",
+      "request": {
+        "name": "projects/koveo-gestion/services/compute.googleapis.com",
+        "@type": "type.googleapis.com/google.api.serviceusage.v1.EnableServiceRequest"
+      },
+      "response": {
+        "status": "ENABLED",
+        "services": [
+          "compute.googleapis.com",
+          "oslogin.googleapis.com"
+        ],
+        "@type": "type.googleapis.com/google.api.tenant.apis.shared.activation.CrossLoggingResponse"
+      }
+    },
+    "insertId": "-3lc21ye2zki6",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "method": "google.api.serviceusage.v1.ServiceUsage.EnableService",
+        "project_id": "koveo-gestion"
+      }
+    },
+    "timestamp": "2025-09-02T00:06:01.986445556Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "operation": {
+      "id": "operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d",
+      "producer": "serviceusage.googleapis.com",
+      "last": true
+    },
+    "receiveTimestamp": "2025-09-02T00:06:01.986445556Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {},
+      "authenticationInfo": {
+        "principalEmail": "kevin.hervieux@koveo-gestion.com"
+      },
+      "requestMetadata": {
+        "callerIp": "184.162.16.116",
+        "callerSuppliedUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36,gzip(gfe),gzip(gfe)",
+        "requestAttributes": {},
+        "destinationAttributes": {}
+      },
+      "serviceName": "serviceusage.googleapis.com",
+      "methodName": "google.longrunning.Operations.GetOperation",
+      "authorizationInfo": [
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.enable",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "projectnumbers/1064795327786/operations/-",
+          "permission": "serviceusage.operations.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        },
+        {
+          "resource": "projectnumbers/1064795327786",
+          "permission": "serviceusage.services.get",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "DATA_READ"
+        }
+      ],
+      "resourceName": "projects/1064795327786/operations/acf.p2-1064795327786-3e8ca751-8d93-4c19-a4d6-0060c4022e8d"
+    },
+    "insertId": "1iy6cbwd7yiu",
+    "resource": {
+      "type": "audited_resource",
+      "labels": {
+        "service": "serviceusage.googleapis.com",
+        "project_id": "koveo-gestion",
+        "method": "google.longrunning.Operations.GetOperation"
+      }
+    },
+    "timestamp": "2025-09-02T00:06:02.585881Z",
+    "severity": "NOTICE",
+    "logName": "projects/koveo-gestion/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-09-02T00:06:03.546240463Z"
+  }
+]
