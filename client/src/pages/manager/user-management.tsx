@@ -389,6 +389,14 @@ export default function UserManagement() {
   };
 
   // Users now come with assignment data included from the API
+  React.useEffect(() => {
+    if (users.length > 0) {
+      console.log('🔍 [FRONTEND] First user:', users[0]);
+      console.log('🔍 [FRONTEND] Has organizations property?', 'organizations' in users[0]);
+      console.log('🔍 [FRONTEND] Organizations value:', users[0].organizations);
+      console.log('🔍 [FRONTEND] Full user keys:', Object.keys(users[0]));
+    }
+  }, [users]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
