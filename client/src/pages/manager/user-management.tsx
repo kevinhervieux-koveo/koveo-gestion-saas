@@ -394,6 +394,16 @@ export default function UserManagement() {
     queryClient.removeQueries({ queryKey: ['/api/users', 'with-assignments'] });
   }, []);
 
+  // Debug what's actually received
+  React.useEffect(() => {
+    console.log('🔍 [FRONTEND] Users received:', users);
+    console.log('🔍 [FRONTEND] Users loading:', usersLoading);
+    console.log('🔍 [FRONTEND] Users error:', usersError);
+    if (users.length > 0) {
+      console.log('🔍 [FRONTEND] First user structure:', JSON.stringify(users[0], null, 2));
+    }
+  }, [users, usersLoading, usersError]);
+
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
     let result = [...users];
