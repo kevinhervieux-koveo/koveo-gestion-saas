@@ -380,15 +380,27 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Get available roles based on organization type
   const getAvailableRoles = () => {
-    const selectedOrg = organizations?.find((org) => org.id === form.watch('organizationId'));
+    const organizationId = form.watch('organizationId');
+    const selectedOrg = organizations?.find((org) => org.id === organizationId);
     const isDemoOrg = selectedOrg?.type === 'demo';
+
+    console.log('🔍 [ROLE DEBUG] Organization selection:', {
+      organizationId,
+      selectedOrg,
+      isDemoOrg,
+      availableOrgs: organizations?.map(o => ({ id: o.id, name: o.name, type: o.type }))
+    });
 
     if (isDemoOrg) {
       // For demo organizations, allow both demo roles and regular roles
-      return ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
+      const roles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
+      console.log('✅ [ROLE DEBUG] Demo org roles:', roles);
+      return roles;
     }
 
-    return ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
+    const roles = ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
+    console.log('🔍 [ROLE DEBUG] Regular org roles:', roles);
+    return roles;
   };
 
   const availableRoles = getAvailableRoles();
