@@ -376,6 +376,8 @@ export class QueryOptimizer {
 
       const indexCount = parseInt(String(row.count));
       return indexCount >= 4; // If we have these key indexes, assume setup is complete
+    } catch (error: any) {
+      console.error('❌ Error checking database indexes:', error);
       return false;
     }
   }
@@ -396,6 +398,8 @@ export class QueryOptimizer {
     for (const indexQuery of allIndexes) {
       try {
         await sql`${indexQuery}`;
+      } catch (error: any) {
+        console.error('❌ Error applying core index:', error);
       }
     }
 
@@ -403,6 +407,8 @@ export class QueryOptimizer {
     for (const indexQuery of DatabaseOptimization.coveringIndexes) {
       try {
         await sql`${indexQuery}`;
+      } catch (error: any) {
+        console.error('❌ Error applying covering index:', error);
       }
     }
 
@@ -410,6 +416,8 @@ export class QueryOptimizer {
     for (const viewQuery of DatabaseOptimization.materializedViews) {
       try {
         await sql`${viewQuery}`;
+      } catch (error: any) {
+        console.error('❌ Error creating materialized view:', error);
       }
     }
 
@@ -443,7 +451,8 @@ export class QueryOptimizer {
         ORDER BY idx_tup_read DESC
         LIMIT 20
       `;
-
+    } catch (error: any) {
+      console.error('❌ Error analyzing query performance:', error);
     }
   }
 
@@ -501,6 +510,8 @@ export class QueryOptimizer {
     for (const view of views) {
       try {
         await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`;
+      } catch (error: any) {
+        console.error(`❌ Error refreshing materialized view ${view}:`, error);
       }
     }
   }
@@ -527,6 +538,8 @@ export class DatabaseMaintenance {
 
       // Refresh materialized views
       await QueryOptimizer.refreshMaterializedViews();
+    } catch (error: any) {
+      console.error('❌ Error performing database maintenance:', error);
     }
 
   }
@@ -556,6 +569,8 @@ export class DatabaseMaintenance {
       `;
 
       return metrics;
+    } catch (error: any) {
+      console.error('❌ Error getting performance metrics:', error);
       return [];
     }
   }

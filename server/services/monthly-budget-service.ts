@@ -38,10 +38,13 @@ export class MonthlyBudgetService {
           console.log(
             `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
           );
+        } catch (error: any) {
+          console.error(`❌ Error processing building ${building.name}:`, error);
           // Continue with other buildings
         }
       }
 
+      console.log(`📊 Monthly budget population completed:
         - Buildings processed: ${buildingsProcessed}
         - Budget entries created: ${budgetsCreated}`);
 
@@ -49,6 +52,8 @@ export class MonthlyBudgetService {
         budgetsCreated,
         buildingsProcessed,
       };
+    } catch (error: any) {
+      console.error('❌ Error populating monthly budgets:', error);
       throw error;
     }
   }
@@ -70,6 +75,7 @@ export class MonthlyBudgetService {
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
+    console.log(
       `📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`
     );
 
@@ -78,6 +84,7 @@ export class MonthlyBudgetService {
       building.id
     );
 
+    console.log(
       `📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`
     );
 
@@ -273,11 +280,13 @@ export class MonthlyBudgetService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(monthlyBudgets).values(batch);
+      } catch (error: any) {
+        console.error(`❌ Error inserting batch at index ${i}:`, error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
             await db.insert(monthlyBudgets).values(entry);
-          } catch (___individualError) {
+          } catch (individualError: any) {
             console.error(`❌ Error inserting individual budget entry:`, individualError);
             // Skip this entry and continue
           }
@@ -340,6 +349,7 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
+    console.log(
       `✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`
     );
     return budgetsCreated;

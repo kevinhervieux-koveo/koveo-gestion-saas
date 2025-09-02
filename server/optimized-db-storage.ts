@@ -231,6 +231,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
 
             return result;
+          } catch (error: any) {
+            console.error('❌ Error getting user assignments:', error);
             // Return user with empty assignments if there's an error
             return {
               ...user,
@@ -246,6 +248,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       }
 
       return usersWithAssignments;
+    } catch (error: any) {
+      console.error('❌ Critical error getting users with assignments:', error);
       // Return empty array on critical error
       return [];
     }
@@ -507,8 +511,8 @@ export class OptimizedDatabaseStorage implements IStorage {
         const inserted = await db.insert(schema.users).values([userData]).returning();
         
         return inserted;
-        
-        
+      } catch (error: any) {
+        console.error('❌ Error creating user:', error);
         throw error;
       }
     });
@@ -1767,7 +1771,8 @@ export class OptimizedDatabaseStorage implements IStorage {
         .orderBy(schema.userPermissions.userId);
 
       return results || [];
-      
+    } catch (error: any) {
+      console.error('❌ Error getting user permissions:', error);
       return [];
     }
   }
@@ -2126,7 +2131,8 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.bugs.createdBy, userId))
         .orderBy(desc(schema.bugs.createdAt));
       return result || [];
-      
+    } catch (error: any) {
+      console.error('❌ Error getting bugs for user:', error);
       return [];
     }
   }
@@ -2521,6 +2527,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
+    } catch (error: any) {
+      console.error('❌ Error upvoting feature request:', error);
       return {
         success: false,
         message: 'Failed to upvote feature request',
@@ -2590,6 +2598,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
+    } catch (error: any) {
+      console.error('❌ Error removing feature request upvote:', error);
       return {
         success: false,
         message: 'Failed to remove upvote',

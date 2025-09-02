@@ -107,6 +107,8 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null,
       });
+    } catch (error: any) {
+      console.error('❌ Error logging security alert to database:', error);
     }
   }
 
@@ -520,6 +522,8 @@ export function requireInvitationPermission(
       );
 
       next();
+    } catch (error: any) {
+      console.error('❌ Permission validation failed:', error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'RBAC_ERROR',
@@ -593,6 +597,7 @@ export async function createEnhancedInvitationAuditLog(
     ]);
 
     // Log to console for immediate visibility
+    console.log('📝 Enhanced invitation audit log created:', {
       invitationId,
       performedBy,
       ipAddress,
@@ -600,6 +605,8 @@ export async function createEnhancedInvitationAuditLog(
       previousStatus,
       newStatus,
     });
+  } catch (error: any) {
+    console.error('❌ Error creating enhanced invitation audit log:', error);
   }
 }
 
@@ -685,6 +692,8 @@ export function withPermissionInheritance(baseAction: string) {
         required: baseAction,
         userRole: req.user.role,
       });
+    } catch (error: any) {
+      console.error('❌ Permission inheritance check failed:', error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'INHERITANCE_ERROR',

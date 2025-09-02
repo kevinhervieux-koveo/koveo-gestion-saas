@@ -27,6 +27,7 @@ class DatabasePerformanceMonitor {
         this.recordQueryTime(queryName, duration);
         return result;
       })
+      .catch((error) => {
         const duration = performance.now() - startTime;
         this.recordQueryTime(queryName, duration);
         throw error;
