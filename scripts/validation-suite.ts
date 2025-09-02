@@ -7,7 +7,7 @@
 
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 interface ValidationResult {
@@ -44,13 +44,30 @@ class ValidationSuite {
         return;
       }
 
+      // Count routes in main routes file
       const routesContent = readFileSync(routesPath, 'utf-8');
-      const routeCount = (routesContent.match(/\.(get|post|put|delete|patch)\(/g) || []).length;
+      let totalRouteCount = (routesContent.match(/\.(get|post|put|delete|patch)\(/g) || []).length;
       
-      if (routeCount < 10) {
-        this.addResult('Routes', false, `Insufficient routes defined: ${routeCount}`);
+      // Count routes in API files
+      const apiPath = 'server/api/';
+      if (existsSync(apiPath)) {
+        const apiFiles = readdirSync(apiPath).filter(file => file.endsWith('.ts'));
+        
+        for (const apiFile of apiFiles) {
+          try {
+            const apiContent = readFileSync(join(apiPath, apiFile), 'utf-8');
+            const apiRouteCount = (apiContent.match(/\.(get|post|put|delete|patch)\(/g) || []).length;
+            totalRouteCount += apiRouteCount;
+          } catch (error) {
+            console.warn(`Warning: Could not read API file ${apiFile}`);
+          }
+        }
+      }
+      
+      if (totalRouteCount < 10) {
+        this.addResult('Routes', false, `Insufficient routes defined: ${totalRouteCount}`);
       } else {
-        this.addResult('Routes', true, `${routeCount} API routes validated`);
+        this.addResult('Routes', true, `${totalRouteCount} API routes validated`);
       }
     } catch (error) {
       this.addResult('Routes', false, `Route validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
