@@ -691,7 +691,6 @@ export class MemStorage implements IStorage {
       technicalComplexity: feature.technicalComplexity || '',
       dependencies: feature.dependencies?.join(',') || '',
       userFlow: feature.userFlow || '',
-      upvoteCount: 0,
       startDate: null,
       completedDate: null,
       tags: [],
@@ -889,17 +888,16 @@ export class MemStorage implements IStorage {
 }
 
 // Import the database storage implementation
-import { DatabaseStorage } from './db-storage';
 import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
 // Production fallback storage - try database first, fall back to memory if authentication fails
 class ProductionFallbackStorage implements IStorage {
-  private dbStorage: DatabaseStorage;
+  private dbStorage: OptimizedDatabaseStorage;
   private memStorage: MemStorage;
   private usingFallback: boolean = false;
 
   constructor() {
-    this.dbStorage = new DatabaseStorage();
+    this.dbStorage = new OptimizedDatabaseStorage();
     this.memStorage = new MemStorage();
   }
 
@@ -1479,7 +1477,5 @@ class ProductionFallbackStorage implements IStorage {
   }
 }
 
-// Use database storage - OptimizedDatabaseStorage has type errors in production
-// Switching to DatabaseStorage to fix document upload issues
-import { DatabaseStorage } from './db-storage';
-export const storage = new DatabaseStorage();
+// Use optimized database storage for production
+export const storage = new OptimizedDatabaseStorage();
