@@ -47,6 +47,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
+import { UserAssignmentsTable } from '@/components/UserAssignmentsTable';
 
 // Form validation schema for editing users
 const editUserSchema = z.object({
@@ -96,28 +97,6 @@ export default function UserManagement() {
     queryKey: ['/api/users']
   });
 
-  // Frontend debugging
-  React.useEffect(() => {
-    if (users && users.length > 0) {
-      console.log('🔍 [FRONTEND DEBUG] Received users from API:', users.length);
-      const firstUser = users[0];
-      console.log('🔍 [FRONTEND DEBUG] First user data:', {
-        email: firstUser.email,
-        organizationsType: typeof firstUser.organizations,
-        organizationsIsArray: Array.isArray(firstUser.organizations),
-        organizationsLength: firstUser.organizations?.length,
-        organizationsValue: firstUser.organizations,
-        buildingsType: typeof firstUser.buildings,
-        buildingsIsArray: Array.isArray(firstUser.buildings),
-        buildingsLength: firstUser.buildings?.length,
-        buildingsValue: firstUser.buildings,
-        residencesType: typeof firstUser.residences,
-        residencesIsArray: Array.isArray(firstUser.residences),
-        residencesLength: firstUser.residences?.length,
-        residencesValue: firstUser.residences
-      });
-    }
-  }, [users]);
 
 
 
@@ -691,183 +670,11 @@ export default function UserManagement() {
                       User List ({filteredTotal} of {totalUsers} users)
                     </h3>
 
-                    {/* User Table - Rebuilt */}
-                    <div className='overflow-x-auto'>
-                      <table className='w-full border-collapse border border-gray-300' data-testid='table-user-list'>
-                        <thead>
-                          <tr className='bg-gray-100'>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-name'>Name</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-email'>Email</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-role'>Role</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-status'>Status</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-organizations'>
-                              Organization(s)
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-buildings'>
-                              Buildings
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-residences'>
-                              Residences
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left' data-testid='header-actions'>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {currentUsers.map((user) => (
-                            <tr key={user.id} className='hover:bg-gray-50' data-testid={`row-user-${user.id}`}>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-name-${user.id}`}>
-                                {user.firstName} {user.lastName}
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-email-${user.id}`}>
-                                {user.email}
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-role-${user.id}`}>
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    user.role === 'admin'
-                                      ? 'bg-red-100 text-red-800'
-                                      : user.role === 'manager'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-green-100 text-green-800'
-                                  }`}
-                                  data-testid={`badge-role-${user.id}`}
-                                >
-                                  {user.role}
-                                </span>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-status-${user.id}`}>
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    user.isActive
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-gray-100 text-gray-800'
-                                  }`}
-                                  data-testid={`badge-status-${user.id}`}
-                                >
-                                  {user.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-organizations-${user.id}`}>
-                                <div className='space-y-1'>
-                                  {user.organizations?.length > 0 ? (
-                                    user.organizations.map((org, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-blue-50 px-2 py-1 rounded'
-                                        data-testid={`org-badge-${user.id}-${idx}`}
-                                      >
-                                        {org.name}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <div className='text-gray-400 text-xs' data-testid={`no-organizations-${user.id}`}>
-                                      No organizations
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-buildings-${user.id}`}>
-                                <div className='space-y-1'>
-                                  {user.buildings?.length > 0 ? (
-                                    user.buildings.slice(0, 3).map((building, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-purple-50 px-2 py-1 rounded'
-                                        data-testid={`building-badge-${user.id}-${idx}`}
-                                      >
-                                        {building.name}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className='text-gray-400 text-xs' data-testid={`no-buildings-${user.id}`}>
-                                      No buildings
-                                    </span>
-                                  )}
-                                  {user.buildings?.length > 3 && (
-                                    <div className='text-xs text-gray-500' data-testid={`more-buildings-${user.id}`}>
-                                      +{user.buildings.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-residences-${user.id}`}>
-                                <div className='space-y-1'>
-                                  {user.residences?.length > 0 ? (
-                                    user.residences.slice(0, 3).map((residence, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-green-50 px-2 py-1 rounded'
-                                        data-testid={`residence-badge-${user.id}-${idx}`}
-                                      >
-                                        Unit {residence.unitNumber}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className='text-gray-400 text-xs' data-testid={`no-residences-${user.id}`}>
-                                      No residences
-                                    </span>
-                                  )}
-                                  {user.residences?.length > 3 && (
-                                    <div className='text-xs text-gray-500' data-testid={`more-residences-${user.id}`}>
-                                      +{user.residences.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2' data-testid={`cell-actions-${user.id}`}>
-                                <div className='flex gap-2 flex-wrap'>
-                                  <Button
-                                    size='sm'
-                                    variant='outline'
-                                    onClick={() => openEditDialog(user)}
-                                    data-testid={`button-edit-user-${user.id}`}
-                                  >
-                                    <Edit className='h-3 w-3 mr-1' />
-                                    Edit User
-                                  </Button>
-
-                                  {canEditOrganizations && (
-                                    <Button
-                                      size='sm'
-                                      variant='outline'
-                                      onClick={() => setEditingUserOrganizations(user)}
-                                      data-testid={`button-edit-organizations-${user.id}`}
-                                    >
-                                      <Shield className='h-3 w-3 mr-1' />
-                                      Organizations
-                                    </Button>
-                                  )}
-
-                                  {canEditResidences && (
-                                    <Button
-                                      size='sm'
-                                      variant='outline'
-                                      onClick={() => setEditingUserResidences(user)}
-                                      data-testid={`button-edit-residences-${user.id}`}
-                                    >
-                                      <Home className='h-3 w-3 mr-1' />
-                                      Residences
-                                    </Button>
-                                  )}
-
-                                  {canDeleteUsers && (
-                                    <Button
-                                      size='sm'
-                                      variant='destructive'
-                                      onClick={() => openDeleteDialog(user)}
-                                      data-testid={`button-delete-user-${user.id}`}
-                                    >
-                                      <Trash2 className='h-3 w-3 mr-1' />
-                                      Delete
-                                    </Button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    {/* User Table - Completely Rebuilt */}
+                    <UserAssignmentsTable 
+                      users={currentUsers} 
+                      isLoading={usersLoading} 
+                    />
 
                     {/* Pagination */}
                     {totalPages > 1 && (

@@ -48,23 +48,6 @@ export function registerUserRoutes(app: Express): void {
 
       console.warn(`✅ Found ${usersWithAssignments.length} users for user ${currentUser.id}`);
       
-      // DEBUG: Check what we're actually getting from storage
-      if (usersWithAssignments.length > 0) {
-        const firstUser = usersWithAssignments[0];
-        console.warn('🔍 [API DEBUG] First user from storage:', {
-          email: firstUser.email,
-          organizationsType: typeof firstUser.organizations,
-          organizationsIsArray: Array.isArray(firstUser.organizations),
-          organizationsLength: firstUser.organizations?.length || 0,
-          buildingsType: typeof firstUser.buildings,
-          buildingsIsArray: Array.isArray(firstUser.buildings),
-          buildingsLength: firstUser.buildings?.length || 0,
-          residencesType: typeof firstUser.residences,
-          residencesIsArray: Array.isArray(firstUser.residences),
-          residencesLength: firstUser.residences?.length || 0,
-          sampleOrg: firstUser.organizations?.[0] || null
-        });
-      }
 
       // Filter users based on current user's role and permissions
       let filteredUsers;
@@ -91,16 +74,6 @@ export function registerUserRoutes(app: Express): void {
         console.warn('🔥 [FILTER DEBUG] Filtered users count:', filteredUsers.length);
       }
 
-      // DEBUG: Check what we're sending to frontend
-      if (filteredUsers.length > 0) {
-        const firstFiltered = filteredUsers[0];
-        console.warn('🔍 [API DEBUG] Actual data being sent to frontend:', {
-          email: firstFiltered.email,
-          organizationsActual: firstFiltered.organizations,
-          buildingsActual: firstFiltered.buildings,
-          residencesActual: firstFiltered.residences
-        });
-      }
 
       res.json(filteredUsers);
     } catch (error) {
