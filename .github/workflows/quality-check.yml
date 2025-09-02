@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
 jobs:
   # Static Analysis & Formatting
   static-analysis:
