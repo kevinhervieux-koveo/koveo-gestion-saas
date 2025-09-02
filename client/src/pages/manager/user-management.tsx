@@ -388,15 +388,26 @@ export default function UserManagement() {
     ],
   };
 
+  // Force complete cache clear and debug what's actually received
+  React.useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    queryClient.removeQueries({ queryKey: ['/api/users'] });
+    queryClient.clear();
+  }, []);
+
   // Users now come with assignment data included from the API
   React.useEffect(() => {
+    console.log('🔍 [FRONTEND] Component mounted, users.length:', users.length);
+    console.log('🔍 [FRONTEND] Users loading state:', usersLoading);
+    console.log('🔍 [FRONTEND] Users error:', usersError);
     if (users.length > 0) {
       console.log('🔍 [FRONTEND] First user:', users[0]);
       console.log('🔍 [FRONTEND] Has organizations property?', 'organizations' in users[0]);
       console.log('🔍 [FRONTEND] Organizations value:', users[0].organizations);
       console.log('🔍 [FRONTEND] Full user keys:', Object.keys(users[0]));
+      alert(`DEBUG: User has ${users[0].organizations?.length || 0} organizations`);
     }
-  }, [users]);
+  }, [users, usersLoading, usersError]);
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
