@@ -264,6 +264,93 @@ export function UserListComponent({
       ),
     },
     {
+      _key: 'organizations',
+      label: 'Organization(s)',
+      accessor: (user) => (
+        <div className='space-y-1'>
+          {user.organizations?.length > 0 ? (
+            user.organizations.slice(0, 2).map((org, idx) => (
+              <div
+                key={idx}
+                className='text-xs bg-blue-50 px-2 py-1 rounded'
+                data-testid={`org-badge-${user.id}-${idx}`}
+              >
+                {org.name}
+              </div>
+            ))
+          ) : (
+            <div className='text-gray-400 text-xs' data-testid={`no-organizations-${user.id}`}>
+              No organizations
+            </div>
+          )}
+          {user.organizations?.length > 2 && (
+            <div className='text-xs text-gray-500' data-testid={`more-organizations-${user.id}`}>
+              +{user.organizations.length - 2} more
+            </div>
+          )}
+        </div>
+      ),
+      hideOnMobile: true,
+    },
+    {
+      _key: 'buildings',
+      label: 'Buildings',
+      accessor: (user) => (
+        <div className='space-y-1'>
+          {user.buildings?.length > 0 ? (
+            user.buildings.slice(0, 2).map((building, idx) => (
+              <div
+                key={idx}
+                className='text-xs bg-purple-50 px-2 py-1 rounded'
+                data-testid={`building-badge-${user.id}-${idx}`}
+              >
+                {building.name}
+              </div>
+            ))
+          ) : (
+            <span className='text-gray-400 text-xs' data-testid={`no-buildings-${user.id}`}>
+              No buildings
+            </span>
+          )}
+          {user.buildings?.length > 2 && (
+            <div className='text-xs text-gray-500' data-testid={`more-buildings-${user.id}`}>
+              +{user.buildings.length - 2} more
+            </div>
+          )}
+        </div>
+      ),
+      hideOnMobile: true,
+    },
+    {
+      _key: 'residences',
+      label: 'Residences',
+      accessor: (user) => (
+        <div className='space-y-1'>
+          {user.residences?.length > 0 ? (
+            user.residences.slice(0, 2).map((residence, idx) => (
+              <div
+                key={idx}
+                className='text-xs bg-green-50 px-2 py-1 rounded'
+                data-testid={`residence-badge-${user.id}-${idx}`}
+              >
+                {residence.unitNumber}
+              </div>
+            ))
+          ) : (
+            <span className='text-gray-400 text-xs' data-testid={`no-residences-${user.id}`}>
+              No residences
+            </span>
+          )}
+          {user.residences?.length > 2 && (
+            <div className='text-xs text-gray-500' data-testid={`more-residences-${user.id}`}>
+              +{user.residences.length - 2} more
+            </div>
+          )}
+        </div>
+      ),
+      hideOnMobile: true,
+    },
+    {
       _key: 'lastLogin',
       label: t('lastLogin'),
       accessor: (user) => formatDate(user.lastLoginAt),
