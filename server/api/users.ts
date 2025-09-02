@@ -136,6 +136,8 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error('❌ Error fetching user by email:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user',
@@ -224,6 +226,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
+    } catch (error: any) {
       // Log failed user creation attempt
       logUserCreation({
         email: req.body.email || 'unknown',
@@ -244,6 +247,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      console.error('❌ Error creating user:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create user',
@@ -284,6 +288,7 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation error',
@@ -292,6 +297,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      console.error('❌ Error updating user:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update user',
@@ -330,6 +336,8 @@ export function registerUserRoutes(app: Express): void {
         message: 'User deactivated successfully',
         id: user.id,
       });
+    } catch (error: any) {
+      console.error('❌ Error deactivating user:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to deactivate user',
@@ -352,6 +360,8 @@ export function registerUserRoutes(app: Express): void {
 
       const organizations = await storage.getUserOrganizations(currentUser.id);
       res.json(organizations);
+    } catch (error: any) {
+      console.error('❌ Error getting user organizations:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user organizations',

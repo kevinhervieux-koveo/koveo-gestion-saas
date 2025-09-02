@@ -126,18 +126,21 @@ async function handleResidenceChanges(
           })
           .where(inArray(residences.id, residenceIdsToDelete));
 
+        console.log(
           `✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`
         );
 
         // Log which residences couldn't be deleted due to user relationships
         const protectedCount = residencesToDelete - deletableResidences.length;
         if (protectedCount > 0) {
+          console.log(
             `⚠️ Could not delete ${protectedCount} residences - they have active user relationships`
           );
         }
       } else {
       }
     } else {
+      console.log(
         `✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`
       );
     }
