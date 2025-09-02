@@ -47,7 +47,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
-import { UserAssignmentsTable } from '@/components/UserAssignmentsTable';
+import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
 
 // Form validation schema for editing users
 const editUserSchema = z.object({
