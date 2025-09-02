@@ -391,17 +391,6 @@ export default function UserManagement() {
 
 
 
-  // Emergency debug - this should always log
-  console.log('=== FRONTEND COMPONENT LOADING ===');
-  console.log('Users array length:', users?.length || 'undefined');
-  console.log('Users loading:', usersLoading);
-  console.log('Users error:', usersError);
-  if (users && users.length > 0) {
-    console.log('First user email:', users[0]?.email);
-    console.log('First user has organizations:', !!users[0]?.organizations);
-    console.log('First user organizations array:', users[0]?.organizations);
-    console.log('First user organizations length:', users[0]?.organizations?.length);
-  }
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
@@ -736,12 +725,6 @@ export default function UserManagement() {
                               </td>
                               <td className='border border-gray-300 px-4 py-2' data-testid={`cell-organizations-${user.id}`}>
                                 <div className='space-y-1'>
-                                  {/* FORCE DEBUG: Show raw data for ALL users */}
-                                  <div style={{fontSize: '8px', color: 'red', marginBottom: '2px'}}>
-                                    DEBUG: orgs={user.organizations?.length || 'undefined'} | 
-                                    type={typeof user.organizations} | 
-                                    exists={user.organizations ? 'YES' : 'NO'}
-                                  </div>
                                   {user.organizations?.length > 0 ? (
                                     user.organizations.map((org, idx) => (
                                       <div

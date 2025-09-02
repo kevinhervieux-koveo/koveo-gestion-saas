@@ -13,7 +13,6 @@ export { InvitationManagement } from './admin/invitation-management';
 export { OrganizationFormDialog } from './admin/organization-form-dialog';
 export { OrganizationsCard } from './admin/organizations-card';
 export { SendInvitationDialog } from './admin/send-invitation-dialog';
-export { UserListComponent } from './admin/user-list';
 export { BulkActionsBar } from './admin/bulk-actions-bar';
 
 // Auth Components
