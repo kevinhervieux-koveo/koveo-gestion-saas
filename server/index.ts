@@ -29,6 +29,37 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
+// Production cache busting middleware
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    // Set cache-busting headers for static assets
+    if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+      res.set({
+        'Cache-Control': 'public, max-age=31536000, immutable', // 1 year for hashed assets
+        'ETag': `"${Date.now()}-${Math.random()}"`, // Generate unique ETag
+      });
+    }
+    // No-cache for HTML files to prevent stale app shells
+    else if (req.url.match(/\.html$/)) {
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      });
+    }
+    // API responses should not be cached
+    else if (req.url.startsWith('/api/')) {
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'ETag': `"api-${Date.now()}-${Math.random()}"`,
+      });
+    }
+    next();
+  });
+}
+
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

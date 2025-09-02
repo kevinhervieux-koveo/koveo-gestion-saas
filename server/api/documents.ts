@@ -2088,6 +2088,18 @@ export function registerDocumentRoutes(app: Express): void {
               res.setHeader('Content-Type', 'application/octet-stream');
             }
 
+            // Production cache busting for documents
+            if (process.env.NODE_ENV === 'production') {
+              const fileStats = fs.statSync(filePathToServe);
+              res.set({
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'ETag': `"${document.id}-${fileStats.mtime.getTime()}"`,
+                'Last-Modified': fileStats.mtime.toUTCString(),
+              });
+            }
+
             console.log(`📂 Serving file: ${filePathToServe} as ${fileName}`);
             return res.sendFile(path.resolve(filePathToServe));
           }

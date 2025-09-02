@@ -142,8 +142,11 @@ export function RegistrationWizard({
 
       // Only mark final step as complete after successful submission
       updateStepCompletion(currentStep.id, true);
+    } catch (error) {
+      console.error('Wizard completion error:', error);
       // Reset step completion on error to allow retry
       updateStepCompletion(currentStep.id, false);
+    } finally {
       setIsSubmitting(false);
     }
   };

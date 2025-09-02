@@ -40,6 +40,7 @@ interface Law25ComplianceData {
     line: number;
     category: string;
     law25Aspect: string;
+    severity: string;
   }>;
 }
 
@@ -105,12 +106,16 @@ export function Law25Compliance() {
     return labels[category as keyof typeof labels] || category;
   };
 
+  const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'error':
         return 'text-red-600 bg-red-50';
+      case 'warning':
         return 'text-yellow-600 bg-yellow-50';
       case 'info':
         return 'text-blue-600 bg-blue-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
     }
   };
 
@@ -253,6 +258,7 @@ export function Law25Compliance() {
                     className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
                       violation.severity === 'error'
                         ? 'bg-red-500'
+                        : violation.severity === 'warning'
                           ? 'bg-yellow-500'
                           : 'bg-blue-500'
                     }`}
