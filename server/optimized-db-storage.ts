@@ -144,6 +144,87 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * Retrieves all active users with their assignments (organizations, buildings, residences).
+   */
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    return this.withOptimizations('getUsersWithAssignments', 'all_users_assignments', 'users', async () => {
+      // Get all users first
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.isActive, true))
+        .limit(100)
+        .orderBy(desc(schema.users.createdAt));
+
+      // For each user, fetch their assignments
+      const usersWithAssignments = await Promise.all(
+        users.map(async (user) => {
+          // Get user organizations
+          const userOrgs = await db
+            .select({
+              id: schema.organizations.id,
+              name: schema.organizations.name,
+              type: schema.organizations.type,
+            })
+            .from(schema.userOrganizations)
+            .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, user.id),
+                eq(schema.userOrganizations.isActive, true),
+                eq(schema.organizations.isActive, true)
+              )
+            );
+
+          // Get user buildings (through organization relationships)
+          const userBuildings = await db
+            .select({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+            })
+            .from(schema.userOrganizations)
+            .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, user.id),
+                eq(schema.userOrganizations.isActive, true),
+                eq(schema.buildings.isActive, true)
+              )
+            );
+
+          // Get user residences
+          const userResidences = await db
+            .select({
+              id: schema.residences.id,
+              unitNumber: schema.residences.unitNumber,
+              buildingId: schema.residences.buildingId,
+              buildingName: schema.buildings.name,
+            })
+            .from(schema.userResidences)
+            .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+            .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+            .where(
+              and(
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.isActive, true),
+                eq(schema.residences.isActive, true)
+              )
+            );
+
+          return {
+            ...user,
+            organizations: userOrgs,
+            buildings: userBuildings,
+            residences: userResidences,
+          };
+        })
+      );
+
+      return usersWithAssignments;
+    });
+  }
+
+  /**
    * Retrieves users from organizations that a specific user has access to.
    * @param userId
    */

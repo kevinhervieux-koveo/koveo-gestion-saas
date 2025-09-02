@@ -52,6 +52,7 @@ import { randomUUID } from 'crypto';
 export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
+  getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
   getUser(_id: string): Promise<User | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
@@ -261,6 +262,17 @@ export class MemStorage implements IStorage {
   // User operations
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    // For MemStorage, just return users with empty assignments arrays
+    const users = Array.from(this.users.values());
+    return users.map(user => ({
+      ...user,
+      organizations: [],
+      buildings: [],
+      residences: []
+    }));
   }
 
   async getUsersByOrganizations(_userId: string): Promise<User[]> {
@@ -989,6 +1001,14 @@ class ProductionFallbackStorage implements IStorage {
 
   async getUsers(): Promise<User[]> {
     return await this.safeDbOperation(() => this.dbStorage.getUsers());
+  }
+
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    try {
+      return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
+    } catch {
+      return this.memStorage.getUsersWithAssignments();
+    }
   }
 
   async getUsersByOrganizations(userId: string): Promise<User[]> {

@@ -43,27 +43,28 @@ export function registerUserRoutes(app: Express): void {
 
       console.warn(`📊 Fetching users for user ${currentUser.id} with role ${currentUser.role}`);
 
-      let users;
+      // Get users with their full assignment data
+      const usersWithAssignments = await storage.getUsersWithAssignments();
 
+      console.warn(`✅ Found ${usersWithAssignments.length} users for user ${currentUser.id}`);
+
+      // Filter users based on current user's role and permissions
+      let filteredUsers;
       if (currentUser.role === 'admin') {
         // Admin can see all users
-        users = await storage.getUsers();
+        filteredUsers = usersWithAssignments;
       } else {
         // Managers and other users can only see users from their organizations
-        users = await storage.getUsersByOrganizations(currentUser.id);
+        // Get the organization IDs that the current user has access to
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        
+        // Filter users to only include those from accessible organizations
+        filteredUsers = usersWithAssignments.filter(user =>
+          user.organizations.some(org => userOrgIds.includes(org.id))
+        );
       }
 
-      console.warn(`✅ Found ${users.length} users for user ${currentUser.id}`);
-
-      // Return users with basic assignment structure to avoid database connection issues
-      const enhancedUsers = users.map((user) => ({
-        ...user,
-        organizations: [],
-        buildings: [], 
-        residences: [],
-      }));
-
-      res.json(enhancedUsers);
+      res.json(filteredUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       res.status(500).json({
