@@ -381,7 +381,7 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/admin/all-user-organizations - Get all user-organization relationships (admin only).
+   * GET /api/admin/all-user-organizations - Get user-organization relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-organizations', requireAuth, async (req: any, res) => {
     try {
@@ -393,37 +393,73 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can access all user assignments
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can access user assignments
+      if (!['admin', 'manager'].includes(currentUser.role)) {
         return res.status(403).json({
-          message: 'Only administrators can view all user assignments',
+          message: 'Insufficient permissions to view user assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
-      // Get all user-organization relationships
-      const userOrganizations = await db
-        .select({
-          userId: schema.userOrganizations.userId,
-          organizationId: schema.userOrganizations.organizationId,
-          organizationRole: schema.userOrganizations.organizationRole,
-          isActive: schema.userOrganizations.isActive,
-        })
-        .from(schema.userOrganizations)
-        .where(eq(schema.userOrganizations.isActive, true));
+      let userOrganizations;
+
+      if (currentUser.role === 'admin') {
+        // Admin sees all user-organization relationships
+        userOrganizations = await db
+          .select({
+            userId: schema.userOrganizations.userId,
+            organizationId: schema.userOrganizations.organizationId,
+            organizationRole: schema.userOrganizations.organizationRole,
+            isActive: schema.userOrganizations.isActive,
+          })
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+      } else {
+        // Manager sees only relationships for their organizations
+        const managerOrgs = await db
+          .select({ organizationId: schema.userOrganizations.organizationId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+
+        const orgIds = managerOrgs.map((org) => org.organizationId);
+
+        if (orgIds.length === 0) {
+          return res.json([]);
+        }
+
+        userOrganizations = await db
+          .select({
+            userId: schema.userOrganizations.userId,
+            organizationId: schema.userOrganizations.organizationId,
+            organizationRole: schema.userOrganizations.organizationRole,
+            isActive: schema.userOrganizations.isActive,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.isActive, true),
+              inArray(schema.userOrganizations.organizationId, orgIds)
+            )
+          );
+      }
 
       res.json(userOrganizations);
     } catch (error) {
-      console.error('Failed to get all user organizations:', error);
+      console.error('Failed to get user organizations:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to get all user organizations',
+        message: 'Failed to get user organizations',
       });
     }
   });
 
   /**
-   * GET /api/admin/all-user-residences - Get all user-residence relationships (admin only).
+   * GET /api/admin/all-user-residences - Get user-residence relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-residences', requireAuth, async (req: any, res) => {
     try {
@@ -435,33 +471,89 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can access all user assignments
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can access user assignments
+      if (!['admin', 'manager'].includes(currentUser.role)) {
         return res.status(403).json({
-          message: 'Only administrators can view all user assignments',
+          message: 'Insufficient permissions to view user assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
-      // Get all user-residence relationships
-      const userResidences = await db
-        .select({
-          userId: schema.userResidences.userId,
-          residenceId: schema.userResidences.residenceId,
-          relationshipType: schema.userResidences.relationshipType,
-          startDate: schema.userResidences.startDate,
-          endDate: schema.userResidences.endDate,
-          isActive: schema.userResidences.isActive,
-        })
-        .from(schema.userResidences)
-        .where(eq(schema.userResidences.isActive, true));
+      let userResidences;
+
+      if (currentUser.role === 'admin') {
+        // Admin sees all user-residence relationships
+        userResidences = await db
+          .select({
+            userId: schema.userResidences.userId,
+            residenceId: schema.userResidences.residenceId,
+            relationshipType: schema.userResidences.relationshipType,
+            startDate: schema.userResidences.startDate,
+            endDate: schema.userResidences.endDate,
+            isActive: schema.userResidences.isActive,
+          })
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+      } else {
+        // Manager sees only relationships for residences in their organizations
+        const managerOrgs = await db
+          .select({ organizationId: schema.userOrganizations.organizationId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+
+        const orgIds = managerOrgs.map((org) => org.organizationId);
+
+        if (orgIds.length === 0) {
+          return res.json([]);
+        }
+
+        // Get residences in manager's organizations
+        const accessibleResidences = await db
+          .select({ residenceId: schema.residences.id })
+          .from(schema.residences)
+          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+          .where(
+            and(
+              inArray(schema.buildings.organizationId, orgIds),
+              eq(schema.residences.isActive, true)
+            )
+          );
+
+        const residenceIds = accessibleResidences.map((res) => res.residenceId);
+
+        if (residenceIds.length === 0) {
+          return res.json([]);
+        }
+
+        userResidences = await db
+          .select({
+            userId: schema.userResidences.userId,
+            residenceId: schema.userResidences.residenceId,
+            relationshipType: schema.userResidences.relationshipType,
+            startDate: schema.userResidences.startDate,
+            endDate: schema.userResidences.endDate,
+            isActive: schema.userResidences.isActive,
+          })
+          .from(schema.userResidences)
+          .where(
+            and(
+              eq(schema.userResidences.isActive, true),
+              inArray(schema.userResidences.residenceId, residenceIds)
+            )
+          );
+      }
 
       res.json(userResidences);
     } catch (error) {
-      console.error('Failed to get all user residences:', error);
+      console.error('Failed to get user residences:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to get all user residences',
+        message: 'Failed to get user residences',
       });
     }
   });

@@ -120,16 +120,16 @@ export default function UserManagement() {
     queryKey: ['/api/auth/user'],
   });
 
-  // Fetch user organizations (all assignments for admin view)
+  // Fetch user organizations (admin sees all, manager sees filtered by their orgs)
   const { data: userOrganizations = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/all-user-organizations'],
-    enabled: currentUser?.role === 'admin',
+    enabled: currentUser?.role === 'admin' || currentUser?.role === 'manager',
   });
 
-  // Fetch user residences (all assignments for admin view)
+  // Fetch user residences (admin sees all, manager sees filtered by their orgs)
   const { data: userResidences = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/all-user-residences'],
-    enabled: currentUser?.role === 'admin',
+    enabled: currentUser?.role === 'admin' || currentUser?.role === 'manager',
   });
 
   // Bulk action handler
