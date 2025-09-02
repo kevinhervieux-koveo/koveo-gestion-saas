@@ -49,7 +49,7 @@
     "quality:check": "npx tsx scripts/quick-quality-check.ts",
     "quality:full": "npx tsx scripts/run-quality-check.ts",
     "quality:consolidation": "npx tsx scripts/run-consolidation-quality.ts",
-    "validate:all": "npx tsx scripts/enhanced-validate-all.ts",
+    "validate:all": "npx tsx scripts/validation-suite.ts",
     "validate:routes": "npx tsx scripts/validate-routes.ts",
     "validate:deployment": "npx tsx scripts/deployment-validation.ts",
     "validate:organization": "npx tsx scripts/validate-organization.ts",
