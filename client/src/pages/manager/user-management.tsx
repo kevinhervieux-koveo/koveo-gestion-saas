@@ -87,50 +87,14 @@ export default function UserManagement() {
   const [sort, setSort] = useState<SortValue | null>(null);
   const [search, setSearch] = useState('');
 
-  // Fetch users with aggressive cache busting
+  // Fetch users 
   const {
     data: users = [],
     isLoading: usersLoading,
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users', Date.now()], // Add timestamp to force fresh request
-    enabled: true,
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache
-    retry: false, // Don't retry to avoid confusion
+    queryKey: ['/api/users'],
   });
-
-  // Add direct API test to see raw response
-  React.useEffect(() => {
-    const testDirectAPI = async () => {
-      try {
-        console.log('🧪 [DIRECT API TEST] Making direct fetch...');
-        const response = await fetch('/api/users', {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🧪 [DIRECT API TEST] Raw API response array length:', data.length);
-          console.log('🧪 [DIRECT API TEST] Full Raw API response:', data);
-          if (data[0]) {
-            console.log('🧪 [DIRECT API TEST] First user from direct API:', JSON.stringify(data[0], null, 2));
-            console.log('🧪 [DIRECT API TEST] First user organizations array:', data[0].organizations);
-            console.log('🧪 [DIRECT API TEST] First user buildings array:', data[0].buildings);
-            console.log('🧪 [DIRECT API TEST] First user residences array:', data[0].residences);
-            console.log('🧪 [DIRECT API TEST] Organization array length:', data[0].organizations?.length);
-            console.log('🧪 [DIRECT API TEST] Buildings array length:', data[0].buildings?.length);
-            console.log('🧪 [DIRECT API TEST] Residences array length:', data[0].residences?.length);
-          }
-        } else {
-          console.log('🧪 [DIRECT API TEST] API failed:', response.status, response.statusText);
-        }
-      } catch (error) {
-        console.log('🧪 [DIRECT API TEST] API error:', error);
-      }
-    };
-    
-    testDirectAPI();
-  }, []);
 
 
   // Fetch organizations
@@ -427,26 +391,12 @@ export default function UserManagement() {
 
 
 
+  // Quick debug to see if data is available
+  console.log('Users data:', users.length, users[0]?.email, users[0]?.organizations?.length);
+
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
     let result = [...users];
-
-    // Debug: Log data structure and API response
-    if (users.length > 0) {
-      console.log('🔍 [FRONTEND] First user full object:', JSON.stringify(users[0], null, 2));
-      console.log('🔍 [FRONTEND] First user data structure:', {
-        email: users[0].email,
-        organizationsExists: !!users[0].organizations,
-        organizationsLength: users[0].organizations?.length,
-        organizationsData: users[0].organizations,
-        buildingsExists: !!users[0].buildings,
-        buildingsLength: users[0].buildings?.length,
-        buildingsData: users[0].buildings,
-        residencesExists: !!users[0].residences,
-        residencesLength: users[0].residences?.length,
-        residencesData: users[0].residences,
-      });
-    }
 
     // Apply search
     if (search) {

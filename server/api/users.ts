@@ -73,29 +73,6 @@ export function registerUserRoutes(app: Express): void {
         console.warn('🔥 [FILTER DEBUG] Filtered users count:', filteredUsers.length);
       }
 
-      // Final debug: Log what we're sending to frontend
-      console.warn('🔥 [API FINAL] Sending to frontend:', {
-        totalUsers: filteredUsers.length,
-        firstUser: filteredUsers[0] ? {
-          email: filteredUsers[0].email,
-          organizationsCount: filteredUsers[0].organizations?.length || 0,
-          buildingsCount: filteredUsers[0].buildings?.length || 0,
-          residencesCount: filteredUsers[0].residences?.length || 0,
-          firstOrg: filteredUsers[0].organizations?.[0]
-        } : 'No users',
-      });
-
-      // Log the exact structure of the first user being sent
-      if (filteredUsers[0]) {
-        console.warn('🔥 [EXACT STRUCTURE] First user full object:', JSON.stringify({
-          id: filteredUsers[0].id,
-          email: filteredUsers[0].email,
-          organizations: filteredUsers[0].organizations,
-          buildings: filteredUsers[0].buildings,
-          residences: filteredUsers[0].residences,
-        }, null, 2));
-      }
-
       res.json(filteredUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
