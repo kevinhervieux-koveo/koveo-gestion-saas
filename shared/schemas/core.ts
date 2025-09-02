@@ -180,7 +180,6 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
   details: json('details'),
   previousStatus: invitationStatusEnum('previous_status'),
   newStatus: invitationStatusEnum('new_status'),
-  timestamp: timestamp('timestamp'), // Legacy timestamp column to preserve existing data
   createdAt: timestamp('created_at').defaultNow(),
 });
 
