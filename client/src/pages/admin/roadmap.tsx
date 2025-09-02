@@ -192,7 +192,6 @@ export default function OwnerRoadmap() {
   });
 
   // Minimal debug logging only for actual errors
-  }
 
   /**
    * Fetches actionable items for a specific feature.

@@ -96,6 +96,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       // Close the dialog
       handleClose(false);
     },
+    onError: () => {
       toast({
         title: 'Integration Failed',
         description: 'Failed to add the feature to the roadmap. Please try again.',
@@ -146,6 +147,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'The development prompt has been saved as an actionable item.',
       });
     },
+    onError: () => {
       toast({
         title: 'Save Failed',
         description: 'Failed to save the prompt as an actionable item.',
@@ -227,6 +229,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
+    } catch (error) {
+      console.error('Error saving draft:', error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -249,6 +253,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
+    } catch (error) {
+      console.error('Error loading draft:', error);
     }
   }, [feature?.id, getDraftKey]);
 
@@ -260,6 +266,9 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
+    } catch (error) {
+      console.error('Error clearing draft:', error);
+    }
 
       toast({
         title: 'Draft Cleared',
@@ -587,10 +596,13 @@ ${formData.additionalNotes || 'No additional notes'}
             if (draftData.formData?.featureCategory === 'Strategic Path') {
               window.localStorage.removeItem(key);
             }
+          } catch (error) {
             // Invalid JSON, remove it
             window.localStorage.removeItem(key);
           }
         });
+      } catch (error) {
+        console.error('Error clearing invalid drafts:', error);
       }
 
       loadDraft();
