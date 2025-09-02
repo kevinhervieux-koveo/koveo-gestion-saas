@@ -161,6 +161,44 @@ export function registerDocumentRoutes(app: Express): void {
     }
   };
   
+  // Enum cleanup endpoint for safe schema migration  
+  app.post('/api/documents/cleanup-enum', async (req, res) => {
+    try {
+      // First, verify no users have the 'owner' role
+      const userCheck = await db.execute(sql`
+        SELECT COUNT(*) as owner_count 
+        FROM users 
+        WHERE role = 'owner'
+      `);
+      
+      const ownerCount = Number(userCheck.rows[0]?.owner_count) || 0;
+      
+      if (ownerCount > 0) {
+        return res.status(400).json({
+          error: 'Cannot remove owner role - users still assigned to it',
+          owner_count: ownerCount
+        });
+      }
+
+      // Safe to remove - no users have 'owner' role
+      await db.execute(sql`
+        ALTER TYPE user_role DROP VALUE IF EXISTS 'owner'
+      `);
+
+      res.json({
+        message: 'Successfully removed unused owner role',
+        safe_to_push_schema: true,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Enum cleanup failed',
+        message: error.message,
+        suggestion: 'Try running npm run db:push --force instead'
+      });
+    }
+  });
+
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
     try {
