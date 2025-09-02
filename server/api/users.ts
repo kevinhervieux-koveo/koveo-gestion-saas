@@ -56,8 +56,12 @@ export function registerUserRoutes(app: Express): void {
       console.warn(`✅ Found ${users.length} users for user ${currentUser.id}`);
 
       // Enhance users with assignment data
-      const enhancedUsers = await Promise.all(users.map(async (user) => {
-        let userOrganizations, userResidences;
+      console.warn(`🔍 Starting assignment enhancement for ${users.length} users`);
+      
+      const enhancedUsers = await Promise.all(users.map(async (user, index) => {
+        try {
+          console.warn(`🔍 Processing user ${index + 1}/${users.length}: ${user.email}`);
+          let userOrganizations, userResidences;
 
         if (currentUser.role === 'admin') {
           // Admin sees all user assignments
@@ -181,12 +185,25 @@ export function registerUserRoutes(app: Express): void {
           index === self.findIndex(b => b.id === building.id)
         ) : [];
 
-        return {
+        const enhancedUser = {
           ...user,
           organizations: organizations || [],
           residences: residences || [],
           buildings: buildings || [],
         };
+
+        console.warn(`✅ Enhanced user ${user.email}: ${organizations.length} orgs, ${buildings.length} buildings, ${residences.length} residences`);
+        
+        return enhancedUser;
+        } catch (error) {
+          console.error(`❌ Error enhancing user ${user.email}:`, error);
+          return {
+            ...user,
+            organizations: [],
+            residences: [],
+            buildings: [],
+          };
+        }
       }));
 
       res.json(enhancedUsers);
