@@ -92,7 +92,10 @@ const uploadDocumentRecordSchema = z.object({
 export function registerDocumentRoutes(app: Express): void {
   console.log(`[${new Date().toISOString()}] 🔧 Registering document routes...`);
   
-  // Diagnostic endpoint to verify deployment
+  // Error tracking for production debugging
+  const errorLog: Array<{timestamp: string, error: any, endpoint: string, user?: any}> = [];
+  
+  // Enhanced diagnostic endpoint
   app.get('/api/documents/diagnostic', (req, res) => {
     res.json({
       message: 'Document API diagnostic',
@@ -100,9 +103,36 @@ export function registerDocumentRoutes(app: Express): void {
       session_fix_applied: true,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
-      version: 'v2.1-gcs-disabled'
+      version: 'v2.1-gcs-disabled',
+      recent_errors: errorLog.slice(-5), // Last 5 errors
+      storage_status: {
+        exists: !!storage,
+        type: storage?.constructor?.name,
+        methods: Object.getOwnPropertyNames(Object.getPrototypeOf(storage || {}))
+      }
     });
   });
+  
+  // Error logging helper
+  const logError = (endpoint: string, error: any, user?: any) => {
+    const errorEntry = {
+      timestamp: new Date().toISOString(),
+      endpoint,
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        details: error.toString()
+      },
+      user: user ? { id: user.id, role: user.role } : null
+    };
+    
+    errorLog.push(errorEntry);
+    if (errorLog.length > 50) errorLog.shift(); // Keep only last 50 errors
+    
+    console.error(`[${errorEntry.timestamp}] 🚨 ERROR in ${endpoint}:`, errorEntry);
+    return errorEntry;
+  };
   
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
@@ -351,10 +381,12 @@ export function registerDocumentRoutes(app: Express): void {
       };
       res.json(response);
     } catch (_error) {
-      const errorTimestamp = new Date().toISOString();
-      console.error(`[${errorTimestamp}] ❌ GET /api/documents FAILED:`, _error);
-      console.error(`[${errorTimestamp}] Error stack:`, _error instanceof Error ? _error.stack : 'No stack trace');
-      res.status(500).json({ message: 'Failed to fetch documents' });
+      const errorEntry = logError('GET /api/documents', _error, req.user);
+      res.status(500).json({ 
+        message: 'Failed to fetch documents',
+        error_id: errorEntry.timestamp,
+        debug_info: process.env.NODE_ENV === 'development' ? _error.message : undefined
+      });
     }
   });
 
@@ -1086,7 +1118,7 @@ export function registerDocumentRoutes(app: Express): void {
         document: newDocument,
       });
     } catch (error: any) {
-      console.error('DocumentRecord upload error:', error);
+      const errorEntry = logError('POST /api/documents/upload', error, req.user);
 
       // Clean up temporary file on error
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
@@ -1102,6 +1134,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(400).json({
           message: 'Validation error',
           errors: error.errors,
+          error_id: errorEntry.timestamp
         });
       }
 
@@ -1110,6 +1143,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(500).json({
           message: 'File upload failed',
           error: 'Storage service error',
+          error_id: errorEntry.timestamp
         });
       }
 
@@ -1118,6 +1152,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(409).json({
           message: 'DocumentRecord path conflict - please try uploading again',
           error: 'Path already exists',
+          error_id: errorEntry.timestamp
         });
       }
 
@@ -1126,6 +1161,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(500).json({
           message: 'Failed to save document record',
           error: 'Database error',
+          error_id: errorEntry.timestamp
         });
       }
 
@@ -1133,6 +1169,8 @@ export function registerDocumentRoutes(app: Express): void {
       res.status(500).json({
         message: 'Internal server error',
         error: 'DocumentRecord upload failed',
+        error_id: errorEntry.timestamp,
+        debug_info: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });
