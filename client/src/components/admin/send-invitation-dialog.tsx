@@ -382,6 +382,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   const organizationId = form.watch('organizationId');
   
   const availableRoles = useMemo(() => {
+    // Return empty array if no organization is selected
+    if (!organizationId) {
+      console.log('🔍 [ROLE DEBUG] No organization selected, returning empty roles');
+      return [];
+    }
+
     const selectedOrg = organizations?.find((org) => org.id === organizationId);
     const isDemoOrg = selectedOrg?.type === 'demo';
 
@@ -485,6 +491,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       key={`role-select-${organizationId}`}
                       onValueChange={field.onChange} 
                       value={field.value}
+                      disabled={!organizationId}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -492,7 +499,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableRoles.map((role) => (
+                        {organizationId ? availableRoles.map((role) => (
                           <SelectItem key={role} value={role}>
                             <div className='flex items-center gap-2'>
                               <Shield className='h-4 w-4' />
@@ -511,7 +518,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                                           : 'Demo Resident'}
                             </div>
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="" disabled>
+                            Please select an organization first
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
