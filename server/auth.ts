@@ -291,7 +291,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     next();
+  } catch (error: any) {
     // Authentication error handled
+    console.error('❌ Authentication error:', error);
     return res.status(500).json({
       message: 'Authentication error',
       code: 'AUTH_ERROR',
@@ -394,7 +396,9 @@ export function authorize(permission: string) {
       }
 
       next();
+    } catch (error: any) {
       // Authorization error handled
+      console.error('❌ Authorization error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -507,6 +511,7 @@ export function setupAuthRoutes(app: any) {
           message: 'Login successful',
         });
       });
+    } catch (_error: any) {
       console.error('Login error details:', {
         error: _error,
         email: req.body?.email,
@@ -602,6 +607,8 @@ export function setupAuthRoutes(app: any) {
           code: 'AUTH_CHECK_ERROR',
         });
       }
+    } catch (error: any) {
+      console.error('❌ Auth check error:', error);
       res.status(500).json({
         message: 'Authentication check failed',
         code: 'AUTH_CHECK_ERROR',

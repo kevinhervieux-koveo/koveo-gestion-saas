@@ -41,6 +41,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
+      console.log(
         `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -99,11 +100,14 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
+      console.log(
         `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
       );
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
+    } catch (error: any) {
+      console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',

@@ -62,6 +62,8 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const permissions = await storage.getPermissions();
       res.json(permissions);
+    } catch (error: any) {
+      console.error('❌ Error fetching permissions:', error);
       res.status(500).json({ message: 'Failed to fetch permissions' });
     }
   });
@@ -71,6 +73,8 @@ export function registerPermissionsRoutes(app: Express) {
     try {
       const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
+    } catch (error: any) {
+      console.error('❌ Error fetching role permissions:', error);
       res.status(500).json({ message: 'Failed to fetch role permissions' });
     }
   });
