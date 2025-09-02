@@ -543,58 +543,62 @@ export function setupAuthRoutes(app: any) {
   // Get current user route
   app.get('/api/auth/user', async (req: Request, res: Response) => {
     try {
-      // 🚨 EMERGENCY PRODUCTION SESSION CHECK - Support emergency login sessions
-      if (
-        process.env.NODE_ENV === 'production' &&
-        req.session?.userId === 'f35647de-5f16-46f2-b30b-09e0469356b1' &&
-        req.session?.userRole === 'admin'
-      ) {
-        console.log('🚨 Emergency session detected - returning admin user data');
+      console.log('🔍 [AUTH DEBUG] Checking user session...', {
+        hasSession: !!req.session,
+        sessionUserId: req.session?.userId,
+        sessionKeys: req.session ? Object.keys(req.session) : []
+      });
 
-        return res.json({
-          id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
-          username: 'kevin.hervieux',
-          email: 'kevin.hervieux@koveo-gestion.com',
-          firstName: 'Kevin',
-          lastName: 'Hervieux',
-          phone: '',
-          profileImage: '',
-          language: 'fr',
-          role: 'admin',
-          isActive: true,
-          lastLoginAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+      // Check if we have a valid session with user ID
+      if (!req.session?.userId) {
+        console.log('❌ [AUTH DEBUG] No session or userId found');
+        return res.status(401).json({
+          message: 'Not authenticated',
+          code: 'NOT_AUTHENTICATED',
         });
       }
 
-      // Normal auth flow - check with requireAuth middleware, but handle database failures gracefully
+      // Try to get user from database
       try {
-        const authMiddleware = requireAuth;
-        authMiddleware(req, res, async () => {
-          if (!req.user) {
-            return res.status(401).json({
-              message: 'Not authenticated',
-              code: 'NOT_AUTHENTICATED',
-            });
-          }
-
-          const { password: _, ...userData } = req.user;
-          res.json(userData);
+        const user = await storage.getUser(req.session.userId);
+        console.log('🔍 [AUTH DEBUG] User lookup result:', {
+          found: !!user,
+          isActive: user?.isActive,
+          email: user?.email
         });
-      } catch (authError) {
-        // If normal auth fails in production and we have a session, provide fallback
-        if (process.env.NODE_ENV === 'production' && req.session?.userId) {
-          console.log('🚨 Auth middleware failed, checking for emergency session fallback');
+
+        if (!user || !user.isActive) {
+          console.log('❌ [AUTH DEBUG] User not found or inactive, destroying session');
+          req.session.destroy((err) => {
+            if (err) {
+              console.error('Session destruction error:', err);
+            }
+          });
           return res.status(401).json({
-            message: 'Session verification failed',
-            code: 'SESSION_VERIFICATION_FAILED',
+            message: 'User account not found or inactive',
+            code: 'USER_INACTIVE',
           });
         }
-        throw authError;
+
+        // Touch session to extend expiry
+        if (req.session && req.session.touch) {
+          req.session.touch();
+        }
+
+        // Return user data without password
+        const { password: _, ...userData } = user;
+        console.log('✅ [AUTH DEBUG] Successfully authenticated user:', userData.email);
+        res.json(userData);
+
+      } catch (userError) {
+        console.error('❌ [AUTH DEBUG] Database error getting user:', userError);
+        return res.status(500).json({
+          message: 'Authentication check failed',
+          code: 'AUTH_CHECK_ERROR',
+        });
       }
     } catch (error) {
-      console.error('Auth user check error:', error);
+      console.error('❌ [AUTH DEBUG] Critical auth error:', error);
       res.status(500).json({
         message: 'Authentication check failed',
         code: 'AUTH_CHECK_ERROR',
