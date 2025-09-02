@@ -481,4 +481,3 @@ export function CalendarView({
       </Card>
     </TooltipProvider>
   );
-}

@@ -2101,14 +2101,8 @@ Budget() {
                                   });
 
                                   setMinimumBalancesDialog(false);
-                                  /**
-                                   * Catch function.
-                                   * @param _error - _error parameter.
-                                   */ /**
-                                   * Catch function.
-                                   * @param _error - _error parameter.
-                                   */
-
+                                } catch (error) {
+                                  console.error('Error updating minimum balances:', error);
                                   toast({
                                     title: language === 'fr' ? 'Erreur' : 'Error',
                                     description:

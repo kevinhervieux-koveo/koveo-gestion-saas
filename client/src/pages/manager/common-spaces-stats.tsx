@@ -289,8 +289,9 @@ function CommonSpacesStatsPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
-      toast({
+      try {
+        queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
+        toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: isEditMode
           ? language === 'fr'
@@ -323,7 +324,8 @@ function CommonSpacesStatsPage() {
           sunday: { start: '09:00', end: '21:00' },
         },
       });
-    },
+    } catch (error) {
+      console.error('Error creating/updating space:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: isEditMode

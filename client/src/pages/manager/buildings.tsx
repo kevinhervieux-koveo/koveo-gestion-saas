@@ -716,4 +716,3 @@ export default function Buildings() {
       </div>
     </div>
   );
-}

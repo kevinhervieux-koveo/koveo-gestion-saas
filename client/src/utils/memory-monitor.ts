@@ -118,6 +118,8 @@ export class MemoryOptimizer {
     this.cleanupCallbacks.forEach((callback) => {
       try {
         callback();
+      } catch (error) {
+        console.error('Cleanup callback error:', error);
       }
     });
 
@@ -148,8 +150,6 @@ export class MemoryOptimizer {
     const usage = getMemoryUsage();
     if (!usage) {
       return;
-    }
-
     }
 
     if (usage.used >= this.config.cleanupThreshold) {

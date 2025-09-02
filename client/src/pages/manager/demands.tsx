@@ -190,13 +190,7 @@ export default function ManagerDemandsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      }); /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */ /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
+      });
 
       if (!response.ok) {
         throw new Error('Failed to create demand');
@@ -212,6 +206,8 @@ export default function ManagerDemandsPage() {
         description: 'Demand created successfully',
       });
     },
+    onError: (error: any) => {
+      console.error('Error creating demand:', error);
       toast({
         title: 'Error',
         description: 'Failed to create demand',

@@ -128,6 +128,10 @@ export function Sidebar() {
       await logout();
       // Fallback: still redirect to login page
       window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect on error
+      window.location.href = '/login';
     }
   };
 

@@ -13,7 +13,9 @@ export function useFullscreen() {
       } else {
         await document.exitFullscreen();
       }
+    } catch (error) {
       // Silently handle fullscreen errors
+      console.error('Fullscreen toggle error:', error);
     }
   }, []);
 
@@ -22,7 +24,9 @@ export function useFullscreen() {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       }
+    } catch (error) {
       // Silently handle fullscreen errors
+      console.error('Exit fullscreen error:', error);
     }
   }, []);
 
@@ -31,7 +35,9 @@ export function useFullscreen() {
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       }
+    } catch (error) {
       // Silently handle fullscreen errors
+      console.error('Enter fullscreen error:', error);
     }
   }, []);
 

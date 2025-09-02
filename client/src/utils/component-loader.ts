@@ -69,13 +69,14 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
         }
 
         return module;
+      } catch (error) {
         attempts++;
         if (attempts >= retryAttempts) {
           console.error(
             `Failed to load component ${_key} after ${retryAttempts} attempts:`,
-            _error
+            error
           );
-          throw _error;
+          throw error;
         }
 
         // Wait before retry with exponential backoff

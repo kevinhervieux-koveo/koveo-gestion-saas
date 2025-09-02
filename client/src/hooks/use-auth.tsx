@@ -73,8 +73,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         return (await response.json()) as User;
+      } catch (error) {
         // Silently handle auth failures on public pages
         if (!isPublicPage) {
+          console.error('Auth error:', error);
         }
         return null;
       }

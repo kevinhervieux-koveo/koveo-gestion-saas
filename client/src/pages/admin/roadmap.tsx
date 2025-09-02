@@ -215,6 +215,8 @@ export default function OwnerRoadmap() {
       } else {
         console.error('Failed to fetch actionable items:', response.statusText);
       }
+    } catch (error) {
+      console.error('Error fetching actionable items:', error);
     }
   }, []);
 
@@ -229,6 +231,8 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
