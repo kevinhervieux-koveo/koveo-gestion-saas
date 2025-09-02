@@ -83,6 +83,7 @@ const emailService = new EmailService();
 
 // Use shared database connection from db.ts to avoid multiple pools
 import { db, pool } from './db';
+import { Pool } from '@neondatabase/serverless';
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
@@ -94,14 +95,37 @@ const PostgreSqlStore = connectPg(session);
  */
 function createSessionStore() {
   try {
+    // Create a proper PostgreSQL pool for the session store
+    // connect-pg-simple needs a real PostgreSQL pool, not the Neon HTTP client
+    const sessionPool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      max: 2, // Small pool for sessions
+      min: 1,
+    });
+    
     // Use PostgreSQL session store for persistent sessions
     const store = new PostgreSqlStore({
-      pool: pool,
+      pool: sessionPool,
       tableName: 'session',
       createTableIfMissing: false, // Table already exists
       errorLog: console.error, // Add error logging
+      
+      // Add explicit configuration for session retrieval
+      pruneSessionInterval: 60 * 1000, // Clean up expired sessions every minute
+      schemaName: 'public', // Explicitly set schema
     });
-    console.log('✅ Session store: PostgreSQL session store created successfully');
+    
+    console.log('✅ Session store: PostgreSQL session store created with proper pool');
+    
+    // Test the store connection
+    store.get('test-session-id', (err, session) => {
+      if (err) {
+        console.error('❌ Session store connection test failed:', err);
+      } else {
+        console.log('✅ Session store connection test passed');
+      }
+    });
+    
     return store;
   } catch (error: any) {
     console.error('❌ Session store creation failed:', error);
