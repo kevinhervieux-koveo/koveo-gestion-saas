@@ -115,9 +115,9 @@ export class MonthlyBudgetService {
         year,
         month,
         incomeTypes: incomeCategories,
-        incomes: incomes.map((amount) => amount.toString()), // Convert to string for decimal array
+        incomes: incomes, // Keep as number array
         spendingTypes: expenseCategories,
-        spendings: spendings.map((amount) => amount.toString()), // Convert to string for decimal array
+        spendings: spendings, // Keep as number array
         approved: false,
         approvedBy: undefined,
         originalBudgetId: undefined,

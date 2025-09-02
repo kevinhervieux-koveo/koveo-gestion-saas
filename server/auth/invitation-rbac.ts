@@ -213,7 +213,7 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
     const key = `${req.user?.id || req.ip}:${req.method}:${req.path}`;
     const now = Date.now();
 
-    const current = rateLimitStore.get(_key);
+    const current = rateLimitStore.get(key);
 
     if (!current || now > current.resetTime) {
       rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
@@ -389,30 +389,30 @@ export class InvitationPermissionValidator {
  * Enhanced RBAC middleware specifically for invitation operations.
  * Combines role-based permissions with context-aware validation.
  * @param action
- * @param options
- * @param options.validateContext
- * @param options.requireOwnership
- * @param options.allowSelfAccess
- * @param options.auditAction
- */
-/**
- * RequireInvitationPermission function.
- * @param action
- * @param options
- * @param options.validateContext
- * @param options.requireOwnership
- * @param options.allowSelfAccess
- * @param options.auditAction
  * @param _options
  * @param _options.validateContext
  * @param _options.requireOwnership
  * @param _options.allowSelfAccess
  * @param _options.auditAction
+ */
+/**
+ * RequireInvitationPermission function.
+ * @param action
+ * @param _options
+ * @param _options.validateContext
+ * @param _options.requireOwnership
+ * @param _options.allowSelfAccess
+ * @param _options.auditAction
+ * @param __options
+ * @param __options.validateContext
+ * @param __options.requireOwnership
+ * @param __options.allowSelfAccess
+ * @param __options.auditAction
  * @returns Function result.
  */
 export function requireInvitationPermission(
   action: string,
-  _options: {
+  __options: {
     validateContext?: boolean;
     requireOwnership?: boolean;
     allowSelfAccess?: boolean;
@@ -450,7 +450,7 @@ export function requireInvitationPermission(
       }
 
       // Context-aware validation for specific operations
-      if (options.validateContext && req.body) {
+      if (_options.validateContext && req.body) {
         if (action === 'create:invitation') {
           const { role, organizationId, buildingId } = req.body;
           const validation = await InvitationPermissionValidator.validateInvitePermission(
@@ -497,7 +497,7 @@ export function requireInvitationPermission(
       }
 
       // Ownership validation for management operations
-      if (options.requireOwnership && req.params.id) {
+      if (_options.requireOwnership && req.params.id) {
         const validation = await InvitationPermissionValidator.validateInvitationManagement(
           req.user.id,
           req.user.role,
@@ -515,7 +515,7 @@ export function requireInvitationPermission(
       // Monitor invitation access
       await InvitationSecurityMonitor.monitorInvitationAccess(
         req.user.id,
-        options.auditAction || action,
+        _options.auditAction || action,
         req.ip,
         req.get('User-Agent'),
         { path: req.path, method: req.method }
