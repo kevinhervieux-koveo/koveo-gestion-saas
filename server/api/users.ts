@@ -17,6 +17,7 @@ import {
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
 import { queryCache } from '../query-cache';
+import { emailService } from '../services/email-service';
 
 /**
  * Registers all user-related API endpoints.
@@ -1658,6 +1659,29 @@ export function registerUserRoutes(app: Express): void {
         .values(invitationData)
         .returning();
 
+      // Get organization details for email
+      const [organization] = await db
+        .select()
+        .from(schema.organizations)
+        .where(eq(schema.organizations.id, organizationId))
+        .limit(1);
+
+      // Send invitation email
+      const recipientName = email.split('@')[0]; // Use email prefix as name
+      const organizationName = organization?.name || 'Koveo Gestion';
+      const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      
+      const emailSent = await emailService.sendInvitationEmail(
+        email,
+        recipientName,
+        token, // Use the unhashed token for the email URL
+        organizationName,
+        inviterName,
+        new Date(expiresAt),
+        'fr', // Default to French for Quebec
+        personalMessage
+      );
+
       // Log invitation creation
       console.log('✅ Invitation created:', {
         id: newInvitation.id,
@@ -1665,11 +1689,23 @@ export function registerUserRoutes(app: Express): void {
         role,
         organizationId,
         invitedBy: currentUser.email,
+        emailSent,
       });
+
+      if (!emailSent) {
+        // If email failed but invitation was created, log the issue
+        console.error('⚠️ Invitation created but email failed to send');
+        return res.status(207).json({
+          message: 'Invitation created but email failed to send',
+          invitationId: newInvitation.id,
+          emailSent: false,
+        });
+      }
 
       res.status(201).json({
         message: 'Invitation sent successfully',
         invitationId: newInvitation.id,
+        emailSent: true,
       });
     } catch (error: any) {
       console.error('❌ Error creating invitation:', error);
@@ -1777,14 +1813,47 @@ export function registerUserRoutes(app: Express): void {
         })
         .where(eq(schema.invitations.id, id));
 
+      // Get organization details for email
+      const [organization] = await db
+        .select()
+        .from(schema.organizations)
+        .where(eq(schema.organizations.id, invitation.organizationId))
+        .limit(1);
+
+      // Send invitation email again
+      const recipientName = invitation.email.split('@')[0]; // Use email prefix as name
+      const organizationName = organization?.name || 'Koveo Gestion';
+      const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      
+      const emailSent = await emailService.sendInvitationEmail(
+        invitation.email,
+        recipientName,
+        invitation.token, // Use the existing token
+        organizationName,
+        inviterName,
+        newExpiresAt,
+        'fr', // Default to French for Quebec
+        invitation.personalMessage
+      );
+
       console.log('✅ Invitation resent:', {
         id,
         email: invitation.email,
         newExpiresAt,
+        emailSent,
       });
+
+      if (!emailSent) {
+        console.error('⚠️ Invitation updated but email failed to resend');
+        return res.status(207).json({
+          message: 'Invitation updated but email failed to resend',
+          emailSent: false,
+        });
+      }
 
       res.json({
         message: 'Invitation resent successfully',
+        emailSent: true,
       });
     } catch (error: any) {
       console.error('❌ Error resending invitation:', error);
