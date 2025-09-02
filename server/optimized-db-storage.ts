@@ -147,7 +147,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves all active users with their assignments (organizations, buildings, residences).
    */
   async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
-    return this.withOptimizations('getUsersWithAssignments', 'all_users_assignments', 'users', async () => {
+    return this.withOptimizations('getUsersWithAssignments', 'all_users_assignments_v2', 'users', async () => {
       // Get all users first
       const users = await db
         .select()
