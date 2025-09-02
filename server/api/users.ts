@@ -53,10 +53,16 @@ export function registerUserRoutes(app: Express): void {
         const firstUser = usersWithAssignments[0];
         console.warn('🔍 [API DEBUG] First user from storage:', {
           email: firstUser.email,
-          organizations: firstUser.organizations?.length || 0,
-          buildings: firstUser.buildings?.length || 0, 
-          residences: firstUser.residences?.length || 0,
-          orgNames: firstUser.organizations?.map(o => o.name) || []
+          organizationsType: typeof firstUser.organizations,
+          organizationsIsArray: Array.isArray(firstUser.organizations),
+          organizationsLength: firstUser.organizations?.length || 0,
+          buildingsType: typeof firstUser.buildings,
+          buildingsIsArray: Array.isArray(firstUser.buildings),
+          buildingsLength: firstUser.buildings?.length || 0,
+          residencesType: typeof firstUser.residences,
+          residencesIsArray: Array.isArray(firstUser.residences),
+          residencesLength: firstUser.residences?.length || 0,
+          sampleOrg: firstUser.organizations?.[0] || null
         });
       }
 
@@ -88,11 +94,11 @@ export function registerUserRoutes(app: Express): void {
       // DEBUG: Check what we're sending to frontend
       if (filteredUsers.length > 0) {
         const firstFiltered = filteredUsers[0];
-        console.warn('🔍 [API DEBUG] First user being sent to frontend:', {
+        console.warn('🔍 [API DEBUG] Actual data being sent to frontend:', {
           email: firstFiltered.email,
-          organizations: firstFiltered.organizations?.length || 0,
-          buildings: firstFiltered.buildings?.length || 0, 
-          residences: firstFiltered.residences?.length || 0
+          organizationsActual: firstFiltered.organizations,
+          buildingsActual: firstFiltered.buildings,
+          residencesActual: firstFiltered.residences
         });
       }
 
