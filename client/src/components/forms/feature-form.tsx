@@ -479,6 +479,8 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
+    } catch (error) {
+      console.error('Error copying prompt:', error);
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
