@@ -135,6 +135,31 @@ export function registerDocumentRoutes(app: Express): void {
       };
     }
   };
+
+  const checkEnumValues = async () => {
+    try {
+      // Check current enum values in production
+      const result = await db.execute(sql`
+        SELECT enumlabel 
+        FROM pg_enum 
+        WHERE enumtypid = (
+          SELECT oid 
+          FROM pg_type 
+          WHERE typname = 'user_role'
+        )
+        ORDER BY enumsortorder
+      `);
+      return {
+        success: true,
+        production_enum_values: result.rows.map(row => row.enumlabel)
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  };
   
   // Enhanced diagnostic endpoint with database schema check
   app.get('/api/documents/diagnostic', async (req, res) => {
@@ -174,7 +199,8 @@ export function registerDocumentRoutes(app: Express): void {
           documents_table_schema: tableSchema,
           schema_columns_count: tableSchema?.length || 0,
           connection_test: await testDatabaseConnection(),
-          sample_query_test: await testSampleQuery()
+          sample_query_test: await testSampleQuery(),
+          enum_check: await checkEnumValues()
         }
       });
     } catch (error) {
