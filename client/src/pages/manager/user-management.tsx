@@ -87,16 +87,17 @@ export default function UserManagement() {
   const [sort, setSort] = useState<SortValue | null>(null);
   const [search, setSearch] = useState('');
 
-  // Fetch users
+  // Fetch users with aggressive cache busting
   const {
     data: users = [],
     isLoading: usersLoading,
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users'], // Simple key that matches the backend route
+    queryKey: ['/api/users', Date.now()], // Add timestamp to force fresh request
     enabled: true,
     staleTime: 0, // Always refetch
     gcTime: 0, // Don't cache
+    retry: false, // Don't retry to avoid confusion
   });
 
   // Fetch organizations
@@ -778,16 +779,8 @@ export default function UserManagement() {
                                   ) : (
                                     <div className='text-gray-400 text-xs'>
                                       <div>No organizations</div>
-                                      <div className='mt-1 font-mono text-xs break-all'>
-                                        {JSON.stringify(user.organizations)}
-                                      </div>
-                                      <div className='mt-1 font-mono text-xs break-all'>
-                                        Raw: {JSON.stringify({
-                                          hasOrgs: !!user.organizations,
-                                          isArray: Array.isArray(user.organizations),
-                                          length: user.organizations?.length,
-                                          keys: user.organizations ? Object.keys(user.organizations) : 'no keys'
-                                        })}
+                                      <div className='mt-1 text-red-600 text-xs'>
+                                        Debug: {String(user.organizations)} | Type: {typeof user.organizations} | Length: {user.organizations?.length || 'undefined'}
                                       </div>
                                     </div>
                                   )}
