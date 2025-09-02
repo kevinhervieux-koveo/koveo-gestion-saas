@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
+import { createHash, randomBytes } from 'crypto';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
@@ -1636,9 +1637,8 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Generate secure invitation token
-      const crypto = require('crypto');
-      const token = crypto.randomBytes(32).toString('hex');
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const token = randomBytes(32).toString('hex');
+      const tokenHash = createHash('sha256').update(token).digest('hex');
 
       // Create invitation record
       const invitationData = {
