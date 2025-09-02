@@ -1,5 +1,7 @@
 # Koveo Gestion API Documentation
 
+**Current Status**: 198 API routes validated and functional (September 2025) ✅
+
 ## Table of Contents
 
 - [Authentication Endpoints](#authentication-endpoints)

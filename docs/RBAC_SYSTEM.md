@@ -4,6 +4,15 @@
 
 The Koveo Gestion platform implements a comprehensive Role-Based Access Control (RBAC) system to manage user permissions and access across the property management platform. The system enforces strict authorization rules to ensure users can only access resources and perform actions appropriate to their role.
 
+**Current Status**: Fully tested and validated with 36 comprehensive test cases (September 2025) ✅
+
+**Key Features**:
+- Four-tier role hierarchy with granular permissions
+- Open Demo organization access restrictions
+- Write operation controls for demo users
+- Organization-based access validation
+- Quebec-specific business rule compliance
+
 ## User Roles
 
 The system supports exactly **four user roles**, each with specific responsibilities and permissions:

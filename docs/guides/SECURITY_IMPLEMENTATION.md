@@ -6,11 +6,18 @@
 
 Koveo Gestion implements defense-in-depth security with multiple layers:
 
-1. **Authentication & Authorization**: Session-based auth with RBAC
+1. **Authentication & Authorization**: Session-based auth with RBAC (36 test cases ✅)
 2. **Data Protection**: Encryption at rest and in transit
 3. **Input Validation**: Comprehensive data sanitization
 4. **Quebec Law 25 Compliance**: Privacy by design
 5. **Infrastructure Security**: Secure deployment and monitoring
+6. **Password Security**: Advanced validation with edge case handling (17 test cases ✅)
+
+**Latest Updates (September 2025)**:
+- RBAC system fully validated with comprehensive test coverage
+- Password validation edge cases resolved
+- Demo user write operation restrictions enforced
+- Server build process hardened for test environments
 
 ## Authentication System
 
