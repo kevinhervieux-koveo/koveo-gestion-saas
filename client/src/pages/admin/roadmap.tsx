@@ -311,6 +311,8 @@ export default function OwnerRoadmap() {
           'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
+    } catch (error) {
+      console.error('Error copying LLM form:', error);
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',

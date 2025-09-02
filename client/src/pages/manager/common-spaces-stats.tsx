@@ -337,7 +337,16 @@ function CommonSpacesStatsPage() {
             : 'Failed to create common space.',
         variant: 'destructive',
       });
+    }
     },
+    onError: (error: any) => {
+      console.error('Error creating/updating space:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: 'An error occurred while processing the request.',
+        variant: 'destructive',
+      });
+    }
   });
 
   const handleCreateSpace = () => {
@@ -398,6 +407,8 @@ function CommonSpacesStatsPage() {
       });
       setTimeLimitDialogOpen(false);
     },
+    onError: (error: any) => {
+      console.error('Error setting time limit:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description:

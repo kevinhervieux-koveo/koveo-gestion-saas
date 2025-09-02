@@ -235,6 +235,7 @@ export function CalendarView({
     });
   };
 
+  if (error) {
     const isAuthError =
       error.message?.includes('Authentication required') || error.message?.includes('401');
 
@@ -481,3 +482,4 @@ export function CalendarView({
       </Card>
     </TooltipProvider>
   );
+}
