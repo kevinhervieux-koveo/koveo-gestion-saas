@@ -69,7 +69,6 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
         }
 
         return module;
-      } catch (_error) {
         attempts++;
         if (attempts >= retryAttempts) {
           console.error(

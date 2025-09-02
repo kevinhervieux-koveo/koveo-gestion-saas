@@ -123,8 +123,6 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         message:
           "Fichier trouvé mais le type de contenu n'est pas supporté pour la lecture directe.",
       });
-    } catch (_error) {
-      console.error('Error fetching company history:', _error);
 
       // Return fallback content on error
       return res.json({
@@ -159,8 +157,6 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         total: documents.length,
         message: 'Document storage has been disabled',
       });
-    } catch (_error) {
-      console.error('Error listing company documents:', _error);
       res.status(500).json({
         message: "Erreur lors de la recherche des documents d'entreprise",
         _error: _error instanceof Error ? _error.message : 'Unknown error',

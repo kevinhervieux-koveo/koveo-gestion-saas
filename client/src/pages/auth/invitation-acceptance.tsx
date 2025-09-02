@@ -123,7 +123,6 @@ export default function InvitationAcceptancePage() {
       setCompletedUser(result.user);
       setIsCompleted(true);
     } catch (_error: unknown) {
-      console.error('Error completing registration:', _error);
       setError(
         (_error as Error).message || 'Une erreur est survenue lors de la création de votre compte'
       );

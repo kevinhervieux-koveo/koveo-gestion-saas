@@ -140,7 +140,6 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         // Production: Load application immediately with better error handling
         log('🔄 Production mode: Loading application features...');
         setTimeout(() => {
-          loadFullApplication().catch((error) => {
             log(`❌ Application load failed in production: ${error.message}`, 'error');
             log(`❌ Stack trace: ${error.stack}`, 'error');
             // In production, we want to know about failures but keep health checks working
@@ -200,7 +199,6 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 }
 
 // Handle uncaught exceptions and rejections
-process.on('uncaughtException', (error) => {
   log(`❌ Uncaught Exception: ${error.message}`, 'error');
   log(`❌ Stack: ${error.stack}`, 'error');
   process.exit(1);
@@ -315,7 +313,6 @@ async function loadFullApplication(): Promise<void> {
     // Start heavy database work in background AFTER routes are ready
     const dbDelay = process.env.NODE_ENV === 'production' ? 500 : 1000;
     setTimeout(() => {
-      initializeDatabaseInBackground().catch((error) => {
         log(`⚠️ Background database initialization failed: ${error.message}`, 'error');
         // Don't crash in production for database optimization failures
         if (process.env.NODE_ENV === 'production') {

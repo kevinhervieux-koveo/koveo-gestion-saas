@@ -192,8 +192,6 @@ export default function OwnerRoadmap() {
   });
 
   // Minimal debug logging only for actual errors
-  if (error) {
-    console.error('Features query error:', error);
   }
 
   /**
@@ -217,8 +215,6 @@ export default function OwnerRoadmap() {
       } else {
         console.error('Failed to fetch actionable items:', response.statusText);
       }
-    } catch (_error) {
-      console.error('Failed to fetch actionable items:', _error);
     }
   }, []);
 
@@ -233,7 +229,6 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -312,7 +307,6 @@ export default function OwnerRoadmap() {
           'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
-    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',

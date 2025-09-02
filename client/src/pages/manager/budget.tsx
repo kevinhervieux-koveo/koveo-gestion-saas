@@ -2101,7 +2101,6 @@ Budget() {
                                   });
 
                                   setMinimumBalancesDialog(false);
-                                } catch (_error) {
                                   /**
                                    * Catch function.
                                    * @param _error - _error parameter.

@@ -6,7 +6,6 @@ const router = express.Router();
 
 // Initialize SendGrid
 if (!process.env.SENDGRID_API_KEY) {
-  console.warn('⚠️ SENDGRID_API_KEY not found - trial request emails will not be sent');
 }
 
 const mailService = new MailService();
@@ -55,7 +54,6 @@ router.post('/trial-request', async (req, res) => {
 
     // Check if SendGrid is configured
     if (!process.env.SENDGRID_API_KEY) {
-      console.warn('Trial request received but SendGrid not configured:', _data);
       return res.status(500).json({
         message: 'Email service not configured',
       });
@@ -211,18 +209,13 @@ Cette demande a été soumise via le site web Koveo Gestion.
     await mailService.send(emailData);
 
     // Log successful request
-    console.warn(`✅ Trial request email sent successfully for ${data.company} (${data.email})`);
-    console.warn(`   Buildings: ${data.numberOfBuildings}, Residences: ${data.numberOfResidences}`);
 
     res.status(200).json({
       message: 'Trial request sent successfully',
       success: true,
     });
-  } catch (_error) {
-    console.error('❌ Error processing trial request:', _error);
 
     // Send appropriate error response
-    if (error && typeof error === 'object' && 'code' in _error) {
       const sgError = error as { code: number; message: string };
       console.error('SendGrid error details:', sgError);
 

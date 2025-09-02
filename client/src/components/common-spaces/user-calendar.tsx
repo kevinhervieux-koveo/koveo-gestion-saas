@@ -118,8 +118,6 @@ export function UserCalendar() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading calendar:', error);
     }
   };
 

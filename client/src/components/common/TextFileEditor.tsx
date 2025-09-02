@@ -63,7 +63,6 @@ export default function TextFileEditor({
 
         return await response.text();
       } catch (error: any) {
-        console.error('Error fetching file content:', error);
         throw new Error('Failed to load file content');
       }
     },

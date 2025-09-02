@@ -63,7 +63,6 @@ export function registerEnhancedResidenceRoutes(app: Express) {
           .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
 
         res.json(userResidencesList);
-      } catch (error) {
         if (error instanceof ApiError) {
           throw error;
         }
@@ -136,7 +135,6 @@ export function registerEnhancedResidenceRoutes(app: Express) {
           );
 
         res.json(assignedUsers);
-      } catch (error) {
         if (error instanceof ApiError) {
           throw error;
         }
@@ -230,12 +228,10 @@ export function registerEnhancedResidenceRoutes(app: Express) {
           userId,
           updatedFields: Object.keys(updateData),
         });
-      } catch (error) {
         if (error instanceof ApiError) {
           throw error;
         }
         if (error instanceof z.ZodError) {
-          throw ValidationError.fromZodError(error);
         }
         throw ApiError.internal(ErrorCodes.DATABASE_QUERY_FAILED, {
           operation: 'update_assigned_user',
@@ -380,12 +376,10 @@ export function registerEnhancedResidenceRoutes(app: Express) {
             floor,
           },
         });
-      } catch (error) {
         if (error instanceof ApiError) {
           throw error;
         }
         if (error instanceof z.ZodError) {
-          throw ValidationError.fromZodError(error);
         }
         throw ApiError.internal(ErrorCodes.DATABASE_QUERY_FAILED, {
           operation: 'fetch_residences',

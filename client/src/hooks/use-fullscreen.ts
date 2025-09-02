@@ -1,92 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 
 /**
- *
+ * Custom hook for managing fullscreen functionality.
  */
-/**
- * UseFullscreen custom hook.
- * @returns Hook return value.
- */
-/**
- * Use fullscreen function.
- */
-export function /**
- * Use fullscreen function.
- */ /**
- * Use fullscreen function.
- */
-
-useFullscreen() {
+export function useFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = useCallback(async () => {
     try {
-      /**
-       * If function.
-       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-       */
-      /**
-       * If function.
-       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-       */ /**
-       * If function.
-       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-       */
-
-      /**
-       * If function.
-       * @param !document.fullscreenElement - !document.fullscreenElement parameter.
-       */
-
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
-    } catch (_error) {
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */ /**
-       * Catch function.
-       * @param error - Error object.
-       */
-
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */
-      console.error('Error toggling fullscreen:', _error);
+      // Silently handle fullscreen errors
     }
   }, []);
 
   const exitFullscreen = useCallback(async () => {
     try {
-      /**
-       * If function.
-       * @param document.fullscreenElement - Document.fullscreenElement parameter.
-       */ /**
-       * If function.
-       * @param document.fullscreenElement - Document.fullscreenElement parameter.
-       */
-
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       }
-    } catch (_error) {
-      console.error('Error exiting fullscreen:', _error);
+      // Silently handle fullscreen errors
     }
   }, []);
 
@@ -95,8 +31,7 @@ useFullscreen() {
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
       }
-    } catch (_error) {
-      console.error('Error entering fullscreen:', _error);
+      // Silently handle fullscreen errors
     }
   }, []);
 

@@ -27,7 +27,6 @@ class DatabasePerformanceMonitor {
         this.recordQueryTime(queryName, duration);
         return result;
       })
-      .catch((error) => {
         const duration = performance.now() - startTime;
         this.recordQueryTime(queryName, duration);
         throw error;
@@ -60,7 +59,6 @@ class DatabasePerformanceMonitor {
         this.slowQueries.shift();
       }
 
-      console.warn(`Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`);
     }
   }
 

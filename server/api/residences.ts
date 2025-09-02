@@ -33,8 +33,6 @@ export function registerResidenceRoutes(app: Express) {
         .from(userResidences)
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
       res.json(userResidencesList);
-    } catch (_error) {
-      console.error('Error fetching user residences:', _error);
       res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
@@ -69,8 +67,6 @@ export function registerResidenceRoutes(app: Express) {
           );
 
         res.json(assignedUsers);
-      } catch (_error) {
-        console.error('Error fetching assigned users:', _error);
         res.status(500).json({ message: 'Failed to fetch assigned users' });
       }
     }
@@ -99,8 +95,6 @@ export function registerResidenceRoutes(app: Express) {
           .where(eq(users.id, userId));
 
         res.json({ message: 'User updated successfully' });
-      } catch (_error) {
-        console.error('Error updating assigned user:', _error);
         res.status(500).json({ message: 'Failed to update assigned user' });
       }
     }
@@ -112,7 +106,6 @@ export function registerResidenceRoutes(app: Express) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
 
-      console.warn(`📊 Fetching residences for user ${user.id} with role ${user.role}`);
 
       // Start with base conditions
       const conditions = [eq(residences.isActive, true)];
@@ -145,7 +138,6 @@ export function registerResidenceRoutes(app: Express) {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
-        console.warn(
           `🌟 Admin user or user with global access detected - granting access to ALL residences`
         );
 
@@ -216,7 +208,6 @@ export function registerResidenceRoutes(app: Express) {
         conditions.push(inArray(residences.buildingId, Array.from(accessibleBuildingIds)));
       } else {
         // User has no access to any buildings, return empty result
-        console.warn(`❌ User ${user.id} has no access to any buildings`);
         return res.json([]);
       }
 
@@ -289,8 +280,6 @@ export function registerResidenceRoutes(app: Express) {
       }));
 
       res.json(residencesList);
-    } catch (_error) {
-      console.error('Error fetching residences:', _error);
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
@@ -359,8 +348,6 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants,
       });
-    } catch (_error) {
-      console.error('Error fetching residence:', _error);
       res.status(500).json({ message: 'Failed to fetch residence' });
     }
   });
@@ -392,15 +379,10 @@ export function registerResidenceRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the updated residence
       try {
         delayedUpdateService.scheduleResidenceUpdate(id);
-        console.warn(`🏠 Scheduled delayed update for updated residence ${id}`);
-      } catch (_error) {
-        console.error('Failed to schedule delayed update for updated residence:', _error);
         // Don't fail the residence update if scheduling fails
       }
 
       res.json(updated[0]);
-    } catch (_error) {
-      console.error('Error updating residence:', _error);
       res.status(500).json({ message: 'Failed to update residence' });
     }
   });
@@ -471,8 +453,6 @@ export function registerResidenceRoutes(app: Express) {
           message: `Successfully created ${createdResidences.length} residences`,
           residences: createdResidences,
         });
-      } catch (_error) {
-        console.error('Error generating residences:', _error);
         res.status(500).json({ message: 'Failed to generate residences' });
       }
     }

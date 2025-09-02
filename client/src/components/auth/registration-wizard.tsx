@@ -142,8 +142,6 @@ export function RegistrationWizard({
 
       // Only mark final step as complete after successful submission
       updateStepCompletion(currentStep.id, true);
-    } catch (_error) {
-      console.error('Wizard completion _error:', _error);
       // Reset step completion on error to allow retry
       updateStepCompletion(currentStep.id, false);
       setIsSubmitting(false);

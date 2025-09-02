@@ -324,8 +324,6 @@ function CommonSpacesStatsPage() {
         },
       });
     },
-    onError: (error) => {
-      console.error('Error creating space:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: isEditMode
@@ -398,8 +396,6 @@ function CommonSpacesStatsPage() {
       });
       setTimeLimitDialogOpen(false);
     },
-    onError: (error) => {
-      console.error('Error setting time limit:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description:

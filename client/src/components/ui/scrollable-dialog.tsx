@@ -130,9 +130,7 @@ export function useFormDialog(initialOpen = false) {
       setIsLoading(true);
       await submitFn();
       setIsOpen(false);
-    } catch (error) {
       // Error handling is done by the calling component
-      console.error('Form submission error:', error);
     } finally {
       setIsLoading(false);
     }

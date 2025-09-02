@@ -229,7 +229,6 @@ export class MemStorage implements IStorage {
     this.featureRequestUpvotes = new Map();
 
     // Initialize test user asynchronously
-    this.initializeTestUser().catch(console.error);
   }
 
   private async initializeTestUser() {
@@ -993,7 +992,6 @@ class ProductionFallbackStorage implements IStorage {
       const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
       // Debug logging removed
       return user;
-    } catch (error) {
       // Error handling maintained without debug logging
       throw error;
     }

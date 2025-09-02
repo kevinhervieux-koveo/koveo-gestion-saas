@@ -33,13 +33,10 @@ router.post('/cleanup-storage', async (req, res) => {
             const objectPath = normalizedPath.replace('/objects/', '');
             referencedObjectPaths.add(objectPath);
           }
-        } catch (_error) {
-          console.warn(`Could not normalize path for ${doc.fileUrl}`);
         }
       }
     });
 
-    console.warn(`Found ${referencedObjectPaths.size} files referenced in database`);
 
     // Get private object directory for hierarchical structure
     const privateDir = objectStorageService.getPrivateObjectDir();
@@ -85,9 +82,6 @@ router.post('/cleanup-storage', async (req, res) => {
         await file.delete();
         deletedFiles.push(objectPath);
         deletedCount++;
-        console.warn(`Deleted orphaned file: ${objectPath}`);
-      } catch (_error) {
-        console.error(`Failed to delete ${objectPath}:`, _error);
       }
     }
 
@@ -101,8 +95,6 @@ router.post('/cleanup-storage', async (req, res) => {
         deletedFiles,
       },
     });
-  } catch (_error) {
-    console.error('Error during storage cleanup:', _error);
     res.status(500).json({
       success: false,
       _error: 'Failed to cleanup storage: ' + error.message,
@@ -130,8 +122,6 @@ router.get('/storage-stats', async (req, res) => {
       },
       message: `Database contains ${totalDbFiles} documents with attached files`,
     });
-  } catch (_error) {
-    console.error('Error getting storage stats:', _error);
     res.status(500).json({
       success: false,
       _error: 'Failed to get storage statistics',
@@ -152,15 +142,12 @@ router.post('/auto-cleanup', async (req, res) => {
 
     const result = await cleanupResponse.json();
 
-    console.warn('Auto-cleanup completed:', _result);
 
     res.json({
       success: true,
       message: 'Auto-cleanup completed successfully',
       result,
     });
-  } catch (_error) {
-    console.error('Auto-cleanup failed:', _error);
     res.status(500).json({
       success: false,
       _error: 'Auto-cleanup failed: ' + error.message,

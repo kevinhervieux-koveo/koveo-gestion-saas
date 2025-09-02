@@ -138,7 +138,6 @@ export class MetricValidationService {
       }
 
       return result;
-    } catch (error) {
       result.isValid = false;
       result.issues.push(
         `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`

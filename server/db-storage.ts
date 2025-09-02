@@ -218,8 +218,6 @@ export class DatabaseStorage implements IStorage {
 
       queryCache.set('users', cacheKey, result);
       return result;
-    } catch (error) {
-      console.error(`Failed to get users by organizations for user ${userId}:`, error);
       return [];
     }
   }
@@ -360,8 +358,6 @@ export class DatabaseStorage implements IStorage {
       }
 
       return user;
-    } catch (error) {
-      console.error(`Drizzle query failed for ID lookup:`, error);
       return undefined;
     }
   }
@@ -425,8 +421,6 @@ export class DatabaseStorage implements IStorage {
       }
 
       return undefined;
-    } catch (error) {
-      console.error(`SQL query failed:`, error);
       return undefined;
     }
   }
@@ -1270,7 +1264,6 @@ export class DatabaseStorage implements IStorage {
         message: 'Upvote added successfully',
         data: result[0]
       };
-    } catch (error) {
       return {
         success: false,
         message: 'Failed to add upvote',
@@ -1299,7 +1292,6 @@ export class DatabaseStorage implements IStorage {
         message: 'Upvote removed successfully',
         data: result[0]
       };
-    } catch (error) {
       return {
         success: false,
         message: 'Failed to remove upvote',

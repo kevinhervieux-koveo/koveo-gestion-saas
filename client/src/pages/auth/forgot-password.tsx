@@ -54,7 +54,6 @@ export default function ForgotPasswordPage() {
       });
     } catch (_error: unknown) {
       if (import.meta.env.DEV) {
-        console.error('Forgot password error:', _error);
       }
       const errorMessage =
         _error instanceof Error

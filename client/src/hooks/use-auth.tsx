@@ -73,10 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         return (await response.json()) as User;
-      } catch (_error) {
         // Silently handle auth failures on public pages
         if (!isPublicPage) {
-          console.warn('Auth check failed:', _error);
         }
         return null;
       }
@@ -95,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Only redirect if we've completed the auth check AND user is null AND not on public page
     // Important: Wait for both !isLoading AND !isError to avoid race conditions
     if (userData === null && !isPublicPage && !isLoading && !isError) {
-      console.warn('Session expired, redirecting to login page');
       setLocation('/login');
     }
   }, [userData, isPublicPage, isLoading, isError, setLocation]);

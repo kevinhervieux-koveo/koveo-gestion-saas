@@ -116,7 +116,6 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
       onOpenChange(false);
     },
     onError: (_error: unknown) => {
-      console.error('Create organization _error:', _error);
       toast({
         title: 'Error',
         description: (_error as Error)?.message || 'Failed to create organization',

@@ -212,7 +212,6 @@ export default function ManagerDemandsPage() {
         description: 'Demand created successfully',
       });
     },
-    onError: (error) => {
       toast({
         title: 'Error',
         description: 'Failed to create demand',

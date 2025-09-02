@@ -74,7 +74,6 @@ export class InvitationSecurityMonitor {
    * @param alert
    */
   static async triggerAlert(alert: SecurityAlert) {
-    console.warn(`🚨 SECURITY ALERT [${alert.level.toUpperCase()}]: ${alert.type}`, {
       description: alert.description,
       userId: alert.userId,
       ipAddress: alert.ipAddress,
@@ -85,8 +84,6 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
-      } catch (____error) {
-        console.error('Error in security alert callback:', _error);
       }
     });
 
@@ -107,8 +104,6 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null,
       });
-    } catch (____error) {
-      console.error('Failed to log security alert:', _error);
     }
   }
 
@@ -522,8 +517,6 @@ export function requireInvitationPermission(
       );
 
       next();
-    } catch (_error) {
-      console.error('Invitation RBAC _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'RBAC_ERROR',
@@ -597,7 +590,6 @@ export async function createEnhancedInvitationAuditLog(
     ]);
 
     // Log to console for immediate visibility
-    console.warn(`📋 INVITATION AUDIT: ${action}`, {
       invitationId,
       performedBy,
       ipAddress,
@@ -605,8 +597,6 @@ export async function createEnhancedInvitationAuditLog(
       previousStatus,
       newStatus,
     });
-  } catch (_error) {
-    console.error('Failed to create enhanced audit log:', _error);
   }
 }
 
@@ -692,8 +682,6 @@ export function withPermissionInheritance(baseAction: string) {
         required: baseAction,
         userRole: req.user.role,
       });
-    } catch (_error) {
-      console.error('Permission inheritance _error:', _error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'INHERITANCE_ERROR',
@@ -708,5 +696,4 @@ InvitationSecurityMonitor.onAlert((alert) => {
   // - Send alerts to security team
   // - Log to external monitoring service
   // - Trigger automated responses
-  console.warn(`🔔 Security Alert Handler: ${alert.type} - ${alert.description}`);
 });

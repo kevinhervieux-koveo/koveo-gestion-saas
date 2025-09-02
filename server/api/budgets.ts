@@ -123,8 +123,6 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
 
       return res.json({ budgets: monthlyBudgetData, type: 'monthly' });
     }
-  } catch (_error) {
-    console.error('Error fetching budget _data:', _error);
     res.status(500).json({ _error: 'Internal server error' });
   }
 });
@@ -208,8 +206,6 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
     }
 
     return res.json({ summary: summaryData });
-  } catch (_error) {
-    console.error('Error fetching budget summary:', _error);
     res.status(500).json({ _error: 'Internal server error' });
   }
 });
@@ -260,8 +256,6 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountMinimums,
       bankAccountUpdatedAt: new Date(),
     });
-  } catch (_error) {
-    console.error('Error updating bank account:', _error);
     res.status(500).json({ _error: 'Internal server error' });
   }
 });
@@ -273,8 +267,6 @@ router.patch('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     // TODO: Enable when bank account columns are added to database
     res.json({ message: 'Bank account update feature coming soon' });
-  } catch (_error) {
-    console.error('Error updating bank account:', _error);
     res.status(500).json({ _error: 'Internal server error' });
   }
 });
@@ -312,8 +304,6 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountMinimums: building.bankAccountMinimums,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
     });
-  } catch (_error) {
-    console.error('Error fetching bank account info:', _error);
     res.status(500).json({ _error: 'Internal server error' });
   }
 });

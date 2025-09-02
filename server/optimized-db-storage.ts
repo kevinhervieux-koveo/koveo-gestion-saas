@@ -90,7 +90,6 @@ export class OptimizedDatabaseStorage implements IStorage {
     try {
       await QueryOptimizer.applyCoreOptimizations();
       // Database optimizations applied
-    } catch (error) {
       
     }
   }
@@ -231,8 +230,6 @@ export class OptimizedDatabaseStorage implements IStorage {
 
 
             return result;
-          } catch (error) {
-            console.error(`Error processing user assignments:`, error);
             // Return user with empty assignments if there's an error
             return {
               ...user,
@@ -248,8 +245,6 @@ export class OptimizedDatabaseStorage implements IStorage {
       }
 
       return usersWithAssignments;
-    } catch (error) {
-      console.error('Critical error in getUsersWithAssignments:', error);
       // Return empty array on critical error
       return [];
     }
@@ -511,7 +506,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         const inserted = await db.insert(schema.users).values([userData]).returning();
         
         return inserted;
-      } catch (error) {
         
         
         throw error;
@@ -1772,7 +1766,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .orderBy(schema.userPermissions.userId);
 
       return results || [];
-    } catch (error) {
       
       return [];
     }
@@ -2132,7 +2125,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.bugs.createdBy, userId))
         .orderBy(desc(schema.bugs.createdAt));
       return result || [];
-    } catch (error) {
       
       return [];
     }
@@ -2528,7 +2520,6 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
-    } catch (error) {
       return {
         success: false,
         message: 'Failed to upvote feature request',
@@ -2598,7 +2589,6 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
-    } catch (error) {
       return {
         success: false,
         message: 'Failed to remove upvote',

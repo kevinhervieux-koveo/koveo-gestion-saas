@@ -158,7 +158,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.json(filteredResults);
     } catch (error: any) {
-      console.error('Error fetching demands:', error);
       res.status(500).json({ message: 'Failed to fetch demands' });
     }
   });
@@ -257,7 +256,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.json(demandData);
     } catch (error: any) {
-      console.error('Error fetching demand:', error);
       res.status(500).json({ message: 'Failed to fetch demand' });
     }
   });
@@ -302,7 +300,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.status(201).json(newDemand[0]);
     } catch (error: any) {
-      console.error('Error creating demand:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid demand data', errors: error.errors });
       }
@@ -377,7 +374,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.json(updatedDemand[0]);
     } catch (error: any) {
-      console.error('Error updating demand:', error);
       res.status(500).json({ message: 'Failed to update demand' });
     }
   });
@@ -430,7 +426,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.json({ message: 'Demand deleted successfully' });
     } catch (error: any) {
-      console.error('Error deleting demand:', error);
       res.status(500).json({ message: 'Failed to delete demand' });
     }
   });
@@ -474,7 +469,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.json(comments);
     } catch (error: any) {
-      console.error('Error fetching demand comments:', error);
       res.status(500).json({ message: 'Failed to fetch demand comments' });
     }
   });
@@ -504,7 +498,6 @@ export function registerDemandRoutes(app: Express) {
 
       res.status(201).json(newComment[0]);
     } catch (error: any) {
-      console.error('Error creating demand comment:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
       }

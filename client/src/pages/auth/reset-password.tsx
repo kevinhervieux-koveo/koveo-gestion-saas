@@ -129,7 +129,6 @@ ResetPasswordPage() {
        * @param error - Error object.
        */
 
-      console.error('Reset password _error:', _error);
       let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.'; /**
        * If function.
        * @param error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' - error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED' parameter.

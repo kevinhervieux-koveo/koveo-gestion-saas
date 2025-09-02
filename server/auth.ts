@@ -72,8 +72,6 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
     }
 
     return result.length > 0;
-  } catch (error) {
-    console.error('Error checking user permission:', error);
     return false;
   }
 }
@@ -102,9 +100,6 @@ function createSessionStore() {
     });
     console.log('✅ Session store: PostgreSQL session store created successfully');
     return store;
-  } catch (error) {
-    console.warn('❌ Session store: PostgreSQL failed, fallback to memory store:', error.message);
-    console.warn('❌ Session store error details:', error);
     return undefined; // Will use default memory store as fallback
   }
 }
@@ -292,7 +287,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     next();
-  } catch (_error) {
     // Authentication error handled
     return res.status(500).json({
       message: 'Authentication error',
@@ -396,7 +390,6 @@ export function authorize(permission: string) {
       }
 
       next();
-    } catch (_error) {
       // Authorization error handled
       return res.status(500).json({
         message: 'Authorization check failed',
@@ -510,7 +503,6 @@ export function setupAuthRoutes(app: any) {
           message: 'Login successful',
         });
       });
-    } catch (_error) {
       console.error('Login error details:', {
         error: _error,
         email: req.body?.email,
@@ -606,8 +598,6 @@ export function setupAuthRoutes(app: any) {
           code: 'AUTH_CHECK_ERROR',
         });
       }
-    } catch (error) {
-      console.error('❌ [AUTH DEBUG] Critical auth error:', error);
       res.status(500).json({
         message: 'Authentication check failed',
         code: 'AUTH_CHECK_ERROR',
@@ -705,8 +695,6 @@ export function setupAuthRoutes(app: any) {
           user: userData,
           message: 'User created successfully',
         });
-      } catch (_error) {
-        console.error('Registration _error:', _error);
         res.status(500).json({
           message: 'Registration failed',
           code: 'REGISTRATION_ERROR',
@@ -778,7 +766,6 @@ export function setupAuthRoutes(app: any) {
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
 
-      console.warn('Generated reset URL:', resetUrl);
 
       const emailSent = await emailService.sendPasswordResetEmail(
         email.toLowerCase(),
@@ -798,8 +785,6 @@ export function setupAuthRoutes(app: any) {
         message: 'If this email exists, a password reset link has been sent.',
         success: true,
       });
-    } catch (_error) {
-      console.error('Password reset request _error:', _error);
       res.status(500).json({
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR',
@@ -901,7 +886,6 @@ export function setupAuthRoutes(app: any) {
         message: 'Password has been reset successfully',
         success: true,
       });
-    } catch (_error) {
       // Password reset error handled
       res.status(500).json({
         message: 'Password reset failed',

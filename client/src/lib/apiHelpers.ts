@@ -67,7 +67,6 @@ export const crudHelpers = {
         variant: 'destructive',
       });
 
-      options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
   },
@@ -105,7 +104,6 @@ export const crudHelpers = {
         variant: 'destructive',
       });
 
-      options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
   },
@@ -150,7 +148,6 @@ export const crudHelpers = {
         variant: 'destructive',
       });
 
-      options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
   },
@@ -176,7 +173,6 @@ export const crudHelpers = {
         });
       }
 
-      options?.onError?.(error);
       throw new ApiError(errorMessage, error.status);
     }
   },

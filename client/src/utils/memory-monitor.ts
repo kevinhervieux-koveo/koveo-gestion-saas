@@ -9,8 +9,6 @@ import { useEffect } from 'react';
  * Memory monitoring configuration.
  */
 interface MemoryConfig {
-  /** Threshold in MB to trigger warnings */
-  warningThreshold: number;
   /** Threshold in MB to trigger cleanup */
   cleanupThreshold: number;
   /** Cleanup interval in milliseconds */
@@ -21,7 +19,6 @@ interface MemoryConfig {
  * Default memory configuration optimized for Quebec property management SaaS.
  */
 const DEFAULT_CONFIG: MemoryConfig = {
-  warningThreshold: 100, // 100MB warning
   cleanupThreshold: 120, // 120MB cleanup trigger
   cleanupInterval: 60000, // 1 minute
 };
@@ -121,8 +118,6 @@ export class MemoryOptimizer {
     this.cleanupCallbacks.forEach((callback) => {
       try {
         callback();
-      } catch (error) {
-        console.warn('Memory cleanup callback failed:', error);
       }
     });
 
@@ -155,12 +150,9 @@ export class MemoryOptimizer {
       return;
     }
 
-    if (usage.used >= this.config.warningThreshold) {
-      console.warn(`Memory usage high: ${usage.used}MB (${usage.percentage}%)`);
     }
 
     if (usage.used >= this.config.cleanupThreshold) {
-      console.warn('Triggering memory cleanup...');
       this.cleanup();
     }
   }

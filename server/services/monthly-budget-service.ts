@@ -21,7 +21,6 @@ export class MonthlyBudgetService {
     budgetsCreated: number;
     buildingsProcessed: number;
   }> {
-    console.warn('🔄 Starting monthly budget population...');
 
     let budgetsCreated = 0;
     let buildingsProcessed = 0;
@@ -30,23 +29,18 @@ export class MonthlyBudgetService {
       // Get all active buildings
       const activeBuildings = await db.select().from(buildings).where(eq(buildings.isActive, true));
 
-      console.warn(`🏢 Found ${activeBuildings.length} active buildings`);
 
       for (const building of activeBuildings) {
         try {
           const buildingBudgets = await this.populateBudgetsForBuilding(building);
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
-          console.warn(
             `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
           );
-        } catch (_error) {
-          console.error(`❌ Error processing building ${building.name}:`, _error);
           // Continue with other buildings
         }
       }
 
-      console.warn(`✅ Monthly budget population completed:
         - Buildings processed: ${buildingsProcessed}
         - Budget entries created: ${budgetsCreated}`);
 
@@ -54,8 +48,6 @@ export class MonthlyBudgetService {
         budgetsCreated,
         buildingsProcessed,
       };
-    } catch (_error) {
-      console.error('❌ Error populating monthly budgets:', _error);
       throw error;
     }
   }
@@ -77,7 +69,6 @@ export class MonthlyBudgetService {
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
-    console.warn(
       `📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`
     );
 
@@ -86,7 +77,6 @@ export class MonthlyBudgetService {
       building.id
     );
 
-    console.warn(
       `📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`
     );
 
@@ -130,7 +120,6 @@ export class MonthlyBudgetService {
 
       // Safety check to avoid infinite loops
       if (budgetEntries.length > 5000) {
-        console.warn(`⚠️ Too many entries for building ${building.name}, limiting to 5000`);
         break;
       }
     }
@@ -268,7 +257,6 @@ export class MonthlyBudgetService {
   private async cleanupExistingBudgets(buildingId: string): Promise<void> {
     await db.delete(monthlyBudgets).where(eq(monthlyBudgets.buildingId, buildingId));
 
-    console.warn(`🧹 Cleaned up existing budget entries for building ${buildingId}`);
   }
 
   /**
@@ -284,8 +272,6 @@ export class MonthlyBudgetService {
       const batch = entries.slice(i, i + batchSize);
       try {
         await db.insert(monthlyBudgets).values(batch);
-      } catch (_error) {
-        console.error(`❌ Error inserting budget batch ${i / batchSize + 1}:`, _error);
         // Try individual inserts for the failed batch
         for (const entry of batch) {
           try {
@@ -344,7 +330,6 @@ export class MonthlyBudgetService {
    * @param buildingId
    */
   async repopulateBudgetsForBuilding(buildingId: string): Promise<number> {
-    console.warn(`🔄 Repopulating budgets for building ${buildingId}`);
 
     const building = await db.select().from(buildings).where(eq(buildings.id, buildingId)).limit(1);
 
@@ -354,7 +339,6 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
-    console.warn(
       `✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`
     );
     return budgetsCreated;

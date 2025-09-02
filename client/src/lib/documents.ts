@@ -179,9 +179,7 @@ export function createUploadHandler(
          */
 
         const error = new Error(`Upload failed: ${_result.failed[0].error}`);
-        onError?.(error);
       }
-    } catch (_error) {
       /**
        * Catch function.
        * @param error - Error object.

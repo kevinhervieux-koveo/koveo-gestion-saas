@@ -86,7 +86,6 @@ export async function registerRoutes(app: Express) {
         storageType: storage.constructor.name
       });
     } catch (error: any) {
-      console.error(`[${timestamp}] ❌ Storage test failed:`, error);
       res.status(500).json({ 
         success: false,
         timestamp,

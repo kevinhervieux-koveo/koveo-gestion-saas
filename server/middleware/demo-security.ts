@@ -124,7 +124,6 @@ export function enforceDemoSecurity() {
 
       if (isOpenDemo) {
         // Log the attempted violation for security monitoring
-        console.warn(
           `🚫 Open Demo user ${userId} (${req.user.email}) attempted restricted action: ${req.method} ${req.path}`
         );
 
@@ -137,7 +136,6 @@ export function enforceDemoSecurity() {
       const canPerform = await canUserPerformWriteOperation(userId, 'create');
 
       if (!canPerform) {
-        console.warn(
           `🚫 User ${userId} (${req.user.email}) denied write operation: ${req.method} ${req.path}`
         );
 
@@ -147,8 +145,6 @@ export function enforceDemoSecurity() {
 
       // User is authorized, proceed
       next();
-    } catch (error) {
-      console.error('Demo security middleware error:', error);
 
       // In case of error, return a generic restriction message
       const restrictionResponse = createDemoRestrictionResponse(req);
@@ -171,7 +167,6 @@ export function enforceFileUploadSecurity() {
       const isOpenDemo = await isOpenDemoUser(userId);
 
       if (isOpenDemo) {
-        console.warn(`🚫 Open Demo user ${userId} attempted file upload: ${req.path}`);
 
         const language = getPreferredLanguage(req);
         const messages = DEMO_RESTRICTION_MESSAGES[language];
@@ -199,8 +194,6 @@ export function enforceFileUploadSecurity() {
       }
 
       next();
-    } catch (error) {
-      console.error('File upload security middleware error:', error);
 
       const restrictionResponse = createDemoRestrictionResponse(req);
       return res.status(403).json(restrictionResponse);
@@ -222,7 +215,6 @@ export function enforceBulkOperationSecurity() {
       const isOpenDemo = await isOpenDemoUser(userId);
 
       if (isOpenDemo) {
-        console.warn(`🚫 Open Demo user ${userId} attempted bulk operation: ${req.path}`);
 
         const language = getPreferredLanguage(req);
         const messages = DEMO_RESTRICTION_MESSAGES[language];
@@ -250,8 +242,6 @@ export function enforceBulkOperationSecurity() {
       }
 
       next();
-    } catch (error) {
-      console.error('Bulk operation security middleware error:', error);
 
       const restrictionResponse = createDemoRestrictionResponse(req);
       return res.status(403).json(restrictionResponse);
@@ -273,7 +263,6 @@ export function enforceExportSecurity() {
       const isOpenDemo = await isOpenDemoUser(userId);
 
       if (isOpenDemo) {
-        console.warn(`🚫 Open Demo user ${userId} attempted data export: ${req.path}`);
 
         const language = getPreferredLanguage(req);
         const messages = DEMO_RESTRICTION_MESSAGES[language];
@@ -301,8 +290,6 @@ export function enforceExportSecurity() {
       }
 
       next();
-    } catch (error) {
-      console.error('Export security middleware error:', error);
 
       const restrictionResponse = createDemoRestrictionResponse(req);
       return res.status(403).json(restrictionResponse);

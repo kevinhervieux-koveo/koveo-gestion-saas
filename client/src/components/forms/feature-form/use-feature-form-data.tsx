@@ -114,8 +114,6 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
-      console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -138,8 +136,6 @@ export function useFeatureFormData(feature: Feature | null) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
-      console.error('Failed to load draft:', _error);
     }
   }, [getDraftKey]);
 
@@ -157,8 +153,6 @@ export function useFeatureFormData(feature: Feature | null) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
-      console.error('Failed to clear draft:', _error);
     }
   }, [getDraftKey, toast]);
 

@@ -27,7 +27,6 @@ export function log(message: string, source = 'express') {
     hour12: true,
   });
 
-  console.warn(`${formattedTime} [${source}] ${message}`);
 }
 
 /**

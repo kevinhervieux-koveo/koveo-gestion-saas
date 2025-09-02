@@ -336,7 +336,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       const { building_id } = queryValidation.data;
 
-      console.warn(`📊 Fetching common spaces for user ${user.id} with role ${user.role}`);
 
       // Get accessible building IDs
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
@@ -382,10 +381,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .where(and(...conditions))
         .orderBy(buildings.name, commonSpaces.name);
 
-      console.warn(`✅ Found ${spaces.length} common spaces for user ${user.id}`);
       res.json(spaces);
-    } catch (error) {
-      console.error('Error fetching common spaces:', error);
       res.status(500).json({
         message: 'Failed to fetch common spaces',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -481,8 +477,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(bookings.startTime);
 
       res.json(spaceBookings);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch bookings',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -641,8 +635,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         message: 'Booking created successfully',
         booking: newBooking[0],
       });
-    } catch (error) {
-      console.error('Error creating booking:', error);
       res.status(500).json({
         message: 'Failed to create booking',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -793,8 +785,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
       };
 
       res.json(calendarData);
-    } catch (error) {
-      console.error('Error fetching calendar data:', error);
       res.status(500).json({
         message: 'Failed to fetch calendar data',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -829,8 +819,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(desc(bookings.startTime));
 
       res.json(userBookings);
-    } catch (error) {
-      console.error('Error fetching user bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch user bookings',
         details: error instanceof Error ? error.message : 'Unknown error',
@@ -918,8 +906,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           message: 'Booking cancelled successfully',
         });
-      } catch (error) {
-        console.error('Error cancelling booking:', error);
         res.status(500).json({
           message: 'Failed to cancel booking',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1031,8 +1017,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
           summary: totalStats[0],
           userStats: stats,
         });
-      } catch (error) {
-        console.error('Error fetching space stats:', error);
         res.status(500).json({
           message: 'Failed to fetch space statistics',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1158,8 +1142,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           message: `User ${is_blocked ? 'blocked from' : 'unblocked from'} booking this space`,
         });
-      } catch (error) {
-        console.error('Error managing user restriction:', error);
         res.status(500).json({
           message: 'Failed to manage user restriction',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1266,8 +1248,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
             createdAt: newSpace[0].createdAt,
           },
         });
-      } catch (error) {
-        console.error('Error creating common space:', error);
         res.status(500).json({
           message: 'Failed to create common space',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1410,8 +1390,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
             spaceId: common_space_id,
           },
         });
-      } catch (error) {
-        console.error('Error setting time limit:', error);
         res.status(500).json({
           message: 'Failed to set time limit',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1476,8 +1454,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           limits: limitsWithUsage,
         });
-      } catch (error) {
-        console.error('Error fetching time limits:', error);
         res.status(500).json({
           message: 'Failed to fetch time limits',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1560,8 +1536,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
           }, 0),
         },
       });
-    } catch (error) {
-      console.error('Error fetching user calendar:', error);
       res.status(500).json({
         message: 'Failed to fetch user calendar',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1712,8 +1686,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
             uniqueUsers: [...new Set(buildingBookings.map((b) => b.userId))].length,
           },
         });
-      } catch (error) {
-        console.error('Error fetching building calendar:', error);
         res.status(500).json({
           message: 'Failed to fetch building calendar',
           error: error instanceof Error ? error.message : 'Unknown error',

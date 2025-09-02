@@ -41,7 +41,6 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.warn(
         `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -100,14 +99,11 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.warn(
         `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
       );
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
-    } catch (_error) {
-      console.error('❌ Error fetching organizations:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -137,7 +133,6 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.warn(`📊 Fetching all organizations for admin user ${currentUser.id}`);
 
       // Get all organizations for admin
       const allOrganizations = await db
@@ -160,13 +155,10 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(eq(organizations.isActive, true))
         .orderBy(organizations.name);
 
-      console.warn(`✅ Found ${allOrganizations.length} organizations`);
 
       res.json({
         organizations: allOrganizations,
       });
-    } catch (_error) {
-      console.error('❌ Error fetching organizations:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -197,7 +189,6 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const organizationData = req.body;
-      console.warn('📥 Creating organization with _data:', organizationData);
 
       // Insert new organization
       const [newOrganization] = await db
@@ -230,7 +221,6 @@ export function registerOrganizationRoutes(app: Express): void {
           createdAt: organizations.createdAt,
         });
 
-      console.warn('✅ Created organization:', newOrganization.name);
 
       // Organization storage hierarchy will be created automatically when documents are uploaded
       console.log(
@@ -238,8 +228,6 @@ export function registerOrganizationRoutes(app: Express): void {
       );
 
       res.status(201).json(newOrganization);
-    } catch (_error) {
-      console.error('❌ Error creating organization:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create organization',
@@ -272,7 +260,6 @@ export function registerOrganizationRoutes(app: Express): void {
       const organizationId = req.params.id;
       const updateData = req.body;
 
-      console.warn('📝 Updating organization:', organizationId, 'with data:', updateData);
 
       // Check if organization exists
       const existingOrg = await db
@@ -322,10 +309,7 @@ export function registerOrganizationRoutes(app: Express): void {
           updatedAt: organizations.updatedAt,
         });
 
-      console.warn('✅ Organization updated successfully:', updatedOrganization.name);
       res.json(updatedOrganization);
-    } catch (error) {
-      console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization',
@@ -399,7 +383,6 @@ export function registerOrganizationRoutes(app: Express): void {
 
         totalInvitations = invitationsCount[0]?.count || 0;
       } catch (___invError) {
-        console.warn('Invitations table access failed, skipping invitation count');
         totalInvitations = 0;
       }
 
@@ -425,8 +408,6 @@ export function registerOrganizationRoutes(app: Express): void {
       };
 
       res.json(impact);
-    } catch (_error) {
-      console.error('❌ Error analyzing deletion impact:', _error);
 
       // Return partial data if we can get basic counts
       try {
@@ -485,7 +466,6 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const organizationId = req.params.id;
-      console.warn(`🗑️ Admin ${currentUser.id} cascading delete organization: ${organizationId}`);
 
       // Check if organization exists
       const organization = await db
@@ -581,13 +561,11 @@ export function registerOrganizationRoutes(app: Express): void {
         .set({ isActive: false, updatedAt: new Date() })
         .where(eq(organizations.id, organizationId));
 
-      console.warn(`✅ Organization cascading delete completed: ${organizationId}`);
 
       // Object storage cleanup will be handled automatically
       try {
         console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
-        console.warn(
           '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
           storageError
         );
@@ -597,8 +575,6 @@ export function registerOrganizationRoutes(app: Express): void {
         message: 'Organization and related entities deleted successfully',
         deletedOrganization: organization[0].name,
       });
-    } catch (_error) {
-      console.error('❌ Error cascading delete organization:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete organization and related entities',

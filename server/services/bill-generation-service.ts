@@ -25,8 +25,6 @@ export class BillGenerationService {
       const existingBills = await db.select().from(bills).where(eq(bills.reference, parentBillId));
 
       return existingBills;
-    } catch (_error) {
-      console.error(`❌ Error fetching bills by reference:`, _error);
       return [];
     }
   }
@@ -46,9 +44,6 @@ export class BillGenerationService {
         })
         .where(eq(bills.id, billId));
 
-      console.warn(`📅 Set recurrence end date for bill ${billId}: ${endDate.toISOString()}`);
-    } catch (_error) {
-      console.error(`❌ Error setting recurrence end date:`, _error);
       throw error;
     }
   }
@@ -66,7 +61,6 @@ export class BillGenerationService {
       throw new Error('Only recurrent bills can generate future instances');
     }
 
-    console.warn(`🔄 Generating future bills for ${parentBill.title} (${parentBill.id})`);
 
     // Calculate projection period - respect endDate if set
     const startDate = new Date(parentBill.startDate);
@@ -75,17 +69,14 @@ export class BillGenerationService {
     let endDate: Date;
     if (parentBill.endDate) {
       endDate = new Date(parentBill.endDate);
-      console.warn(`📅 Using bill endDate: ${endDate.toISOString()}`);
     } else {
       endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 3); // 3 years from now
-      console.warn(`📅 Using default 3-year projection: ${endDate.toISOString()}`);
     }
 
     // Check if there are already auto-generated bills to avoid duplicates
     const existingBills = await this.getBillsByReference(parentBill.id);
     if (existingBills.length > 0) {
-      console.warn(
         `⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`
       );
       return {
@@ -142,7 +133,6 @@ export class BillGenerationService {
       await this.insertBillsBatch(generatedBills);
     }
 
-    console.warn(`✅ Generated ${billsCreated} future bills for ${parentBill.title}`);
 
     return {
       billsCreated,
@@ -261,7 +251,6 @@ export class BillGenerationService {
 
       // Safety check to prevent infinite loops
       if (occurrences.length > 10000) {
-        console.warn(`⚠️ Bill generation stopped at 10,000 occurrences for safety`);
         break;
       }
     }
@@ -351,9 +340,6 @@ export class BillGenerationService {
           )
         );
 
-      console.warn(`🧹 Cleaned up existing auto-generated bills for parent ${parentBillId}`);
-    } catch (_error) {
-      console.error('Error cleaning up existing generated bills:', _error);
     }
   }
 
@@ -364,8 +350,6 @@ export class BillGenerationService {
   private async insertBillsBatch(billBatch: unknown[]): Promise<void> {
     try {
       await db.insert(bills).values(billBatch);
-    } catch (_error) {
-      console.error('Error inserting bill batch:', _error);
       throw error;
     }
   }
@@ -381,7 +365,6 @@ export class BillGenerationService {
   ): Promise<{
     billsUpdated: number;
   }> {
-    console.warn(`🔄 Updating generated bills for parent ${parentBillId}`);
 
     // Find all auto-generated bills for this parent
     const generatedBills = await db
@@ -422,7 +405,6 @@ export class BillGenerationService {
       }
     }
 
-    console.warn(`✅ Updated ${billsUpdated} generated bills`);
 
     return { billsUpdated };
   }
@@ -438,7 +420,6 @@ export class BillGenerationService {
   ): Promise<{
     billsDeleted: number;
   }> {
-    console.warn(
       `🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`
     );
 
@@ -463,7 +444,6 @@ export class BillGenerationService {
     const result = await db.delete(bills).where(whereCondition);
 
     const billsDeleted = result.rowCount || 0;
-    console.warn(`✅ Deleted ${billsDeleted} generated bills`);
 
     return { billsDeleted };
   }
@@ -530,7 +510,6 @@ export class BillGenerationService {
       })
       .where(eq(bills.id, billId));
 
-    console.warn(`✅ Bill ${billId} marked as paid`);
   }
 
   /**

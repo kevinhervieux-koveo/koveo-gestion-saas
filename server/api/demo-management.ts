@@ -27,8 +27,6 @@ export function registerDemoManagementRoutes(app: Express): void {
         success: true,
         data: health,
       });
-    } catch (error) {
-      console.error('Demo health check failed:', error);
 
       res.status(500).json({
         success: false,
@@ -51,8 +49,6 @@ export function registerDemoManagementRoutes(app: Express): void {
         success: true,
         data: info,
       });
-    } catch (error) {
-      console.error('Failed to get demo status:', error);
 
       res.status(500).json({
         success: false,
@@ -83,8 +79,6 @@ export function registerDemoManagementRoutes(app: Express): void {
             openDemoOrgId: result.openDemoOrgId,
           },
         });
-      } catch (error) {
-        console.error('Failed to ensure demo organizations:', error);
 
         res.status(500).json({
           success: false,
@@ -116,8 +110,6 @@ export function registerDemoManagementRoutes(app: Express): void {
             openDemoOrgId: result.openDemoOrgId,
           },
         });
-      } catch (error) {
-        console.error('Failed to recreate demo organizations:', error);
 
         res.status(500).json({
           success: false,
@@ -148,8 +140,6 @@ export function registerDemoManagementRoutes(app: Express): void {
             actions: result.actions,
           },
         });
-      } catch (error) {
-        console.error('Failed to run demo maintenance:', error);
 
         res.status(500).json({
           success: false,

@@ -135,7 +135,6 @@ export const queryClient = new QueryClient({
   },
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
-    onError: (error) => {
       // Handle session expiry globally - redirect to login
       if (error.message.includes('401') || error.message.includes('Authentication required')) {
         // Check if we're not already on login or public pages
@@ -151,7 +150,6 @@ export const queryClient = new QueryClient({
         ].includes(currentPath);
 
         if (!isPublicPath) {
-          console.warn('Session expired during API call, redirecting to login');
           window.location.href = '/auth/login';
           return;
         }
@@ -176,7 +174,6 @@ export const queryClient = new QueryClient({
           console.error('• Server error returning error page');
           console.error('• Route mismatch between frontend and backend');
         } else {
-          console.error('Query error:', error);
         }
       }
     },
@@ -190,7 +187,6 @@ export const queryClient = new QueryClient({
   }),
   // Limit mutation cache size
   mutationCache: new MutationCache({
-    onError: (error) => {
       // Handle session expiry globally for mutations - redirect to login
       if (error.message.includes('401') || error.message.includes('Authentication required')) {
         // Check if we're not already on login or public pages
@@ -206,7 +202,6 @@ export const queryClient = new QueryClient({
         ].includes(currentPath);
 
         if (!isPublicPath) {
-          console.warn('Session expired during mutation, redirecting to login');
           window.location.href = '/auth/login';
           return;
         }
@@ -214,7 +209,6 @@ export const queryClient = new QueryClient({
 
       // Only log mutation errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('Mutation error:', error);
       }
     },
   }),

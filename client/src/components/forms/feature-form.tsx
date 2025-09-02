@@ -96,7 +96,6 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       // Close the dialog
       handleClose(false);
     },
-    onError: (_error) => {
       toast({
         title: 'Integration Failed',
         description: 'Failed to add the feature to the roadmap. Please try again.',
@@ -147,7 +146,6 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'The development prompt has been saved as an actionable item.',
       });
     },
-    onError: (_error) => {
       toast({
         title: 'Save Failed',
         description: 'Failed to save the prompt as an actionable item.',
@@ -229,8 +227,6 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
-      console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -253,8 +249,6 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
-      console.error('Failed to load draft:', _error);
     }
   }, [feature?.id, getDraftKey]);
 
@@ -271,8 +265,6 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
-      console.error('Failed to clear draft:', _error);
     }
   }, [feature?.id, toast, getDraftKey]);
 
@@ -479,7 +471,6 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -595,15 +586,11 @@ ${formData.additionalNotes || 'No additional notes'}
             const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
               window.localStorage.removeItem(key);
-              console.warn('Cleared invalid draft:', key);
             }
-          } catch (_error) {
             // Invalid JSON, remove it
             window.localStorage.removeItem(key);
           }
         });
-      } catch (_error) {
-        console.error('Error clearing invalid drafts:', _error);
       }
 
       loadDraft();

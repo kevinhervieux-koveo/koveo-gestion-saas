@@ -62,8 +62,6 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       setIsLoggingOut(true);
       await logout();
       closeMenu();
-    } catch (error) {
-      console.error('Logout failed:', error);
     } finally {
       setIsLoggingOut(false);
     }

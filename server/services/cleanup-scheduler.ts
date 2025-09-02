@@ -28,7 +28,6 @@ export class CleanupScheduler {
    */
   public startAutoCleanup(): void {
     if (this.cleanupJob) {
-      console.warn('⚠️  Cleanup scheduler already running');
       return;
     }
 
@@ -37,7 +36,6 @@ export class CleanupScheduler {
       '0 */6 * * *',
       async () => {
         try {
-          console.warn('🧹 Starting automatic storage cleanup...');
 
           // Call the cleanup API
           const response = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
@@ -47,16 +45,12 @@ export class CleanupScheduler {
 
           if (response.ok) {
             const result = await response.json();
-            console.warn('✅ Automatic cleanup completed:', result.message);
 
             if (result.details?.deletedOrphaned > 0) {
-              console.warn(`🗑️  Cleaned up ${result.details.deletedOrphaned} orphaned files`);
             }
           } else {
             console.error('❌ Automatic cleanup failed:', response.statusText);
           }
-        } catch (_error) {
-          console.error('❌ Automatic cleanup _error:', _error);
         }
       },
       {
@@ -65,7 +59,6 @@ export class CleanupScheduler {
       }
     );
 
-    console.warn('✅ Storage cleanup scheduler started - runs every 6 hours');
   }
 
   /**
@@ -75,7 +68,6 @@ export class CleanupScheduler {
     if (this.cleanupJob) {
       this.cleanupJob.stop();
       this.cleanupJob = null;
-      console.warn('🛑 Storage cleanup scheduler stopped');
     }
   }
 
@@ -84,7 +76,6 @@ export class CleanupScheduler {
    */
   public async runCleanupNow(): Promise<any> {
     try {
-      console.warn('🧹 Running manual storage cleanup...');
 
       const response = await fetch('http://localhost:5000/api/admin/cleanup-storage', {
         method: 'POST',
@@ -93,13 +84,10 @@ export class CleanupScheduler {
 
       if (response.ok) {
         const result = await response.json();
-        console.warn('✅ Manual cleanup completed:', result.message);
         return result;
       } else {
         throw new Error(`Cleanup failed: ${response.statusText}`);
       }
-    } catch (_error) {
-      console.error('❌ Manual cleanup _error:', _error);
       throw error;
     }
   }

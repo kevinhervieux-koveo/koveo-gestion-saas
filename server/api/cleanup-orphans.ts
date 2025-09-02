@@ -27,7 +27,6 @@ export function registerCleanupOrphansRoutes(app: Express) {
         });
       }
 
-      console.warn(`🧹 Admin ${currentUser.id} initiated orphan cleanup`);
 
       const { cleanupOrphans } = await import('../utils/cleanup-orphans');
       const report = await cleanupOrphans();
@@ -38,8 +37,6 @@ export function registerCleanupOrphansRoutes(app: Express) {
         message: 'Orphan cleanup completed',
         report,
       });
-    } catch (_error) {
-      console.error('❌ Error during orphan cleanup:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to cleanup orphans',
@@ -75,8 +72,6 @@ export function registerCleanupOrphansRoutes(app: Express) {
         message: 'Orphan report generated',
         report,
       });
-    } catch (_error) {
-      console.error('❌ Error generating orphan report:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to generate orphan report',

@@ -32,7 +32,6 @@ class EmailService {
 
   /**
    * Sends password reset email in French or English with Quebec Law 25 compliance.
-   * Uses professional templates with security warnings and privacy disclaimers.
    * Link tracking is disabled for direct URL access as required by security protocols.
    *
    * @param {string} to - Recipient email address.
@@ -190,8 +189,6 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
 
       const template = templates[language];
 
-      console.warn('Sending password reset email with URL:', resetUrl);
-      console.warn('Email tracking settings applied: click tracking disabled');
 
       await this.mailService.send({
         to,
@@ -231,8 +228,6 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (_error) {
-      console.error('Password reset email _error:', _error);
       return false;
     }
   }
@@ -399,8 +394,6 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (error) {
-      console.error('❌ Invitation email failed:', error);
       console.error('❌ Error details:', JSON.stringify(error, null, 2));
       return false;
     }
@@ -418,7 +411,6 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
    * const emailService = new EmailService();
    * const success = await emailService.sendTestEmail('admin@example.com');
    * if (success) {
-   *   console.warn('SendGrid configuration is working');
    * }
    * ```
    */
@@ -436,8 +428,6 @@ Quebec Law 25 compliant. Your personal data is protected according to the strict
       });
 
       return true;
-    } catch (_error) {
-      console.error('Test email _error:', _error);
       return false;
     }
   }
