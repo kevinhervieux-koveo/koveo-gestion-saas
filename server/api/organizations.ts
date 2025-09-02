@@ -418,39 +418,6 @@ export function registerOrganizationRoutes(app: Express): void {
       };
 
       res.json(impact);
-
-      // Return partial data if we can get basic counts
-      try {
-        const organization = await db
-          .select({ id: organizations.id, name: organizations.name })
-          .from(organizations)
-          .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
-          .limit(1);
-
-        if (organization.length > 0) {
-          const buildingsCount = await db
-            .select({ count: count() })
-            .from(buildings)
-            .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
-
-          res.json({
-            organization: organization[0],
-            buildings: buildingsCount[0]?.count || 0,
-            residences: 0,
-            invitations: 0,
-            potentialOrphanedUsers: 0,
-            note: 'Some data may not be available due to database schema issues',
-          });
-          return;
-        }
-      } catch (___fallbackError) {
-        console.error('Fallback also failed:', ___fallbackError);
-      }
-
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to analyze deletion impact',
-      });
     } catch (error: any) {
       console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
