@@ -391,8 +391,12 @@ export default function UserManagement() {
 
 
 
-  // Quick debug to see if data is available
-  console.log('Users data:', users.length, users[0]?.email, users[0]?.organizations?.length);
+  // Force render test - always show data structure for first user
+  if (users.length > 0) {
+    console.log('FRONTEND DEBUG - First user keys:', Object.keys(users[0]));
+    console.log('FRONTEND DEBUG - First user organizations:', users[0].organizations);
+    console.log('FRONTEND DEBUG - Organizations length:', users[0].organizations?.length);
+  }
 
   // Apply filters, search, and sort
   const filteredUsers = useMemo(() => {
@@ -727,6 +731,13 @@ export default function UserManagement() {
                               </td>
                               <td className='border border-gray-300 px-4 py-2' data-testid={`cell-organizations-${user.id}`}>
                                 <div className='space-y-1'>
+                                  {/* DEBUG: Show raw data */}
+                                  {user.email === 'maelacyr@gmail.com' && (
+                                    <div style={{fontSize: '8px', color: 'red'}}>
+                                      DEBUG: orgs={user.organizations?.length || 'undefined'} | 
+                                      raw={JSON.stringify(user.organizations)}
+                                    </div>
+                                  )}
                                   {user.organizations?.length > 0 ? (
                                     user.organizations.map((org, idx) => (
                                       <div
@@ -739,7 +750,7 @@ export default function UserManagement() {
                                     ))
                                   ) : (
                                     <div className='text-gray-400 text-xs' data-testid={`no-organizations-${user.id}`}>
-                                      No organizations
+                                      No organizations ({typeof user.organizations})
                                     </div>
                                   )}
                                 </div>
