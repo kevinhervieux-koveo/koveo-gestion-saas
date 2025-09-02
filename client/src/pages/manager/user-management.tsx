@@ -93,19 +93,31 @@ export default function UserManagement() {
     isLoading: usersLoading,
     error: usersError,
   } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users'],
-    onSuccess: (data) => {
-      console.log('🔍 [FRONTEND DEBUG] Received users from API:', data?.length);
-      if (data?.length > 0) {
-        console.log('🔍 [FRONTEND DEBUG] First user:', {
-          email: data[0].email,
-          organizations: data[0].organizations,
-          buildings: data[0].buildings,
-          residences: data[0].residences
-        });
-      }
-    }
+    queryKey: ['/api/users']
   });
+
+  // Frontend debugging
+  React.useEffect(() => {
+    if (users && users.length > 0) {
+      console.log('🔍 [FRONTEND DEBUG] Received users from API:', users.length);
+      const firstUser = users[0];
+      console.log('🔍 [FRONTEND DEBUG] First user data:', {
+        email: firstUser.email,
+        organizationsType: typeof firstUser.organizations,
+        organizationsIsArray: Array.isArray(firstUser.organizations),
+        organizationsLength: firstUser.organizations?.length,
+        organizationsValue: firstUser.organizations,
+        buildingsType: typeof firstUser.buildings,
+        buildingsIsArray: Array.isArray(firstUser.buildings),
+        buildingsLength: firstUser.buildings?.length,
+        buildingsValue: firstUser.buildings,
+        residencesType: typeof firstUser.residences,
+        residencesIsArray: Array.isArray(firstUser.residences),
+        residencesLength: firstUser.residences?.length,
+        residencesValue: firstUser.residences
+      });
+    }
+  }, [users]);
 
 
 
