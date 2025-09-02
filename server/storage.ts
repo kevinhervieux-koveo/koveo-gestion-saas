@@ -1005,9 +1005,15 @@ class ProductionFallbackStorage implements IStorage {
 
   async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
     try {
-      return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
-    } catch {
-      return this.memStorage.getUsersWithAssignments();
+      console.warn('🔥 [STORAGE DEBUG] Attempting to use DB storage for getUsersWithAssignments');
+      const result = await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
+      console.warn('🔥 [STORAGE DEBUG] DB storage success - returning', result.length, 'users with assignments');
+      return result;
+    } catch (error) {
+      console.warn('🔥 [STORAGE DEBUG] DB storage failed, falling back to memory storage:', error.message);
+      const result = this.memStorage.getUsersWithAssignments();
+      console.warn('🔥 [STORAGE DEBUG] Memory storage returned', result.length, 'users with EMPTY assignments');
+      return result;
     }
   }
 
