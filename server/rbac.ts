@@ -18,7 +18,7 @@ import { db } from './db';
  * @property {string} email - User's email address.
  * @property {string} firstName - User's first name.
  * @property {string} lastName - User's last name.
- * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system.
+ * @property {'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident'} role - User's primary role in the system.
  * @property {boolean} isActive - Whether the user account is active.
  * @property {string[]} [organizations] - Array of organization IDs the user can access.
  * @property {boolean} [canAccessAllOrganizations] - Whether user has global organization access (Koveo org).
@@ -29,7 +29,7 @@ export interface AuthenticatedUser {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'manager' | 'tenant' | 'resident';
+  role: 'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident';
   isActive: boolean;
   organizations?: string[];
   canAccessAllOrganizations?: boolean;
@@ -334,7 +334,7 @@ export async function canUserAccessResidence(
     }
 
     // Admins and managers can access any residence in their accessible organizations
-    if (['admin', 'manager'].includes(user.role)) {
+    if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
       const residence = await db.query.residences.findFirst({
         where: eq(schema.residences.id, residenceId),
         with: {
@@ -550,7 +550,7 @@ export async function filterResidencesByAccess(userId: string, residences: any[]
   }
 
   // For admins/managers, filter by organization access
-  if (['admin', 'manager'].includes(user.role)) {
+  if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
 
     // Get all buildings in accessible organizations
@@ -616,7 +616,7 @@ export async function getResidenceFilter(userId: string) {
   }
 
   // For admins/managers, filter by organization access
-  if (['admin', 'manager'].includes(user.role)) {
+  if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
 
     // Get all buildings in accessible organizations

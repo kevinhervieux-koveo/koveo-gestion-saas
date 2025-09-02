@@ -384,7 +384,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     const isDemoOrg = selectedOrg?.type === 'Demo';
 
     if (isDemoOrg) {
-      return ['demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
+      // For demo organizations, allow both demo roles and regular roles
+      return ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
     }
 
     return ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
@@ -500,7 +501,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               />
 
               {/* Conditional fields based on role type */}
-              {selectedOrgType === 'Demo' ? (
+              {['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) ? (
                 <>
                   <FormField
                     control={form.control}
@@ -616,7 +617,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 )}
 
               {/* Only show expiry for regular invitations, not demo users */}
-              {selectedOrgType !== 'Demo' && (
+              {!['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) && (
                 <FormField
                   control={form.control}
                   name='expiryDays'
@@ -644,7 +645,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               )}
 
               {/* Only show personal message for regular invitations, not demo users */}
-              {selectedOrgType !== 'Demo' && (
+              {!['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) && (
                 <FormField
                   control={form.control}
                   name='personalMessage'
