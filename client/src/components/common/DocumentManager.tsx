@@ -686,32 +686,6 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                   {document.name}
                                 </h4>
                                 <div className='flex gap-1'>
-                                  {document.filePath && (
-                                    <>
-                                      <Button
-                                        size='sm'
-                                        variant='ghost'
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleViewDocument(document);
-                                        }}
-                                        data-testid={`button-view-${document.id}`}
-                                      >
-                                        <FileText className='h-3 w-3' />
-                                      </Button>
-                                      <Button
-                                        size='sm'
-                                        variant='ghost'
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDownloadDocument(document);
-                                        }}
-                                        data-testid={`button-download-${document.id}`}
-                                      >
-                                        <Download className='h-3 w-3' />
-                                      </Button>
-                                    </>
-                                  )}
                                   {config.allowEdit && (
                                     <Button
                                       size='sm'
@@ -725,20 +699,6 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       data-testid={`button-edit-${document.id}`}
                                     >
                                       <Edit className='h-3 w-3' />
-                                    </Button>
-                                  )}
-                                  {config.allowDelete && (
-                                    <Button
-                                      size='sm'
-                                      variant='ghost'
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteDocument(document);
-                                      }}
-                                      className='text-red-600 hover:text-red-700'
-                                      data-testid={`button-delete-${document.id}`}
-                                    >
-                                      <Trash2 className='h-3 w-3' />
                                     </Button>
                                   )}
                                 </div>
