@@ -745,9 +745,20 @@ export default function UserManagement() {
                                       </div>
                                     ))
                                   ) : (
-                                    <span className='text-gray-400 text-xs'>
-                                      No organizations {JSON.stringify(user.organizations)}
-                                    </span>
+                                    <div className='text-gray-400 text-xs'>
+                                      <div>No organizations</div>
+                                      <div className='mt-1 font-mono text-xs break-all'>
+                                        {JSON.stringify(user.organizations)}
+                                      </div>
+                                      <div className='mt-1 font-mono text-xs break-all'>
+                                        Raw: {JSON.stringify({
+                                          hasOrgs: !!user.organizations,
+                                          isArray: Array.isArray(user.organizations),
+                                          length: user.organizations?.length,
+                                          keys: user.organizations ? Object.keys(user.organizations) : 'no keys'
+                                        })}
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </td>

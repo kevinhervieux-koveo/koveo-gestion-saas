@@ -53,16 +53,37 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.role === 'admin') {
         // Admin can see all users
         filteredUsers = usersWithAssignments;
+        console.warn('🔥 [FILTER DEBUG] Admin user - showing all users');
       } else {
         // Managers and other users can only see users from their organizations
         // Get the organization IDs that the current user has access to
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         
+        console.warn('🔥 [FILTER DEBUG] Manager user - accessible org IDs:', userOrgIds);
+        
         // Filter users to only include those from accessible organizations
-        filteredUsers = usersWithAssignments.filter(user =>
-          user.organizations.some(org => userOrgIds.includes(org.id))
-        );
+        filteredUsers = usersWithAssignments.filter(user => {
+          const hasAccess = user.organizations?.some(org => userOrgIds.includes(org.id)) || false;
+          if (!hasAccess) {
+            console.warn('🔥 [FILTER DEBUG] User excluded:', user.email, 'has orgs:', user.organizations?.length);
+          }
+          return hasAccess;
+        });
+        
+        console.warn('🔥 [FILTER DEBUG] Filtered users count:', filteredUsers.length);
       }
+
+      // Final debug: Log what we're sending to frontend
+      console.warn('🔥 [API FINAL] Sending to frontend:', {
+        totalUsers: filteredUsers.length,
+        firstUser: filteredUsers[0] ? {
+          email: filteredUsers[0].email,
+          organizationsCount: filteredUsers[0].organizations?.length || 0,
+          buildingsCount: filteredUsers[0].buildings?.length || 0,
+          residencesCount: filteredUsers[0].residences?.length || 0,
+          firstOrg: filteredUsers[0].organizations?.[0]
+        } : 'No users',
+      });
 
       res.json(filteredUsers);
     } catch (error) {
