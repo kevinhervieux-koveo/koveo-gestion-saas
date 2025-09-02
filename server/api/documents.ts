@@ -95,22 +95,51 @@ export function registerDocumentRoutes(app: Express): void {
   // Error tracking for production debugging
   const errorLog: Array<{timestamp: string, error: any, endpoint: string, user?: any}> = [];
   
-  // Enhanced diagnostic endpoint
-  app.get('/api/documents/diagnostic', (req, res) => {
-    res.json({
-      message: 'Document API diagnostic',
-      gcs_disabled: true,
-      session_fix_applied: true,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      version: 'v2.1-gcs-disabled',
-      recent_errors: errorLog.slice(-5), // Last 5 errors
-      storage_status: {
-        exists: !!storage,
-        type: storage?.constructor?.name,
-        methods: Object.getOwnPropertyNames(Object.getPrototypeOf(storage || {}))
+  // Enhanced diagnostic endpoint with database schema check
+  app.get('/api/documents/diagnostic', async (req, res) => {
+    try {
+      // Check if documents table exists
+      let tableExists = false;
+      let tableSchema = null;
+      
+      try {
+        const result = await storage.db.execute(sql`
+          SELECT column_name, data_type, is_nullable, column_default 
+          FROM information_schema.columns 
+          WHERE table_name = 'documents' 
+          ORDER BY ordinal_position
+        `);
+        tableExists = result.rows.length > 0;
+        tableSchema = result.rows;
+      } catch (schemaError) {
+        console.error('Schema check error:', schemaError);
       }
-    });
+
+      res.json({
+        message: 'Document API diagnostic',
+        gcs_disabled: true,
+        session_fix_applied: true,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        version: 'v2.1-gcs-disabled',
+        recent_errors: errorLog.slice(-5), // Last 5 errors
+        storage_status: {
+          exists: !!storage,
+          type: storage?.constructor?.name,
+          methods: Object.getOwnPropertyNames(Object.getPrototypeOf(storage || {}))
+        },
+        database_status: {
+          documents_table_exists: tableExists,
+          documents_table_schema: tableSchema,
+          schema_columns_count: tableSchema?.length || 0
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Diagnostic failed',
+        message: error.message
+      });
+    }
   });
   
   // Error logging helper
