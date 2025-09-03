@@ -64,10 +64,13 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
     const hasConfirmPassword = formData.confirmPassword.length > 0;
     const isValid = passwordStrength.isValid && passwordsMatch && hasPassword && hasConfirmPassword;
 
-    const updatedData = { ...formData, isValid };
-    onDataChange(updatedData);
-    onValidationChange(isValid);
-  }, [formData, onDataChange, onValidationChange]);
+    // Only update if validation state actually changed
+    if (formData.isValid !== isValid) {
+      const updatedData = { ...formData, isValid };
+      onDataChange(updatedData);
+      onValidationChange(isValid);
+    }
+  }, [formData.password, formData.confirmPassword, formData.isValid, onDataChange, onValidationChange]);
 
   const handlePasswordChange = (_value: string) => {
     setFormData((prev) => ({
