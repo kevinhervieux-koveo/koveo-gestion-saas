@@ -449,9 +449,11 @@ export default function LoginPage() {
                           <Input
                             {...field}
                             type='email'
+                            autoComplete='username'
                             placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
                             disabled={isLoggingIn}
                             className='h-11'
+                            data-testid='input-email'
                           />
                         </FormControl>
                         <FormMessage />

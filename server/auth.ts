@@ -532,7 +532,7 @@ export function setupAuthRoutes(app: any) {
         });
       });
     } catch (_error: any) {
-      console.error('Login error details:', {
+      console.error('Login error:', {
         error: _error,
         email: req.body?.email,
         hasPassword: !!req.body?.password,
@@ -573,18 +573,11 @@ export function setupAuthRoutes(app: any) {
   // Get current user route
   app.get('/api/auth/user', async (req: Request, res: Response) => {
     try {
-      console.log('🔍 [AUTH DEBUG] Checking user session...', {
-        hasSession: !!req.session,
-        sessionId: req.session?.id,
-        sessionUserId: req.session?.userId,
-        sessionUser: !!req.session?.user,
-        sessionKeys: req.session ? Object.keys(req.session) : [],
-        cookieHeader: req.headers.cookie
-      });
+      // Check user session
 
       // Check if we have a valid session with user ID
       if (!req.session?.userId) {
-        console.log('❌ [AUTH DEBUG] No session or userId found');
+        // No session found
         return res.status(401).json({
           message: 'Not authenticated',
           code: 'NOT_AUTHENTICATED',
@@ -594,14 +587,10 @@ export function setupAuthRoutes(app: any) {
       // Try to get user from database
       try {
         const user = await storage.getUser(req.session.userId);
-        console.log('🔍 [AUTH DEBUG] User lookup result:', {
-          found: !!user,
-          isActive: user?.isActive,
-          email: user?.email
-        });
+        // User lookup completed
 
         if (!user || !user.isActive) {
-          console.log('❌ [AUTH DEBUG] User not found or inactive, destroying session');
+          // User not found or inactive, destroying session
           req.session.destroy((err) => {
             if (err) {
               console.error('Session destruction error:', err);
@@ -620,11 +609,11 @@ export function setupAuthRoutes(app: any) {
 
         // Return user data without password
         const { password: _, ...userData } = user;
-        console.log('✅ [AUTH DEBUG] Successfully authenticated user:', userData.email);
+        // Successfully authenticated user
         res.json(userData);
 
       } catch (userError) {
-        console.error('❌ [AUTH DEBUG] Database error getting user:', userError);
+        console.error('Database error getting user:', userError);
         return res.status(500).json({
           message: 'Authentication check failed',
           code: 'AUTH_CHECK_ERROR',
