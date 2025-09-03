@@ -431,7 +431,7 @@ export default function Residence() {
                           <SelectValue placeholder={t('selectABuilding')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Buildings</SelectItem>
+                          <SelectItem value="all">All Buildings</SelectItem>
                           {buildings.map((building: any) => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name} - {building.address}
