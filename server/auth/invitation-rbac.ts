@@ -8,7 +8,9 @@ import { hasRoleOrHigher } from '../../config';
 // Note: createInvitationAuditLog will be defined locally or imported when needed
 import ws from 'ws';
 
-neonConfig.webSocketConstructor = ws;
+if (typeof neonConfig !== 'undefined' && neonConfig) {
+  neonConfig.webSocketConstructor = ws;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');

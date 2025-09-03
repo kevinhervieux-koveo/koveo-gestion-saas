@@ -6,6 +6,13 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import express from 'express';
 import request from 'supertest';
+
+// Mock WebSocket constructor for Jest environment
+jest.mock('ws', () => ({
+  __esModule: true,
+  default: class MockWebSocket {}
+}));
+
 import { registerRoutes } from '../../../server/routes';
 import { db } from '../../../server/db';
 import * as schema from '../../../shared/schema';
