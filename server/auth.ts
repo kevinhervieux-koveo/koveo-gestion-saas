@@ -959,6 +959,7 @@ declare module 'express-session' {
     userId?: string;
     userRole?: string;
     role?: string;
+    user?: AuthenticatedUser;
     permissions?: string[];
     store?: any;
     testValue?: any;

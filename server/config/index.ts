@@ -44,13 +44,19 @@ const env = envSchema.parse(process.env);
 
 // Detect environment based on domain instead of NODE_ENV
 const detectEnvironment = () => {
-  const domain =
-    env.REPL_SLUG && env.REPL_OWNER ? `${env.REPL_SLUG}.${env.REPL_OWNER}.repl.co` : 'localhost';
+  // Get domain from various sources
+  const replDomain = env.REPL_SLUG && env.REPL_OWNER ? `${env.REPL_SLUG}.${env.REPL_OWNER}.repl.co` : null;
+  const hostDomain = process.env.REPLIT_DOMAINS || process.env.HOST || process.env.DOMAIN;
+  const domain = hostDomain || replDomain || 'localhost';
 
   // Production domains (add your production domains here)
   const productionDomains = ['koveo-gestion.com', 'www.koveo-gestion.com', 'app.koveo-gestion.com'];
 
-  const isProduction = productionDomains.some((prodDomain) => domain.includes(prodDomain));
+  // Also check NODE_ENV as backup for explicit production setting
+  const isExplicitProduction = process.env.NODE_ENV === 'production';
+  const isDomainProduction = productionDomains.some((prodDomain) => domain.includes(prodDomain));
+  // Prioritize explicit NODE_ENV=production setting for deployment environments
+  const isProduction = isExplicitProduction || isDomainProduction;
   const isDevelopment = !isProduction;
 
   console.log(
