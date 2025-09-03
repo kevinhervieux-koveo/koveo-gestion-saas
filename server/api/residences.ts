@@ -369,23 +369,46 @@ export function registerResidenceRoutes(app: Express) {
       const { id } = req.params;
       const updateData = req.body;
 
+      console.log(`🏠 Updating residence ${id} with data:`, updateData);
+
       // Remove readonly fields
       delete updateData.id;
       delete updateData.createdAt;
       delete updateData.buildingId; // Don't allow changing building
 
+      // Validate and sanitize numeric fields
+      const processedData = {
+        ...updateData,
+        updatedAt: new Date(),
+      };
+
+      // Convert null/empty values to null for optional fields
+      if (processedData.squareFootage === null || processedData.squareFootage === '') {
+        processedData.squareFootage = null;
+      }
+      if (processedData.bathrooms === null || processedData.bathrooms === '') {
+        processedData.bathrooms = null;
+      }
+      if (processedData.ownershipPercentage === null || processedData.ownershipPercentage === '') {
+        processedData.ownershipPercentage = null;
+      }
+      if (processedData.monthlyFees === null || processedData.monthlyFees === '') {
+        processedData.monthlyFees = null;
+      }
+
+      console.log(`🏠 Processed data for residence ${id}:`, processedData);
+
       const updated = await db
         .update(residences)
-        .set({
-          ...updateData,
-          updatedAt: new Date(),
-        })
+        .set(processedData)
         .where(eq(residences.id, id))
         .returning();
 
       if (updated.length === 0) {
         return res.status(404).json({ message: 'Residence not found' });
       }
+
+      console.log(`✅ Successfully updated residence ${id}`);
 
       // Schedule delayed money flow and budget update for the updated residence
       try {
@@ -398,7 +421,13 @@ export function registerResidenceRoutes(app: Express) {
       res.json(updated[0]);
     } catch (error: any) {
       console.error('❌ Error updating residence:', error);
-      res.status(500).json({ message: 'Failed to update residence' });
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      res.status(500).json({ 
+        message: 'Failed to update residence',
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   });
 

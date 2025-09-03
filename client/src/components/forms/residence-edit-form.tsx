@@ -38,15 +38,15 @@ interface Residence {
 
 const residenceEditSchema = z.object({
   unitNumber: z.string().min(1, 'Unit number is required'),
-  floor: z.number().min(0, 'Floor must be 0 or greater').optional(),
-  squareFootage: z.string().optional(),
-  bedrooms: z.number().min(0, 'Bedrooms must be 0 or greater').optional(),
-  bathrooms: z.string().optional(),
+  floor: z.coerce.number().min(0, 'Floor must be 0 or greater').optional(),
+  squareFootage: z.union([z.coerce.number().min(0, 'Square footage must be positive'), z.literal('')]).optional(),
+  bedrooms: z.coerce.number().min(0, 'Bedrooms must be 0 or greater').optional(),
+  bathrooms: z.union([z.coerce.number().min(0, 'Bathrooms must be positive'), z.literal('')]).optional(),
   balcony: z.boolean(),
   parkingSpaceNumbers: z.array(z.string()).optional(),
   storageSpaceNumbers: z.array(z.string()).optional(),
-  ownershipPercentage: z.string().optional(),
-  monthlyFees: z.string().optional(),
+  ownershipPercentage: z.union([z.coerce.number().min(0).max(100, 'Ownership percentage must be between 0 and 100'), z.literal('')]).optional(),
+  monthlyFees: z.union([z.coerce.number().min(0, 'Monthly fees must be positive'), z.literal('')]).optional(),
 });
 
 /**
@@ -89,33 +89,41 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     defaultValues: {
       unitNumber: residence.unitNumber,
       floor: residence.floor || 0,
-      squareFootage: residence.squareFootage || '',
+      squareFootage: residence.squareFootage ? Number(residence.squareFootage) : '',
       bedrooms: residence.bedrooms || 0,
-      bathrooms: residence.bathrooms || '',
+      bathrooms: residence.bathrooms ? Number(residence.bathrooms) : '',
       balcony: residence.balcony || false,
       parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
       storageSpaceNumbers: residence.storageSpaceNumbers || [],
-      ownershipPercentage: residence.ownershipPercentage || '',
-      monthlyFees: residence.monthlyFees || '',
+      ownershipPercentage: residence.ownershipPercentage ? Number(residence.ownershipPercentage) : '',
+      monthlyFees: residence.monthlyFees ? Number(residence.monthlyFees) : '',
     },
   });
 
   const updateResidenceMutation = useMutation({
     mutationFn: async (_data: ResidenceEditFormData) => {
+      // Convert empty strings to null for optional numeric fields
+      const processedData = {
+        ..._data,
+        squareFootage: _data.squareFootage === '' ? null : _data.squareFootage,
+        bathrooms: _data.bathrooms === '' ? null : _data.bathrooms,
+        ownershipPercentage: _data.ownershipPercentage === '' ? null : _data.ownershipPercentage,
+        monthlyFees: _data.monthlyFees === '' ? null : _data.monthlyFees,
+        parkingSpaceNumbers: parkingSpaces,
+        storageSpaceNumbers: storageSpaces,
+      };
+
       const response = await fetch(`/api/residences/${residence.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ..._data,
-          parkingSpaceNumbers: parkingSpaces,
-          storageSpaceNumbers: storageSpaces,
-        }),
+        body: JSON.stringify(processedData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update residence');
+        const errorText = await response.text();
+        throw new Error(`Failed to update residence: ${errorText}`);
       }
 
       return response.json();
