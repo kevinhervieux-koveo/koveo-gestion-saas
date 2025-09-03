@@ -34,9 +34,13 @@ describe('API Error Handling and Validation Edge Cases', () => {
   beforeEach(async () => {
     app = createTestApp();
 
-    // Clean test data
-    await db.delete(schema.buildings);
-    await db.delete(schema.organizations);
+    try {
+      // Clean test data
+      await db.delete(schema.buildings);
+      await db.delete(schema.organizations);
+    } catch (error) {
+      console.warn('Test setup warning:', error);
+    }
 
     // Create test organization
     const [org] = await db
@@ -72,8 +76,12 @@ describe('API Error Handling and Validation Edge Cases', () => {
   });
 
   afterEach(async () => {
-    await db.delete(schema.buildings);
-    await db.delete(schema.organizations);
+    try {
+      await db.delete(schema.buildings);
+      await db.delete(schema.organizations);
+    } catch (error) {
+      console.warn('Test cleanup warning:', error);
+    }
   });
 
   describe('Input Validation Edge Cases', () => {

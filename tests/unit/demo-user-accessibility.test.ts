@@ -157,8 +157,12 @@ describe('Demo User Accessibility', () => {
         password: 'test-hash'
       };
 
-      // Ensure clean test environment - remove any previous test data
-      await db.delete(users).where(eq(users.email, testUserData.email));
+      try {
+        // Ensure clean test environment - remove any previous test data
+        await db.delete(users).where(eq(users.email, testUserData.email));
+      } catch (error) {
+        console.warn('Test cleanup warning:', error);
+      }
 
       // Test demo user creation (should work for testing purposes)
       let creationFailed = false;

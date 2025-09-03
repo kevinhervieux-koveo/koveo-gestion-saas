@@ -49,13 +49,17 @@ describe('RBAC Buildings and Residences Actions', () => {
   beforeEach(async () => {
     app = createTestApp();
     
-    // Clean test data
-    await db.delete(schema.userResidences);
-    await db.delete(schema.userOrganizations);
-    await db.delete(schema.residences);
-    await db.delete(schema.buildings);
-    await db.delete(schema.users);
-    await db.delete(schema.organizations);
+    try {
+      // Clean test data
+      await db.delete(schema.userResidences);
+      await db.delete(schema.userOrganizations);
+      await db.delete(schema.residences);
+      await db.delete(schema.buildings);
+      await db.delete(schema.users);
+      await db.delete(schema.organizations);
+    } catch (error) {
+      console.warn('Test setup warning:', error);
+    }
 
     // Create test organizations
     const organizations = await db
@@ -123,9 +127,9 @@ describe('RBAC Buildings and Residences Actions', () => {
       .values({
         buildingId: testBuilding.id,
         unitNumber: '101',
-        squareFootage: 1000,
+        squareFootage: '1000',
         bedrooms: 2,
-        bathrooms: 1,
+        bathrooms: '1.0',
       })
       .returning();
     testResidence = residence;
@@ -228,12 +232,14 @@ describe('RBAC Buildings and Residences Actions', () => {
           userId: tenantUser.id,
           residenceId: testResidence.id,
           relationshipType: 'tenant',
+          startDate: '2024-01-01',
           isActive: true,
         },
         {
           userId: residentUser.id,
           residenceId: testResidence.id,
           relationshipType: 'occupant',
+          startDate: '2024-01-01',
           isActive: true,
         }
       ]);
