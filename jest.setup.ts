@@ -1,7 +1,7 @@
 // Jest setup file - global test configuration
 import '@testing-library/jest-dom';
 
-// Mock Google GenAI to avoid ES module issues
+// Performance: Mock expensive external dependencies
 jest.mock('@google/genai', () => ({
   GoogleGenAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn().mockReturnValue({
@@ -12,6 +12,24 @@ jest.mock('@google/genai', () => ({
       }),
     }),
   })),
+}));
+
+// Performance: Mock database for unit tests to avoid network calls
+jest.mock('./server/db', () => {
+  const { mockDb, mockSql } = require('./tests/mocks/database');
+  return {
+    db: mockDb,
+    sql: mockSql,
+    pool: mockSql,
+  };
+});
+
+// Performance: Mock Neon database for faster unit tests
+jest.mock('@neondatabase/serverless', () => ({
+  neon: jest.fn(() => {
+    const { mockSql } = require('./tests/mocks/database');
+    return mockSql;
+  }),
 }));
 import 'whatwg-fetch';
 

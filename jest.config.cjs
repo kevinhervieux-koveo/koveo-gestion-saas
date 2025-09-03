@@ -4,6 +4,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   // Ensure tests run in safe environment
   globalSetup: '<rootDir>/jest.global-setup.js',
+  globalTeardown: '<rootDir>/jest.global-teardown.js',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
@@ -34,10 +35,11 @@ const config = {
           esModuleInterop: true,
           target: 'ES2022',
           lib: ['ES2022', 'DOM', 'DOM.Iterable'],
-          isolatedModules: true,
+  
           skipLibCheck: true,
           types: ['jest', 'node', '@testing-library/jest-dom'],
         },
+
       },
     ],
     '^.+\\.js$': [
@@ -50,18 +52,37 @@ const config = {
           esModuleInterop: true,
           allowSyntheticDefaultImports: true,
         },
+
       },
     ],
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web))'
   ],
-  testTimeout: 30000,
+  testTimeout: 15000,
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,
   verbose: false,
   passWithNoTests: false,
+  // Performance optimizations
+  maxWorkers: '50%',
+  cache: true,
+  cacheDirectory: '<rootDir>/.jest-cache',
+  detectOpenHandles: false,
+  forceExit: true,
+  // Faster test isolation
+  resetModules: false,
+  // Skip expensive operations
+  haste: {
+    enableSymlinks: false,
+  },
+  // Optimize module resolution
+  modulePathIgnorePatterns: [
+    '<rootDir>/dist/',
+    '<rootDir>/.cache/',
+    '<rootDir>/node_modules/.cache/',
+  ],
 };
 
 module.exports = config;
