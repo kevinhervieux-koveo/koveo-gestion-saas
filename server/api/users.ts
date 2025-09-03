@@ -1637,6 +1637,33 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Check for existing pending invitations for the same email and organization
+      // If found, delete them to replace with new invitation
+      const existingInvitations = await db
+        .select()
+        .from(schema.invitations)
+        .where(
+          and(
+            eq(schema.invitations.email, email),
+            eq(schema.invitations.organizationId, organizationId),
+            eq(schema.invitations.status, 'pending')
+          )
+        );
+
+      if (existingInvitations.length > 0) {
+        console.log(`🔄 Replacing ${existingInvitations.length} existing invitation(s) for email: ${email}`);
+        // Delete existing pending invitations for this email/organization
+        await db
+          .delete(schema.invitations)
+          .where(
+            and(
+              eq(schema.invitations.email, email),
+              eq(schema.invitations.organizationId, organizationId),
+              eq(schema.invitations.status, 'pending')
+            )
+          );
+      }
+
       // Generate secure invitation token
       const token = randomBytes(32).toString('hex');
       const tokenHash = createHash('sha256').update(token).digest('hex');
