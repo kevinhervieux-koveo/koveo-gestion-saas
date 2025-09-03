@@ -372,16 +372,11 @@ describe('Database Query Scoping Tests', () => {
         role: 'tenant',
       };
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
       const _scopedQuery = await scopeQuery(mockQuery, userContext, 'unknown_entity');
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'No scoping rule defined for entity type: unknown_entity'
-      );
+      // Unknown entity types are returned unmodified (no scoping applied)
       expect(_scopedQuery).toBe(mockQuery);
-
-      consoleSpy.mockRestore();
+      expect(mockQuery.where).not.toHaveBeenCalled();
     });
 
     test('should handle missing context properties', async () => {
