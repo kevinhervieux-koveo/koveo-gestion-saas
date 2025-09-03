@@ -17,11 +17,11 @@ import * as bcrypt from 'bcryptjs';
 
 describe('Authentication System', () => {
   const testUser = {
-    username: 'testauth',
-    email: 'testauth@koveo.com',
+    username: 'isolated-auth-test',
+    email: 'isolated-auth-test@test-only.com',
     password: 'test123',
-    firstName: 'Test',
-    lastName: 'Auth',
+    firstName: 'Isolated',
+    lastName: 'AuthTest',
     role: 'manager' as const,
     language: 'en',
     isActive: true

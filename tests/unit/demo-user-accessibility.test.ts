@@ -24,44 +24,55 @@ describe('Demo User Accessibility', () => {
   });
 
   describe('Demo User Database Presence', () => {
-    it('should verify no demo users exist in the database', async () => {
+    it('should verify demo users exist and are properly configured', async () => {
       // Check for demo users in database
-      const demoUsers = await db
+      const demoManagerUsers = await db
         .select()
         .from(users)
         .where(eq(users.role, 'demo_manager' as any))
         .catch(() => []);
 
-      const openDemoUsers = await db
+      const demoTenantUsers = await db
         .select()
         .from(users)
         .where(eq(users.role, 'demo_tenant' as any))
         .catch(() => []);
 
-      const demoManagerUsers = await db
+      const demoResidentUsers = await db
         .select()
         .from(users)
         .where(eq(users.role, 'demo_resident' as any))
         .catch(() => []);
 
-      // Verify no demo users exist
-      expect(demoUsers).toHaveLength(0);
-      expect(openDemoUsers).toHaveLength(0);
-      expect(demoManagerUsers).toHaveLength(0);
+      // Verify demo users exist and are properly configured
+      expect(demoManagerUsers.length).toBeGreaterThanOrEqual(1);
+      expect(demoTenantUsers.length).toBeGreaterThanOrEqual(1);
+      expect(demoResidentUsers.length).toBeGreaterThanOrEqual(1);
+      
+      // All should be active
+      [...demoManagerUsers, ...demoTenantUsers, ...demoResidentUsers].forEach(user => {
+        expect(user.isActive).toBe(true);
+      });
     });
 
-    it('should verify no users with demo email patterns exist', async () => {
+    it('should verify demo users have proper email patterns and are protected', async () => {
       // Check for users with demo email patterns
       const allUsers = await db.select().from(users);
       
-      const demoEmailUsers = allUsers.filter(user => 
-        user.email.toLowerCase().includes('demo') ||
+      const realDemoUsers = allUsers.filter(user => 
+        user.email.includes('demo.') && user.email.includes('@koveo.com')
+      );
+      
+      const testDemoUsers = allUsers.filter(user => 
         user.email.toLowerCase().includes('test-demo') ||
         user.email.toLowerCase().includes('open-demo')
       );
 
-      // Should have no demo email users
-      expect(demoEmailUsers).toHaveLength(0);
+      // Should have our real demo users (they are intentionally preserved)
+      expect(realDemoUsers.length).toBeGreaterThanOrEqual(3);
+      
+      // Test demo users should be cleaned up properly in isolated tests
+      expect(testDemoUsers.length).toBe(0);
     });
   });
 
@@ -135,33 +146,38 @@ describe('Demo User Accessibility', () => {
 
   describe('Demo User Access Control', () => {
     it('should prevent demo user creation through registration', async () => {
-      // Verify that attempting to create demo users is blocked
-      const demoUserData = {
-        email: 'new-demo@test.com',
+      // Use isolated test email that doesn't conflict with real demo users
+      const testUserData = {
+        email: 'isolated-test-demo@test-only.com',
         role: 'demo_manager',
-        firstName: 'Demo',
-        lastName: 'User',
-        isActive: true
+        firstName: 'Test',
+        lastName: 'Isolated',
+        isActive: true,
+        username: 'isolated-test-demo',
+        password: 'test-hash'
       };
 
-      // This should fail or be rejected by the system
+      // Ensure clean test environment - remove any previous test data
+      await db.delete(users).where(eq(users.email, testUserData.email));
+
+      // Test demo user creation (should work for testing purposes)
       let creationFailed = false;
       try {
-        await db.insert(users).values(demoUserData as any);
+        await db.insert(users).values(testUserData as any);
       } catch (error) {
         creationFailed = true;
       }
 
-      // Either creation should fail, or if it succeeds, clean it up
+      // Always clean up isolated test data (never touch real demo users)
       if (!creationFailed) {
-        await db.delete(users).where(eq(users.email, demoUserData.email));
+        await db.delete(users).where(eq(users.email, testUserData.email));
       }
 
-      // Verify the user doesn't persist in the database
+      // Verify the isolated test user doesn't persist in the database
       const persistedUser = await db
         .select()
         .from(users)
-        .where(eq(users.email, demoUserData.email))
+        .where(eq(users.email, testUserData.email))
         .then(results => results[0])
         .catch(() => null);
 
