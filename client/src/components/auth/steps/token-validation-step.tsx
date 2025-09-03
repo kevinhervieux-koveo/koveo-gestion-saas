@@ -150,7 +150,14 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     }
   };
 
+  // Track if initial effect has run to prevent multiple executions
+  const initialEffectRan = useRef(false);
+
   useEffect(() => {
+    // Prevent running multiple times
+    if (initialEffectRan.current) return;
+    initialEffectRan.current = true;
+
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
     const token = urlParams.get('token') || urlParams.get('invitation');

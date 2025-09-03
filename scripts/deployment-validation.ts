@@ -296,7 +296,7 @@ class DeploymentValidator {
 
     try {
       // Import server modules to check for syntax errors
-      await import('../server/routes-minimal');
+      await import('../server/routes.ts');
       this.addResult('Server Module Import', 'PASS', 'Server modules import successfully');
 
       // Check if main server file exists and is valid
