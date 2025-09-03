@@ -96,7 +96,7 @@ describe('API Routes Validation', () => {
     });
 
     it('should validate storage interface compatibility', async () => {
-      const { storage, IStorage } = await import('../../server/storage');
+      const { storage } = await import('../../server/storage');
       
       // Test that storage interface is properly defined
       expect(typeof storage).toBe('object');
