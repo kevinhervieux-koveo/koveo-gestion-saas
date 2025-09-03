@@ -81,7 +81,7 @@ export function QuebecPrivacyConsentStep({
       onDataChange(updatedData);
       onValidationChange(isValid);
     }
-  }, [formData.dataCollectionConsent, formData.acknowledgedRights, formData.isValid, onDataChange, onValidationChange]);
+  }, [formData.dataCollectionConsent, formData.acknowledgedRights, formData.isValid]);
 
   const _validateForm = () => {
     // Required consents: data collection and rights acknowledgment

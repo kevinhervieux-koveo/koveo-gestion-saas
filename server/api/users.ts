@@ -4,6 +4,7 @@ import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
 import { createHash, randomBytes } from 'crypto';
+import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
@@ -1421,7 +1422,6 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Verify current password
-      const bcrypt = require('bcryptjs');
       const user = await storage.getUser(currentUser.id);
       if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
         return res.status(400).json({
@@ -1503,9 +1503,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Create demo user with secure random password
-      const bcrypt = require('bcryptjs');
-      const crypto = require('crypto');
-      const randomPassword = crypto.randomBytes(12).toString('base64');
+      const randomPassword = randomBytes(12).toString('base64');
       const hashedPassword = await bcrypt.hash(`Demo${randomPassword}!`, 12);
 
       const userData = {
@@ -1879,6 +1877,152 @@ export function registerUserRoutes(app: Express): void {
         isValid: false,
         message: 'Internal server error during validation',
         code: 'VALIDATION_ERROR',
+      });
+    }
+  });
+
+  /**
+   * POST /api/invitations/accept/:token - Accept an invitation and create user account
+   * Public endpoint for completing registration via invitation
+   */
+  app.post('/api/invitations/accept/:token', async (req: any, res) => {
+    try {
+      const { token } = req.params;
+      const {
+        firstName,
+        lastName,
+        password,
+        phone,
+        language,
+        dataCollectionConsent,
+        marketingConsent,
+        analyticsConsent,
+        thirdPartyConsent,
+        acknowledgedRights,
+      } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          message: 'Token is required',
+          code: 'TOKEN_REQUIRED',
+        });
+      }
+
+      // Get invitation by token
+      const [invitation] = await db
+        .select()
+        .from(schema.invitations)
+        .where(eq(schema.invitations.token, token))
+        .limit(1);
+
+      if (!invitation) {
+        return res.status(404).json({
+          message: 'Invitation not found or invalid token',
+          code: 'INVITATION_NOT_FOUND',
+        });
+      }
+
+      // Check if invitation is expired
+      const now = new Date();
+      const expiresAt = new Date(invitation.expiresAt);
+      if (now > expiresAt) {
+        return res.status(400).json({
+          message: 'Invitation has expired',
+          code: 'INVITATION_EXPIRED',
+        });
+      }
+
+      // Check if invitation is already used
+      if (invitation.status === 'accepted') {
+        return res.status(400).json({
+          message: 'Invitation has already been used',
+          code: 'INVITATION_ALREADY_USED',
+        });
+      }
+
+      // Validate required fields
+      if (!firstName || !lastName || !password) {
+        return res.status(400).json({
+          message: 'First name, last name, and password are required',
+          code: 'MISSING_REQUIRED_FIELDS',
+        });
+      }
+
+      // Validate required consents
+      if (!dataCollectionConsent || !acknowledgedRights) {
+        return res.status(400).json({
+          message: 'Required privacy consents must be given',
+          code: 'MISSING_REQUIRED_CONSENTS',
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Create user account
+      const userData = {
+        firstName: sanitizeName(firstName),
+        lastName: sanitizeName(lastName),
+        email: normalizeEmail(invitation.email),
+        username: generateUsernameFromEmail(invitation.email),
+        password: hashedPassword,
+        phone: phone ? sanitizeString(phone) : '',
+        language: language || 'fr',
+        role: invitation.role as any,
+        isActive: true,
+        organizationId: invitation.organizationId,
+      };
+
+      const newUser = await storage.createUser(userData as InsertUser);
+
+      // Mark invitation as accepted
+      await db
+        .update(schema.invitations)
+        .set({
+          status: 'accepted',
+          acceptedAt: new Date(),
+          acceptedBy: newUser.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.invitations.id, invitation.id));
+
+      // Log user creation
+      logUserCreation({
+        userId: newUser.id,
+        email: newUser.email,
+        method: 'invitation',
+        role: invitation.role,
+        success: true,
+        timestamp: new Date(),
+      });
+
+      // Clear cache
+      queryCache.invalidate('users', 'all_users');
+      queryCache.invalidate('invitations');
+
+      console.log('✅ User created via invitation acceptance:', {
+        userId: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        organizationId: invitation.organizationId,
+      });
+
+      res.status(201).json({
+        message: 'Account created successfully',
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          role: newUser.role,
+          language: newUser.language,
+        },
+      });
+    } catch (error: any) {
+      console.error('❌ Error accepting invitation:', error);
+      res.status(500).json({
+        message: 'Internal server error during account creation',
+        code: 'INVITATION_ACCEPT_ERROR',
       });
     }
   });

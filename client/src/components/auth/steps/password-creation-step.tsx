@@ -70,7 +70,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
       onDataChange(updatedData);
       onValidationChange(isValid);
     }
-  }, [formData.password, formData.confirmPassword, formData.isValid, onDataChange, onValidationChange]);
+  }, [formData.password, formData.confirmPassword, formData.isValid]);
 
   const handlePasswordChange = (_value: string) => {
     setFormData((prev) => ({

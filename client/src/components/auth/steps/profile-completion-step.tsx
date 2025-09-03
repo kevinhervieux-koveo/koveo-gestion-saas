@@ -96,7 +96,7 @@ export function ProfileCompletionStep({
       onDataChange(updatedData);
       onValidationChange(isValid);
     }
-  }, [formData.firstName, formData.lastName, formData.language, formData.phone, formData.isValid, onDataChange, onValidationChange]);
+  }, [formData.firstName, formData.lastName, formData.language, formData.phone, formData.isValid]);
 
   const handleInputChange = (field: keyof ProfileCompletionData, _value: string) => {
     setFormData((prev) => ({
