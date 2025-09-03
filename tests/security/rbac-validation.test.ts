@@ -59,14 +59,7 @@ const mockUsers = {
 
 describe('RBAC Validation Test Suite', () => {
   beforeAll(async () => {
-    // Skip validation for now to test the actual permissions
-    console.warn('Loading permissions configuration (skipping validation for testing)');
-
-    console.warn('🔐 RBAC Test Suite initialized with permissions configuration');
-    console.warn(`   Admin permissions: ${permissions.admin.length}`);
-    console.warn(`   Manager permissions: ${permissions.manager.length}`);
-    console.warn(`   Tenant permissions: ${permissions.tenant.length}`);
-    console.warn(`   Resident permissions: ${permissions.resident.length}`);
+    // Initialize permissions configuration for testing
   });
 
   describe('Role Hierarchy Validation', () => {
@@ -85,7 +78,6 @@ describe('RBAC Validation Test Suite', () => {
       expect(managerPermissions.length).toBeGreaterThan(tenantPermissions.length);
       expect(managerPermissions.length).toBeGreaterThan(residenPermissions.length);
 
-      console.warn('✅ Role hierarchy properly enforced');
     });
 
     it('should ensure admin has all critical system permissions', () => {
