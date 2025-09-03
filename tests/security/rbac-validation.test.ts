@@ -94,10 +94,7 @@ describe('RBAC Validation Test Suite', () => {
       ];
 
       criticalPermissions.forEach((permission) => {
-        expect(checkPermission(permissions, 'admin', permission)).toBe(
-          true,
-          `Admin should have critical permission: ${permission}`
-        );
+        expect(checkPermission(permissions, 'admin', permission)).toBe(true);
       });
 
       console.warn(`✅ Admin has all ${criticalPermissions.length} critical system permissions`);
@@ -120,10 +117,7 @@ describe('RBAC Validation Test Suite', () => {
       ];
 
       managerPermissions.forEach((permission) => {
-        expect(checkPermission(permissions, 'manager', permission)).toBe(
-          true,
-          `Manager should have permission: ${permission}`
-        );
+        expect(checkPermission(permissions, 'manager', permission)).toBe(true);
       });
 
       console.warn(
@@ -195,10 +189,7 @@ describe('RBAC Validation Test Suite', () => {
 
       // Admin should have all building permissions
       buildingPermissions.forEach((permission) => {
-        expect(checkPermission(permissions, 'admin', permission as Permission)).toBe(
-          true,
-          `Admin should have ${permission}`
-        );
+        expect(checkPermission(permissions, 'admin', permission as Permission)).toBe(true);
       });
 
       // Manager should have read, create, update but not delete
@@ -229,10 +220,7 @@ describe('RBAC Validation Test Suite', () => {
 
       // Admin should have all financial permissions
       financialPermissions.forEach((permission) => {
-        expect(checkPermission(permissions, 'admin', permission as Permission)).toBe(
-          true,
-          `Admin should have ${permission}`
-        );
+        expect(checkPermission(permissions, 'admin', permission as Permission)).toBe(true);
       });
 
       // Manager should have bill and budget management but not delete
@@ -351,16 +339,13 @@ describe('RBAC Validation Test Suite', () => {
           checkPermission(permissions, role, permission as Permission);
 
         // Admin should have all privacy permissions
-        expect(hasPermission('admin')).toBe(
-          true,
-          `Admin should have privacy permission: ${permission}`
-        );
+        expect(hasPermission('admin')).toBe(true);
 
         // Lower roles should not have delete or export permissions
         if (permission === 'delete:user' || permission === 'export:financial_report') {
-          expect(hasPermission('manager')).toBe(false, `Manager should not have ${permission}`);
-          expect(hasPermission('tenant')).toBe(false, `Tenant should not have ${permission}`);
-          expect(hasPermission('resident')).toBe(false, `Resident should not have ${permission}`);
+          expect(hasPermission('manager')).toBe(false);
+          expect(hasPermission('tenant')).toBe(false);
+          expect(hasPermission('resident')).toBe(false);
         }
       });
 
@@ -405,11 +390,8 @@ describe('RBAC Validation Test Suite', () => {
       ];
 
       ownershipTests.forEach((test) => {
-        expect(test.hasPermission).toBe(true, `${test.description} - should have own permission`);
-        expect(test.shouldNotHave).toBe(
-          false,
-          `${test.description} - should not have general permission`
-        );
+        expect(test.hasPermission).toBe(true);
+        expect(test.shouldNotHave).toBe(false);
       });
 
       console.warn('✅ Resource ownership boundaries properly enforced');

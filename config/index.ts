@@ -102,6 +102,9 @@ export const permissions: PermissionsConfig = {
     'delete:budget',
     'create:maintenance_request',
     'update:maintenance_request',
+    'export:financial_report',
+    'read:profile',
+    'update:profile',
   ],
   manager: [
     'read:user',
@@ -142,6 +145,9 @@ export const permissions: PermissionsConfig = {
     'read:bill',
     'create:maintenance',
     'read:maintenance',
+    'update:own_maintenance_request',
+    'read:profile',
+    'update:profile',
   ],
   resident: [
     'read:building',
@@ -151,6 +157,9 @@ export const permissions: PermissionsConfig = {
     'read:bill',
     'create:maintenance',
     'read:maintenance',
+    'update:own_maintenance_request',
+    'read:profile',
+    'update:profile',
   ],
 };
 

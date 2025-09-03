@@ -9,8 +9,8 @@ import { Request, Response, NextFunction } from 'express';
 import { requireAuth, requireRole } from '../../../server/middleware/auth-middleware';
 
 // Mock Express objects
-const createMockRequest = (sessionData?: Record<string, unknown>): Partial<Request> => ({
-  session: sessionData,
+const createMockRequest = (sessionData?: any): Partial<Request> => ({
+  session: sessionData as any,
   path: '/api/test',
   method: 'GET',
   ip: '127.0.0.1',
@@ -19,8 +19,8 @@ const createMockRequest = (sessionData?: Record<string, unknown>): Partial<Reque
   },
 });
 
-const createMockResponse = (): Partial<Response> => {
-  const res: Partial<Response> & { status: jest.Mock; json: jest.Mock; send: jest.Mock } = {
+const createMockResponse = (): any => {
+  const res = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
@@ -29,7 +29,7 @@ const createMockResponse = (): Partial<Response> => {
   return res;
 };
 
-const createMockNext = (): NextFunction => jest.fn();
+const createMockNext = (): any => jest.fn();
 
 // Test users for Quebec property management scenarios
 const testUsers = {
@@ -80,7 +80,7 @@ const testUsers = {
   },
 };
 
-describe.skip('Authentication Middleware - Comprehensive Tests', () => {
+describe('Authentication Middleware - Comprehensive Tests', () => {
   describe('requireAuth - Authentication Validation', () => {
     it('should allow authenticated users to proceed', () => {
       const req = createMockRequest({ user: testUsers.admin });
