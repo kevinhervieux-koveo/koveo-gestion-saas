@@ -632,13 +632,14 @@ export default function CommonSpacesPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50' data-testid='common-spaces-page'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-testid='common-spaces-page'>
       <Header
         title={language === 'fr' ? 'Espaces Communs' : 'Common Spaces'}
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
 
-      <main className='container mx-auto px-4 py-8'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         <div className='space-y-6'>
           <div className='flex items-center justify-between'>
             <h2 className='text-2xl font-bold text-gray-900' data-testid='spaces-list-title'>
@@ -950,7 +951,8 @@ export default function CommonSpacesPage() {
             </div>
           )}
         </div>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

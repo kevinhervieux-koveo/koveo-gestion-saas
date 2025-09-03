@@ -9,7 +9,7 @@ export default function MyCalendarPage() {
   const { language } = useLanguage();
 
   return (
-    <div className='min-h-screen bg-gray-50' data-testid='my-calendar-page'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-testid='my-calendar-page'>
       <header className='bg-white shadow-sm border-b'>
         <div className='container mx-auto px-4 py-6'>
           <h1 className='text-3xl font-bold text-koveo-navy'>
@@ -23,9 +23,11 @@ export default function MyCalendarPage() {
         </div>
       </header>
 
-      <main className='container mx-auto px-4 py-8'>
-        <UserCalendar />
-      </main>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto'>
+          <UserCalendar />
+        </div>
+      </div>
     </div>
   );
 }

@@ -950,18 +950,7 @@ Budget() {
     updateBankAccount,
     toast,
     language,
-  ]); /**
-   * Return function.
-   * @param <div ClassName='min-h-screen bg-gray-50'>
-      <Header 
-        title={language === 'fr' ? 'Tableau de bord budgétaire' - <div className='min-h-screen bg-gray-50'>
-      <Header 
-        title={language === 'fr' ? 'Tableau de bord budgétaire' parameter.
-   * @returns (
-              <>
-                <Maximize2 className='w-4 h-4' />
-                <span className='hidden sm:inline'> result.
-   */
+  ]);
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>

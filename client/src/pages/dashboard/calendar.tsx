@@ -195,7 +195,7 @@ export default function DashboardCalendarPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50' data-testid='dashboard-calendar-page'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-testid='dashboard-calendar-page'>
       <Header
         title={language === 'fr' ? 'Calendrier des Espaces Communs' : 'Common Spaces Calendar'}
         subtitle={
@@ -203,7 +203,8 @@ export default function DashboardCalendarPage() {
         }
       />
 
-      <main className='container mx-auto px-4 py-8'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         {/* Filters and Controls */}
         <Card className='mb-6'>
           <CardHeader>
@@ -799,7 +800,8 @@ export default function DashboardCalendarPage() {
             </CardContent>
           </Card>
         )}
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
