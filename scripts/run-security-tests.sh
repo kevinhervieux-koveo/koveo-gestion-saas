@@ -50,17 +50,17 @@ echo "🚀 Starting Security Test Execution..."
 echo ""
 
 # Security Test Categories
-run_security_test "Security-Permissions" "npx jest tests/security/database-permissions.test.ts --maxWorkers=1" "Database permissions and access control"
-run_security_test "Security-Demo-User" "npx jest tests/security/comprehensive-demo-user-security.test.ts --maxWorkers=1" "Demo user security restrictions"
-run_security_test "Security-Headers" "npx jest tests/unit/security/security-headers.test.ts --maxWorkers=1" "Security headers validation"
-run_security_test "Security-Auth" "npx jest tests/unit/auth/ --maxWorkers=1" "Authentication security tests"
-run_security_test "Security-RBAC" "npx jest tests/unit/auth/rbac-comprehensive.test.ts --maxWorkers=1" "Role-based access control security"
+run_security_test "Security-Permissions" "npx jest tests/security/database-permissions.test.ts --passWithNoTests=false --maxWorkers=1" "Database permissions and access control"
+run_security_test "Security-Demo-User" "npx jest tests/security/comprehensive-demo-user-security.test.ts --passWithNoTests=false --maxWorkers=1" "Demo user security restrictions"
+run_security_test "Security-Headers" "npx jest tests/unit/security/security-headers.test.ts --passWithNoTests=false --maxWorkers=1" "Security headers validation"
+run_security_test "Security-Auth" "npx jest tests/unit/auth/ --passWithNoTests=false --maxWorkers=1" "Authentication security tests"
+run_security_test "Security-RBAC" "npx jest tests/unit/auth/rbac-comprehensive.test.ts --passWithNoTests=false --maxWorkers=1" "Role-based access control security"
 
 # Quebec Law 25 Compliance
-run_security_test "Quebec-Law25" "npx jest tests/unit/i18n/quebec-compliance.test.ts --maxWorkers=1" "Quebec Law 25 compliance validation"
+run_security_test "Quebec-Law25" "npx jest tests/unit/i18n/quebec-compliance.test.ts --passWithNoTests=false --maxWorkers=1" "Quebec Law 25 compliance validation"
 
 # Data Protection Tests
-run_security_test "Data-Protection" "npx jest tests/unit/documents/document-security.test.ts --maxWorkers=1" "Document security and data protection"
+run_security_test "Data-Protection" "npx jest tests/unit/documents/document-security.test.ts --passWithNoTests=false --maxWorkers=1" "Document security and data protection"
 
 # Final Summary
 echo ""

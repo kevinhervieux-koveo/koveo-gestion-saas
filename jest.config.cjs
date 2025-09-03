@@ -48,7 +48,7 @@ const config = {
   restoreMocks: true,
   resetMocks: true,
   verbose: false,
-  passWithNoTests: true,
+  passWithNoTests: false,
 };
 
 module.exports = config;
