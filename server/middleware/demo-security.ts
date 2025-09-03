@@ -15,6 +15,15 @@ interface DemoSecurityRequest extends Request {
     email: string;
     firstName: string;
     lastName: string;
+    username?: string;
+    password?: string;
+    phone?: string;
+    profileImage?: string;
+    language?: string;
+    isActive?: boolean;
+    organizationId?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
   };
 }
 

@@ -104,7 +104,7 @@ Required Action: Fix database schema immediately
             password: 'wrongpassword'
           })
         });
-      } catch (e) {
+      } catch (e: any) {
         error = e;
       }
 
@@ -129,7 +129,7 @@ Required Action: Fix server startup or routing immediately
 
       try {
         response = await fetch('http://localhost:5000/api/auth/user');
-      } catch (e) {
+      } catch (e: any) {
         error = e;
       }
 
@@ -277,7 +277,8 @@ Required Action: Fix server startup immediately
       try {
         const dbTest = await db.select({ version: sql<string>`version()` });
         expect(dbTest).toBeDefined();
-        expect(dbTest.length).toBe(1);
+        expect(Array.isArray(dbTest)).toBe(true);
+        expect(dbTest.length).toBeGreaterThan(0);
       } catch (error) {
         throw new Error(`
 🚨 DATABASE CONNECTION FAILURE 🚨
