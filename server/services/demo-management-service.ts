@@ -197,7 +197,7 @@ export class DemoManagementService {
         message: 'Scheduled maintenance completed successfully',
         actions,
       };
-
+    } catch (error) {
       return {
         success: false,
         message: `Scheduled maintenance failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
