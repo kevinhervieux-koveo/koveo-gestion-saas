@@ -6,8 +6,9 @@
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { execSync } from 'child_process';
 
-const DEV_DB = process.env.DATABASE_URL;
-const PROD_DB = process.env.DATABASE_URL_KOVEO;
+// Use original database URLs for integration tests
+const DEV_DB = process.env.ORIGINAL_DATABASE_URL || process.env.DATABASE_URL;
+const PROD_DB = process.env.ORIGINAL_DATABASE_URL_KOVEO || process.env.DATABASE_URL_KOVEO;
 
 describe('Database Synchronization Tests', () => {
   beforeAll(() => {

@@ -39,9 +39,11 @@ const config = {
         },
       },
     ],
+    '^.+\\.js$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google))',
+    '!server/config/index.js'
   ],
   testTimeout: 30000,
   clearMocks: true,
