@@ -108,7 +108,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         ..._data,
         squareFootage: _data.squareFootage === '' ? null : _data.squareFootage,
         bathrooms: _data.bathrooms === '' ? null : _data.bathrooms,
-        ownershipPercentage: _data.ownershipPercentage === '' ? null : _data.ownershipPercentage,
+        ownershipPercentage: _data.ownershipPercentage === '' ? null : Number(_data.ownershipPercentage),
         monthlyFees: _data.monthlyFees === '' ? null : _data.monthlyFees,
         parkingSpaceNumbers: parkingSpaces,
         storageSpaceNumbers: storageSpaces,
