@@ -4,7 +4,7 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
-import { sql } from './db';
+import { sql, db, pool } from './db';
 import type { User } from '@shared/schema';
 // Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';
@@ -81,8 +81,7 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
 // Initialize email service
 const emailService = new EmailService();
 
-// Use shared database connection from db.ts to avoid multiple pools
-import { db, pool } from './db';
+// Database connection already imported at top of file
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
