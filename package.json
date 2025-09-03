@@ -52,7 +52,7 @@
     "test:strict": "npx jest --passWithNoTests=false --verbose --detectOpenHandles --forceExit",
     "test:db-integrity": "npx jest tests/integration/database-sync.test.ts tests/integration/document-functionality.test.ts --passWithNoTests=false",
     "db:status": "./db-status.sh",
-    "db:quick-check": "npx tsx scripts/dev-db-check.ts", 
+    "db:quick-check": "npx tsx scripts/dev-db-check.ts",
     "db:sync-test": "./sync-test.sh",
     "db:sync-fix": "./sync-test.sh fix",
     "db:sync-watch": "./sync-test.sh watch",
