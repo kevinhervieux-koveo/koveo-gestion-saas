@@ -140,20 +140,26 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
 
     if (!user || !['manager', 'admin'].includes(user.role)) {
       return (
-        <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-          <Card className='max-w-md w-full'>
-            <CardContent className='text-center py-12'>
-              <Ban className='w-16 h-16 mx-auto mb-4 text-red-500' />
-              <h2 className='text-xl font-semibold text-gray-900 mb-2'>
-                {language === 'fr' ? 'Accès refusé' : 'Access Denied'}
-              </h2>
-              <p className='text-gray-600'>
-                {language === 'fr'
-                  ? 'Vous devez être gestionnaire ou administrateur pour accéder à cette page.'
-                  : 'You must be a manager or administrator to access this page.'}
-              </p>
-            </CardContent>
-          </Card>
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header 
+            title={language === 'fr' ? 'Gestion Espaces Communs' : 'Manage Common Spaces'}
+            subtitle={language === 'fr' ? 'Accès refusé' : 'Access Denied'}
+          />
+          <div className='flex-1 overflow-auto p-6 flex items-center justify-center'>
+            <Card className='max-w-md w-full'>
+              <CardContent className='text-center py-12'>
+                <Ban className='w-16 h-16 mx-auto mb-4 text-red-500' />
+                <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+                  {language === 'fr' ? 'Accès refusé' : 'Access Denied'}
+                </h2>
+                <p className='text-gray-600'>
+                  {language === 'fr'
+                    ? 'Vous devez être gestionnaire ou administrateur pour accéder à cette page.'
+                    : 'You must be a manager or administrator to access this page.'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       );
     }
@@ -467,7 +473,7 @@ function CommonSpacesStatsPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50' data-testid='common-spaces-stats-page'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-testid='common-spaces-stats-page'>
       <Header
         title={language === 'fr' ? 'Gestion Espaces Communs' : 'Manage Common Spaces'}
         subtitle={
@@ -477,7 +483,8 @@ function CommonSpacesStatsPage() {
         }
       />
 
-      <main className='container mx-auto px-4 py-8'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         {/* Filters Section */}
         <Card className='mb-8'>
           <CardHeader>
@@ -1347,7 +1354,8 @@ function CommonSpacesStatsPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

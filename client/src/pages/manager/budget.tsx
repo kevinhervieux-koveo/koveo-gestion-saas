@@ -964,7 +964,7 @@ Budget() {
    */
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
         title={language === 'fr' ? 'Tableau de bord budgétaire' : 'Budget Dashboard'}
         subtitle={
@@ -973,7 +973,8 @@ Budget() {
             : 'Monitor financial performance and cash flow'
         }
       />
-      <div className='max-w-7xl mx-auto p-6 space-y-6'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         <div className='flex items-center justify-between'>
           <div>
             <h1 className='text-2xl font-semibold text-gray-900'>

@@ -495,9 +495,9 @@ export default function UserManagement() {
 
   if (usersError) {
     return (
-      <div className='flex flex-col min-h-screen bg-gray-50'>
+      <div className='flex-1 flex flex-col overflow-hidden'>
         <Header title='User Management' subtitle='Manage All Users' />
-        <div className='flex-1 p-6'>
+        <div className='flex-1 overflow-auto p-6'>
           <Card>
             <CardContent className='p-6'>
               <p className='text-red-600'>An error occurred</p>
@@ -509,10 +509,11 @@ export default function UserManagement() {
   }
 
   return (
-    <div className='flex flex-col min-h-screen bg-gray-50'>
+    <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='User Management' subtitle='Manage All Users' />
 
-      <div className='flex-1 p-6 space-y-6'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         {/* Quick Stats Cards */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           <Card>
@@ -1019,6 +1020,7 @@ export default function UserManagement() {
             </Form>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     </div>
   );
