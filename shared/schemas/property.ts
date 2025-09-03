@@ -80,10 +80,10 @@ export const buildings = pgTable('buildings', {
  * Represents apartments, condos, or units that can be occupied by tenants.
  */
 export const residences = pgTable('residences', {
-  id: varchar('id')
+  id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  buildingId: varchar('building_id')
+  buildingId: uuid('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   unitNumber: text('unit_number').notNull(),
@@ -152,7 +152,7 @@ export const commonSpaces = pgTable('common_spaces', {
     .default(sql`gen_random_uuid()`),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  buildingId: varchar('building_id')
+  buildingId: uuid('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   isReservable: boolean('is_reservable').notNull().default(false),
