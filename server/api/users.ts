@@ -1990,6 +1990,37 @@ export function registerUserRoutes(app: Express): void {
 
       const newUser = await storage.createUser(userData as InsertUser);
 
+      // Create organization assignment if organizationId is provided
+      if (invitation.organizationId) {
+        await db.insert(schema.userOrganizations).values({
+          userId: newUser.id,
+          organizationId: invitation.organizationId,
+          organizationRole: invitation.role,
+          isActive: true,
+        });
+        console.log('✅ User assigned to organization:', {
+          userId: newUser.id,
+          organizationId: invitation.organizationId,
+          role: invitation.role,
+        });
+      }
+
+      // Create residence assignment if residenceId is provided
+      if (invitation.residenceId) {
+        await db.insert(schema.userResidences).values({
+          userId: newUser.id,
+          residenceId: invitation.residenceId,
+          relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
+          startDate: new Date(),
+          isActive: true,
+        });
+        console.log('✅ User assigned to residence:', {
+          userId: newUser.id,
+          residenceId: invitation.residenceId,
+          relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
+        });
+      }
+
       // Mark invitation as accepted
       await db
         .update(schema.invitations)
@@ -2020,6 +2051,9 @@ export function registerUserRoutes(app: Express): void {
         email: newUser.email,
         role: newUser.role,
         organizationId: invitation.organizationId,
+        residenceId: invitation.residenceId,
+        assignedToOrganization: !!invitation.organizationId,
+        assignedToResidence: !!invitation.residenceId,
       });
 
       res.status(201).json({
