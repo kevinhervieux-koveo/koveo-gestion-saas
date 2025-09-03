@@ -499,7 +499,6 @@ export function setupAuthRoutes(app: any) {
       // Password verification completed
 
       if (!isValidPassword) {
-        console.log(`❌ [AUTH DEBUG] Password verification failed for: ${user.email}`);
         return res.status(401).json({
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS',
@@ -510,30 +509,21 @@ export function setupAuthRoutes(app: any) {
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
       // Set session with user data
-      console.log('🔍 [LOGIN DEBUG] Setting session data for user:', user.email);
       req.session.userId = user.id;
       req.session.userRole = user.role;
       req.session.role = user.role;
       req.session.user = user; // Add complete user object for middleware compatibility
 
-      console.log('🔍 [LOGIN DEBUG] Session data set:', {
-        userId: req.session.userId,
-        userRole: req.session.userRole,
-        sessionId: req.session.id,
-        hasUserObject: !!req.session.user
-      });
-
       // Save session explicitly to ensure it's persisted
       req.session.save((err) => {
         if (err) {
-          console.error('❌ [LOGIN DEBUG] Session save error:', err);
+          console.error('❌ Session save error:', err);
           return res.status(500).json({
             message: 'Session save failed',
             code: 'SESSION_SAVE_ERROR',
           });
         }
 
-        console.log('✅ [LOGIN DEBUG] Session saved successfully for user:', user.email);
         
         // Return user data (without password)
         const { password: _, ...userData } = user;

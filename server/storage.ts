@@ -238,14 +238,13 @@ export class MemStorage implements IStorage {
     this.featureRequestUpvotes = new Map();
 
     // Initialize test user asynchronously
+    this.initializeTestUser().catch(console.error);
   }
 
   private async initializeTestUser() {
-    // Generate secure random password for test user instead of hardcoded hash
-    const crypto = require('crypto');
+    // Use known admin123 password for demo mode
     const bcrypt = require('bcryptjs');
-    const randomPassword = crypto.randomBytes(16).toString('hex');
-    const securePassword = await bcrypt.hash(`TestUser${randomPassword}!`, 12);
+    const securePassword = await bcrypt.hash('admin123', 12);
 
     const user: User = {
       id: '550e8400-e29b-41d4-a716-446655440000',
