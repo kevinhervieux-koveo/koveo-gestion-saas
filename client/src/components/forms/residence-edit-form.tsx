@@ -95,7 +95,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
       balcony: residence.balcony || false,
       parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
       storageSpaceNumbers: residence.storageSpaceNumbers || [],
-      ownershipPercentage: residence.ownershipPercentage ? Number(residence.ownershipPercentage) : '',
+      ownershipPercentage: residence.ownershipPercentage ? 
+        (Number(residence.ownershipPercentage) < 1 ? Number(residence.ownershipPercentage) * 100 : Number(residence.ownershipPercentage)) : '',
       monthlyFees: residence.monthlyFees ? Number(residence.monthlyFees) : '',
     },
   });
@@ -253,10 +254,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='ownershipPercentage'>Ownership %</Label>
+              <Label htmlFor='ownershipPercentage'>Ownership 0-100%</Label>
               <Input
                 id='ownershipPercentage'
-                placeholder='e.g., 0.025'
+                placeholder='e.g., 17'
                 {...form.register('ownershipPercentage')}
               />
               {form.formState.errors.ownershipPercentage && (

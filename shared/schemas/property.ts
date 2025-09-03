@@ -94,7 +94,7 @@ export const residences = pgTable('residences', {
   balcony: boolean('balcony').default(false),
   parkingSpaceNumbers: text('parking_space_numbers').array(),
   storageSpaceNumbers: text('storage_space_numbers').array(),
-  ownershipPercentage: decimal('ownership_percentage', { precision: 5, scale: 4 }), // For condos
+  ownershipPercentage: decimal('ownership_percentage', { precision: 5, scale: 2 }), // For condos, 0-100 scale
   monthlyFees: decimal('monthly_fees', { precision: 10, scale: 2 }),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
