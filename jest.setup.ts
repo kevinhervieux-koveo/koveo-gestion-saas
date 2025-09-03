@@ -24,6 +24,16 @@ jest.mock('./server/db', () => {
   };
 });
 
+// Mock the schema tables that tests import directly
+jest.mock('./shared/schema', () => {
+  const { mockSchemaObject } = require('./tests/mocks/database');
+  return {
+    ...mockSchemaObject,
+    // Also export all the original exports for other imports
+    ...jest.requireActual('./shared/schema')
+  };
+});
+
 // Mock email service to prevent actual SendGrid calls during tests
 jest.mock('./server/services/email-service', () => ({
   emailService: {
@@ -102,6 +112,13 @@ jest.mock('@neondatabase/serverless', () => ({
     const { mockSql } = require('./tests/mocks/database');
     return mockSql;
   }),
+  Pool: jest.fn().mockImplementation(() => ({
+    connect: jest.fn().mockResolvedValue({
+      query: jest.fn().mockResolvedValue({ rows: [] }),
+      release: jest.fn(),
+    }),
+    end: jest.fn().mockResolvedValue(undefined),
+  }))
 }));
 import 'whatwg-fetch';
 

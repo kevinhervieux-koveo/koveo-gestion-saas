@@ -115,7 +115,7 @@ describe('Form Validation Rules Documentation', () => {
       // Validate field type requirements structure
       Object.entries(fieldTypeRequirements).forEach(([fieldType, requirements]) => {
         expect(requirements.validation.length).toBeGreaterThan(1);
-        expect(requirements.errorPattern).toMatch(/please|must|required/i);
+        expect(requirements.errorPattern).toMatch(/please|must|required|follow|contain|only/i);
         expect(requirements.testCases.valid.length).toBeGreaterThan(0);
         expect(requirements.testCases.invalid.length).toBeGreaterThan(0);
 

@@ -93,7 +93,61 @@ export const createMockDatabase = () => {
 };
 
 // Global mock instance
+// Create the complete mock database with all Drizzle operations
 export const mockDb = createMockDatabase();
+
+// Create a mock table that looks like a Drizzle table with all necessary properties
+const createMockTable = (tableName: string) => {
+  return {
+    // Table properties that Drizzle uses
+    _: {
+      name: tableName,
+      schema: undefined,
+      columns: {},
+      baseName: tableName
+    },
+    // Mock column properties for common fields
+    id: { name: 'id' },
+    email: { name: 'email' },
+    name: { name: 'name' },
+    role: { name: 'role' },
+    userId: { name: 'userId' },
+    organizationId: { name: 'organizationId' },
+    buildingId: { name: 'buildingId' },
+    // Add any other commonly accessed column properties
+  };
+};
+
+// Mock all the individual schema tables that tests import
+export const mockSchemaObject = {
+  // Core tables
+  users: createMockTable('users'),
+  organizations: createMockTable('organizations'),
+  userOrganizations: createMockTable('userOrganizations'),
+  invitations: createMockTable('invitations'),
+  passwordResetTokens: createMockTable('passwordResetTokens'),
+  
+  // Property tables  
+  buildings: createMockTable('buildings'),
+  residences: createMockTable('residences'),
+  userResidences: createMockTable('userResidences'),
+  
+  // Document and financial tables
+  documents: createMockTable('documents'),
+  bills: createMockTable('bills'),
+  budgets: createMockTable('budgets'),
+  monthlyBudgets: createMockTable('monthlyBudgets'),
+  
+  // Operations tables
+  maintenanceRequests: createMockTable('maintenanceRequests'),
+  commonSpaces: createMockTable('commonSpaces'),
+  
+  // System tables
+  permissions: createMockTable('permissions'),
+  userPermissions: createMockTable('userPermissions'),
+  rolePermissions: createMockTable('rolePermissions'),
+  demands: createMockTable('demands')
+};
 
 // Mock SQL template function
 export const mockSql = jest.fn().mockImplementation(async (strings: TemplateStringsArray, ...values: any[]) => {

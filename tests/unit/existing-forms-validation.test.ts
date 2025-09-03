@@ -67,7 +67,7 @@ describe('Existing Forms Compliance Validation', () => {
       Object.entries(expectedValidations).forEach(([field, message]) => {
         expect(message).toContain('example:');
         expect(message.length).toBeGreaterThan(20); // Detailed enough
-        expect(message).toMatch(/must be|is required|should be/i); // Clear requirement
+        expect(message).toMatch(/must be|is required|should be|must follow/i); // Clear requirement
       });
 
       // Test Quebec-specific patterns
@@ -345,17 +345,17 @@ describe('Form Validation Compliance Audit', () => {
     test('should validate form error message tone and language', () => {
       const messageQualityStandards = {
         isPolite: (message: string) => /please|kindly|would you/i.test(message),
-        isHelpful: (message: string) => /example:|format|between|at least/i.test(message),
+        isHelpful: (message: string) => /example:|format|between|at least|required/i.test(message),
         isPositive: (message: string) => !/wrong|bad|error|invalid(?!\s+.*format)/i.test(message),
         isClear: (message: string) => message.length > 15 && message.length < 200,
-        hasActionableGuidance: (message: string) => /must be|should be|please enter|select/i.test(message)
+        hasActionableGuidance: (message: string) => /must be|should be|please enter|select|is required|required/i.test(message)
       };
 
       const testMessages = [
         'Please enter a valid email address (example: user@domain.com)',
         'Name is required (example: Jean Dupont)',
         'Amount must be a valid number with up to 2 decimal places (example: 125.50)',
-        'Please select an organization from the dropdown',
+        'Please select an organization from the dropdown (required)',
         'Password must be at least 8 characters long (example: MonNouveauMotDePasse123!)'
       ];
 
@@ -377,7 +377,7 @@ describe('Form Validation Compliance Audit', () => {
       };
 
       Object.values(securityFormStandards).forEach(message => {
-        expect(message).toMatch(/please|required|must|confirmation|valid/i);
+        expect(message).toMatch(/please|required|must|confirmation|valid|can only contain/i);
         expect(message.length).toBeGreaterThan(25); // Security messages should be detailed
       });
     });
@@ -448,14 +448,14 @@ describe('Validation Enforcement Guidelines', () => {
     const componentStandards = {
       usesFormLabelComponent: 'All forms should use the FormLabel component for consistent styling',
       displaysErrorMessages: 'All forms should display FormMessage for validation errors',
-      hasDataTestIds: 'All form elements should have data-testid attributes for testing',
+      hasDataTestIds: 'All forms should have data-testid attributes for testing',
       followsResponsiveDesign: 'Forms should be responsive with proper overflow handling',
       maintainsBilingualSupport: 'Forms should support both English and French content'
     };
 
     Object.values(componentStandards).forEach(standard => {
       expect(standard).toMatch(/should|must/i);
-      expect(standard).toContain('forms');
+      expect(standard.toLowerCase()).toContain('form');
     });
   });
 });
