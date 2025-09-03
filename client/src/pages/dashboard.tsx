@@ -196,15 +196,6 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          {/* User Role Badge */}
-          <div className='mb-6'>
-            <div className='flex items-center gap-4'>
-              <Badge variant='secondary' className='px-3 py-1'>
-                {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Dashboard
-              </Badge>
-              <div className='text-sm text-muted-foreground'>Organization: Not assigned</div>
-            </div>
-          </div>
 
           {/* Quick Actions Grid */}
           {roleActions.length > 0 ? (
