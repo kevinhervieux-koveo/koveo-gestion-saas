@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { db } from '../../server/db';
 import { users } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, count } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 
 /**
@@ -54,7 +54,7 @@ describe('Authentication System', () => {
   describe('Database User Existence', () => {
     it('should have at least one active user in the database', async () => {
       const userCount = await db
-        .select({ count: db.$count() })
+        .select({ count: count() })
         .from(users)
         .where(eq(users.isActive, true))
         .then(result => result[0]?.count || 0);
@@ -212,7 +212,7 @@ describe('Authentication System', () => {
   describe('Critical Authentication Issues', () => {
     it('should detect if no users exist in system', async () => {
       const totalUsers = await db
-        .select({ count: db.$count() })
+        .select({ count: count() })
         .from(users)
         .then(result => result[0]?.count || 0);
 

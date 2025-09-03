@@ -83,7 +83,6 @@ const emailService = new EmailService();
 
 // Use shared database connection from db.ts to avoid multiple pools
 import { db, pool } from './db';
-import { Pool } from '@neondatabase/serverless';
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);

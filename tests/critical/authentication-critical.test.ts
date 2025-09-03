@@ -275,7 +275,7 @@ Required Action: Fix server startup immediately
 
     it('CRITICAL: database connection should be working', async () => {
       try {
-        const dbTest = await db.select({ version: sql<string>`version()` }).limit(1);
+        const dbTest = await db.select({ version: sql<string>`version()` });
         expect(dbTest).toBeDefined();
         expect(dbTest.length).toBe(1);
       } catch (error) {
