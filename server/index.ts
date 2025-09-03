@@ -4,6 +4,7 @@
  */
 import express from 'express';
 import path from 'path';
+import helmet from 'helmet';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
 import { registerRoutes } from './routes';
@@ -28,6 +29,24 @@ if (isNaN(port) || port < 1 || port > 65535) {
 
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
+// Security headers middleware using Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow for development
+}));
 
 // Production cache busting middleware
 if (process.env.NODE_ENV === 'production') {

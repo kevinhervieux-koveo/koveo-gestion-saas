@@ -62,7 +62,6 @@ describe('Demo User Security Restrictions', () => {
       lastName: 'User',
       password: '$2b$12$demo.password.hash',
       role: 'manager',
-      organizationId: demoOrg.id,
     }).returning();
 
     // Create normal user for comparison
@@ -73,8 +72,13 @@ describe('Demo User Security Restrictions', () => {
       lastName: 'User', 
       password: '$2b$12$normal.password.hash',
       role: 'manager',
-      organizationId: demoOrg.id,
     }).returning();
+
+    // Link users to demo organization
+    await db.insert(schema.userOrganizations).values([
+      { userId: demoUser[0].id, organizationId: demoOrg.id, organizationRole: 'manager' },
+      { userId: normalUser[0].id, organizationId: demoOrg.id, organizationRole: 'manager' },
+    ]);
   });
 
   afterEach(async () => {
@@ -122,6 +126,8 @@ describe('Demo User Security Restrictions', () => {
         province: 'QC',
         postalCode: 'H1B 1B1',
         organizationId: demoOrg.id,
+        buildingType: 'apartment',
+        totalUnits: 10,
       }).returning();
 
       const agent = request.agent(app);

@@ -340,7 +340,7 @@ export class InvitationPermissionValidator {
     }
 
     // Users can only manage their own invitations
-    if (invitation.invitedBy !== userId) {
+    if (invitation.invitedByUserId !== userId) {
       return { valid: false, reason: 'Can only manage own invitations' };
     }
 
@@ -414,7 +414,7 @@ export class InvitationPermissionValidator {
  */
 export function requireInvitationPermission(
   action: string,
-  __options: {
+  options: {
     validateContext?: boolean;
     requireOwnership?: boolean;
     allowSelfAccess?: boolean;
@@ -452,7 +452,7 @@ export function requireInvitationPermission(
       }
 
       // Context-aware validation for specific operations
-      if (_options.validateContext && req.body) {
+      if (options.validateContext && req.body) {
         if (action === 'create:invitation') {
           const { role, organizationId, buildingId } = req.body;
           const validation = await InvitationPermissionValidator.validateInvitePermission(
@@ -499,7 +499,7 @@ export function requireInvitationPermission(
       }
 
       // Ownership validation for management operations
-      if (_options.requireOwnership && req.params.id) {
+      if (options.requireOwnership && req.params.id) {
         const validation = await InvitationPermissionValidator.validateInvitationManagement(
           req.user.id,
           req.user.role,
@@ -517,7 +517,7 @@ export function requireInvitationPermission(
       // Monitor invitation access
       await InvitationSecurityMonitor.monitorInvitationAccess(
         req.user.id,
-        _options.auditAction || action,
+        options.auditAction || action,
         req.ip,
         req.get('User-Agent'),
         { path: req.path, method: req.method }

@@ -76,7 +76,6 @@ describe('Database Permissions Security', () => {
       lastName: 'One',
       password: await bcrypt.hash('password123', 12),
       role: 'admin',
-      organizationId: org1.id,
     }).returning();
 
     [manager1] = await db.insert(schema.users).values({
@@ -86,7 +85,6 @@ describe('Database Permissions Security', () => {
       lastName: 'One',
       password: await bcrypt.hash('password123', 12),
       role: 'manager',
-      organizationId: org1.id,
     }).returning();
 
     [resident1] = await db.insert(schema.users).values({
@@ -96,7 +94,6 @@ describe('Database Permissions Security', () => {
       lastName: 'One',
       password: await bcrypt.hash('password123', 12),
       role: 'resident',
-      organizationId: org1.id,
     }).returning();
 
     [admin2] = await db.insert(schema.users).values({
@@ -106,7 +103,6 @@ describe('Database Permissions Security', () => {
       lastName: 'Two',
       password: await bcrypt.hash('password123', 12),
       role: 'admin',
-      organizationId: org2.id,
     }).returning();
 
     [manager2] = await db.insert(schema.users).values({
@@ -116,7 +112,6 @@ describe('Database Permissions Security', () => {
       lastName: 'Two',
       password: await bcrypt.hash('password123', 12),
       role: 'manager',
-      organizationId: org2.id,
     }).returning();
 
     [resident2] = await db.insert(schema.users).values({
@@ -126,8 +121,17 @@ describe('Database Permissions Security', () => {
       lastName: 'Two',
       password: await bcrypt.hash('password123', 12),
       role: 'resident',
-      organizationId: org2.id,
     }).returning();
+
+    // Link users to organizations
+    await db.insert(schema.userOrganizations).values([
+      { userId: admin1[0].id, organizationId: org1.id, organizationRole: 'admin' },
+      { userId: manager1[0].id, organizationId: org1.id, organizationRole: 'manager' },
+      { userId: resident1[0].id, organizationId: org1.id, organizationRole: 'resident' },
+      { userId: admin2[0].id, organizationId: org2.id, organizationRole: 'admin' },
+      { userId: manager2[0].id, organizationId: org2.id, organizationRole: 'manager' },
+      { userId: resident2[0].id, organizationId: org2.id, organizationRole: 'resident' },
+    ]);
   });
 
   afterEach(async () => {
@@ -174,6 +178,8 @@ describe('Database Permissions Security', () => {
         province: 'QC',
         postalCode: 'H1A 1A1',
         organizationId: org1.id,
+        buildingType: 'apartment',
+        totalUnits: 20,
       }).returning();
 
       const [building2] = await db.insert(schema.buildings).values({
@@ -183,6 +189,8 @@ describe('Database Permissions Security', () => {
         province: 'QC',
         postalCode: 'G1A 1A1',
         organizationId: org2.id,
+        buildingType: 'apartment',
+        totalUnits: 15,
       }).returning();
 
       // Login as org1 user
