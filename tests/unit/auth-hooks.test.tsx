@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth, AuthProvider } from '../../client/src/hooks/use-auth';
 
@@ -178,14 +178,17 @@ describe('useAuth Hook Tests', () => {
       json: async () => ({ success: true }),
     } as Response);
 
-    // Test logout functionality
-    await result.current.logout();
+    // Test logout functionality - wrap in act() to handle state updates
+    await act(async () => {
+      await result.current.logout();
+    });
 
     expect(mockFetch).toHaveBeenCalledWith('/api/auth/logout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
     });
   });
 
@@ -208,7 +211,9 @@ describe('useAuth Hook Tests', () => {
     } as Response);
 
     try {
-      await result.current.logout();
+      await act(async () => {
+        await result.current.logout();
+      });
     } catch (_error) {
       expect(_error).toBeInstanceOf(Error);
     }
