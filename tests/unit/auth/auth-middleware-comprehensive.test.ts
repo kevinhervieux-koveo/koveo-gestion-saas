@@ -444,7 +444,7 @@ describe('Authentication Middleware - Comprehensive Tests', () => {
           { ...testUsers.admin, role: 123 },
           { ...testUsers.admin, role: {} },
           { ...testUsers.admin, role: [] },
-          { ...testUsers.admin }, // Missing role property
+          ((user) => { const { role, ...userWithoutRole } = user; return userWithoutRole; })(testUsers.admin), // Missing role property
         ];
 
         usersWithMalformedRoles.forEach((user, _index) => {
