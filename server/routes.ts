@@ -5,17 +5,17 @@ import path from 'path';
 import fs from 'fs';
 
 // Import API route registration functions
-import { registerOrganizationRoutes } from './api/organizations.js';
-import { registerUserRoutes } from './api/users.js';
-import { registerBuildingRoutes } from './api/buildings.js';
-import { registerDocumentRoutes } from './api/documents.js';
-import { registerBillRoutes } from './api/bills.js';
-import { registerResidenceRoutes } from './api/residences.js';
-import { registerDemandRoutes } from './api/demands.js';
-import { registerFeatureRequestRoutes } from './api/feature-requests.js';
-import { registerContactRoutes } from './api/contacts.js';
-import { registerCommonSpacesRoutes } from './api/common-spaces.js';
-import { registerPermissionsRoutes } from './api/permissions.js';
+import { registerOrganizationRoutes } from './api/organizations';
+import { registerUserRoutes } from './api/users';
+import { registerBuildingRoutes } from './api/buildings';
+import { registerDocumentRoutes } from './api/documents';
+import { registerBillRoutes } from './api/bills';
+import { registerResidenceRoutes } from './api/residences';
+import { registerDemandRoutes } from './api/demands';
+import { registerFeatureRequestRoutes } from './api/feature-requests';
+import { registerContactRoutes } from './api/contacts';
+import { registerCommonSpacesRoutes } from './api/common-spaces';
+import { registerPermissionsRoutes } from './api/permissions';
 
 export async function registerRoutes(app: Express) {
   console.log('🔄 Setting up session middleware...');

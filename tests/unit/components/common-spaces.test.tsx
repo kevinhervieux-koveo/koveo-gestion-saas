@@ -140,16 +140,17 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Initial Rendering and Data Loading', () => {
     it('should render the common spaces list correctly', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
-      // Check mock component is rendered
-      expect(screen.getByTestId('common-spaces-page')).toBeInTheDocument();
+      // Check that the page is rendered
+      await waitFor(() => {
+        expect(screen.getByTestId('common-spaces-page')).toBeInTheDocument();
+      });
 
-      // Check mock component text
-      expect(screen.getByText('Common Spaces Page Mock')).toBeInTheDocument();
+      // Wait for spaces to load from MSW
+      await waitFor(() => {
+        expect(screen.getByText('Gym')).toBeInTheDocument();
+      });
     });
 
     it('should show loading state initially', () => {
@@ -160,10 +161,7 @@ describe('Common Spaces Resident Page', () => {
         })
       );
 
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Should not show any spaces during loading
       expect(screen.queryByText('Gym')).not.toBeInTheDocument();
@@ -177,10 +175,7 @@ describe('Common Spaces Resident Page', () => {
         })
       );
 
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Aucun espace commun disponible')).toBeInTheDocument();
@@ -190,10 +185,7 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Space Selection and Calendar Updates', () => {
     it('should update calendar when a space is selected', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Wait for spaces to load
       await waitFor(() => {
@@ -214,10 +206,7 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should load and display bookings for selected space', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Wait for spaces to load and select gym
       await waitFor(() => {
@@ -234,10 +223,7 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should not allow selection of non-reservable spaces', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Wait for spaces to load
       await waitFor(() => {
@@ -251,10 +237,7 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Booking Modal and Form Validation', () => {
     beforeEach(async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Select gym space
       await waitFor(() => {
@@ -386,10 +369,7 @@ describe('Common Spaces Resident Page', () => {
 
   describe('User Access Control', () => {
     it('should not show manager-specific controls for resident users', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       // Wait for page to load
       await waitFor(() => {
@@ -408,10 +388,7 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should show user bookings export functionality', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Mes réservations')).toBeInTheDocument();
@@ -455,10 +432,7 @@ describe('Common Spaces Resident Page', () => {
         return originalCreateElement.call(document, tagName);
       });
 
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Exporter (.ics)')).toBeInTheDocument();
@@ -480,10 +454,7 @@ describe('Common Spaces Resident Page', () => {
 
   describe('Space Information Display', () => {
     it('should display opening hours correctly', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Gym')).toBeInTheDocument();
@@ -504,10 +475,7 @@ describe('Common Spaces Resident Page', () => {
     });
 
     it('should display booking rules when available', async () => {
-      const MockComponent = () => (
-        <div data-testid='common-spaces-page'>Common Spaces Page Mock</div>
-      );
-      renderWithProviders(<MockComponent />);
+      renderWithProviders(<CommonSpacesPage />);
 
       await waitFor(() => {
         expect(screen.getByText('Gym')).toBeInTheDocument();

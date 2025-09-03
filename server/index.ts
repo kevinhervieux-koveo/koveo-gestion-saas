@@ -20,8 +20,8 @@ const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
 if (isNaN(port) || port < 1 || port > 65535) {
   const fallback = process.env.NODE_ENV === 'production' ? '5000' : '5000';
   console.error(`Invalid port configuration. Using default ${fallback}.`);
-  // Only exit in production - let tests continue with fallback
-  if (process.env.NODE_ENV === 'production') {
+  // Never exit during tests - let tests continue with fallback
+  if (process.env.NODE_ENV === 'production' && process.env.TEST_ENV !== 'integration') {
     process.exit(1);
   }
 }
