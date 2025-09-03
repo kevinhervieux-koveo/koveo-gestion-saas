@@ -80,6 +80,8 @@ export default function UserManagement() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [editingUserOrganizations, setEditingUserOrganizations] = useState<UserWithAssignments | null>(null);
+  const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -233,6 +235,11 @@ export default function UserManagement() {
 
   const openEditDialog = (user: User) => {
     setEditingUser(user);
+  };
+
+  // Helper function to find UserWithAssignments from the users list
+  const findUserWithAssignments = (userId: string): UserWithAssignments | null => {
+    return users.find(u => u.id === userId) || null;
   };
 
   const openDeleteDialog = (user: User) => {
@@ -903,7 +910,7 @@ export default function UserManagement() {
               {canEditOrganizations && (
                 <TabsContent value='organizations' className='space-y-4'>
                   <UserOrganizationsTab 
-                    user={editingUser}
+                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     organizations={organizations}
                     onSave={(organizationIds) => {
                       if (editingUser) {
@@ -920,7 +927,7 @@ export default function UserManagement() {
 
               <TabsContent value='buildings' className='space-y-4'>
                 <UserBuildingsTab 
-                  user={editingUser}
+                  user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}
                   onSave={(buildingIds) => {
                     if (editingUser) {
@@ -937,7 +944,7 @@ export default function UserManagement() {
               {canEditResidences && (
                 <TabsContent value='residences' className='space-y-4'>
                   <UserResidencesTab 
-                    user={editingUser}
+                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     residences={residences}
                     onSave={(residenceAssignments) => {
                       if (editingUser) {
