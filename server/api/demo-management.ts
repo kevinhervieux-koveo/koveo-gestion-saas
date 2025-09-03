@@ -27,10 +27,70 @@ export function registerDemoManagementRoutes(app: Express): void {
         success: true,
         data: health,
       });
-
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: 'Demo health check failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/demo/users
+   * Get demo users for login page.
+   * Public endpoint for demo mode.
+   */
+  app.get('/api/demo/users', async (req: Request, res: Response) => {
+    try {
+      // Import database connection
+      const { db } = await import('../db');
+      const { eq, and } = await import('drizzle-orm');
+      const schema = await import('../../shared/schema');
+
+      // Get Demo Test Organization
+      const demoOrg = await db.query.organizations.findFirst({
+        where: eq(schema.organizations.name, 'Demo Test Organization'),
+      });
+
+      if (!demoOrg) {
+        return res.status(404).json({
+          success: false,
+          message: 'Demo organization not found',
+        });
+      }
+
+      // Get demo users with demo roles
+      const demoUsers = await db.query.users.findMany({
+        where: and(
+          schema.users.isActive === true,
+          schema.users.role.in(['demo_manager', 'demo_tenant', 'demo_resident'])
+        ),
+        columns: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+
+      // Group users by role for frontend consumption
+      const usersByRole = {
+        demo_manager: demoUsers.filter(user => user.role === 'demo_manager'),
+        demo_tenant: demoUsers.filter(user => user.role === 'demo_tenant'),
+        demo_resident: demoUsers.filter(user => user.role === 'demo_resident'),
+      };
+
+      res.json({
+        success: true,
+        data: usersByRole,
+      });
+    } catch (error) {
+      console.error('❌ Error fetching demo users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch demo users',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }

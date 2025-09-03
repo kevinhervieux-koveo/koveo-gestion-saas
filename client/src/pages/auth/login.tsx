@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Shield, Building, Users, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
@@ -60,6 +60,21 @@ const DEMO_CREDENTIALS = {
   TENANT_DEMO_PASSWORD: 'demo123',
 } as const;
 
+// Types for demo users from API
+interface DemoUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
+interface DemoUsersData {
+  demo_manager: DemoUser[];
+  demo_tenant: DemoUser[];
+  demo_resident: DemoUser[];
+}
+
 /**
  *
  */
@@ -73,76 +88,94 @@ export default function LoginPage() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [demoUsers, setDemoUsers] = useState<DemoUsersData | null>(null);
+  const [loadingDemoUsers, setLoadingDemoUsers] = useState(false);
 
-  // Demo roles and users available for testing - random selection from database users
-  const demoRoles = {
-    demo_manager: {
-      displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
-      description:
-        language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management',
-      detailedDescription:
-        language === 'fr'
-          ? 'Accès complet à toutes les fonctionnalités de gestion immobilière, incluant la gestion des locataires, maintenance, finances et rapports.'
-          : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
-      users: [
-        {
-          email: 'marc.gauthier@demo.com',
-          name: language === 'fr' ? 'Marc Gauthier' : 'Marc Gauthier',
+  // Fetch demo users when demo mode is enabled
+  useEffect(() => {
+    if (isDemoMode && !demoUsers) {
+      setLoadingDemoUsers(true);
+      fetch('/api/demo/users')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setDemoUsers(data.data);
+          } else {
+            console.error('Failed to fetch demo users:', data.message);
+            toast({
+              title: language === 'fr' ? 'Erreur Demo' : 'Demo Error',
+              description: language === 'fr' 
+                ? 'Impossible de charger les utilisateurs de démonstration' 
+                : 'Failed to load demo users',
+              variant: 'destructive',
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching demo users:', error);
+          toast({
+            title: language === 'fr' ? 'Erreur Demo' : 'Demo Error',
+            description: language === 'fr' 
+              ? 'Impossible de charger les utilisateurs de démonstration' 
+              : 'Failed to load demo users',
+            variant: 'destructive',
+          });
+        })
+        .finally(() => {
+          setLoadingDemoUsers(false);
+        });
+    }
+  }, [isDemoMode, demoUsers, toast, language]);
+
+  // Create dynamic demo roles from fetched users
+  const getDemoRoles = () => {
+    if (!demoUsers) return {};
+
+    return {
+      demo_manager: {
+        displayName: language === 'fr' ? 'Gestionnaire' : 'Manager',
+        description:
+          language === 'fr' ? 'Gestion complète des immeubles' : 'Full building management',
+        detailedDescription:
+          language === 'fr'
+            ? 'Accès complet à toutes les fonctionnalités de gestion immobilière, incluant la gestion des locataires, maintenance, finances et rapports.'
+            : 'Complete access to all property management features, including tenant management, maintenance, finances, and reporting.',
+        users: demoUsers.demo_manager.map(user => ({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
           building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-        {
-          email: 'sophie.tremblay@demo.com',
-          name: language === 'fr' ? 'Sophie Tremblay' : 'Sophie Tremblay',
-          building: language === 'fr' ? 'Gestionnaire Démonstration' : 'Demo Manager',
-          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-      ],
-    },
-    demo_tenant: {
-      displayName: language === 'fr' ? 'Locataire' : 'Tenant',
-      description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
-      detailedDescription:
-        language === 'fr'
-          ? 'Accès aux fonctionnalités essentielles pour les locataires: demandes de maintenance, documents, communications avec la gestion.'
-          : 'Access to essential tenant features: maintenance requests, documents, communication with management.',
-      users: [
-        {
-          email: 'jean.tremblay@demo.com',
-          name: language === 'fr' ? 'Jean Tremblay' : 'Jean Tremblay',
+        })),
+      },
+      demo_tenant: {
+        displayName: language === 'fr' ? 'Locataire' : 'Tenant',
+        description: language === 'fr' ? 'Accès locataire standard' : 'Standard tenant access',
+        detailedDescription:
+          language === 'fr'
+            ? 'Accès aux fonctionnalités essentielles pour les locataires: demandes de maintenance, documents, communications avec la gestion.'
+            : 'Access to essential tenant features: maintenance requests, documents, communication with management.',
+        users: demoUsers.demo_tenant.map(user => ({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
           building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-        {
-          email: 'alice.johnson@demo.com',
-          name: language === 'fr' ? 'Alice Johnson' : 'Alice Johnson',
-          building: language === 'fr' ? 'Locataire Démonstration' : 'Demo Tenant',
-          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-      ],
-    },
-    demo_resident: {
-      displayName: language === 'fr' ? 'Résident' : 'Resident',
-      description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
-      detailedDescription:
-        language === 'fr'
-          ? 'Accès étendu pour les résidents propriétaires: gestion de leur unité, participation aux décisions, accès aux documents financiers.'
-          : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
-      users: [
-        {
-          email: 'bob.smith@demo.com',
-          name: language === 'fr' ? 'Bob Smith' : 'Bob Smith',
+        })),
+      },
+      demo_resident: {
+        displayName: language === 'fr' ? 'Résident' : 'Resident',
+        description: language === 'fr' ? 'Accès résident propriétaire' : 'Resident owner access',
+        detailedDescription:
+          language === 'fr'
+            ? 'Accès étendu pour les résidents propriétaires: gestion de leur unité, participation aux décisions, accès aux documents financiers.'
+            : 'Extended access for resident owners: unit management, participation in decisions, access to financial documents.',
+        users: demoUsers.demo_resident.map(user => ({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
           building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
           password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-        {
-          email: 'david.wilson@demo.com',
-          name: language === 'fr' ? 'David Wilson' : 'David Wilson',
-          building: language === 'fr' ? 'Résident Démonstration' : 'Demo Resident',
-          password: DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD,
-        },
-      ],
-    },
+        })),
+      },
+    };
   };
 
   const form = useForm<LoginFormData>({
@@ -213,8 +246,9 @@ export default function LoginPage() {
 
       // Find the password for the selected user
       let password: string = DEMO_CREDENTIALS.DEFAULT_DEMO_PASSWORD; // default
+      const demoRoles = getDemoRoles();
       for (const role of Object.values(demoRoles)) {
-        const user = role.users.find((u) => u.email === demoUserEmail);
+        const user = role.users?.find((u) => u.email === demoUserEmail);
         if (user) {
           password = user.password;
           break;
@@ -302,7 +336,15 @@ export default function LoginPage() {
 
             {isDemoMode ? (
               <div className='space-y-3'>
-                {!selectedRole ? (
+                {loadingDemoUsers ? (
+                  // Loading state
+                  <div className='flex items-center justify-center py-8'>
+                    <Loader2 className='w-6 h-6 animate-spin text-blue-600 dark:text-blue-400' />
+                    <span className='ml-2 text-sm text-gray-600 dark:text-gray-400'>
+                      {language === 'fr' ? 'Chargement des utilisateurs...' : 'Loading users...'}
+                    </span>
+                  </div>
+                ) : !selectedRole ? (
                   // Role Selection View
                   <>
                     <div className='text-center text-sm text-gray-600 dark:text-gray-400'>
@@ -310,7 +352,7 @@ export default function LoginPage() {
                         ? 'Choisissez un rôle pour tester la plateforme :'
                         : 'Choose a role to test the platform:'}
                     </div>
-                    {Object.entries(demoRoles).map(([roleKey, role]) => (
+                    {Object.entries(getDemoRoles()).map(([roleKey, role]) => (
                       <Card
                         key={roleKey}
                         className='cursor-pointer hover:shadow-md transition-shadow border border-blue-200 hover:border-blue-300'
@@ -343,13 +385,13 @@ export default function LoginPage() {
                       >
                         ← {language === 'fr' ? 'Retour' : 'Back'}
                       </Button>
-                      <h3 className='font-medium text-lg'>{demoRoles[selectedRole].displayName}</h3>
+                      <h3 className='font-medium text-lg'>{getDemoRoles()[selectedRole]?.displayName}</h3>
                       <div></div>
                     </div>
 
                     <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4'>
                       <p className='text-sm text-blue-800 dark:text-blue-200'>
-                        {demoRoles[selectedRole].detailedDescription}
+                        {getDemoRoles()[selectedRole]?.detailedDescription}
                       </p>
                     </div>
 
@@ -359,7 +401,7 @@ export default function LoginPage() {
                         : 'Select a demo user:'}
                     </div>
 
-                    {demoRoles[selectedRole].users.map((user, index) => (
+                    {getDemoRoles()[selectedRole]?.users?.map((user, index) => (
                       <Card
                         key={user.email}
                         className='cursor-pointer hover:shadow-md transition-shadow border border-green-200 hover:border-green-300'
