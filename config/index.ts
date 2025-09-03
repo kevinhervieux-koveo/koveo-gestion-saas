@@ -102,7 +102,18 @@ export const permissions: PermissionsConfig = {
     'delete:budget',
     'create:maintenance_request',
     'update:maintenance_request',
+    'assign:maintenance_request',
     'export:financial_report',
+    'delete:improvement_suggestion',
+    'delete:feature',
+    'delete:actionable_item',
+    'cancel:invitation',
+    'resend:invitation',
+    'audit:invitation',
+    'read:notification',
+    'create:notification',
+    'read:ai_analysis',
+    'create:ai_analysis',
     'read:profile',
     'update:profile',
   ],
@@ -123,6 +134,8 @@ export const permissions: PermissionsConfig = {
     'create:invitation',
     'read:invitation',
     'update:invitation',
+    'cancel:invitation',
+    'resend:invitation',
     'create:bill',
     'read:bill',
     'update:bill',
@@ -137,6 +150,8 @@ export const permissions: PermissionsConfig = {
     'read:maintenance_request',
     'create:maintenance_request',
     'assign:maintenance_request',
+    'read:profile',
+    'update:profile',
   ],
   tenant: [
     'read:building',
@@ -145,6 +160,8 @@ export const permissions: PermissionsConfig = {
     'read:bill',
     'create:maintenance',
     'read:maintenance',
+    'read:maintenance_request',
+    'create:maintenance_request',
     'update:own_maintenance_request',
     'read:profile',
     'update:profile',
@@ -157,6 +174,8 @@ export const permissions: PermissionsConfig = {
     'read:bill',
     'create:maintenance',
     'read:maintenance',
+    'read:maintenance_request',
+    'create:maintenance_request',
     'update:own_maintenance_request',
     'read:profile',
     'update:profile',
@@ -173,6 +192,11 @@ export function checkPermission(
   role: Role,
   permission: Permission
 ): boolean {
+  // Throw error for invalid roles
+  if (!(role in config)) {
+    throw new Error(`Invalid role: ${role}`);
+  }
+  
   const rolePermissions = getRolePermissions(config, role);
   return rolePermissions.includes(permission);
 }
