@@ -249,7 +249,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
     });
 
     it('should handle missing Demo organization scenario', async () => {
-      mockDb.query.organizations.findFirst.mockResolvedValueOnce(null);
+      mockDb.query.organizations.findFirst.mockResolvedValueOnce(undefined);
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.montreal.id,
@@ -324,7 +324,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
     });
 
     it('should deny access to non-existent buildings', async () => {
-      mockDb.query.buildings.findFirst.mockResolvedValueOnce(null);
+      mockDb.query.buildings.findFirst.mockResolvedValueOnce(undefined);
 
       const hasAccess = await canUserAccessBuilding(
         testUsers.manager.id,
@@ -426,7 +426,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
     });
 
     it('should handle non-existent users gracefully', async () => {
-      mockDb.query.users.findFirst.mockResolvedValueOnce(null);
+      mockDb.query.users.findFirst.mockResolvedValueOnce(undefined);
 
       const hasAccess = await canUserAccessResidence('non-existent-user', testResidences.demo.id);
 
@@ -435,7 +435,7 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
 
     it('should handle non-existent residences gracefully', async () => {
       mockDb.query.users.findFirst.mockResolvedValueOnce(testUsers.admin);
-      mockDb.query.residences.findFirst.mockResolvedValueOnce(null);
+      mockDb.query.residences.findFirst.mockResolvedValueOnce(undefined);
 
       const hasAccess = await canUserAccessResidence(testUsers.admin.id, 'non-existent-residence');
 
