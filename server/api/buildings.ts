@@ -977,6 +977,76 @@ export function registerBuildingRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/buildings/:id/residences-for-deletion - Get list of residences that can be selected for deletion
+   * Only admins can access this endpoint
+   */
+  app.get('/api/buildings/:id/residences-for-deletion', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const buildingId = req.params.id;
+      const maxToSelect = parseInt(req.query.maxToSelect as string) || 10;
+
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      // Only admins can delete residences
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can access residence deletion options' });
+      }
+
+      const { getResidencesForSelection } = await import('./buildings/operations');
+      const residencesToSelect = await getResidencesForSelection(buildingId, maxToSelect);
+
+      res.json({
+        residences: residencesToSelect,
+        message: `Found ${residencesToSelect.length} residences available for deletion`
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching residences for deletion:', error);
+      res.status(500).json({ message: 'Failed to fetch residences for deletion' });
+    }
+  });
+
+  /**
+   * DELETE /api/buildings/:id/residences - Delete selected residences
+   * Only admins can delete residences
+   */
+  app.delete('/api/buildings/:id/residences', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const buildingId = req.params.id;
+      const { residenceIds } = req.body;
+
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      // Only admins can delete residences
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can delete residences' });
+      }
+
+      if (!Array.isArray(residenceIds) || residenceIds.length === 0) {
+        return res.status(400).json({ message: 'residenceIds array is required' });
+      }
+
+      const { deleteSelectedResidences } = await import('./buildings/operations');
+      const result = await deleteSelectedResidences(buildingId, residenceIds, user.role);
+
+      res.json({
+        success: true,
+        deletedCount: result.deletedCount,
+        documentsDeleted: result.documentsDeleted,
+        message: `Successfully deleted ${result.deletedCount} residences and ${result.documentsDeleted} associated documents`
+      });
+    } catch (error: any) {
+      console.error('❌ Error deleting residences:', error);
+      res.status(500).json({ message: error.message || 'Failed to delete residences' });
+    }
+  });
+
+  /**
    * PUT /api/admin/buildings/:id - Update a building (Admin and Manager).
    */
   app.put('/api/admin/buildings/:id', requireAuth, async (req: any, res) => {
@@ -1059,14 +1129,38 @@ export function registerBuildingRoutes(app: Express): void {
         .where(eq(buildings.id, buildingId))
         .returning();
 
-      // Handle residence creation/deletion based on totalUnits change
-      await handleResidenceChanges(
-        buildingId,
-        buildingData.organizationId,
-        newTotalUnits,
-        currentResidenceCount,
-        buildingData.totalFloors
-      );
+      // Handle residence count changes with new admin-only functionality
+      if (newTotalUnits !== previousTotalUnits) {
+        console.log(`🏠 Building units changed from ${previousTotalUnits} to ${newTotalUnits}, adjusting residences...`);
+        
+        // Only admins can adjust residence counts
+        if (currentUser.role !== 'admin') {
+          return res.status(403).json({
+            message: 'Only admins can increase or decrease building residence counts',
+            code: 'ADMIN_REQUIRED_FOR_RESIDENCE_CHANGES',
+          });
+        }
+
+        const { adjustResidenceCount } = await import('./buildings/operations');
+        const adjustmentResult = await adjustResidenceCount(
+          buildingId,
+          existingBuilding[0].organizationId,
+          newTotalUnits,
+          previousTotalUnits,
+          buildingData.totalFloors || existingBuilding[0].totalFloors || 1
+        );
+
+        // If residences need to be decreased, return the selection list to user
+        if (adjustmentResult.action === 'decreased' && adjustmentResult.residencesToSelect) {
+          return res.json({
+            message: 'Building updated, but residence count needs to be reduced',
+            buildingUpdated: true,
+            needsResidenceSelection: true,
+            residencesToSelect: adjustmentResult.residencesToSelect,
+            instruction: `Please select ${previousTotalUnits - newTotalUnits} residences to delete from the list provided. Use DELETE /api/buildings/${buildingId}/residences with the selected residence IDs.`
+          });
+        }
+      }
 
 
       res.json({
