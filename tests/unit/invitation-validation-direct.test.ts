@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { db } from '../../server/db';
-import { invitations, organizations, users } from '@shared/schema';
+import { invitations, organizations, users } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
@@ -187,8 +187,10 @@ describe('Invitation Validation Logic (Direct)', () => {
       const result = await validateInvitationTokenDirect(testInvitationToken);
 
       expect(result.isValid).toBe(true);
-      expect(result.invitation.email).toBe('directtest@example.com');
-      expect(result.invitation.role).toBe('manager');
+      if (result.isValid) {
+        expect(result.invitation.email).toBe('directtest@example.com');
+        expect(result.invitation.role).toBe('manager');
+      }
       expect(result.organizationName).toBe('Test Direct Validation Org');
       expect(result.inviterName).toBe('Direct Inviter');
     });
@@ -366,8 +368,10 @@ describe('Invitation Validation Logic (Direct)', () => {
         const result = await validateInvitationTokenDirect(roleToken);
 
         expect(result.isValid).toBe(true);
-        expect(result.invitation.role).toBe(role);
-        expect(result.invitation.email).toBe(`${role}-direct@example.com`);
+        if (result.isValid) {
+          expect(result.invitation.role).toBe(role);
+          expect(result.invitation.email).toBe(`${role}-direct@example.com`);
+        }
 
         // Cleanup
         await db.delete(invitations).where(eq(invitations.id, roleInvitation[0].id));
@@ -380,7 +384,9 @@ describe('Invitation Validation Logic (Direct)', () => {
       // 1. Valid invitation should work
       let result = await validateInvitationTokenDirect(testInvitationToken);
       expect(result.isValid).toBe(true);
-      expect(result.invitation.email).toBe('directtest@example.com');
+      if (result.isValid) {
+        expect(result.invitation.email).toBe('directtest@example.com');
+      }
 
       // 2. After marking as used, should be rejected
       await db
