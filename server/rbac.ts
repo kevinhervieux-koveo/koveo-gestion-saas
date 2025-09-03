@@ -114,7 +114,7 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     for (const userOrg of userOrgs) {
       if (
         userOrg.canAccessAllOrganizations ||
-        userOrg.organization?.name?.toLowerCase() === 'koveo'
+        (userOrg.organization?.name && userOrg.organization.name.toLowerCase() === 'koveo')
       ) {
         // User can access all organizations (Koveo organization case or explicit flag)
         const allOrgs = await db.query.organizations.findMany({
@@ -130,6 +130,8 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 
     const result = Array.from(accessibleOrgIds);
     return result;
+  } catch (error) {
+    console.error('Error getting user accessible organizations:', error);
     return [];
   }
 }
@@ -162,6 +164,8 @@ export async function getUserAccessibleResidences(userId: string): Promise<strin
     });
 
     return userResidences.map((ur) => ur.residenceId);
+  } catch (error) {
+    console.error('Error getting user accessible residences:', error);
     return [];
   }
 }
@@ -194,6 +198,8 @@ export async function isOpenDemoUser(userId: string): Promise<boolean> {
     });
 
     return !!userOrg;
+  } catch (error) {
+    console.error('Error checking open demo user:', error);
     return false;
   }
 }
@@ -293,6 +299,8 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
     }
 
     return await canUserAccessOrganization(userId, building.organizationId);
+  } catch (error) {
+    console.error('Error checking building access:', error);
     return false;
   }
 }
@@ -352,6 +360,8 @@ export async function canUserAccessResidence(
     // Tenants/residents can only access their own residences
     const accessibleResidences = await getUserAccessibleResidences(userId);
     return accessibleResidences.includes(residenceId);
+  } catch (error) {
+    console.error('Error checking residence access:', error);
     return false;
   }
 }
@@ -394,6 +404,8 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
       }
 
       next();
+    } catch (error) {
+      console.error('Error checking organization access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -440,6 +452,8 @@ export function requireBuildingAccess(param: string = 'buildingId') {
       }
 
       next();
+    } catch (error) {
+      console.error('Error checking building access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -486,6 +500,8 @@ export function requireResidenceAccess(param: string = 'residenceId') {
       }
 
       next();
+    } catch (error) {
+      console.error('Error checking residence access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
