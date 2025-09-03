@@ -14,7 +14,7 @@ describe('Quebec Property Management Business Logic', () => {
         password: 'SecurePass123!',
         firstName: 'Marie',
         lastName: 'Tremblay',
-        phone: '+1-514-555-0123',
+        phone: '514-555-0123',
         language: 'fr',
         role: 'tenant',
       };

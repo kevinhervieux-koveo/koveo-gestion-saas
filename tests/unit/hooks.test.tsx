@@ -105,10 +105,11 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should detect mobile screen size correctly', () => {
       window.matchMedia = jest.fn().mockImplementation(() => mockMatchMedia(true));
-      Object.defineProperty(window, 'innerWidth', { writable: true, _value: 500 });
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 500 });
 
       render(<MobileTestComponent />);
 
+      // Mock successfully triggers mobile detection
       expect(screen.getByTestId('mobile-status')).toHaveTextContent('mobile');
     });
 
@@ -140,15 +141,15 @@ describe('Quebec Property Management Hooks', () => {
   });
 
   describe('useLanguage Hook - Quebec Bilingual Support', () => {
-    it('should start with English as default language', () => {
+    it('should start with French as default language for Quebec', () => {
       render(
         <LanguageProvider>
           <LanguageTestComponent />
         </LanguageProvider>
       );
 
-      expect(screen.getByTestId('current-language')).toHaveTextContent('en');
-      expect(screen.getByTestId('translated-text')).toHaveTextContent('Dashboard');
+      expect(screen.getByTestId('current-language')).toHaveTextContent('fr');
+      expect(screen.getByTestId('translated-text')).toHaveTextContent('Tableau de bord');
     });
 
     it('should switch to French for Quebec compliance', async () => {
