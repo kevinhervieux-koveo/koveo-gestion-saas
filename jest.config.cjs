@@ -7,6 +7,7 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
+    '^@assets/(.*)$': '<rootDir>/client/src/assets/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
       '<rootDir>/tests/mocks/fileMock.js',
@@ -53,7 +54,7 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google|stream/web))'
   ],
   testTimeout: 30000,
   clearMocks: true,

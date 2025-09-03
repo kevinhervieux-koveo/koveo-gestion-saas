@@ -2,6 +2,35 @@
 import '@testing-library/jest-dom';
 import 'whatwg-fetch';
 
+// Add TransformStream polyfill for MSW compatibility
+if (typeof TransformStream === 'undefined') {
+  const { TransformStream } = require('stream/web');
+  (global as any).TransformStream = TransformStream;
+}
+
+// Add ReadableStream polyfill
+if (typeof ReadableStream === 'undefined') {
+  const { ReadableStream } = require('stream/web');
+  (global as any).ReadableStream = ReadableStream;
+}
+
+// Add WritableStream polyfill
+if (typeof WritableStream === 'undefined') {
+  const { WritableStream } = require('stream/web');
+  (global as any).WritableStream = WritableStream;
+}
+
+// Add BroadcastChannel polyfill for MSW
+if (typeof BroadcastChannel === 'undefined') {
+  (global as any).BroadcastChannel = class {
+    constructor(name: string) {}
+    postMessage(message: any) {}
+    addEventListener(event: string, handler: Function) {}
+    removeEventListener(event: string, handler: Function) {}
+    close() {}
+  };
+}
+
 // Mock runQuery function for integration tests
 global.runQuery = jest.fn(() => Promise.resolve([]));
 

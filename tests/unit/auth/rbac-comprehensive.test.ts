@@ -15,61 +15,25 @@ import {
 } from '../../../server/rbac';
 import { db } from '../../../server/db';
 
-// Mock database functions for testing
-jest.mock('../../../server/db', () => ({
-  db: {
-    query: {
-      userOrganizations: {
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-      },
-      organizations: {
-        findFirst: jest.fn(),
-        findMany: jest.fn(),
-      },
-      buildings: {
-        findFirst: jest.fn(),
-      },
-      residences: {
-        findFirst: jest.fn(),
-      },
-      userResidences: {
-        findMany: jest.fn(),
-      },
-      users: {
-        findFirst: jest.fn(),
-      },
-    },
-  },
-}));
+// Use real database for testing with demo data
 
-// Test data for Quebec property management scenarios
+// Real demo data from database
 const testUsers = {
   admin: {
-    id: 'admin-user-id',
-    username: 'admin@koveo.com',
-    email: 'admin@koveo.com',
-    firstName: 'Admin',
-    lastName: 'User',
+    id: '222f5a0d-6bc6-4f28-9f4d-32c133eed333', // Real admin user
+    email: 'kevin.hervieux@koveo-gestion.com',
     role: 'admin' as const,
     isActive: true,
-    canAccessAllOrganizations: true,
   },
   manager: {
-    id: 'manager-user-id',
-    username: 'manager@property.qc.ca',
-    email: 'manager@property.qc.ca',
-    firstName: 'Gestionnaire',
-    lastName: 'Propriété',
+    id: '29b68c68-4a95-4d2a-bedc-d8b8d4cd3e07', // Real demo manager
+    email: 'sophie.tremblay@demo.com',
     role: 'manager' as const,
     isActive: true,
   },
   tenant: {
-    id: 'tenant-user-id',
-    username: 'locataire@email.com',
-    email: 'locataire@email.com',
-    firstName: 'Jean',
-    lastName: 'Locataire',
+    id: '50b33679-279d-4460-8902-04af4e7eac64', // Real demo tenant
+    email: 'emma.cote@demo.com',
     role: 'tenant' as const,
     isActive: true,
   },
@@ -94,72 +58,50 @@ const testUsers = {
 };
 
 const testOrganizations = {
-  demo: { id: 'demo-org-id', name: 'Demo', isActive: true },
-  koveo: { id: 'koveo-org-id', name: 'Koveo', isActive: true },
-  regular: { id: 'regular-org-id', name: 'Gestion Immobilière Québec', isActive: true },
-  openDemo: { id: 'open-demo-org-id', name: 'Open Demo', isActive: true },
-  montreal: { id: 'montreal-org-id', name: 'Immobilier Montréal', isActive: true },
-  quebec: { id: 'quebec-org-id', name: 'Propriétés Québec', isActive: true },
+  demo: { id: '9ebab63b-433d-4caf-b7cd-b23365e5014f', name: 'Demo', isActive: true },
+  koveo: { id: '75214a4e-241d-4b73-b14f-404fd274516f', name: 'Koveo', isActive: true },
+  montreal: { id: '72263718-6559-4216-bd93-524f7acdcbbc', name: '563-583 montée des pionniers', isActive: true },
+  regular: { id: '014a3b27-2097-40ae-84b4-a1130b82a253', name: 'Test Organization', isActive: true },
+  openDemo: { id: '15265075-ca7e-4ba1-8c72-5dce3b02e304', name: 'Demo', isActive: true },
+  quebec: { id: '714bc2dd-c750-4d58-92bb-9f49ec30b282', name: 'Security Test Org', isActive: true },
 };
 
 const testBuildings = {
   demo: {
-    id: 'demo-building-id',
-    organizationId: testOrganizations.demo.id,
-    name: 'Demo Building - Test Facility',
-    address: '123 Rue Demo, Montreal, QC',
+    id: 'd084392f-facb-40a6-8685-3b40dcdd4b68', // Real Koveo Tower
+    organizationId: testOrganizations.koveo.id,
+    name: 'Koveo Tower',
     isActive: true,
   },
   montreal: {
-    id: 'montreal-building-id',
+    id: '005b0e63-6a0a-44c9-bf01-2b779b316bba', // Real montreal building
     organizationId: testOrganizations.montreal.id,
-    name: 'Tour Résidentielle Montréal',
-    address: '456 Rue Sherbrooke, Montreal, QC',
-    isActive: true,
-  },
-  quebec: {
-    id: 'quebec-building-id',
-    organizationId: testOrganizations.quebec.id,
-    name: 'Complexe Résidentiel Québec',
-    address: '789 Boulevard René-Lévesque, Quebec, QC',
+    name: '563 montée des pionniers, Terrebonne',
     isActive: true,
   },
 };
 
 const testResidences = {
   demo: {
-    id: 'demo-residence-id',
+    id: '7778ab41-b9e2-4ca1-b2cd-f880d5979720', // Real residence
     buildingId: testBuildings.demo.id,
-    unitNumber: '101',
-    floor: 1,
+    unitNumber: '402',
+    floor: 4,
     isActive: true,
   },
   montreal: {
-    id: 'montreal-residence-id',
+    id: '60bf913d-bc84-4293-a737-cb0cab55e346', // Real residence
     buildingId: testBuildings.montreal.id,
-    unitNumber: '2A',
-    floor: 2,
-    isActive: true,
-  },
-  quebec: {
-    id: 'quebec-residence-id',
-    buildingId: testBuildings.quebec.id,
-    unitNumber: '15B',
-    floor: 15,
+    unitNumber: '1A',
+    floor: 1,
     isActive: true,
   },
 };
 
 describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
-  let mockDb: jest.Mocked<typeof db>;
-
+  
   beforeEach(() => {
-    mockDb = db as jest.Mocked<typeof db>;
     jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('getUserAccessibleOrganizations - Core Access Control', () => {
