@@ -160,13 +160,16 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       if (process.env.NODE_ENV === 'development') {
         log('🔄 Development mode: Setting up frontend immediately...');
         // In development, we need Vite middleware BEFORE server starts accepting requests
-        try {
-          await loadFullApplication();
-          log('✅ Development setup complete with frontend serving');
-        } catch (error: any) {
-          log(`❌ Frontend setup failed: ${error.message}`, 'error');
-          log(`❌ Stack trace: ${error.stack}`, 'error');
-        }
+        // Load application in background to avoid blocking startup
+        setTimeout(async () => {
+          try {
+            await loadFullApplication();
+            log('✅ Development setup complete with frontend serving');
+          } catch (error: any) {
+            log(`❌ Frontend setup failed: ${error.message}`, 'error');
+            log(`❌ Stack trace: ${error.stack}`, 'error');
+          }
+        }, 100); // Very quick delay to allow server to start first
       } else {
         // Production: Load application immediately with better error handling
         log('🔄 Production mode: Loading application features...');
