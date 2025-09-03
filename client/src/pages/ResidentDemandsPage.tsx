@@ -356,11 +356,7 @@ ResidentDemandsPage() {
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Header Actions */}
-          <div className='flex items-center justify-between'>
-            <div>
-              <h2 className='text-2xl font-bold'>{t('myDemands')}</h2>
-              <p className='text-muted-foreground'>{t('submitAndTrackRequests')}</p>
-            </div>
+          <div className='flex items-center justify-end'>
             <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
               <DialogTrigger asChild>
                 <Button>
