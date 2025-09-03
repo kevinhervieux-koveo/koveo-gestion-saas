@@ -686,6 +686,7 @@ export class MemStorage implements IStorage {
       filePath: suggestion.filePath || null,
       status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
       category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
+      assignedTo: suggestion.assignedTo || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       acknowledgedAt: null,
