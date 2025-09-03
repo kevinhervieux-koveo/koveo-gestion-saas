@@ -54,28 +54,34 @@ import { z } from 'zod';
 
 // Form schemas
 const profileSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  phone: z.string().optional(),
+  firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+  lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
+  email: z.string().min(1, 'Email address is required').email('Please enter a valid email address (example: jean.dupont@email.com)'),
+  username: z.string().min(3, 'Username must be between 3 and 30 characters (example: jdupont)').max(30, 'Username must be between 3 and 30 characters (example: jdupont)').regex(/^[a-zA-Z0-9._-]+$/, 'Username can only contain letters, numbers, dots, underscores and hyphens'),
+  phone: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return /^(\+1\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}$/.test(val);
+  }, 'Phone number must be a valid North American format (example: (514) 123-4567)'),
   language: z.enum(['fr', 'en']),
 });
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(8, 'Confirm password is required'),
+    currentPassword: z.string().min(1, 'Current password is required to verify your identity'),
+    newPassword: z.string()
+      .min(8, 'New password must be at least 8 characters long (example: MonNouveauMotDePasse123!)')
+      .max(100, 'New password must be less than 100 characters')
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'New password must contain at least one lowercase letter, one uppercase letter, and one number'),
+    confirmPassword: z.string().min(1, 'Please confirm your new password by typing it again'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Passwords don't match - please enter the same password in both fields",
     path: ['confirmPassword'],
   });
 
 const deleteAccountSchema = z.object({
-  confirmEmail: z.string().email('Invalid email address'),
-  reason: z.string().optional(),
+  confirmEmail: z.string().min(1, 'Email confirmation is required to delete account').email('Please enter a valid email address that matches your account'),
+  reason: z.string().max(500, 'Reason must be less than 500 characters').optional(),
 });
 
 /**

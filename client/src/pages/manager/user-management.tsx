@@ -58,18 +58,18 @@ const createEditUserSchema = (availableRoles: { value: string; label: string }[]
   const roleValues = availableRoles.map(role => role.value) as [string, ...string[]];
   
   return z.object({
-    firstName: z.string().min(1, 'First name is required'),
-    lastName: z.string().min(1, 'Last name is required'),
-    email: z.string().email('Invalid email address'),
-    role: roleValues.length > 0 ? z.enum(roleValues) : z.string(),
+    firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+    lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
+    email: z.string().min(1, 'Email address is required').email('Please enter a valid email address (example: jean.dupont@email.com)'),
+    role: roleValues.length > 0 ? z.enum(roleValues) : z.string().min(1, 'Please select a user role'),
     isActive: z.boolean(),
   });
 };
 
 // Form validation schema for deleting users
 const deleteUserSchema = z.object({
-  confirmEmail: z.string().email('Invalid email address'),
-  reason: z.string().optional(),
+  confirmEmail: z.string().min(1, 'Email confirmation is required to delete user').email('Please enter a valid email address that matches the user account'),
+  reason: z.string().max(500, 'Reason must be less than 500 characters').optional(),
 });
 
 /**

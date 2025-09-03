@@ -29,8 +29,8 @@ import type { Bill } from '@shared/schema';
 
 // Unified form schema
 const billFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().min(1, 'Bill title is required (example: Monthly Electricity Bill)').max(200, 'Title must be less than 200 characters'),
+  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   category: z.enum([
     'insurance',
     'maintenance',
@@ -48,14 +48,22 @@ const billFormSchema = z.object({
     'reserves',
     'other',
   ]),
-  vendor: z.string().optional(),
+  vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
-  totalAmount: z.string().min(1, 'Amount is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().optional(),
+  totalAmount: z.string().min(1, 'Amount is required and must be a valid number (example: 1250.50)').refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Amount must be between $0.01 and $999,999.99 (example: 1250.50)'),
+  startDate: z.string().min(1, 'Start date is required (example: 2025-01-15)').refine((val) => {
+    return !isNaN(Date.parse(val));
+  }, 'Start date must be a valid date (example: 2025-01-15)'),
+  endDate: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, 'End date must be a valid date (example: 2025-12-31)'),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().optional(),
+  notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
 });
 
 /**

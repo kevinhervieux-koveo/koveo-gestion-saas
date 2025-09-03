@@ -40,9 +40,9 @@ import { useToast } from '@/hooks/use-toast';
 // Form validation schema
 const invitationSchema = z
   .object({
-    email: z.string().email('Invalid email address').optional(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    email: z.string().email('Please enter a valid email address (example: user@domain.com)').optional(),
+    firstName: z.string().min(1, 'First name is required for demo users (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens').optional(),
+    lastName: z.string().min(1, 'Last name is required for demo users (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens').optional(),
     role: z.enum([
       'admin',
       'manager',
@@ -52,11 +52,11 @@ const invitationSchema = z
       'demo_tenant',
       'demo_resident',
     ]),
-    organizationId: z.string().min(1, 'Organization is required'),
+    organizationId: z.string().min(1, 'Please select an organization from the dropdown'),
     buildingId: z.string().optional(),
     residenceId: z.string().optional(),
-    personalMessage: z.string().optional(),
-    expiryDays: z.number().min(1).max(30),
+    personalMessage: z.string().max(500, 'Personal message must be less than 500 characters').optional(),
+    expiryDays: z.number().min(1, 'Expiry days must be between 1 and 30 days').max(30, 'Expiry days must be between 1 and 30 days'),
   })
   .refine(
     (data) => {
@@ -68,7 +68,7 @@ const invitationSchema = z
       return !!data.email;
     },
     {
-      message: 'Email is required for regular roles, first and last name for demo roles',
+      message: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
       path: ['email'],
     }
   )
@@ -85,7 +85,7 @@ const invitationSchema = z
       return true;
     },
     {
-      message: 'Residence must be assigned for tenants and residents when a building is selected',
+      message: 'Please select a specific residence unit for tenants and residents when a building is selected',
       path: ['residenceId'],
     }
   );

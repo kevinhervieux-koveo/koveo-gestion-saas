@@ -61,15 +61,15 @@ import { useAuth } from '@/hooks/use-auth';
 
 // Feature request form schema
 const featureRequestFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  title: z.string().min(1, 'Feature title is required (example: Add bulk export for documents)').max(200, 'Title must be less than 200 characters'),
   description: z
     .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
+    .min(10, 'Description must be at least 10 characters long (example: Users need the ability to export multiple documents at once to save time)')
+    .max(2000, 'Description must be less than 2000 characters'),
   need: z
     .string()
-    .min(5, 'Need must be at least 5 characters')
-    .max(500, 'Need must not exceed 500 characters'),
+    .min(5, 'Need explanation must be at least 5 characters long (example: This would save managers hours of work each month)')
+    .max(500, 'Need explanation must be less than 500 characters'),
   category: z.enum([
     'dashboard',
     'property_management',
@@ -85,14 +85,14 @@ const featureRequestFormSchema = z.object({
     'performance',
     'other',
   ]),
-  page: z.string().min(1, 'Page is required'),
+  page: z.string().min(1, 'Page location is required (example: Document Management, Settings, Dashboard)').max(100, 'Page location must be less than 100 characters'),
 });
 
 // Enhanced edit form schema for admins (includes status)
 const adminEditFormSchema = featureRequestFormSchema.extend({
   status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']),
-  assignedTo: z.string().optional(),
-  adminNotes: z.string().optional(),
+  assignedTo: z.string().max(100, 'Assigned person name must be less than 100 characters').optional(),
+  adminNotes: z.string().max(1000, 'Admin notes must be less than 1000 characters').optional(),
 });
 
 /**
@@ -338,7 +338,7 @@ export default function IdeaBox() {
   };
 
   // Filter and sort feature requests
-  const filteredAndSortedFeatureRequests = featureRequests
+  const filteredAndSortedFeatureRequests = (featureRequests as FeatureRequest[])
     .filter((request: FeatureRequest) => {
       const matchesSearch =
         request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

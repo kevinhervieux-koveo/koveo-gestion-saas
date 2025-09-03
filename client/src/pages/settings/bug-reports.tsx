@@ -60,11 +60,11 @@ import { useAuth } from '@/hooks/use-auth';
 
 // Bug form schema
 const bugFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  title: z.string().min(1, 'Bug title is required (example: Login button not working on mobile)').max(200, 'Title must be less than 200 characters'),
   description: z
     .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
+    .min(10, 'Bug description must be at least 10 characters long (example: When I click the login button on my phone, nothing happens and no error message appears)')
+    .max(2000, 'Description must be less than 2000 characters'),
   category: z.enum([
     'ui_ux',
     'functionality',
@@ -74,11 +74,11 @@ const bugFormSchema = z.object({
     'integration',
     'other',
   ]),
-  page: z.string().min(1, 'Page is required'),
+  page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
-  reproductionSteps: z.string().optional(),
-  environment: z.string().optional(),
+  reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
+  environment: z.string().max(200, 'Environment description must be less than 200 characters').optional(),
 });
 
 /**
@@ -150,12 +150,27 @@ export default function BugReports() {
   const form = useForm<BugFormData>({
     resolver: zodResolver(bugFormSchema),
     defaultValues: {
-      priority: 'medium',
+      title: '',
+      description: '',
+      category: 'functionality' as const,
+      page: '',
+      priority: 'medium' as const,
+      reproductionSteps: '',
+      environment: '',
     },
   });
 
   const editForm = useForm<BugFormData>({
     resolver: zodResolver(bugFormSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: 'functionality' as const,
+      page: '',
+      priority: 'medium' as const,
+      reproductionSteps: '',
+      environment: '',
+    },
   });
 
   // Fetch bugs
@@ -270,7 +285,7 @@ export default function BugReports() {
   };
 
   // Filter bugs
-  const filteredBugs = bugs.filter((bug: Bug) => {
+  const filteredBugs = (bugs as Bug[]).filter((bug: Bug) => {
     const matchesSearch =
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bug.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -344,7 +359,8 @@ export default function BugReports() {
                     <DialogHeader>
                       <DialogTitle>Report a Bug</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
                       <div>
                         <Label htmlFor='title'>Title*</Label>
                         <Input
@@ -478,7 +494,8 @@ export default function BugReports() {
                           {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
                         </Button>
                       </div>
-                    </form>
+                      </form>
+                    </Form>
                   </DialogContent>
                 </Dialog>
 

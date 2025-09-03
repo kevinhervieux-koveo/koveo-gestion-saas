@@ -37,16 +37,16 @@ interface Residence {
 }
 
 const residenceEditSchema = z.object({
-  unitNumber: z.string().min(1, 'Unit number is required'),
-  floor: z.coerce.number().min(0, 'Floor must be 0 or greater').optional(),
-  squareFootage: z.union([z.coerce.number().min(0, 'Square footage must be positive'), z.literal('')]).optional(),
-  bedrooms: z.coerce.number().min(0, 'Bedrooms must be 0 or greater').optional(),
-  bathrooms: z.union([z.coerce.number().min(0, 'Bathrooms must be positive'), z.literal('')]).optional(),
+  unitNumber: z.string().min(1, 'Unit number is required and must be alphanumeric (example: 101A)'),
+  floor: z.coerce.number().min(0, 'Floor must be between 0 and 50 (example: 2)').max(50, 'Floor must be between 0 and 50 (example: 2)').optional(),
+  squareFootage: z.union([z.coerce.number().min(1, 'Square footage must be between 1 and 10,000 sq ft (example: 1200)').max(10000, 'Square footage must be between 1 and 10,000 sq ft (example: 1200)'), z.literal('')]).optional(),
+  bedrooms: z.coerce.number().min(0, 'Bedrooms must be between 0 and 10 (example: 2)').max(10, 'Bedrooms must be between 0 and 10 (example: 2)').optional(),
+  bathrooms: z.union([z.coerce.number().min(0, 'Bathrooms must be between 0 and 10 (example: 1.5)').max(10, 'Bathrooms must be between 0 and 10 (example: 1.5)'), z.literal('')]).optional(),
   balcony: z.boolean(),
   parkingSpaceNumbers: z.array(z.string()).optional(),
   storageSpaceNumbers: z.array(z.string()).optional(),
-  ownershipPercentage: z.union([z.coerce.number().min(0).max(100, 'Ownership percentage must be between 0 and 100'), z.literal('')]).optional(),
-  monthlyFees: z.union([z.coerce.number().min(0, 'Monthly fees must be positive'), z.literal('')]).optional(),
+  ownershipPercentage: z.union([z.coerce.number().min(0, 'Ownership percentage must be between 0 and 100 (example: 25)').max(100, 'Ownership percentage must be between 0 and 100 (example: 25)'), z.literal('')]).optional(),
+  monthlyFees: z.union([z.coerce.number().min(0, 'Monthly fees must be a positive amount in CAD (example: 350.00)').max(99999, 'Monthly fees must be less than $99,999 CAD (example: 350.00)'), z.literal('')]).optional(),
 });
 
 /**

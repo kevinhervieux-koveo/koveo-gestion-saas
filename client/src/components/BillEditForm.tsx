@@ -24,8 +24,8 @@ import type { Bill } from '../../../shared/schema';
 
 // Form schema for bill editing
 const billFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().min(1, 'Bill title is required (example: Monthly Maintenance - January 2025)').max(200, 'Title must be less than 200 characters'),
+  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   category: z.enum([
     'insurance',
     'maintenance',
@@ -43,14 +43,14 @@ const billFormSchema = z.object({
     'reserves',
     'other',
   ]),
-  vendor: z.string().optional(),
+  vendor: z.string().max(200, 'Vendor name must be less than 200 characters').optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
-  totalAmount: z.string().min(1, 'Amount is required'),
-  startDate: z.string().min(1, 'Start date is required'),
+  totalAmount: z.string().min(1, 'Bill amount is required (example: 125.50)').regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a valid number with up to 2 decimal places (example: 125.50)'),
+  startDate: z.string().min(1, 'Start date is required (select from calendar)'),
   endDate: z.string().optional(),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().optional(),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
 });
 
 /**

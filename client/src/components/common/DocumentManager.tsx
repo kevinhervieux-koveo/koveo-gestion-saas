@@ -97,8 +97,8 @@ const createDocumentSchema = (type: 'building' | 'residence') => {
   const validTypes = documentCategories.map((cat) => cat._value);
 
   const baseSchema = {
-    name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
-    description: z.string().optional(),
+    name: z.string().min(1, 'Document name is required (example: Monthly Meeting Minutes - January 2025)').max(255, 'Document name must be less than 255 characters'),
+    description: z.string().max(500, 'Description must be less than 500 characters').optional(),
     documentType: z.enum(validTypes as [string, ...string[]]),
     isVisibleToTenants: z.boolean().default(false),
   };
@@ -106,12 +106,12 @@ const createDocumentSchema = (type: 'building' | 'residence') => {
   if (type === 'building') {
     return z.object({
       ...baseSchema,
-      buildingId: z.string().min(1, 'Building ID is required'),
+      buildingId: z.string().min(1, 'Building selection is required'),
     });
   } else {
     return z.object({
       ...baseSchema,
-      residenceId: z.string().min(1, 'Residence ID is required'),
+      residenceId: z.string().min(1, 'Residence selection is required'),
     });
   }
 };

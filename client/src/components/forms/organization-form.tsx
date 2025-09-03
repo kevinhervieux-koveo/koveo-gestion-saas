@@ -38,26 +38,29 @@ interface OrganizationFormProps {
 const organizationFormSchema = z.object({
   name: z
     .string()
-    .min(1, 'Organization name is required')
-    .max(200, 'Name must be 200 characters or less'),
-  type: z.string().min(1, 'Organization type is required'),
+    .min(1, 'Organization name is required (example: Maple Property Management)')
+    .max(200, 'Organization name must be less than 200 characters'),
+  type: z.string().min(1, 'Please select an organization type from the dropdown'),
   address: z
     .string()
-    .min(1, 'Address is required')
-    .max(300, 'Address must be 300 characters or less'),
-  city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
+    .min(1, 'Street address is required (example: 123 Rue Saint-Denis)')
+    .max(300, 'Address must be less than 300 characters'),
+  city: z.string().min(1, 'City name is required (example: Montréal)').max(100, 'City name must be less than 100 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'City name can only contain letters, spaces, apostrophes and hyphens'),
   province: z.string().min(1, 'Province is required').default('QC'),
   postalCode: z
     .string()
     .min(1, 'Postal code is required')
     .regex(
       /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$|^[A-Z]\d[A-Z]\d[A-Z]\d$/,
-      'Invalid Canadian postal code format'
+      'Postal code must follow Canadian format (example: H1A 1B1)'
     ),
-  phone: z.string().optional(),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  registrationNumber: z.string().optional(),
+  phone: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return /^(\+1\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}$/.test(val);
+  }, 'Phone number must be a valid North American format (example: (514) 123-4567)'),
+  email: z.string().email('Please enter a valid email address (example: contact@organization.com)').optional().or(z.literal('')),
+  website: z.string().url('Website must be a valid URL (example: https://www.organization.com)').optional().or(z.literal('')),
+  registrationNumber: z.string().max(50, 'Registration number must be less than 50 characters').optional(),
 });
 
 /**

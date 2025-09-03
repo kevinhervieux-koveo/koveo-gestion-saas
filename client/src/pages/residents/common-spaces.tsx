@@ -119,10 +119,10 @@ interface Booking {
 const bookingFormSchema = z
   .object({
     date: z.date({
-      message: 'La date est requise',
+      message: 'Please select a booking date from the calendar',
     }),
-    startTime: z.string().min(1, "L'heure de début est requise"),
-    endTime: z.string().min(1, "L'heure de fin est requise"),
+    startTime: z.string().min(1, 'Start time is required (example: 09:00)').regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format (example: 09:00)'),
+    endTime: z.string().min(1, 'End time is required (example: 11:00)').regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'End time must be in HH:MM format (example: 11:00)'),
   })
   .refine(
     (data) => {
@@ -131,7 +131,7 @@ const bookingFormSchema = z
       return end > start;
     },
     {
-      message: "L'heure de fin doit être après l'heure de début",
+      message: 'End time must be after start time (example: start at 09:00, end at 11:00)',
       path: ['endTime'],
     }
   );

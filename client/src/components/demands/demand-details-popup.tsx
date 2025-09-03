@@ -118,7 +118,7 @@ interface DemandDetailsPopupProps {
 // Form schemas
 const editDemandSchema = z.object({
   type: z.enum(['maintenance', 'complaint', 'information', 'other']),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)').max(2000, 'Description must be less than 2000 characters'),
   status: z
     .enum([
       'draft',
@@ -131,11 +131,11 @@ const editDemandSchema = z.object({
       'cancelled',
     ])
     .optional(),
-  reviewNotes: z.string().optional(),
+  reviewNotes: z.string().max(1000, 'Review notes must be less than 1000 characters').optional(),
 });
 
 const _commentSchema = z.object({
-  comment: z.string().min(1, 'Comment cannot be empty'),
+  comment: z.string().min(1, 'Comment text is required (minimum 1 character)').max(1000, 'Comment must be less than 1000 characters'),
 });
 
 /**

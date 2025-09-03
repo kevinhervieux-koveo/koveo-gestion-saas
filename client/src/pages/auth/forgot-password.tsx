@@ -19,7 +19,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { ArrowLeft, Mail } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Veuillez entrer une adresse e-mail valide'),
+  email: z.string()
+    .min(1, 'Adresse e-mail requise pour la réinitialisation')
+    .email('Veuillez entrer une adresse e-mail valide (exemple: utilisateur@domaine.com)'),
 });
 
 /**

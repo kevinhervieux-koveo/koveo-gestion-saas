@@ -22,16 +22,17 @@ const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+      .min(1, 'Le nouveau mot de passe est requis')
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères (exemple: MonMotDePasse123!)')
       .max(100, 'Le mot de passe ne peut pas dépasser 100 caractères')
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'
+        'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre (exemple: MonMotDePasse123!)'
       ),
-    confirmPassword: z.string(),
+    confirmPassword: z.string().min(1, 'La confirmation du mot de passe est requise'),
   })
   .refine((_data) => _data.password === _data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
+    message: 'Les mots de passe ne correspondent pas - veuillez saisir le même mot de passe dans les deux champs',
     path: ['confirmPassword'],
   });
 
