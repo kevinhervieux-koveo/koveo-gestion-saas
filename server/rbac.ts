@@ -91,9 +91,6 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
         eq(schema.userOrganizations.userId, userId),
         eq(schema.userOrganizations.isActive, true)
       ),
-      with: {
-        organization: true,
-      },
     });
 
 
@@ -112,19 +109,30 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 
     // Check each user organization membership
     for (const userOrg of userOrgs) {
-      if (
-        userOrg.canAccessAllOrganizations ||
-        (userOrg.organization?.name && userOrg.organization.name.toLowerCase() === 'koveo')
-      ) {
-        // User can access all organizations (Koveo organization case or explicit flag)
+      if (userOrg.canAccessAllOrganizations) {
+        // User can access all organizations
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true),
         });
         allOrgs.forEach((org) => accessibleOrgIds.add(org.id));
         break;
       } else {
-        // User can access their own organization
-        accessibleOrgIds.add(userOrg.organizationId);
+        // Check if this is the Koveo organization (also grants global access)
+        const org = await db.query.organizations.findFirst({
+          where: eq(schema.organizations.id, userOrg.organizationId),
+        });
+        
+        if (org && org.name && org.name.toLowerCase() === 'koveo') {
+          // Koveo organization grants access to all
+          const allOrgs = await db.query.organizations.findMany({
+            where: eq(schema.organizations.isActive, true),
+          });
+          allOrgs.forEach((allOrg) => accessibleOrgIds.add(allOrg.id));
+          break;
+        } else {
+          // User can access their own organization
+          accessibleOrgIds.add(userOrg.organizationId);
+        }
       }
     }
 
@@ -345,16 +353,22 @@ export async function canUserAccessResidence(
     if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
       const residence = await db.query.residences.findFirst({
         where: eq(schema.residences.id, residenceId),
-        with: {
-          building: true,
-        },
       });
 
       if (!residence) {
         return false;
       }
 
-      return await canUserAccessOrganization(userId, residence.building?.organizationId || '');
+      // Get the building to find the organization
+      const building = await db.query.buildings.findFirst({
+        where: eq(schema.buildings.id, residence.buildingId),
+      });
+
+      if (!building) {
+        return false;
+      }
+
+      return await canUserAccessOrganization(userId, building.organizationId);
     }
 
     // Tenants/residents can only access their own residences
