@@ -506,7 +506,7 @@ describe('Quebec Property Management Business Logic', () => {
         const result = insertResidenceSchema.safeParse(testUnit);
         expect(result.success).toBe(true);
 
-        const sqFt = parseFloat(testUnit.squareFootage);
+        const sqFt = testUnit.squareFootage;
         expect(sqFt).toBeGreaterThanOrEqual(minSqFt);
         expect(sqFt).toBeLessThanOrEqual(maxSqFt);
       });

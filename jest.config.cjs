@@ -7,7 +7,7 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@assets/(.*)$': '<rootDir>/client/src/assets/$1',
+    '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
       '<rootDir>/tests/mocks/fileMock.js',

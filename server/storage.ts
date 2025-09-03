@@ -190,6 +190,15 @@ export interface IStorage {
     _featureRequestId: string,
     _userId: string
   ): Promise<{ success: boolean; message: string; data?: any }>;
+  
+  // Improvement suggestion operations
+  clearNewSuggestions(): Promise<void>;
+  updateSuggestionStatus(_id: string, _status: string): Promise<ImprovementSuggestion | undefined>;
+  getTopImprovementSuggestions(_limit: number): Promise<ImprovementSuggestion[]>;
+  
+  // Feature operations  
+  getFeaturesByStatus(_status: string): Promise<Feature[]>;
+  getPublicRoadmapFeatures(): Promise<Feature[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -299,8 +308,10 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
-      phone: insertUser.phone || '',
+      phone: insertUser.phone || null,
       profileImage: insertUser.profileImage || '',
+      role: insertUser.role || 'tenant',
+      language: insertUser.language || 'fr',
       isActive: true,
       lastLoginAt: null,
       createdAt: new Date(),
@@ -427,7 +438,20 @@ export class MemStorage implements IStorage {
     return updated;
   }
   async deleteBuilding(id: string): Promise<boolean> {
-    return this.buildings.delete(id);
+    const building = this.buildings.get(id);
+    if (!building) {
+      return false;
+    }
+    
+    // Soft delete by setting isActive to false
+    const updatedBuilding = {
+      ...building,
+      isActive: false,
+      updatedAt: new Date(),
+    };
+    
+    this.buildings.set(id, updatedBuilding);
+    return true;
   }
 
   async getResidences(): Promise<Residence[]> {
@@ -549,7 +573,7 @@ export class MemStorage implements IStorage {
   }
 
   async getPillars(): Promise<Pillar[]> {
-    return Array.from(this.pillars.values());
+    return Array.from(this.pillars.values()).sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
   async getPillar(id: string): Promise<Pillar | undefined> {
     return this.pillars.get(id);
@@ -561,9 +585,9 @@ export class MemStorage implements IStorage {
       id,
       name: pillar.name,
       description: pillar.description || '',
-      status: pillar.status,
+      status: pillar.status || 'pending',
       order: pillar.order.toString(),
-      configuration: pillar.configuration || {},
+      configuration: pillar.configuration || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -659,6 +683,7 @@ export class MemStorage implements IStorage {
     const newSuggestion: ImprovementSuggestion = {
       ...suggestion,
       id,
+      filePath: suggestion.filePath || null,
       status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
       category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
       createdAt: new Date(),
@@ -680,6 +705,45 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async getTopImprovementSuggestions(limit: number): Promise<ImprovementSuggestion[]> {
+    const suggestions = Array.from(this.improvementSuggestions.values());
+    // Sort by priority (Critical > High > Medium > Low) then by creation date
+    const priorityOrder: { [key: string]: number } = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+    return suggestions
+      .sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] ?? 999;
+        const priorityB = priorityOrder[b.priority] ?? 999;
+        const priorityDiff = priorityA - priorityB;
+        if (priorityDiff !== 0) return priorityDiff;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      })
+      .slice(0, limit);
+  }
+
+  async clearNewSuggestions(): Promise<void> {
+    for (const [id, suggestion] of this.improvementSuggestions.entries()) {
+      if (suggestion.status === 'New') {
+        this.improvementSuggestions.delete(id);
+      }
+    }
+  }
+
+  async updateSuggestionStatus(
+    id: string,
+    status: 'New' | 'Acknowledged' | 'Done'
+  ): Promise<ImprovementSuggestion | undefined> {
+    const suggestion = this.improvementSuggestions.get(id);
+    if (!suggestion) return undefined;
+
+    const updatedSuggestion = {
+      ...suggestion,
+      status,
+      updatedAt: new Date(),
+    };
+    this.improvementSuggestions.set(id, updatedSuggestion);
+    return updatedSuggestion;
+  }
+
   async getFeatures(): Promise<Feature[]> {
     return Array.from(this.features.values());
   }
@@ -691,10 +755,11 @@ export class MemStorage implements IStorage {
     const newFeature: Feature = {
       ...feature,
       id,
+      isPublicRoadmap: feature.isPublicRoadmap ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      requestedBy: feature.requestedBy || '',
-      assignedTo: feature.assignedTo || '',
+      requestedBy: feature.requestedBy || null,
+      assignedTo: feature.assignedTo || null,
       estimatedHours: feature.estimatedHours || 0,
       businessObjective: feature.businessObjective || '',
       targetUsers: feature.targetUsers || '',
@@ -702,6 +767,7 @@ export class MemStorage implements IStorage {
       technicalComplexity: feature.technicalComplexity || '',
       dependencies: feature.dependencies?.join(',') || '',
       userFlow: feature.userFlow || '',
+      actualHours: null,
       startDate: null,
       completedDate: null,
       tags: [],
@@ -717,6 +783,16 @@ export class MemStorage implements IStorage {
     const updated = { ...existing, ...updates, updatedAt: new Date() };
     this.features.set(id, updated);
     return updated;
+  }
+
+  async getFeaturesByStatus(
+    status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'
+  ): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter((f) => f.status === status);
+  }
+
+  async getPublicRoadmapFeatures(): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter((f) => f.isPublicRoadmap);
   }
 
   async getActionableItems(): Promise<ActionableItem[]> {
@@ -896,6 +972,8 @@ export class MemStorage implements IStorage {
   async removeFeatureRequestUpvote(): Promise<{ success: boolean; message: string; data?: any }> {
     return { success: true, message: 'Upvote removed' };
   }
+
+
 }
 
 // Import the database storage implementation
@@ -1490,6 +1568,10 @@ class ProductionFallbackStorage implements IStorage {
   ): Promise<{ success: boolean; message: string; data?: any }> {
     return { success: true, message: 'Fallback mode' };
   }
+
+
+
+
 }
 
 // Use optimized database storage for production

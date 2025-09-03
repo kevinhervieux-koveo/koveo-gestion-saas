@@ -25,7 +25,7 @@ describe('Financial System Consistency Tests', () => {
         expect(bill.paymentType).toBe('recurrent');
         expect(bill.costs).toBeInstanceOf(Array);
         expect(bill.costs.length).toBeGreaterThan(0);
-        expect(bill.totalAmount).toBeGreaterThan(0);
+        expect(parseFloat(bill.totalAmount.toString())).toBeGreaterThan(0);
         expect(bill.startDate).toBeDefined();
 
         // Recurrent bills should have realistic monthly/quarterly amounts
@@ -44,7 +44,7 @@ describe('Financial System Consistency Tests', () => {
         expect(bill.paymentType).toBe('unique');
         expect(bill.costs).toBeInstanceOf(Array);
         expect(bill.costs.length).toBeGreaterThan(0);
-        expect(bill.totalAmount).toBeGreaterThan(0);
+        expect(parseFloat(bill.totalAmount.toString())).toBeGreaterThan(0);
         expect(bill.startDate).toBeDefined();
 
         // Unique payments often have single larger amounts

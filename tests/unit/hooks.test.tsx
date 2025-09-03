@@ -115,7 +115,7 @@ describe('Quebec Property Management Hooks', () => {
 
     it('should detect desktop screen size correctly', () => {
       window.matchMedia = jest.fn().mockImplementation(() => mockMatchMedia(false));
-      Object.defineProperty(window, 'innerWidth', { writable: true, _value: 1024 });
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
 
       render(<MobileTestComponent />);
 
@@ -125,13 +125,13 @@ describe('Quebec Property Management Hooks', () => {
     it('should update when screen size changes', () => {
       const matchMediaMock = jest.fn().mockImplementation(() => mockMatchMedia(false));
       window.matchMedia = matchMediaMock;
-      Object.defineProperty(window, 'innerWidth', { writable: true, _value: 1024 });
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
 
       render(<MobileTestComponent />);
       expect(screen.getByTestId('mobile-status')).toHaveTextContent('desktop');
 
       // Simulate screen size change
-      Object.defineProperty(window, 'innerWidth', { writable: true, _value: 500 });
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 500 });
 
       // Trigger resize event
       act(() => {
