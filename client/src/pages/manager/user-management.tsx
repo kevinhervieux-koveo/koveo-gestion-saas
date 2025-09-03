@@ -1139,6 +1139,7 @@ function ResidenceEditForm({
 }) {
   const [assignments, setAssignments] = useState<any[]>(
     userResidences.map((ur) => ({
+      buildingId: residences.find(r => r.id === ur.residenceId)?.buildingId || '',
       residenceId: ur.residenceId,
       relationshipType: ur.relationshipType || 'tenant',
       startDate: ur.startDate || new Date().toISOString().split('T')[0],
@@ -1155,11 +1156,12 @@ function ResidenceEditForm({
   });
 
   const addResidence = () => {
-    if (availableResidences.length > 0) {
+    if (buildings.length > 0) {
       setAssignments((prev) => [
         ...prev,
         {
-          residenceId: availableResidences[0].id,
+          buildingId: buildings[0].id,
+          residenceId: '',
           relationshipType: 'tenant',
           startDate: new Date().toISOString().split('T')[0],
           endDate: '',
@@ -1174,7 +1176,16 @@ function ResidenceEditForm({
 
   const updateAssignment = (index: number, field: string, value: string) => {
     setAssignments((prev) =>
-      prev.map((assignment, i) => (i === index ? { ...assignment, [field]: value } : assignment))
+      prev.map((assignment, i) => {
+        if (i === index) {
+          // If building changed, reset residence selection
+          if (field === 'buildingId') {
+            return { ...assignment, [field]: value, residenceId: '' };
+          }
+          return { ...assignment, [field]: value };
+        }
+        return assignment;
+      })
     );
   };
 
@@ -1192,7 +1203,7 @@ function ResidenceEditForm({
           <Button
             size='sm'
             onClick={addResidence}
-            disabled={availableResidences.length === 0}
+            disabled={buildings.length === 0}
             data-testid='button-add-residence'
           >
             Add Residence
@@ -1221,21 +1232,39 @@ function ResidenceEditForm({
 
                 <div className='grid grid-cols-1 gap-3'>
                   <div>
+                    <label className='text-xs font-medium'>Building</label>
+                    <select
+                      value={assignment.buildingId}
+                      onChange={(e) => updateAssignment(index, 'buildingId', e.target.value)}
+                      className='w-full px-2 py-1 text-sm border rounded'
+                      data-testid={`select-building-${index}`}
+                    >
+                      <option value=''>Select a building</option>
+                      {buildings.map((building) => (
+                        <option key={building.id} value={building.id}>
+                          {building.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
                     <label className='text-xs font-medium'>Residence</label>
                     <select
                       value={assignment.residenceId}
                       onChange={(e) => updateAssignment(index, 'residenceId', e.target.value)}
                       className='w-full px-2 py-1 text-sm border rounded'
                       data-testid={`select-residence-${index}`}
+                      disabled={!assignment.buildingId}
                     >
-                      {residences.map((residence) => {
-                        const building = buildings.find((b) => b.id === residence.buildingId);
-                        return (
+                      <option value=''>Select a residence</option>
+                      {residences
+                        .filter((residence) => residence.buildingId === assignment.buildingId)
+                        .map((residence) => (
                           <option key={residence.id} value={residence.id}>
-                            {building?.name} - Unit {residence.unitNumber}
+                            Unit {residence.unitNumber}
                           </option>
-                        );
-                      })}
+                        ))}
                     </select>
                   </div>
 
@@ -1247,7 +1276,6 @@ function ResidenceEditForm({
                       className='w-full px-2 py-1 text-sm border rounded'
                       data-testid={`select-relationship-${index}`}
                     >
-                      <option value='owner'>Owner</option>
                       <option value='tenant'>Tenant</option>
                       <option value='occupant'>Occupant</option>
                     </select>
