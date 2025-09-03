@@ -714,6 +714,93 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * PUT /api/users/:id/buildings - Updates user's building assignments.
+   * Admin and Manager: can assign/remove buildings they have access to
+   */
+  app.put('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: userId } = req.params;
+      const { buildingIds } = req.body;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can modify building assignments
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only administrators and managers can modify building assignments',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      if (!userId || !Array.isArray(buildingIds)) {
+        return res.status(400).json({
+          message: 'User ID and building IDs array are required',
+          code: 'INVALID_REQUEST',
+        });
+      }
+
+      // Verify user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      // For now, we'll create user-residence relationships for each building
+      // This is a simplified approach - in a real system you'd have user-building relationships
+      
+      // Get residences for the selected buildings
+      const residences = await db
+        .select()
+        .from(schema.residences)
+        .where(inArray(schema.residences.buildingId, buildingIds));
+
+      // Remove existing residence assignments for this user
+      await db.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
+
+      // Add new residence assignments (one per building - taking the first residence)
+      if (residences.length > 0) {
+        const buildingToResidence = new Map();
+        residences.forEach(residence => {
+          if (!buildingToResidence.has(residence.buildingId)) {
+            buildingToResidence.set(residence.buildingId, residence);
+          }
+        });
+
+        const newAssignments = Array.from(buildingToResidence.values()).map((residence: any) => ({
+          userId,
+          residenceId: residence.id,
+          relationshipType: user.role === 'manager' ? 'manager' : 'tenant',
+          startDate: new Date().toISOString().split('T')[0],
+          isActive: true,
+        }));
+
+        await db.insert(schema.userResidences).values(newAssignments);
+      }
+
+      res.json({
+        message: 'Building assignments updated successfully',
+        userId,
+        buildingIds,
+      });
+    } catch (error: any) {
+      console.error('❌ Error updating building assignments:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to update building assignments',
+      });
+    }
+  });
+
+  /**
    * GET /api/users/:id/residences - Get user's accessible residences.
    */
   app.get('/api/users/:id/residences', requireAuth, async (req: any, res) => {

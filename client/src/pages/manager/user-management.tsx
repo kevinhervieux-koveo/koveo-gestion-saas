@@ -48,6 +48,9 @@ import { z } from 'zod';
 import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
+import { UserOrganizationsTab } from '@/components/user-tabs/UserOrganizationsTab';
+import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
+import { UserResidencesTab } from '@/components/user-tabs/UserResidencesTab';
 
 // Form validation schema for editing users
 const editUserSchema = z.object({
@@ -75,8 +78,6 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editingUserOrganizations, setEditingUserOrganizations] = useState<User | null>(null);
-  const [editingUserResidences, setEditingUserResidences] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   // Pagination state
@@ -266,6 +267,36 @@ export default function UserManagement() {
       setEditingUserOrganizations(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Building editing mutation
+  const editBuildingsMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      buildingIds,
+    }: {
+      userId: string;
+      buildingIds: string[];
+    }) => {
+      const response = await apiRequest('PUT', `/api/users/${userId}/buildings`, {
+        buildingIds,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Building assignments updated successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
@@ -741,193 +772,192 @@ export default function UserManagement() {
 
         {/* Edit User Dialog */}
         <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-          <DialogContent className='sm:max-w-[425px]'>
+          <DialogContent className='sm:max-w-[800px] max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>Update user information and permissions.</DialogDescription>
+              <DialogDescription>Update user information, organizations, buildings, and residences.</DialogDescription>
             </DialogHeader>
 
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
-                <div className='grid grid-cols-2 gap-4'>
-                  <FormField
-                    control={editForm.control}
-                    name='firstName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid='input-edit-firstName' />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <Tabs defaultValue='basic' className='w-full'>
+              <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsTrigger value='basic'>Basic Info</TabsTrigger>
+                {canEditOrganizations && <TabsTrigger value='organizations'>Organizations</TabsTrigger>}
+                <TabsTrigger value='buildings'>Buildings</TabsTrigger>
+                {canEditResidences && <TabsTrigger value='residences'>Residences</TabsTrigger>}
+              </TabsList>
 
-                  <FormField
-                    control={editForm.control}
-                    name='lastName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid='input-edit-lastName' />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <TabsContent value='basic' className='space-y-4'>
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='firstName'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} data-testid='input-edit-firstName' />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={editForm.control}
-                  name='email'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type='email' data-testid='input-edit-email' />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <FormField
+                        control={editForm.control}
+                        name='lastName'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} data-testid='input-edit-lastName' />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <FormField
-                  control={editForm.control}
-                  name='role'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid='select-edit-role'>
-                            <SelectValue placeholder='Select role' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='admin'>Admin</SelectItem>
-                          <SelectItem value='manager'>Manager</SelectItem>
-                          <SelectItem value='tenant'>Tenant</SelectItem>
-                          <SelectItem value='resident'>Resident</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={editForm.control}
+                      name='email'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input {...field} type='email' data-testid='input-edit-email' />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={editForm.control}
-                  name='isActive'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(value === 'true')}
-                        defaultValue={field.value.toString()}
+                    <FormField
+                      control={editForm.control}
+                      name='role'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid='select-edit-role'>
+                                <SelectValue placeholder='Select role' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='admin'>Admin</SelectItem>
+                              <SelectItem value='manager'>Manager</SelectItem>
+                              <SelectItem value='tenant'>Tenant</SelectItem>
+                              <SelectItem value='resident'>Resident</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name='isActive'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(value === 'true')}
+                            defaultValue={field.value.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger data-testid='select-edit-status'>
+                                <SelectValue placeholder='Select status' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='true'>Active</SelectItem>
+                              <SelectItem value='false'>Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => setEditingUser(null)}
+                        data-testid='button-cancel-edit'
                       >
-                        <FormControl>
-                          <SelectTrigger data-testid='select-edit-status'>
-                            <SelectValue placeholder='Select status' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='true'>Active</SelectItem>
-                          <SelectItem value='false'>Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        Cancel
+                      </Button>
+                      <Button
+                        type='submit'
+                        disabled={editUserMutation.isPending}
+                        data-testid='button-save-edit'
+                      >
+                        {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </TabsContent>
+
+              {canEditOrganizations && (
+                <TabsContent value='organizations' className='space-y-4'>
+                  <UserOrganizationsTab 
+                    user={editingUser}
+                    organizations={organizations}
+                    onSave={(organizationIds) => {
+                      if (editingUser) {
+                        editOrganizationsMutation.mutate({
+                          userId: editingUser.id,
+                          organizationIds
+                        });
+                      }
+                    }}
+                    isLoading={editOrganizationsMutation.isPending}
+                  />
+                </TabsContent>
+              )}
+
+              <TabsContent value='buildings' className='space-y-4'>
+                <UserBuildingsTab 
+                  user={editingUser}
+                  buildings={buildings}
+                  onSave={(buildingIds) => {
+                    if (editingUser) {
+                      editBuildingsMutation.mutate({
+                        userId: editingUser.id,
+                        buildingIds
+                      });
+                    }
+                  }}
+                  isLoading={editBuildingsMutation.isPending}
                 />
+              </TabsContent>
 
-                <DialogFooter>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => setEditingUser(null)}
-                    data-testid='button-cancel-edit'
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type='submit'
-                    disabled={editUserMutation.isPending}
-                    data-testid='button-save-edit'
-                  >
-                    {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+              {canEditResidences && (
+                <TabsContent value='residences' className='space-y-4'>
+                  <UserResidencesTab 
+                    user={editingUser}
+                    residences={residences}
+                    onSave={(residenceAssignments) => {
+                      if (editingUser) {
+                        editResidencesMutation.mutate({
+                          userId: editingUser.id,
+                          residenceAssignments
+                        });
+                      }
+                    }}
+                    isLoading={editResidencesMutation.isPending}
+                  />
+                </TabsContent>
+              )}
+            </Tabs>
           </DialogContent>
         </Dialog>
 
-        {/* Edit Organization Assignments Dialog */}
-        <Dialog
-          open={!!editingUserOrganizations}
-          onOpenChange={(open) => !open && setEditingUserOrganizations(null)}
-        >
-          <DialogContent className='sm:max-w-[500px]'>
-            <DialogHeader>
-              <DialogTitle>Edit Organization Assignments</DialogTitle>
-              <DialogDescription>
-                Manage organization assignments for {editingUserOrganizations?.firstName}{' '}
-                {editingUserOrganizations?.lastName}.
-              </DialogDescription>
-            </DialogHeader>
-
-            {editingUserOrganizations && (
-              <OrganizationEditForm
-                user={editingUserOrganizations}
-                organizations={organizations}
-                userOrganizations={[]}
-                onSave={(organizationIds) => {
-                  editOrganizationsMutation.mutate({
-                    userId: editingUserOrganizations.id,
-                    organizationIds,
-                  });
-                }}
-                onCancel={() => setEditingUserOrganizations(null)}
-                isLoading={editOrganizationsMutation.isPending}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Residence Assignments Dialog */}
-        <Dialog
-          open={!!editingUserResidences}
-          onOpenChange={(open) => !open && setEditingUserResidences(null)}
-        >
-          <DialogContent className='sm:max-w-[600px] max-h-[80vh] overflow-y-auto'>
-            <DialogHeader>
-              <DialogTitle>Edit Residence Assignments</DialogTitle>
-              <DialogDescription>
-                Manage residence assignments for {editingUserResidences?.firstName}{' '}
-                {editingUserResidences?.lastName}.
-              </DialogDescription>
-            </DialogHeader>
-
-            {editingUserResidences && (
-              <ResidenceEditForm
-                user={editingUserResidences}
-                residences={residences}
-                buildings={buildings}
-                userResidences={[]}
-                onSave={(residenceAssignments) => {
-                  editResidencesMutation.mutate({
-                    userId: editingUserResidences.id,
-                    residenceAssignments,
-                  });
-                }}
-                onCancel={() => setEditingUserResidences(null)}
-                isLoading={editResidencesMutation.isPending}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
@@ -1026,309 +1056,3 @@ export default function UserManagement() {
   );
 }
 
-// Organization Edit Form Component
-/**
- *
- * @param root0
- * @param root0.user
- * @param root0.organizations
- * @param root0.userOrganizations
- * @param root0.onSave
- * @param root0.onCancel
- * @param root0.isLoading
- */
-function OrganizationEditForm({
-  user,
-  organizations,
-  userOrganizations,
-  onSave,
-  onCancel,
-  isLoading,
-}: {
-  user: User;
-  organizations: Organization[];
-  userOrganizations: any[];
-  onSave: (organizationIds: string[]) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-}) {
-  const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>(
-    userOrganizations.map((uo) => uo.organizationId)
-  );
-
-  const handleToggleOrganization = (orgId: string) => {
-    setSelectedOrgIds((prev) =>
-      prev.includes(orgId) ? prev.filter((id) => id !== orgId) : [...prev, orgId]
-    );
-  };
-
-  return (
-    <div className='space-y-4'>
-      <div className='space-y-2'>
-        <h4 className='font-medium'>Available Organizations:</h4>
-        <div className='max-h-60 overflow-y-auto border rounded-lg p-2'>
-          {organizations.map((org) => (
-            <div key={org.id} className='flex items-center space-x-2 p-2 hover:bg-gray-50'>
-              <input
-                type='checkbox'
-                id={`org-${org.id}`}
-                checked={selectedOrgIds.includes(org.id)}
-                onChange={() => handleToggleOrganization(org.id)}
-                className='rounded'
-                data-testid={`checkbox-org-${org.id}`}
-              />
-              <label htmlFor={`org-${org.id}`} className='flex-1 text-sm'>
-                {org.name}
-                <div className='text-xs text-gray-500'>{org.type}</div>
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button
-          type='button'
-          variant='outline'
-          onClick={onCancel}
-          disabled={isLoading}
-          data-testid='button-cancel-org-edit'
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={() => onSave(selectedOrgIds)}
-          disabled={isLoading}
-          data-testid='button-save-org-edit'
-        >
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </DialogFooter>
-    </div>
-  );
-}
-
-// Residence Edit Form Component
-/**
- *
- * @param root0
- * @param root0.user
- * @param root0.residences
- * @param root0.buildings
- * @param root0.userResidences
- * @param root0.onSave
- * @param root0.onCancel
- * @param root0.isLoading
- */
-function ResidenceEditForm({
-  user,
-  residences,
-  buildings,
-  userResidences,
-  onSave,
-  onCancel,
-  isLoading,
-}: {
-  user: User;
-  residences: Residence[];
-  buildings: Building[];
-  userResidences: any[];
-  onSave: (residenceAssignments: any[]) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-}) {
-  const [assignments, setAssignments] = useState<any[]>(
-    userResidences.map((ur) => ({
-      buildingId: residences.find(r => r.id === ur.residenceId)?.buildingId || '',
-      residenceId: ur.residenceId,
-      relationshipType: ur.relationshipType || 'tenant',
-      startDate: ur.startDate || new Date().toISOString().split('T')[0],
-      endDate: ur.endDate || '',
-    }))
-  );
-
-  const availableResidences = residences.filter((residence) => {
-    // Only show residences not already assigned or currently assigned ones
-    return (
-      !assignments.some((a) => a.residenceId === residence.id) ||
-      userResidences.some((ur) => ur.residenceId === residence.id)
-    );
-  });
-
-  const addResidence = () => {
-    if (buildings.length > 0) {
-      setAssignments((prev) => [
-        ...prev,
-        {
-          buildingId: buildings[0].id,
-          residenceId: '',
-          relationshipType: 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: '',
-        },
-      ]);
-    }
-  };
-
-  const removeResidence = (index: number) => {
-    setAssignments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateAssignment = (index: number, field: string, value: string) => {
-    setAssignments((prev) =>
-      prev.map((assignment, i) => {
-        if (i === index) {
-          // If building changed, reset residence selection
-          if (field === 'buildingId') {
-            return { ...assignment, [field]: value, residenceId: '' };
-          }
-          return { ...assignment, [field]: value };
-        }
-        return assignment;
-      })
-    );
-  };
-
-  const getResidenceDisplay = (residenceId: string) => {
-    const residence = residences.find((r) => r.id === residenceId);
-    const building = buildings.find((b) => b.id === residence?.buildingId);
-    return residence && building ? `${building.name} - Unit ${residence.unitNumber}` : 'Unknown';
-  };
-
-  return (
-    <div className='space-y-4'>
-      <div className='space-y-3'>
-        <div className='flex items-center justify-between'>
-          <h4 className='font-medium'>Residence Assignments:</h4>
-          <Button
-            size='sm'
-            onClick={addResidence}
-            disabled={buildings.length === 0}
-            data-testid='button-add-residence'
-          >
-            Add Residence
-          </Button>
-        </div>
-
-        {assignments.length === 0 ? (
-          <div className='text-sm text-gray-500 text-center py-4'>
-            No residence assignments. Click "Add Residence" to assign a residence.
-          </div>
-        ) : (
-          <div className='space-y-3 max-h-60 overflow-y-auto'>
-            {assignments.map((assignment, index) => (
-              <div key={index} className='border rounded-lg p-3 space-y-3'>
-                <div className='flex items-center justify-between'>
-                  <h5 className='font-medium text-sm'>Assignment {index + 1}</h5>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={() => removeResidence(index)}
-                    data-testid={`button-remove-residence-${index}`}
-                  >
-                    Remove
-                  </Button>
-                </div>
-
-                <div className='grid grid-cols-1 gap-3'>
-                  <div>
-                    <label className='text-xs font-medium'>Building</label>
-                    <select
-                      value={assignment.buildingId}
-                      onChange={(e) => updateAssignment(index, 'buildingId', e.target.value)}
-                      className='w-full px-2 py-1 text-sm border rounded'
-                      data-testid={`select-building-${index}`}
-                    >
-                      <option value=''>Select a building</option>
-                      {buildings.map((building) => (
-                        <option key={building.id} value={building.id}>
-                          {building.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className='text-xs font-medium'>Residence</label>
-                    <select
-                      value={assignment.residenceId}
-                      onChange={(e) => updateAssignment(index, 'residenceId', e.target.value)}
-                      className='w-full px-2 py-1 text-sm border rounded'
-                      data-testid={`select-residence-${index}`}
-                      disabled={!assignment.buildingId}
-                    >
-                      <option value=''>Select a residence</option>
-                      {residences
-                        .filter((residence) => residence.buildingId === assignment.buildingId)
-                        .map((residence) => (
-                          <option key={residence.id} value={residence.id}>
-                            Unit {residence.unitNumber}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className='text-xs font-medium'>Relationship Type</label>
-                    <select
-                      value={assignment.relationshipType}
-                      onChange={(e) => updateAssignment(index, 'relationshipType', e.target.value)}
-                      className='w-full px-2 py-1 text-sm border rounded'
-                      data-testid={`select-relationship-${index}`}
-                    >
-                      <option value='tenant'>Tenant</option>
-                      <option value='occupant'>Occupant</option>
-                    </select>
-                  </div>
-
-                  <div className='grid grid-cols-2 gap-2'>
-                    <div>
-                      <label className='text-xs font-medium'>Start Date</label>
-                      <input
-                        type='date'
-                        value={assignment.startDate}
-                        onChange={(e) => updateAssignment(index, 'startDate', e.target.value)}
-                        className='w-full px-2 py-1 text-sm border rounded'
-                        data-testid={`input-start-date-${index}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className='text-xs font-medium'>End Date (Optional)</label>
-                      <input
-                        type='date'
-                        value={assignment.endDate}
-                        onChange={(e) => updateAssignment(index, 'endDate', e.target.value)}
-                        className='w-full px-2 py-1 text-sm border rounded'
-                        data-testid={`input-end-date-${index}`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <DialogFooter>
-        <Button
-          type='button'
-          variant='outline'
-          onClick={onCancel}
-          disabled={isLoading}
-          data-testid='button-cancel-residence-edit'
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={() => onSave(assignments)}
-          disabled={isLoading}
-          data-testid='button-save-residence-edit'
-        >
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </DialogFooter>
-    </div>
-  );
-}

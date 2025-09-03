@@ -195,26 +195,6 @@ export function UserAssignmentsTable({
                     </button>
                   )}
                   
-                  {canEditOrganizations && onEditOrganizations && (
-                    <button
-                      onClick={() => onEditOrganizations(user)}
-                      className="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded hover:bg-purple-100"
-                      data-testid={`edit-orgs-${user.id}`}
-                    >
-                      Organizations
-                    </button>
-                  )}
-                  
-                  {canEditResidences && onEditResidences && (
-                    <button
-                      onClick={() => onEditResidences(user)}
-                      className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100"
-                      data-testid={`edit-residences-${user.id}`}
-                    >
-                      Residences
-                    </button>
-                  )}
-                  
                   {canDeleteUsers && onDeleteUser && (
                     <button
                       onClick={() => onDeleteUser(user)}
