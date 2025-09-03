@@ -94,6 +94,59 @@ export async function registerRoutes(app: Express) {
       });
     }
   });
+
+  // User info debug endpoint
+  app.get('/api/debug/user-info', async (req: any, res) => {
+    try {
+      if (!req.session?.userId && !req.session?.user) {
+        return res.status(401).json({
+          message: 'No session found',
+          session: req.session
+        });
+      }
+
+      const user = req.user || req.session?.user;
+      const userId = req.session?.userId;
+
+      // Get user from database directly
+      const { db } = await import('./db');
+      const { users, userOrganizations, organizations } = await import('../shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      const userFromDb = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId));
+
+      const userOrgs = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          organizationName: organizations.name,
+          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
+          isActive: userOrganizations.isActive,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, userId));
+
+      res.json({
+        session: {
+          userId: req.session?.userId,
+          hasUser: !!user,
+          userRole: req.session?.userRole,
+        },
+        userFromMiddleware: user,
+        userFromDatabase: userFromDb[0],
+        userOrganizations: userOrgs,
+        rawSession: req.session
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        error: error.message,
+        stack: error.stack
+      });
+    }
+  });
   
   // Static file serving - MUST come after API routes to prevent conflicts
   const distPath = path.resolve(process.cwd(), 'dist', 'public');
