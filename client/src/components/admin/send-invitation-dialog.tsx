@@ -213,31 +213,21 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/manager/buildings');
       const data = await response.json();
-      console.log('🏢 [BUILDINGS API] Fetched buildings data:', data);
-      return data;
+      // The API returns { buildings: [...], meta: {...} } but we need just the buildings array
+      return data.buildings || data;
     },
     enabled: open,
   });
 
-  // Debug buildings loading
-  React.useEffect(() => {
-    if (open) {
-      console.log('🔍 [INVITE FORM] Buildings state:', {
-        isLoading: buildingsLoading,
-        hasError: !!buildingsError,
-        error: buildingsError?.message,
-        buildingsCount: buildings?.length || 0,
-        buildings: buildings?.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })) || []
-      });
-    }
-  }, [buildings, buildingsError, buildingsLoading, open]);
 
   // Fetch residences  
   const { data: residences } = useQuery<Residence[]>({
-    queryKey: ['/api/manager/residences'],
+    queryKey: ['/api/residences'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/manager/residences');
-      return response.json();
+      const response = await apiRequest('GET', '/api/residences');
+      const data = await response.json();
+      // Handle both direct array and wrapped response formats
+      return data.residences || data;
     },
     enabled: open,
   });
@@ -307,20 +297,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const getFilteredBuildings = (selectedOrgId: string) => {
     if (!buildings || !selectedOrgId) {
-      console.log('🔍 [BUILDING FILTER] No buildings or organizationId:', { buildings: !!buildings, selectedOrgId });
       return [];
     }
-    
-    console.log('🔍 [BUILDING FILTER] Filtering buildings:', {
-      selectedOrgId,
-      allBuildings: buildings.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })),
-      filteredCount: buildings.filter((building) => building.organizationId === selectedOrgId).length
-    });
-    
-    const filtered = buildings.filter((building) => building.organizationId === selectedOrgId);
-    console.log('🔍 [BUILDING FILTER] Filtered buildings:', filtered.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })));
-    
-    return filtered;
+    return buildings.filter((building) => building.organizationId === selectedOrgId);
   };
 
   const getFilteredResidences = (selectedBuildingId: string) => {

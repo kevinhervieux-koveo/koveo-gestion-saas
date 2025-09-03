@@ -753,7 +753,7 @@ export default function UserManagement() {
                       </select>
 
                       {/* Organization Filter */}
-                      {organizations.length > 0 && (
+                      {organizations && organizations.length > 0 && (
                         <select
                           value={filters.find((f) => f.field === 'organization')?._value || ''}
                           onChange={(e) => {
@@ -770,11 +770,11 @@ export default function UserManagement() {
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
                           <option value=''>All Organizations</option>
-                          {organizations.map((org) => (
+                          {organizations?.map((org) => (
                             <option key={org.id} value={org.id}>
                               {org.name}
                             </option>
-                          ))}
+                          )) || []}
                         </select>
                       )}
 
@@ -930,11 +930,11 @@ export default function UserManagement() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {getAvailableRoles.map((role) => (
+                              {getAvailableRoles?.map((role) => (
                                 <SelectItem key={role.value} value={role.value}>
                                   {role.label}
                                 </SelectItem>
-                              ))}
+                              )) || []}
                             </SelectContent>
                           </Select>
                           <FormMessage />
