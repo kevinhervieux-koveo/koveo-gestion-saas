@@ -244,6 +244,44 @@ export function registerOrganizationRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/organizations/:id - Get organization by ID
+   */
+  app.get('/api/organizations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const organizationId = req.params.id;
+
+      // Find the organization
+      const [organization] = await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId));
+
+      if (!organization) {
+        return res.status(404).json({
+          message: 'Organization not found',
+          code: 'NOT_FOUND',
+        });
+      }
+
+      res.json(organization);
+    } catch (error: any) {
+      console.error('❌ Error fetching organization:', error);
+      res.status(500).json({
+        message: 'Failed to fetch organization',
+        code: 'SERVER_ERROR',
+      });
+    }
+  });
+
+  /**
    * PUT /api/organizations/:id - Update an existing organization
    * Allows authorized users to update organization details.
    */

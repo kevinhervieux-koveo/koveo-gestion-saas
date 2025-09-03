@@ -192,8 +192,8 @@ describe('Fixed User Creation Component Tests', () => {
         </TestProviders>
       );
 
-      // Look for Quebec-specific privacy terms
-      expect(screen.getByText(/collecte/i)).toBeInTheDocument();
+      // Look for Quebec-specific privacy terms (multiple instances expected)
+      expect(screen.getAllByText(/collecte/i)).toHaveLength(3);
     });
 
     test('should validate required Quebec Law 25 consents', async () => {
