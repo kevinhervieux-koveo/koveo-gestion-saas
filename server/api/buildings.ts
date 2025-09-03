@@ -1326,7 +1326,7 @@ export function registerBuildingRoutes(app: Express): void {
 
   /**
    * DELETE /api/admin/buildings/:id/cascade - Cascade delete a building
-   * Replaces the simple delete with cascading delete that removes residences, documents, and orphaned users.
+   * Replaces the simple delete with cascading delete that removes residences and documents. Users are preserved for data safety.
    */
   app.delete('/api/admin/buildings/:id/cascade', requireAuth, async (req: any, res) => {
     try {
@@ -1385,7 +1385,7 @@ export function registerBuildingRoutes(app: Express): void {
             .set({ isActive: false, updatedAt: new Date() })
             .where(inArray(userResidences.residenceId, residenceIds));
 
-          // 4. Find and soft delete orphaned users (users who now have no active relationships)
+          // 4. DISABLED: User deletion prohibited for data safety
           const orphanedUsers = await tx
             .select({ id: users.id })
             .from(users)

@@ -1273,7 +1273,9 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/users/:id/delete-account - Admin endpoint to delete any user account.
+   * POST /api/users/:id/delete-account - RESTRICTED Admin endpoint to delete any user account.
+   * SAFETY: Requires email confirmation and deletion reason for audit trail.
+   * WARNING: This is a permanent operation that should only be used in exceptional cases.
    */
   app.post('/api/users/:id/delete-account', requireAuth, async (req: any, res) => {
     try {
@@ -1294,6 +1296,9 @@ export function registerUserRoutes(app: Express): void {
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
+      
+      // Additional safety check: Log this critical operation
+      console.warn(`⚠️  CRITICAL: Admin ${currentUser.email} attempting to delete user ${targetUserId}`);
 
       if (!targetUserId) {
         return res.status(400).json({

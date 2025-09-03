@@ -467,7 +467,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
   /**
    * DELETE /api/organizations/:id - Cascade delete an organization
-   * Deletes organization and all related entities (buildings, residences, documents, orphaned users).
+   * Deletes organization and all related entities (buildings, residences, documents). Users are preserved for data safety.
    */
   app.delete('/api/organizations/:id', requireAuth, async (req: any, res) => {
     try {
@@ -544,8 +544,13 @@ export function registerOrganizationRoutes(app: Express): void {
         .delete(userOrganizations)
         .where(eq(userOrganizations.organizationId, organizationId));
 
-      // 5. Find and delete orphaned users (users with no active organization relationships)
-      const orphanedUsers = await db
+      // 5. DISABLED: User deletion is now prohibited for data safety
+      // Users are never deleted during cascade operations to prevent permanent data loss
+      // This protects against accidental deletion of user accounts and their historical data
+      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
+      
+      // Optional: Log users who would have been affected for admin review
+      const affectedUsers = await db
         .select({
           id: users.id,
           email: users.email,
@@ -558,22 +563,12 @@ export function registerOrganizationRoutes(app: Express): void {
           and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
         )
         .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
+      
+      if (affectedUsers.length > 0) {
+        console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
+          affectedUsers.map(u => u.email));
 
-      if (orphanedUsers.length > 0) {
-        const orphanedUserIds = orphanedUsers.map((u) => u.id);
-
-        // Hard delete orphaned users since they have no organization assignments
-        const deletedUsers = await db
-          .delete(users)
-          .where(inArray(users.id, orphanedUserIds))
-          .returning({
-            id: users.id,
-            email: users.email,
-          });
-
-        console.log(
-          `🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map((u) => u.email).join(', ')}`
-        );
+        // DISABLED: Users are no longer deleted - they are preserved for data safety
       }
 
       // 6. Finally, soft delete the organization

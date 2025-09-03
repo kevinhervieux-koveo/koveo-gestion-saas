@@ -9,6 +9,7 @@ import {
 } from '@shared/schema';
 import { eq, and, inArray, isNull } from 'drizzle-orm';
 import crypto from 'crypto';
+import { preserveUsersInCascadeOperation, validateUserDeletionPolicy } from '../policies/user-retention-policy';
 
 /**
  * Building creation data.
@@ -400,33 +401,10 @@ export async function cascadeDeleteBuilding(buildingId: string) {
         .set({ isActive: false, updatedAt: new Date() })
         .where(inArray(userResidences.residenceId, residenceIds));
 
-      // 4. Find and soft delete orphaned users (users who now have no active relationships)
-      const orphanedUsers = await tx
-        .select({ id: users.id })
-        .from(users)
-        .leftJoin(
-          userOrganizations,
-          and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
-        )
-        .leftJoin(
-          userResidences,
-          and(eq(users.id, userResidences.userId), eq(userResidences.isActive, true))
-        )
-        .where(
-          and(
-            eq(users.isActive, true),
-            isNull(userOrganizations.userId),
-            isNull(userResidences.userId)
-          )
-        );
-
-      if (orphanedUsers.length > 0) {
-        const orphanedUserIds = orphanedUsers.map((u) => u.id);
-        await tx
-          .update(users)
-          .set({ isActive: false, updatedAt: new Date() })
-          .where(inArray(users.id, orphanedUserIds));
-      }
+      // 4. DISABLED: User deletion is now prohibited for data safety
+      // Users are never deleted during cascade operations to prevent data loss
+      // This ensures user accounts and their data are preserved even when buildings are removed
+      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
 
       // 5. Soft delete residences
       await tx
