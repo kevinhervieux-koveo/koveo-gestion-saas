@@ -53,14 +53,18 @@ import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
 import { UserResidencesTab } from '@/components/user-tabs/UserResidencesTab';
 import { InvitationManagement } from '@/components/InvitationManagement';
 
-// Form validation schema for editing users
-const editUserSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']),
-  isActive: z.boolean(),
-});
+// Form validation schema for editing users - dynamic based on available roles
+const createEditUserSchema = (availableRoles: { value: string; label: string }[]) => {
+  const roleValues = availableRoles.map(role => role.value) as [string, ...string[]];
+  
+  return z.object({
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    email: z.string().email('Invalid email address'),
+    role: roleValues.length > 0 ? z.enum(roleValues) : z.string(),
+    isActive: z.boolean(),
+  });
+};
 
 // Form validation schema for deleting users
 const deleteUserSchema = z.object({
@@ -126,6 +130,79 @@ export default function UserManagement() {
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
+
+  // Organization context detection for role filtering
+  const userOrganizationContext = useMemo(() => {
+    if (!currentUser || !organizations || !users) return null;
+
+    // Get current user's organization assignments
+    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
+    if (!currentUserWithAssignments?.organizations) return null;
+
+    const userOrganizations = currentUserWithAssignments.organizations;
+    const isDemoUser = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role);
+    const hasDemoOrganizations = userOrganizations.some(org => 
+      organizations.find(o => o.id === org.id)?.type === 'demo'
+    );
+    const hasRegularOrganizations = userOrganizations.some(org => 
+      organizations.find(o => o.id === org.id)?.type !== 'demo'
+    );
+
+    return {
+      isDemoUser,
+      hasDemoOrganizations,
+      hasRegularOrganizations,
+      userOrganizations: userOrganizations.map(org => org.id),
+      organizationTypes: userOrganizations.map(org => 
+        organizations.find(o => o.id === org.id)?.type || 'unknown'
+      )
+    };
+  }, [currentUser, organizations, users]);
+
+  // Role filtering function
+  const getAvailableRoles = useMemo(() => {
+    if (!currentUser || !userOrganizationContext) return [];
+
+    const { role } = currentUser;
+    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
+
+    // Admin can assign any role
+    if (role === 'admin') {
+      return [
+        { value: 'admin', label: 'Admin' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'tenant', label: 'Tenant' },
+        { value: 'resident', label: 'Resident' },
+        { value: 'demo_manager', label: 'Demo Manager' },
+        { value: 'demo_tenant', label: 'Demo Tenant' },
+        { value: 'demo_resident', label: 'Demo Resident' },
+      ];
+    }
+
+    // Manager role assignment restrictions
+    if (role === 'manager') {
+      return [
+        { value: 'manager', label: 'Manager' },
+        { value: 'tenant', label: 'Tenant' },
+        { value: 'resident', label: 'Resident' },
+      ];
+    }
+
+    // Demo manager role assignment restrictions
+    if (role === 'demo_manager') {
+      return [
+        { value: 'demo_manager', label: 'Demo Manager' },
+        { value: 'demo_tenant', label: 'Demo Tenant' },
+        { value: 'demo_resident', label: 'Demo Resident' },
+      ];
+    }
+
+    // Other roles cannot assign roles
+    return [];
+  }, [currentUser, userOrganizationContext]);
+
+  // Dynamic edit user schema based on available roles
+  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles), [getAvailableRoles]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -853,13 +930,11 @@ export default function UserManagement() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='admin'>Admin</SelectItem>
-                              <SelectItem value='manager'>Manager</SelectItem>
-                              <SelectItem value='tenant'>Tenant</SelectItem>
-                              <SelectItem value='resident'>Resident</SelectItem>
-                              <SelectItem value='demo_manager'>Demo Manager</SelectItem>
-                              <SelectItem value='demo_tenant'>Demo Tenant</SelectItem>
-                              <SelectItem value='demo_resident'>Demo Resident</SelectItem>
+                              {getAvailableRoles.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                  {role.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />

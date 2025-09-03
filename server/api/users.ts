@@ -270,15 +270,123 @@ export function registerUserRoutes(app: Express): void {
   /**
    * PUT /api/users/:id - Updates an existing user.
    */
-  app.put('/api/users/:id', async (req, res) => {
+  app.put('/api/users/:id', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
 
       if (!id) {
         return res.status(400).json({
-          _error: 'Bad request',
+          error: 'Bad request',
           message: 'User ID is required',
         });
+      }
+
+      // Get the target user being updated
+      const targetUser = await storage.getUser(id);
+      if (!targetUser) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'User not found',
+        });
+      }
+
+      // Role-based access control for user updates
+      const { role: newRole } = req.body;
+      
+      // Validate role assignment permissions
+      if (newRole && newRole !== targetUser.role) {
+        // Admin can assign any role
+        if (currentUser.role === 'admin') {
+          // Admin has no restrictions
+        } 
+        // Manager restrictions
+        else if (currentUser.role === 'manager') {
+          // Managers cannot escalate to admin
+          if (newRole === 'admin') {
+            return res.status(403).json({
+              error: 'Permission denied',
+              message: 'Managers cannot assign admin role',
+              code: 'ROLE_ESCALATION_DENIED',
+            });
+          }
+          // Managers can only assign manager/tenant/resident roles
+          if (!['manager', 'tenant', 'resident'].includes(newRole)) {
+            return res.status(403).json({
+              error: 'Permission denied',
+              message: 'Managers can only assign manager, tenant, or resident roles',
+              code: 'INVALID_ROLE_ASSIGNMENT',
+            });
+          }
+        }
+        // Demo manager restrictions
+        else if (currentUser.role === 'demo_manager') {
+          // Demo managers can only assign demo roles
+          if (!['demo_manager', 'demo_tenant', 'demo_resident'].includes(newRole)) {
+            return res.status(403).json({
+              error: 'Permission denied',
+              message: 'Demo managers can only assign demo roles',
+              code: 'INVALID_DEMO_ROLE_ASSIGNMENT',
+            });
+          }
+        }
+        // Other roles cannot assign roles
+        else {
+          return res.status(403).json({
+            error: 'Permission denied',
+            message: 'Insufficient permissions to assign roles',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Organization scope validation for role assignments
+        if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+          // Get current user's organizations
+          const currentUserOrgs = await storage.getUserOrganizations(currentUser.id);
+          const currentUserOrgIds = currentUserOrgs.map(org => org.organizationId);
+          
+          // Get target user's organizations
+          const targetUserOrgs = await storage.getUserOrganizations(id);
+          const targetUserOrgIds = targetUserOrgs.map(org => org.organizationId);
+          
+          // Check if current user has access to target user's organizations
+          const hasAccessToTargetOrgs = targetUserOrgIds.some(orgId => 
+            currentUserOrgIds.includes(orgId)
+          );
+          
+          if (!hasAccessToTargetOrgs && targetUserOrgIds.length > 0) {
+            return res.status(403).json({
+              error: 'Permission denied',
+              message: 'Cannot modify users outside your organization scope',
+              code: 'ORGANIZATION_SCOPE_VIOLATION',
+            });
+          }
+
+          // For demo managers, validate demo role assignments
+          if (currentUser.role === 'demo_manager') {
+            // Check if target organizations are demo organizations
+            const targetOrgs = await db
+              .select()
+              .from(schema.organizations)
+              .where(inArray(schema.organizations.id, targetUserOrgIds));
+            
+            const hasNonDemoOrgs = targetOrgs.some(org => org.type !== 'demo');
+            if (hasNonDemoOrgs) {
+              return res.status(403).json({
+                error: 'Permission denied',
+                message: 'Demo managers cannot assign roles to users in non-demo organizations',
+                code: 'DEMO_SCOPE_VIOLATION',
+              });
+            }
+          }
+        }
       }
 
       // Validate the update data (excluding password updates for security)
@@ -292,10 +400,14 @@ export function registerUserRoutes(app: Express): void {
 
       if (!user) {
         return res.status(404).json({
-          _error: 'Not found',
+          error: 'Not found',
           message: 'User not found',
         });
       }
+
+      // Clear relevant caches
+      queryCache.invalidate('users', 'all_users');
+      queryCache.invalidate('users', `user:${id}`);
 
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
