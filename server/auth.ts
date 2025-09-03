@@ -238,9 +238,16 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    // Touch session to extend expiry on activity
-    if (req.session && req.session.touch) {
-      req.session.touch();
+    // Optimized session touch - only touch when session is close to expiring
+    if (req.session && req.session.touch && req.session.cookie) {
+      const now = Date.now();
+      const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
+      const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
+      
+      // Only touch session if more than 25% of its lifetime has passed
+      if (sessionAge > sessionLifetime * 0.25) {
+        req.session.touch();
+      }
     }
 
     // Loading user session
@@ -602,9 +609,16 @@ export function setupAuthRoutes(app: any) {
           });
         }
 
-        // Touch session to extend expiry
-        if (req.session && req.session.touch) {
-          req.session.touch();
+        // Optimized session touch - only when needed
+        if (req.session && req.session.touch && req.session.cookie) {
+          const now = Date.now();
+          const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
+          const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
+          
+          // Only touch session if more than 25% of its lifetime has passed
+          if (sessionAge > sessionLifetime * 0.25) {
+            req.session.touch();
+          }
         }
 
         // Return user data without password
