@@ -24,6 +24,55 @@ jest.mock('./server/db', () => {
   };
 });
 
+// Mock email service to prevent actual SendGrid calls during tests
+jest.mock('./server/services/email-service', () => ({
+  emailService: {
+    sendEmail: jest.fn().mockResolvedValue(true),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+    sendInvitationEmail: jest.fn().mockResolvedValue(true),
+    sendTestEmail: jest.fn().mockResolvedValue(true),
+    sendReminderEmail: jest.fn().mockResolvedValue(true),
+  },
+  EmailService: jest.fn().mockImplementation(() => ({
+    sendEmail: jest.fn().mockResolvedValue(true),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+    sendInvitationEmail: jest.fn().mockResolvedValue(true),
+    sendTestEmail: jest.fn().mockResolvedValue(true),
+    sendReminderEmail: jest.fn().mockResolvedValue(true),
+  }))
+}));
+
+// Mock React Router hooks for component tests
+jest.mock('wouter', () => ({
+  useLocation: jest.fn(() => ['/', jest.fn()]),
+  useParams: jest.fn(() => ({})),
+  useRoute: jest.fn(() => [false, {}]),
+  Link: jest.fn(({ children }: any) => children),
+  Route: jest.fn(({ children }: any) => children),
+  Switch: jest.fn(({ children }: any) => children),
+  Router: jest.fn(({ children }: any) => children),
+  Redirect: jest.fn(() => null),
+}));
+
+// Mock language hook
+jest.mock('@/hooks/use-language', () => ({
+  useLanguage: jest.fn(() => ({
+    t: jest.fn((key: string) => key), // Return the key as translation
+    language: 'en',
+    setLanguage: jest.fn(),
+  })),
+}));
+
+// Mock query client
+jest.mock('@/lib/queryClient', () => ({
+  apiRequest: jest.fn().mockResolvedValue({ success: true, data: [] }),
+  queryClient: {
+    invalidateQueries: jest.fn(),
+    setQueryData: jest.fn(),
+    getQueryData: jest.fn(),
+  },
+}));
+
 // Performance: Mock Neon database for faster unit tests
 jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => {
@@ -32,6 +81,22 @@ jest.mock('@neondatabase/serverless', () => ({
   }),
 }));
 import 'whatwg-fetch';
+
+// Mock fetch for network requests in tests
+global.fetch = jest.fn().mockImplementation((url: string, options?: any) => {
+  // Mock successful API responses
+  if (url.includes('/api/')) {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, data: [] }),
+      text: async () => '{"success": true, "data": []}'
+    });
+  }
+  
+  // Default to network request failed for external URLs
+  return Promise.reject(new Error('Network request failed'));
+});
 
 // Add TransformStream polyfill for MSW compatibility
 if (typeof TransformStream === 'undefined') {

@@ -16,31 +16,66 @@ export const createMockDatabase = () => {
       return [];
     }),
     
-    // Mock insert operations
-    insert: jest.fn().mockImplementation(async (table: string) => ({
-      values: jest.fn().mockImplementation(async (data: any) => {
+    // Mock insert operations - proper Drizzle ORM structure
+    insert: jest.fn().mockImplementation((table: any) => {
+      const insertChain = {
+        values: jest.fn().mockImplementation(async (data: any) => {
+          const id = Math.random().toString(36).substr(2, 9);
+          const result = Array.isArray(data) 
+            ? data.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
+            : [{ ...data, id }];
+          mockData.set(id, data);
+          return result;
+        }),
+        returning: jest.fn().mockImplementation(async () => {
+          const id = Math.random().toString(36).substr(2, 9);
+          return [{ id }];
+        })
+      };
+      
+      // Make returning() chainable with values()
+      insertChain.returning = jest.fn().mockImplementation(() => insertChain);
+      insertChain.values = jest.fn().mockImplementation(async (data: any) => {
         const id = Math.random().toString(36).substr(2, 9);
+        const result = Array.isArray(data) 
+          ? data.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
+          : [{ ...data, id }];
         mockData.set(id, data);
-        return [{ ...data, id }];
-      }),
-    })),
+        return result;
+      });
+      
+      return insertChain;
+    }),
     
     // Mock select operations
     select: jest.fn().mockImplementation(() => ({
       from: jest.fn().mockImplementation(() => ({
         where: jest.fn().mockImplementation(() => ({
           limit: jest.fn().mockImplementation(async () => []),
+          orderBy: jest.fn().mockImplementation(async () => []),
         })),
+        leftJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockImplementation(() => ({
+            limit: jest.fn().mockImplementation(async () => []),
+          })),
+        })),
+        innerJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockImplementation(() => ({
+            limit: jest.fn().mockImplementation(async () => []),
+          })),
+        })),
+        limit: jest.fn().mockImplementation(async () => []),
+        orderBy: jest.fn().mockImplementation(async () => []),
       })),
     })),
     
-    // Mock delete operations
-    delete: jest.fn().mockImplementation(() => ({
+    // Mock delete operations - proper Drizzle ORM structure
+    delete: jest.fn().mockImplementation((table: any) => ({
       where: jest.fn().mockImplementation(async () => ({ affectedRows: 0 })),
     })),
     
     // Mock update operations
-    update: jest.fn().mockImplementation(() => ({
+    update: jest.fn().mockImplementation((table: any) => ({
       set: jest.fn().mockImplementation(() => ({
         where: jest.fn().mockImplementation(async () => ({ affectedRows: 0 })),
       })),
