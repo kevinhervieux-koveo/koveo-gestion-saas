@@ -55,14 +55,23 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.role === 'admin') {
         // Admin can see all users
         filteredUsers = usersWithAssignments;
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see other demo users
+        filteredUsers = usersWithAssignments.filter(user => 
+          ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
+        );
       } else {
-        // Managers and other users can only see users from their organizations
+        // Regular managers and other users can only see non-demo users from their organizations
         // Get the organization IDs that the current user has access to
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         
-        
-        // Filter users to only include those from accessible organizations
+        // Filter users to only include non-demo users from accessible organizations
         filteredUsers = usersWithAssignments.filter(user => {
+          // Exclude demo users from regular manager view
+          if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)) {
+            return false;
+          }
+          
           const hasAccess = user.organizations?.some(org => userOrgIds.includes(org.id)) || false;
           return hasAccess;
         });
