@@ -277,3 +277,232 @@ rules:
     metadata:
       category: security
       cwe: 'CWE-22: Path Traversal'
+
+  # Express.js Security Rules
+  - id: express-missing-helmet
+    pattern-either:
+      - pattern: |
+          const app = express()
+      - pattern: |
+          app = express()
+    pattern-not-inside: |
+      $...
+      app.use(helmet())
+      $...
+    message: 'Express app missing Helmet.js security headers middleware'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-693: Protection Mechanism Failure'
+
+  - id: express-cors-wildcard
+    pattern-either:
+      - pattern: |
+          cors({ origin: "*" })
+      - pattern: |
+          cors({ origin: true })
+    message: 'Overly permissive CORS policy - specify allowed origins explicitly'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-942: Permissive Cross-domain Policy'
+
+  - id: session-security-missing
+    pattern-either:
+      - pattern: |
+          session({ secret: $SECRET })
+      - pattern: |
+          session({ $...OPTS })
+    pattern-not-inside: |
+      session({
+        $...BEFORE,
+        secure: true,
+        $...AFTER
+      })
+    message: 'Session configuration missing security options (secure, httpOnly, sameSite)'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-614: Sensitive Cookie Without Secure Flag'
+
+  # Authentication & Authorization
+  - id: hardcoded-secrets
+    pattern-either:
+      - pattern: |
+          const apiKey = "$KEY"
+      - pattern: |
+          const secret = "$SECRET"
+      - pattern: |
+          const password = "$PWD"
+      - pattern: |
+          JWT_SECRET = "$SECRET"
+    metavariable-pattern:
+      metavariable: $KEY
+      pattern-regex: '[A-Za-z0-9_-]{20,}'
+    message: 'Hardcoded secret detected - use environment variables instead'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-798: Hardcoded Credentials'
+
+  - id: jwt-weak-secret
+    pattern-either:
+      - pattern: |
+          jwt.sign($PAYLOAD, "$SECRET")
+      - pattern: |
+          jwt.verify($TOKEN, "$SECRET")
+    metavariable-pattern:
+      metavariable: $SECRET
+      patterns:
+        - pattern-regex: '^.{1,31}$'
+    message: 'JWT secret too short - use at least 32 characters'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-326: Inadequate Encryption Strength'
+
+  # Input Validation
+  - id: missing-input-validation
+    pattern-either:
+      - pattern: |
+          app.post($ROUTE, ($REQ, $RES) => { $...BODY })
+      - pattern: |
+          app.put($ROUTE, ($REQ, $RES) => { $...BODY })
+      - pattern: |
+          app.patch($ROUTE, ($REQ, $RES) => { $...BODY })
+    pattern-not-inside: |
+      $...
+      $REQ.body.$FIELD
+      $...
+      $SCHEMA.parse($...ARGS)
+      $...
+    message: 'Missing input validation - validate request body with Zod schema'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-20: Improper Input Validation'
+
+  - id: prototype-pollution-risk
+    pattern-either:
+      - pattern: |
+          $OBJ[$KEY] = $VALUE
+      - pattern: |
+          $OBJ.hasOwnProperty($KEY)
+      - pattern: |
+          for ($KEY in $OBJ) { $...BODY }
+    metavariable-pattern:
+      metavariable: $KEY
+      patterns:
+        - pattern-regex: '.*(__proto__|constructor|prototype).*'
+    message: 'Prototype pollution risk - avoid direct property access with user input'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-1321: Prototype Pollution'
+
+  # File Upload Security
+  - id: file-upload-security
+    pattern-either:
+      - pattern: |
+          multer({ dest: $DEST })
+      - pattern: |
+          multer({ storage: $STORAGE })
+    pattern-not-inside: |
+      multer({
+        $...BEFORE,
+        fileFilter: $FILTER,
+        $...AFTER
+      })
+    message: 'File upload missing security validation - implement fileFilter and limits'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-434: Unrestricted Upload'
+
+  # Rate Limiting
+  - id: missing-rate-limiting
+    pattern-either:
+      - pattern: |
+          app.post("/api/auth/login", $HANDLER)
+      - pattern: |
+          app.post("/api/auth/register", $HANDLER)
+      - pattern: |
+          app.post("/api/auth/reset-password", $HANDLER)
+    pattern-not-inside: |
+      $...
+      rateLimit($...OPTS)
+      $...
+    message: 'Authentication endpoints missing rate limiting protection'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-307: Improper Restriction of Excessive Authentication Attempts'
+
+  # React Security
+  - id: react-unsafe-refs
+    pattern: |
+      React.createRef()
+    message: 'Consider using useRef() hook instead of createRef() for better security and performance'
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: security
+      framework: react
+
+  - id: react-external-links
+    pattern-either:
+      - pattern: |
+          <a href={$URL} target="_blank">
+      - pattern: |
+          <a href=$URL target="_blank">
+    pattern-not-inside: |
+      <a $...ATTRS rel="noopener noreferrer" $...MORE_ATTRS>
+    message: 'External links missing security attributes - add rel="noopener noreferrer"'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-200: Information Exposure'
+
+  # Environment Variable Security
+  - id: env-var-exposure
+    pattern-either:
+      - pattern: |
+          console.log(process.env)
+      - pattern: |
+          console.log(import.meta.env)
+      - pattern: |
+          JSON.stringify(process.env)
+    message: 'Environment variables exposure risk - avoid logging entire env object'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-532: Information Exposure Through Log Files'
+
+  # Database Security
+  - id: database-connection-exposure
+    pattern-either:
+      - pattern: |
+          console.log($...ARGS)
+      - pattern: |
+          logger.info($...ARGS)
+    metavariable-pattern:
+      metavariable: $...ARGS
+      patterns:
+        - pattern-regex: '.*(?i)(database_url|connection_string|db_pass|db_password).*'
+    message: 'Database connection details in logs - potential security exposure'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-532: Information Exposure Through Log Files'

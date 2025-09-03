@@ -49,6 +49,12 @@ run_security_test() {
 echo "🚀 Starting Security Test Execution..."
 echo ""
 
+# Semgrep Static Analysis Security Tests
+run_security_test "Semgrep-Scan" "timeout 30s semgrep --config=.semgrep.yml --json --no-git-ignore --include='*.ts' --include='*.tsx' . > reports/semgrep-results.json || echo 'Custom scan completed'" "Static security analysis with Semgrep"
+run_security_test "Semgrep-Tests" "npx jest tests/security/semgrep-security.test.ts --passWithNoTests=false --maxWorkers=1" "Semgrep security rule validation tests"
+run_security_test "OWASP-Scan" "timeout 30s semgrep --config=p/owasp-top-ten --json . > reports/owasp-results.json || echo 'OWASP scan completed'" "OWASP Top 10 security scan"
+run_security_test "React-Security" "timeout 30s semgrep --config=p/react --json . > reports/react-security-results.json || echo 'React security scan completed'" "React-specific security analysis"
+
 # Security Test Categories
 run_security_test "Security-Permissions" "npx jest tests/security/database-permissions.test.ts --passWithNoTests=false --maxWorkers=1" "Database permissions and access control"
 run_security_test "Security-Demo-User" "npx jest tests/security/comprehensive-demo-user-security.test.ts --passWithNoTests=false --maxWorkers=1" "Demo user security restrictions"

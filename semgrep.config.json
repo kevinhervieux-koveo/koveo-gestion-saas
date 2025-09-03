@@ -1,0 +1,90 @@
+{
+  "semgrep": {
+    "version": "1.0.0",
+    "description": "Koveo Gestion Security Configuration for Semgrep Static Analysis",
+    "rules": {
+      "custom": ".semgrep.yml",
+      "rulesets": [
+        "p/owasp-top-ten",
+        "p/react",
+        "p/security-audit",
+        "p/javascript",
+        "p/typescript"
+      ]
+    },
+    "paths": {
+      "include": [
+        "client/src/**/*.ts",
+        "client/src/**/*.tsx", 
+        "server/**/*.ts",
+        "shared/**/*.ts"
+      ],
+      "exclude": [
+        "node_modules/",
+        "dist/",
+        "build/",
+        "coverage/",
+        "*.test.ts",
+        "*.test.tsx",
+        "*.spec.ts",
+        "*.spec.tsx"
+      ]
+    },
+    "output": {
+      "format": "json",
+      "directory": "reports/",
+      "files": {
+        "custom_rules": "semgrep-results.json",
+        "owasp": "owasp-results.json", 
+        "react": "react-security-results.json",
+        "security_audit": "security-audit-results.json",
+        "summary": "security-summary.json"
+      }
+    },
+    "compliance": {
+      "quebec_law_25": {
+        "enabled": true,
+        "rules": [
+          "law25-explicit-consent-required",
+          "law25-sensitive-data-logging",
+          "law25-data-retention-policy",
+          "law25-consent-tracking",
+          "law25-cross-border-transfer",
+          "law25-data-breach-notification",
+          "law25-consent-withdrawal",
+          "law25-data-subject-rights",
+          "law25-encryption-at-rest",
+          "law25-secure-communication"
+        ]
+      },
+      "property_management": {
+        "enabled": true,
+        "rules": [
+          "tenant-financial-data-protection",
+          "building-access-data-security"
+        ]
+      }
+    },
+    "security_categories": [
+      "sql-injection-prevention",
+      "xss-prevention-react", 
+      "weak-crypto-usage",
+      "insecure-random-generation",
+      "command-injection-risk",
+      "directory-traversal-prevention",
+      "express-missing-helmet",
+      "express-cors-wildcard", 
+      "session-security-missing",
+      "hardcoded-secrets",
+      "jwt-weak-secret",
+      "missing-input-validation",
+      "prototype-pollution-risk",
+      "file-upload-security",
+      "missing-rate-limiting",
+      "react-unsafe-refs",
+      "react-external-links",
+      "env-var-exposure",
+      "database-connection-exposure"
+    ]
+  }
+}
