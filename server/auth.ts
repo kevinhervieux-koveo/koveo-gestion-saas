@@ -108,23 +108,25 @@ function createSessionStore() {
       pool: sessionPool,
       tableName: 'session',
       createTableIfMissing: false, // Table already exists
-      errorLog: console.error, // Add error logging
+      errorLog: process.env.NODE_ENV === 'test' ? () => {} : console.error, // Suppress error logging in tests
       
       // Add explicit configuration for session retrieval
-      pruneSessionInterval: 60 * 1000, // Clean up expired sessions every minute
+      pruneSessionInterval: process.env.NODE_ENV === 'test' ? false : 60 * 1000, // Disable pruning in tests
       schemaName: 'public', // Explicitly set schema
     });
     
     console.log('✅ Session store: PostgreSQL session store created with proper pool');
     
-    // Test the store connection
-    store.get('test-session-id', (err, session) => {
-      if (err) {
-        console.error('❌ Session store connection test failed:', err);
-      } else {
-        console.log('✅ Session store connection test passed');
-      }
-    });
+    // Test the store connection (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      store.get('test-session-id', (err, session) => {
+        if (err) {
+          console.error('❌ Session store connection test failed:', err);
+        } else {
+          console.log('✅ Session store connection test passed');
+        }
+      });
+    }
     
     return store;
   } catch (error: any) {

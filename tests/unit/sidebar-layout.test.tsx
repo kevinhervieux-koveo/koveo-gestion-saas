@@ -147,7 +147,7 @@ describe('Sidebar Layout Consistency Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/Budget Dashboard|Tableau de bord budgétaire/)).toBeInTheDocument();
+        expect(screen.getAllByText(/Budget Dashboard|Tableau de bord budgétaire/)).toHaveLength(2);
       });
 
       // Budget page should NOT use min-h-screen (that's the bug we need to fix)

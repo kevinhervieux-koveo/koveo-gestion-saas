@@ -13,7 +13,7 @@ import { TokenValidationStep } from '../../../client/src/components/auth/steps/t
 import { PasswordCreationStep } from '../../../client/src/components/auth/steps/password-creation-step';
 import { ProfileCompletionStep } from '../../../client/src/components/auth/steps/profile-completion-step';
 import { QuebecPrivacyConsentStep } from '../../../client/src/components/auth/steps/quebec-privacy-consent-step';
-import { TestProviders } from '../../test-utils/providers';
+import { TestProviders } from '../../../client/src/utils/test-providers';
 
 // Mock storage and API calls
 jest.mock('../../../client/src/lib/queryClient', () => ({
