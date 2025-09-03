@@ -37,9 +37,7 @@ import {
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
-import { PageLayout } from '@/components/common/PageLayout';
-import { PageHeader } from '@/components/common/PageHeader';
-import { LoadingState } from '@/components/common/LoadingState';
+import { Header } from '@/components/layout/header';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
@@ -340,210 +338,222 @@ ResidentDemandsPage() {
 
   if (isLoading) {
     return (
-      <PageLayout>
-        <LoadingState message='Loading demands...' />
-      </PageLayout>
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title={t('myDemands')} subtitle={t('submitAndTrackRequests')} />
+        <div className='flex-1 overflow-auto p-6'>
+          <div className='flex items-center justify-center h-64'>
+            <div className='text-center'>Loading demands...</div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <PageLayout>
-      <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
-        <PageHeader
-          title={t('myDemands')}
-          description={t('submitAndTrackRequests')}
-          actions={
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className='h-4 w-4 mr-2' />
-                {t('newDemand')}
-              </Button>
-            </DialogTrigger>
-          }
-        />
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header title={t('myDemands')} subtitle={t('submitAndTrackRequests')} />
 
-        <DialogContent className='max-w-md'>
-          <DialogHeader>
-            <DialogTitle>{t('createNewDemand')}</DialogTitle>
-            <DialogDescription>Submit a new request or complaint</DialogDescription>
-          </DialogHeader>
-          <Form {...newDemandForm}>
-            <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
-              <FormField
-                control={newDemandForm.control}
-                name='type'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value as string}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('selectType')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='maintenance'>Maintenance</SelectItem>
-                        <SelectItem value='complaint'>Complaint</SelectItem>
-                        <SelectItem value='information'>Information</SelectItem>
-                        <SelectItem value='other'>Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={newDemandForm.control}
-                name='buildingId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Building</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value as string}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('selectBuilding')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {buildings.map((building) => (
-                          <SelectItem key={building.id} value={building.id}>
-                            {building.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={newDemandForm.control}
-                name='description'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder={t('describeRequestDetail')}
-                        className='min-h-[100px]'
-                        {...field}
-                        value={field.value as string}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button type='submit' disabled={createDemandMutation.isPending}>
-                  {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Filters */}
-      <DemandFilters
-        filters={{
-          searchTerm,
-          statusFilter,
-          typeFilter,
-        }}
-        handlers={{
-          onSearchChange: setSearchTerm,
-          onStatusChange: setStatusFilter,
-          onTypeChange: setTypeFilter,
-        }}
-        userRole='resident'
-      />
-
-      {/* Demands List */}
-      <div className='space-y-6'>
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className='flex items-center justify-center gap-2'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className='h-4 w-4' />
-              Previous
-            </Button>
-
-            <div className='flex gap-1'>
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? 'default' : 'outline'}
-                    size='sm'
-                    onClick={() => handlePageClick(pageNum)}
-                  >
-                    {pageNum}
-                  </Button>
-                );
-              })}
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          {/* Header Actions */}
+          <div className='flex items-center justify-between'>
+            <div>
+              <h2 className='text-2xl font-bold'>{t('myDemands')}</h2>
+              <p className='text-muted-foreground'>{t('submitAndTrackRequests')}</p>
             </div>
+            <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className='h-4 w-4 mr-2' />
+                  {t('newDemand')}
+                </Button>
+              </DialogTrigger>
 
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className='h-4 w-4' />
-            </Button>
+              <DialogContent className='max-w-md'>
+                <DialogHeader>
+                  <DialogTitle>{t('createNewDemand')}</DialogTitle>
+                  <DialogDescription>Submit a new request or complaint</DialogDescription>
+                </DialogHeader>
+                <Form {...newDemandForm}>
+                  <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
+                    <FormField
+                      control={newDemandForm.control}
+                      name='type'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value as string}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('selectType')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='maintenance'>Maintenance</SelectItem>
+                              <SelectItem value='complaint'>Complaint</SelectItem>
+                              <SelectItem value='information'>Information</SelectItem>
+                              <SelectItem value='other'>Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={newDemandForm.control}
+                      name='buildingId'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Building</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value as string}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('selectBuilding')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {buildings.map((building) => (
+                                <SelectItem key={building.id} value={building.id}>
+                                  {building.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={newDemandForm.control}
+                      name='description'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder={t('describeRequestDetail')}
+                              className='min-h-[100px]'
+                              {...field}
+                              value={field.value as string}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type='submit' disabled={createDemandMutation.isPending}>
+                        {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
-        )}
 
-        {/* Page info */}
-        {filteredDemands.length > 0 && (
-          <div className='text-center text-sm text-muted-foreground'>
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of{' '}
-            {filteredDemands.length} demands
-          </div>
-        )}
+          {/* Filters */}
+          <DemandFilters
+            filters={{
+              searchTerm,
+              statusFilter,
+              typeFilter,
+            }}
+            handlers={{
+              onSearchChange: setSearchTerm,
+              onStatusChange: setStatusFilter,
+              onTypeChange: setTypeFilter,
+            }}
+            userRole='resident'
+          />
 
-        {/* Current page demands */}
-        {currentDemands.length === 0 ? (
-          <Card>
-            <CardContent className='p-6 text-center'>
-              <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-            {currentDemands.map((demand: Demand) => (
-              <DemandCard key={demand.id} demand={demand} />
-            ))}
+          {/* Demands List */}
+          <div className='space-y-6'>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className='flex items-center justify-center gap-2'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className='h-4 w-4' />
+                  Previous
+                </Button>
+
+                <div className='flex gap-1'>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? 'default' : 'outline'}
+                        size='sm'
+                        onClick={() => handlePageClick(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className='h-4 w-4' />
+                </Button>
+              </div>
+            )}
+
+            {/* Page info */}
+            {filteredDemands.length > 0 && (
+              <div className='text-center text-sm text-muted-foreground'>
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of{' '}
+                {filteredDemands.length} demands
+              </div>
+            )}
+
+            {/* Current page demands */}
+            {currentDemands.length === 0 ? (
+              <Card>
+                <CardContent className='p-6 text-center'>
+                  <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                {currentDemands.map((demand: Demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Demand Details Popup */}
+          <DemandDetailsPopup
+            demand={selectedDemand}
+            isOpen={isDetailsOpen}
+            onClose={() => setIsDetailsOpen(false)}
+            user={defaultUser}
+            onDemandUpdated={handleDemandUpdated}
+          />
+        </div>
       </div>
-
-      {/* Demand Details Popup */}
-      <DemandDetailsPopup
-        demand={selectedDemand}
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-        user={defaultUser}
-        onDemandUpdated={handleDemandUpdated}
-      />
-    </PageLayout>
+    </div>
   );
 }
