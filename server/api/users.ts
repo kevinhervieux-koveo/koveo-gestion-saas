@@ -1764,6 +1764,99 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * POST /api/invitations/validate - Validates an invitation token
+   * Public endpoint for invitation validation during registration
+   */
+  app.post('/api/invitations/validate', async (req: any, res) => {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          isValid: false,
+          message: 'Token is required',
+          code: 'TOKEN_REQUIRED',
+        });
+      }
+
+      // Get invitation by token
+      const [invitation] = await db
+        .select()
+        .from(schema.invitations)
+        .where(eq(schema.invitations.token, token))
+        .limit(1);
+
+      if (!invitation) {
+        return res.status(404).json({
+          isValid: false,
+          message: 'Invitation not found or invalid token',
+          code: 'INVITATION_NOT_FOUND',
+        });
+      }
+
+      // Check if invitation is expired
+      const now = new Date();
+      const expiresAt = new Date(invitation.expiresAt);
+      if (now > expiresAt) {
+        return res.status(400).json({
+          isValid: false,
+          message: 'Invitation has expired',
+          code: 'INVITATION_EXPIRED',
+        });
+      }
+
+      // Check if invitation is already used
+      if (invitation.status === 'accepted') {
+        return res.status(400).json({
+          isValid: false,
+          message: 'Invitation has already been used',
+          code: 'INVITATION_ALREADY_USED',
+        });
+      }
+
+      // Get organization information
+      const [organization] = await db
+        .select()
+        .from(schema.organizations)
+        .where(eq(schema.organizations.id, invitation.organizationId))
+        .limit(1);
+
+      // Get inviter information
+      const [inviter] = await db
+        .select({
+          id: schema.users.id,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          email: schema.users.email,
+        })
+        .from(schema.users)
+        .where(eq(schema.users.id, invitation.invitedByUserId))
+        .limit(1);
+
+      // Return successful validation
+      res.json({
+        isValid: true,
+        invitation: {
+          id: invitation.id,
+          email: invitation.email,
+          role: invitation.role,
+          expiresAt: invitation.expiresAt,
+          createdAt: invitation.createdAt,
+        },
+        organizationName: organization?.name || 'Unknown Organization',
+        inviterName: inviter ? `${inviter.firstName} ${inviter.lastName}`.trim() : 'Unknown User',
+      });
+    } catch (error: any) {
+      console.error('❌ Error validating invitation:', error);
+      res.status(500).json({
+        isValid: false,
+        message: 'Internal server error during validation',
+        code: 'VALIDATION_ERROR',
+      });
+    }
+  });
+
+  /**
    * POST /api/invitations/:id/resend - Resends an invitation
    */
   app.post('/api/invitations/:id/resend', requireAuth, async (req: any, res) => {
