@@ -1,5 +1,18 @@
 // Jest setup file - global test configuration
 import '@testing-library/jest-dom';
+
+// Mock Google GenAI to avoid ES module issues
+jest.mock('@google/genai', () => ({
+  GoogleGenAI: jest.fn().mockImplementation(() => ({
+    getGenerativeModel: jest.fn().mockReturnValue({
+      generateContent: jest.fn().mockResolvedValue({
+        response: {
+          text: () => 'Mock AI response',
+        },
+      }),
+    }),
+  })),
+}));
 import 'whatwg-fetch';
 
 // Add TransformStream polyfill for MSW compatibility

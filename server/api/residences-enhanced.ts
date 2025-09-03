@@ -1,5 +1,5 @@
 import { Express, Request, Response, NextFunction } from 'express';
-import { db } from '../db.js';
+import { db } from '../db';
 import {
   residences,
   buildings,
@@ -7,10 +7,10 @@ import {
   userResidences,
   users,
   userOrganizations,
-} from '../../shared/schema.js';
+} from '../../shared/schema';
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
-import { requireAuth } from '../auth/index.js';
-import { delayedUpdateService } from '../services/delayed-update-service.js';
+import { requireAuth } from '../auth/index';
+import { delayedUpdateService } from '../services/delayed-update-service';
 import { ApiError, ValidationError, ErrorCodes } from '../types/errors';
 import { withErrorHandling } from '../middleware/error-handler';
 import { z } from 'zod';

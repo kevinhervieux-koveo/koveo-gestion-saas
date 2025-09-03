@@ -4,7 +4,7 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
-import { sql } from './db.js';
+import { sql } from './db';
 import type { User } from '@shared/schema';
 // Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';

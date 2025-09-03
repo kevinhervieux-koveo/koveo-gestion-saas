@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { config } from './config/index.js';
+import { config } from './config/index';
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
 import {

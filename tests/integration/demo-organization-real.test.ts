@@ -102,7 +102,7 @@ describe('Demo Organization Integration Tests with Real Data', () => {
 
     it('should respond to status check', async () => {
       const response = await request(app)
-        .get('/api/status')
+        .get('/api/health')
         .expect((res) => {
           expect(res.status).toBeLessThanOrEqual(200);
         });

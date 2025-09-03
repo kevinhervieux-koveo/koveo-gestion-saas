@@ -54,7 +54,7 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google|stream/web))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web))'
   ],
   testTimeout: 30000,
   clearMocks: true,

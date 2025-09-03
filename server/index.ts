@@ -6,7 +6,7 @@ import express from 'express';
 import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
-import { registerRoutes } from './routes.js';
+import { registerRoutes } from './routes';
 
 // Production debugging: Log server startup
 console.log('🚀 Server starting with enhanced debugging...');

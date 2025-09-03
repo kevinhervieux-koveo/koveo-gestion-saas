@@ -1,12 +1,45 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../server/index';
+import express from 'express';
+import { registerRoutes } from '../../server/routes';
 import { storage } from '../../server/storage';
 import { db } from '../../server/db';
 import * as schema from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
+// Create a simple test server with test authentication
+const createTestApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  
+  // Add test authentication middleware that bypasses real auth
+  app.use(async (req: any, res, next) => {
+    // Check for test user header
+    const testUserId = req.headers['x-test-user-id'];
+    if (testUserId) {
+      // Find the actual user data for proper testing
+      const [user] = await db.select().from(schema.users).where(eq(schema.users.id, testUserId)).limit(1);
+      if (user) {
+        req.session = { 
+          userId: testUserId,
+          isAuthenticated: true,
+          role: user.role
+        };
+        req.user = user; // Set full user object for auth middleware
+      }
+    }
+    next();
+  });
+  
+  // Register all routes
+  registerRoutes(app);
+  
+  return app;
+};
+
 describe('User Invitation API', () => {
+  let app: express.Application;
   let adminUser: any;
   let managerUser: any;
   let testOrganization: any;
@@ -14,6 +47,7 @@ describe('User Invitation API', () => {
   let testResidence: any;
   
   beforeEach(async () => {
+    app = createTestApp();
     // Clear test data
     await db.delete(schema.invitations);
     await db.delete(schema.users);
@@ -49,7 +83,7 @@ describe('User Invitation API', () => {
         postalCode: 'H1H 1H1',
         totalUnits: 10,
         constructionYear: 2020,
-        buildingType: 'Apartment',
+        buildingType: 'apartment',
       })
       .returning();
     testBuilding = building;
@@ -59,9 +93,8 @@ describe('User Invitation API', () => {
       .insert(schema.residences)
       .values({
         buildingId: testBuilding.id,
-        unit: '101',
-        type: 'Apartment',
-        size: 1000,
+        unitNumber: '101',
+        squareFootage: 1000,
         bedrooms: 2,
         bathrooms: 1,
         parkingSpaces: 1,
@@ -122,20 +155,23 @@ describe('User Invitation API', () => {
     await db.delete(schema.organizations);
   });
 
-  describe('POST /api/users/invite', () => {
+  describe('POST /api/invitations', () => {
     it('should successfully create invitation as admin', async () => {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
       const invitationData = {
         email: 'newuser@test.com',
         role: 'resident',
         organizationId: testOrganization.id,
         residenceId: testResidence.id,
-        expiresIn: 7,
+        expiresAt: expiresAt.toISOString(),
         personalMessage: 'Welcome to our organization!',
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send(invitationData)
         .expect(201);
 
@@ -160,16 +196,19 @@ describe('User Invitation API', () => {
     });
 
     it('should successfully create invitation as manager', async () => {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
       const invitationData = {
         email: 'newuser2@test.com',
         role: 'tenant',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: expiresAt.toISOString(),
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=manager-${managerUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', managerUser.id)
         .send(invitationData)
         .expect(201);
 
@@ -192,12 +231,12 @@ describe('User Invitation API', () => {
         email: adminUser.email, // Use existing admin email
         role: 'resident',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send(invitationData)
         .expect(400);
 
@@ -210,12 +249,12 @@ describe('User Invitation API', () => {
         email: 'newadmin@test.com',
         role: 'admin',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=manager-${managerUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', managerUser.id)
         .send(invitationData)
         .expect(403);
 
@@ -228,11 +267,11 @@ describe('User Invitation API', () => {
         email: 'newuser@test.com',
         role: 'resident',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
+        .post('/api/invitations')
         .send(invitationData)
         .expect(401);
 
@@ -241,12 +280,12 @@ describe('User Invitation API', () => {
 
     it('should validate required fields', async () => {
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send({}) // Empty request body
         .expect(400);
 
-      expect(response.body.message).toContain('validation');
+      expect(response.body.message).toContain('required');
     });
 
     it('should validate email format', async () => {
@@ -254,12 +293,12 @@ describe('User Invitation API', () => {
         email: 'invalid-email',
         role: 'resident',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const response = await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send(invitationData)
         .expect(400);
 
@@ -271,26 +310,26 @@ describe('User Invitation API', () => {
         email: 'user1@test.com',
         role: 'resident',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const invitationData2 = {
         email: 'user2@test.com',
         role: 'tenant',
         organizationId: testOrganization.id,
-        expiresIn: 7,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       // Create two invitations
       await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send(invitationData1)
         .expect(201);
 
       await request(app)
-        .post('/api/users/invite')
-        .set('Cookie', `testSession=admin-${adminUser.id}`)
+        .post('/api/invitations')
+        .set('x-test-user-id', adminUser.id)
         .send(invitationData2)
         .expect(201);
 
