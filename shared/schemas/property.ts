@@ -47,7 +47,7 @@ export const buildings = pgTable('buildings', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: uuid('organization_id')
+  organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -80,10 +80,10 @@ export const buildings = pgTable('buildings', {
  * Represents apartments, condos, or units that can be occupied by tenants.
  */
 export const residences = pgTable('residences', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  buildingId: uuid('building_id')
+  buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   unitNumber: text('unit_number').notNull(),
@@ -147,17 +147,17 @@ export const contacts = pgTable('contacts', {
  * Represents spaces like gyms, lounges, meeting rooms that can be reserved by residents.
  */
 export const commonSpaces = pgTable('common_spaces', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  buildingId: uuid('building_id')
+  buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   isReservable: boolean('is_reservable').notNull().default(false),
   capacity: integer('capacity'),
-  contactPersonId: uuid('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
+  contactPersonId: varchar('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
   openingHours: jsonb('opening_hours'),
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
