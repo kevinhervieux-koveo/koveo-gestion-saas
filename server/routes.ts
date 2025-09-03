@@ -16,6 +16,7 @@ import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerContactRoutes } from './api/contacts';
 import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
+import { registerDemoManagementRoutes } from './api/demo-management';
 
 export async function registerRoutes(app: Express) {
   console.log('🔄 Setting up session middleware...');
@@ -43,6 +44,7 @@ export async function registerRoutes(app: Express) {
   registerContactRoutes(app);
   registerCommonSpacesRoutes(app);
   registerPermissionsRoutes(app);
+  registerDemoManagementRoutes(app);
   console.log('✅ All API routes registered');
   
   // Basic API routes

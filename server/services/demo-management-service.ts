@@ -159,7 +159,9 @@ export class DemoManagementService {
       }
 
       console.log('✅ Demo organizations are properly configured');
+    } catch (error) {
       // Continue anyway - this is not critical for production functionality
+      console.log('⚠️ Demo organizations setup failed, but continuing...');
     }
   }
 

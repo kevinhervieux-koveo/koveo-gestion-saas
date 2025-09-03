@@ -45,7 +45,7 @@ export function registerDemoManagementRoutes(app: Express): void {
     try {
       // Import database connection
       const { db } = await import('../db');
-      const { eq, and } = await import('drizzle-orm');
+      const { eq, and, inArray } = await import('drizzle-orm');
       const schema = await import('../../shared/schema');
 
       // Get Demo Test Organization
@@ -63,8 +63,8 @@ export function registerDemoManagementRoutes(app: Express): void {
       // Get demo users with demo roles
       const demoUsers = await db.query.users.findMany({
         where: and(
-          schema.users.isActive === true,
-          schema.users.role.in(['demo_manager', 'demo_tenant', 'demo_resident'])
+          eq(schema.users.isActive, true),
+          inArray(schema.users.role, ['demo_manager', 'demo_tenant', 'demo_resident'])
         ),
         columns: {
           id: true,
@@ -109,7 +109,7 @@ export function registerDemoManagementRoutes(app: Express): void {
         success: true,
         data: info,
       });
-
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: 'Failed to get demo status',
@@ -139,7 +139,7 @@ export function registerDemoManagementRoutes(app: Express): void {
             openDemoOrgId: result.openDemoOrgId,
           },
         });
-
+      } catch (error) {
         res.status(500).json({
           success: false,
           message: 'Failed to ensure demo organizations',
@@ -170,7 +170,7 @@ export function registerDemoManagementRoutes(app: Express): void {
             openDemoOrgId: result.openDemoOrgId,
           },
         });
-
+      } catch (error) {
         res.status(500).json({
           success: false,
           message: 'Failed to recreate demo organizations',
@@ -200,7 +200,7 @@ export function registerDemoManagementRoutes(app: Express): void {
             actions: result.actions,
           },
         });
-
+      } catch (error) {
         res.status(500).json({
           success: false,
           message: 'Failed to run demo maintenance',
