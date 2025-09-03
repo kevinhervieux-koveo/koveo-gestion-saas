@@ -51,6 +51,7 @@ import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
 import { UserOrganizationsTab } from '@/components/user-tabs/UserOrganizationsTab';
 import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
 import { UserResidencesTab } from '@/components/user-tabs/UserResidencesTab';
+import { InvitationManagement } from '@/components/InvitationManagement';
 
 // Form validation schema for editing users
 const editUserSchema = z.object({
@@ -752,11 +753,7 @@ export default function UserManagement() {
           </TabsContent>
 
           <TabsContent value='invitations' className='space-y-6'>
-            <Card>
-              <CardContent className='p-6'>
-                <p>Invitations management coming soon...</p>
-              </CardContent>
-            </Card>
+            <InvitationManagement />
           </TabsContent>
         </Tabs>
 

@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, inArray, sql, lt } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
@@ -2269,6 +2269,212 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to resend invitation',
+      });
+    }
+  });
+
+  /**
+   * GET /api/invitations/pending - Get pending invitations with role-based filtering.
+   * Admin: can see all pending invitations
+   * Manager: can only see pending invitations in their organizations
+   */
+  app.get('/api/invitations/pending', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can view invitations
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions to view invitations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      let invitationsQuery;
+
+      if (currentUser.role === 'admin') {
+        // Admin sees all pending invitations
+        invitationsQuery = db
+          .select({
+            id: schema.invitations.id,
+            email: schema.invitations.email,
+            role: schema.invitations.role,
+            status: schema.invitations.status,
+            expiresAt: schema.invitations.expiresAt,
+            createdAt: schema.invitations.createdAt,
+            organizationId: schema.invitations.organizationId,
+            buildingId: schema.invitations.buildingId,
+            residenceId: schema.invitations.residenceId,
+            organizationName: schema.organizations.name,
+            buildingName: sql<string>`buildings.name`,
+            residenceUnitNumber: sql<string>`residences.unit_number`,
+            invitedByName: sql<string>`CONCAT(users.first_name, ' ', users.last_name)`,
+          })
+          .from(schema.invitations)
+          .leftJoin(schema.organizations, eq(schema.invitations.organizationId, schema.organizations.id))
+          .leftJoin(
+            sql`buildings`,
+            sql`invitations.building_id = buildings.id`
+          )
+          .leftJoin(
+            sql`residences`,
+            sql`invitations.residence_id = residences.id`
+          )
+          .leftJoin(schema.users, eq(schema.invitations.invitedByUserId, schema.users.id))
+          .where(eq(schema.invitations.status, 'pending'));
+      } else {
+        // Manager sees only invitations for their organizations
+        const managerOrgs = await db
+          .select({ organizationId: schema.userOrganizations.organizationId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+
+        const orgIds = managerOrgs.map((org) => org.organizationId);
+
+        if (orgIds.length === 0) {
+          return res.json([]);
+        }
+
+        invitationsQuery = db
+          .select({
+            id: schema.invitations.id,
+            email: schema.invitations.email,
+            role: schema.invitations.role,
+            status: schema.invitations.status,
+            expiresAt: schema.invitations.expiresAt,
+            createdAt: schema.invitations.createdAt,
+            organizationId: schema.invitations.organizationId,
+            buildingId: schema.invitations.buildingId,
+            residenceId: schema.invitations.residenceId,
+            organizationName: schema.organizations.name,
+            buildingName: sql<string>`buildings.name`,
+            residenceUnitNumber: sql<string>`residences.unit_number`,
+            invitedByName: sql<string>`CONCAT(users.first_name, ' ', users.last_name)`,
+          })
+          .from(schema.invitations)
+          .leftJoin(schema.organizations, eq(schema.invitations.organizationId, schema.organizations.id))
+          .leftJoin(
+            sql`buildings`,
+            sql`invitations.building_id = buildings.id`
+          )
+          .leftJoin(
+            sql`residences`,
+            sql`invitations.residence_id = residences.id`
+          )
+          .leftJoin(schema.users, eq(schema.invitations.invitedByUserId, schema.users.id))
+          .where(
+            and(
+              eq(schema.invitations.status, 'pending'),
+              inArray(schema.invitations.organizationId, orgIds)
+            )
+          );
+      }
+
+      const invitations = await invitationsQuery;
+
+      res.json(invitations);
+    } catch (error: any) {
+      console.error('❌ Error fetching pending invitations:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch pending invitations',
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/invitations/:id - Delete a pending invitation.
+   * Admin: can delete any invitation
+   * Manager: can only delete invitations from their organizations
+   */
+  app.delete('/api/invitations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      const { id: invitationId } = req.params;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only admins and managers can delete invitations
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions to delete invitations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      if (!invitationId) {
+        return res.status(400).json({
+          message: 'Invitation ID is required',
+          code: 'INVALID_REQUEST',
+        });
+      }
+
+      // Get the invitation to check permissions
+      const invitation = await db
+        .select()
+        .from(schema.invitations)
+        .where(eq(schema.invitations.id, invitationId))
+        .limit(1);
+
+      if (invitation.length === 0) {
+        return res.status(404).json({
+          message: 'Invitation not found',
+          code: 'INVITATION_NOT_FOUND',
+        });
+      }
+
+      const invitationData = invitation[0];
+
+      // Check if manager has permission to delete this invitation
+      if (currentUser.role === 'manager') {
+        const managerOrgs = await db
+          .select({ organizationId: schema.userOrganizations.organizationId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, currentUser.id),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+
+        const orgIds = managerOrgs.map((org) => org.organizationId);
+
+        if (!invitationData.organizationId || !orgIds.includes(invitationData.organizationId)) {
+          return res.status(403).json({
+            message: 'You can only delete invitations from your organizations',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+      }
+
+      // Delete the invitation
+      await db.delete(schema.invitations).where(eq(schema.invitations.id, invitationId));
+
+      res.json({
+        message: 'Invitation deleted successfully',
+        invitationId,
+      });
+    } catch (error: any) {
+      console.error('❌ Error deleting invitation:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete invitation',
       });
     }
   });
