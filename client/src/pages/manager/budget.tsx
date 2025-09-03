@@ -2444,7 +2444,7 @@ Budget() {
       </div>
     </div>
   );
-}
+};
 
 // Optimized components for better performance and maintainability
 const PropertyContributionRow = memo(({ property }: { property: any }) => (
