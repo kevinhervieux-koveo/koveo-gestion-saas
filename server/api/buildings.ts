@@ -71,11 +71,12 @@ async function handleResidenceChanges(
         // Create object storage hierarchy for each new residence
         for (const residence of createdResidences) {
           try {
-            await objectStorageService.createResidenceHierarchy(
-              organizationId,
-              buildingId,
-              residence.id
-            );
+            // TODO: Object storage service integration
+            // await objectStorageService.createResidenceHierarchy(
+            //   organizationId,
+            //   buildingId,
+            //   residence.id
+            // );
           } catch (storageError) {
             console.error(
               `⚠️ Error creating storage hierarchy for residence ${residence.id}:`,
@@ -949,14 +950,15 @@ export function registerBuildingRoutes(app: Express): void {
             `✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`
           );
 
+          // TODO: Object storage service integration
           // Create object storage hierarchy for each residence
-          for (const residence of createdResidences) {
-            await objectStorageService.createResidenceHierarchy(
-              buildingData.organizationId,
-              buildingId,
-              residence.id
-            );
-          }
+          // for (const residence of createdResidences) {
+          //   await objectStorageService.createResidenceHierarchy(
+          //     buildingData.organizationId,
+          //     buildingId,
+          //     residence.id
+          //   );
+          // }
         } catch (___residenceError) {
           console.error('⚠️ Error auto-generating residences:', ___residenceError);
           // Don't fail the building creation if residence generation fails
@@ -1287,8 +1289,8 @@ export function registerBuildingRoutes(app: Express): void {
         .from(documents)
         .where(
           or(
-            eq(documents.buildings, buildingId),
-            sql`${documents.residence} IN (SELECT id FROM residences WHERE building_id = ${buildingId})`
+            eq(documents.buildingId, buildingId),
+            sql`${documents.residenceId} IN (SELECT id FROM residences WHERE building_id = ${buildingId})`
           )
         );
 
@@ -1376,7 +1378,7 @@ export function registerBuildingRoutes(app: Express): void {
           await tx
             .delete(documents)
             .where(
-              or(eq(documents.buildings, buildingId), inArray(documents.residence, residenceIds))
+              or(eq(documents.buildingId, buildingId), inArray(documents.residenceId, residenceIds))
             );
 
           // 3. Soft delete user-residence relationships
@@ -1420,7 +1422,7 @@ export function registerBuildingRoutes(app: Express): void {
             .where(inArray(residences.id, residenceIds));
         } else {
           // Still delete documents associated directly with the building
-          await tx.delete(documents).where(eq(documents.buildings, buildingId));
+          await tx.delete(documents).where(eq(documents.buildingId, buildingId));
         }
 
         // 6. Finally, soft delete the building

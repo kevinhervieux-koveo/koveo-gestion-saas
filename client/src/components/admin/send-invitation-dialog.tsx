@@ -292,9 +292,20 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   const getFilteredBuildings = (selectedOrgId: string) => {
     if (!buildings || !selectedOrgId) {
+      console.log('🔍 [BUILDING FILTER] No buildings or organizationId:', { buildings: !!buildings, selectedOrgId });
       return [];
     }
-    return buildings.filter((building) => building.organizationId === selectedOrgId);
+    
+    console.log('🔍 [BUILDING FILTER] Filtering buildings:', {
+      selectedOrgId,
+      allBuildings: buildings.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })),
+      filteredCount: buildings.filter((building) => building.organizationId === selectedOrgId).length
+    });
+    
+    const filtered = buildings.filter((building) => building.organizationId === selectedOrgId);
+    console.log('🔍 [BUILDING FILTER] Filtered buildings:', filtered.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })));
+    
+    return filtered;
   };
 
   const getFilteredResidences = (selectedBuildingId: string) => {
