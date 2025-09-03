@@ -85,7 +85,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
         const unitNumber = `${floor}${unitOnFloor.toString().padStart(2, '0')}`;
 
         residencesToCreate.push({
-          buildingId: buildingId,
+          buildingId: newBuilding[0].id,
           unitNumber,
           floor,
           isActive: true,
