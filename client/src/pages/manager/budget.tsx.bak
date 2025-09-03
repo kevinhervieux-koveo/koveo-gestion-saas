@@ -982,7 +982,11 @@ Budget() {
             className='flex items-center gap-2 flex-shrink-0'
             data-testid='button-fullscreen-toggle'
           >
-            {isFullscreen ? (
+            {isFullscreen ? <Minimize2 className='w-4 h-4' /> : <Maximize2 className='w-4 h-4' />}
+          </Button>
+        </div>
+        
+        {/* {isFullscreen ? (
               <>
                 <Minimize2 className='w-4 h-4' />
                 <span className='hidden sm:inline'>
@@ -996,9 +1000,7 @@ Budget() {
                   {language === 'fr' ? 'Plein écran' : 'Fullscreen'}
                 </span>
               </>
-            )}
-          </Button>
-        </div>
+            )} */}
 
         <div className='space-y-6'>
           <Card>
