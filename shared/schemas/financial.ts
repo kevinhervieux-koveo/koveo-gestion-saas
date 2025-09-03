@@ -209,13 +209,7 @@ export const insertBillSchema = createInsertSchema(bills, {
   id: true, 
   createdAt: true, 
   updatedAt: true 
-}).refine(
-  (data) => !data.endDate || !data.startDate || data.endDate >= data.startDate,
-  {
-    message: "End date must be after start date",
-    path: ['endDate']
-  }
-);
+});
 
 export const insertOldBillSchema = z.object({
   residenceId: z.string().uuid(),
@@ -245,17 +239,10 @@ export const insertBudgetSchema = z.object({
   createdBy: z.string().uuid(),
 });
 
-export const insertMonthlyBudgetSchema = z.object({
-  buildingId: z.string().uuid(),
-  year: z.number().int(),
-  month: z.number().int().min(1).max(12),
-  incomeTypes: z.array(z.string()),
-  incomes: z.array(z.number()),
-  spendingTypes: z.array(z.string()),
-  spendings: z.array(z.number()),
-  approved: z.boolean().default(false),
-  approvedBy: z.string().uuid().optional(),
-  originalBudgetId: z.string().uuid().optional(),
+export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
 });
 
 // Types
@@ -290,7 +277,7 @@ export type Budget = typeof budgets.$inferSelect;
 /**
  * Monthly budget insert and select types.
  */
-export type InsertMonthlyBudget = z.infer<typeof insertMonthlyBudgetSchema>;
+export type InsertMonthlyBudget = typeof monthlyBudgets.$inferInsert;
 /**
  *
  */
