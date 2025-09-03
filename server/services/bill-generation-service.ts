@@ -24,7 +24,7 @@ export class BillGenerationService {
     try {
       const existingBills = await db.select().from(bills).where(eq(bills.reference, parentBillId));
 
-      return existingBills;
+      return existingBills as Bill[];
     } catch (error: any) {
       console.error('❌ Error getting bills by reference:', error);
       return [];
@@ -183,7 +183,7 @@ export class BillGenerationService {
         paymentParts.push({
           amount,
           dueDate,
-          partNumber: index + 1,
+          partNumber: _index + 1,
         });
       });
     }
@@ -385,7 +385,7 @@ export class BillGenerationService {
     let billsUpdated = 0;
 
     for (const generatedBill of generatedBills) {
-      const updatedFields: unknown = {};
+      const updatedFields: Partial<Bill> = {};
 
       // Update fields that should propagate to generated bills
       if (updates.title) {
