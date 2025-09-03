@@ -208,20 +208,35 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch buildings
-  const { data: buildings } = useQuery<BuildingType[]>({
-    queryKey: ['/api/buildings'],
+  const { data: buildings, error: buildingsError, isLoading: buildingsLoading } = useQuery<BuildingType[]>({
+    queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/buildings');
-      return response.json();
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      const data = await response.json();
+      console.log('🏢 [BUILDINGS API] Fetched buildings data:', data);
+      return data;
     },
     enabled: open,
   });
 
-  // Fetch residences
+  // Debug buildings loading
+  React.useEffect(() => {
+    if (open) {
+      console.log('🔍 [INVITE FORM] Buildings state:', {
+        isLoading: buildingsLoading,
+        hasError: !!buildingsError,
+        error: buildingsError?.message,
+        buildingsCount: buildings?.length || 0,
+        buildings: buildings?.map(b => ({ id: b.id, name: b.name, organizationId: b.organizationId })) || []
+      });
+    }
+  }, [buildings, buildingsError, buildingsLoading, open]);
+
+  // Fetch residences  
   const { data: residences } = useQuery<Residence[]>({
-    queryKey: ['/api/residences'],
+    queryKey: ['/api/manager/residences'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/residences');
+      const response = await apiRequest('GET', '/api/manager/residences');
       return response.json();
     },
     enabled: open,
