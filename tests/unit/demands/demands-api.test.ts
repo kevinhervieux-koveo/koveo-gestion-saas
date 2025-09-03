@@ -4,10 +4,9 @@
  * including CRUD operations, role-based access control, and filtering.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import express, { Express } from 'express';
 import request from 'supertest';
-import { db } from '../../../server/db';
 import { registerDemandRoutes } from '../../../server/api/demands';
 import {
   demands,
@@ -19,7 +18,59 @@ import {
   userOrganizations,
   userResidences,
 } from '../../../shared/schema';
-import { eq, like } from 'drizzle-orm';
+
+// Mock database functions for testing
+jest.mock('../../../server/db', () => ({
+  db: {
+    query: {
+      demands: {
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      demandComments: {
+        findMany: jest.fn(),
+      },
+      users: {
+        findFirst: jest.fn(),
+      },
+      organizations: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      buildings: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      residences: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      userOrganizations: {
+        findMany: jest.fn(),
+      },
+      userResidences: {
+        findMany: jest.fn(),
+      },
+    },
+    insert: jest.fn(() => ({
+      values: jest.fn(() => ({
+        returning: jest.fn(() => Promise.resolve([{ id: 'test-id' }])),
+      })),
+    })),
+    update: jest.fn(() => ({
+      set: jest.fn(() => ({
+        where: jest.fn(() => ({
+          returning: jest.fn(() => Promise.resolve([{ id: 'test-id' }])),
+        })),
+      })),
+    })),
+    delete: jest.fn(() => ({
+      where: jest.fn(() => Promise.resolve()),
+    })),
+  },
+}));
+
+const { db } = require('../../../server/db');
 
 // Mock auth middleware for testing
 jest.mock('../../../server/auth/index', () => ({
@@ -52,8 +103,8 @@ describe('Demands API Unit Tests', () => {
     app.use(express.json());
     registerDemandRoutes(app as express.Application);
 
-    // Create test data
-    await setupTestData();
+    // Setup mock data
+    setupMockData();
   });
 
   afterAll(async () => {
@@ -61,40 +112,24 @@ describe('Demands API Unit Tests', () => {
     await cleanupTestData();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
-    // Clean up any existing test data before each test
-    await cleanupTestData();
+    setupMockData();
   });
 
-  /**
-   * Setup comprehensive test data for demand testing.
-   */
-  /**
-   * SetupTestData function.
-   * @returns Function result.
-   */
-  async function setupTestData() {
-    try {
-      // Clean up existing test data first
-      await cleanupTestData();
-
-      // Create test organizations
-      const [org1] = await db
-        .insert(organizations)
-        .values({
-          id: 'test-org-1',
-          name: 'Test Organization 1',
-          type: 'management_company',
-          address: '123 Test St',
-          city: 'Montreal',
-          province: 'QC',
-          postalCode: 'H1A 1A1',
-          phone: '514-555-0001',
-          email: 'org1@test.com',
-        })
-        .returning();
-      testOrganizations.push(org1);
+  function setupMockData() {
+    // Mock test data
+    const mockOrg1 = {
+      id: 'test-org-1',
+      name: 'Test Organization 1',
+      type: 'management_company',
+      address: '123 Test St',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+      phone: '514-555-0001',
+      email: 'org1@test.com',
+    };
 
       // Create test users with different roles
       const usersData = [

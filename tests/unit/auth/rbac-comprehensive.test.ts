@@ -654,7 +654,14 @@ describe('Comprehensive RBAC Tests - Quebec Property Management', () => {
           organization: testOrganizations.koveo,
         },
       ]);
-      mockDb.query.organizations.findMany.mockResolvedValueOnce(largeOrgSet);
+      mockDb.query.organizations.findFirst.mockResolvedValueOnce({
+        id: testOrganizations.koveo.id,
+        name: 'koveo',
+      });
+      mockDb.query.organizations.findMany.mockResolvedValueOnce([
+        testOrganizations.demo,
+        ...largeOrgSet
+      ]);
 
       const startTime = Date.now();
       const result = await getUserAccessibleOrganizations(testUsers.koveoUser.id);
@@ -846,7 +853,12 @@ describe('RBAC Integration Scenarios', () => {
       };
 
       // Before promotion - limited to Koveo organization access
-      mockDb.query.organizations.findFirst.mockResolvedValueOnce(testOrganizations.demo);
+      mockDb.query.organizations.findFirst
+        .mockResolvedValueOnce(testOrganizations.demo)  // Demo org lookup
+        .mockResolvedValueOnce({  // Koveo org lookup (triggers global access)
+          id: testOrganizations.koveo.id,
+          name: 'koveo',
+        });
       mockDb.query.userOrganizations.findMany.mockResolvedValueOnce([
         {
           organizationId: testOrganizations.koveo.id,

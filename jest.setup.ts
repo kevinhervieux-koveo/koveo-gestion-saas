@@ -1,5 +1,6 @@
 // Jest setup file - global test configuration
 import '@testing-library/jest-dom';
+import 'whatwg-fetch';
 
 // Mock runQuery function for integration tests
 global.runQuery = jest.fn(() => Promise.resolve([]));

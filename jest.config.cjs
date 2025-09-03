@@ -39,11 +39,21 @@ const config = {
         },
       },
     ],
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.js$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          module: 'CommonJS',
+          target: 'ES2022',
+          allowJs: true,
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+        },
+      },
+    ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google))',
-    '!server/config/index.js'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google))'
   ],
   testTimeout: 30000,
   clearMocks: true,
