@@ -42,7 +42,7 @@ describe('Document Management - Full E2E Tests', () => {
       } else {
         // If demo user doesn't exist, this test documents the issue
         console.warn('Demo admin user not found - database needs seeding');
-        expect(response.status).toBeOneOf([401, 404]);
+        expect([401, 404]).toContain(response.status);
       }
     });
 
@@ -120,7 +120,7 @@ describe('Document Management - Full E2E Tests', () => {
         }
       } else {
         console.warn('Could not test documents API - login failed');
-        expect(loginResponse.status).toBeOneOf([401, 404]);
+        expect([401, 404]).toContain(loginResponse.status);
       }
     });
 

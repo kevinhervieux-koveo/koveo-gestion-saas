@@ -33,16 +33,21 @@ export const createMockDatabase = () => {
         })
       };
       
-      // Make returning() chainable with values()
-      insertChain.returning = jest.fn().mockImplementation(() => insertChain);
-      insertChain.values = jest.fn().mockImplementation(async (data: any) => {
+      // Create chainable methods that return properly structured objects
+      const createValuesChain = (data: any) => {
         const id = Math.random().toString(36).substr(2, 9);
         const result = Array.isArray(data) 
           ? data.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
           : [{ ...data, id }];
         mockData.set(id, data);
-        return result;
-      });
+        
+        return {
+          returning: jest.fn().mockImplementation(async () => result)
+        };
+      };
+      
+      insertChain.values = jest.fn().mockImplementation((data: any) => createValuesChain(data));
+      insertChain.returning = jest.fn().mockImplementation(() => insertChain);
       
       return insertChain;
     }),
@@ -71,13 +76,17 @@ export const createMockDatabase = () => {
     
     // Mock delete operations - proper Drizzle ORM structure
     delete: jest.fn().mockImplementation((table: any) => ({
-      where: jest.fn().mockImplementation(async () => ({ affectedRows: 0 })),
+      where: jest.fn().mockImplementation(async () => {
+        return Promise.resolve({ affectedRows: 0 });
+      }),
     })),
     
     // Mock update operations
     update: jest.fn().mockImplementation((table: any) => ({
       set: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockImplementation(async () => ({ affectedRows: 0 })),
+        where: jest.fn().mockImplementation(async () => {
+          return Promise.resolve({ affectedRows: 0 });
+        }),
       })),
     })),
   };

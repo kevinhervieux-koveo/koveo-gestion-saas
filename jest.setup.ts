@@ -54,13 +54,36 @@ jest.mock('wouter', () => ({
   Redirect: jest.fn(() => null),
 }));
 
-// Mock language hook
+// Mock language hook and provider
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: jest.fn(() => ({
     t: jest.fn((key: string) => key), // Return the key as translation
     language: 'en',
     setLanguage: jest.fn(),
   })),
+  LanguageProvider: ({ children }: any) => children,
+}));
+
+// Mock auth provider
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: jest.fn(() => ({
+    user: { id: '1', username: 'test', role: 'admin' },
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+  })),
+  AuthProvider: ({ children }: any) => children,
+}));
+
+// Mock mobile menu provider
+jest.mock('@/hooks/use-mobile-menu', () => ({
+  useMobileMenu: jest.fn(() => ({
+    isOpen: false,
+    open: jest.fn(),
+    close: jest.fn(),
+    toggle: jest.fn(),
+  })),
+  MobileMenuProvider: ({ children }: any) => children,
 }));
 
 // Mock query client
