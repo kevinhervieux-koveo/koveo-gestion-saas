@@ -129,6 +129,8 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
       }
+    } catch (error: any) {
+      console.error('Error validating token:', error);
       const errorData: TokenValidationData = {
         token,
         email: '',
