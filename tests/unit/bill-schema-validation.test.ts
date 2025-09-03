@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { createInsertSchema } from 'drizzle-zod';
-import { bills } from '../../shared/schemas/financial';
+import { insertBillSchema } from '../../shared/schemas/financial';
 import { db } from '../../server/db';
+import { bills } from '../../shared/schemas/financial';
 import { eq, and } from 'drizzle-orm';
 
 /**
@@ -16,8 +16,6 @@ import { eq, and } from 'drizzle-orm';
  */
 
 describe('Bill Schema Validation', () => {
-  // Create insert schema for validation
-  const insertBillSchema = createInsertSchema(bills);
 
   const validBaseBill = {
     buildingId: '123e4567-e89b-12d3-a456-426614174000',

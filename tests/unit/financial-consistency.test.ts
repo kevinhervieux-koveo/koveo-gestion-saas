@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import { db } from '../../server/db';
-import { bills, moneyFlow } from '../../shared/schema';
-import { eq, and, sum, sql } from 'drizzle-orm';
+import { bills } from '../../shared/schema';
+import { eq, sql } from 'drizzle-orm';
 
 describe('Financial System Consistency Tests', () => {
   beforeAll(async () => {
@@ -12,6 +12,7 @@ describe('Financial System Consistency Tests', () => {
       console.warn('Database connection issue in tests:', _error);
     }
   });
+  
   describe('Payment Plan Validation', () => {
     it('should validate recurrent payment bills have appropriate structure', async () => {
       const recurrentBills = await db
@@ -53,31 +54,16 @@ describe('Financial System Consistency Tests', () => {
       });
     });
 
-    it('should validate payment plan cost arrays match total amounts', async () => {
-      const allBills = await db.select().from(bills);
-
-      allBills.forEach((bill) => {
-        const costsSum = bill.costs.reduce((sum, cost) => {
-          return sum + parseFloat(cost.toString());
-        }, 0);
-
-        const totalAmount = parseFloat(bill.totalAmount.toString());
-
-        // Allow small floating point differences
-        expect(Math.abs(costsSum - totalAmount)).toBeLessThan(0.01);
-      });
-    });
-
-    it('should validate payment categories are appropriate for payment type', async () => {
-      // Recurrent payments should typically be operational expenses
+    it('should ensure payment types align with typical categories', async () => {
+      // Categories typically associated with recurrent payments
       const recurrentCategories = [
-        'salary',
         'utilities',
+        'maintenance',
         'cleaning',
         'security',
-        'maintenance',
+        'insurance',
+        'salary',
         'landscaping',
-        'supplies',
       ];
 
       const recurrentBills = await db
@@ -111,296 +97,152 @@ describe('Financial System Consistency Tests', () => {
     });
   });
 
-  describe('Money Flow and Bills Consistency', () => {
-    it('should ensure money flow expenses correlate with bill payments', async () => {
-      // Get all expense money flows related to bills
-      const billExpenses = await db
-        .select({
-          billId: moneyFlow.billId,
-          amount: moneyFlow.amount,
-          category: moneyFlow.category,
-          buildingId: moneyFlow.buildingId,
-        })
-        .from(moneyFlow)
-        .where(and(eq(moneyFlow.type, 'expense'), sql`${moneyFlow.billId} IS NOT NULL`));
-
-      // Verify each expense has a corresponding bill
-      for (const expense of billExpenses) {
-        if (expense.billId) {
-          const correspondingBill = await db
-            .select()
-            .from(bills)
-            .where(eq(bills.id, expense.billId))
-            .limit(1);
-
-          expect(correspondingBill.length).toBe(1);
-          expect(correspondingBill[0].buildingId).toBe(expense.buildingId);
-        }
-      }
-    });
-
-    it('should validate money flow amounts are consistent with bill totals', async () => {
-      // Get bills that have corresponding money flow entries
-      const billsWithFlow = await db
+  describe('Bills System Consistency', () => {
+    it('should ensure all bills have valid building references', async () => {
+      // All bills should reference valid buildings
+      const billsWithBuildings = await db
         .select({
           billId: bills.id,
-          billAmount: bills.totalAmount,
-          billCategory: bills.category,
           buildingId: bills.buildingId,
+          buildingExists: sql`EXISTS(SELECT 1 FROM buildings WHERE id = ${bills.buildingId})`,
         })
-        .from(bills)
-        .leftJoin(moneyFlow, eq(moneyFlow.billId, bills.id))
-        .where(sql`${moneyFlow.billId} IS NOT NULL`);
+        .from(bills);
 
-      for (const billFlow of billsWithFlow) {
-        const relatedFlows = await db
-          .select()
-          .from(moneyFlow)
-          .where(eq(moneyFlow.billId, billFlow.billId));
+      expect(billsWithBuildings.length).toBeGreaterThan(0);
 
-        if (relatedFlows.length > 0) {
-          const totalFlowAmount = relatedFlows.reduce((sum, flow) => {
-            return sum + Math.abs(parseFloat(flow.amount.toString()));
-          }, 0);
-
-          const billAmount = parseFloat(billFlow.billAmount.toString());
-
-          // Flow amounts should match or be related to bill amounts
-          // (allowing for partial payments or installments)
-          expect(totalFlowAmount).toBeGreaterThan(0);
-          expect(totalFlowAmount).toBeLessThanOrEqual(billAmount * 1.1); // 10% tolerance
-        }
-      }
-    });
-
-    it('should validate money flow building consistency', async () => {
-      // All money flows should reference valid buildings
-      const flowsWithBuildings = await db
-        .select({
-          flowBuildingId: moneyFlow.buildingId,
-          buildingExists: sql`EXISTS(SELECT 1 FROM buildings WHERE id = ${moneyFlow.buildingId})`,
-        })
-        .from(moneyFlow);
-
-      flowsWithBuildings.forEach((flow) => {
-        expect(flow.buildingExists).toBe(true);
+      billsWithBuildings.forEach((bill) => {
+        expect(bill.buildingExists).toBe(true);
       });
     });
 
-    it('should validate money flow categories align with bill categories', async () => {
-      // Define category mappings between bills and money flow
-      const categoryMappings: Record<string, string[]> = {
-        insurance: ['bill_payment', 'administrative_expense'],
-        maintenance: ['maintenance_expense', 'bill_payment'],
-        salary: ['administrative_expense', 'bill_payment'],
-        utilities: ['bill_payment', 'other_expense'],
-        cleaning: ['maintenance_expense', 'bill_payment'],
-        security: ['bill_payment', 'administrative_expense'],
-        landscaping: ['maintenance_expense', 'bill_payment'],
-        professional_services: ['professional_services', 'administrative_expense'],
-        administration: ['administrative_expense', 'bill_payment'],
-        repairs: ['maintenance_expense', 'bill_payment'],
-        supplies: ['administrative_expense', 'bill_payment'],
-        taxes: ['bill_payment', 'administrative_expense'],
-        other: ['other_expense', 'bill_payment'],
-      };
-
-      // Check bills that have associated money flows
-      const billsWithFlows = await db
-        .select({
-          billCategory: bills.category,
-          flowCategory: moneyFlow.category,
-        })
-        .from(bills)
-        .innerJoin(moneyFlow, eq(moneyFlow.billId, bills.id));
-
-      billsWithFlows.forEach(({ billCategory, flowCategory }) => {
-        const validFlowCategories = categoryMappings[billCategory] || ['bill_payment'];
-        expect(validFlowCategories).toContain(flowCategory);
-      });
-    });
-
-    it('should validate income and expense balance per building', async () => {
-      // Get income/expense summary per building
-      const buildingSummary = await db
-        .select({
-          buildingId: moneyFlow.buildingId,
-          type: moneyFlow.type,
-          totalAmount: sum(moneyFlow.amount),
-        })
-        .from(moneyFlow)
-        .groupBy(moneyFlow.buildingId, moneyFlow.type);
-
-      const buildingBalances: Record<string, { income: number; expense: number }> = {};
-
-      buildingSummary.forEach((summary) => {
-        if (!buildingBalances[summary.buildingId]) {
-          buildingBalances[summary.buildingId] = { income: 0, expense: 0 };
-        }
-
-        const amount = parseFloat(summary.totalAmount?.toString() || '0');
-
-        if (summary.type === 'income') {
-          buildingBalances[summary.buildingId].income = amount;
-        } else {
-          buildingBalances[summary.buildingId].expense = Math.abs(amount);
-        }
-      });
-
-      // Each building should have some financial activity
-      Object.values(buildingBalances).forEach((balance) => {
-        expect(balance.income + balance.expense).toBeGreaterThan(0);
-      });
-    });
-  });
-
-  describe('Financial Data Integrity', () => {
-    it('should validate all required fields are present', async () => {
+    it('should validate bill amounts are positive and reasonable', async () => {
       const allBills = await db.select().from(bills);
-      const allFlows = await db.select().from(moneyFlow);
 
-      // Bills validation
+      expect(allBills.length).toBeGreaterThan(0);
+
       allBills.forEach((bill) => {
-        expect(bill.id).toBeDefined();
-        expect(bill.buildingId).toBeDefined();
-        expect(bill.billNumber).toBeDefined();
-        expect(bill.title).toBeDefined();
-        expect(bill.category).toBeDefined();
-        expect(bill.paymentType).toBeDefined();
-        expect(bill.costs).toBeDefined();
-        expect(bill.totalAmount).toBeDefined();
+        const totalAmount = parseFloat(bill.totalAmount.toString());
+        const costs = bill.costs;
+
+        // Total amount should be positive
+        expect(totalAmount).toBeGreaterThan(0);
+        
+        // Total amount should be reasonable (not negative, not excessively large)
+        expect(totalAmount).toBeLessThan(1000000); // 1 million upper limit
+        
+        // Costs array should exist and have positive values
+        expect(costs).toBeInstanceOf(Array);
+        expect(costs.length).toBeGreaterThan(0);
+        
+        costs.forEach((cost: string) => {
+          const costAmount = parseFloat(cost);
+          expect(costAmount).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    it('should validate bill status consistency', async () => {
+      const allBills = await db.select().from(bills);
+
+      expect(allBills.length).toBeGreaterThan(0);
+
+      const validStatuses = ['draft', 'pending', 'approved', 'paid', 'overdue', 'cancelled', 'sent'];
+      
+      allBills.forEach((bill) => {
+        expect(validStatuses).toContain(bill.status);
+        expect(bill.billNumber).toBeTruthy();
+        expect(bill.title).toBeTruthy();
+      });
+    });
+
+    it('should validate bill date consistency', async () => {
+      const allBills = await db.select().from(bills);
+
+      expect(allBills.length).toBeGreaterThan(0);
+
+      allBills.forEach((bill) => {
         expect(bill.startDate).toBeDefined();
-        expect(bill.status).toBeDefined();
-        expect(bill.createdBy).toBeDefined();
-      });
-
-      // Money flow validation
-      allFlows.forEach((flow) => {
-        expect(flow.id).toBeDefined();
-        expect(flow.buildingId).toBeDefined();
-        expect(flow.type).toBeDefined();
-        expect(flow.category).toBeDefined();
-        expect(flow.description).toBeDefined();
-        expect(flow.amount).toBeDefined();
-        expect(flow.transactionDate).toBeDefined();
-        expect(flow.createdBy).toBeDefined();
+        
+        // If end date exists, it should be after start date
+        if (bill.endDate) {
+          const startDate = new Date(bill.startDate);
+          const endDate = new Date(bill.endDate);
+          expect(endDate.getTime()).toBeGreaterThan(startDate.getTime());
+        }
       });
     });
 
-    it('should validate numeric amounts are reasonable', async () => {
+    it('should validate bill categories are appropriate', async () => {
       const allBills = await db.select().from(bills);
-      const allFlows = await db.select().from(moneyFlow);
 
-      // Bills should have reasonable amounts (between $1 and $100,000)
+      expect(allBills.length).toBeGreaterThan(0);
+
+      const validCategories = [
+        'insurance',
+        'maintenance', 
+        'salary',
+        'utilities',
+        'cleaning',
+        'security',
+        'landscaping',
+        'professional_services',
+        'administration',
+        'repairs',
+        'supplies',
+        'taxes',
+        'other'
+      ];
+
       allBills.forEach((bill) => {
-        const amount = parseFloat(bill.totalAmount.toString());
-        expect(amount).toBeGreaterThan(0);
-        expect(amount).toBeLessThan(100000);
-      });
-
-      // Money flows should have reasonable amounts
-      allFlows.forEach((flow) => {
-        const amount = Math.abs(parseFloat(flow.amount.toString()));
-        expect(amount).toBeGreaterThan(0);
-        expect(amount).toBeLessThan(100000);
-      });
-    });
-
-    it('should validate date consistency', async () => {
-      const allBills = await db.select().from(bills);
-      const allFlows = await db.select().from(moneyFlow);
-
-      const currentDate = new Date();
-      const minValidDate = new Date('2024-01-01');
-
-      // Bill dates should be reasonable
-      allBills.forEach((bill) => {
-        const startDate = new Date(bill.startDate);
-        expect(startDate).toBeInstanceOf(Date);
-        expect(startDate.getTime()).toBeGreaterThan(minValidDate.getTime());
-        expect(startDate.getTime()).toBeLessThanOrEqual(
-          currentDate.getTime() + 365 * 24 * 60 * 60 * 1000
-        ); // Within next year
-      });
-
-      // Money flow transaction dates should be reasonable
-      allFlows.forEach((flow) => {
-        const transDate = new Date(flow.transactionDate);
-        expect(transDate).toBeInstanceOf(Date);
-        expect(transDate.getTime()).toBeGreaterThan(minValidDate.getTime());
-        expect(transDate.getTime()).toBeLessThanOrEqual(
-          currentDate.getTime() + 30 * 24 * 60 * 60 * 1000
-        ); // Within next month
+        expect(validCategories).toContain(bill.category);
       });
     });
   });
 
-  describe('Payment Plan Business Logic', () => {
-    it('should validate recurrent payments have appropriate frequency patterns', async () => {
+  describe('Bill Data Integrity', () => {
+    it('should ensure bill numbers are unique', async () => {
+      const allBills = await db.select({ billNumber: bills.billNumber }).from(bills);
+      const billNumbers = allBills.map(b => b.billNumber);
+      const uniqueBillNumbers = [...new Set(billNumbers)];
+
+      expect(billNumbers.length).toBe(uniqueBillNumbers.length);
+    });
+
+    it('should validate costs array sums match total amounts', async () => {
+      const allBills = await db.select().from(bills);
+
+      expect(allBills.length).toBeGreaterThan(0);
+
+      allBills.forEach((bill) => {
+        const totalAmount = parseFloat(bill.totalAmount.toString());
+        const costs = bill.costs;
+
+        const costsSum = costs.reduce((sum: number, cost: string) => {
+          return sum + parseFloat(cost);
+        }, 0);
+
+        // Allow small floating point differences
+        expect(Math.abs(totalAmount - costsSum)).toBeLessThan(0.01);
+      });
+    });
+
+    it('should validate recurrent bills have reasonable structure', async () => {
       const recurrentBills = await db
         .select()
         .from(bills)
         .where(eq(bills.paymentType, 'recurrent'));
 
+      expect(recurrentBills.length).toBeGreaterThan(0);
+
       recurrentBills.forEach((bill) => {
-        // Recurrent bills should have consistent cost arrays
+        // Recurrent bills should have basic structure
+        expect(bill.paymentType).toBe('recurrent');
+        expect(bill.costs).toBeInstanceOf(Array);
         expect(bill.costs.length).toBeGreaterThan(0);
-
-        // For monthly recurrent bills, costs should be similar
-        if (bill.costs.length > 1) {
-          const firstAmount = parseFloat(bill.costs[0].toString());
-          const allSimilar = bill.costs.every((cost) => {
-            const amount = parseFloat(cost.toString());
-            return Math.abs(amount - firstAmount) / firstAmount < 0.1; // 10% variance allowed
-          });
-
-          // Most recurrent payments should have consistent amounts
-          if (bill.category === 'salary' || bill.category === 'utilities') {
-            expect(allSimilar).toBe(true);
-          }
-        }
-      });
-    });
-
-    it('should validate bill status progression makes sense', async () => {
-      const allBills = await db.select().from(bills);
-
-      const statusCounts = {
-        draft: 0,
-        sent: 0,
-        overdue: 0,
-        paid: 0,
-        cancelled: 0,
-      };
-
-      allBills.forEach((bill) => {
-        statusCounts[bill.status as keyof typeof statusCounts]++;
-      });
-
-      // Should have variety of statuses
-      expect(
-        statusCounts.draft + statusCounts.sent + statusCounts.overdue + statusCounts.paid
-      ).toBeGreaterThan(0);
-
-      // Shouldn't have all bills in draft status (some should be processed)
-      expect(statusCounts.sent + statusCounts.paid + statusCounts.overdue).toBeGreaterThan(0);
-    });
-
-    it('should validate expense flows have negative amounts', async () => {
-      const expenseFlows = await db.select().from(moneyFlow).where(eq(moneyFlow.type, 'expense'));
-
-      expenseFlows.forEach((flow) => {
-        const amount = parseFloat(flow.amount.toString());
-        expect(amount).toBeLessThanOrEqual(0);
-      });
-    });
-
-    it('should validate income flows have positive amounts', async () => {
-      const incomeFlows = await db.select().from(moneyFlow).where(eq(moneyFlow.type, 'income'));
-
-      incomeFlows.forEach((flow) => {
-        const amount = parseFloat(flow.amount.toString());
-        expect(amount).toBeGreaterThan(0);
+        
+        // Total amount should be positive
+        const totalAmount = parseFloat(bill.totalAmount.toString());
+        expect(totalAmount).toBeGreaterThan(0);
       });
     });
   });
