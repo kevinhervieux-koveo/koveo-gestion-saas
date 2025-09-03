@@ -401,6 +401,9 @@ export default function UserManagement() {
           { label: 'Manager', _value: 'manager' },
           { label: 'Tenant', _value: 'tenant' },
           { label: 'Resident', _value: 'resident' },
+          { label: 'Demo Manager', _value: 'demo_manager' },
+          { label: 'Demo Tenant', _value: 'demo_tenant' },
+          { label: 'Demo Resident', _value: 'demo_resident' },
         ],
       },
       {
@@ -843,7 +846,7 @@ export default function UserManagement() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Role</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid='select-edit-role'>
                                 <SelectValue placeholder='Select role' />
@@ -854,6 +857,9 @@ export default function UserManagement() {
                               <SelectItem value='manager'>Manager</SelectItem>
                               <SelectItem value='tenant'>Tenant</SelectItem>
                               <SelectItem value='resident'>Resident</SelectItem>
+                              <SelectItem value='demo_manager'>Demo Manager</SelectItem>
+                              <SelectItem value='demo_tenant'>Demo Tenant</SelectItem>
+                              <SelectItem value='demo_resident'>Demo Resident</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
