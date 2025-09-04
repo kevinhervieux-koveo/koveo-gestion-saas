@@ -213,8 +213,7 @@ export default function DemandDetailsPopup({
     demand &&
     user &&
     (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && user.role === 'resident' && demand.status === 'submitted'));
+      user.role === 'manager');
 
   const canEscalate =
     demand &&
@@ -582,23 +581,32 @@ export default function DemandDetailsPopup({
           <div className='space-y-4'>
             <h3 className='font-semibold'>Comments ({comments.length})</h3>
 
-            {/* Add Comment */}
-            <div className='space-y-2'>
-              <Textarea
-                placeholder='Add a comment...'
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                rows={3}
-              />
-              <Button
-                onClick={handleAddComment}
-                disabled={!newComment.trim() || addCommentMutation.isPending}
-                size='sm'
-              >
-                <Send className='h-4 w-4 mr-1' />
-                {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
-              </Button>
-            </div>
+            {/* Add Comment - only if demand is not closed */}
+            {demand && !['cancelled', 'completed', 'rejected'].includes(demand.status) && (
+              <div className='space-y-2'>
+                <Textarea
+                  placeholder='Add a comment...'
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={3}
+                />
+                <Button
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim() || addCommentMutation.isPending}
+                  size='sm'
+                >
+                  <Send className='h-4 w-4 mr-1' />
+                  {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+                </Button>
+              </div>
+            )}
+            
+            {/* Show message if demand is closed */}
+            {demand && ['cancelled', 'completed', 'rejected'].includes(demand.status) && (
+              <p className='text-sm text-muted-foreground bg-gray-50 p-3 rounded'>
+                Comments are disabled for {demand.status} demands.
+              </p>
+            )}
 
             {/* Comments List */}
             <div className='space-y-3 max-h-60 overflow-y-auto'>
