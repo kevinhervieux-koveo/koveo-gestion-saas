@@ -554,6 +554,11 @@ export class MemStorage implements IStorage {
       description: doc.description || '',
       buildingId: doc.buildingId || '',
       residenceId: doc.residenceId || '',
+      fileName: doc.fileName || '',
+      fileSize: doc.fileSize || '',
+      mimeType: doc.mimeType || '',
+      attachedToType: doc.attachedToType || '',
+      attachedToId: doc.attachedToId || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
