@@ -411,6 +411,7 @@ export interface Translations {
   password: string;
   login: string;
   forgotPassword: string;
+  dashboard: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -956,6 +957,7 @@ const translations: Record<Language, Translations> = {
     password: 'Password',
     login: 'Login',
     forgotPassword: 'Forgot Password',
+    dashboard: 'Dashboard',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1500,6 +1502,7 @@ const translations: Record<Language, Translations> = {
     password: 'Mot de passe',
     login: 'Connexion',
     forgotPassword: 'Mot de passe oublié',
+    dashboard: 'Tableau de bord',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',

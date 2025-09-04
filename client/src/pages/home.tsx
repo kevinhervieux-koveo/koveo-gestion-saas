@@ -1,13 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
 import { TrialRequestForm } from '@/components/ui/trial-request-form';
-import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle, LogIn } from 'lucide-react';
+import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Home page component for Koveo Gestion.
@@ -21,42 +19,7 @@ export default function HomePage() {
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50'>
       {/* Navigation Header */}
-      <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>
-        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
-          <div className='flex items-center'>
-            <img
-              src={koveoLogo}
-              alt='Koveo Gestion'
-              className='koveo-logo h-12 w-12 sm:h-14 sm:w-14 rounded-lg object-cover cursor-pointer shadow-sm'
-              onClick={() => setLocation('/')}
-              data-testid='logo-link'
-            />
-          </div>
-          <div className='flex items-center gap-4'>
-            {/* Hamburger Menu */}
-            <HamburgerMenu />
-            
-            {/* Language Switcher */}
-            <div className='hidden sm:block'>
-              <LanguageSwitcher />
-            </div>
-            
-            {/* Login Button - only show if not authenticated */}
-            {!isAuthenticated && (
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => setLocation('/login')}
-                className='hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800'
-                data-testid='header-login-button'
-              >
-                <LogIn className='w-4 h-4' />
-                {language === 'fr' ? 'Connexion' : 'Login'}
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      <TopNavigationBar />
 
       {/* Hero Section */}
       <section className='container mx-auto px-4 py-16 text-center'>

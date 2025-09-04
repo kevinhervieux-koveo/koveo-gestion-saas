@@ -1,10 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
 import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Terms of Service page component for Koveo Gestion.
@@ -24,20 +23,7 @@ TermsOfServicePage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Navigation Header */}
-      <header className='border-b bg-white sticky top-0 z-50'>
-        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
-          <div className='flex items-center'>
-            <img
-              src={koveoLogo}
-              alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
-              onClick={() => setLocation('/')}
-              data-testid='logo-link'
-            />
-          </div>
-          <HamburgerMenu />
-        </div>
-      </header>
+      <TopNavigationBar />
 
       {/* Content */}
       <div className='container mx-auto px-4 py-12 max-w-4xl'>
