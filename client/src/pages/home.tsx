@@ -33,6 +33,9 @@ export default function HomePage() {
             />
           </div>
           <div className='flex items-center gap-4'>
+            {/* Hamburger Menu */}
+            <HamburgerMenu />
+            
             {/* Language Switcher */}
             <div className='hidden sm:block'>
               <LanguageSwitcher />
@@ -51,9 +54,6 @@ export default function HomePage() {
                 {language === 'fr' ? 'Connexion' : 'Login'}
               </Button>
             )}
-            
-            {/* Hamburger Menu */}
-            <HamburgerMenu />
           </div>
         </div>
       </header>
