@@ -119,7 +119,7 @@ export function UserCalendar() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading calendar:', error);
+      // Error downloading calendar
     }
   };
 

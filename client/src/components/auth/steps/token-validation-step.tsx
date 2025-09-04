@@ -69,12 +69,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       hasValidatedRef.current.has(token) ||
       isValidating
     ) {
-      console.log('Token validation skipped:', {
-        validatedToken: validatedToken?.substring(0, 8),
-        sessionToken: sessionValidatedToken?.substring(0, 8),
-        refGuard: hasValidatedRef.current.has(token),
-        isValidating,
-      });
+      // Token validation skipped
       return;
     }
 
@@ -130,7 +125,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         onValidationChange(false);
       }
     } catch (error: any) {
-      console.error('Error validating token:', error);
+      // Error validating token
       const errorData: TokenValidationData = {
         token,
         email: '',
@@ -161,12 +156,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
     const token = urlParams.get('token') || urlParams.get('invitation');
-    console.log('Token auto-validation check:', {
-      token: token ? `${token.substring(0, 8)}...` : 'not found',
-      url: window.location.search,
-      hasValidationResult: !!validationResult,
-      alreadyValidated: validatedToken === token,
-    });
+    // Token auto-validation check
 
     if (token && validatedToken !== token && !hasValidatedRef.current.has(token) && !isValidating) {
       validateToken(token);

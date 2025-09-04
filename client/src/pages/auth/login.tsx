@@ -101,7 +101,7 @@ export default function LoginPage() {
           if (data.success) {
             setDemoUsers(data.data);
           } else {
-            console.error('Failed to fetch demo users:', data.message);
+            // Failed to fetch demo users
             toast({
               title: language === 'fr' ? 'Erreur Demo' : 'Demo Error',
               description: language === 'fr' 
@@ -112,7 +112,7 @@ export default function LoginPage() {
           }
         })
         .catch(error => {
-          console.error('Error fetching demo users:', error);
+          // Error fetching demo users
           toast({
             title: language === 'fr' ? 'Erreur Demo' : 'Demo Error',
             description: language === 'fr' 

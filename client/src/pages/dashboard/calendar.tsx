@@ -544,10 +544,7 @@ export default function DashboardCalendarPage() {
                               <Button
                                 onClick={() => {
                                   // Handle final calendar linking here
-                                  console.log(
-                                    `Linking ${selectedCalendarType} to ${selectedProvider} for spaces:`,
-                                    Array.from(visibleSpaces)
-                                  );
+                                  // Link calendar logic
                                   handleLinkCalendar();
                                   setIsLinkDialogOpen(false);
                                   setSelectedCalendarType(null);

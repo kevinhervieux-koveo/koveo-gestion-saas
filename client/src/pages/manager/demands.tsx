@@ -207,7 +207,7 @@ export default function ManagerDemandsPage() {
       });
     },
     onError: (error: any) => {
-      console.error('Error creating demand:', error);
+      // Error creating demand
       toast({
         title: 'Error',
         description: 'Failed to create demand',

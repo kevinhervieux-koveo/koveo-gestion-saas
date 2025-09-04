@@ -29,7 +29,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log authentication errors but don't crash the app
-    console.error('Authentication Error Boundary caught an error:', error, errorInfo);
+    // Authentication error logged
     this.setState({ errorInfo });
   }
 

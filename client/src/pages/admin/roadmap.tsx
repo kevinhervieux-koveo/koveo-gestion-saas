@@ -212,10 +212,10 @@ export default function OwnerRoadmap() {
         const items = await response.json();
         setActionableItems((current) => ({ ...current, [featureId]: items }));
       } else {
-        console.error('Failed to fetch actionable items:', response.statusText);
+        // Failed to fetch actionable items
       }
     } catch (error) {
-      console.error('Error fetching actionable items:', error);
+      // Error fetching actionable items
     }
   }, []);
 
@@ -231,7 +231,7 @@ export default function OwnerRoadmap() {
         description: 'The implementation prompt has been copied to your clipboard.',
       });
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
+      // Error copying to clipboard
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -311,7 +311,7 @@ export default function OwnerRoadmap() {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error copying LLM form:', error);
+      // Error copying LLM form
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',

@@ -477,16 +477,7 @@ export default function CommonSpacesPage() {
       const [endHour, endMinute] = data.endTime.split(':').map(Number);
       endDateTime.setHours(endHour, endMinute, 0, 0);
 
-      // Log for debugging
-      console.log('Booking creation debug:', {
-        originalDate: data.date,
-        baseDate: baseDate,
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        startTimeISO: startDateTime.toISOString(),
-        endTimeISO: endDateTime.toISOString(),
-        now: new Date().toISOString(),
-      });
+      // Booking creation handling
 
       return apiRequest('POST', `/api/common-spaces/${selectedSpace.id}/bookings`, {
         start_time: startDateTime.toISOString(),

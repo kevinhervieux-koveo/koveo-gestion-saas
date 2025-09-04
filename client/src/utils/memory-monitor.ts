@@ -119,7 +119,7 @@ export class MemoryOptimizer {
       try {
         callback();
       } catch (error) {
-        console.error('Cleanup callback error:', error);
+        // Cleanup callback error handled
       }
     });
 

@@ -142,7 +142,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
         throw new Error('Failed to submit trial request');
       }
     } catch (error) {
-      console.error('Error submitting trial request:', error);
+      // Error submitting trial request
       toast({
         variant: 'destructive',
         title: 'Erreur lors de l\'envoi',

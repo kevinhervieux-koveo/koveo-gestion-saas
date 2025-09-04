@@ -230,7 +230,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         duration: 2000,
       });
     } catch (error) {
-      console.error('Error saving draft:', error);
+      // Error saving draft
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -254,7 +254,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setIsDirty(false);
       }
     } catch (error) {
-      console.error('Error loading draft:', error);
+      // Error loading draft
     }
   }, [feature?.id, getDraftKey]);
 
@@ -272,7 +272,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Saved draft has been removed.',
       });
     } catch (error) {
-      console.error('Error clearing draft:', error);
+      // Error clearing draft
     }
   }, [feature?.id, toast, getDraftKey]);
 

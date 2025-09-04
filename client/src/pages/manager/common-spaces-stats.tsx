@@ -331,7 +331,7 @@ function CommonSpacesStatsPage() {
         },
       });
     } catch (error) {
-      console.error('Error creating/updating space:', error);
+      // Error creating/updating space
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: isEditMode
@@ -346,7 +346,7 @@ function CommonSpacesStatsPage() {
     }
     },
     onError: (error: any) => {
-      console.error('Error creating/updating space:', error);
+      // Error processing request
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: 'An error occurred while processing the request.',
@@ -414,7 +414,7 @@ function CommonSpacesStatsPage() {
       setTimeLimitDialogOpen(false);
     },
     onError: (error: any) => {
-      console.error('Error setting time limit:', error);
+      // Error setting time limit
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description:
@@ -1331,7 +1331,7 @@ function CommonSpacesStatsPage() {
                     buildingId={selectedBuildingId}
                     showControls={true}
                     onEventClick={(event) => {
-                      console.log('Manager viewing building event:', event);
+                      // Manager viewing building event
                     }}
                     data-testid='manager-building-calendar-view'
                   />

@@ -33,7 +33,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// Checkbox component import removed (unused)
 import { UserPlus, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

@@ -72,7 +72,7 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
       } catch (error) {
         attempts++;
         if (attempts >= retryAttempts) {
-          console.error(
+          // Error loading component:
             `Failed to load component ${_key} after ${retryAttempts} attempts:`,
             error
           );
