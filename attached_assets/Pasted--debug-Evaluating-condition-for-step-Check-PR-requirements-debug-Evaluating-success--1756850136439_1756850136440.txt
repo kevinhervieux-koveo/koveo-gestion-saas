@@ -1,0 +1,203 @@
+##[debug]Evaluating condition for step: 'Check PR requirements'
+##[debug]Evaluating: success()
+##[debug]Evaluating success:
+##[debug]=> true
+##[debug]Result: true
+##[debug]Starting: Check PR requirements
+##[debug]Loading inputs
+##[debug]Evaluating: secrets.GITHUB_TOKEN
+##[debug]Evaluating Index:
+##[debug]..Evaluating secrets:
+##[debug]..=> Object
+##[debug]..Evaluating String:
+##[debug]..=> 'GITHUB_TOKEN'
+##[debug]=> '***'
+##[debug]Result: '***'
+##[debug]Evaluating: (runner.debug == '1')
+##[debug]Evaluating Equal:
+##[debug]..Evaluating Index:
+##[debug]....Evaluating runner:
+##[debug]....=> Object
+##[debug]....Evaluating String:
+##[debug]....=> 'debug'
+##[debug]..=> '1'
+##[debug]..Evaluating String:
+##[debug]..=> '1'
+##[debug]=> true
+##[debug]Expanded: ('1' == '1')
+##[debug]Result: true
+##[debug]Loading env
+Run actions/github-script@v7
+🔍 Checking PR requirements...
+request {
+  method: 'GET',
+  baseUrl: 'https://api.github.com',
+  headers: {
+    accept: 'application/vnd.github.v3+json',
+    'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.4 (linux; x64)'
+  },
+  mediaType: { format: '', previews: [] },
+  request: {
+    agent: Agent {
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object: null prototype],
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype] {},
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 0,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    fetch: [Function: proxyFetch],
+    hook: [Function: bound bound register]
+  },
+  url: '/repos/{owner}/{repo}/pulls/{pull_number}/files',
+  owner: 'kevinhervieux-koveo',
+  repo: 'koveo-gestion-saas',
+  pull_number: 6
+}
+GET /repos/kevinhervieux-koveo/koveo-gestion-saas/pulls/6/files - 200 in 347ms
+request {
+  method: 'POST',
+  baseUrl: 'https://api.github.com',
+  headers: {
+    accept: 'application/vnd.github.v3+json',
+    'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.4 (linux; x64)'
+  },
+  mediaType: { format: '', previews: [] },
+  request: {
+    agent: Agent {
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object: null prototype],
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype] {},
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 0,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    fetch: [Function: proxyFetch],
+    hook: [Function: bound bound register]
+  },
+  url: '/repos/{owner}/{repo}/issues/{issue_number}/comments',
+  issue_number: 6,
+  owner: 'kevinhervieux-koveo',
+  repo: 'koveo-gestion-saas',
+  body: '## 🔍 Code Review Requirements Check\n' +
+    '\n' +
+    '✅ **All mandatory requirements met**\n' +
+    '\n' +
+    '⚠️  **Warnings and recommendations:**\n' +
+    '- ⚠️  Large PR with 30 files - consider breaking into smaller PRs\n' +
+    '- 🔒 Security-related changes detected - mandatory security review required\n' +
+    '\n' +
+    '### Review Checklist for Reviewers\n' +
+    '\n' +
+    '**Mandatory checks:**\n' +
+    '- [ ] Code follows TypeScript and project conventions\n' +
+    '- [ ] All tests pass and coverage is adequate\n' +
+    '- [ ] Changes are well-documented (JSDoc for public APIs)\n' +
+    '- [ ] No security vulnerabilities introduced\n' +
+    '- [ ] Quebec compliance maintained (bilingual, accessibility)\n' +
+    '- [ ] Database changes are safe and backward-compatible\n' +
+    '\n' +
+    '**Additional checks:**\n' +
+    '- [ ] Performance impact considered\n' +
+    '- [ ] Error handling is comprehensive\n' +
+    '- [ ] Code is maintainable and follows SOLID principles\n' +
+    '- [ ] Changes align with project architecture\n' +
+    '\n' +
+    '**Security Review Required:**\n' +
+    '- [ ] Authentication changes are secure\n' +
+    '- [ ] No sensitive data exposed\n' +
+    '- [ ] Proper authorization checks\n' +
+    '- [ ] Quebec Law 25 compliance maintained\n' +
+    '\n' +
+    '---\n' +
+    '*This check is automated. All mandatory requirements must be met before merge.*'
+}
+POST /repos/kevinhervieux-koveo/koveo-gestion-saas/issues/6/comments - 403 in 133ms
+RequestError [HttpError]: Resource not accessible by integration
+    at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:9537:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (eval at callAsyncFunction (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35424:16), <anonymous>:131:1)
+    at async main (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35522:20) {
+  status: 403,
+  response: {
+    url: 'https://api.github.com/repos/kevinhervieux-koveo/koveo-gestion-saas/issues/6/comments',
+    status: 403,
+    headers: {
+      'access-control-allow-origin': '*',
+      'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset',
+      'content-encoding': 'gzip',
+      'content-security-policy': "default-src 'none'",
+      'content-type': 'application/json; charset=utf-8',
+      date: 'Tue, 02 Sep 2025 21:55:06 GMT',
+      'referrer-policy': 'origin-when-cross-origin, strict-origin-when-cross-origin',
+      server: 'github.com',
+      'strict-transport-security': 'max-age=31536000; includeSubdomains; preload',
+      'transfer-encoding': 'chunked',
+      vary: 'Accept-Encoding, Accept, X-Requested-With',
+      'x-accepted-github-permissions': 'issues=write; pull_requests=write',
+      'x-content-type-options': 'nosniff',
+      'x-frame-options': 'deny',
+      'x-github-api-version-selected': '2022-11-28',
+      'x-github-media-type': 'github.v3; format=json',
+      'x-github-request-id': 'D431:1912D0:BF712:2B1542:68B767BA',
+      'x-ratelimit-limit': '5000',
+      'x-ratelimit-remaining': '4974',
+      'x-ratelimit-reset': '1756852178',
+      'x-ratelimit-resource': 'core',
+      'x-ratelimit-used': '26',
+      'x-xss-protection': '0'
+    },
+    data: {
+      message: 'Resource not accessible by integration',
+      documentation_url: 'https://docs.github.com/rest/issues/comments#create-an-issue-comment',
+      status: '403'
+    }
+  },
+  request: {
+    method: 'POST',
+    url: 'https://api.github.com/repos/kevinhervieux-koveo/koveo-gestion-saas/issues/6/comments',
+    headers: {
+      accept: 'application/vnd.github.v3+json',
+      'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.4 (linux; x64)',
+      authorization: 'token [REDACTED]',
+      'content-type': 'application/json; charset=utf-8'
+    },
+    body: '{"body":"## 🔍 Code Review Requirements Check\\n\\n✅ **All mandatory requirements met**\\n\\n⚠️  **Warnings and recommendations:**\\n- ⚠️  Large PR with 30 files - consider breaking into smaller PRs\\n- 🔒 Security-related changes detected - mandatory security review required\\n\\n### Review Checklist for Reviewers\\n\\n**Mandatory checks:**\\n- [ ] Code follows TypeScript and project conventions\\n- [ ] All tests pass and coverage is adequate\\n- [ ] Changes are well-documented (JSDoc for public APIs)\\n- [ ] No security vulnerabilities introduced\\n- [ ] Quebec compliance maintained (bilingual, accessibility)\\n- [ ] Database changes are safe and backward-compatible\\n\\n**Additional checks:**\\n- [ ] Performance impact considered\\n- [ ] Error handling is comprehensive\\n- [ ] Code is maintainable and follows SOLID principles\\n- [ ] Changes align with project architecture\\n\\n**Security Review Required:**\\n- [ ] Authentication changes are secure\\n- [ ] No sensitive data exposed\\n- [ ] Proper authorization checks\\n- [ ] Quebec Law 25 compliance maintained\\n\\n---\\n*This check is automated. All mandatory requirements must be met before merge.*"}',
+    request: {
+      agent: [Agent],
+      fetch: [Function: proxyFetch],
+      hook: [Function: bound bound register]
+    }
+  }
+}
+Error: Unhandled error: HttpError: Resource not accessible by integration
+##[debug]Node Action run completed with exit code 1
+##[debug]Finishing: Check PR requirements

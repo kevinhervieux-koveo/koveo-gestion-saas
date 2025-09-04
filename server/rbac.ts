@@ -18,7 +18,7 @@ import { db } from './db';
  * @property {string} email - User's email address.
  * @property {string} firstName - User's first name.
  * @property {string} lastName - User's last name.
- * @property {'admin' | 'manager' | 'tenant' | 'resident'} role - User's primary role in the system.
+ * @property {'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident'} role - User's primary role in the system.
  * @property {boolean} isActive - Whether the user account is active.
  * @property {string[]} [organizations] - Array of organization IDs the user can access.
  * @property {boolean} [canAccessAllOrganizations] - Whether user has global organization access (Koveo org).
@@ -29,7 +29,7 @@ export interface AuthenticatedUser {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'manager' | 'tenant' | 'resident';
+  role: 'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident';
   isActive: boolean;
   organizations?: string[];
   canAccessAllOrganizations?: boolean;
@@ -75,7 +75,6 @@ export interface AccessContext {
  * @example
  * ```typescript
  * const orgIds = await getUserAccessibleOrganizations('user-uuid');
- * console.warn(orgIds); // ['demo-org-id', 'user-org-id', ...]
  * ```
  */
 /**
@@ -85,7 +84,6 @@ export interface AccessContext {
  */
 export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
   try {
-    console.warn('Getting accessible organizations for user:', userId);
 
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
@@ -93,26 +91,14 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
         eq(schema.userOrganizations.userId, userId),
         eq(schema.userOrganizations.isActive, true)
       ),
-      with: {
-        organization: true,
-      },
     });
 
-    console.warn(
-      'User organizations found:',
-      userOrgs.map((uo) => ({
-        orgId: uo.organizationId,
-        orgName: uo.organization?.name,
-        canAccessAll: uo.canAccessAllOrganizations,
-      }))
-    );
 
     // Get Demo organization ID (always accessible)
     const demoOrg = await db.query.organizations.findFirst({
       where: eq(schema.organizations.name, 'Demo'),
     });
 
-    console.warn('Demo org found:', demoOrg?.id);
 
     const accessibleOrgIds = new Set<string>();
 
@@ -123,29 +109,34 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
 
     // Check each user organization membership
     for (const userOrg of userOrgs) {
-      if (
-        userOrg.canAccessAllOrganizations ||
-        userOrg.organization?.name?.toLowerCase() === 'koveo'
-      ) {
-        console.warn('User has full access - adding all organizations');
-        // User can access all organizations (Koveo organization case or explicit flag)
+      if (userOrg.canAccessAllOrganizations) {
+        // User can access all organizations
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true),
         });
-        console.warn(
-          'All organizations found:',
-          allOrgs.map((o) => ({ id: o.id, name: o.name }))
-        );
         allOrgs.forEach((org) => accessibleOrgIds.add(org.id));
         break;
       } else {
-        // User can access their own organization
-        accessibleOrgIds.add(userOrg.organizationId);
+        // Check if this is the Koveo organization (also grants global access)
+        const org = await db.query.organizations.findFirst({
+          where: eq(schema.organizations.id, userOrg.organizationId),
+        });
+        
+        if (org && org.name && org.name.toLowerCase() === 'koveo') {
+          // Koveo organization grants access to all
+          const allOrgs = await db.query.organizations.findMany({
+            where: eq(schema.organizations.isActive, true),
+          });
+          allOrgs.forEach((allOrg) => accessibleOrgIds.add(allOrg.id));
+          break;
+        } else {
+          // User can access their own organization
+          accessibleOrgIds.add(userOrg.organizationId);
+        }
       }
     }
 
     const result = Array.from(accessibleOrgIds);
-    console.warn('Final accessible org IDs:', result);
     return result;
   } catch (error) {
     console.error('Error getting user accessible organizations:', error);
@@ -164,7 +155,6 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
  * @example
  * ```typescript
  * const residenceIds = await getUserAccessibleResidences('tenant-user-uuid');
- * console.warn(residenceIds); // ['residence-uuid-1', 'residence-uuid-2']
  * ```
  */
 /**
@@ -216,8 +206,8 @@ export async function isOpenDemoUser(userId: string): Promise<boolean> {
     });
 
     return !!userOrg;
-  } catch (_error) {
-    console.error('Error checking if user is Open Demo user:', _error);
+  } catch (error) {
+    console.error('Error checking open demo user:', error);
     return false;
   }
 }
@@ -247,7 +237,6 @@ export async function canUserPerformWriteOperation(
   // Check if user is from Open Demo organization (view-only)
   const isOpenDemo = await isOpenDemoUser(userId);
   if (isOpenDemo) {
-    console.warn(`Open Demo user ${userId} attempted restricted action: ${action}`);
     return false; // Open Demo users cannot perform any write operations
   }
 
@@ -318,8 +307,8 @@ export async function canUserAccessBuilding(userId: string, buildingId: string):
     }
 
     return await canUserAccessOrganization(userId, building.organizationId);
-  } catch (_error) {
-    console.error('Error checking building access:', _error);
+  } catch (error) {
+    console.error('Error checking building access:', error);
     return false;
   }
 }
@@ -361,26 +350,32 @@ export async function canUserAccessResidence(
     }
 
     // Admins and managers can access any residence in their accessible organizations
-    if (['admin', 'manager'].includes(user.role)) {
+    if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
       const residence = await db.query.residences.findFirst({
         where: eq(schema.residences.id, residenceId),
-        with: {
-          building: true,
-        },
       });
 
       if (!residence) {
         return false;
       }
 
-      return await canUserAccessOrganization(userId, residence.building?.organizationId || '');
+      // Get the building to find the organization
+      const building = await db.query.buildings.findFirst({
+        where: eq(schema.buildings.id, residence.buildingId),
+      });
+
+      if (!building) {
+        return false;
+      }
+
+      return await canUserAccessOrganization(userId, building.organizationId);
     }
 
     // Tenants/residents can only access their own residences
     const accessibleResidences = await getUserAccessibleResidences(userId);
     return accessibleResidences.includes(residenceId);
-  } catch (_error) {
-    console.error('Error checking residence access:', _error);
+  } catch (error) {
+    console.error('Error checking residence access:', error);
     return false;
   }
 }
@@ -423,8 +418,8 @@ export function requireOrganizationAccess(param: string = 'organizationId') {
       }
 
       next();
-    } catch (_error) {
-      console.error('Organization access check _error:', _error);
+    } catch (error) {
+      console.error('Error checking organization access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -471,8 +466,8 @@ export function requireBuildingAccess(param: string = 'buildingId') {
       }
 
       next();
-    } catch (_error) {
-      console.error('Building access check _error:', _error);
+    } catch (error) {
+      console.error('Error checking building access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -519,8 +514,8 @@ export function requireResidenceAccess(param: string = 'residenceId') {
       }
 
       next();
-    } catch (_error) {
-      console.error('Residence access check _error:', _error);
+    } catch (error) {
+      console.error('Error checking residence access:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -585,7 +580,7 @@ export async function filterResidencesByAccess(userId: string, residences: any[]
   }
 
   // For admins/managers, filter by organization access
-  if (['admin', 'manager'].includes(user.role)) {
+  if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
 
     // Get all buildings in accessible organizations
@@ -651,7 +646,7 @@ export async function getResidenceFilter(userId: string) {
   }
 
   // For admins/managers, filter by organization access
-  if (['admin', 'manager'].includes(user.role)) {
+  if (['admin', 'manager', 'demo_manager'].includes(user.role)) {
     const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
 
     // Get all buildings in accessible organizations

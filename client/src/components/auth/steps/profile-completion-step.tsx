@@ -90,10 +90,13 @@ export function ProfileCompletionStep({
     const isValidPhone = !formData.phone || validatePhone(formData.phone);
     const isValid = hasRequiredFields && isValidPhone;
 
-    const updatedData = { ...formData, isValid };
-    onDataChange(updatedData);
-    onValidationChange(isValid);
-  }, [formData]); // Remove callbacks from dependency array to prevent infinite loop
+    // Only update if validation state actually changed
+    if (formData.isValid !== isValid) {
+      const updatedData = { ...formData, isValid };
+      onDataChange(updatedData);
+      onValidationChange(isValid);
+    }
+  }, [formData.firstName, formData.lastName, formData.language, formData.phone, formData.isValid]);
 
   const handleInputChange = (field: keyof ProfileCompletionData, _value: string) => {
     setFormData((prev) => ({

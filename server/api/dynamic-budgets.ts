@@ -45,7 +45,6 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     const endDate = `${endYearNum}-12-31`;
     const shouldForceRefresh = forceRefresh === 'true';
 
-    console.warn(
       `📊 Financial data request for building ${buildingId}, ${startDate} to ${endDate}`
     );
 
@@ -79,8 +78,6 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
         cached: !shouldForceRefresh,
       },
     });
-  } catch (_error) {
-    console.error('❌ Error getting dynamic financial _data:', _error);
     res.status(500).json({
       _error: 'Failed to get financial data',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -116,7 +113,6 @@ router.get('/summary', requireAuth, async (req, res) => {
     const startDate = `${yearNum}-01-01`;
     const endDate = `${yearNum}-12-31`;
 
-    console.warn(`📈 Summary request for ${ids.length} buildings, year ${yearNum}`);
 
     // Get data for all buildings concurrently
     const summaryPromises = ids.map(async (buildingId) => {
@@ -131,7 +127,6 @@ router.get('/summary', requireAuth, async (req, res) => {
           success: true,
           ...data.summary,
         };
-      } catch (_error) {
         return {
           buildingId: buildingId.trim(),
           success: false,
@@ -175,8 +170,6 @@ router.get('/summary', requireAuth, async (req, res) => {
         generatedAt: new Date().toISOString(),
       },
     });
-  } catch (_error) {
-    console.error('❌ Error getting financial summary:', _error);
     res.status(500).json({
       _error: 'Failed to get financial summary',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -202,8 +195,6 @@ router.delete(
         success: true,
         message: `Cache invalidated for building ${buildingId}`,
       });
-    } catch (_error) {
-      console.error('❌ Error invalidating cache:', _error);
       res.status(500).json({
         _error: 'Failed to invalidate cache',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -225,8 +216,6 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
       _data: stats,
       generatedAt: new Date().toISOString(),
     });
-  } catch (_error) {
-    console.error('❌ Error getting cache stats:', _error);
     res.status(500).json({
       _error: 'Failed to get cache statistics',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -252,8 +241,6 @@ router.post(
         success: true,
         message: `Cache refreshed for building ${buildingId}`,
       });
-    } catch (_error) {
-      console.error('❌ Error refreshing cache:', _error);
       res.status(500).json({
         _error: 'Failed to refresh cache',
         message: error instanceof Error ? error.message : 'Unknown error',

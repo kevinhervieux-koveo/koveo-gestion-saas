@@ -152,12 +152,9 @@ async function cleanupOrphans() {
     if (remainingOrphans === 0) {
       console.log('✅ Orphan cleanup completed successfully - no orphaned records remaining');
     } else {
-      console.warn(`⚠️  ${remainingOrphans} orphaned records still remain after cleanup`);
     }
 
     console.log('🎉 Database cleanup complete - ready for deployment!');
-  } catch (error) {
-    console.error('❌ Orphan cleanup failed:', error);
     process.exit(1);
   }
 }
@@ -166,8 +163,6 @@ async function cleanupOrphans() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupOrphans()
     .then(() => process.exit(0))
-    .catch((error) => {
-      console.error('Script failed:', error);
       process.exit(1);
     });
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,14 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Upload, Sparkles } from 'lucide-react';
+import { FileText, Upload, Sparkles, Paperclip } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
+import { FileUpload } from '@/components/ui/file-upload';
 
 // Unified form schema
 const billFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().min(1, 'Bill title is required (example: Monthly Electricity Bill)').max(200, 'Title must be less than 200 characters'),
+  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   category: z.enum([
     'insurance',
     'maintenance',
@@ -48,14 +49,22 @@ const billFormSchema = z.object({
     'reserves',
     'other',
   ]),
-  vendor: z.string().optional(),
+  vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
-  totalAmount: z.string().min(1, 'Amount is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().optional(),
+  totalAmount: z.string().min(1, 'Amount is required and must be a valid number (example: 1250.50)').refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Amount must be between $0.01 and $999,999.99 (example: 1250.50)'),
+  startDate: z.string().min(1, 'Start date is required (example: 2025-01-15)').refine((val) => {
+    return !isNaN(Date.parse(val));
+  }, 'Start date must be a valid date (example: 2025-01-15)'),
+  endDate: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, 'End date must be a valid date (example: 2025-12-31)'),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().optional(),
+  notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
 });
 
 /**
@@ -148,6 +157,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -316,7 +326,17 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
   const onSubmit = (values: BillFormData) => {
     submitMutation.mutate(values);
+    // TODO: Handle attached files upload after bill creation
   };
+
+  // Handle file attachments
+  const handleFilesSelect = useCallback((files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+  }, []);
+
+  const handleFileRemove = useCallback((fileIndex: number) => {
+    setAttachedFiles(prev => prev.filter((_, index) => index !== fileIndex));
+  }, []);
 
   const renderFormFields = () => (
     <>
@@ -554,6 +574,39 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           </FormItem>
         )}
       />
+
+      {/* File Attachments */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Paperclip className="w-4 h-4 text-gray-500" />
+          <label className="text-sm font-medium text-gray-700">
+            Attachments
+          </label>
+          <span className="text-xs text-gray-500">
+            (Optional - Screenshots, receipts, supporting documents)
+          </span>
+        </div>
+        <FileUpload
+          onFilesSelect={handleFilesSelect}
+          onFilesRemove={handleFileRemove}
+          maxFiles={5}
+          maxSize={10}
+          acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
+          allowPaste={true}
+          className="border border-gray-200 rounded-lg p-4"
+          data-testid="bill-file-upload"
+        >
+          <div className="text-center py-6">
+            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">
+              Drop files here, click to browse, or paste screenshots
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Attach receipts, screenshots, or supporting documents
+            </p>
+          </div>
+        </FileUpload>
+      </div>
     </>
   );
 

@@ -30,6 +30,7 @@ All pull requests must pass these automated checks before review:
 ### Code Quality
 
 **Look for:**
+
 - [ ] Code follows TypeScript best practices
 - [ ] SOLID principles are applied
 - [ ] Functions are single-responsibility and well-named
@@ -38,6 +39,7 @@ All pull requests must pass these automated checks before review:
 - [ ] Performance implications are considered
 
 **Red Flags:**
+
 - ❌ Functions over 50 lines
 - ❌ Cyclomatic complexity over 10
 - ❌ Hardcoded values that should be configurable
@@ -47,12 +49,14 @@ All pull requests must pass these automated checks before review:
 ### Quebec Compliance
 
 **Must verify:**
+
 - [ ] All user-facing text supports bilingual functionality
 - [ ] Accessibility standards (WCAG 2.1 AA) are met
 - [ ] Data handling complies with Quebec Law 25
 - [ ] Property management business rules align with Quebec regulations
 
 **Critical areas:**
+
 - 🇨🇦 Language switching functionality
 - ♿ Keyboard navigation and screen reader support
 - 🔐 Personal data collection and storage practices
@@ -61,6 +65,7 @@ All pull requests must pass these automated checks before review:
 ### Security Review
 
 **Security checklist:**
+
 - [ ] Input validation and sanitization
 - [ ] Proper authentication and authorization
 - [ ] No sensitive data in client-side code
@@ -70,6 +75,7 @@ All pull requests must pass these automated checks before review:
 - [ ] Secure session management
 
 **High-risk areas:**
+
 - 🔒 Authentication endpoints
 - 💳 Payment processing
 - 📊 Database queries
@@ -79,12 +85,14 @@ All pull requests must pass these automated checks before review:
 ### Testing Requirements
 
 **Test coverage:**
+
 - [ ] Critical business logic: 100% coverage
 - [ ] API endpoints: 95% coverage
 - [ ] UI components: 85% coverage
 - [ ] Utility functions: 90% coverage
 
 **Test types required:**
+
 - 🧪 Unit tests for business logic
 - 🔗 Integration tests for API endpoints
 - 🎭 End-to-end tests for user workflows
@@ -94,21 +102,25 @@ All pull requests must pass these automated checks before review:
 ## Review Types
 
 ### Standard Review
+
 - Code changes without security or compliance impact
 - Requires: 1 codeowner approval
 - Timeline: 24-48 hours
 
 ### Security Review
+
 - Changes to authentication, authorization, or data handling
 - Requires: Security team + tech lead approval
 - Timeline: 48-72 hours
 
 ### Compliance Review
+
 - Changes affecting Quebec regulations or accessibility
 - Requires: Compliance officer + legal team approval
 - Timeline: 3-5 days
 
 ### Database Review
+
 - Schema changes or migration scripts
 - Requires: Database admin + tech lead approval
 - Timeline: 24-48 hours
@@ -121,11 +133,11 @@ Configure these settings in GitHub:
 protection_rules:
   main:
     required_status_checks:
-      - "Static Analysis"
-      - "Testing Suite"
-      - "Quality Analysis"
-      - "Quebec Compliance"
-      - "Build Validation"
+      - 'Static Analysis'
+      - 'Testing Suite'
+      - 'Quality Analysis'
+      - 'Quebec Compliance'
+      - 'Build Validation'
     enforce_admins: true
     required_pull_request_reviews:
       required_approving_review_count: 1
@@ -139,21 +151,25 @@ protection_rules:
 ## Common Review Comments
 
 ### Code Structure
+
 - "Consider extracting this logic into a separate function"
 - "This function has high complexity - can it be simplified?"
 - "Add JSDoc documentation for this public API"
 
 ### Quebec Compliance
+
 - "This text needs bilingual support - use the language hook"
 - "Add ARIA labels for accessibility compliance"
 - "Ensure this data handling complies with Law 25"
 
 ### Security
+
 - "This input needs validation and sanitization"
 - "Don't log sensitive information"
 - "Use environment variables for this configuration"
 
 ### Testing
+
 - "Add test coverage for this edge case"
 - "This integration test needs error scenario coverage"
 - "Mock external dependencies in unit tests"
@@ -161,12 +177,14 @@ protection_rules:
 ## Performance Guidelines
 
 ### Critical Metrics
+
 - Initial page load: <3 seconds
 - Time to interactive: <5 seconds
 - Largest contentful paint: <2.5 seconds
 - Bundle size increase: <10% per PR
 
 ### Optimization Checklist
+
 - [ ] Images are optimized and responsive
 - [ ] Code splitting is implemented for large features
 - [ ] Database queries are optimized with indexes
@@ -176,12 +194,14 @@ protection_rules:
 ## Documentation Requirements
 
 ### Required Documentation
+
 - [ ] JSDoc for all exported functions and classes
 - [ ] README updates for new features
 - [ ] API documentation for new endpoints
 - [ ] Migration guides for breaking changes
 
 ### Quebec-Specific Documentation
+
 - [ ] Bilingual user documentation
 - [ ] Compliance requirement explanations
 - [ ] Property management workflow descriptions
@@ -189,17 +209,20 @@ protection_rules:
 ## Escalation Process
 
 ### Blocked Reviews
+
 1. Tag the appropriate team lead
 2. Schedule review meeting if needed
 3. Escalate to architecture review for complex decisions
 
 ### Disagreements
+
 1. Discuss in PR comments first
 2. Schedule synchronous discussion
 3. Involve tech lead for final decision
 4. Document decision rationale
 
 ### Emergency Fixes
+
 - Require 2 tech lead approvals
 - Must include rollback plan
 - Post-incident review required
@@ -207,6 +230,7 @@ protection_rules:
 ## Tools and Resources
 
 ### Automated Tools
+
 - ESLint for code quality
 - Prettier for code formatting
 - Jest for testing
@@ -214,12 +238,14 @@ protection_rules:
 - GitHub Actions for CI/CD
 
 ### Manual Review Tools
+
 - GitHub PR interface
 - Browser dev tools for frontend testing
 - Database query analyzers
 - Accessibility testing tools
 
 ### Reference Materials
+
 - [Branch Protection Setup Guide](./BRANCH_PROTECTION_SETUP.md)
 - [Quality System Overview](./QUALITY_SYSTEM_OVERVIEW.md)
 - [RBAC System Documentation](./RBAC_SYSTEM.md)
@@ -227,5 +253,4 @@ protection_rules:
 
 ---
 
-*This guide is a living document. Update it as the team learns and the project evolves.*
-
+_This guide is a living document. Update it as the team learns and the project evolves._

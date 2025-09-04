@@ -1,0 +1,206 @@
+index-pPa8jt1U.js:413  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-pPa8jt1U.js:413
+d @ index-pPa8jt1U.js:280
+_ @ index-pPa8jt1U.js:280
+start @ index-pPa8jt1U.js:280
+fetch @ index-pPa8jt1U.js:280
+#d @ index-pPa8jt1U.js:280
+onSubscribe @ index-pPa8jt1U.js:280
+subscribe @ index-pPa8jt1U.js:280
+(anonymous) @ index-pPa8jt1U.js:293
+Gy @ index-pPa8jt1U.js:152
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+be @ index-pPa8jt1U.js:77
+ds @ index-pPa8jt1U.js:182
+jg @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+na @ index-pPa8jt1U.js:195
+Jg @ index-pPa8jt1U.js:195
+Sv @ index-pPa8jt1U.js:195
+hs @ index-pPa8jt1U.js:195
+Dv @ index-pPa8jt1U.js:217
+gs @ index-pPa8jt1U.js:217
+vv @ index-pPa8jt1U.js:195
+Uf @ index-pPa8jt1U.js:195
+lv @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<u_>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+tk @ index-pPa8jt1U.js:417
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<tk>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+(anonymous) @ index-pPa8jt1U.js:417
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+login:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input class=​"flex w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:​border-0 file:​bg-transparent file:​text-sm file:​font-medium file:​text-foreground placeholder:​text-muted-foreground focus-visible:​outline-none focus-visible:​ring-2 focus-visible:​ring-ring focus-visible:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 md:​text-sm h-11 pr-10" placeholder=​"Votre mot de passe" data-testid=​"input-password" type=​"password" value name=​"password">​flex
+buildings-CrNkgnyo.js:1 Uncaught ReferenceError: error is not defined
+    at Re (buildings-CrNkgnyo.js:1:23942)
+    at Object.react_stack_bottom_frame (index-pPa8jt1U.js:261:12449)
+    at Hd (index-pPa8jt1U.js:152:806)
+    at hf (index-pPa8jt1U.js:173:5840)
+    at xf (index-pPa8jt1U.js:182:10144)
+    at be (index-pPa8jt1U.js:77:109)
+    at mv (index-pPa8jt1U.js:195:29869)
+    at fv (index-pPa8jt1U.js:195:28535)
+    at zf (index-pPa8jt1U.js:195:28368)
+    at sv (index-pPa8jt1U.js:195:24856)
+Re @ buildings-CrNkgnyo.js:1
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Dv @ index-pPa8jt1U.js:217
+gs @ index-pPa8jt1U.js:217
+Hf @ index-pPa8jt1U.js:217
+(anonymous) @ index-pPa8jt1U.js:217
+<...>
+UA.r.createElement @ index-pPa8jt1U.js:22
+uw @ index-pPa8jt1U.js:280
+Se @ index-pPa8jt1U.js:280
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+t1 @ index-pPa8jt1U.js:195
+e1 @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<Se>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+ek @ index-pPa8jt1U.js:417
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Dv @ index-pPa8jt1U.js:217
+gs @ index-pPa8jt1U.js:217
+Hf @ index-pPa8jt1U.js:217
+(anonymous) @ index-pPa8jt1U.js:217
+<ek>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+tk @ index-pPa8jt1U.js:417
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<tk>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+(anonymous) @ index-pPa8jt1U.js:417
+index-pPa8jt1U.js:159 An error occurred in the <Re> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+overrideMethod @ hook.js:608
+vg @ index-pPa8jt1U.js:159
+fu @ index-pPa8jt1U.js:173
+be @ index-pPa8jt1U.js:77
+n.callback @ index-pPa8jt1U.js:173
+Hy @ index-pPa8jt1U.js:139
+Vy @ index-pPa8jt1U.js:139
+be @ index-pPa8jt1U.js:77
+Gg @ index-pPa8jt1U.js:195
+gv @ index-pPa8jt1U.js:195
+Uf @ index-pPa8jt1U.js:195
+lv @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Dv @ index-pPa8jt1U.js:217
+gs @ index-pPa8jt1U.js:217
+Hf @ index-pPa8jt1U.js:217
+(anonymous) @ index-pPa8jt1U.js:217
+<...>
+UA.r.createElement @ index-pPa8jt1U.js:22
+uw @ index-pPa8jt1U.js:280
+Se @ index-pPa8jt1U.js:280
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+t1 @ index-pPa8jt1U.js:195
+e1 @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<Se>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+ek @ index-pPa8jt1U.js:417
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Dv @ index-pPa8jt1U.js:217
+gs @ index-pPa8jt1U.js:217
+Hf @ index-pPa8jt1U.js:217
+(anonymous) @ index-pPa8jt1U.js:217
+<ek>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+tk @ index-pPa8jt1U.js:417
+react_stack_bottom_frame @ index-pPa8jt1U.js:261
+Hd @ index-pPa8jt1U.js:152
+hf @ index-pPa8jt1U.js:173
+xf @ index-pPa8jt1U.js:182
+be @ index-pPa8jt1U.js:77
+mv @ index-pPa8jt1U.js:195
+fv @ index-pPa8jt1U.js:195
+zf @ index-pPa8jt1U.js:195
+sv @ index-pPa8jt1U.js:195
+Cv @ index-pPa8jt1U.js:217
+r @ index-pPa8jt1U.js:43
+<tk>
+LA.Tc.jsxDEV @ index-pPa8jt1U.js:35
+(anonymous) @ index-pPa8jt1U.js:417

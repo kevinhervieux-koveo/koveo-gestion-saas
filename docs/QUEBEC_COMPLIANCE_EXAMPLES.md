@@ -14,6 +14,7 @@ This guide provides comprehensive code examples for implementing Quebec-specific
 ## Address and Postal Code Validation
 
 ### Canadian Postal Code Validation
+
 ```typescript
 // lib/validation/quebec-validators.ts
 import { z } from 'zod';
@@ -193,6 +194,7 @@ export function QuebecAddressForm() {
 ## Bilingual Form Implementation
 
 ### Language Context and Form Labels
+
 ```typescript
 // contexts/LanguageContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -548,6 +550,7 @@ export function BilingualUserForm() {
 ## Law 25 Privacy Compliance
 
 ### Data Collection Consent and User Rights
+
 ```typescript
 // components/privacy/PrivacyConsent.tsx
 import { useState } from 'react';
@@ -789,4 +792,3 @@ export function useDataRetention() {
 ```
 
 This guide provides comprehensive, production-ready code examples for Quebec compliance, ensuring your application meets all legal requirements while providing an excellent user experience in both French and English.
-

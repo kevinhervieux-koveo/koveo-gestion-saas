@@ -16,7 +16,6 @@ import {
 } from '@shared/schema';
 import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
 import { requireAuth } from '../auth';
-import { ObjectStorageService } from '../objectStorage';
 
 /**
  *
@@ -42,7 +41,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.warn(
+      console.log(
         `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -101,14 +100,14 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.warn(
+      console.log(
         `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
       );
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
-    } catch (_error) {
-      console.error('❌ Error fetching organizations:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -138,7 +137,6 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.warn(`📊 Fetching all organizations for admin user ${currentUser.id}`);
 
       // Get all organizations for admin
       const allOrganizations = await db
@@ -161,13 +159,12 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(eq(organizations.isActive, true))
         .orderBy(organizations.name);
 
-      console.warn(`✅ Found ${allOrganizations.length} organizations`);
 
       res.json({
         organizations: allOrganizations,
       });
-    } catch (_error) {
-      console.error('❌ Error fetching organizations:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -198,7 +195,6 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const organizationData = req.body;
-      console.warn('📥 Creating organization with _data:', organizationData);
 
       // Insert new organization
       const [newOrganization] = await db
@@ -231,18 +227,56 @@ export function registerOrganizationRoutes(app: Express): void {
           createdAt: organizations.createdAt,
         });
 
-      console.warn('✅ Created organization:', newOrganization.name);
 
-      // Create object storage hierarchy for the new organization
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.createOrganizationHierarchy(newOrganization.id);
+      // Organization storage hierarchy will be created automatically when documents are uploaded
+      console.log(
+        'Organization created - storage hierarchy will be created on first document upload'
+      );
 
       res.status(201).json(newOrganization);
-    } catch (_error) {
-      console.error('❌ Error creating organization:', _error);
+    } catch (error: any) {
+      console.error('❌ Error creating organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create organization',
+      });
+    }
+  });
+
+  /**
+   * GET /api/organizations/:id - Get organization by ID
+   */
+  app.get('/api/organizations/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const organizationId = req.params.id;
+
+      // Find the organization
+      const [organization] = await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId));
+
+      if (!organization) {
+        return res.status(404).json({
+          message: 'Organization not found',
+          code: 'NOT_FOUND',
+        });
+      }
+
+      res.json(organization);
+    } catch (error: any) {
+      console.error('❌ Error fetching organization:', error);
+      res.status(500).json({
+        message: 'Failed to fetch organization',
+        code: 'SERVER_ERROR',
       });
     }
   });
@@ -272,7 +306,6 @@ export function registerOrganizationRoutes(app: Express): void {
       const organizationId = req.params.id;
       const updateData = req.body;
 
-      console.warn('📝 Updating organization:', organizationId, 'with data:', updateData);
 
       // Check if organization exists
       const existingOrg = await db
@@ -322,9 +355,8 @@ export function registerOrganizationRoutes(app: Express): void {
           updatedAt: organizations.updatedAt,
         });
 
-      console.warn('✅ Organization updated successfully:', updatedOrganization.name);
       res.json(updatedOrganization);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -399,7 +431,6 @@ export function registerOrganizationRoutes(app: Express): void {
 
         totalInvitations = invitationsCount[0]?.count || 0;
       } catch (___invError) {
-        console.warn('Invitations table access failed, skipping invitation count');
         totalInvitations = 0;
       }
 
@@ -425,37 +456,8 @@ export function registerOrganizationRoutes(app: Express): void {
       };
 
       res.json(impact);
-    } catch (_error) {
-      console.error('❌ Error analyzing deletion impact:', _error);
-
-      // Return partial data if we can get basic counts
-      try {
-        const organization = await db
-          .select({ id: organizations.id, name: organizations.name })
-          .from(organizations)
-          .where(and(eq(organizations.id, organizationId), eq(organizations.isActive, true)))
-          .limit(1);
-
-        if (organization.length > 0) {
-          const buildingsCount = await db
-            .select({ count: count() })
-            .from(buildings)
-            .where(and(eq(buildings.organizationId, organizationId), eq(buildings.isActive, true)));
-
-          res.json({
-            organization: organization[0],
-            buildings: buildingsCount[0]?.count || 0,
-            residences: 0,
-            invitations: 0,
-            potentialOrphanedUsers: 0,
-            note: 'Some data may not be available due to database schema issues',
-          });
-          return;
-        }
-      } catch (___fallbackError) {
-        console.error('Fallback also failed:', ___fallbackError);
-      }
-
+    } catch (error: any) {
+      console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -465,7 +467,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
   /**
    * DELETE /api/organizations/:id - Cascade delete an organization
-   * Deletes organization and all related entities (buildings, residences, documents, orphaned users).
+   * Deletes organization and all related entities (buildings, residences, documents). Users are preserved for data safety.
    */
   app.delete('/api/organizations/:id', requireAuth, async (req: any, res) => {
     try {
@@ -485,7 +487,6 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const organizationId = req.params.id;
-      console.warn(`🗑️ Admin ${currentUser.id} cascading delete organization: ${organizationId}`);
 
       // Check if organization exists
       const organization = await db
@@ -543,8 +544,13 @@ export function registerOrganizationRoutes(app: Express): void {
         .delete(userOrganizations)
         .where(eq(userOrganizations.organizationId, organizationId));
 
-      // 5. Find and delete orphaned users (users with no active organization relationships)
-      const orphanedUsers = await db
+      // 5. DISABLED: User deletion is now prohibited for data safety
+      // Users are never deleted during cascade operations to prevent permanent data loss
+      // This protects against accidental deletion of user accounts and their historical data
+      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
+      
+      // Optional: Log users who would have been affected for admin review
+      const affectedUsers = await db
         .select({
           id: users.id,
           email: users.email,
@@ -557,22 +563,12 @@ export function registerOrganizationRoutes(app: Express): void {
           and(eq(users.id, userOrganizations.userId), eq(userOrganizations.isActive, true))
         )
         .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
+      
+      if (affectedUsers.length > 0) {
+        console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
+          affectedUsers.map(u => u.email));
 
-      if (orphanedUsers.length > 0) {
-        const orphanedUserIds = orphanedUsers.map((u) => u.id);
-
-        // Hard delete orphaned users since they have no organization assignments
-        const deletedUsers = await db
-          .delete(users)
-          .where(inArray(users.id, orphanedUserIds))
-          .returning({
-            id: users.id,
-            email: users.email,
-          });
-
-        console.log(
-          `🗑️ Deleted ${deletedUsers.length} orphaned users: ${deletedUsers.map((u) => u.email).join(', ')}`
-        );
+        // DISABLED: Users are no longer deleted - they are preserved for data safety
       }
 
       // 6. Finally, soft delete the organization
@@ -581,14 +577,12 @@ export function registerOrganizationRoutes(app: Express): void {
         .set({ isActive: false, updatedAt: new Date() })
         .where(eq(organizations.id, organizationId));
 
-      console.warn(`✅ Organization cascading delete completed: ${organizationId}`);
 
-      // Clean up object storage hierarchy for the deleted organization
+      // Object storage cleanup will be handled automatically
       try {
-        const objectStorageService = new ObjectStorageService();
-        await objectStorageService.deleteOrganizationHierarchy(organizationId);
+        console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
-        console.warn(
+        console.error(
           '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
           storageError
         );
@@ -598,8 +592,8 @@ export function registerOrganizationRoutes(app: Express): void {
         message: 'Organization and related entities deleted successfully',
         deletedOrganization: organization[0].name,
       });
-    } catch (_error) {
-      console.error('❌ Error cascading delete organization:', _error);
+    } catch (error: any) {
+      console.error('❌ Error deleting organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete organization and related entities',

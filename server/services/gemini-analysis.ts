@@ -41,7 +41,6 @@ interface AnalysisResult {
  * };
  * const context = await getDocumentationContext();
  * const analysis = await analyzeFeatureWithGemini(feature, _context);
- * console.warn(analysis.actionableItems.length); // Number of implementation steps
  * ```
  */
 /**
@@ -198,7 +197,6 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
 
       // Validate that we have multiple actionable items as required
       if (!analysis.actionableItems || analysis.actionableItems.length < 2) {
-        console.warn(
           `⚠️ AI analysis returned only ${analysis.actionableItems?.length || 0} actionable items, but should return 3-8 items`
         );
         throw new Error(
@@ -206,15 +204,12 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         );
       }
 
-      console.warn(
         `✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`
       );
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');
     }
-  } catch (____error) {
-    console.error('Error analyzing feature with Gemini:', _error);
     throw new Error(`Failed to analyze feature: ${_error}`);
   }
 }

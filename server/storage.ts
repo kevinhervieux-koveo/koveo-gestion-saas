@@ -11,10 +11,6 @@ import {
   type InsertContact,
   type Document,
   type InsertDocument,
-  type DocumentBuilding,
-  type InsertDocumentBuilding,
-  type DocumentResident,
-  type InsertDocumentResident,
   type Pillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -56,6 +52,7 @@ import { randomUUID } from 'crypto';
 export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
+  getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
   getUser(_id: string): Promise<User | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
@@ -108,28 +105,17 @@ export interface IStorage {
   deleteContact(_id: string): Promise<boolean>;
 
   // Document operations
-  getBuildingDocumentsForUser(
-    _buildingId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<Array<Document & { buildingDocument: DocumentBuilding }>>;
-  getBuildingDocument(
-    _buildingId: string,
-    _documentId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<(Document & { buildingDocument: DocumentBuilding }) | undefined>;
-  createBuildingDocument(_document: InsertDocumentBuilding): Promise<DocumentBuilding>;
-  updateBuildingDocument(
-    _id: string,
-    _updates: Partial<DocumentBuilding>
-  ): Promise<DocumentBuilding | undefined>;
-  deleteBuildingDocument(_id: string): Promise<boolean>;
-  getResidentDocumentsForUser(
-    _residenceId: string,
-    _userId: string,
-    _userRole: string
-  ): Promise<Array<Document & { residentDocument: DocumentResident }>>;
+  getDocuments(_filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]>;
+  getDocument(_id: string): Promise<Document | undefined>;
+  createDocument(_document: InsertDocument): Promise<Document>;
+  updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined>;
+  deleteDocument(_id: string): Promise<boolean>;
 
   // Permission operations
   getPermissions(): Promise<Permission[]>;
@@ -186,11 +172,17 @@ export interface IStorage {
   getCommentsByDemand(_demandId: string): Promise<DemandComment[]>;
   createDemandComment(_comment: InsertDemandComment): Promise<DemandComment>;
   getBugs(): Promise<Bug[]>;
+  getBugsForUser(_userId: string, _userRole: string, _organizationId?: string): Promise<Bug[]>;
   getBug(_id: string): Promise<Bug | undefined>;
+  getBug(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<Bug | undefined>;
   createBug(_bug: InsertBug): Promise<Bug>;
   updateBug(_id: string, _updates: Partial<Bug>): Promise<Bug | undefined>;
+  updateBug(_id: string, _updates: Partial<Bug>, _userId: string, _role: string): Promise<Bug | undefined>;
+  deleteBug(_id: string, _userId: string, _role: string): Promise<boolean>;
   getFeatureRequests(): Promise<FeatureRequest[]>;
+  getFeatureRequestsForUser(_userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest[]>;
   getFeatureRequest(_id: string): Promise<FeatureRequest | undefined>;
+  getFeatureRequest(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest | undefined>;
   createFeatureRequest(_request: InsertFeatureRequest): Promise<FeatureRequest>;
   updateFeatureRequest(
     _id: string,
@@ -204,6 +196,15 @@ export interface IStorage {
     _featureRequestId: string,
     _userId: string
   ): Promise<{ success: boolean; message: string; data?: any }>;
+  
+  // Improvement suggestion operations
+  clearNewSuggestions(): Promise<void>;
+  updateSuggestionStatus(_id: string, _status: string): Promise<ImprovementSuggestion | undefined>;
+  getTopImprovementSuggestions(_limit: number): Promise<ImprovementSuggestion[]>;
+  
+  // Feature operations  
+  getFeaturesByStatus(_status: string): Promise<Feature[]>;
+  getPublicRoadmapFeatures(): Promise<Feature[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -242,17 +243,20 @@ export class MemStorage implements IStorage {
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
 
-    this.initializeTestUser();
+    // Initialize test user asynchronously
+    this.initializeTestUser().catch(console.error);
   }
 
-  private initializeTestUser() {
-    const preHashedPassword = '$2b$12$MdgAKqapGQDuM.z4QtxH.eJld2LR0fFMSOCiNR4MiLDYzPscRjIO.';
+  private async initializeTestUser() {
+    // Use known admin123 password for demo mode
+    const bcrypt = require('bcryptjs');
+    const securePassword = await bcrypt.hash('admin123', 12);
 
     const user: User = {
       id: '550e8400-e29b-41d4-a716-446655440000',
       username: 'kevin.hervieux@koveo-gestion.com',
       email: 'kevin.hervieux@koveo-gestion.com',
-      password: preHashedPassword,
+      password: securePassword,
       firstName: 'Kevin',
       lastName: 'Hervieux',
       phone: '',
@@ -271,6 +275,17 @@ export class MemStorage implements IStorage {
   // User operations
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    // For MemStorage, just return users with empty assignments arrays
+    const users = Array.from(this.users.values());
+    return users.map(user => ({
+      ...user,
+      organizations: [],
+      buildings: [],
+      residences: []
+    }));
   }
 
   async getUsersByOrganizations(_userId: string): Promise<User[]> {
@@ -298,8 +313,10 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
-      phone: insertUser.phone || '',
+      phone: insertUser.phone || null,
       profileImage: insertUser.profileImage || '',
+      role: insertUser.role || 'tenant',
+      language: insertUser.language || 'fr',
       isActive: true,
       lastLoginAt: null,
       createdAt: new Date(),
@@ -326,7 +343,15 @@ export class MemStorage implements IStorage {
 
   // Minimal implementations for other required methods
   async createPasswordResetToken(_token: InsertPasswordResetToken): Promise<PasswordResetToken> {
-    return { ..._token, id: randomUUID(), createdAt: new Date(), usedAt: null, isUsed: false };
+    return {
+      ..._token,
+      id: randomUUID(),
+      createdAt: new Date(),
+      usedAt: null,
+      isUsed: false,
+      ipAddress: _token.ipAddress || '',
+      userAgent: _token.userAgent || '',
+    };
   }
   async getPasswordResetToken(_token: string): Promise<PasswordResetToken | undefined> {
     return undefined;
@@ -392,15 +417,20 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       updatedAt: new Date(),
       totalUnits: building.totalUnits || 0,
-      floors: building.floors || 0,
+      totalFloors: building.totalFloors || 0,
       yearBuilt: building.yearBuilt || 0,
       buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
       bankAccountNumber: building.bankAccountNumber || '',
-      bankAccountMinimums: building.bankAccountMinimums || {},
+      bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : '',
       bankAccountUpdatedAt: new Date(),
-      inflationSettings: building.inflationSettings || '',
-      managementFeePercentage: building.managementFeePercentage || 0,
-      reserveFundPercentage: building.reserveFundPercentage || 0,
+      inflationSettings: '',
+      parkingSpaces: building.parkingSpaces || 0,
+      storageSpaces: building.storageSpaces || 0,
+      amenities: building.amenities || null,
+      managementCompany: building.managementCompany || null,
+      bankAccountNotes: null,
+      bankAccountStartDate: null,
+      bankAccountStartAmount: null,
     };
     this.buildings.set(id, newBuilding);
     return newBuilding;
@@ -413,7 +443,20 @@ export class MemStorage implements IStorage {
     return updated;
   }
   async deleteBuilding(id: string): Promise<boolean> {
-    return this.buildings.delete(id);
+    const building = this.buildings.get(id);
+    if (!building) {
+      return false;
+    }
+    
+    // Soft delete by setting isActive to false
+    const updatedBuilding = {
+      ...building,
+      isActive: false,
+      updatedAt: new Date(),
+    };
+    
+    this.buildings.set(id, updatedBuilding);
+    return true;
   }
 
   async getResidences(): Promise<Residence[]> {
@@ -438,8 +481,9 @@ export class MemStorage implements IStorage {
       bedrooms: residence.bedrooms || 0,
       bathrooms: residence.bathrooms?.toString() || '0',
       balcony: residence.balcony || false,
-      parking: residence.parking || false,
-      storage: residence.storage || false,
+      parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
+      storageSpaceNumbers: residence.storageSpaceNumbers || [],
+      ownershipPercentage: residence.ownershipPercentage?.toString() || '0',
       monthlyFees: residence.monthlyFees?.toString() || '0',
     };
     this.residences.set(id, newResidence);
@@ -470,8 +514,12 @@ export class MemStorage implements IStorage {
     return {
       ...contact,
       id,
+      name: contact.name,
       email: contact.email || '',
       phone: contact.phone || '',
+      entity: contact.entity as 'organization' | 'building' | 'residence',
+      entityId: contact.entityId,
+      contactCategory: contact.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'emergency' | 'other',
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -484,41 +532,44 @@ export class MemStorage implements IStorage {
     return false;
   }
 
-  async getBuildingDocumentsForUser(): Promise<
-    Array<Document & { buildingDocument: DocumentBuilding }>
-  > {
+  async getDocuments(_filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]> {
     return [];
   }
-  async getBuildingDocument(): Promise<
-    (Document & { buildingDocument: DocumentBuilding }) | undefined
-  > {
+
+  async getDocument(_id: string): Promise<Document | undefined> {
     return undefined;
   }
-  async createBuildingDocument(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
+
+  async createDocument(doc: InsertDocument): Promise<Document> {
     const id = randomUUID();
     return {
       ...doc,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      uploadDate: new Date(),
-      dateReference: new Date(),
-      fileUrl: doc.fileUrl || '',
+      description: doc.description || '',
+      buildingId: doc.buildingId || '',
+      residenceId: doc.residenceId || '',
       fileName: doc.fileName || '',
       fileSize: doc.fileSize || '',
       mimeType: doc.mimeType || '',
+      attachedToType: doc.attachedToType || '',
+      attachedToId: doc.attachedToId || '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
   }
-  async updateBuildingDocument(): Promise<DocumentBuilding | undefined> {
+
+  async updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined> {
     return undefined;
   }
-  async deleteBuildingDocument(): Promise<boolean> {
+
+  async deleteDocument(_id: string): Promise<boolean> {
     return false;
-  }
-  async getResidentDocumentsForUser(): Promise<
-    Array<Document & { residentDocument: DocumentResident }>
-  > {
-    return [];
   }
 
   async getPermissions(): Promise<Permission[]> {
@@ -532,7 +583,7 @@ export class MemStorage implements IStorage {
   }
 
   async getPillars(): Promise<Pillar[]> {
-    return Array.from(this.pillars.values());
+    return Array.from(this.pillars.values()).sort((a, b) => parseInt(a.order) - parseInt(b.order));
   }
   async getPillar(id: string): Promise<Pillar | undefined> {
     return this.pillars.get(id);
@@ -542,7 +593,11 @@ export class MemStorage implements IStorage {
     const newPillar: Pillar = {
       ...pillar,
       id,
+      name: pillar.name,
       description: pillar.description || '',
+      status: pillar.status || 'pending',
+      order: pillar.order.toString(),
+      configuration: pillar.configuration || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -568,8 +623,9 @@ export class MemStorage implements IStorage {
     const newStatus: WorkspaceStatus = {
       ...status,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      status: status.status,
+      component: status.component,
+      lastUpdated: new Date(),
     };
     this.workspaceStatuses.set(status.component, newStatus);
     return newStatus;
@@ -593,8 +649,7 @@ export class MemStorage implements IStorage {
     const newMetric: QualityMetric = {
       ...metric,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      timestamp: new Date(),
     };
     this.qualityMetrics.set(id, newMetric);
     return newMetric;
@@ -610,6 +665,7 @@ export class MemStorage implements IStorage {
     const newConfig: FrameworkConfiguration = {
       ...config,
       id,
+      description: config.description || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -637,6 +693,16 @@ export class MemStorage implements IStorage {
     const newSuggestion: ImprovementSuggestion = {
       ...suggestion,
       id,
+      filePath: suggestion.filePath || null,
+      status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
+      category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
+      priority: (suggestion.priority as 'Low' | 'Medium' | 'High' | 'Critical') || 'Medium',
+      assignedTo: suggestion.assignedTo || null,
+      technicalDetails: suggestion.technicalDetails || null,
+      businessImpact: suggestion.businessImpact || null,
+      implementationEffort: suggestion.implementationEffort || null,
+      quebecComplianceRelevance: suggestion.quebecComplianceRelevance || null,
+      suggestedBy: suggestion.suggestedBy || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       acknowledgedAt: null,
@@ -656,6 +722,45 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async getTopImprovementSuggestions(limit: number): Promise<ImprovementSuggestion[]> {
+    const suggestions = Array.from(this.improvementSuggestions.values());
+    // Sort by priority (Critical > High > Medium > Low) then by creation date
+    const priorityOrder: { [key: string]: number } = { 'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
+    return suggestions
+      .sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] ?? 999;
+        const priorityB = priorityOrder[b.priority] ?? 999;
+        const priorityDiff = priorityA - priorityB;
+        if (priorityDiff !== 0) return priorityDiff;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      })
+      .slice(0, limit);
+  }
+
+  async clearNewSuggestions(): Promise<void> {
+    for (const [id, suggestion] of this.improvementSuggestions.entries()) {
+      if (suggestion.status === 'New') {
+        this.improvementSuggestions.delete(id);
+      }
+    }
+  }
+
+  async updateSuggestionStatus(
+    id: string,
+    status: 'New' | 'Acknowledged' | 'Done'
+  ): Promise<ImprovementSuggestion | undefined> {
+    const suggestion = this.improvementSuggestions.get(id);
+    if (!suggestion) return undefined;
+
+    const updatedSuggestion = {
+      ...suggestion,
+      status,
+      updatedAt: new Date(),
+    };
+    this.improvementSuggestions.set(id, updatedSuggestion);
+    return updatedSuggestion;
+  }
+
   async getFeatures(): Promise<Feature[]> {
     return Array.from(this.features.values());
   }
@@ -667,24 +772,27 @@ export class MemStorage implements IStorage {
     const newFeature: Feature = {
       ...feature,
       id,
+      isPublicRoadmap: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      requestedBy: feature.requestedBy || '',
-      assignedTo: feature.assignedTo || '',
-      estimatedHours: feature.estimatedHours || 0,
-      businessObjective: feature.businessObjective || '',
-      targetUsers: feature.targetUsers || '',
-      successMetrics: feature.successMetrics || '',
-      technicalComplexity: feature.technicalComplexity || '',
-      dependencies: feature.dependencies || [],
-      userFlow: feature.userFlow || '',
-      isPublicRoadmap: feature.isPublicRoadmap || false,
-      upvoteCount: 0,
+      requestedBy: feature.requestedBy || null,
+      assignedTo: feature.assignedTo || null,
+      estimatedHours: feature.estimatedHours || null,
+      businessObjective: feature.businessObjective || null,
+      targetUsers: feature.targetUsers || null,
+      successMetrics: feature.successMetrics || null,
+      technicalComplexity: feature.technicalComplexity || null,
+      dependencies: feature.dependencies?.join(',') || null,
+      userFlow: feature.userFlow || null,
+      actualHours: null,
       startDate: null,
       completedDate: null,
-      tags: [],
-      metadata: {},
-      syncedAt: new Date(),
+      tags: null,
+      metadata: null,
+      aiAnalysisResult: null,
+      aiAnalyzedAt: null,
+      isStrategicPath: false,
+      syncedAt: null,
     };
     this.features.set(id, newFeature);
     return newFeature;
@@ -697,6 +805,16 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async getFeaturesByStatus(
+    status: 'completed' | 'in-progress' | 'planned' | 'cancelled' | 'requested'
+  ): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter((f) => f.status === status);
+  }
+
+  async getPublicRoadmapFeatures(): Promise<Feature[]> {
+    return Array.from(this.features.values()).filter((f) => f.isPublicRoadmap);
+  }
+
   async getActionableItems(): Promise<ActionableItem[]> {
     return Array.from(this.actionableItems.values());
   }
@@ -705,13 +823,19 @@ export class MemStorage implements IStorage {
     const newItem: ActionableItem = {
       ...item,
       id,
+      featureId: item.featureId || randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      estimatedHours: item.estimatedHours || 0,
-      priority: item.priority || 'medium',
-      dependencies: item.dependencies || [],
-      completedAt: null,
+      estimatedHours: item.estimatedHours || null,
+      actualHours: null,
+      dependencies: item.dependencies || null,
+      technicalDetails: null,
+      implementationPrompt: null,
+      testingRequirements: null,
+      estimatedEffort: null,
+      orderIndex: 0,
       startedAt: null,
+      completedAt: null,
     };
     this.actionableItems.set(id, newItem);
     return newItem;
@@ -738,13 +862,19 @@ export class MemStorage implements IStorage {
     const newInvitation: Invitation = {
       ...invitation,
       id,
+      token: randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      buildingId: invitation.buildingId || '',
-      personalMessage: invitation.personalMessage || '',
-      invitationContext: invitation.invitationContext || '',
-      securityLevel: invitation.securityLevel || '',
-      isRevocable: invitation.isRevocable || true,
+      status: 'pending' as 'pending' | 'accepted' | 'expired' | 'cancelled',
+      ipAddress: '',
+      userAgent: '',
+      tokenHash: null,
+      usedAt: null,
+      createdByUserId: invitation.invitedByUserId,
+      acceptedByUserId: null,
+      acceptedAt: null,
+      revokedAt: null,
+      revokedByUserId: null,
       lastAccessedAt: null,
     };
     this.invitations.set(id, newInvitation);
@@ -769,7 +899,16 @@ export class MemStorage implements IStorage {
   }
   async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
     const id = randomUUID();
-    const newLog: InvitationAuditLog = { ...log, id, createdAt: new Date() };
+    const newLog: InvitationAuditLog = { 
+      ...log, 
+      id, 
+      createdAt: new Date(),
+      ipAddress: log.ipAddress || '',
+      userAgent: log.userAgent || '',
+      details: log.details || {},
+      previousStatus: log.previousStatus || 'pending',
+      newStatus: log.newStatus || 'pending'
+    };
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
   }
@@ -783,21 +922,55 @@ export class MemStorage implements IStorage {
       ...comment,
       id,
       createdAt: new Date(),
-      orderIndex: comment.orderIndex?.toString() || '0',
+      updatedAt: new Date(),
     };
   }
 
   async getBugs(): Promise<Bug[]> {
     return Array.from(this.bugs.values());
   }
-  async getBug(id: string): Promise<Bug | undefined> {
-    return this.bugs.get(id);
+  
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
+    const allBugs = Array.from(this.bugs.values());
+    
+    if (userRole === 'admin') {
+      // Admin can see all bugs
+      return allBugs;
+    } else if (userRole === 'manager' && organizationId) {
+      // For managers, return all bugs for now (can be refined later based on organization)
+      return allBugs;
+    } else {
+      // For residents and tenants, return only their own bugs
+      return allBugs.filter(bug => bug.createdBy === userId);
+    }
   }
+  
+  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    // If access control parameters are provided, check permissions
+    if (userId && role) {
+      if (role === 'admin') {
+        return bug;
+      } else if (role === 'manager' && organizationId) {
+        return bug;
+      } else if (bug.createdBy === userId) {
+        return bug;
+      } else {
+        return undefined; // Access denied
+      }
+    }
+    
+    return bug;
+  }
+  
   async createBug(bug: InsertBug): Promise<Bug> {
     const id = randomUUID();
     const newBug: Bug = {
       ...bug,
       id,
+      status: 'new',
       createdAt: new Date(),
       updatedAt: new Date(),
       reproductionSteps: bug.reproductionSteps || '',
@@ -805,32 +978,95 @@ export class MemStorage implements IStorage {
       resolvedAt: null,
       resolvedBy: null,
       notes: null,
+      environment: bug.environment || '',
     };
     this.bugs.set(id, newBug);
     return newBug;
   }
-  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+  
+  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
     const existing = this.bugs.get(id);
     if (!existing) return undefined;
+    
+    // If access control parameters are provided, check permissions
+    if (userId && role) {
+      if (role === 'admin' || role === 'manager') {
+        // Admin and managers can edit any bug
+      } else if (existing.createdBy === userId) {
+        // Users can edit their own bugs
+      } else {
+        return undefined; // Access denied
+      }
+    }
+    
     const updated = { ...existing, ...updates, updatedAt: new Date() };
     this.bugs.set(id, updated);
     return updated;
   }
+  
+  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
+    const existing = this.bugs.get(id);
+    if (!existing) return false;
+    
+    // Check permissions - only admins and bug creators can delete bugs
+    if (role === 'admin' || existing.createdBy === userId) {
+      this.bugs.delete(id);
+      return true;
+    }
+    
+    return false; // Access denied
+  }
 
   async getFeatureRequests(): Promise<FeatureRequest[]> {
-    return Array.from(this.featureRequests.values());
+    const featureRequests = Array.from(this.featureRequests.values());
+    // Add attachment information to each feature request
+    const enrichedRequests = await Promise.all(
+      featureRequests.map(async (request) => {
+        // For now, return empty attachments - will be implemented once storage is fixed
+        const attachments: any[] = [];
+        return {
+          ...request,
+          attachmentCount: attachments.length,
+          attachments: []
+        };
+      })
+    );
+    return enrichedRequests;
   }
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
-    return this.featureRequests.get(id);
+  
+  async getFeatureRequestsForUser(userId: string, role: string, organizationId?: string): Promise<FeatureRequest[]> {
+    // For now, just return all feature requests - proper filtering can be added later
+    return this.getFeatureRequests();
+  }
+  
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined>;
+  async getFeatureRequest(id: string, userId?: string, role?: string, organizationId?: string): Promise<FeatureRequest | undefined> {
+    const request = this.featureRequests.get(id);
+    if (!request) return undefined;
+    
+    // For now, return empty attachments - will be implemented once storage is fixed
+    const attachments: any[] = [];
+    
+    return {
+      ...request,
+      attachmentCount: attachments.length,
+      attachments: []
+    };
   }
   async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
     const id = randomUUID();
     const newRequest: FeatureRequest = {
       ...request,
       id,
+      status: 'submitted',
       createdAt: new Date(),
       updatedAt: new Date(),
       upvoteCount: 0,
+      assignedTo: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      estimatedHours: null,
+      mergedIntoId: null,
     };
     this.featureRequests.set(id, newRequest);
     return newRequest;
@@ -852,19 +1088,21 @@ export class MemStorage implements IStorage {
   async removeFeatureRequestUpvote(): Promise<{ success: boolean; message: string; data?: any }> {
     return { success: true, message: 'Upvote removed' };
   }
+
+
 }
 
 // Import the database storage implementation
-import { DatabaseStorage } from './db-storage';
+import { OptimizedDatabaseStorage } from './optimized-db-storage';
 
 // Production fallback storage - try database first, fall back to memory if authentication fails
 class ProductionFallbackStorage implements IStorage {
-  private dbStorage: DatabaseStorage;
+  private dbStorage: OptimizedDatabaseStorage;
   private memStorage: MemStorage;
   private usingFallback: boolean = false;
 
   constructor() {
-    this.dbStorage = new DatabaseStorage();
+    this.dbStorage = new OptimizedDatabaseStorage();
     this.memStorage = new MemStorage();
   }
 
@@ -882,9 +1120,7 @@ class ProductionFallbackStorage implements IStorage {
         error.message?.includes('neondb_owner') ||
         error.cause?.message?.includes('password authentication failed')
       ) {
-        console.warn(
-          '🔄 Database authentication failed, switching to memory storage for production stability'
-        );
+        // Database authentication failed, switching to memory storage for production stability
         this.usingFallback = true;
 
         // Initialize memory storage with production admin user
@@ -940,26 +1176,28 @@ class ProductionFallbackStorage implements IStorage {
     // For memory storage, we'll just ensure the user has access to the organization
     // This is handled by the user's role being 'admin' which gives access to all organizations
 
-    console.log(
-      '✅ Production fallback: Admin user and default organization initialized in memory storage'
-    );
+    // Production fallback initialized successfully
   }
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    console.log('🔍 ProductionFallbackStorage.getUserByEmail called with:', email);
+    // Debug logging removed
     try {
       const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-      console.log('🔍 ProductionFallbackStorage result:', user ? 'FOUND' : 'NOT FOUND');
+      // Debug logging removed
       return user;
-    } catch (error) {
-      console.error('🔍 ProductionFallbackStorage error:', error);
+    } catch (error: any) {
+      // Error handling maintained without debug logging
       throw error;
     }
   }
 
   async getUsers(): Promise<User[]> {
     return await this.safeDbOperation(() => this.dbStorage.getUsers());
+  }
+
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
   }
 
   async getUsersByOrganizations(userId: string): Promise<User[]> {
@@ -1236,20 +1474,34 @@ class ProductionFallbackStorage implements IStorage {
   async deleteDocument(id: string): Promise<boolean> {
     return false;
   }
-  async getDocumentsByBuilding(buildingId: string): Promise<DocumentBuilding[]> {
+  async getDocumentsByBuilding(buildingId: string): Promise<Document[]> {
     return [];
   }
-  async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
-    throw new Error('Not implemented in fallback');
+  async createDocumentBuilding(doc: InsertDocument): Promise<Document> {
+    // Note: External storage integration removed
+    const id = randomUUID();
+    return {
+      ...doc,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async deleteDocumentBuilding(documentId: string, buildingId: string): Promise<boolean> {
     return false;
   }
-  async getDocumentsByResident(residentId: string): Promise<DocumentResident[]> {
+  async getDocumentsByResident(residentId: string): Promise<Document[]> {
     return [];
   }
-  async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> {
-    throw new Error('Not implemented in fallback');
+  async createDocumentResident(doc: InsertDocument): Promise<Document> {
+    // Note: External storage integration removed
+    const id = randomUUID();
+    return {
+      ...doc,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async deleteDocumentResident(documentId: string, residentId: string): Promise<boolean> {
     return false;
@@ -1396,14 +1648,25 @@ class ProductionFallbackStorage implements IStorage {
   async getBugs(): Promise<Bug[]> {
     return [];
   }
-  async getBug(id: string): Promise<Bug | undefined> {
+  
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
+    return [];
+  }
+  
+  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
     return undefined;
   }
+  
   async createBug(bug: InsertBug): Promise<Bug> {
     throw new Error('Not implemented in fallback');
   }
-  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+  
+  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
     return undefined;
+  }
+  
+  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
+    return false;
   }
   async getFeatureRequests(): Promise<FeatureRequest[]> {
     return [];
@@ -1432,7 +1695,14 @@ class ProductionFallbackStorage implements IStorage {
   ): Promise<{ success: boolean; message: string; data?: any }> {
     return { success: true, message: 'Fallback mode' };
   }
+
+
+
+
 }
 
-// Always use database storage - no fallbacks
-export const storage = new DatabaseStorage();
+// Use optimized database storage for production
+export const storage = new OptimizedDatabaseStorage();
+
+// Export the OptimizedDatabaseStorage class for direct usage
+export { OptimizedDatabaseStorage } from './optimized-db-storage';

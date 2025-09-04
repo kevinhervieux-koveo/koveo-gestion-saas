@@ -258,7 +258,6 @@ export async function scopeQuery<T extends PgSelect>(
       return query.where(eq(notifications.userId, userId)) as T;
 
     default:
-      console.warn(`No scoping rule defined for entity type: ${entityType}`);
       return query;
   }
 }

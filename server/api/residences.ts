@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { db } from '../db.js';
+import { db } from '../db';
 import {
   residences,
   buildings,
@@ -7,10 +7,10 @@ import {
   userResidences,
   users,
   userOrganizations,
-} from '../../shared/schema.js';
+} from '../../shared/schema';
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
-import { requireAuth } from '../auth/index.js';
-import { delayedUpdateService } from '../services/delayed-update-service.js';
+import { requireAuth } from '../auth/index';
+import { delayedUpdateService } from '../services/delayed-update-service';
 
 /**
  *
@@ -33,8 +33,8 @@ export function registerResidenceRoutes(app: Express) {
         .from(userResidences)
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
       res.json(userResidencesList);
-    } catch (_error) {
-      console.error('Error fetching user residences:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching user residences:', error);
       res.status(500).json({ message: 'Failed to fetch user residences' });
     }
   });
@@ -69,8 +69,8 @@ export function registerResidenceRoutes(app: Express) {
           );
 
         res.json(assignedUsers);
-      } catch (_error) {
-        console.error('Error fetching assigned users:', _error);
+      } catch (error: any) {
+        console.error('❌ Error fetching assigned users:', error);
         res.status(500).json({ message: 'Failed to fetch assigned users' });
       }
     }
@@ -99,8 +99,8 @@ export function registerResidenceRoutes(app: Express) {
           .where(eq(users.id, userId));
 
         res.json({ message: 'User updated successfully' });
-      } catch (_error) {
-        console.error('Error updating assigned user:', _error);
+      } catch (error: any) {
+        console.error('❌ Error updating assigned user:', error);
         res.status(500).json({ message: 'Failed to update assigned user' });
       }
     }
@@ -112,7 +112,6 @@ export function registerResidenceRoutes(app: Express) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
 
-      console.warn(`📊 Fetching residences for user ${user.id} with role ${user.role}`);
 
       // Start with base conditions
       const conditions = [eq(residences.isActive, true)];
@@ -145,7 +144,7 @@ export function registerResidenceRoutes(app: Express) {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
-        console.warn(
+        console.log(
           `🌟 Admin user or user with global access detected - granting access to ALL residences`
         );
 
@@ -216,7 +215,6 @@ export function registerResidenceRoutes(app: Express) {
         conditions.push(inArray(residences.buildingId, Array.from(accessibleBuildingIds)));
       } else {
         // User has no access to any buildings, return empty result
-        console.warn(`❌ User ${user.id} has no access to any buildings`);
         return res.json([]);
       }
 
@@ -289,8 +287,8 @@ export function registerResidenceRoutes(app: Express) {
       }));
 
       res.json(residencesList);
-    } catch (_error) {
-      console.error('Error fetching residences:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching residences:', error);
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
@@ -359,8 +357,8 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants,
       });
-    } catch (_error) {
-      console.error('Error fetching residence:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching residence:', error);
       res.status(500).json({ message: 'Failed to fetch residence' });
     }
   });
@@ -371,17 +369,38 @@ export function registerResidenceRoutes(app: Express) {
       const { id } = req.params;
       const updateData = req.body;
 
+      console.log(`🏠 Updating residence ${id} with data:`, updateData);
+
       // Remove readonly fields
       delete updateData.id;
       delete updateData.createdAt;
       delete updateData.buildingId; // Don't allow changing building
 
+      // Validate and sanitize numeric fields
+      const processedData = {
+        ...updateData,
+        updatedAt: new Date(),
+      };
+
+      // Convert null/empty values to null for optional fields
+      if (processedData.squareFootage === null || processedData.squareFootage === '') {
+        processedData.squareFootage = null;
+      }
+      if (processedData.bathrooms === null || processedData.bathrooms === '') {
+        processedData.bathrooms = null;
+      }
+      if (processedData.ownershipPercentage === null || processedData.ownershipPercentage === '') {
+        processedData.ownershipPercentage = null;
+      }
+      if (processedData.monthlyFees === null || processedData.monthlyFees === '') {
+        processedData.monthlyFees = null;
+      }
+
+      console.log(`🏠 Processed data for residence ${id}:`, processedData);
+
       const updated = await db
         .update(residences)
-        .set({
-          ...updateData,
-          updatedAt: new Date(),
-        })
+        .set(processedData)
         .where(eq(residences.id, id))
         .returning();
 
@@ -389,19 +408,26 @@ export function registerResidenceRoutes(app: Express) {
         return res.status(404).json({ message: 'Residence not found' });
       }
 
+      console.log(`✅ Successfully updated residence ${id}`);
+
       // Schedule delayed money flow and budget update for the updated residence
       try {
         delayedUpdateService.scheduleResidenceUpdate(id);
-        console.warn(`🏠 Scheduled delayed update for updated residence ${id}`);
-      } catch (_error) {
-        console.error('Failed to schedule delayed update for updated residence:', _error);
         // Don't fail the residence update if scheduling fails
+      } catch (e) {
+        console.warn('⚠️ Failed to schedule residence update:', e);
       }
 
       res.json(updated[0]);
-    } catch (_error) {
-      console.error('Error updating residence:', _error);
-      res.status(500).json({ message: 'Failed to update residence' });
+    } catch (error: any) {
+      console.error('❌ Error updating residence:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      res.status(500).json({ 
+        message: 'Failed to update residence',
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   });
 
@@ -471,8 +497,8 @@ export function registerResidenceRoutes(app: Express) {
           message: `Successfully created ${createdResidences.length} residences`,
           residences: createdResidences,
         });
-      } catch (_error) {
-        console.error('Error generating residences:', _error);
+      } catch (error: any) {
+        console.error('❌ Error generating residences:', error);
         res.status(500).json({ message: 'Failed to generate residences' });
       }
     }

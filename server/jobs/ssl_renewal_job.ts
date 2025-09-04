@@ -15,7 +15,6 @@ interface SSLRenewalJobConfig {
   notificationEmail: string;
   enabled: boolean;
   batchSize: number;
-  logLevel: 'error' | 'warn' | 'info' | 'debug';
   expiryNotificationThresholdDays: number;
   enableExpiryNotifications: boolean;
 }
@@ -96,7 +95,6 @@ class SSLRenewalJob {
       if (this.config.enableExpiryNotifications) {
         await this.checkForExpiringCertificates();
       }
-    } catch (____error) {
       this.log('error', 'Failed to start SSL renewal job', {
         _error: ___error instanceof Error ? ___error.message : 'Unknown error',
       });
@@ -121,7 +119,6 @@ class SSLRenewalJob {
    */
   async executeRenewalJob(): Promise<void> {
     if (this.isRunning) {
-      this.log('warn', 'SSL renewal job is already running, skipping execution');
       return;
     }
 
@@ -163,7 +160,6 @@ class SSLRenewalJob {
 
             // Small delay between renewals to avoid rate limiting
             await this.sleep(2000);
-          } catch (____error) {
             failureCount++;
             this.log('error', `Failed to renew certificate for ${certificate.domain}`, {
               domain: certificate.domain,
@@ -206,7 +202,6 @@ class SSLRenewalJob {
       if (failureCount > 0) {
         await this.sendFailureNotification(failureCount, successCount);
       }
-    } catch (____error) {
       this.log('error', 'SSL renewal job failed', {
         _error: ___error instanceof Error ? ___error.message : 'Unknown error',
       });
@@ -293,13 +288,11 @@ class SSLRenewalJob {
               `Sent expiry notification for ${certificate.domain} (expires in ${daysUntilExpiry} days)`
             );
           }
-        } catch (____error) {
           this.log('error', `Failed to send expiry notification for ${certificate.domain}`, {
             _error: ___error instanceof Error ? ___error.message : 'Unknown error',
           });
         }
       }
-    } catch (____error) {
       this.log('error', 'Failed to check for expiring certificates', {
         _error: ___error instanceof Error ? ___error.message : 'Unknown error',
       });
@@ -431,7 +424,6 @@ class SSLRenewalJob {
           certificate.renewalAttempts || 0
         );
       }
-    } catch (_error) {
       throw new Error(
         `Certificate renewal failed for ${certificate.domain}: ${_error instanceof Error ? _error.message : 'Unknown error'}`
       );
@@ -549,15 +541,12 @@ class SSLRenewalJob {
    * @param message
    * @param data
    */
-  private log(level: 'error' | 'warn' | 'info' | 'debug', message: string, data?: unknown): void {
-    const levels = { error: 0, warn: 1, info: 2, debug: 3 };
     const configLevel = levels[this.config.logLevel];
     const messageLevel = levels[level];
 
     if (messageLevel <= configLevel) {
       const timestamp = new Date().toISOString();
       const logData = data ? ` ${JSON.stringify(data)}` : '';
-      console.warn(`[${timestamp}] [SSL-RENEWAL] [${level.toUpperCase()}] ${message}${logData}`);
     }
   }
 

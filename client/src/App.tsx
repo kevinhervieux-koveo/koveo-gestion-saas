@@ -10,6 +10,7 @@ import { Suspense, useEffect } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
+import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
 
 // Start memory monitoring for better performance
 memoryOptimizer.start();
@@ -20,6 +21,7 @@ if (typeof window !== 'undefined') {
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
+import { AuthErrorBoundary } from '@/components/common/AuthErrorBoundary';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -84,11 +86,9 @@ const ResidentsBuildingDocuments = createOptimizedLoader(
   'residents-building-documents-page',
   { enableMemoryCleanup: true }
 );
-const ManagerBudget = createOptimizedLoader(
-  () => import('@/pages/manager/budget'),
-  'manager-budget',
-  { enableMemoryCleanup: true }
-);
+const ManagerBudget = createOptimizedLoader(() => import('@/pages/manager/budget'), 'manager-budget', {
+  enableMemoryCleanup: true,
+});
 const ManagerBills = createOptimizedLoader(() => import('@/pages/manager/bills'), 'manager-bills', {
   enableMemoryCleanup: true,
 });
@@ -232,11 +232,14 @@ const InvitationAcceptancePage = createOptimizedLoader(
  * @returns Function result.
  */
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAuthenticating } = useAuth();
   const [location] = useLocation();
+  
+  // Enable smooth scroll-to-top on navigation
+  useSmoothNavigation();
 
   // Show loading spinner while authentication is being determined
-  if (isLoading) {
+  if (isLoading || isAuthenticating) {
     return <LoadingSpinner />;
   }
 
@@ -288,9 +291,8 @@ function Router() {
 
   // For protected routes, require authentication
   if (!isAuthenticated) {
-    // Only redirect to home if we're certain the user is not authenticated
-    // and we're not in a loading state
-    // IMPORTANT: Don't redirect immediately - show loading to prevent F5 redirect issue
+    // Show loading spinner instead of immediate redirect to prevent race conditions
+    // The redirect logic is now handled in the useAuth hook with proper delays
     return <LoadingSpinner />;
   }
 
@@ -440,14 +442,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <AuthProvider>
+        <AuthErrorBoundary>
+          <AuthProvider>
           <MobileMenuProvider>
             <TooltipProvider>
               <Toaster />
               <Router />
             </TooltipProvider>
           </MobileMenuProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </AuthErrorBoundary>
       </LanguageProvider>
     </QueryClientProvider>
   );

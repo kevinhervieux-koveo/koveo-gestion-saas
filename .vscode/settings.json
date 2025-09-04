@@ -5,15 +5,8 @@
     "source.fixAll.eslint": "explicit",
     "source.addMissingImports": "explicit"
   },
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-  "eslint.workingDirectories": [
-    "."
-  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.workingDirectories": ["."],
   "files.associations": {
     "*.tsx": "typescriptreact",
     "*.ts": "typescript"

@@ -7,12 +7,12 @@
       " * @param props - Component props.",
       " * @param props.$2 - $3.",
       " * @returns JSX element.",
-      " */"
+      " */",
     ],
     "description": "JSDoc template for React components",
-    "scope": "typescript,typescriptreact"
+    "scope": "typescript,typescriptreact",
   },
-  
+
   "React Hook JSDoc": {
     "prefix": ["jsdoc-hook", "/**hook"],
     "body": [
@@ -20,25 +20,19 @@
       " * $1 custom hook.",
       " * @param $2 - $3.",
       " * @returns Hook return value.",
-      " */"
+      " */",
     ],
     "description": "JSDoc template for React hooks",
-    "scope": "typescript,typescriptreact"
+    "scope": "typescript,typescriptreact",
   },
-  
+
   "Function JSDoc": {
     "prefix": ["jsdoc-function", "/**func"],
-    "body": [
-      "/**",
-      " * $1.",
-      " * @param $2 - $3.",
-      " * @returns $4.",
-      " */"
-    ],
+    "body": ["/**", " * $1.", " * @param $2 - $3.", " * @returns $4.", " */"],
     "description": "JSDoc template for functions",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "API Handler JSDoc": {
     "prefix": ["jsdoc-api", "/**api"],
     "body": [
@@ -47,25 +41,19 @@
       " * @param req - Express request object.",
       " * @param res - Express response object.",
       " * @returns Promise resolving to API response.",
-      " */"
+      " */",
     ],
     "description": "JSDoc template for API handlers",
-    "scope": "typescript,javascript"
+    "scope": "typescript,javascript",
   },
-  
+
   "Class Method JSDoc": {
     "prefix": ["jsdoc-method", "/**method"],
-    "body": [
-      "/**",
-      " * $1.",
-      " * @param $2 - $3.",
-      " * @returns $4.",
-      " */"
-    ],
+    "body": ["/**", " * $1.", " * @param $2 - $3.", " * @returns $4.", " */"],
     "description": "JSDoc template for class methods",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Utility Function JSDoc": {
     "prefix": ["jsdoc-util", "/**util"],
     "body": [
@@ -73,79 +61,56 @@
       " * ${1:Process} ${2:data}.",
       " * @param ${3:data} - ${4:Data to process}.",
       " * @returns ${5:Processed result}.",
-      " */"
+      " */",
     ],
     "description": "JSDoc template for utility functions",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Type Definition JSDoc": {
     "prefix": ["jsdoc-type", "/**type"],
-    "body": [
-      "/**",
-      " * $1 type definition.",
-      " */"
-    ],
+    "body": ["/**", " * $1 type definition.", " */"],
     "description": "JSDoc template for type definitions",
-    "scope": "typescript,typescriptreact"
+    "scope": "typescript,typescriptreact",
   },
-  
+
   "Class JSDoc": {
     "prefix": ["jsdoc-class", "/**class"],
-    "body": [
-      "/**",
-      " * $1 class.",
-      " */"
-    ],
+    "body": ["/**", " * $1 class.", " */"],
     "description": "JSDoc template for classes",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Constructor JSDoc": {
     "prefix": ["jsdoc-constructor", "/**constructor"],
-    "body": [
-      "/**",
-      " * Initialize $1 instance.",
-      " * @param $2 - $3.",
-      " */"
-    ],
+    "body": ["/**", " * Initialize $1 instance.", " * @param $2 - $3.", " */"],
     "description": "JSDoc template for constructors",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Async Function JSDoc": {
     "prefix": ["jsdoc-async", "/**async"],
-    "body": [
-      "/**",
-      " * $1.",
-      " * @param $2 - $3.",
-      " * @returns Promise resolving to $4.",
-      " */"
-    ],
+    "body": ["/**", " * $1.", " * @param $2 - $3.", " * @returns Promise resolving to $4.", " */"],
     "description": "JSDoc template for async functions",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Event Handler JSDoc": {
     "prefix": ["jsdoc-handler", "/**handler"],
     "body": [
       "/**",
       " * Handle ${1:event name}.",
       " * @param ${2:event} - ${3:Event object}.",
-      " */"
+      " */",
     ],
     "description": "JSDoc template for event handlers",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
   },
-  
+
   "Property JSDoc": {
     "prefix": ["jsdoc-prop", "/**prop"],
-    "body": [
-      "/**",
-      " * $1.",
-      " */"
-    ],
+    "body": ["/**", " * $1.", " */"],
     "description": "JSDoc template for properties",
-    "scope": "typescript,typescriptreact,javascript,javascriptreact"
-  }
+    "scope": "typescript,typescriptreact,javascript,javascriptreact",
+  },
 }

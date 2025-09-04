@@ -119,10 +119,10 @@ interface Booking {
 const bookingFormSchema = z
   .object({
     date: z.date({
-      message: 'La date est requise',
+      message: 'Please select a booking date from the calendar',
     }),
-    startTime: z.string().min(1, "L'heure de début est requise"),
-    endTime: z.string().min(1, "L'heure de fin est requise"),
+    startTime: z.string().min(1, 'Start time is required (example: 09:00)').regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format (example: 09:00)'),
+    endTime: z.string().min(1, 'End time is required (example: 11:00)').regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'End time must be in HH:MM format (example: 11:00)'),
   })
   .refine(
     (data) => {
@@ -131,7 +131,7 @@ const bookingFormSchema = z
       return end > start;
     },
     {
-      message: "L'heure de fin doit être après l'heure de début",
+      message: 'End time must be after start time (example: start at 09:00, end at 11:00)',
       path: ['endTime'],
     }
   );
@@ -477,16 +477,7 @@ export default function CommonSpacesPage() {
       const [endHour, endMinute] = data.endTime.split(':').map(Number);
       endDateTime.setHours(endHour, endMinute, 0, 0);
 
-      // Log for debugging
-      console.log('Booking creation debug:', {
-        originalDate: data.date,
-        baseDate: baseDate,
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        startTimeISO: startDateTime.toISOString(),
-        endTimeISO: endDateTime.toISOString(),
-        now: new Date().toISOString(),
-      });
+      // Booking creation handling
 
       return apiRequest('POST', `/api/common-spaces/${selectedSpace.id}/bookings`, {
         start_time: startDateTime.toISOString(),
@@ -632,13 +623,14 @@ export default function CommonSpacesPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50' data-testid='common-spaces-page'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-testid='common-spaces-page'>
       <Header
         title={language === 'fr' ? 'Espaces Communs' : 'Common Spaces'}
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
 
-      <main className='container mx-auto px-4 py-8'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         <div className='space-y-6'>
           <div className='flex items-center justify-between'>
             <h2 className='text-2xl font-bold text-gray-900' data-testid='spaces-list-title'>
@@ -950,7 +942,8 @@ export default function CommonSpacesPage() {
             </div>
           )}
         </div>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

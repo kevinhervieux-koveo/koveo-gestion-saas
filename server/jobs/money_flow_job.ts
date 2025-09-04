@@ -2,11 +2,9 @@
 
 export const moneyFlowJob = {
   async start(): Promise<void> {
-    console.warn('⚠️ Money flow job disabled - skipping startup');
   },
 
   stop(): void {
-    console.warn('⚠️ Money flow job disabled - skipping stop');
   },
 
   getStatus(): any {

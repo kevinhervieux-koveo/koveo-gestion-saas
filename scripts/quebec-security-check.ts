@@ -551,10 +551,10 @@ class QuebecSecurityChecker {
 }
 
 // Run the compliance check
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const checker = new QuebecSecurityChecker();
   checker.runCompliance().catch((error) => {
-    console.error('❌ Quebec compliance check failed:', _error);
+    console.error('❌ Quebec compliance check failed:', error);
     process.exit(1);
   });
 }

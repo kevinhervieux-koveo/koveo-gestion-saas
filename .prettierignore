@@ -1,0 +1,33 @@
+# Replit system files
+.cache/
+.config/
+.local/
+.nix/
+.upm/
+.replit
+__pycache__/
+.pythonlibs/
+
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Cache and temporary files
+*.log
+.DS_Store
+*.tmp
+*.temp
+
+# Generated files
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Python cache
+*.pyc
+*.pyo
+
+# Other system files
+.git/
+*.lock

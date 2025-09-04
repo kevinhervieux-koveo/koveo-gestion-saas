@@ -7,19 +7,6 @@
     "noImplicitAny": false,
     "strict": false
   },
-  "include": [
-    "client/src/**/*",
-    "server/**/*", 
-    "shared/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "coverage",
-    "tools",
-    "tests",
-    "scripts",
-    "config"
-  ]
+  "include": ["client/src/**/*", "server/**/*", "shared/**/*"],
+  "exclude": ["node_modules", "build", "dist", "coverage", "tools", "tests", "scripts", "config"]
 }

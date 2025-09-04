@@ -10,11 +10,9 @@ import type { InsertImprovementSuggestion } from '@shared/schema';
 
 /**
  * Configuration interface for quality metric thresholds.
- * Defines warning and critical levels for automated monitoring.
  */
 interface MetricThresholds {
   /** Warning threshold value for metric monitoring */
-  warning?: number;
   /** Critical threshold value for metric monitoring */
   critical?: number;
   /** Additional custom threshold properties */
@@ -28,7 +26,6 @@ interface MetricThresholds {
 interface QualityMetricConfig {
   /** Name of the quality metric being monitored */
   metricName: string;
-  /** Threshold configuration for warning and critical levels */
   thresholds: MetricThresholds;
   /** Function to generate improvement suggestions when thresholds are exceeded */
   generateSuggestion: (
@@ -53,7 +50,6 @@ interface QualityMetricConfig {
  * ```typescript
  * addQualityMetricMonitoring({
  *   metricName: 'memory_usage',
- *   thresholds: { warning: 80, critical: 95 },
  *   generateSuggestion: (value, type, threshold) => ({
  *     category: 'Performance',
  *     priority: type === 'critical' ? 'Critical' : 'High',
@@ -89,10 +85,7 @@ export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
       if (config.thresholds.critical !== undefined && numericValue >= config.thresholds.critical) {
         suggestions.push(config.generateSuggestion(value, 'critical', config.thresholds.critical));
       } else if (
-        config.thresholds.warning !== undefined &&
-        numericValue >= config.thresholds.warning
       ) {
-        suggestions.push(config.generateSuggestion(value, 'warning', config.thresholds.warning));
       }
 
       return suggestions;

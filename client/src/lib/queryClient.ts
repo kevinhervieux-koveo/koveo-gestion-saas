@@ -36,10 +36,19 @@ async function throwIfResNotOk(res: Response) {
  * @throws Error if response status is not ok.
  */
 export async function apiRequest(method: string, url: string, data?: unknown): Promise<Response> {
+  const headers: Record<string, string> = {};
+
+  // Handle FormData vs JSON data
+  if (data instanceof FormData) {
+    // Don't set Content-Type for FormData - let browser set it with boundary
+  } else if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { 'Content-Type': 'application/json' } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     credentials: 'include',
   });
 
@@ -142,7 +151,6 @@ export const queryClient = new QueryClient({
         ].includes(currentPath);
 
         if (!isPublicPath) {
-          console.warn('Session expired during API call, redirecting to login');
           window.location.href = '/auth/login';
           return;
         }
@@ -162,12 +170,7 @@ export const queryClient = new QueryClient({
 
         // Provide more helpful error messages for common issues
         if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
-          console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);
-          console.error('• API endpoint not found (404)');
-          console.error('• Server error returning error page');
-          console.error('• Route mismatch between frontend and backend');
         } else {
-          console.error('Query error:', error);
         }
       }
     },
@@ -197,7 +200,6 @@ export const queryClient = new QueryClient({
         ].includes(currentPath);
 
         if (!isPublicPath) {
-          console.warn('Session expired during mutation, redirecting to login');
           window.location.href = '/auth/login';
           return;
         }
@@ -205,7 +207,6 @@ export const queryClient = new QueryClient({
 
       // Only log mutation errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('Mutation error:', error);
       }
     },
   }),

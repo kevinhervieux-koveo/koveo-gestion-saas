@@ -126,9 +126,11 @@ export function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (_error) {
-      console.error('Logout failed:', _error);
       // Fallback: still redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      // Logout error
+      // Still redirect on error
       window.location.href = '/login';
     }
   };

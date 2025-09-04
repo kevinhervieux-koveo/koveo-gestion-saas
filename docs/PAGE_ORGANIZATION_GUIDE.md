@@ -23,31 +23,37 @@ client/src/pages/
 ## Role-Based Access Patterns
 
 ### Admin Pages (`admin/`)
+
 - **Access**: Admin users only
 - **Purpose**: System-wide administration, User Management, global settings
 - **Examples**: `organizations.tsx`, `permissions.tsx`, `quality.tsx`
 
 ### Manager Pages (`manager/`)
+
 - **Access**: Manager and Admin users
 - **Purpose**: Building and organization management, financial oversight
 - **Examples**: `buildings.tsx`, `bills.tsx`, `budget.tsx`
 
 ### Owner Pages (`owner/`)
+
 - **Access**: Property owners, Managers, and Admins
 - **Purpose**: Property ownership features, investment tracking
 - **Examples**: `dashboard.tsx`, `roadmap.tsx`
 
 ### Residents Pages (`residents/`)
+
 - **Access**: Residents, Tenants, and higher roles
 - **Purpose**: Residence-specific features, community interaction
 - **Examples**: `dashboard.tsx`, `building.tsx`, `demands.tsx`
 
 ### Auth Pages (`auth/`)
+
 - **Access**: Unauthenticated users primarily
 - **Purpose**: Authentication flows, registration, password reset
 - **Examples**: `login.tsx`, `invitation-acceptance.tsx`
 
 ### Settings Pages (`settings/`)
+
 - **Access**: All authenticated users
 - **Purpose**: User preferences, account settings, application configuration
 - **Examples**: `settings.tsx`, `bug-reports.tsx`, `idea-box.tsx`
@@ -55,17 +61,20 @@ client/src/pages/
 ## Naming Conventions
 
 ### File Naming
+
 - Use **kebab-case** for new files: `user-management.tsx`, `bug-reports.tsx`
 - Existing **camelCase** files are acceptable during transition: `organizations.tsx`
 - Always use `.tsx` extension for React components
 
 ### Component Naming
+
 - Use **PascalCase** for component names: `UserManagement`, `BugReports`
 - Default export should match the primary purpose: `export default function UserManagement()`
 
 ## Page Component Standards
 
 ### Required Elements
+
 Each page component must include:
 
 1. **Default Export**: `export default function PageName()`
@@ -74,6 +83,7 @@ Each page component must include:
 4. **Consistent Layout**: Use shared layout components where applicable
 
 ### Example Template
+
 ```tsx
 /**
  * User Management Page
@@ -94,15 +104,10 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <Header
-        title="User Management"
-        subtitle="Manage users within your organization"
-      />
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header title='User Management' subtitle='Manage users within your organization' />
 
-      <div className="flex-1 overflow-auto p-6">
-        {/* Page content */}
-      </div>
+      <div className='flex-1 overflow-auto p-6'>{/* Page content */}</div>
     </div>
   );
 }
@@ -111,7 +116,9 @@ export default function UserManagement() {
 ## Anti-Patterns to Avoid
 
 ### ❌ Duplicate Pages
+
 Don't create the same page in multiple role directories:
+
 ```text
 admin/suggestions.tsx
 owner/suggestions.tsx          # ❌ Duplicate
@@ -120,14 +127,18 @@ owner/suggestions-with-filter.tsx  # ❌ Duplicate
 ```
 
 ### ❌ Orphaned Pages
+
 Don't place role-specific pages in the root directory:
+
 ```text
 pages/pillars.tsx              # ❌ Should be in admin/ or owner/
 pages/user-profile.tsx         # ❌ Should be in settings/
 ```
 
 ### ❌ Mixed Concerns
+
 Don't mix different access patterns in the same directory:
+
 ```text
 admin/login.tsx                # ❌ Auth pages should be in auth/
 manager/home.tsx               # ❌ Public pages should be in root
@@ -136,6 +147,7 @@ manager/home.tsx               # ❌ Public pages should be in root
 ## Migration Guidelines
 
 ### For Existing Duplicate Pages
+
 1. **Identify the primary role** that should own the page
 2. **Move the page** to the appropriate role directory
 3. **Update imports** in App.tsx and other files
@@ -143,6 +155,7 @@ manager/home.tsx               # ❌ Public pages should be in root
 5. **Update tests** to reflect new location
 
 ### For Orphaned Pages
+
 1. **Determine appropriate role directory** based on access requirements
 2. **Move the file** to the correct location
 3. **Update all imports** throughout the application
@@ -169,12 +182,14 @@ All pages must be properly registered in `client/src/App.tsx`:
 ## Testing Requirements
 
 ### Page Organization Tests
+
 - All pages must be in the correct role directory
 - No duplicate page files across roles
 - Proper naming conventions followed
 - Valid React component structure
 
 ### Integration Tests
+
 - Pages properly accessible based on user role
 - Routing works correctly for all page locations
 - Permission checks function as expected
@@ -200,12 +215,15 @@ This organization structure will evolve as the application grows. Regular review
 ## Tools and Automation
 
 ### Available Scripts
+
 - `npm run test:page-organization` - Validate page organization
 - `npm run lint:pages` - Check page naming conventions
 - `npm run validate:routes` - Verify router registration
 
 ### IDE Integration
+
 Configure your IDE to:
+
 - Auto-suggest correct directories for new pages
 - Warn about potential duplicates
 - Validate naming conventions
@@ -214,4 +232,3 @@ Configure your IDE to:
 
 **Last Updated**: August 17, 2025
 **Next Review**: September 2025
-

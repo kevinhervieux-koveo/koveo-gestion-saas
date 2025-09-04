@@ -17,18 +17,16 @@ configure({
 let server: any;
 
 try {
-  // Try ES module import first
-  const mswModule = require('./mocks/server');
-  server = mswModule.server;
-} catch (_error) {
+  // Try different import methods for MSW server
   try {
-    // Fallback for ES module environment
-    import('./mocks/server.js').then((module) => {
-      server = module.server;
-    });
-  } catch (___fallbackError) {
-    console.warn('MSW server setup failed, tests will run without API mocking');
+    const mswModule = require('./mocks/server');
+    server = mswModule.server;
+  } catch (requireError) {
+    // MSW server not available - tests will run without API mocking
+    console.warn('MSW server setup skipped, tests will run without API mocking');
   }
+} catch (_error) {
+  console.warn('MSW server setup failed, tests will run without API mocking');
 }
 
 beforeAll(() => {

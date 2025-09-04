@@ -48,9 +48,11 @@ import {
   User,
   Tag,
   Edit2,
+  Eye,
   Trash2,
   MoreHorizontal,
   TrendingUp,
+  Paperclip,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,18 +60,19 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 // Feature request form schema
 const featureRequestFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  title: z.string().min(1, 'Feature title is required (example: Add bulk export for documents)').max(200, 'Title must be less than 200 characters'),
   description: z
     .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
+    .min(10, 'Description must be at least 10 characters long (example: Users need the ability to export multiple documents at once to save time)')
+    .max(2000, 'Description must be less than 2000 characters'),
   need: z
     .string()
-    .min(5, 'Need must be at least 5 characters')
-    .max(500, 'Need must not exceed 500 characters'),
+    .min(5, 'Need explanation must be at least 5 characters long (example: This would save managers hours of work each month)')
+    .max(500, 'Need explanation must be less than 500 characters'),
   category: z.enum([
     'dashboard',
     'property_management',
@@ -85,14 +88,13 @@ const featureRequestFormSchema = z.object({
     'performance',
     'other',
   ]),
-  page: z.string().min(1, 'Page is required'),
+  page: z.string().min(1, 'Page location is required (example: Document Management, Settings, Dashboard)').max(100, 'Page location must be less than 100 characters'),
 });
 
 // Enhanced edit form schema for admins (includes status)
 const adminEditFormSchema = featureRequestFormSchema.extend({
   status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']),
-  assignedTo: z.string().optional(),
-  adminNotes: z.string().optional(),
+  adminNotes: z.string().max(1000, 'Admin notes must be less than 1000 characters').optional(),
 });
 
 /**
@@ -117,13 +119,14 @@ interface FeatureRequest {
   status: string;
   upvoteCount: number;
   createdBy: string | null;
-  assignedTo: string | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
   adminNotes: string | null;
   mergedIntoId: string | null;
   createdAt: string;
   updatedAt: string;
+  attachmentCount?: number;
+  attachments?: Array<{id: string; name: string; url: string; size: number}>;
 }
 
 const categoryLabels = {
@@ -157,11 +160,15 @@ const statusColors = {
 export default function IdeaBox() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [viewingFeatureRequest, setViewingFeatureRequest] = useState<FeatureRequest | null>(null);
   const [editingFeatureRequest, setEditingFeatureRequest] = useState<FeatureRequest | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -281,8 +288,72 @@ export default function IdeaBox() {
     },
   });
 
-  const onSubmit = (data: FeatureRequestFormData) => {
-    createFeatureRequestMutation.mutate(data);
+  const onSubmit = async (data: FeatureRequestFormData) => {
+    try {
+      setIsSubmitting(true);
+      // First create the feature request
+      const featureRequestResponse = await apiRequest('POST', '/api/feature-requests', data);
+      const featureRequestData = await featureRequestResponse.json();
+      const featureRequestId = featureRequestData.id;
+      
+      if (!featureRequestId) {
+        throw new Error('Failed to create feature request - no ID returned');
+      }
+
+      // Upload attachments if any
+      if (attachedFiles.length > 0) {
+        // Upload files one by one since the API expects single file uploads
+        for (const file of attachedFiles) {
+          const formData = new FormData();
+          formData.append('file', file); // API expects 'file' not 'files'
+          formData.append('attachedToType', 'feature_request');
+          formData.append('attachedToId', String(featureRequestId));
+          formData.append('category', 'ATTACHMENT');
+          formData.append('documentType', 'other'); // Use 'other' instead of 'file'
+          formData.append('name', file.name); // API expects 'name' field
+          formData.append('title', file.name);
+
+          await apiRequest('POST', '/api/documents/upload', formData);
+        }
+      }
+
+      // Clear form and files
+      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+      setIsCreateDialogOpen(false);
+      setAttachedFiles([]);
+      form.reset();
+      toast({
+        title: 'Feature request submitted',
+        description: `Your feature request has been submitted successfully${attachedFiles.length > 0 ? ` with ${attachedFiles.length} attachment(s)` : ''}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit feature request',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle file attachments for mockups, wireframes, or supporting documents
+  const handleFilesSelect = (files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+  };
+
+  // Handle file download/view
+  const handleFileDownload = (fileUrl: string, fileName: string) => {
+    if (fileUrl) {
+      // Open file in new tab to view or download
+      window.open(fileUrl, '_blank');
+    } else {
+      toast({
+        title: 'File not available',
+        description: 'The requested file could not be found.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const onEditSubmit = (data: AdminEditFormData) => {
@@ -304,16 +375,15 @@ export default function IdeaBox() {
       category: featureRequest.category as any,
       page: featureRequest.page,
       status: featureRequest.status as any,
-      assignedTo: featureRequest.assignedTo || '',
       adminNotes: featureRequest.adminNotes || '',
     });
     setIsEditDialogOpen(true);
   };
 
   const handleFeatureRequestClick = (featureRequest: FeatureRequest) => {
-    if (canEditFeatureRequest()) {
-      handleEdit(featureRequest);
-    }
+    // Always show view dialog when clicking on card
+    setViewingFeatureRequest(featureRequest);
+    setIsViewDialogOpen(true);
   };
 
   const handleDelete = (featureRequestId: string) => {
@@ -338,7 +408,7 @@ export default function IdeaBox() {
   };
 
   // Filter and sort feature requests
-  const filteredAndSortedFeatureRequests = featureRequests
+  const filteredAndSortedFeatureRequests = (featureRequests as FeatureRequest[])
     .filter((request: FeatureRequest) => {
       const matchesSearch =
         request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -468,6 +538,20 @@ export default function IdeaBox() {
                           rows={4}
                           {...form.register('description')}
                           data-testid='textarea-feature-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {form.formState.errors.description && (
                           <p className='text-sm text-red-600 mt-1'>
@@ -536,6 +620,48 @@ export default function IdeaBox() {
                         </div>
                       </div>
 
+                      {/* File Attachments */}
+                      <div className="space-y-3 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-gray-500" />
+                            <Label className="text-sm font-medium">Supporting Documents</Label>
+                            <span className="text-xs text-gray-500">
+                              (Optional - Mockups, wireframes, screenshots, requirements docs)
+                            </span>
+                          </div>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                          />
+                        </div>
+                        {attachedFiles.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Selected files ({attachedFiles.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {attachedFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  <span className="truncate max-w-[100px]">{file.name}</span>
+                                  <button
+                                    onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                    className="text-gray-500 hover:text-red-500"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div className='flex justify-end gap-2 pt-4'>
                         <Button
                           type='button'
@@ -546,10 +672,10 @@ export default function IdeaBox() {
                         </Button>
                         <Button
                           type='submit'
-                          disabled={createFeatureRequestMutation.isPending}
+                          disabled={isSubmitting}
                           data-testid='button-submit-feature-request'
                         >
-                          {createFeatureRequestMutation.isPending
+                          {isSubmitting
                             ? 'Submitting...'
                             : 'Submit Feature Request'}
                         </Button>
@@ -588,7 +714,7 @@ export default function IdeaBox() {
               filteredAndSortedFeatureRequests.map((request: FeatureRequest) => (
                 <Card
                   key={request.id}
-                  className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  className='hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50'
                   onClick={() => handleFeatureRequestClick(request)}
                   data-testid={`card-feature-request-${request.id}`}
                 >
@@ -645,6 +771,12 @@ export default function IdeaBox() {
                               Submitted by: {request.createdBy}
                             </Badge>
                           )}
+                          {(request.attachmentCount && request.attachmentCount > 0) && (
+                            <Badge variant='outline' className='flex items-center gap-1 bg-green-50 text-green-700 border-green-200'>
+                              <Paperclip className='w-3 h-3' />
+                              {request.attachmentCount} file{request.attachmentCount > 1 ? 's' : ''}
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
@@ -675,14 +807,28 @@ export default function IdeaBox() {
                                 <MoreHorizontal className='w-4 h-4' />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end'>
-                              <DropdownMenuItem onClick={() => handleEdit(request)}>
+                            <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingFeatureRequest(request);
+                                setIsViewDialogOpen(true);
+                              }}>
+                                <Eye className='w-4 h-4 mr-2' />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(request);
+                              }}>
                                 <Edit2 className='w-4 h-4 mr-2' />
                                 Edit
                               </DropdownMenuItem>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem 
+                                    onSelect={(e) => e.preventDefault()} 
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     <Trash2 className='w-4 h-4 mr-2 text-red-600' />
                                     <span className='text-red-600'>Delete</span>
                                   </DropdownMenuItem>
@@ -795,17 +941,6 @@ export default function IdeaBox() {
                       )}
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='edit-assigned-to' className='text-sm font-medium'>
-                        Assigned To
-                      </Label>
-                      <Input
-                        id='edit-assigned-to'
-                        {...editForm.register('assignedTo')}
-                        placeholder='Assign to team member'
-                        data-testid='input-edit-assigned-to'
-                      />
-                    </div>
                   </div>
 
                   <div className='space-y-2'>
@@ -872,6 +1007,76 @@ export default function IdeaBox() {
                     />
                   </div>
 
+                  {/* Attached Files Section */}
+                  <div className='border-t pt-4'>
+                    <h4 className='font-medium mb-3 flex items-center gap-2'>
+                      <Paperclip className='w-4 h-4' />
+                      Attached Files
+                    </h4>
+                    {editingFeatureRequest?.attachments && editingFeatureRequest.attachments.length > 0 ? (
+                      <div className='space-y-2'>
+                        {editingFeatureRequest.attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <div className='w-8 h-8 bg-blue-100 rounded flex items-center justify-center'>
+                                <Paperclip className='w-4 h-4 text-blue-600' />
+                              </div>
+                              <div>
+                                <p className='font-medium text-sm'>{attachment.name}</p>
+                                <p className='text-xs text-gray-500'>
+                                  {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className='flex gap-2'>
+                              <Button
+                                type="button"
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  window.open(`/api/documents/${attachment.id}/file`, '_blank');
+                                }}
+                                className='flex items-center gap-1'
+                                data-testid={`button-view-${attachment.id}`}
+                              >
+                                👁️ View
+                              </Button>
+                              <Button
+                                type="button"
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const link = document.createElement('a');
+                                  link.href = `/api/documents/${attachment.id}/file?download=true`;
+                                  link.download = attachment.name;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className='flex items-center gap-1'
+                                data-testid={`button-download-${attachment.id}`}
+                              >
+                                ⬇️ Download
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className='text-center py-4 text-gray-500 bg-gray-50 rounded-lg'>
+                        <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
+                        <p className='text-sm'>No files attached to this feature request</p>
+                      </div>
+                    )}
+                  </div>
+
                   <div className='flex justify-end gap-2 pt-4'>
                     <Button
                       type='button'
@@ -894,6 +1099,52 @@ export default function IdeaBox() {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* View Feature Request Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Feature Request Details</DialogTitle>
+              </DialogHeader>
+              {viewingFeatureRequest && (
+                <div className='space-y-4'>
+                  <div>
+                    <h3 className='text-lg font-semibold mb-2'>{viewingFeatureRequest.title}</h3>
+                    <Badge className={statusColors[viewingFeatureRequest.status as keyof typeof statusColors]}>
+                      {viewingFeatureRequest.status.replace('_', ' ').toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <h4 className='font-medium mb-1'>Description</h4>
+                    <p className='text-gray-600'>{viewingFeatureRequest.description}</p>
+                  </div>
+                  
+                  <div className='bg-blue-50 p-3 rounded-lg'>
+                    <h4 className='font-medium text-blue-800 mb-1'>Need</h4>
+                    <p className='text-blue-700'>{viewingFeatureRequest.need}</p>
+                  </div>
+
+                  <div className='flex flex-wrap gap-2'>
+                    <Badge variant='outline'>
+                      {categoryLabels[viewingFeatureRequest.category as keyof typeof categoryLabels]}
+                    </Badge>
+                    <Badge variant='outline'>📍 {viewingFeatureRequest.page}</Badge>
+                  </div>
+
+
+                  <div className='flex justify-end pt-4'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsViewDialogOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

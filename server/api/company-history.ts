@@ -1,9 +1,4 @@
 import type { Express } from 'express';
-import { ObjectStorageService } from '../objectStorage';
-import { Storage } from '@google-cloud/storage';
-
-// Initialize object storage service
-const objectStorageService = new ObjectStorageService();
 
 /**
  * Register company history routes for fetching company information and documents.
@@ -13,10 +8,8 @@ export function registerCompanyHistoryRoutes(app: Express): void {
   // Get company history from object storage (histoire.pdf)
   app.get('/api/company/history', async (req, res) => {
     try {
-      // Search for histoire.pdf in public object storage
-      const histoireFile = await objectStorageService.searchPublicObject('histoire.pdf');
-
-      if (!histoireFile) {
+      // Object storage integration removed - always return fallback content
+      if (true) {
         // Return fallback content if histoire.pdf is not found
         return res.json({
           found: false,
@@ -130,8 +123,6 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         message:
           "Fichier trouvé mais le type de contenu n'est pas supporté pour la lecture directe.",
       });
-    } catch (_error) {
-      console.error('Error fetching company history:', _error);
 
       // Return fallback content on error
       return res.json({
@@ -155,52 +146,20 @@ export function registerCompanyHistoryRoutes(app: Express): void {
     }
   });
 
-  // List available company documents in public storage
+  // List available company documents - object storage removed
   app.get('/api/company/documents', async (req, res) => {
     try {
-      const publicPaths = objectStorageService.getPublicObjectSearchPaths();
+      // Object storage integration removed - return empty list
       const documents = [];
-
-      // Search common company document names in public storage
-      const commonDocuments = [
-        'histoire.pdf',
-        'history.pdf',
-        'about.pdf',
-        'company-info.pdf',
-        'koveo-history.pdf',
-        'koveo-story.pdf',
-        'presentation.pdf',
-      ];
-
-      for (const docName of commonDocuments) {
-        try {
-          const file = await objectStorageService.searchPublicObject(docName);
-          if (file) {
-            const [metadata] = await file.getMetadata();
-            documents.push({
-              name: file.name,
-              displayName: docName,
-              size: metadata.size,
-              contentType: metadata.contentType,
-              lastModified: metadata.updated,
-              available: true,
-            });
-          }
-        } catch (_error) {
-          console.warn(`Document ${docName} not found:`, error.message);
-        }
-      }
 
       res.json({
         documents,
         total: documents.length,
-        searchPaths: publicPaths,
+        message: 'Document storage has been disabled',
       });
-    } catch (_error) {
-      console.error('Error listing company documents:', _error);
       res.status(500).json({
         message: "Erreur lors de la recherche des documents d'entreprise",
-        _error: error.message,
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });

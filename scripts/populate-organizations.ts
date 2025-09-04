@@ -95,7 +95,10 @@ async function populateOrganizations() {
 
     if (!adminUser) {
       // Create admin user if doesn't exist
-      const hashedPassword = await bcrypt.hash('Admin@123456', 10);
+      // Generate secure random password for admin user
+      const crypto = require('crypto');
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(`Admin${randomPassword}!`, 12);
       [adminUser] = await db
         .insert(schema.users)
         .values({

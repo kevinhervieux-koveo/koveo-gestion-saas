@@ -160,8 +160,8 @@ export class DemoManagementService {
 
       console.log('✅ Demo organizations are properly configured');
     } catch (error) {
-      console.error('⚠️ Failed to create basic demo organizations:', error);
       // Continue anyway - this is not critical for production functionality
+      console.log('⚠️ Demo organizations setup failed, but continuing...');
     }
   }
 
@@ -200,8 +200,6 @@ export class DemoManagementService {
         actions,
       };
     } catch (error) {
-      console.error('❌ Scheduled demo maintenance failed:', error);
-
       return {
         success: false,
         message: `Scheduled maintenance failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

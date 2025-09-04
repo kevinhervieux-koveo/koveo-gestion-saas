@@ -27,7 +27,14 @@ import { Request, Response, NextFunction } from 'express';
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.session && 'user' in req.session && req.session.user) {
-    next();
+    // Validate that user is a proper object with basic required properties
+    const user = req.session.user as any;
+    if (typeof user === 'object' && user !== null && !Array.isArray(user) && 
+        user.id && user.email && user.role) {
+      next();
+    } else {
+      res.status(401).json({ message: 'Authentication required', code: 'AUTH_REQUIRED' });
+    }
   } else {
     res.status(401).json({ message: 'Authentication required', code: 'AUTH_REQUIRED' });
   }
@@ -59,6 +66,18 @@ export function requireRole(roles: string[]) {
     }
 
     const user = req.session.user as any;
+    
+    // Validate user object and role property
+    if (typeof user !== 'object' || user === null || Array.isArray(user) || 
+        !('role' in user) || !user.role || typeof user.role !== 'string' || user.role.trim() === '') {
+      return res.status(403).json({ message: 'Insufficient permissions', code: 'INSUFFICIENT_PERMISSIONS' });
+    }
+
+    // Check if roles array is empty (should deny access)
+    if (!roles || roles.length === 0) {
+      return res.status(403).json({ message: 'Insufficient permissions', code: 'INSUFFICIENT_PERMISSIONS' });
+    }
+
     if (roles.includes(user.role)) {
       next();
     } else {

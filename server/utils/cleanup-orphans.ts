@@ -104,8 +104,6 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
 
     cleanedUp = true;
     console.log('✅ Orphan cleanup completed successfully');
-  } catch (error) {
-    console.error('❌ Failed to clean up orphans:', error);
   }
 
   return {

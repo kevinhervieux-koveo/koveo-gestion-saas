@@ -19,10 +19,11 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, FileText, Zap, Save, Clock, Trash2, Plus } from 'lucide-react';
+import { Copy, FileText, Zap, Save, Clock, Trash2, Plus, Paperclip } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 /**
  * Props for the FeatureForm component.
@@ -96,7 +97,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       // Close the dialog
       handleClose(false);
     },
-    onError: (_error) => {
+    onError: () => {
       toast({
         title: 'Integration Failed',
         description: 'Failed to add the feature to the roadmap. Please try again.',
@@ -147,7 +148,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'The development prompt has been saved as an actionable item.',
       });
     },
-    onError: (_error) => {
+    onError: () => {
       toast({
         title: 'Save Failed',
         description: 'Failed to save the prompt as an actionable item.',
@@ -200,6 +201,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   /**
    * Gets the localStorage key for drafts.
@@ -229,8 +231,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
-      console.error('Failed to save draft:', _error);
+    } catch (error) {
+      // Error saving draft
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -253,8 +255,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
-      console.error('Failed to load draft:', _error);
+    } catch (error) {
+      // Error loading draft
     }
   }, [feature?.id, getDraftKey]);
 
@@ -266,13 +268,13 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
-
+      
       toast({
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
-      console.error('Failed to clear draft:', _error);
+    } catch (error) {
+      // Error clearing draft
     }
   }, [feature?.id, toast, getDraftKey]);
 
@@ -286,6 +288,14 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
+
+  /**
+   * Handle file attachments for mockups, wireframes, or supporting documents.
+   */
+  const handleFilesSelect = useCallback((files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+    setIsDirty(true);
+  }, []);
 
   /**
    * Generates a comprehensive development prompt based on the collected requirements.
@@ -479,7 +489,8 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error copying prompt:', error);
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -595,15 +606,14 @@ ${formData.additionalNotes || 'No additional notes'}
             const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
               window.localStorage.removeItem(key);
-              console.warn('Cleared invalid draft:', key);
             }
-          } catch (_error) {
+          } catch (error) {
             // Invalid JSON, remove it
             window.localStorage.removeItem(key);
           }
         });
-      } catch (_error) {
-        console.error('Error clearing invalid drafts:', _error);
+      } catch (error) {
+        console.error('Error clearing invalid drafts:', error);
       }
 
       loadDraft();
@@ -1043,6 +1053,48 @@ ${formData.additionalNotes || 'No additional notes'}
                 value={formData.additionalNotes}
                 onChange={(e) => updateFormData('additionalNotes', e.target.value)}
               />
+            </div>
+
+            {/* File Attachments */}
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="w-4 h-4 text-gray-500" />
+                  <Label className="text-sm font-medium">Supporting Documents</Label>
+                  <span className="text-xs text-gray-500">
+                    (Optional - Mockups, wireframes, screenshots, requirements docs)
+                  </span>
+                </div>
+                <CompactFileUpload
+                  onFilesSelect={handleFilesSelect}
+                  maxFiles={5}
+                  acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                />
+              </div>
+              {attachedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-600">
+                    Selected files ({attachedFiles.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {attachedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                      >
+                        <span className="truncate max-w-[100px]">{file.name}</span>
+                        <button
+                          onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                          className="text-gray-500 hover:text-red-500"
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

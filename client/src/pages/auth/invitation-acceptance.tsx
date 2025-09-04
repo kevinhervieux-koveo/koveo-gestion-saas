@@ -87,7 +87,7 @@ export default function InvitationAcceptancePage() {
         throw new Error('Consentements obligatoires requis');
       }
 
-      console.log('🔍 Starting token validation for:', tokenData.token.substring(0, 8) + '...');
+      // Starting token validation
 
       // Accept the invitation with all collected data
       const response = await fetch(`/api/invitations/accept/${tokenData.token}`, {
@@ -110,20 +110,19 @@ export default function InvitationAcceptancePage() {
         }),
       });
 
-      console.log('📡 API response status:', response.status);
+      // API response received
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('📄 API response data:', errorData);
+        // API response error data
         throw new Error(errorData.message || 'Erreur lors de la création du compte');
       }
 
       const result = await response.json();
-      console.log('✅ Token validation successful, updating wizard state');
+      // Token validation successful
       setCompletedUser(result.user);
       setIsCompleted(true);
     } catch (_error: unknown) {
-      console.error('Error completing registration:', _error);
       setError(
         (_error as Error).message || 'Une erreur est survenue lors de la création de votre compte'
       );

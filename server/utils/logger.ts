@@ -23,7 +23,6 @@ export interface LogContext {
  * @returns Function result.
  */
 export function logInfo(message: string, context?: LogContext) {
-  console.warn(`[INFO] ${message}`, context ? JSON.stringify(context) : '');
 }
 
 /**
@@ -55,5 +54,4 @@ export function logError(message: string, error?: Error, context?: LogContext) {
  * @returns Function result.
  */
 export function logWarn(message: string, context?: LogContext) {
-  console.warn(`[WARN] ${message}`, context ? JSON.stringify(context) : '');
 }

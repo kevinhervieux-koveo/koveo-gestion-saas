@@ -25,7 +25,7 @@ Koveo Gestion is a comprehensive property management platform designed specifica
 
 ### Prerequisites
 
-- Node.js 20+ 
+- Node.js 20+
 - PostgreSQL 14+
 - npm or yarn
 
@@ -58,7 +58,7 @@ The application will be available at `http://localhost:5000`
 Email: admin@koveo.com
 Password: admin123
 
-# Manager user  
+# Manager user
 Email: manager@koveo.com
 Password: manager123
 ```
@@ -135,21 +135,25 @@ npm run format          # Format code with Prettier
 The platform implements a comprehensive RBAC system with four main roles:
 
 ### Admin
+
 - Full system access and configuration
 - User management and organization setup
 - System monitoring and maintenance
 
-### Manager  
+### Manager
+
 - Building and property management
 - Financial oversight and reporting
 - Maintenance coordination
 
 ### Tenant
+
 - Unit management and resident coordination
 - Maintenance requests and approvals
 - Financial reporting for units
 
 ### Resident
+
 - Personal profile and unit information
 - Maintenance request submission
 - Bill viewing and notifications
@@ -231,12 +235,14 @@ SYNC_DEMO_ON_DEPLOY=true             # Demo data sync
 Koveo Gestion is built specifically for Quebec's regulatory environment:
 
 ### Law 25 Compliance
+
 - **Privacy by Design**: Data protection built into architecture
 - **Consent Management**: Explicit user consent tracking
 - **Data Minimization**: Only collect necessary information
 - **Breach Notification**: Automated compliance reporting
 
 ### Bilingual Support
+
 - **Interface**: Complete French and English translations
 - **Documentation**: Bilingual user guides and help
 - **Legal**: Quebec-specific terms and conditions
@@ -270,11 +276,13 @@ Please report bugs and feature requests via GitHub Issues with:
 ## Roadmap
 
 ### Current Focus (Q1 2025)
+
 - Enhanced mobile responsiveness
 - Advanced reporting features
 - API performance optimization
 
 ### Upcoming (Q2-Q3 2025)
+
 - Multi-tenant architecture
 - Advanced analytics dashboard
 - Third-party integrations

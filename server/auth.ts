@@ -4,7 +4,8 @@ import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
-import { sql } from './db.js';
+import { sql, db, pool } from './db';
+import { config } from './config/index';
 import type { User } from '@shared/schema';
 // Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';
@@ -22,7 +23,7 @@ import { queryCache } from './query-cache';
  */
 async function checkUserPermission(userRole: string, permissionName: string): Promise<boolean> {
   try {
-    console.log(`🔍 Checking permission: role="${userRole}", permission="${permissionName}"`);
+    // Debug logging removed for production security
 
     // First check if permission exists at all
     const permissionExists = await db
@@ -31,7 +32,7 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
       .where(eq(schema.permissions.name, permissionName))
       .limit(1);
 
-    console.log(`🔍 Permission "${permissionName}" exists: ${permissionExists.length > 0}`);
+    // Permission exists check complete
 
     // Check role permissions
     const rolePermissions = await db
@@ -39,7 +40,7 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
       .from(schema.rolePermissions)
       .where(eq(schema.rolePermissions.role, userRole as any));
 
-    console.log(`🔍 Role "${userRole}" has ${rolePermissions.length} permissions`);
+    // Role permissions checked
 
     const result = await db
       .select()
@@ -53,14 +54,10 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
       )
       .limit(1);
 
-    console.log(
-      `🔍 Permission check result: ${result.length > 0 ? 'GRANTED' : 'DENIED'}, found ${result.length} matching records`
-    );
+    // Permission check completed
 
     if (result.length === 0) {
-      console.log(
-        `❌ No permission found for role "${userRole}" and permission "${permissionName}"`
-      );
+      // Permission not found
       // Debug: list all admin permissions
       if (userRole === 'admin') {
         const adminPerms = await db
@@ -71,16 +68,13 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
             eq(schema.rolePermissions.permissionId, schema.permissions.id)
           )
           .where(eq(schema.rolePermissions.role, 'admin'));
-        console.log(
-          `🔍 Admin permissions:`,
-          adminPerms.map((p) => p.name)
-        );
+        // Admin permissions debug removed for security
       }
     }
 
     return result.length > 0;
-  } catch (error) {
-    console.error('Error checking user permission:', error);
+  } catch (error: any) {
+    console.error('❌ Permission check failed:', error);
     return false;
   }
 }
@@ -88,39 +82,106 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
 // Initialize email service
 const emailService = new EmailService();
 
-// Use shared database connection from db.ts to avoid multiple pools
-import { db, pool } from './db';
+// Database connection already imported at top of file
 
 // Configure session store with PostgreSQL
 const PostgreSqlStore = connectPg(session);
+
+/**
+ * Get the correct database URL based on environment and request domain.
+ * Uses centralized configuration to determine the appropriate database.
+ */
+function getDatabaseUrl(requestDomain?: string): string {
+  // Use the centralized database configuration
+  const selectedUrl = config.database.getRuntimeDatabaseUrl(requestDomain);
+  const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
+  const isProduction = config.server.isProduction || isKoveoRequest;
+  
+  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${selectedUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
+  
+  if (!selectedUrl) {
+    throw new Error('No database URL available for session store');
+  }
+  
+  return selectedUrl;
+}
 
 /**
  * Session configuration for Quebec-compliant user authentication.
  * Uses PostgreSQL session store for scalability and Law 25 compliance.
  * Includes fallback for database connection issues in production.
  */
-function createSessionStore() {
-  // Use memory store for now since neon HTTP client doesn't work with connect-pg-simple
-  // This ensures sessions work while we use the HTTP database connection
-  console.log('🔧 Using memory session store (compatible with Neon HTTP connection)');
-  return undefined; // Will use default memory store
+function createSessionStore(requestDomain?: string) {
+  try {
+    // Create a proper PostgreSQL pool for the session store
+    // connect-pg-simple needs a real PostgreSQL pool, not the Neon HTTP client
+    const sessionPool = new Pool({ 
+      connectionString: getDatabaseUrl(requestDomain),
+      max: 2, // Small pool for sessions
+      min: 1,
+      maxUses: 7500, // Maximum number of times a connection can be reused
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout
+      allowExitOnIdle: true, // Allow pool to close when idle
+    });
+    
+    // Use PostgreSQL session store for persistent sessions
+    const store = new PostgreSqlStore({
+      pool: sessionPool,
+      tableName: 'session',
+      createTableIfMissing: true, // Auto-create table in production if missing
+      errorLog: process.env.NODE_ENV === 'test' ? () => {} : console.error, // Suppress error logging in tests
+      
+      // Add explicit configuration for session retrieval
+      pruneSessionInterval: process.env.NODE_ENV === 'test' ? false : 60 * 1000, // Disable pruning in tests
+      schemaName: 'public', // Explicitly set schema
+    });
+    
+    console.log('✅ Session store: PostgreSQL session store created with proper pool');
+    
+    // Test the store connection (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      store.get('test-session-id', (err, session) => {
+        if (err) {
+          console.error('❌ Session store connection test failed:', err);
+        } else {
+          console.log('✅ Session store connection test passed');
+        }
+      });
+    }
+    
+    return store;
+  } catch (error: any) {
+    console.error('❌ Session store creation failed:', error);
+    console.log('⚠️ Falling back to memory store (sessions will not persist)');
+    return undefined; // Will use default memory store as fallback
+  }
+}
+
+// Create session store with better database detection  
+let sessionStore: any;
+try {
+  // Try to create session store with automatic database detection
+  sessionStore = createSessionStore();
+} catch (error) {
+  console.error('❌ Failed to create initial session store:', error);
+  sessionStore = undefined; // Will fall back to memory store
 }
 
 export const sessionConfig = session({
-  store: createSessionStore(),
+  store: sessionStore, // Use PostgreSQL session store for persistence
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-  resave: true, // Save session even when not modified to extend expiry
+  resave: false, // Don't save unchanged sessions
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: false, // Disable secure for Replit development environment
-    httpOnly: false, // Disable httpOnly to allow JavaScript access for debugging
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session
-    sameSite: 'lax', // Keep lax for same-site compatibility
-    // Don't set domain - let it default to current domain
+    secure: false, // Keep false for development to ensure cookies work
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session duration
+    sameSite: 'lax',
+    path: '/', // Explicitly set path
   },
   name: 'koveo.sid',
-  proxy: true, // Always trust proxy for Replit deployment
+  proxy: false,
 });
 
 /**
@@ -209,26 +270,30 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    // Touch session to extend expiry on activity
-    if (req.session && req.session.touch) {
-      req.session.touch();
+    // Optimized session touch - only touch when session is close to expiring
+    if (req.session && req.session.touch && req.session.cookie) {
+      const now = Date.now();
+      const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
+      const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
+      
+      // Only touch session if more than 25% of its lifetime has passed
+      if (sessionAge > sessionLifetime * 0.25) {
+        req.session.touch();
+      }
     }
 
-    console.log(`🔍 RequireAuth: Loading user with session ID: ${req.session.userId}`);
+    // Loading user session
 
     // Clear any cached user data for this ID to ensure fresh load
     queryCache.invalidate('users', `user:${req.session.userId}`);
     queryCache.invalidate('users', `user_email:*`);
 
     const user = await storage.getUser(req.session.userId);
-    console.log(
-      `🔍 RequireAuth: Loaded user:`,
-      user ? { id: user.id, email: user.email, role: user.role } : 'NOT FOUND'
-    );
+    // User loaded from session
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
         if (err) {
-          console.error('Session destruction _error:', err);
+          // Session destruction error handled
         }
       });
       return res.status(401).json({
@@ -256,7 +321,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
           )
         );
     } catch (orgError) {
-      console.error('Organization lookup error (user can still log in):', orgError);
+      // Organization lookup error handled gracefully
       // Continue with empty organizations - user can still authenticate
       userOrganizations = [];
     }
@@ -269,19 +334,33 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     } as any;
 
     // Special handling for hardcoded demo users - ensure they have proper organization access
+    // Check if the user record has organization access configured
     if (
       user.role?.startsWith('demo_') &&
-      user.organizationId &&
       (!req.user.organizations || req.user.organizations.length === 0)
     ) {
-      console.log(`🔧 [AUTH] Adding organization access for hardcoded demo user: ${user.email}`);
-      req.user.organizations = [user.organizationId];
-      req.user.canAccessAllOrganizations = false;
+      // Demo users should get access to demo organizations
+      try {
+        const demoOrgs = await db
+          .select({ id: schema.organizations.id })
+          .from(schema.organizations)
+          .where(eq(schema.organizations.type, 'demo'))
+          .limit(1);
+        
+        if (demoOrgs.length > 0) {
+          // Adding organization access for demo user
+          req.user.organizations = [demoOrgs[0].id];
+          req.user.canAccessAllOrganizations = false;
+        }
+      } catch (demoOrgError) {
+        // Demo organization lookup failed, continue without access
+      }
     }
 
     next();
-  } catch (_error) {
-    console.error('Authentication _error:', _error);
+  } catch (error: any) {
+    // Authentication error handled
+    console.error('❌ Authentication error:', error);
     return res.status(500).json({
       message: 'Authentication error',
       code: 'AUTH_ERROR',
@@ -384,8 +463,9 @@ export function authorize(permission: string) {
       }
 
       next();
-    } catch (_error) {
-      console.error('Authorization _error:', _error);
+    } catch (error: any) {
+      // Authorization error handled
+      console.error('❌ Authorization error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -421,10 +501,10 @@ export function authorize(permission: string) {
  */
 export function setupAuthRoutes(app: any) {
   // Login route
-  app.post('/auth/login', async (req: Request, res: Response) => {
+  app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      console.log(`🔍 [AUTH ROUTE] Login attempt for: ${email}`);
+      // Login attempt initiated
 
       if (!email || !password) {
         return res.status(400).json({
@@ -433,7 +513,7 @@ export function setupAuthRoutes(app: any) {
         });
       }
 
-      console.log(`🔍 [AUTH ROUTE] Calling storage.getUserByEmail for: ${email.toLowerCase()}`);
+      // Retrieving user by email
       const user = await storage.getUserByEmail(email.toLowerCase());
 
       if (!user) {
@@ -451,15 +531,12 @@ export function setupAuthRoutes(app: any) {
       }
 
       // Use bcrypt for password verification
-      console.log(
-        `🔍 [AUTH DEBUG] Verifying password for user: ${user.firstName} ${user.lastName}`
-      );
-      console.log(`🔍 [AUTH DEBUG] Password hash: ${user.password.substring(0, 20)}...`);
+      // Verifying password for user
+      // Password verification initiated
       const isValidPassword = await verifyPassword(password, user.password);
-      console.log(`🔍 [AUTH DEBUG] Password verification result: ${isValidPassword}`);
+      // Password verification completed
 
       if (!isValidPassword) {
-        console.log(`❌ [AUTH DEBUG] Password verification failed for: ${user.email}`);
         return res.status(401).json({
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS',
@@ -473,17 +550,19 @@ export function setupAuthRoutes(app: any) {
       req.session.userId = user.id;
       req.session.userRole = user.role;
       req.session.role = user.role;
+      req.session.user = user; // Add complete user object for middleware compatibility
 
       // Save session explicitly to ensure it's persisted
       req.session.save((err) => {
         if (err) {
-          console.error('Session save error:', err);
+          console.error('❌ Session save error:', err);
           return res.status(500).json({
             message: 'Session save failed',
             code: 'SESSION_SAVE_ERROR',
           });
         }
 
+        
         // Return user data (without password)
         const { password: _, ...userData } = user;
         res.json({
@@ -491,8 +570,8 @@ export function setupAuthRoutes(app: any) {
           message: 'Login successful',
         });
       });
-    } catch (_error) {
-      console.error('Login error details:', {
+    } catch (_error: any) {
+      console.error('Login error:', {
         error: _error,
         email: req.body?.email,
         hasPassword: !!req.body?.password,
@@ -508,7 +587,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Logout route
-  app.post('/auth/logout', (req: Request, res: Response) => {
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
         console.error('Logout _error:', err);
@@ -531,60 +610,63 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Get current user route
-  app.get('/auth/user', async (req: Request, res: Response) => {
+  app.get('/api/auth/user', async (req: Request, res: Response) => {
     try {
-      // 🚨 EMERGENCY PRODUCTION SESSION CHECK - Support emergency login sessions
-      if (
-        process.env.NODE_ENV === 'production' &&
-        req.session?.userId === 'f35647de-5f16-46f2-b30b-09e0469356b1' &&
-        req.session?.userRole === 'admin'
-      ) {
-        console.log('🚨 Emergency session detected - returning admin user data');
+      // Check user session
 
-        return res.json({
-          id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
-          username: 'kevin.hervieux',
-          email: 'kevin.hervieux@koveo-gestion.com',
-          firstName: 'Kevin',
-          lastName: 'Hervieux',
-          phone: '',
-          profileImage: '',
-          language: 'fr',
-          role: 'admin',
-          isActive: true,
-          lastLoginAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+      // Check if we have a valid session with user ID
+      if (!req.session?.userId) {
+        // No session found
+        return res.status(401).json({
+          message: 'Not authenticated',
+          code: 'NOT_AUTHENTICATED',
         });
       }
 
-      // Normal auth flow - check with requireAuth middleware, but handle database failures gracefully
+      // Try to get user from database
       try {
-        const authMiddleware = requireAuth;
-        authMiddleware(req, res, async () => {
-          if (!req.user) {
-            return res.status(401).json({
-              message: 'Not authenticated',
-              code: 'NOT_AUTHENTICATED',
-            });
-          }
+        const user = await storage.getUser(req.session.userId);
+        // User lookup completed
 
-          const { password: _, ...userData } = req.user;
-          res.json(userData);
-        });
-      } catch (authError) {
-        // If normal auth fails in production and we have a session, provide fallback
-        if (process.env.NODE_ENV === 'production' && req.session?.userId) {
-          console.log('🚨 Auth middleware failed, checking for emergency session fallback');
+        if (!user || !user.isActive) {
+          // User not found or inactive, destroying session
+          req.session.destroy((err) => {
+            if (err) {
+              console.error('Session destruction error:', err);
+            }
+          });
           return res.status(401).json({
-            message: 'Session verification failed',
-            code: 'SESSION_VERIFICATION_FAILED',
+            message: 'User account not found or inactive',
+            code: 'USER_INACTIVE',
           });
         }
-        throw authError;
+
+        // Optimized session touch - only when needed
+        if (req.session && req.session.touch && req.session.cookie) {
+          const now = Date.now();
+          const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
+          const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
+          
+          // Only touch session if more than 25% of its lifetime has passed
+          if (sessionAge > sessionLifetime * 0.25) {
+            req.session.touch();
+          }
+        }
+
+        // Return user data without password
+        const { password: _, ...userData } = user;
+        // Successfully authenticated user
+        res.json(userData);
+
+      } catch (userError) {
+        console.error('Database error getting user:', userError);
+        return res.status(500).json({
+          message: 'Authentication check failed',
+          code: 'AUTH_CHECK_ERROR',
+        });
       }
-    } catch (error) {
-      console.error('Auth user check error:', error);
+    } catch (error: any) {
+      console.error('❌ Auth check error:', error);
       res.status(500).json({
         message: 'Authentication check failed',
         code: 'AUTH_CHECK_ERROR',
@@ -593,7 +675,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Debug endpoint to check auth configuration (production only, temporary)
-  app.get('/auth/debug', async (req: Request, res: Response) => {
+  app.get('/api/auth/debug', async (req: Request, res: Response) => {
     const debugInfo = {
       hasSession: !!req.session,
       sessionId: req.sessionID,
@@ -617,7 +699,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Test cookie setting endpoint
-  app.post('/auth/test-cookie', (req: Request, res: Response) => {
+  app.post('/api/auth/test-cookie', (req: Request, res: Response) => {
     // Set a test session value
     req.session.testValue = 'test-' + Date.now();
 
@@ -641,7 +723,7 @@ export function setupAuthRoutes(app: any) {
 
   // Register route (admin only for now)
   app.post(
-    '/auth/register',
+    '/api/auth/register',
     requireAuth,
     requireRole(['admin']),
     async (req: Request, res: Response) => {
@@ -682,8 +764,8 @@ export function setupAuthRoutes(app: any) {
           user: userData,
           message: 'User created successfully',
         });
-      } catch (_error) {
-        console.error('Registration _error:', _error);
+      } catch (error: any) {
+        console.error('❌ Registration error:', error);
         res.status(500).json({
           message: 'Registration failed',
           code: 'REGISTRATION_ERROR',
@@ -693,7 +775,7 @@ export function setupAuthRoutes(app: any) {
   );
 
   // Password Reset Request Route
-  app.post('/auth/forgot-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
@@ -755,7 +837,6 @@ export function setupAuthRoutes(app: any) {
       const cleanUrl = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
       const resetUrl = `${cleanUrl}/reset-password?token=${resetToken}`;
 
-      console.warn('Generated reset URL:', resetUrl);
 
       const emailSent = await emailService.sendPasswordResetEmail(
         email.toLowerCase(),
@@ -775,8 +856,8 @@ export function setupAuthRoutes(app: any) {
         message: 'If this email exists, a password reset link has been sent.',
         success: true,
       });
-    } catch (_error) {
-      console.error('Password reset request _error:', _error);
+    } catch (error: any) {
+      console.error('❌ Password reset request error:', error);
       res.status(500).json({
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR',
@@ -785,7 +866,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Password Reset Route
-  app.post('/auth/reset-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
     try {
       const { token, password } = req.body;
 
@@ -878,8 +959,8 @@ export function setupAuthRoutes(app: any) {
         message: 'Password has been reset successfully',
         success: true,
       });
-    } catch (_error) {
-      console.error('Password reset _error:', _error);
+    } catch (error: any) {
+      console.error('❌ Password reset error:', error);
       res.status(500).json({
         message: 'Password reset failed',
         code: 'PASSWORD_RESET_ERROR',
@@ -888,26 +969,274 @@ export function setupAuthRoutes(app: any) {
   });
 }
 
-// Extend Express Request interface to include user
+/**
+ * Document RBAC Functions - Role-Based Access Control for Documents
+ * Implements the four-tier permission system: Admin > Manager > Resident > Tenant
+ */
+
+/**
+ * Check if user can view a specific document based on RBAC rules
+ * @param user - The authenticated user
+ * @param document - The document to check access for
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can view document
+ */
+export async function canViewDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can view all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can view all documents in their organization
+    if (user.role === 'manager') {
+      // Check if document belongs to manager's organization
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true; // Manager can view organization-level docs
+    }
+
+    // Resident: Can view documents in their residence/building
+    if (user.role === 'resident') {
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      if (document.buildingId) {
+        // Can view building docs if they live in that building
+        const userBuildingIds = userResidences?.map(async ur => {
+          const residence = await storage.getResidence(ur.residenceId);
+          return residence?.buildingId;
+        });
+        const buildingIds = await Promise.all(userBuildingIds || []);
+        return buildingIds.includes(document.buildingId);
+      }
+      return false;
+    }
+
+    // Tenant: Can only view documents marked as visible to tenants
+    if (user.role === 'tenant') {
+      if (!document.isVisibleToTenants) {
+        return false;
+      }
+      
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      if (document.buildingId) {
+        const userBuildingIds = userResidences?.map(async ur => {
+          const residence = await storage.getResidence(ur.residenceId);
+          return residence?.buildingId;
+        });
+        const buildingIds = await Promise.all(userBuildingIds || []);
+        return buildingIds.includes(document.buildingId);
+      }
+      return false;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Document view permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can edit a specific document
+ * @param user - The authenticated user
+ * @param document - The document to check
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can edit document
+ */
+export async function canEditDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can edit all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can edit all documents in their organization
+    if (user.role === 'manager') {
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can edit documents they created or in their residence
+    if (user.role === 'resident') {
+      // Can edit own documents
+      if (document.uploadedBy === user.id) {
+        return true;
+      }
+      
+      // Can edit residence documents
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      return false;
+    }
+
+    // Tenant: Cannot edit documents (read-only access)
+    return false;
+  } catch (error) {
+    console.error('Document edit permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can delete a specific document
+ * @param user - The authenticated user
+ * @param document - The document to check
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can delete document
+ */
+export async function canDeleteDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can delete all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can delete documents in their organization
+    if (user.role === 'manager') {
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can only delete documents they uploaded
+    if (user.role === 'resident') {
+      return document.uploadedBy === user.id;
+    }
+
+    // Tenant: Cannot delete documents
+    return false;
+  } catch (error) {
+    console.error('Document delete permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can create documents in a specific context
+ * @param user - The authenticated user
+ * @param context - The context (buildingId, residenceId, or organization)
+ * @returns Promise<boolean> - True if user can create documents
+ */
+export async function canCreateDocument(
+  user: AuthenticatedUser,
+  context: { buildingId?: string; residenceId?: string; organizationId?: string }
+): Promise<boolean> {
+  try {
+    // Admin: Can create documents anywhere
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can create documents in their organization
+    if (user.role === 'manager') {
+      if (context.organizationId) {
+        return context.organizationId === user.organizationId;
+      }
+      if (context.buildingId) {
+        const building = await storage.getBuilding(context.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (context.residenceId) {
+        const residence = await storage.getResidence(context.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can create documents in their residence
+    if (user.role === 'resident') {
+      if (context.residenceId) {
+        // Check if user lives in this residence
+        const userResidences = await storage.getUserResidences(user.id);
+        return userResidences.some(ur => ur.residenceId === context.residenceId);
+      }
+      return false;
+    }
+
+    // Tenant: Cannot create documents
+    return false;
+  } catch (error) {
+    console.error('Document create permission check failed:', error);
+    return false;
+  }
+}
+
+// Extended user interface for authentication context
+interface AuthenticatedUser extends User {
+  organizations?: string[];
+  canAccessAllOrganizations?: boolean;
+  organizationId?: string;
+}
+
+// Extend Express Request interface to include authenticated user
 declare global {
   namespace Express {
-    /**
-     *
-     */
     interface Request {
-      user?: User;
+      user?: AuthenticatedUser;
     }
   }
 }
 
-// Extend session interface using namespace instead of module declaration
-declare global {
-  namespace Express {
-    interface SessionData {
-      userId?: string;
-      userRole?: string;
-      role?: string;
-      permissions?: string[];
-    }
+// Extend express-session to include custom properties
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    userRole?: string;
+    role?: string;
+    user?: AuthenticatedUser;
+    permissions?: string[];
+    store?: any;
+    testValue?: any;
+    organizationId?: string;
+    organizations?: string[];
+    canAccessAllOrganizations?: boolean;
   }
 }

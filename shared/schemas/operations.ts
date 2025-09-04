@@ -9,6 +9,7 @@ import {
   boolean,
   decimal,
   integer,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -113,13 +114,13 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  residenceId: uuid('residence_id')
+  residenceId: varchar('residence_id')
     .notNull()
     .references(() => residences.id),
-  submittedBy: uuid('submitted_by')
+  submittedBy: varchar('submitted_by')
     .notNull()
     .references(() => users.id),
-  assignedTo: uuid('assigned_to').references(() => users.id),
+  assignedTo: varchar('assigned_to').references(() => users.id),
   title: text('title').notNull(),
   description: text('description').notNull(),
   category: text('category').notNull(), // 'plumbing', 'electrical', 'hvac', 'general', etc.
@@ -140,16 +141,16 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
  * Supports various notification types with read tracking.
  */
 export const notifications = pgTable('notifications', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
   type: notificationTypeEnum('type').notNull(),
   title: text('title').notNull(),
   message: text('message').notNull(),
-  relatedEntityId: uuid('related_entity_id'), // ID of related bill, maintenance request, etc.
+  relatedEntityId: varchar('related_entity_id'), // ID of related bill, maintenance request, etc.
   relatedEntityType: text('related_entity_type'), // 'bill', 'maintenance_request', etc.
   isRead: boolean('is_read').notNull().default(false),
   readAt: timestamp('read_at'),
@@ -164,21 +165,20 @@ export const demands = pgTable('demands', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  submitterId: uuid('submitter_id')
+  submitterId: varchar('submitter_id')
     .notNull()
     .references(() => users.id),
   type: demandTypeEnum('type').notNull(),
-  assignationResidenceId: uuid('assignation_residence_id').references(() => residences.id),
-  assignationBuildingId: uuid('assignation_building_id').references(() => buildings.id),
+  assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
+  assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
   description: text('description').notNull(),
-  residenceId: uuid('residence_id')
-    .notNull()
+  residenceId: varchar('residence_id')
     .references(() => residences.id),
-  buildingId: uuid('building_id')
+  buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id),
   status: demandStatusEnum('status').notNull().default('draft'),
-  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedBy: varchar('reviewed_by').references(() => users.id),
   reviewedAt: timestamp('reviewed_at'),
   reviewNotes: text('review_notes'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -189,19 +189,21 @@ export const demands = pgTable('demands', {
  * Demand comments table for tracking communication on demands.
  * Supports threaded conversations on demand requests.
  */
-export const demandComments = pgTable('demand_comments', {
-  id: uuid('id')
+export const demandComments = pgTable('demands_comments', {
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   demandId: uuid('demand_id')
     .notNull()
     .references(() => demands.id),
-  orderIndex: decimal('order_index', { precision: 10, scale: 2 }).notNull(),
-  comment: text('comment').notNull(),
-  createdBy: uuid('created_by')
+  commenterId: text('commenter_id')
     .notNull()
     .references(() => users.id),
+  commentText: text('comment_text').notNull(),
+  commentType: text('comment_type'),
+  isInternal: boolean('is_internal').default(false),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 /**
@@ -209,10 +211,10 @@ export const demandComments = pgTable('demand_comments', {
  * All users can create bugs with category and page assignments.
  */
 export const bugs = pgTable('bugs', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  createdBy: uuid('created_by')
+  createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
@@ -221,9 +223,9 @@ export const bugs = pgTable('bugs', {
   page: text('page').notNull(), // The page where the bug was found
   priority: bugPriorityEnum('priority').notNull().default('medium'),
   status: bugStatusEnum('status').notNull().default('new'),
-  assignedTo: uuid('assigned_to').references(() => users.id),
+  assignedTo: varchar('assigned_to').references(() => users.id),
   resolvedAt: timestamp('resolved_at'),
-  resolvedBy: uuid('resolved_by').references(() => users.id),
+  resolvedBy: varchar('resolved_by').references(() => users.id),
   notes: text('notes'), // Internal notes for resolution
   reproductionSteps: text('reproduction_steps'), // Steps to reproduce the bug
   environment: text('environment'), // Browser, OS, device info
@@ -237,10 +239,10 @@ export const bugs = pgTable('bugs', {
  * Supports upvoting and merging similar requests.
  */
 export const featureRequests = pgTable('feature_requests', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  createdBy: uuid('created_by')
+  createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
@@ -250,11 +252,11 @@ export const featureRequests = pgTable('feature_requests', {
   page: text('page').notNull(), // The page/section where this feature should be added
   status: featureRequestStatusEnum('status').notNull().default('submitted'),
   upvoteCount: integer('upvote_count').notNull().default(0),
-  assignedTo: uuid('assigned_to').references(() => users.id),
-  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  assignedTo: varchar('assigned_to').references(() => users.id),
+  reviewedBy: varchar('reviewed_by').references(() => users.id),
   reviewedAt: timestamp('reviewed_at'),
   adminNotes: text('admin_notes'), // Internal notes for admins only
-  mergedIntoId: uuid('merged_into_id').references(() => featureRequests.id), // If merged into another request
+  mergedIntoId: varchar('merged_into_id').references(() => featureRequests.id), // If merged into another request
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -264,13 +266,13 @@ export const featureRequests = pgTable('feature_requests', {
  * Each user can only upvote a feature request once.
  */
 export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  featureRequestId: uuid('feature_request_id')
+  featureRequestId: varchar('feature_request_id')
     .notNull()
     .references(() => featureRequests.id),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
@@ -293,7 +295,7 @@ export const insertMaintenanceRequestSchema = z.object({
 
 export const insertNotificationSchema = z.object({
   userId: z.string().uuid(),
-  type: z.string(),
+  type: z.enum(['bill_reminder', 'maintenance_update', 'announcement', 'system', 'emergency']),
   title: z.string(),
   message: z.string(),
   relatedEntityId: z.string().uuid().optional(),
@@ -309,20 +311,21 @@ export const insertDemandSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
-  residenceId: z.string().uuid().optional(),
-  buildingId: z.string().uuid().optional(),
+  residenceId: z.string().uuid(),
+  buildingId: z.string().uuid(),
   status: z.string().default('draft'),
   reviewNotes: z.string().optional(),
 });
 
 export const insertDemandCommentSchema = z.object({
   demandId: z.string().uuid(),
-  orderIndex: z.number().int(),
-  comment: z
+  commenterId: z.string().uuid(),
+  commentText: z
     .string()
     .min(1, 'Comment content is required')
     .max(1000, 'Comment must not exceed 1000 characters'),
-  createdBy: z.string().uuid(),
+  commentType: z.string().optional(),
+  isInternal: z.boolean().default(false),
 });
 
 export const insertBugSchema = z.object({

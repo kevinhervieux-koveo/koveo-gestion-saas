@@ -18,9 +18,11 @@ This comprehensive guide documents all 73 React components in the Koveo Gestion 
 ## Layout Components
 
 ### AppLayout (`client/src/components/layout/AppLayout.tsx`)
+
 **Purpose**: Main application layout wrapper with authentication and routing
 
 **Props**:
+
 ```typescript
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -28,12 +30,14 @@ interface AppLayoutProps {
 ```
 
 **Features**:
+
 - Session management and authentication checks
 - Language provider setup (French/English)
 - Query client configuration for TanStack Query
 - Global toast notifications setup
 
 **Complete Implementation Example**:
+
 ```typescript
 // App.tsx - Main application setup
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -86,6 +90,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 ```
 
 **Advanced Usage with Context**:
+
 ```typescript
 // Custom layout for specific sections
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -118,9 +123,11 @@ export function AdminUsersPage() {
 ```
 
 ### Sidebar (`client/src/components/layout/sidebar.tsx`)
+
 **Purpose**: Navigation sidebar with role-based menu items
 
 **Key Features**:
+
 - **Role-Based Navigation**: Customized menu items based on user permissions
 - **Organization-Aware Filtering**: Context-sensitive menu options
 - **Collapsible Sections**: Space-efficient navigation with expandable categories
@@ -128,15 +135,18 @@ export function AdminUsersPage() {
 - **Quebec Compliance**: Bilingual menu labels and accessibility standards
 
 **Navigation Structure**:
+
 - **Admin**: Full access to all features
 - **Manager**: Organization and building management
 - **Tenant**: Residence and maintenance focus
 - **Resident**: Basic tenant features
 
 ### Header (`client/src/components/layout/Header.tsx`)
+
 **Purpose**: Top navigation bar with user info and actions
 
 **Features**:
+
 - User profile display
 - Logout functionality
 - Organization context display
@@ -147,15 +157,18 @@ export function AdminUsersPage() {
 This section documents all form components located in `client/src/components/forms/`. These components handle user input, validation, and data submission throughout the application.
 
 ### Key Form Features
+
 - **Zod Validation**: Type-safe runtime validation for all form inputs
 - **React Hook Form**: Performant form state management with minimal re-renders
 - **Quebec Compliance**: Bilingual error messages and Canadian address formats
 - **Accessibility**: WCAG 2.1 AA compliant form controls and error handling
 
 ### OrganizationForm (`client/src/components/forms/organization-form.tsx`)
+
 **Purpose**: Comprehensive organization creation and management form optimized for Quebec property management companies
 
 **Props Interface**:
+
 ```typescript
 interface OrganizationFormProps {
   open: boolean;
@@ -164,6 +177,7 @@ interface OrganizationFormProps {
 ```
 
 **Core Features**:
+
 - **Quebec Address Validation**: Automatic postal code format validation (H0H 0H0 pattern)
 - **Organization Types**: Support for Normal, Demo, and Koveo organization classifications
 - **Canadian Standards**: Province defaults to Quebec (QC) with full Canadian address support
@@ -171,31 +185,36 @@ interface OrganizationFormProps {
 - **Registration Tracking**: Support for Quebec business registration numbers
 
 **Advanced Validation Schema**:
+
 ```typescript
 const formSchema = insertOrganizationSchema.extend({
-  name: z.string().min(1, "Organization name is required").max(200),
-  type: z.string().min(1, "Organization type must be selected"),
-  address: z.string().min(1, "Address is required").max(300),
-  city: z.string().min(1, "City is required").max(100),
+  name: z.string().min(1, 'Organization name is required').max(200),
+  type: z.string().min(1, 'Organization type must be selected'),
+  address: z.string().min(1, 'Address is required').max(300),
+  city: z.string().min(1, 'City is required').max(100),
   province: z.string().default('QC'), // Defaults to Quebec
-  postalCode: z.string()
+  postalCode: z
+    .string()
     .regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/, 'Invalid Canadian postal code format (e.g., H1A 1A1)'),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email format").optional().or(z.literal('')),
-  website: z.string().url("Invalid website URL").optional().or(z.literal(''))
+  email: z.string().email('Invalid email format').optional().or(z.literal('')),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
 });
 ```
 
 **User Experience Enhancements**:
+
 - Real-time validation feedback with bilingual error messages
 - Auto-formatting for postal codes and phone numbers
 - Smart defaults for Quebec-based organizations
 - Accessibility-compliant form controls with proper labeling
 
 ### FeatureForm (`client/src/components/forms/feature-form.tsx`)
+
 **Purpose**: Feature creation and management form for roadmap system
 
 **Features**:
+
 - Feature title and description
 - Priority and status selection
 - Category assignment
@@ -204,6 +223,7 @@ const formSchema = insertOrganizationSchema.extend({
 - Quebec compliance considerations
 
 **Form Fields**:
+
 - Title (required, max 200 characters)
 - Description (optional, detailed explanation)
 - Category (feature, enhancement, bug_fix, maintenance)
@@ -218,9 +238,11 @@ const formSchema = insertOrganizationSchema.extend({
 ### All UI components follow Shadcn/ui patterns in `client/src/components/ui/`
 
 ### Button (`client/src/components/ui/button.tsx`)
+
 **Purpose**: Standardized button component with variants
 
 **Variants**:
+
 - `default`: Primary action button
 - `destructive`: Delete/remove actions
 - `outline`: Secondary actions
@@ -229,18 +251,22 @@ const formSchema = insertOrganizationSchema.extend({
 - `link`: Link-style button
 
 ### Card (`client/src/components/ui/card.tsx`)
+
 **Purpose**: Content container with consistent styling
 
 **Components**:
+
 - `Card`: Main container
 - `CardHeader`: Title and description area
 - `CardContent`: Main content area
 - `CardFooter`: Action area
 
 ### DataTable (`client/src/components/ui/data-table.tsx`)
+
 **Purpose**: Sortable, filterable data display
 
 **Features**:
+
 - Column sorting
 - Row selection
 - Pagination
@@ -248,9 +274,11 @@ const formSchema = insertOrganizationSchema.extend({
 - Custom column renderers
 
 ### Dialog (`client/src/components/ui/dialog.tsx`)
+
 **Purpose**: Modal dialogs for forms and confirmations
 
 **Components**:
+
 - `Dialog`: Root component
 - `DialogTrigger`: Opens dialog
 - `DialogContent`: Modal content
@@ -258,18 +286,22 @@ const formSchema = insertOrganizationSchema.extend({
 - `DialogFooter`: Action buttons
 
 ### Form (`client/src/components/ui/form.tsx`)
+
 **Purpose**: Form wrapper with validation display
 
 **Features**:
+
 - React Hook Form integration
 - Zod validation support
 - Error message display
 - Field-level validation
 
 ### Badge (`client/src/components/ui/badge.tsx`)
+
 **Purpose**: Status indicators and labels
 
 **Variants**:
+
 - `default`: Standard badge
 - `secondary`: Muted styling
 - `destructive`: Error states
@@ -278,9 +310,11 @@ const formSchema = insertOrganizationSchema.extend({
 ## Admin Components
 
 ### OrganizationsCard (`client/src/components/admin/organizations-card.tsx`)
+
 **Purpose**: Organization management interface with full CRUD operations
 
 **Props**:
+
 ```typescript
 interface OrganizationsCardProps {
   className?: string;
@@ -288,6 +322,7 @@ interface OrganizationsCardProps {
 ```
 
 **Features**:
+
 - Organization listing with cards display
 - Create, edit, view, and delete operations
 - Organization type badges (Normal, Demo, Koveo)
@@ -296,14 +331,17 @@ interface OrganizationsCardProps {
 - Confirmation dialogs for destructive actions
 
 **Usage**:
+
 ```typescript
 <OrganizationsCard className="w-full" />
 ```
 
 ### SendInvitationDialog (`client/src/components/admin/send-invitation-dialog.tsx`)
+
 **Purpose**: User invitation system with single and bulk invitation support
 
 **Features**:
+
 - Single user invitation with role assignment
 - Bulk invitation processing (up to 20 users)
 - Organization and residence assignment
@@ -314,6 +352,7 @@ interface OrganizationsCardProps {
 - Quebec compliance considerations
 
 **Validation Schema**:
+
 ```typescript
 const invitationSchema = z.object({
   email: z.string().email(),
@@ -323,14 +362,16 @@ const invitationSchema = z.object({
   residenceId: z.string().optional(),
   personalMessage: z.string().optional(),
   expiryDays: z.number().min(1).max(30).default(7),
-  requires2FA: z.boolean().default(false)
+  requires2FA: z.boolean().default(false),
 });
 ```
 
 ### UserList (`client/src/components/admin/user-list.tsx`)
+
 **Purpose**: User management interface with table display and bulk operations
 
 **Props**:
+
 ```typescript
 interface UserListComponentProps {
   users: User[];
@@ -342,6 +383,7 @@ interface UserListComponentProps {
 ```
 
 **Features**:
+
 - Tabular user display with avatars
 - Multi-select functionality with checkboxes
 - Individual user actions (edit, activate/deactivate, delete)
@@ -350,9 +392,11 @@ interface UserListComponentProps {
 - Responsive table design
 
 ### InvitationManagement (`client/src/components/admin/invitation-management.tsx`)
+
 **Purpose**: Invitation tracking and management interface
 
 **Props**:
+
 ```typescript
 interface InvitationManagementProps {
   invitations: Invitation[];
@@ -363,6 +407,7 @@ interface InvitationManagementProps {
 ```
 
 **Features**:
+
 - Invitation status tracking (pending, accepted, expired, cancelled)
 - Reminder sending functionality
 - Invitation link copying
@@ -371,15 +416,18 @@ interface InvitationManagementProps {
 - Security level indicators
 
 **Invitation Status Types**:
+
 - `pending`: Awaiting user acceptance
 - `accepted`: Successfully registered
 - `expired`: Past expiration date
 - `cancelled`: Manually cancelled
 
 ### BulkActionsBar (`client/src/components/admin/bulk-actions-bar.tsx`)
+
 **Purpose**: Bulk operations interface for selected items
 
 **Props**:
+
 ```typescript
 interface BulkActionsBarProps {
   selectedCount: number;
@@ -389,6 +437,7 @@ interface BulkActionsBarProps {
 ```
 
 **Available Actions**:
+
 - User activation/deactivation
 - Role changes (with confirmation)
 - Password reset email sending
@@ -397,6 +446,7 @@ interface BulkActionsBarProps {
 - Data export functionality
 
 **Action Types**:
+
 ```typescript
 type BulkActionType =
   | 'activate'
@@ -411,9 +461,11 @@ type BulkActionType =
 ## Dashboard Components
 
 ### WorkspaceStatus (`client/src/components/dashboard/workspace-status.tsx`)
+
 **Purpose**: Real-time workspace monitoring and health display
 
 **Features**:
+
 - Component health status tracking
 - Performance metrics visualization
 - Error detection and reporting
@@ -421,15 +473,18 @@ type BulkActionType =
 - Real-time status updates
 
 **Status Indicators**:
+
 - Green: All systems operational
 - Yellow: Minor issues detected
 - Red: Critical problems requiring attention
 - Gray: Component offline or initializing
 
 ### QualityMetrics (`client/src/components/dashboard/quality-metrics.tsx`)
+
 **Purpose**: Code quality and system metrics dashboard
 
 **Metrics Displayed**:
+
 - Code coverage percentages
 - Testing pass/fail rates
 - Performance benchmarks
@@ -438,6 +493,7 @@ type BulkActionType =
 - Quebec compliance scores
 
 **Features**:
+
 - Interactive charts and graphs
 - Historical trend analysis
 - Drill-down capabilities
@@ -445,9 +501,11 @@ type BulkActionType =
 - Automated threshold alerts
 
 ### PillarFramework (`client/src/components/dashboard/pillar-framework.tsx`)
+
 **Purpose**: Pillar methodology status and management interface
 
 **Framework Components**:
+
 - Quality assurance pillar
 - Testing pillar
 - Security pillar
@@ -456,6 +514,7 @@ type BulkActionType =
 - Quebec compliance pillar
 
 **Features**:
+
 - Pillar health monitoring
 - Configuration management
 - Status reporting
@@ -463,9 +522,11 @@ type BulkActionType =
 - Framework validation
 
 ### DevelopmentConsole (`client/src/components/dashboard/development-console.tsx`)
+
 **Purpose**: Developer tools and debugging interface
 
 **Console Features**:
+
 - Real-time log viewing
 - Command execution
 - System diagnostics
@@ -474,6 +535,7 @@ type BulkActionType =
 - Database monitoring
 
 **Tools Available**:
+
 - SQL query executor
 - Cache management
 - Session monitoring
@@ -481,9 +543,11 @@ type BulkActionType =
 - Component inspector
 
 ### InitializationWizard (`client/src/components/dashboard/initialization-wizard.tsx`)
+
 **Purpose**: System setup and configuration wizard
 
 **Wizard Steps**:
+
 1. Database connection verification
 2. Environment variable validation
 3. Service health checks
@@ -492,6 +556,7 @@ type BulkActionType =
 6. User role configuration
 
 **Features**:
+
 - Step-by-step guidance
 - Automated validation
 - Error resolution assistance
@@ -499,9 +564,11 @@ type BulkActionType =
 - Progress persistence
 
 ### ReplitAiMonitoring (`client/src/components/dashboard/replit-ai-monitoring.tsx`)
+
 **Purpose**: AI system monitoring and performance tracking
 
 **Monitoring Capabilities**:
+
 - AI model performance metrics
 - Request/response tracking
 - Error rate monitoring
@@ -510,6 +577,7 @@ type BulkActionType =
 - Performance optimization
 
 **AI Metrics**:
+
 - Response time analysis
 - Accuracy measurements
 - Token usage statistics
@@ -521,45 +589,55 @@ type BulkActionType =
 Page components are located in `client/src/pages/` and represent full page views.
 
 ### AdminDashboard (`client/src/pages/admin/dashboard.tsx`)
+
 **Purpose**: Main admin overview page
 
 **Features**:
+
 - System-wide statistics
 - User activity monitoring
 - Organization metrics
 - Quick action links
 
 ### UserPermissions (`client/src/pages/admin/permissions.tsx`)
+
 **Purpose**: User permission management interface
 
 **Features**:
+
 - User search and selection
 - Role assignment
 - Permission level adjustment
 - Audit trail viewing
 
 ### Roadmap (`client/src/pages/admin/roadmap.tsx`)
+
 **Purpose**: Platform development roadmap display
 
 **Features**:
+
 - Feature status tracking
 - Release planning
 - User feedback integration
 - Progress visualization
 
 ### BuildingDashboard (`client/src/pages/buildings/dashboard.tsx`)
+
 **Purpose**: Building-specific management interface
 
 **Features**:
+
 - Building statistics
 - Residence overview
 - Maintenance tracking
 - Financial summaries
 
 ### ResidenceDashboard (`client/src/pages/residences/dashboard.tsx`)
+
 **Purpose**: Individual residence management
 
 **Features**:
+
 - Unit details
 - Resident information
 - Maintenance history
@@ -570,9 +648,11 @@ Page components are located in `client/src/pages/` and represent full page views
 ### Registration Wizard Steps
 
 #### TokenValidationStep (`client/src/components/auth/steps/token-validation-step.tsx`)
+
 **Purpose**: Validates invitation tokens during user registration
 
 **Props**:
+
 ```typescript
 interface WizardStepProps {
   data: any;
@@ -582,6 +662,7 @@ interface WizardStepProps {
 ```
 
 **Features**:
+
 - Automatic token validation from URL parameters
 - Invitation details display (role, organization, inviter)
 - Expiry date validation
@@ -589,6 +670,7 @@ interface WizardStepProps {
 - Security verification
 
 **Token Validation Data**:
+
 ```typescript
 interface TokenValidationData {
   token: string;
@@ -603,9 +685,11 @@ interface TokenValidationData {
 ```
 
 #### ProfileCompletionStep (`client/src/components/auth/steps/profile-completion-step.tsx`)
+
 **Purpose**: Collects user profile information for Quebec property management
 
 **Features**:
+
 - Personal information collection (name, phone, address)
 - Quebec-specific address validation
 - Bilingual language selection (French/English)
@@ -614,6 +698,7 @@ interface TokenValidationData {
 - Privacy compliance notifications (Law 25)
 
 **Profile Data Structure**:
+
 ```typescript
 interface ProfileCompletionData {
   firstName: string;
@@ -630,9 +715,11 @@ interface ProfileCompletionData {
 ```
 
 #### PasswordCreationStep (`client/src/components/auth/steps/password-creation-step.tsx`)
+
 **Purpose**: Secure password creation with Quebec compliance standards
 
 **Features**:
+
 - Password strength validation
 - Password confirmation matching
 - Real-time strength indicator
@@ -641,6 +728,7 @@ interface ProfileCompletionData {
 - Toggle password visibility
 
 **Security Standards**:
+
 - Minimum 8 characters
 - Mixed case letters required
 - Numbers and special characters
@@ -648,9 +736,11 @@ interface ProfileCompletionData {
 - Quebec data protection compliance
 
 ### PasswordStrengthIndicator (`client/src/components/auth/password-strength-indicator.tsx`)
+
 **Purpose**: Visual password strength feedback component
 
 **Features**:
+
 - Real-time strength calculation
 - Color-coded strength levels (weak, medium, strong)
 - Specific improvement suggestions
@@ -660,9 +750,11 @@ interface ProfileCompletionData {
 ## Utility Components
 
 ### UI Component Library (`client/src/components/ui/`)
+
 Complete Shadcn/ui component library including:
 
 #### Core UI Components
+
 - **Button** (`button.tsx`): Customizable buttons with variants
 - **Card** (`card.tsx`): Container components for content sections
 - **Dialog** (`dialog.tsx`): Modal dialogs for forms and confirmations
@@ -675,6 +767,7 @@ Complete Shadcn/ui component library including:
 - **Radio Group** (`radio-group.tsx`): Single selection from multiple options
 
 #### Advanced UI Components
+
 - **Avatar** (`avatar.tsx`): User profile images with fallbacks
 - **Badge** (`badge.tsx`): Status and category indicators
 - **Breadcrumb** (`breadcrumb.tsx`): Navigation path display
@@ -690,6 +783,7 @@ Complete Shadcn/ui component library including:
 - **Toggle** (`toggle.tsx`): Binary state switching
 
 ### Usage Pattern for UI Components
+
 All UI components follow consistent patterns:
 
 ```typescript
@@ -715,7 +809,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 ## Component Architecture Patterns
 
 ### Form Pattern
+
 All forms follow a consistent pattern:
+
 1. Zod schema for validation
 2. React Hook Form for form management
 3. Shadcn/ui form components
@@ -723,21 +819,27 @@ All forms follow a consistent pattern:
 5. Toast notifications for feedback
 
 ### Data Fetching Pattern
+
 Data components use:
+
 1. TanStack Query for server state
 2. Loading and error states
 3. Optimistic updates where appropriate
 4. Cache invalidation on mutations
 
 ### Permission Pattern
+
 Protected components check:
+
 1. User authentication status
 2. Required role permissions
 3. Organization context
 4. Resource ownership
 
 ### Styling Pattern
+
 All components use:
+
 1. Tailwind CSS for styling
 2. CSS variables for theming
 3. Responsive design patterns
@@ -746,6 +848,7 @@ All components use:
 ## Testing Guidelines
 
 Each component should have:
+
 1. Unit tests for logic
 2. Integration tests for user flows
 3. Accessibility tests
@@ -756,9 +859,11 @@ Each component should have:
 ### Layout and Navigation Components
 
 #### ErrorBoundary (`client/src/components/ErrorBoundary.tsx`)
+
 **Purpose**: Application-wide error handling and graceful degradation
 
 **Features**:
+
 - Catches JavaScript errors in component tree
 - Displays user-friendly error messages
 - Development vs production error display
@@ -766,9 +871,11 @@ Each component should have:
 - Fallback UI for broken components
 
 #### ProtectedRoute (`client/src/components/ProtectedRoute.tsx`)
+
 **Purpose**: Route-level access control with RBAC integration
 
 **Props**:
+
 ```typescript
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -779,6 +886,7 @@ interface ProtectedRouteProps {
 ```
 
 **Features**:
+
 - Role-based route protection
 - Permission-level access control
 - Organization context validation
@@ -786,9 +894,11 @@ interface ProtectedRouteProps {
 - Loading states during auth checks
 
 #### LanguageProvider (`client/src/components/LanguageProvider.tsx`)
+
 **Purpose**: Quebec bilingual support system
 
 **Features**:
+
 - French/English language switching
 - Context-aware translations
 - User preference persistence
@@ -796,6 +906,7 @@ interface ProtectedRouteProps {
 - Dynamic text loading
 
 **Language Context**:
+
 ```typescript
 interface LanguageContextType {
   language: 'fr' | 'en';
@@ -807,22 +918,27 @@ interface LanguageContextType {
 ### Specialized Components
 
 #### LoadingSpinner (`client/src/components/ui/loading-spinner.tsx`)
+
 **Purpose**: Consistent loading state indicators
 
 **Variants**:
+
 - Size: small (16px), medium (24px), large (32px)
 - Type: spinner, dots, pulse, skeleton
 - Theme: light, dark, primary, secondary
 
 **Usage**:
+
 ```typescript
 <LoadingSpinner size="medium" variant="spinner" />
 ```
 
 #### DataTable (`client/src/components/ui/data-table.tsx`)
+
 **Purpose**: Advanced data display with sorting, filtering, and pagination
 
 **Features**:
+
 - Column sorting (ascending/descending)
 - Global and column-specific filtering
 - Pagination with customizable page sizes
@@ -832,6 +948,7 @@ interface LanguageContextType {
 - Virtual scrolling for large datasets
 
 **Table Configuration**:
+
 ```typescript
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
@@ -847,6 +964,7 @@ interface DataTableProps<T> {
 ### Hook Components and Utilities
 
 #### useToast Hook Integration
+
 All components use consistent toast notifications:
 
 ```typescript
@@ -856,19 +974,20 @@ const { toast } = useToast();
 
 // Success notification
 toast({
-  title: "Success",
-  description: "Operation completed successfully",
+  title: 'Success',
+  description: 'Operation completed successfully',
 });
 
 // Error notification
 toast({
-  title: "Error",
-  description: "Operation failed",
-  variant: "destructive",
+  title: 'Error',
+  description: 'Operation failed',
+  variant: 'destructive',
 });
 ```
 
 #### useLanguage Hook Integration
+
 Bilingual support across all components:
 
 ```typescript
@@ -886,6 +1005,7 @@ const { t, language } = useLanguage();
 ## Performance Considerations
 
 Components implement:
+
 1. **React.memo** for expensive renders and pure components
 2. **Lazy loading** for route components and heavy modals
 3. **Debounced inputs** for search and filter components
@@ -898,33 +1018,39 @@ Components implement:
 ## Testing Strategy
 
 ### Component Testing Approach
+
 Each component category follows specific testing patterns:
 
 #### Form Components
+
 - Input validation testing
 - Error state handling
 - Submit behavior verification
 - Accessibility compliance
 
 #### Admin Components
+
 - Permission-based rendering
 - Bulk action functionality
 - Data manipulation verification
 - Error boundary testing
 
 #### UI Components
+
 - Visual regression testing
 - Interaction behavior
 - Responsive design validation
 - Theme switching compatibility
 
 #### Authentication Components
+
 - Security flow validation
 - Token handling verification
 - Error state testing
 - Quebec compliance checks
 
 ### Test Utilities
+
 ```typescript
 // Component testing helper
 import { renderWithProviders } from '@/test-utils';
@@ -953,6 +1079,7 @@ All components maintain WCAG 2.1 AA compliance:
 7. **Error Announcements**: Screen reader accessible error messages
 
 ### Quebec Accessibility Requirements
+
 - **Bilingual Support**: All content available in French and English
 - **Cultural Considerations**: Quebec-specific terminology and formats
 - **Legal Compliance**: AODA and Quebec accessibility legislation adherence
@@ -962,9 +1089,11 @@ All components maintain WCAG 2.1 AA compliance:
 ### Layout Components
 
 #### Header (`client/src/components/layout/header.tsx`)
+
 **Purpose**: Main application header with navigation and user controls
 
 **Features**:
+
 - User profile dropdown
 - Organization context display
 - Navigation breadcrumbs
@@ -973,15 +1102,18 @@ All components maintain WCAG 2.1 AA compliance:
 - Logout functionality
 
 **Responsive Design**:
+
 - Mobile hamburger menu
 - Collapsible navigation
 - Touch-friendly controls
 - Accessible keyboard navigation
 
 #### Sidebar (`client/src/components/layout/sidebar.tsx`)
+
 **Purpose**: Application sidebar navigation with role-based menus
 
 **Navigation Structure**:
+
 - **Admin**: Full system access
   - User management
   - Organization settings
@@ -1001,6 +1133,7 @@ All components maintain WCAG 2.1 AA compliance:
   - Community notices
 
 **Features**:
+
 - Collapsible sections
 - Active route highlighting
 - Role-based visibility
@@ -1010,9 +1143,11 @@ All components maintain WCAG 2.1 AA compliance:
 ### Utility and Specialized Components
 
 #### FilterSort (`client/src/components/filter-sort/FilterSort.tsx`)
+
 **Purpose**: Advanced filtering and sorting interface for data tables
 
 **Filter Types**:
+
 - Text search with debouncing
 - Date range selection
 - Category filtering
@@ -1020,15 +1155,18 @@ All components maintain WCAG 2.1 AA compliance:
 - Custom field filters
 
 **Sort Options**:
+
 - Multiple column sorting
 - Ascending/descending toggle
 - Custom sort functions
 - Persistent sort preferences
 
 #### ActionableItemsPanel (`client/src/components/roadmap/actionable-items-panel.tsx`)
+
 **Purpose**: Project management and task tracking interface
 
 **Features**:
+
 - Task creation and editing
 - Status tracking (planning, in-progress, completed)
 - Priority assignment
@@ -1037,6 +1175,7 @@ All components maintain WCAG 2.1 AA compliance:
 - Progress visualization
 
 **Item Types**:
+
 - Feature development
 - Bug fixes
 - Enhancement requests
@@ -1044,9 +1183,11 @@ All components maintain WCAG 2.1 AA compliance:
 - Documentation updates
 
 #### SslCertificateInfo (`client/src/components/ssl/SslCertificateInfo.tsx`)
+
 **Purpose**: SSL certificate status and management display
 
 **Information Displayed**:
+
 - Certificate validity period
 - Issuer information
 - Domain coverage
@@ -1054,6 +1195,7 @@ All components maintain WCAG 2.1 AA compliance:
 - Security level indicators
 
 **Features**:
+
 - Automatic renewal monitoring
 - Expiry warnings
 - Certificate chain validation
@@ -1062,19 +1204,20 @@ All components maintain WCAG 2.1 AA compliance:
 ## Component Integration Patterns
 
 ### State Management Integration
+
 Components integrate with multiple state management systems:
 
 ```typescript
 // TanStack Query for server state
 const { data, isLoading, error } = useQuery({
   queryKey: ['users', filters],
-  queryFn: () => fetchUsers(filters)
+  queryFn: () => fetchUsers(filters),
 });
 
 // React Hook Form for form state
 const form = useForm<FormData>({
   resolver: zodResolver(schema),
-  defaultValues: initialData
+  defaultValues: initialData,
 });
 
 // React Context for global state
@@ -1083,6 +1226,7 @@ const { language, t } = useLanguage();
 ```
 
 ### Error Handling Patterns
+
 Consistent error handling across all components:
 
 ```typescript
@@ -1105,6 +1249,7 @@ const { mutate, error, isPending } = useMutation({
 ```
 
 ### Loading State Patterns
+
 Standardized loading states across the application:
 
 ```typescript
@@ -1125,9 +1270,10 @@ Standardized loading states across the application:
 ## Component Documentation Standards
 
 ### JSDoc Comments
+
 All public components include comprehensive JSDoc:
 
-```typescript
+````typescript
 /**
  * User management interface with bulk operations support.
  *
@@ -1149,9 +1295,10 @@ All public components include comprehensive JSDoc:
  * />
  * ```
  */
-```
+````
 
 ### TypeScript Interface Documentation
+
 Comprehensive type definitions with descriptions:
 
 ```typescript
@@ -1168,4 +1315,3 @@ interface UserListProps {
   isLoading?: boolean;
 }
 ```
-

@@ -320,13 +320,11 @@ async function main() {
 
     console.log('\n' + chalk.green.bold('✅ Cleanup completed successfully!'));
     console.log(chalk.blue('Recommendation: Run the orphan detection tests to verify cleanup.'));
-  } catch (error) {
-    console.error(chalk.red.bold('❌ Error during cleanup:'), error);
     process.exit(1);
   }
 }
 
 // Run the cleanup if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }

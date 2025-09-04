@@ -1,0 +1,81 @@
+I need you to implement role-based access controls for the user management system. Here are the specific requirements:
+## 1. Role Dropdown Access Control
+**Location:** `client/src/pages/manager/user-management.tsx` (around lines 855-863)
+**Current Implementation:**
+```tsx
+<SelectContent>
+  <SelectItem value='admin'>Admin</SelectItem>
+  <SelectItem value='manager'>Manager</SelectItem>
+  <SelectItem value='tenant'>Tenant</SelectItem>
+  <SelectItem value='resident'>Resident</SelectItem>
+  <SelectItem value='demo_manager'>Demo Manager</SelectItem>
+  <SelectItem value='demo_tenant'>Demo Tenant</SelectItem>
+  <SelectItem value='demo_resident'>Demo Resident</SelectItem>
+</SelectContent>
+Required Changes:
+
+Create a function to filter available roles based on current user's context
+Demo roles should only appear for users in demo organizations (organizations with type: 'demo')
+Managers cannot assign admin role
+Regular users cannot see demo roles
+2. Organization Context Detection
+Add logic to determine user's organization context:
+
+Check if current user belongs to demo organizations
+Use existing organization data fetched via useQuery<Organization[]>({ queryKey: ['/api/organizations'] })
+Cross-reference with user's organization assignments
+3. Backend Validation Enhancement
+Location: server/api/users.ts - user update endpoint (around line 164)
+
+Add validation for:
+
+Role escalation prevention (managers cannot assign admin)
+Organization scope restrictions (managers can only assign users/resources within their organizations)
+Demo role assignment only for demo organizations
+4. Form Schema Updates
+Location: Same file, editUserSchema (line 57-63)
+
+Enhance validation to:
+
+Dynamically validate roles based on user context
+Add organization scope validation
+Prevent unauthorized role assignments
+5. User Assignment Tabs Enhancement
+Files to check:
+
+client/src/components/user-tabs/UserOrganizationsTab.tsx
+client/src/components/user-tabs/UserBuildingsTab.tsx
+client/src/components/user-tabs/UserResidencesTab.tsx
+Ensure these tabs only show organizations/buildings/residences within the current user's authorized scope
+
+6. Implementation Requirements
+Role Assignment Rules:
+
+Admin: Can assign any role to any organization
+Manager (regular): Can assign manager/tenant/resident roles only within their organizations
+Manager (demo): Can assign demo_manager/demo_tenant/demo_resident roles only within demo organizations
+Demo users: Cannot assign roles to non-demo users
+Organization Scope Rules:
+
+Users can only be assigned to organizations accessible by the current user
+Buildings and residences must belong to organizations the current user can access
+Cross-organization assignments are forbidden except for admins
+Security Considerations:
+
+All validation must happen both frontend and backend
+Backend must be the authoritative source for access control
+Use existing RBAC system patterns from the codebase
+7. Testing Requirements
+Create or update tests to verify:
+
+Role dropdown shows correct options based on user context
+Backend properly rejects unauthorized role assignments
+Organization scope restrictions work correctly
+Demo/regular user separation is maintained
+Implementation Notes
+Use existing patterns from the codebase (like the user filtering in /api/users endpoint lines 54-78)
+Maintain backward compatibility
+Follow the existing code style and structure
+Update both form validation and API validation
+Ensure all changes work with the existing RBAC system
+Please implement these changes systematically, starting with the role dropdown filtering, then adding backend validation, and finally updating the assignment tabs. Test each component thoroughly before moving to the next.

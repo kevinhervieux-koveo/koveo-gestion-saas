@@ -1,0 +1,146 @@
+index-BVJiJMQI.js:413  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-BVJiJMQI.js:413
+d @ index-BVJiJMQI.js:280
+_ @ index-BVJiJMQI.js:280
+start @ index-BVJiJMQI.js:280
+fetch @ index-BVJiJMQI.js:280
+#d @ index-BVJiJMQI.js:280
+onSubscribe @ index-BVJiJMQI.js:280
+subscribe @ index-BVJiJMQI.js:280
+(anonymous) @ index-BVJiJMQI.js:293
+Iy @ index-BVJiJMQI.js:152
+react_stack_bottom_frame @ index-BVJiJMQI.js:261
+be @ index-BVJiJMQI.js:77
+ms @ index-BVJiJMQI.js:182
+jg @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+na @ index-BVJiJMQI.js:195
+Jg @ index-BVJiJMQI.js:195
+Sv @ index-BVJiJMQI.js:195
+gs @ index-BVJiJMQI.js:195
+Dv @ index-BVJiJMQI.js:217
+bs @ index-BVJiJMQI.js:217
+vv @ index-BVJiJMQI.js:195
+Uf @ index-BVJiJMQI.js:195
+lv @ index-BVJiJMQI.js:195
+sv @ index-BVJiJMQI.js:195
+Cv @ index-BVJiJMQI.js:217
+r @ index-BVJiJMQI.js:43
+<u_>
+LA.Rc.jsxDEV @ index-BVJiJMQI.js:35
+ak @ index-BVJiJMQI.js:417
+react_stack_bottom_frame @ index-BVJiJMQI.js:261
+Hd @ index-BVJiJMQI.js:152
+hf @ index-BVJiJMQI.js:173
+xf @ index-BVJiJMQI.js:182
+be @ index-BVJiJMQI.js:77
+mv @ index-BVJiJMQI.js:195
+fv @ index-BVJiJMQI.js:195
+zf @ index-BVJiJMQI.js:195
+sv @ index-BVJiJMQI.js:195
+Cv @ index-BVJiJMQI.js:217
+r @ index-BVJiJMQI.js:43
+<ak>
+LA.Rc.jsxDEV @ index-BVJiJMQI.js:35
+(anonymous) @ index-BVJiJMQI.js:417
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-BVJiJMQI.js:168 ReferenceError: koveoLogo is not defined
+    at be (home-DDfhkU7v.js:1:35146)
+    at Object.react_stack_bottom_frame (index-BVJiJMQI.js:261:12449)
+    at Hd (index-BVJiJMQI.js:152:806)
+    at hf (index-BVJiJMQI.js:173:5840)
+    at xf (index-BVJiJMQI.js:182:9691)
+    at be (index-BVJiJMQI.js:77:109)
+    at mv (index-BVJiJMQI.js:195:29869)
+    at fv (index-BVJiJMQI.js:195:28535)
+    at zf (index-BVJiJMQI.js:195:28368)
+    at sv (index-BVJiJMQI.js:195:24856)
+
+The above error occurred in the <be> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, w_.
+
+overrideMethod @ hook.js:608
+bg @ index-BVJiJMQI.js:168
+wg @ index-BVJiJMQI.js:173
+be @ index-BVJiJMQI.js:77
+c.componentDidCatch.e.callback @ index-BVJiJMQI.js:173
+Hy @ index-BVJiJMQI.js:139
+Vy @ index-BVJiJMQI.js:139
+be @ index-BVJiJMQI.js:77
+Hg @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+Da @ index-BVJiJMQI.js:195
+Ig @ index-BVJiJMQI.js:195
+gv @ index-BVJiJMQI.js:195
+Uf @ index-BVJiJMQI.js:195
+lv @ index-BVJiJMQI.js:195
+<...>
+UA.r.createElement @ index-BVJiJMQI.js:22
+uw @ index-BVJiJMQI.js:280
+Se @ index-BVJiJMQI.js:280
+react_stack_bottom_frame @ index-BVJiJMQI.js:261
+Hd @ index-BVJiJMQI.js:152
+hf @ index-BVJiJMQI.js:173
+xf @ index-BVJiJMQI.js:182
+be @ index-BVJiJMQI.js:77
+mv @ index-BVJiJMQI.js:195
+fv @ index-BVJiJMQI.js:195
+zf @ index-BVJiJMQI.js:195
+sv @ index-BVJiJMQI.js:195
+Cv @ index-BVJiJMQI.js:217
+r @ index-BVJiJMQI.js:43
+<Se>
+LA.Rc.jsxDEV @ index-BVJiJMQI.js:35
+nk @ index-BVJiJMQI.js:417
+react_stack_bottom_frame @ index-BVJiJMQI.js:261
+Hd @ index-BVJiJMQI.js:152
+hf @ index-BVJiJMQI.js:173
+xf @ index-BVJiJMQI.js:182
+be @ index-BVJiJMQI.js:77
+mv @ index-BVJiJMQI.js:195
+fv @ index-BVJiJMQI.js:195
+zf @ index-BVJiJMQI.js:195
+sv @ index-BVJiJMQI.js:195
+Cv @ index-BVJiJMQI.js:217
+r @ index-BVJiJMQI.js:43
+<nk>
+LA.Rc.jsxDEV @ index-BVJiJMQI.js:35
+ak @ index-BVJiJMQI.js:417
+react_stack_bottom_frame @ index-BVJiJMQI.js:261
+Hd @ index-BVJiJMQI.js:152
+hf @ index-BVJiJMQI.js:173
+xf @ index-BVJiJMQI.js:182
+be @ index-BVJiJMQI.js:77
+mv @ index-BVJiJMQI.js:195
+fv @ index-BVJiJMQI.js:195
+zf @ index-BVJiJMQI.js:195
+sv @ index-BVJiJMQI.js:195
+Cv @ index-BVJiJMQI.js:217
+r @ index-BVJiJMQI.js:43
+<ak>
+LA.Rc.jsxDEV @ index-BVJiJMQI.js:35
+(anonymous) @ index-BVJiJMQI.js:417

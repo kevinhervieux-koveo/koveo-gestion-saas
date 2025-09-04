@@ -5,6 +5,7 @@ This guide explains how the comprehensive demo organizations system works and ho
 ## Overview
 
 The system provides two demo organizations:
+
 - **Demo**: Full-featured demo with read/write capabilities
 - **Open Demo**: Read-only copy for public demonstrations
 
@@ -13,9 +14,11 @@ The system provides two demo organizations:
 ### 1. Core Scripts
 
 #### `scripts/create-comprehensive-demo.ts`
+
 Creates complete demo data covering all application aspects:
+
 - Organizations (Demo and Open Demo)
-- Buildings with varied configurations  
+- Buildings with varied configurations
 - Residences with different types
 - Users with all roles (admin, manager, tenant, resident)
 - Financial data (bills, budgets, money flow)
@@ -24,30 +27,37 @@ Creates complete demo data covering all application aspects:
 - Documents (building and residence level)
 
 **Usage:**
+
 ```bash
 tsx scripts/create-comprehensive-demo.ts
 ```
 
 #### `scripts/duplicate-demo-to-open-demo.ts`
+
 Duplicates Demo organization to Open Demo:
+
 - Complete data replication
 - User email domain changes (@demo.com → @opendemo.com)
 - Preserves all relationships
 - Safe cleanup of existing data
 
 **Usage:**
+
 ```bash
 tsx scripts/duplicate-demo-to-open-demo.ts
 ```
 
 #### `scripts/production-demo-sync.ts`
+
 Production-safe synchronization script:
+
 - Detects missing organizations
 - Creates demo data if needed
 - Synchronizes Demo → Open Demo
 - Can be run during deployment
 
 **Usage:**
+
 ```bash
 # Normal sync
 tsx scripts/production-demo-sync.ts
@@ -65,13 +75,17 @@ tsx scripts/production-demo-sync.ts --silent
 ### 2. Services
 
 #### `server/services/comprehensive-demo-sync-service.ts`
+
 Low-level synchronization service:
+
 - Full data mapping between organizations
 - Handles all table relationships
 - Safe cleanup and recreation
 
 #### `server/services/demo-management-service.ts`
+
 High-level demo management:
+
 - Health checking
 - Initialization during startup
 - Scheduled maintenance
@@ -80,6 +94,7 @@ High-level demo management:
 ### 3. API Endpoints
 
 #### `server/api/demo-management.ts`
+
 Provides REST API for demo management:
 
 - `GET /api/demo/health` - Health check (public)
@@ -93,11 +108,13 @@ Provides REST API for demo management:
 The comprehensive demo system covers ALL application menus:
 
 ### Residents Menu
+
 - **My Residence**: Residence data with user assignments
 - **My Building**: Building information with amenities
 - **My Demands**: Maintenance requests and complaints
 
 ### Manager Menu
+
 - **Buildings**: Multiple building types and configurations
 - **Residences**: Various unit types and layouts
 - **Budget**: Annual and monthly budget data
@@ -106,6 +123,7 @@ The comprehensive demo system covers ALL application menus:
 - **User Management**: Users with different roles
 
 ### Settings Menu
+
 - **Settings**: User preferences and configuration
 - **Bug Reports**: Sample bug reports for testing
 - **Idea Box**: Feature requests with upvotes
@@ -165,6 +183,7 @@ curl https://your-app.com/api/demo/health
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -191,7 +210,7 @@ The system includes scheduled maintenance capabilities:
 
 ```typescript
 // Run maintenance via API
-POST /api/demo/maintenance
+POST / api / demo / maintenance;
 
 // Or programmatically
 await DemoManagementService.scheduledMaintenance();
@@ -256,6 +275,7 @@ npm run demo:check
 ### Testing
 
 The comprehensive demo system provides realistic test data for:
+
 - UI testing across all menu items
 - Role-based access testing
 - Feature demonstration

@@ -20,7 +20,6 @@ interface Law25ComplianceData {
     dataSubjectRights: number;
   };
   violations: Array<{
-    severity: 'error' | 'warning' | 'info';
     rule: string;
     message: string;
     file: string;
@@ -103,7 +102,6 @@ runLaw25ComplianceScan(): Law25ComplianceData {
       }
 
       return {
-        severity: severity as 'error' | 'warning' | 'info',
         rule: violation.check_id || 'unknown',
         message: violation.extra?.message || 'Law 25 compliance issue detected',
         file: violation.path || 'unknown',
@@ -119,7 +117,6 @@ runLaw25ComplianceScan(): Law25ComplianceData {
     // Calculate compliance score (0-100)
     let complianceScore = 100;
     complianceScore -= criticalViolations * 10; // -10 points per critical violation
-    complianceScore -= processedViolations.filter((v) => v.severity === 'warning').length * 5; // -5 points per warning
     complianceScore -= processedViolations.filter((v) => v.severity === 'info').length * 1; // -1 point per info
     complianceScore = Math.max(0, complianceScore); // Ensure it doesn't go below 0
 
@@ -131,7 +128,6 @@ runLaw25ComplianceScan(): Law25ComplianceData {
       categories,
       violations: processedViolations,
     };
-  } catch (_error) {
     /**
      * Catch function.
      * @param _error - _error parameter.
@@ -140,7 +136,6 @@ runLaw25ComplianceScan(): Law25ComplianceData {
      * Catch function.
      * @param _error - _error parameter.
      */
-    console.warn('Law 25 compliance scan failed:', _error);
 
     // Return default/fallback data
     return {
@@ -181,8 +176,6 @@ router.get('/', (req, res) => {
   try {
     const complianceData = runLaw25ComplianceScan();
     res.json(complianceData);
-  } catch (_error) {
-    console.error('Error generating Law 25 compliance _data:', _error);
     res.status(500).json({
       _error: 'Failed to generate compliance data',
       complianceScore: 0,

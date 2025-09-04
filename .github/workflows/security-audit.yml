@@ -3,11 +3,11 @@ name: Security Audit & Dependency Scanning
 on:
   # Run security audits daily
   schedule:
-    - cron: '0 6 * * *'  # Every day at 6 AM UTC
-  
+    - cron: '0 6 * * *' # Every day at 6 AM UTC
+
   # Run on security-related changes
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - 'package*.json'
       - '.github/workflows/**'
@@ -15,7 +15,7 @@ on:
       - 'shared/**'
       - '**/auth*'
       - '**/security*'
-  
+
   # Manual trigger
   workflow_dispatch:
     inputs:
@@ -38,7 +38,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false  # Security scans should complete
+  cancel-in-progress: false # Security scans should complete
 
 env:
   NODE_ENV: production
@@ -72,22 +72,22 @@ jobs:
         id: audit
         run: |
           echo "🔍 Running comprehensive dependency vulnerability scan..."
-          
+
           # Create audit report in multiple formats
           npm audit --json > audit-report.json || true
           npm audit --audit-level=info > audit-summary.txt || true
-          
+
           # Parse results
           CRITICAL_COUNT=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-report.json)
           HIGH_COUNT=$(jq -r '.metadata.vulnerabilities.high // 0' audit-report.json)
           MODERATE_COUNT=$(jq -r '.metadata.vulnerabilities.moderate // 0' audit-report.json)
           LOW_COUNT=$(jq -r '.metadata.vulnerabilities.low // 0' audit-report.json)
           INFO_COUNT=$(jq -r '.metadata.vulnerabilities.info // 0' audit-report.json)
-          
+
           echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
           echo "high_count=$HIGH_COUNT" >> $GITHUB_OUTPUT
           echo "vulnerabilities_found=$((CRITICAL_COUNT + HIGH_COUNT + MODERATE_COUNT))" >> $GITHUB_OUTPUT
-          
+
           # Log summary
           echo "📊 Vulnerability Summary:"
           echo "  Critical: $CRITICAL_COUNT"
@@ -95,7 +95,7 @@ jobs:
           echo "  Moderate: $MODERATE_COUNT" 
           echo "  Low: $LOW_COUNT"
           echo "  Info: $INFO_COUNT"
-          
+
           # Quebec compliance check for security libraries
           echo "🇨🇦 Checking Quebec compliance for security dependencies..."
           if grep -q "crypto\|bcrypt\|passport\|express-session" package-lock.json; then
@@ -183,78 +183,78 @@ jobs:
       - name: Quebec-specific security patterns scan
         run: |
           echo "🇨🇦 Scanning for Quebec Law 25 security compliance..."
-          
+
           # Check for proper encryption patterns
           echo "🔐 Checking encryption implementation..."
           ENCRYPTION_ISSUES=0
-          
+
           # Look for insecure password storage
           if grep -r "password.*clear\|password.*plain" server/ --include="*.ts" --include="*.js"; then
             echo "❌ Found potential plaintext password storage"
             ENCRYPTION_ISSUES=$((ENCRYPTION_ISSUES + 1))
           fi
-          
+
           # Check for proper session management
           if ! grep -r "express-session" server/ --include="*.ts"; then
             echo "⚠️  Express session management not found"
             ENCRYPTION_ISSUES=$((ENCRYPTION_ISSUES + 1))
           fi
-          
+
           # Verify HTTPS enforcement patterns
           if ! grep -r "secure.*true\|httpOnly.*true" server/ --include="*.ts"; then
             echo "⚠️  Secure cookie patterns not found"
           fi
-          
+
           # Check for SQL injection protection
           echo "🛡️  Checking SQL injection protection..."
           if grep -r "SELECT.*+\|INSERT.*+\|UPDATE.*+\|DELETE.*+" server/ --include="*.ts" --exclude="*test*"; then
             echo "❌ Potential SQL injection vulnerabilities found"
             ENCRYPTION_ISSUES=$((ENCRYPTION_ISSUES + 1))
           fi
-          
+
           # Quebec privacy data handling
           echo "🔒 Checking Quebec privacy data handling..."
           if grep -r "localStorage\|sessionStorage" client/src --include="*.ts" --include="*.tsx" | grep -E "(personal|private|sensitive|ssn|sin)"; then
             echo "❌ Potential Law 25 violation: Sensitive data in browser storage"
             ENCRYPTION_ISSUES=$((ENCRYPTION_ISSUES + 1))
           fi
-          
+
           if [ $ENCRYPTION_ISSUES -gt 0 ]; then
             echo "❌ Found $ENCRYPTION_ISSUES security/privacy issues requiring immediate attention"
             exit 1
           fi
-          
+
           echo "✅ Quebec security compliance checks passed"
 
       - name: Authentication & Authorization Security Check
         run: |
           echo "🔑 Validating authentication and authorization security..."
-          
+
           # Check authentication middleware
           AUTH_ISSUES=0
-          
+
           if ! grep -r "requireAuth\|authenticate" server/ --include="*.ts"; then
             echo "❌ Authentication middleware not properly implemented"
             AUTH_ISSUES=$((AUTH_ISSUES + 1))
           fi
-          
+
           # Check for proper role-based access
           if ! grep -r "authorize\|permissions\|role" server/ --include="*.ts"; then
             echo "❌ Authorization system not properly implemented" 
             AUTH_ISSUES=$((AUTH_ISSUES + 1))
           fi
-          
+
           # Verify password hashing
           if ! grep -r "bcrypt\|hash\|salt" server/ --include="*.ts"; then
             echo "❌ Password hashing not properly implemented"
             AUTH_ISSUES=$((AUTH_ISSUES + 1))
           fi
-          
+
           # Check session security
           if ! grep -r "maxAge\|expires" server/ --include="*.ts"; then
             echo "⚠️  Session expiration not configured"
           fi
-          
+
           # JWT security if used
           if grep -r "jwt\|jsonwebtoken" server/ --include="*.ts"; then
             if ! grep -r "JWT.*SECRET\|jwt.*secret" server/ --include="*.ts"; then
@@ -262,54 +262,54 @@ jobs:
               AUTH_ISSUES=$((AUTH_ISSUES + 1))
             fi
           fi
-          
+
           if [ $AUTH_ISSUES -gt 0 ]; then
             echo "❌ Found $AUTH_ISSUES authentication/authorization security issues"
             exit 1
           fi
-          
+
           echo "✅ Authentication and authorization security validated"
 
       - name: Data Protection Validation
         run: |
           echo "🛡️  Validating data protection for Quebec Law 25..."
-          
+
           DATA_ISSUES=0
-          
+
           # Check for data encryption at rest
           if grep -r "database\|db\|storage" server/ --include="*.ts" | grep -v "encrypted\|cipher"; then
             echo "⚠️  Database operations found without explicit encryption mentions"
           fi
-          
+
           # Validate input sanitization
           if ! grep -r "sanitize\|escape\|validate" server/ --include="*.ts"; then
             echo "❌ Input sanitization not properly implemented"
             DATA_ISSUES=$((DATA_ISSUES + 1))
           fi
-          
+
           # Check for proper error handling (no data leaks)
           if grep -r "console\.log.*password\|console\.log.*token\|console\.error.*password" server/ --include="*.ts"; then
             echo "❌ Potential data leakage in error logs"
             DATA_ISSUES=$((DATA_ISSUES + 1))
           fi
-          
+
           # Quebec-specific: Personal information handling
           echo "🇨🇦 Checking personal information handling for Law 25..."
           if grep -rE "(sin|ssn|social.*insurance|numero.*assurance)" . --include="*.ts" --include="*.tsx" | grep -v "test"; then
             echo "⚠️  Social Insurance Number references found - ensure Law 25 compliance"
           fi
-          
+
           if [ $DATA_ISSUES -gt 0 ]; then
             echo "❌ Found $DATA_ISSUES data protection issues"
             exit 1
           fi
-          
+
           echo "✅ Data protection validation passed"
 
       - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:typescript"
+          category: '/language:typescript'
 
   # Dependency Update Safety Check
   dependency-update-check:
@@ -344,71 +344,71 @@ jobs:
         if: steps.deps_changed.outputs.dependencies_changed == 'true'
         run: |
           echo "🔍 Validating dependency updates for security..."
-          
+
           # Install previous version dependencies
           git checkout HEAD~1 -- package-lock.json || true
           npm ci || true
           npm audit --json > audit-before.json || true
-          
+
           # Install new version dependencies  
           git checkout HEAD -- package-lock.json
           npm ci
           npm audit --json > audit-after.json || true
-          
+
           # Compare vulnerability counts
           BEFORE_CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-before.json)
           AFTER_CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-after.json)
-          
+
           BEFORE_HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-before.json) 
           AFTER_HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-after.json)
-          
+
           echo "📊 Vulnerability comparison:"
           echo "  Critical: $BEFORE_CRITICAL → $AFTER_CRITICAL"
           echo "  High: $BEFORE_HIGH → $AFTER_HIGH"
-          
+
           if [ $AFTER_CRITICAL -gt $BEFORE_CRITICAL ] || [ $AFTER_HIGH -gt $BEFORE_HIGH ]; then
             echo "❌ Dependency updates introduced new vulnerabilities"
             echo "🔒 This violates security requirements for Quebec Law 25 compliance"
             exit 1
           fi
-          
+
           echo "✅ Dependency updates are safe"
 
       - name: Test authentication after updates
         if: steps.deps_changed.outputs.dependencies_changed == 'true'
         run: |
           echo "🔑 Testing authentication systems after dependency updates..."
-          
+
           # Build and start server temporarily
           npm run build:server
           timeout 30s npm run dev:server &
           SERVER_PID=$!
-          
+
           # Wait for server to start
           sleep 10
-          
+
           # Test authentication endpoints
           AUTH_TEST_PASSED=true
-          
+
           # Test login endpoint exists and responds
           if ! curl -f -s "http://localhost:5000/api/auth/login" -X POST -H "Content-Type: application/json" -d '{}' > /dev/null 2>&1; then
             echo "❌ Authentication endpoint not responding"
             AUTH_TEST_PASSED=false
           fi
-          
+
           # Test protected endpoint security
           if curl -f -s "http://localhost:5000/api/users" > /dev/null 2>&1; then
             echo "⚠️  Protected endpoint accessible without authentication"
           fi
-          
+
           # Stop server
           kill $SERVER_PID 2>/dev/null || true
-          
+
           if [ "$AUTH_TEST_PASSED" = false ]; then
             echo "❌ Authentication systems broken after dependency updates"
             exit 1
           fi
-          
+
           echo "✅ Authentication systems functional after updates"
 
   # Security Report Generation
@@ -432,43 +432,43 @@ jobs:
       - name: Generate comprehensive security report
         run: |
           echo "📋 Generating comprehensive security report..."
-          
+
           cat > security-report.md << 'EOF'
           # 🔒 Koveo Gestion Security Audit Report
-          
+
           **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
           **Repository:** ${{ github.repository }}
           **Branch:** ${{ github.ref_name }}
           **Commit:** ${{ github.sha }}
-          
+
           ## 📊 Executive Summary
-          
+
           - **Critical Vulnerabilities:** ${{ needs.dependency-scan.outputs.critical_count || 'N/A' }}
           - **High Vulnerabilities:** ${{ needs.dependency-scan.outputs.high_count || 'N/A' }}
           - **Quebec Law 25 Compliance:** ✅ Validated
           - **Authentication Security:** ✅ Verified
           - **Data Protection:** ✅ Compliant
-          
+
           ## 🇨🇦 Quebec Law 25 Compliance Status
-          
+
           ✅ **Personal Information Protection:** Systems validated for proper handling of personal data
           ✅ **Data Encryption:** Encryption mechanisms verified for data at rest and in transit
           ✅ **Access Controls:** Authentication and authorization systems functioning correctly
           ✅ **Privacy by Design:** Privacy controls integrated into the system architecture
           ✅ **Breach Prevention:** Security measures in place to prevent unauthorized access
-          
+
           ## 🔐 Security Measures Status
-          
+
           - **Dependency Scanning:** Daily automated scans implemented
           - **Code Analysis:** Static security analysis enabled
           - **Authentication Testing:** Automated validation after changes
           - **Data Protection:** Law 25 compliance checks active
           - **Vulnerability Management:** Automated alerts and remediation
-          
+
           ## 🚨 Action Items
-          
+
           EOF
-          
+
           # Add dependency scan results if available
           if [ -f "./security-reports/audit-summary.txt" ]; then
             echo "## 📦 Dependency Audit Results" >> security-report.md
@@ -476,16 +476,16 @@ jobs:
             head -20 ./security-reports/audit-summary.txt >> security-report.md
             echo '```' >> security-report.md
           fi
-          
+
           # Determine overall status
           OVERALL_STATUS="✅ PASSED"
           if [ "${{ needs.dependency-scan.result }}" != "success" ] || [ "${{ needs.advanced-security-scan.result }}" != "success" ]; then
             OVERALL_STATUS="❌ FAILED - Immediate Action Required"
           fi
-          
+
           echo "" >> security-report.md
           echo "## 🎯 Overall Security Status: $OVERALL_STATUS" >> security-report.md
-          
+
           if [ "$OVERALL_STATUS" = "❌ FAILED - Immediate Action Required" ]; then
             echo "⚠️  **CRITICAL SECURITY ISSUES DETECTED**" >> security-report.md
             echo "This system may not be compliant with Quebec Law 25 requirements." >> security-report.md
@@ -507,34 +507,40 @@ jobs:
             const fs = require('fs');
             const critical = '${{ needs.dependency-scan.outputs.critical_count }}' || '0';
             const high = '${{ needs.dependency-scan.outputs.high_count }}' || '0';
-            
+
             const securityStatus = (critical === '0' && parseInt(high) <= 3) ? '✅ SECURE' : '❌ SECURITY ISSUES';
             const quebecCompliance = '✅ Law 25 Compliant';
-            
+
             const comment = `## 🔒 Security Audit Results
-            
+
             **Overall Status:** ${securityStatus}
             **Quebec Compliance:** ${quebecCompliance}
-            
+
             ### 📊 Vulnerability Summary
             - **Critical:** ${critical}
             - **High:** ${high}
             - **Authentication:** ✅ Verified
             - **Data Protection:** ✅ Validated
-            
+
             ### 🇨🇦 Quebec Law 25 Compliance
             - ✅ Personal data protection mechanisms
             - ✅ Encryption standards compliance  
             - ✅ Access control validation
             - ✅ Privacy by design implementation
-            
+
             ${securityStatus === '❌ SECURITY ISSUES' ? 
               '⚠️ **Action Required:** Security vulnerabilities detected. Please review the security report before merging.' : 
               '✅ **Ready for Review:** All security checks passed.'}`;
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              console.log('✅ Security audit comment posted successfully');
+            } catch (error) {
+              console.log('⚠️ Could not post security comment (insufficient permissions):', error.message);
+              console.log('🔒 Security results logged to workflow output instead');
+            }

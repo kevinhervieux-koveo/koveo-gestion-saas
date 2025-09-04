@@ -45,22 +45,31 @@ import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { User, Organization, Building, Residence } from '@shared/schema';
+import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
 import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
+import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
+import { UserOrganizationsTab } from '@/components/user-tabs/UserOrganizationsTab';
+import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
+import { UserResidencesTab } from '@/components/user-tabs/UserResidencesTab';
+import { InvitationManagement } from '@/components/InvitationManagement';
 
-// Form validation schema for editing users
-const editUserSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
-  isActive: z.boolean(),
-});
+// Form validation schema for editing users - dynamic based on available roles
+const createEditUserSchema = (availableRoles: { value: string; label: string }[]) => {
+  const roleValues = availableRoles.map(role => role.value) as [string, ...string[]];
+  
+  return z.object({
+    firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+    lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
+    email: z.string().min(1, 'Email address is required').email('Please enter a valid email address (example: jean.dupont@email.com)'),
+    role: roleValues.length > 0 ? z.enum(roleValues) : z.string().min(1, 'Please select a user role'),
+    isActive: z.boolean(),
+  });
+};
 
 // Form validation schema for deleting users
 const deleteUserSchema = z.object({
-  confirmEmail: z.string().email('Invalid email address'),
-  reason: z.string().optional(),
+  confirmEmail: z.string().min(1, 'Email confirmation is required to delete user').email('Please enter a valid email address that matches the user account'),
+  reason: z.string().max(500, 'Reason must be less than 500 characters').optional(),
 });
 
 /**
@@ -74,28 +83,31 @@ export default function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editingUserOrganizations, setEditingUserOrganizations] = useState<User | null>(null);
-  const [editingUserResidences, setEditingUserResidences] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [editingUserOrganizations, setEditingUserOrganizations] = useState<UserWithAssignments | null>(null);
+  const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
-  // Filter and search state
-  const [filters, setFilters] = useState<FilterValue[]>([]);
-  const [sort, setSort] = useState<SortValue | null>(null);
+  // Filter and search state - simplified for quick fix
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [organizationFilter, setOrganizationFilter] = useState('');
 
-  // Fetch users
+  // Fetch users 
   const {
     data: users = [],
     isLoading: usersLoading,
     error: usersError,
-  } = useQuery<User[]>({
-    queryKey: ['/api/users'],
-    enabled: true,
+  } = useQuery<UserWithAssignments[]>({
+    queryKey: ['/api/users']
   });
+
+
+
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -115,22 +127,83 @@ export default function UserManagement() {
     enabled: true,
   });
 
-  // Fetch user organizations
-  const { data: userOrganizations = [] } = useQuery<any[]>({
-    queryKey: ['/api/user-organizations'],
-    enabled: true,
-  });
-
-  // Fetch user residences
-  const { data: userResidences = [] } = useQuery<any[]>({
-    queryKey: ['/api/user-residences'],
-    enabled: true,
-  });
-
   // Get current user to check permissions
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
+
+  // Organization context detection for role filtering
+  const userOrganizationContext = useMemo(() => {
+    if (!currentUser || !organizations || !users) return null;
+
+    // Get current user's organization assignments
+    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
+    if (!currentUserWithAssignments?.organizations) return null;
+
+    const userOrganizations = currentUserWithAssignments.organizations;
+    const isDemoUser = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role);
+    const hasDemoOrganizations = userOrganizations.some(org => 
+      organizations.find(o => o.id === org.id)?.type === 'demo'
+    );
+    const hasRegularOrganizations = userOrganizations.some(org => 
+      organizations.find(o => o.id === org.id)?.type !== 'demo'
+    );
+
+    return {
+      isDemoUser,
+      hasDemoOrganizations,
+      hasRegularOrganizations,
+      userOrganizations: userOrganizations.map(org => org.id),
+      organizationTypes: userOrganizations.map(org => 
+        organizations.find(o => o.id === org.id)?.type || 'unknown'
+      )
+    };
+  }, [currentUser, organizations, users]);
+
+  // Role filtering function
+  const getAvailableRoles = useMemo(() => {
+    if (!currentUser || !userOrganizationContext) return [];
+
+    const { role } = currentUser;
+    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
+
+    // Admin can assign any role
+    if (role === 'admin') {
+      return [
+        { value: 'admin', label: 'Admin' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'tenant', label: 'Tenant' },
+        { value: 'resident', label: 'Resident' },
+        { value: 'demo_manager', label: 'Demo Manager' },
+        { value: 'demo_tenant', label: 'Demo Tenant' },
+        { value: 'demo_resident', label: 'Demo Resident' },
+      ];
+    }
+
+    // Manager role assignment restrictions
+    if (role === 'manager') {
+      return [
+        { value: 'manager', label: 'Manager' },
+        { value: 'tenant', label: 'Tenant' },
+        { value: 'resident', label: 'Resident' },
+      ];
+    }
+
+    // Demo manager role assignment restrictions
+    if (role === 'demo_manager') {
+      return [
+        { value: 'demo_manager', label: 'Demo Manager' },
+        { value: 'demo_tenant', label: 'Demo Tenant' },
+        { value: 'demo_resident', label: 'Demo Resident' },
+      ];
+    }
+
+    // Other roles cannot assign roles
+    return [];
+  }, [currentUser, userOrganizationContext]);
+
+  // Dynamic edit user schema based on available roles
+  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles), [getAvailableRoles]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -242,6 +315,11 @@ export default function UserManagement() {
     setEditingUser(user);
   };
 
+  // Helper function to find UserWithAssignments from the users list
+  const findUserWithAssignments = (userId: string): UserWithAssignments | null => {
+    return users.find(u => u.id === userId) || null;
+  };
+
   const openDeleteDialog = (user: User) => {
     setDeletingUser(user);
   };
@@ -274,7 +352,37 @@ export default function UserManagement() {
       });
       setEditingUserOrganizations(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Building editing mutation
+  const editBuildingsMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      buildingIds,
+    }: {
+      userId: string;
+      buildingIds: string[];
+    }) => {
+      const response = await apiRequest('PUT', `/api/users/${userId}/buildings`, {
+        buildingIds,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Building assignments updated successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
@@ -306,7 +414,7 @@ export default function UserManagement() {
       });
       setEditingUserResidences(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
       toast({
@@ -337,8 +445,8 @@ export default function UserManagement() {
       setDeletingUser(null);
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-organizations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-residences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
       // Force refetch to ensure UI updates
       queryClient.refetchQueries({ queryKey: ['/api/users'] });
     },
@@ -356,79 +464,60 @@ export default function UserManagement() {
   const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
   const canDeleteUsers = currentUser?.role === 'admin';
 
-  // Filter configuration
-  const filterConfig = {
-    searchable: true,
-    searchFields: ['firstName', 'lastName', 'email', 'username'],
-    filters: [
-      {
-        id: 'role',
-        field: 'role',
-        label: 'Role',
-        type: 'select' as const,
-        options: [
-          { label: 'Admin', _value: 'admin' },
-          { label: 'Manager', _value: 'manager' },
-          { label: 'Tenant', _value: 'tenant' },
-          { label: 'Resident', _value: 'resident' },
-        ],
-      },
-      {
-        id: 'isActive',
-        field: 'isActive',
-        label: 'Status',
-        type: 'select' as const,
-        options: [
-          { label: 'Active', _value: 'true' },
-          { label: 'Inactive', _value: 'false' },
-        ],
-      },
-      {
-        id: 'organization',
-        field: 'organization',
-        label: 'Organization',
-        type: 'select' as const,
-        options: organizations?.map((org) => ({ label: org.name, _value: org.id })) || [],
-      },
-    ],
-    sortOptions: [
-      { field: 'firstName', label: 'First Name' },
-      { field: 'lastName', label: 'Last Name' },
-      { field: 'email', label: 'Email' },
-      { field: 'role', label: 'Role' },
-      { field: 'createdAt', label: 'Created Date' },
-    ],
-  };
+  // Filter configuration - temporarily simplified
+  // const filterConfig = {
+  //   searchable: true,
+  //   searchFields: ['firstName', 'lastName', 'email', 'username'],
+  //   filters: [
+  //     {
+  //       id: 'role',
+  //       field: 'role',
+  //       label: 'Role',
+  //       type: 'select' as const,
+  //       options: [
+  //         { label: 'Admin', _value: 'admin' },
+  //         { label: 'Manager', _value: 'manager' },
+  //         { label: 'Tenant', _value: 'tenant' },
+  //         { label: 'Resident', _value: 'resident' },
+  //         { label: 'Demo Manager', _value: 'demo_manager' },
+  //         { label: 'Demo Tenant', _value: 'demo_tenant' },
+  //         { label: 'Demo Resident', _value: 'demo_resident' },
+  //       ],
+  //     },
+  //     {
+  //       id: 'isActive',
+  //       field: 'isActive',
+  //       label: 'Status',
+  //       type: 'select' as const,
+  //       options: [
+  //         { label: 'Active', _value: 'true' },
+  //         { label: 'Inactive', _value: 'false' },
+  //       ],
+  //     },
+  //     {
+  //       id: 'organization',
+  //       field: 'organization',
+  //       label: 'Organization',
+  //       type: 'select' as const,
+  //       options: organizations?.map((org) => ({ label: org.name, _value: org.id })) || [],
+  //     },
+  //   ],
+  //   sortOptions: [
+  //     { field: 'firstName', label: 'First Name' },
+  //     { field: 'lastName', label: 'Last Name' },
+  //     { field: 'email', label: 'Email' },
+  //     { field: 'role', label: 'Role' },
+  //     { field: 'createdAt', label: 'Created Date' },
+  //   ],
+  // };
 
-  // Enhanced user data with relationships
-  const enhancedUsers = useMemo(() => {
-    return users.map((user) => {
-      const userOrgRelations = userOrganizations.filter((uo) => uo.userId === user.id);
-      const userOrgs = userOrgRelations
-        .map((uo) => organizations.find((org) => org.id === uo.organizationId))
-        .filter(Boolean);
 
-      const userResRelations = userResidences.filter((ur) => ur.userId === user.id);
-      const userRes = userResRelations
-        .map((ur) => residences.find((res) => res.id === ur.residenceId))
-        .filter(Boolean);
 
-      const userBuildings = userRes
-        .map((res) => buildings.find((building) => building.id === res.buildingId))
-        .filter(Boolean);
 
-      return {
-        ...user,
-        organizations: userOrgs,
-        residences: userRes,
-        buildings: userBuildings,
-      };
-    });
-  }, [users, organizations, buildings, residences, userOrganizations, userResidences]);
 
-  // Apply filters, search, and sort
+  // Apply search and simple filters
   const filteredUsers = useMemo(() => {
-    let result = [...enhancedUsers];
+    let result = [...users];
 
     // Apply search
     if (search) {
@@ -442,75 +531,53 @@ export default function UserManagement() {
       );
     }
 
-    // Apply filters
-    filters.forEach((filter) => {
-      switch (filter.field) {
-        case 'role':
-          result = result.filter((user) => user.role === filter._value);
-          break;
-        case 'isActive':
-          result = result.filter((user) => user.isActive.toString() === filter._value);
-          break;
-        case 'organization':
-          result = result.filter((user) =>
-            user.organizations.some((org) => org.id === filter._value)
-          );
-          break;
-      }
-    });
+    // Apply role filter
+    if (roleFilter) {
+      result = result.filter((user) => user.role === roleFilter);
+    }
 
-    // Apply sort
-    if (sort) {
-      result.sort((a, b) => {
-        let aVal = a[sort.field as keyof typeof a];
-        let bVal = b[sort.field as keyof typeof b];
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter((user) => user.isActive.toString() === statusFilter);
+    }
 
-        if (typeof aVal === 'string') {
-          aVal = aVal.toLowerCase();
-        }
-        if (typeof bVal === 'string') {
-          bVal = bVal.toLowerCase();
-        }
-
-        if (aVal < bVal) {
-          return sort.direction === 'asc' ? -1 : 1;
-        }
-        if (aVal > bVal) {
-          return sort.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
+    // Apply organization filter
+    if (organizationFilter) {
+      result = result.filter((user) =>
+        user.organizations.some((org) => org.id === organizationFilter)
+      );
     }
 
     return result;
-  }, [enhancedUsers, search, filters, sort]);
+  }, [users, search, roleFilter, statusFilter, organizationFilter]);
 
-  // Filter handlers
-  const handleAddFilter = (filter: FilterValue) => {
-    setFilters((prev) => [...prev.filter((f) => f.field !== filter.field), filter]);
-  };
+  // Filter handlers - temporarily disabled
+  // const handleAddFilter = (filter: FilterValue) => {
+  //   setFilters((prev) => [...prev.filter((f) => f.field !== filter.field), filter]);
+  // };
 
-  const handleRemoveFilter = (field: string) => {
-    setFilters((prev) => prev.filter((f) => f.field !== field));
-  };
+  // const handleRemoveFilter = (field: string) => {
+  //   setFilters((prev) => prev.filter((f) => f.field !== field));
+  // };
 
-  const handleFilterUpdate = (field: string, filter: FilterValue) => {
-    setFilters((prev) => prev.map((f) => (f.field === field ? filter : f)));
-  };
+  // const handleFilterUpdate = (field: string, filter: FilterValue) => {
+  //   setFilters((prev) => prev.map((f) => (f.field === field ? filter : f)));
+  // };
 
   const handleClearFilters = () => {
-    setFilters([]);
     setSearch('');
-    setSort(null);
+    setRoleFilter('');
+    setStatusFilter('');
+    setOrganizationFilter('');
   };
 
-  const handleToggleSort = (field: string) => {
-    if (sort?.field === field) {
-      setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
-    } else {
-      setSort({ field, direction: 'asc' });
-    }
-  };
+  // const handleToggleSort = (field: string) => {
+  //   if (sort?.field === field) {
+  //     setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
+  //   } else {
+  //     setSort({ field, direction: 'asc' });
+  //   }
+  // };
 
   // Calculate stats and pagination
   const totalUsers = users?.length || 0;
@@ -526,9 +593,9 @@ export default function UserManagement() {
 
   if (usersError) {
     return (
-      <div className='flex flex-col min-h-screen bg-gray-50'>
+      <div className='flex-1 flex flex-col overflow-hidden'>
         <Header title='User Management' subtitle='Manage All Users' />
-        <div className='flex-1 p-6'>
+        <div className='flex-1 overflow-auto p-6'>
           <Card>
             <CardContent className='p-6'>
               <p className='text-red-600'>An error occurred</p>
@@ -540,10 +607,11 @@ export default function UserManagement() {
   }
 
   return (
-    <div className='flex flex-col min-h-screen bg-gray-50'>
+    <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title='User Management' subtitle='Manage All Users' />
 
-      <div className='flex-1 p-6 space-y-6'>
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
         {/* Quick Stats Cards */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           <Card>
@@ -621,18 +689,8 @@ export default function UserManagement() {
 
                       {/* Role Filter */}
                       <select
-                        value={filters.find((f) => f.field === 'role')?._value || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleAddFilter({
-                              field: 'role',
-                              operator: 'equals',
-                              _value: e.target.value,
-                            });
-                          } else {
-                            handleRemoveFilter('role');
-                          }
-                        }}
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
                         <option value=''>All Roles</option>
@@ -644,18 +702,8 @@ export default function UserManagement() {
 
                       {/* Status Filter */}
                       <select
-                        value={filters.find((f) => f.field === 'isActive')?._value || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleAddFilter({
-                              field: 'isActive',
-                              operator: 'equals',
-                              _value: e.target.value,
-                            });
-                          } else {
-                            handleRemoveFilter('isActive');
-                          }
-                        }}
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
                         <option value=''>All Status</option>
@@ -664,33 +712,23 @@ export default function UserManagement() {
                       </select>
 
                       {/* Organization Filter */}
-                      {organizations.length > 0 && (
+                      {organizations && organizations.length > 0 && (
                         <select
-                          value={filters.find((f) => f.field === 'organization')?._value || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleAddFilter({
-                                field: 'organization',
-                                operator: 'equals',
-                                _value: e.target.value,
-                              });
-                            } else {
-                              handleRemoveFilter('organization');
-                            }
-                          }}
+                          value={organizationFilter}
+                          onChange={(e) => setOrganizationFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
                           <option value=''>All Organizations</option>
-                          {organizations.map((org) => (
+                          {organizations?.map((org) => (
                             <option key={org.id} value={org.id}>
                               {org.name}
                             </option>
-                          ))}
+                          )) || []}
                         </select>
                       )}
 
                       {/* Clear Filters */}
-                      {(filters.length > 0 || search) && (
+                      {(roleFilter || statusFilter || organizationFilter || search) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           Clear All
                         </Button>
@@ -701,170 +739,18 @@ export default function UserManagement() {
                       User List ({filteredTotal} of {totalUsers} users)
                     </h3>
 
-                    {/* User Table */}
-                    <div className='overflow-x-auto'>
-                      <table className='w-full border-collapse border border-gray-300'>
-                        <thead>
-                          <tr className='bg-gray-100'>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Name</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Email</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Role</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Status</th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
-                              Organization(s)
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
-                              Buildings
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>
-                              Residences
-                            </th>
-                            <th className='border border-gray-300 px-4 py-2 text-left'>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {currentUsers.map((user) => (
-                            <tr key={user.id} className='hover:bg-gray-50'>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                {user.firstName} {user.lastName}
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>{user.email}</td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    user.role === 'admin'
-                                      ? 'bg-red-100 text-red-800'
-                                      : user.role === 'manager'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-green-100 text-green-800'
-                                  }`}
-                                >
-                                  {user.role}
-                                </span>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    user.isActive
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-gray-100 text-gray-800'
-                                  }`}
-                                >
-                                  {user.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <div className='space-y-1'>
-                                  {user.organizations.length > 0 ? (
-                                    user.organizations.map((org, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-blue-50 px-2 py-1 rounded'
-                                      >
-                                        {org.name}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className='text-gray-400 text-xs'>No organizations</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <div className='space-y-1'>
-                                  {user.buildings.length > 0 ? (
-                                    user.buildings.slice(0, 3).map((building, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-purple-50 px-2 py-1 rounded'
-                                      >
-                                        {building.name}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className='text-gray-400 text-xs'>No buildings</span>
-                                  )}
-                                  {user.buildings.length > 3 && (
-                                    <div className='text-xs text-gray-500'>
-                                      +{user.buildings.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <div className='space-y-1'>
-                                  {user.residences.length > 0 ? (
-                                    user.residences.slice(0, 3).map((residence, idx) => (
-                                      <div
-                                        key={idx}
-                                        className='text-xs bg-green-50 px-2 py-1 rounded'
-                                      >
-                                        Unit {residence.unitNumber}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <span className='text-gray-400 text-xs'>No residences</span>
-                                  )}
-                                  {user.residences.length > 3 && (
-                                    <div className='text-xs text-gray-500'>
-                                      +{user.residences.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className='border border-gray-300 px-4 py-2'>
-                                <div className='flex gap-2 flex-wrap'>
-                                  <Button
-                                    size='sm'
-                                    variant='outline'
-                                    onClick={() => openEditDialog(user)}
-                                    data-testid={`button-edit-user-${user.id}`}
-                                  >
-                                    <Edit className='h-3 w-3 mr-1' />
-                                    Edit User
-                                  </Button>
-
-                                  {canEditOrganizations && (
-                                    <Button
-                                      size='sm'
-                                      variant='outline'
-                                      onClick={() => setEditingUserOrganizations(user)}
-                                      data-testid={`button-edit-organizations-${user.id}`}
-                                    >
-                                      <Shield className='h-3 w-3 mr-1' />
-                                      Organizations
-                                    </Button>
-                                  )}
-
-                                  {canEditResidences && (
-                                    <Button
-                                      size='sm'
-                                      variant='outline'
-                                      onClick={() => setEditingUserResidences(user)}
-                                      data-testid={`button-edit-residences-${user.id}`}
-                                    >
-                                      <Home className='h-3 w-3 mr-1' />
-                                      Residences
-                                    </Button>
-                                  )}
-
-                                  {canDeleteUsers && (
-                                    <Button
-                                      size='sm'
-                                      variant='destructive'
-                                      onClick={() => openDeleteDialog(user)}
-                                      data-testid={`button-delete-user-${user.id}`}
-                                    >
-                                      <Trash2 className='h-3 w-3 mr-1' />
-                                      Delete
-                                    </Button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    {/* User Table - Completely Rebuilt */}
+                    <UserAssignmentsTable 
+                      users={currentUsers} 
+                      isLoading={usersLoading}
+                      onEditUser={openEditDialog}
+                      onEditOrganizations={setEditingUserOrganizations}
+                      onEditResidences={setEditingUserResidences}
+                      onDeleteUser={openDeleteDialog}
+                      canEditOrganizations={canEditOrganizations}
+                      canEditResidences={canEditResidences}
+                      canDeleteUsers={canDeleteUsers}
+                    />
 
                     {/* Pagination */}
                     {totalPages > 1 && (
@@ -903,11 +789,7 @@ export default function UserManagement() {
           </TabsContent>
 
           <TabsContent value='invitations' className='space-y-6'>
-            <Card>
-              <CardContent className='p-6'>
-                <p>Invitations management coming soon...</p>
-              </CardContent>
-            </Card>
+            <InvitationManagement />
           </TabsContent>
         </Tabs>
 
@@ -923,197 +805,193 @@ export default function UserManagement() {
 
         {/* Edit User Dialog */}
         <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-          <DialogContent className='sm:max-w-[425px]'>
+          <DialogContent className='sm:max-w-[800px] max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>Update user information and permissions.</DialogDescription>
+              <DialogDescription>Update user information, organizations, buildings, and residences.</DialogDescription>
             </DialogHeader>
 
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
-                <div className='grid grid-cols-2 gap-4'>
-                  <FormField
-                    control={editForm.control}
-                    name='firstName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid='input-edit-firstName' />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <Tabs defaultValue='basic' className='w-full'>
+              <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsTrigger value='basic'>Basic Info</TabsTrigger>
+                {canEditOrganizations && <TabsTrigger value='organizations'>Organizations</TabsTrigger>}
+                <TabsTrigger value='buildings'>Buildings</TabsTrigger>
+                {canEditResidences && <TabsTrigger value='residences'>Residences</TabsTrigger>}
+              </TabsList>
 
-                  <FormField
-                    control={editForm.control}
-                    name='lastName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid='input-edit-lastName' />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <TabsContent value='basic' className='space-y-4'>
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      <FormField
+                        control={editForm.control}
+                        name='firstName'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} data-testid='input-edit-firstName' />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={editForm.control}
-                  name='email'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type='email' data-testid='input-edit-email' />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <FormField
+                        control={editForm.control}
+                        name='lastName'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} data-testid='input-edit-lastName' />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <FormField
-                  control={editForm.control}
-                  name='role'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid='select-edit-role'>
-                            <SelectValue placeholder='Select role' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='admin'>Admin</SelectItem>
-                          <SelectItem value='manager'>Manager</SelectItem>
-                          <SelectItem value='tenant'>Tenant</SelectItem>
-                          <SelectItem value='resident'>Resident</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={editForm.control}
+                      name='email'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input {...field} type='email' data-testid='input-edit-email' />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={editForm.control}
-                  name='isActive'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(value === 'true')}
-                        defaultValue={field.value.toString()}
+                    <FormField
+                      control={editForm.control}
+                      name='role'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid='select-edit-role'>
+                                <SelectValue placeholder='Select role' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {getAvailableRoles?.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                  {role.label}
+                                </SelectItem>
+                              )) || []}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name='isActive'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(value === 'true')}
+                            defaultValue={field.value.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger data-testid='select-edit-status'>
+                                <SelectValue placeholder='Select status' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='true'>Active</SelectItem>
+                              <SelectItem value='false'>Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => setEditingUser(null)}
+                        data-testid='button-cancel-edit'
                       >
-                        <FormControl>
-                          <SelectTrigger data-testid='select-edit-status'>
-                            <SelectValue placeholder='Select status' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='true'>Active</SelectItem>
-                          <SelectItem value='false'>Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        Cancel
+                      </Button>
+                      <Button
+                        type='submit'
+                        disabled={editUserMutation.isPending}
+                        data-testid='button-save-edit'
+                      >
+                        {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </TabsContent>
+
+              {canEditOrganizations && (
+                <TabsContent value='organizations' className='space-y-4'>
+                  <UserOrganizationsTab 
+                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                    organizations={organizations}
+                    onSave={(organizationIds) => {
+                      if (editingUser) {
+                        editOrganizationsMutation.mutate({
+                          userId: editingUser.id,
+                          organizationIds
+                        });
+                      }
+                    }}
+                    isLoading={editOrganizationsMutation.isPending}
+                  />
+                </TabsContent>
+              )}
+
+              <TabsContent value='buildings' className='space-y-4'>
+                <UserBuildingsTab 
+                  user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                  buildings={buildings}
+                  onSave={(buildingIds) => {
+                    if (editingUser) {
+                      editBuildingsMutation.mutate({
+                        userId: editingUser.id,
+                        buildingIds
+                      });
+                    }
+                  }}
+                  isLoading={editBuildingsMutation.isPending}
                 />
+              </TabsContent>
 
-                <DialogFooter>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => setEditingUser(null)}
-                    data-testid='button-cancel-edit'
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type='submit'
-                    disabled={editUserMutation.isPending}
-                    data-testid='button-save-edit'
-                  >
-                    {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+              {canEditResidences && (
+                <TabsContent value='residences' className='space-y-4'>
+                  <UserResidencesTab 
+                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                    residences={residences}
+                    onSave={(residenceAssignments) => {
+                      if (editingUser) {
+                        editResidencesMutation.mutate({
+                          userId: editingUser.id,
+                          residenceAssignments
+                        });
+                      }
+                    }}
+                    isLoading={editResidencesMutation.isPending}
+                  />
+                </TabsContent>
+              )}
+            </Tabs>
           </DialogContent>
         </Dialog>
 
-        {/* Edit Organization Assignments Dialog */}
-        <Dialog
-          open={!!editingUserOrganizations}
-          onOpenChange={(open) => !open && setEditingUserOrganizations(null)}
-        >
-          <DialogContent className='sm:max-w-[500px]'>
-            <DialogHeader>
-              <DialogTitle>Edit Organization Assignments</DialogTitle>
-              <DialogDescription>
-                Manage organization assignments for {editingUserOrganizations?.firstName}{' '}
-                {editingUserOrganizations?.lastName}.
-              </DialogDescription>
-            </DialogHeader>
-
-            {editingUserOrganizations && (
-              <OrganizationEditForm
-                user={editingUserOrganizations}
-                organizations={organizations}
-                userOrganizations={userOrganizations.filter(
-                  (uo) => uo.userId === editingUserOrganizations.id
-                )}
-                onSave={(organizationIds) => {
-                  editOrganizationsMutation.mutate({
-                    userId: editingUserOrganizations.id,
-                    organizationIds,
-                  });
-                }}
-                onCancel={() => setEditingUserOrganizations(null)}
-                isLoading={editOrganizationsMutation.isPending}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Residence Assignments Dialog */}
-        <Dialog
-          open={!!editingUserResidences}
-          onOpenChange={(open) => !open && setEditingUserResidences(null)}
-        >
-          <DialogContent className='sm:max-w-[600px] max-h-[80vh] overflow-y-auto'>
-            <DialogHeader>
-              <DialogTitle>Edit Residence Assignments</DialogTitle>
-              <DialogDescription>
-                Manage residence assignments for {editingUserResidences?.firstName}{' '}
-                {editingUserResidences?.lastName}.
-              </DialogDescription>
-            </DialogHeader>
-
-            {editingUserResidences && (
-              <ResidenceEditForm
-                user={editingUserResidences}
-                residences={residences}
-                buildings={buildings}
-                userResidences={userResidences.filter(
-                  (ur) => ur.userId === editingUserResidences.id
-                )}
-                onSave={(residenceAssignments) => {
-                  editResidencesMutation.mutate({
-                    userId: editingUserResidences.id,
-                    residenceAssignments,
-                  });
-                }}
-                onCancel={() => setEditingUserResidences(null)}
-                isLoading={editResidencesMutation.isPending}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
@@ -1206,286 +1084,9 @@ export default function UserManagement() {
             </Form>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </div>
-  );
-}
-
-// Organization Edit Form Component
-/**
- *
- * @param root0
- * @param root0.user
- * @param root0.organizations
- * @param root0.userOrganizations
- * @param root0.onSave
- * @param root0.onCancel
- * @param root0.isLoading
- */
-function OrganizationEditForm({
-  user,
-  organizations,
-  userOrganizations,
-  onSave,
-  onCancel,
-  isLoading,
-}: {
-  user: User;
-  organizations: Organization[];
-  userOrganizations: any[];
-  onSave: (organizationIds: string[]) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-}) {
-  const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>(
-    userOrganizations.map((uo) => uo.organizationId)
-  );
-
-  const handleToggleOrganization = (orgId: string) => {
-    setSelectedOrgIds((prev) =>
-      prev.includes(orgId) ? prev.filter((id) => id !== orgId) : [...prev, orgId]
-    );
-  };
-
-  return (
-    <div className='space-y-4'>
-      <div className='space-y-2'>
-        <h4 className='font-medium'>Available Organizations:</h4>
-        <div className='max-h-60 overflow-y-auto border rounded-lg p-2'>
-          {organizations.map((org) => (
-            <div key={org.id} className='flex items-center space-x-2 p-2 hover:bg-gray-50'>
-              <input
-                type='checkbox'
-                id={`org-${org.id}`}
-                checked={selectedOrgIds.includes(org.id)}
-                onChange={() => handleToggleOrganization(org.id)}
-                className='rounded'
-                data-testid={`checkbox-org-${org.id}`}
-              />
-              <label htmlFor={`org-${org.id}`} className='flex-1 text-sm'>
-                {org.name}
-                <div className='text-xs text-gray-500'>{org.type}</div>
-              </label>
-            </div>
-          ))}
         </div>
       </div>
-
-      <DialogFooter>
-        <Button
-          type='button'
-          variant='outline'
-          onClick={onCancel}
-          disabled={isLoading}
-          data-testid='button-cancel-org-edit'
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={() => onSave(selectedOrgIds)}
-          disabled={isLoading}
-          data-testid='button-save-org-edit'
-        >
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </DialogFooter>
     </div>
   );
 }
 
-// Residence Edit Form Component
-/**
- *
- * @param root0
- * @param root0.user
- * @param root0.residences
- * @param root0.buildings
- * @param root0.userResidences
- * @param root0.onSave
- * @param root0.onCancel
- * @param root0.isLoading
- */
-function ResidenceEditForm({
-  user,
-  residences,
-  buildings,
-  userResidences,
-  onSave,
-  onCancel,
-  isLoading,
-}: {
-  user: User;
-  residences: Residence[];
-  buildings: Building[];
-  userResidences: any[];
-  onSave: (residenceAssignments: any[]) => void;
-  onCancel: () => void;
-  isLoading: boolean;
-}) {
-  const [assignments, setAssignments] = useState<any[]>(
-    userResidences.map((ur) => ({
-      residenceId: ur.residenceId,
-      relationshipType: ur.relationshipType || 'tenant',
-      startDate: ur.startDate || new Date().toISOString().split('T')[0],
-      endDate: ur.endDate || '',
-    }))
-  );
-
-  const availableResidences = residences.filter((residence) => {
-    // Only show residences not already assigned or currently assigned ones
-    return (
-      !assignments.some((a) => a.residenceId === residence.id) ||
-      userResidences.some((ur) => ur.residenceId === residence.id)
-    );
-  });
-
-  const addResidence = () => {
-    if (availableResidences.length > 0) {
-      setAssignments((prev) => [
-        ...prev,
-        {
-          residenceId: availableResidences[0].id,
-          relationshipType: 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: '',
-        },
-      ]);
-    }
-  };
-
-  const removeResidence = (index: number) => {
-    setAssignments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateAssignment = (index: number, field: string, value: string) => {
-    setAssignments((prev) =>
-      prev.map((assignment, i) => (i === index ? { ...assignment, [field]: value } : assignment))
-    );
-  };
-
-  const getResidenceDisplay = (residenceId: string) => {
-    const residence = residences.find((r) => r.id === residenceId);
-    const building = buildings.find((b) => b.id === residence?.buildingId);
-    return residence && building ? `${building.name} - Unit ${residence.unitNumber}` : 'Unknown';
-  };
-
-  return (
-    <div className='space-y-4'>
-      <div className='space-y-3'>
-        <div className='flex items-center justify-between'>
-          <h4 className='font-medium'>Residence Assignments:</h4>
-          <Button
-            size='sm'
-            onClick={addResidence}
-            disabled={availableResidences.length === 0}
-            data-testid='button-add-residence'
-          >
-            Add Residence
-          </Button>
-        </div>
-
-        {assignments.length === 0 ? (
-          <div className='text-sm text-gray-500 text-center py-4'>
-            No residence assignments. Click "Add Residence" to assign a residence.
-          </div>
-        ) : (
-          <div className='space-y-3 max-h-60 overflow-y-auto'>
-            {assignments.map((assignment, index) => (
-              <div key={index} className='border rounded-lg p-3 space-y-3'>
-                <div className='flex items-center justify-between'>
-                  <h5 className='font-medium text-sm'>Assignment {index + 1}</h5>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={() => removeResidence(index)}
-                    data-testid={`button-remove-residence-${index}`}
-                  >
-                    Remove
-                  </Button>
-                </div>
-
-                <div className='grid grid-cols-1 gap-3'>
-                  <div>
-                    <label className='text-xs font-medium'>Residence</label>
-                    <select
-                      value={assignment.residenceId}
-                      onChange={(e) => updateAssignment(index, 'residenceId', e.target.value)}
-                      className='w-full px-2 py-1 text-sm border rounded'
-                      data-testid={`select-residence-${index}`}
-                    >
-                      {residences.map((residence) => {
-                        const building = buildings.find((b) => b.id === residence.buildingId);
-                        return (
-                          <option key={residence.id} value={residence.id}>
-                            {building?.name} - Unit {residence.unitNumber}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className='text-xs font-medium'>Relationship Type</label>
-                    <select
-                      value={assignment.relationshipType}
-                      onChange={(e) => updateAssignment(index, 'relationshipType', e.target.value)}
-                      className='w-full px-2 py-1 text-sm border rounded'
-                      data-testid={`select-relationship-${index}`}
-                    >
-                      <option value='owner'>Owner</option>
-                      <option value='tenant'>Tenant</option>
-                      <option value='occupant'>Occupant</option>
-                    </select>
-                  </div>
-
-                  <div className='grid grid-cols-2 gap-2'>
-                    <div>
-                      <label className='text-xs font-medium'>Start Date</label>
-                      <input
-                        type='date'
-                        value={assignment.startDate}
-                        onChange={(e) => updateAssignment(index, 'startDate', e.target.value)}
-                        className='w-full px-2 py-1 text-sm border rounded'
-                        data-testid={`input-start-date-${index}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className='text-xs font-medium'>End Date (Optional)</label>
-                      <input
-                        type='date'
-                        value={assignment.endDate}
-                        onChange={(e) => updateAssignment(index, 'endDate', e.target.value)}
-                        className='w-full px-2 py-1 text-sm border rounded'
-                        data-testid={`input-end-date-${index}`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <DialogFooter>
-        <Button
-          type='button'
-          variant='outline'
-          onClick={onCancel}
-          disabled={isLoading}
-          data-testid='button-cancel-residence-edit'
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={() => onSave(assignments)}
-          disabled={isLoading}
-          data-testid='button-save-residence-edit'
-        >
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </DialogFooter>
-    </div>
-  );
-}

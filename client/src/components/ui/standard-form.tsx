@@ -189,7 +189,6 @@ StandardForm({
   const handleSubmit = async (_data: unknown) => {
     try {
       await onSubmit(data as Record<string, unknown>);
-    } catch (_error) {
       /**
        * Catch function.
        * @param _error - _error parameter.
@@ -198,7 +197,6 @@ StandardForm({
        * @param _error - _error parameter.
        */
 
-      console.error('Form submission _error:', _error);
     }
   };
 

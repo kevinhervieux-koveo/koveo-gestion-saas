@@ -7,7 +7,7 @@
 <!-- Mark the relevant option with an 'x' -->
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)  
+- [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (change that would cause existing functionality to not work as expected)
 - [ ] 📝 Documentation update
 - [ ] 🎨 Code style/formatting change
@@ -51,12 +51,14 @@
 <!-- Describe testing performed -->
 
 **Test Types Completed:**
+
 - [ ] Unit tests
-- [ ] Integration tests  
+- [ ] Integration tests
 - [ ] End-to-end tests
 - [ ] Manual testing
 
 **Test Scenarios:**
+
 <!-- Describe specific test scenarios -->
 
 ## Security Considerations
@@ -82,9 +84,11 @@
 <!-- List any breaking changes and migration path -->
 
 **Breaking Changes:**
+
 <!-- Describe any breaking changes -->
 
 **Migration Path:**
+
 <!-- Provide steps for migrating existing code/data -->
 
 ## Screenshots/Media
@@ -96,9 +100,11 @@
 <!-- Add any other context, related issues, or dependencies -->
 
 **Related Issues:**
+
 <!-- Link to related issues: Closes #123, Fixes #456 -->
 
 **Dependencies:**
+
 <!-- List any dependencies on other PRs or external changes -->
 
 ---
@@ -114,6 +120,7 @@
 5. 📱 **UX Review**: Test user experience on different devices
 
 **Approval Required From:**
+
 - [ ] Technical lead (mandatory for architectural changes)
 - [ ] Security reviewer (mandatory for auth/security changes)
 - [ ] Product owner (mandatory for feature changes)
@@ -121,4 +128,4 @@
 
 ---
 
-*By submitting this PR, I confirm that my changes follow the project's coding standards, include appropriate tests, and maintain Quebec compliance requirements.*
+_By submitting this PR, I confirm that my changes follow the project's coding standards, include appropriate tests, and maintain Quebec compliance requirements._

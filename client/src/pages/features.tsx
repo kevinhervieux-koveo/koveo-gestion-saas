@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import {
   Building,
   Users,
@@ -20,7 +21,6 @@ import {
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Features page component for Koveo Gestion.
@@ -150,20 +150,7 @@ FeaturesPage() {
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50'>
       {/* Navigation Header */}
-      <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>
-        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
-          <div className='flex items-center'>
-            <img
-              src={koveoLogo}
-              alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
-              onClick={() => setLocation('/')}
-              data-testid='logo-link'
-            />
-          </div>
-          <HamburgerMenu />
-        </div>
-      </header>
+      <TopNavigationBar />
 
       {/* Hero Section */}
       <section className='container mx-auto px-4 py-16 text-center'>
@@ -325,7 +312,7 @@ FeaturesPage() {
         <div className='container mx-auto px-4'>
           <div className='flex flex-col md:flex-row items-center justify-between'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-8 rounded object-cover' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
             </div>
             <div className='flex items-center space-x-4 text-sm text-gray-400'>
               <Shield className='h-4 w-4' />

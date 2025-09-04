@@ -34,6 +34,7 @@ import {
   Bath,
   FileText,
 } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 
 /**
@@ -90,6 +91,7 @@ export default function /**
 
 Residences() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
@@ -421,7 +423,7 @@ Residences() {
                         title='Manage residence documents'
                       >
                         <FileText className='w-3 h-3 mr-1' />
-                        Documents
+                        {t('residenceDocumentsButton')}
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>

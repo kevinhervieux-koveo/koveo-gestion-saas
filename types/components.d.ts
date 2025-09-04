@@ -5,7 +5,7 @@ declare module '@/components/layout/header' {
   export default Header;
 }
 
-declare module '@/components/layout/sidebar' {  
+declare module '@/components/layout/sidebar' {
   export const Sidebar: React.ComponentType<Record<string, unknown>>;
   export default Sidebar;
 }

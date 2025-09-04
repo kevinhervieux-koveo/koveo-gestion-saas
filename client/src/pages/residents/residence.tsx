@@ -142,56 +142,21 @@ export default function Residence() {
     queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
-  // Fetch buildings for admin/manager users
-  const {
-    data: buildingsData,
-    error: buildingsError,
-    refetch: refetchBuildings,
-  } = useQuery({
-    queryKey: ['/api/manager/buildings'],
-    queryFn: async () => {
-      const response = await fetch('/api/manager/buildings', {
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch buildings');
-      }
-      return response.json();
-    },
-    enabled: !!user?.id && user?.role && ['admin', 'manager'].includes(user.role),
-    refetchOnMount: true,
-    staleTime: 0,
-  });
-
-  const buildings = buildingsData?.buildings || [];
-
-  // Use different endpoints based on user role
+  // All users see only their assigned residences
   const {
     data: accessibleResidences = [],
     isLoading,
     error: residencesError,
     refetch: refetchResidences,
   } = useQuery({
-    queryKey:
-      user?.role && ['admin', 'manager'].includes(user.role)
-        ? ['/api/residences']
-        : ['/api/users/residences', user?.id],
+    queryKey: ['/api/users/residences', user?.id],
     queryFn: async () => {
       if (!user?.id) {
         return [];
       }
 
-      let url = '';
-      // Admin and manager users can see all residences in their organizations
-      if (user.role && ['admin', 'manager'].includes(user.role)) {
-        url = '/api/residences';
-      } else {
-        // Residents see only their own residences
-        url = `/api/users/${user.id}/residences`;
-      }
+      // All users (including admin/manager) see only their assigned residences
+      const url = `/api/users/${user.id}/residences`;
 
       const response = await fetch(url, {
         credentials: 'include',
@@ -212,21 +177,27 @@ export default function Residence() {
   // Ensure accessibleResidences is always an array
   const safeAccessibleResidences = Array.isArray(accessibleResidences) ? accessibleResidences : [];
 
-  // Filter residences based on selected building for admin/manager users
-  const filteredResidences = useMemo(() => {
-    if (user?.role && ['admin', 'manager'].includes(user.role)) {
-      // For admin/manager, show all residences if no building filter is selected
-      if (!selectedBuildingId) {
-        return safeAccessibleResidences;
+  // Extract buildings from user's residences for filtering
+  const buildings = useMemo(() => {
+    const buildingMap = new Map();
+    safeAccessibleResidences.forEach((residence) => {
+      if (residence.building && !buildingMap.has(residence.building.id)) {
+        buildingMap.set(residence.building.id, residence.building);
       }
+    });
+    return Array.from(buildingMap.values());
+  }, [safeAccessibleResidences]);
 
-      // Filter by selected building
-      return safeAccessibleResidences.filter((r) => r.buildingId === selectedBuildingId);
+  // Filter residences based on selected building (if multiple residences exist)
+  const filteredResidences = useMemo(() => {
+    // If no building filter is selected, return all residences
+    if (!selectedBuildingId) {
+      return safeAccessibleResidences;
     }
 
-    // For residents, return all their accessible residences
-    return safeAccessibleResidences;
-  }, [safeAccessibleResidences, selectedBuildingId, user?.role]);
+    // Filter by selected building
+    return safeAccessibleResidences.filter((r) => r.buildingId === selectedBuildingId);
+  }, [safeAccessibleResidences, selectedBuildingId]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredResidences.length / itemsPerPage);
@@ -388,16 +359,8 @@ export default function Residence() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title={
-            user?.role && ['admin', 'manager'].includes(user.role)
-              ? t('residences')
-              : t('myResidence')
-          }
-          subtitle={
-            user?.role && ['admin', 'manager'].includes(user.role)
-              ? t('viewManageResidences')
-              : t('viewResidenceInfo')
-          }
+          title={t('myResidence')}
+          subtitle={t('viewResidenceInfo')}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -414,14 +377,8 @@ export default function Residence() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title={
-            user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
-          }
-          subtitle={
-            user?.role && ['admin', 'manager'].includes(user.role)
-              ? t('viewManageResidences')
-              : t('viewResidenceInfo')
-          }
+          title={t('myResidence')}
+          subtitle={t('viewResidenceInfo')}
         />
 
         <div className='flex-1 flex items-center justify-center'>
@@ -442,66 +399,54 @@ export default function Residence() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={
-          user?.role && ['admin', 'manager'].includes(user.role) ? 'Residences' : 'My Residence'
-        }
-        subtitle={
-          user?.role && ['admin', 'manager'].includes(user.role)
-            ? 'View and manage organization residences'
-            : 'View your residence information and contacts'
-        }
+        title={t('myResidence')}
+        subtitle={t('myResidenceInfo')}
       />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Building and Residence Filters */}
-          {(user?.role && ['admin', 'manager'].includes(user.role) && buildings.length > 0) ||
-          filteredResidences.length > 1 ? (
+          {(buildings.length > 1 || filteredResidences.length > 1) && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Home className='w-5 h-5' />
-                  {user?.role && ['admin', 'manager'].includes(user.role)
-                    ? t('selectBuildingResidence')
-                    : 'Select Residence'}
+                  Select Residence
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className='flex flex-col md:flex-row gap-4'>
-                  {/* Building Filter (Admin/Manager only) */}
-                  {user?.role &&
-                    ['admin', 'manager'].includes(user.role) &&
-                    buildings.length > 0 && (
-                      <div className='flex-1'>
-                        <Label className='text-sm font-medium mb-2 block'>{t('building2')}</Label>
-                        <Select
-                          value={selectedBuildingId}
-                          onValueChange={(value) => {
-                            setSelectedBuildingId(value);
-                            setSelectedResidenceId(''); // Reset residence selection when building changes
-                          }}
-                        >
-                          <SelectTrigger className='w-full'>
-                            <SelectValue placeholder={t('selectABuilding')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {buildings.map((building: any) => (
-                              <SelectItem key={building.id} value={building.id}>
-                                {building.name} - {building.address}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                  {/* Building Filter (if user has multiple buildings) */}
+                  {buildings.length > 1 && (
+                    <div className='flex-1'>
+                      <Label className='text-sm font-medium mb-2 block'>{t('building2')}</Label>
+                      <Select
+                        value={selectedBuildingId}
+                        onValueChange={(value) => {
+                          setSelectedBuildingId(value);
+                          setSelectedResidenceId(''); // Reset residence selection when building changes
+                        }}
+                      >
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder={t('selectABuilding')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('allBuildings')}</SelectItem>
+                          {buildings.map((building: any) => (
+                            <SelectItem key={building.id} value={building.id}>
+                              {building.name} - {building.address}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Residence Filter */}
-                  {filteredResidences.length > 0 && (
+                  {filteredResidences.length > 1 && (
                     <div className='flex-1'>
                       <Label className='text-sm font-medium mb-2 block'>
-                        {user?.role && ['admin', 'manager'].includes(user.role)
-                          ? t('residence')
-                          : t('selectResidence')}
+                        {t('selectResidence')}
                       </Label>
                       <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
                         <SelectTrigger className='w-full'>
@@ -510,10 +455,7 @@ export default function Residence() {
                         <SelectContent>
                           {filteredResidences.map((residence) => (
                             <SelectItem key={residence.id} value={residence.id}>
-                              Unit {residence.unitNumber}
-                              {user?.role &&
-                                !['admin', 'manager'].includes(user.role) &&
-                                ` - ${residence.building?.name || 'N/A'}`}
+                              {t('unit')} {residence.unitNumber} - {residence.building?.name || 'N/A'}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -523,7 +465,7 @@ export default function Residence() {
                 </div>
               </CardContent>
             </Card>
-          ) : null}
+          )}
 
           {/* Residence Cards */}
           {currentResidences.length > 0 && (
@@ -533,18 +475,18 @@ export default function Residence() {
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                       <Home className='w-5 h-5' />
-                      Unit {residence.unitNumber}
+                      {t('unit')} {residence.unitNumber}
                     </CardTitle>
                     <div className='text-sm text-gray-600'>
-                      {residence.building?.name || 'Building information unavailable'}
+                      {residence.building?.name || t('buildingInfoUnavailable')}
                     </div>
                   </CardHeader>
                   <CardContent className='space-y-4'>
                     <div className='grid grid-cols-1 gap-3'>
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
                         <p className='text-sm text-gray-700'>
-                          {residence.building?.address || 'Address unavailable'}
+                          {residence.building?.address || t('addressUnavailable')}
                         </p>
                         <p className='text-sm text-gray-700'>
                           {residence.building?.city || 'N/A'},{' '}
@@ -556,19 +498,19 @@ export default function Residence() {
                       <div className='grid grid-cols-2 gap-3'>
                         {residence.floor && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Floor</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('floor')}</Label>
                             <p className='text-sm text-gray-700'>{residence.floor}</p>
                           </div>
                         )}
                         {residence.squareFootage && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Sq Ft</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('sqFt')}</Label>
                             <p className='text-sm text-gray-700'>{residence.squareFootage}</p>
                           </div>
                         )}
                         {residence.bedrooms && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Bedrooms</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('bedrooms')}</Label>
                             <div className='flex items-center gap-1'>
                               <Bed className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>{residence.bedrooms}</span>
@@ -577,7 +519,7 @@ export default function Residence() {
                         )}
                         {residence.bathrooms && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Bathrooms</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('bathrooms')}</Label>
                             <div className='flex items-center gap-1'>
                               <Bath className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>{residence.bathrooms}</span>
@@ -589,7 +531,7 @@ export default function Residence() {
                       {residence.parkingSpaceNumbers &&
                         residence.parkingSpaceNumbers.length > 0 && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
                             <div className='flex items-center gap-1'>
                               <Car className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -602,7 +544,7 @@ export default function Residence() {
                       {residence.storageSpaceNumbers &&
                         residence.storageSpaceNumbers.length > 0 && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
                             <div className='flex items-center gap-1'>
                               <Package className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -617,13 +559,13 @@ export default function Residence() {
                       <Link href={`/residents/residences/${residence.id}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <FileText className='w-4 h-4 mr-2' />
-                          View Documents
+                          {t('residenceDocumentsButton')}
                         </Button>
                       </Link>
                       <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <Building className='w-4 h-4 mr-2' />
-                          Building Documents
+                          {t('buildingDocumentsButton')}
                         </Button>
                       </Link>
                     </div>
@@ -643,7 +585,7 @@ export default function Residence() {
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className='h-4 w-4' />
-                Previous
+                {t('previous')}
               </Button>
 
               <div className='flex gap-1'>
@@ -678,7 +620,7 @@ export default function Residence() {
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('next')}
                 <ChevronRight className='h-4 w-4' />
               </Button>
             </div>
@@ -687,8 +629,8 @@ export default function Residence() {
           {/* Page info */}
           {filteredResidences.length > 0 && (
             <div className='text-center text-sm text-muted-foreground mt-4'>
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
-              {filteredResidences.length} residences
+              {t('showing')} {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
+              {filteredResidences.length} {t('residences')}
             </div>
           )}
         </div>

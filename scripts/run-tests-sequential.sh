@@ -1,103 +1,205 @@
 #!/bin/bash
 
-# Koveo Gestion - Sequential Test Runner
-# Runs all tests in logical sequence to avoid timeouts
+# Koveo Gestion - Complete Sequential Test Execution Script
+# Runs ALL tests in logical order with proper error handling and reporting
 
-set -e  # Exit on any error
+set +e  # Don't exit on first failure, continue running all tests
 
-echo "🚀 Starting Sequential Test Suite (Safe Mode)..."
-echo "================================================"
-
-# Set safe environment variables to prevent database modifications
-export NODE_ENV=test
-export SKIP_DB_OPERATIONS=true
-unset DATABASE_URL  # Remove production database URL for safety
-
-echo "🛡️  Running in safe test environment (DATABASE_URL removed)"
-echo "⚠️  Tests will use mock data to prevent production database changes"
+echo "🧪 Koveo Gestion - Complete Sequential Test Suite"
+echo "================================================="
+echo ""
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to run test group with error handling
-run_test_group() {
-    local group_name="$1"
-    local test_pattern="$2"
-    local timeout="$3"
+# Test counters
+TOTAL_TESTS=0
+PASSED_TESTS=0
+FAILED_TESTS=0
+SKIPPED_TESTS=0
+
+# Function to run a test directory and track results
+run_test_directory() {
+    local test_name="$1"
+    local test_path="$2"
+    local description="$3"
     
-    echo -e "\n${BLUE}🏃 Running $group_name...${NC}"
-    echo "----------------------------------------"
+    echo -e "${BLUE}📋 Running: ${description}${NC}"
+    echo "   Path: $test_path"
+    echo ""
     
-    if npx jest $test_pattern --testTimeout=$timeout --maxWorkers=1 --passWithNoTests; then
-        echo -e "${GREEN}✅ $group_name completed successfully${NC}"
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
+    
+    if npx jest "$test_path" --passWithNoTests=false --maxWorkers=1 --verbose; then
+        echo -e "${GREEN}✅ PASSED: ${test_name}${NC}"
+        PASSED_TESTS=$((PASSED_TESTS + 1))
     else
-        echo -e "${RED}❌ $group_name failed${NC}"
-        exit 1
+        echo -e "${RED}❌ FAILED: ${test_name}${NC}"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+        
+        # Continue with other tests but track failures
+        echo -e "${YELLOW}⏩ Continuing with remaining tests...${NC}"
     fi
+    
+    echo ""
+    echo "----------------------------------------"
+    echo ""
 }
 
-# 1. Foundation Tests (Schema, Core Logic)
-echo -e "\n${YELLOW}🏗️  PHASE 1: Foundation Tests${NC}"
-run_test_group "Schema Validation" "tests/unit/schema.test.ts tests/unit/form-validation.test.ts" "10000"
-run_test_group "Core Utils" "tests/unit/utils.test.ts tests/unit/storage.test.ts" "10000"
+# Function to run individual test file
+run_test_file() {
+    local test_name="$1"
+    local test_file="$2"
+    local description="$3"
+    
+    echo -e "${BLUE}📋 Running: ${description}${NC}"
+    echo "   File: $test_file"
+    echo ""
+    
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
+    
+    if npx jest "$test_file" --passWithNoTests=false --maxWorkers=1; then
+        echo -e "${GREEN}✅ PASSED: ${test_name}${NC}"
+        PASSED_TESTS=$((PASSED_TESTS + 1))
+    else
+        echo -e "${RED}❌ FAILED: ${test_name}${NC}"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+        
+        # Continue with other tests but track failures
+        echo -e "${YELLOW}⏩ Continuing with remaining tests...${NC}"
+    fi
+    
+    echo ""
+    echo "----------------------------------------"
+    echo ""
+}
 
-# 2. Unit Tests (Services, Business Logic)
-echo -e "\n${YELLOW}🧪 PHASE 2: Unit Tests${NC}"
-run_test_group "Authentication & Authorization" "tests/unit/auth/" "15000"
-run_test_group "Database Operations" "tests/unit/db/" "15000"
-run_test_group "Demands Management" "tests/unit/demands/" "15000"
-run_test_group "Budget Management" "tests/unit/budget/" "20000"
-run_test_group "Hooks & Services" "tests/unit/hooks/ tests/unit/*-service.test.ts" "15000"
-
-# 3. Component Tests
-echo -e "\n${YELLOW}🎨 PHASE 3: UI Component Tests${NC}"
-run_test_group "Core Components" "tests/unit/components/" "20000"
-run_test_group "Dashboard Components" "tests/unit/dashboard-components.test.tsx tests/unit/ui-components.test.tsx" "20000"
-run_test_group "Page Components" "tests/unit/buildings-page.test.tsx tests/unit/bills-components.test.tsx" "20000"
-run_test_group "User Registration" "tests/unit/invitation/" "25000"
-
-# 4. API Integration Tests  
-echo -e "\n${YELLOW}🔗 PHASE 4: Integration Tests${NC}"
-run_test_group "API Integration" "tests/integration/" "25000"
-run_test_group "API Endpoints" "tests/api/" "20000"
-
-# 5. Security & Compliance Tests
-echo -e "\n${YELLOW}🔒 PHASE 5: Security & Compliance${NC}"
-run_test_group "Security Tests" "tests/security/" "20000"
-run_test_group "Quebec Compliance" "tests/unit/i18n/quebec-compliance.test.ts tests/unit/quebec-business-logic.test.ts" "15000"
-run_test_group "Language Validation" "tests/unit/i18n/ tests/unit/language-validation.test.ts" "15000"
-
-# 6. Performance & Quality Tests
-echo -e "\n${YELLOW}⚡ PHASE 6: Performance & Quality${NC}"
-run_test_group "Performance Tests" "tests/performance/" "30000"
-run_test_group "Code Analysis" "tests/code-analysis/" "30000"
-run_test_group "Quality Metrics" "tests/unit/quality-metrics.test.ts" "15000"
-
-# 7. System & E2E Tests
-echo -e "\n${YELLOW}🌐 PHASE 7: End-to-End Tests${NC}"
-run_test_group "System Tests" "tests/system/" "35000"
-run_test_group "E2E Tests" "tests/e2e/" "40000"
-
-# 8. Specialized Tests
-echo -e "\n${YELLOW}🎯 PHASE 8: Specialized Tests${NC}"
-run_test_group "Mobile Tests" "tests/mobile/" "25000"
-run_test_group "UI Tests" "tests/ui/" "30000"
-run_test_group "Routing Tests" "tests/routing/" "15000"
-
-echo -e "\n${GREEN}🎉 All test phases completed successfully!${NC}"
-echo "========================================"
-echo -e "${BLUE}📊 Test Summary:${NC}"
-echo "• Foundation Tests ✅"
-echo "• Unit Tests ✅"
-echo "• Component Tests ✅"
-echo "• Integration Tests ✅"
-echo "• Security & Compliance ✅"
-echo "• Performance & Quality ✅"
-echo "• End-to-End Tests ✅"
-echo "• Specialized Tests ✅"
+echo "🚀 Starting Complete Test Execution (All 227+ test files)..."
 echo ""
-echo -e "${GREEN}🚀 Your Koveo Gestion test suite is solid!${NC}"
+
+# Phase 1: Unit Tests - Core Schema and Validation
+echo "Phase 1: Unit Tests - Schema and Validation"
+echo "==========================================="
+run_test_directory "Unit-Auth" "tests/unit/auth/" "Authentication and authorization unit tests"
+run_test_directory "Unit-Bills" "tests/unit/bills*" "Bills and payment validation tests"
+run_test_directory "Unit-Budget" "tests/unit/budget/" "Budget calculation and logic tests"
+run_test_directory "Unit-Calendar" "tests/unit/calendar/" "Calendar functionality tests"
+run_test_directory "Unit-Components" "tests/unit/components/" "UI component unit tests"
+run_test_directory "Unit-Demands" "tests/unit/demands/" "Demands schema and workflow tests"
+run_test_directory "Unit-Documents" "tests/unit/documents/" "Document management tests"
+run_test_directory "Unit-i18n" "tests/unit/i18n/" "Internationalization unit tests"
+run_test_directory "Unit-Invitation" "tests/unit/invitation/" "User invitation and registration tests"
+run_test_directory "Unit-Security" "tests/unit/security/" "Security validation tests"
+run_test_directory "Unit-Access-Control" "tests/unit/access-control/" "Access control and permissions tests"
+
+# Phase 2: Unit Tests - Individual Files
+echo "Phase 2: Unit Tests - Individual Components"
+echo "==========================================="
+run_test_file "Unit-Language" "tests/unit/language.test.tsx" "Language switching and validation"
+run_test_file "Unit-Schema" "tests/unit/schema.test.ts" "Database schema validation"
+run_test_file "Unit-Storage" "tests/unit/storage.test.ts" "Storage interface tests"
+run_test_file "Unit-Hooks" "tests/unit/hooks.test.tsx" "React hooks testing"
+run_test_file "Unit-SSL" "tests/unit/ssl-service.test.ts" "SSL certificate management"
+run_test_file "Unit-User-API" "tests/unit/user-api.test.ts" "User API endpoint tests"
+
+# Phase 3: Integration Tests
+echo "Phase 3: Integration Tests"
+echo "=========================="
+run_test_directory "Integration-Auth" "tests/integration/auth/" "Authentication integration tests"
+run_test_directory "Integration-Demo" "tests/integration/demo*" "Demo user functionality tests"
+run_test_directory "Integration-Documents" "tests/integration/document*" "Document management integration tests"
+run_test_directory "Integration-Building" "tests/integration/building*" "Building management integration tests"
+run_test_directory "Integration-Invitation" "tests/integration/invitation/" "User invitation integration tests"
+run_test_directory "Integration-Data" "tests/integration/data-modification/" "Data modification integration tests"
+run_test_directory "Integration-Demands" "tests/integration/demands/" "Demands workflow integration tests"
+run_test_directory "Integration-Deployment" "tests/integration/deployment/" "Deployment validation tests"
+
+# Phase 4: Integration Tests - Individual Files
+echo "Phase 4: Integration Tests - Individual Files"
+echo "============================================="
+run_test_file "Integration-Database-Sync" "tests/integration/database-sync.test.ts" "Database synchronization tests"
+run_test_file "Integration-Session" "tests/integration/session-persistence.test.ts" "Session persistence tests"
+run_test_file "Integration-User-Invitation" "tests/integration/user-invitation.test.ts" "User invitation flow tests"
+
+# Phase 5: i18n and Quebec Compliance Tests
+echo "Phase 5: i18n and Quebec Compliance Tests"
+echo "=========================================="
+run_test_directory "i18n-Website" "tests/i18n/website/" "Website internationalization tests"
+run_test_directory "i18n-Integration" "tests/i18n/" "i18n integration tests"
+run_test_file "Translation-Detector" "tests/translation-detector.test.ts" "Translation detection and validation"
+
+# Phase 6: Security Tests
+echo "Phase 6: Security Tests"
+echo "======================"
+run_test_directory "Security-Tests" "tests/security/" "Security validation and permissions tests"
+
+# Phase 7: API Tests
+echo "Phase 7: API Tests"
+echo "=================="
+run_test_directory "API-Tests" "tests/api/" "API endpoint and translation tests"
+
+# Phase 8: Deployment Tests
+echo "Phase 8: Deployment Tests"
+echo "========================="
+run_test_directory "Deployment-Tests" "tests/deployment/" "Deployment validation and health checks"
+
+# Phase 9: Website and UI Tests
+echo "Phase 9: Website and UI Tests"
+echo "============================="
+run_test_directory "Website-Tests" "tests/website/" "Website functionality and UI consistency tests"
+
+# Phase 10: Component Tests
+echo "Phase 10: Component Tests"
+echo "========================="
+run_test_directory "Component-Tests" "tests/components/" "UI component integration tests"
+
+# Phase 11: Utility and Performance Tests
+echo "Phase 11: Utility and Performance Tests"
+echo "======================================="
+run_test_directory "Utils-Tests" "tests/utils/" "Utility function tests"
+run_test_directory "Performance-Tests" "tests/performance/" "Performance and load tests"
+
+# Phase 12: Root Level Test Files
+echo "Phase 12: Root Level Test Files"
+echo "==============================="
+run_test_file "Demo-Organizations" "tests/demo-organizations.test.ts" "Demo organization functionality"
+
+# Final Summary
+echo ""
+echo "🏁 Complete Test Execution Finished"
+echo "==================================="
+echo ""
+echo -e "📊 Results Summary:"
+echo -e "   ${GREEN}✅ Passed: ${PASSED_TESTS}${NC}"
+echo -e "   ${RED}❌ Failed: ${FAILED_TESTS}${NC}"
+echo -e "   ${YELLOW}⚠️  Skipped: ${SKIPPED_TESTS}${NC}"
+echo -e "   📋 Total: ${TOTAL_TESTS}"
+echo ""
+
+# Calculate success rate
+if [ $TOTAL_TESTS -gt 0 ]; then
+    SUCCESS_RATE=$(( (PASSED_TESTS * 100) / TOTAL_TESTS ))
+    echo -e "📈 Success Rate: ${SUCCESS_RATE}%"
+else
+    echo -e "❌ No tests were executed"
+fi
+
+echo ""
+
+# Provide detailed feedback
+if [ $FAILED_TESTS -eq 0 ]; then
+    echo -e "${GREEN}🎉 All tests passed successfully!${NC}"
+    exit 0
+elif [ $FAILED_TESTS -lt 5 ]; then
+    echo -e "${YELLOW}⚠️  Minor issues detected (${FAILED_TESTS} failures)${NC}"
+    echo -e "   Most tests are working correctly"
+    exit 1
+else
+    echo -e "${RED}❌ Multiple test failures detected (${FAILED_TESTS} failures)${NC}"
+    echo -e "   Review the failed tests above for details"
+    exit 1
+fi

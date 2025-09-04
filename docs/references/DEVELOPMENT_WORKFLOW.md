@@ -45,12 +45,14 @@ hotfix/database-migration-rollback
 ### 1. Planning Phase
 
 **Story Creation**
+
 - Define user story with acceptance criteria
 - Estimate effort and identify dependencies
 - Consider Quebec compliance requirements
 - Plan bilingual implementation
 
 **Technical Design**
+
 - Architecture review for complex features
 - Database schema changes planning
 - API design and integration points
@@ -59,6 +61,7 @@ hotfix/database-migration-rollback
 ### 2. Implementation Phase
 
 **Branch Creation**
+
 ```bash
 # Create and switch to feature branch
 git checkout -b feature/maintenance-request-system
@@ -66,6 +69,7 @@ git push -u origin feature/maintenance-request-system
 ```
 
 **Development Standards**
+
 - Follow TypeScript strict mode requirements
 - Implement comprehensive error handling
 - Include bilingual support (French/English)
@@ -73,6 +77,7 @@ git push -u origin feature/maintenance-request-system
 - Document public APIs and complex logic
 
 **Code Quality Checks**
+
 ```bash
 # Run before each commit
 npm run lint          # ESLint validation
@@ -84,6 +89,7 @@ npm run format        # Code formatting
 ### 3. Review Process
 
 **Self-Review Checklist**
+
 - [ ] Code follows style guidelines
 - [ ] All tests pass (unit, integration, e2e)
 - [ ] TypeScript compilation succeeds
@@ -95,11 +101,14 @@ npm run format        # Code formatting
 - [ ] Performance impact assessed
 
 **Pull Request Creation**
+
 ```markdown
 ## Description
+
 Brief description of the changes and motivation
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -107,6 +116,7 @@ Brief description of the changes and motivation
 - [ ] Quebec compliance related change
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] E2E tests added/updated
@@ -114,6 +124,7 @@ Brief description of the changes and motivation
 - [ ] Quebec compliance verified (bilingual, Law 25)
 
 ## Quebec Compliance Checklist
+
 - [ ] Bilingual support (French/English)
 - [ ] Quebec postal code validation
 - [ ] Cultural formatting (dates, currency)
@@ -121,21 +132,25 @@ Brief description of the changes and motivation
 - [ ] Accessibility standards (WCAG 2.1)
 
 ## Documentation
+
 - [ ] Code comments added/updated
 - [ ] API documentation updated
 - [ ] User documentation updated
 - [ ] Quebec-specific examples included
 
 ## Screenshots (if applicable)
+
 [Include screenshots for UI changes]
 
 ## Breaking Changes
+
 [Describe any breaking changes and migration path]
 ```
 
 ### 4. Code Review Standards
 
 **Reviewer Checklist**
+
 - **Functionality**: Does the code work as intended?
 - **Code Quality**: Is the code clean, readable, and maintainable?
 - **Performance**: Are there any performance implications?
@@ -146,6 +161,7 @@ Brief description of the changes and motivation
 - **Architecture**: Does the code follow established patterns?
 
 **Review Guidelines**
+
 - Provide constructive feedback with specific suggestions
 - Test the functionality locally when possible
 - Verify Quebec compliance requirements
@@ -156,6 +172,7 @@ Brief description of the changes and motivation
 ### 5. Integration & Deployment
 
 **Merge Requirements**
+
 - At least one approval from code owner
 - All automated checks passing
 - No merge conflicts with target branch
@@ -163,6 +180,7 @@ Brief description of the changes and motivation
 - Quebec compliance verified
 
 **Deployment Process**
+
 ```bash
 # Automated deployment pipeline
 1. Merge to main branch
@@ -179,24 +197,28 @@ Brief description of the changes and motivation
 ### Automated Quality Checks
 
 **Code Quality**
+
 - ESLint: Zero errors, warnings under threshold
 - TypeScript: Strict compilation without errors
 - Prettier: Consistent code formatting
 - Bundle analysis: Size within acceptable limits
 
 **Testing Requirements**
+
 - Unit tests: 85%+ line coverage
 - Integration tests: Critical paths covered
 - E2E tests: User workflows validated
 - Quebec compliance: Bilingual functionality tested
 
 **Security Standards**
+
 - No high-severity vulnerabilities
 - Authentication/authorization properly implemented
 - Input validation comprehensive
 - SQL injection prevention verified
 
 **Quebec Compliance Validation**
+
 - Bilingual interface complete
 - Quebec postal code validation
 - Law 25 privacy requirements met
@@ -206,12 +228,14 @@ Brief description of the changes and motivation
 ### Manual Quality Checks
 
 **Functional Testing**
+
 - Feature works as specified
 - Edge cases handled appropriately
 - Error states properly managed
 - User experience intuitive
 
 **Quebec-Specific Testing**
+
 - French and English interfaces tested
 - Quebec-specific validations working
 - Cultural formatting correct
@@ -222,6 +246,7 @@ Brief description of the changes and motivation
 ### Required Tools
 
 **Development Environment**
+
 ```bash
 # Node.js and package management
 node --version    # v20.0.0+
@@ -238,6 +263,7 @@ npm run type-check # TypeScript
 ```
 
 **Recommended IDE Setup**
+
 - **VS Code** with extensions:
   - TypeScript and JavaScript Language Features
   - ESLint
@@ -247,6 +273,7 @@ npm run type-check # TypeScript
   - French Language Pack (for Quebec compliance)
 
 **Development Database**
+
 ```bash
 # Local PostgreSQL setup
 createdb koveo_gestion_dev
@@ -257,6 +284,7 @@ npm run db:seed
 ### Configuration Management
 
 **Environment Variables**
+
 ```bash
 # Development (.env.local)
 DATABASE_URL=postgresql://localhost:5432/koveo_gestion_dev
@@ -280,6 +308,7 @@ NODE_ENV=production
 ### Adding New Features
 
 **1. Database Schema Changes**
+
 ```typescript
 // 1. Update shared/schema.ts
 export const newFeatureTable = pgTable('new_features', {
@@ -297,47 +326,44 @@ npm run db:push
 ```
 
 **2. API Endpoint Implementation**
+
 ```typescript
 // server/api/new-features.ts
 export async function createNewFeature(req: Request, res: Response) {
   const { name, description } = req.body;
-  
+
   // Validation
   const validatedData = createNewFeatureSchema.parse(req.body);
-  
+
   // Business logic
-  const feature = await db.insert(newFeatureTable)
-    .values(validatedData)
-    .returning();
-  
+  const feature = await db.insert(newFeatureTable).values(validatedData).returning();
+
   res.status(201).json(feature[0]);
 }
 ```
 
 **3. Frontend Component Development**
+
 ```tsx
 // client/src/components/NewFeature.tsx
 export function NewFeatureForm() {
   const { t } = useTranslation();
-  
+
   const { mutate, isLoading } = useMutation({
     mutationFn: (data) => apiRequest('POST', '/api/new-features', data),
     onSuccess: () => {
       toast.success(t('features.created_successfully'));
-    }
+    },
   });
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* Bilingual form implementation */}
-    </form>
-  );
+
+  return <form onSubmit={handleSubmit}>{/* Bilingual form implementation */}</form>;
 }
 ```
 
 ### Bug Fix Workflow
 
 **1. Issue Investigation**
+
 ```bash
 # Reproduce the issue locally
 npm run dev
@@ -350,18 +376,21 @@ npm test -- --testNamePattern="issue-related-test"
 ```
 
 **2. Root Cause Analysis**
+
 - Identify the source of the bug
 - Determine impact scope
 - Check for similar issues in codebase
 - Consider Quebec compliance implications
 
 **3. Fix Implementation**
+
 - Implement minimal fix addressing root cause
 - Add regression tests
 - Verify Quebec compliance not affected
 - Update documentation if needed
 
 **4. Verification**
+
 - Manual testing of fix
 - Automated test execution
 - Performance impact assessment
@@ -370,6 +399,7 @@ npm test -- --testNamePattern="issue-related-test"
 ### Quebec Compliance Updates
 
 **Adding Bilingual Support**
+
 ```typescript
 // 1. Add translations
 const translations = {
@@ -389,12 +419,15 @@ return <h1>{t('new_feature.title')}</h1>;
 ```
 
 **Quebec Validation Implementation**
+
 ```typescript
 // Quebec-specific validation
-const quebecPostalCodeSchema = z.string()
+const quebecPostalCodeSchema = z
+  .string()
   .regex(/^[A-Za-z]\d[A-Za-z] \d[A-Za-z]\d$/, 'Invalid Quebec postal code');
 
-const quebecPhoneSchema = z.string()
+const quebecPhoneSchema = z
+  .string()
   .regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Invalid Quebec phone number format');
 ```
 
@@ -403,6 +436,7 @@ const quebecPhoneSchema = z.string()
 ### Development Performance
 
 **Build Optimization**
+
 ```javascript
 // vite.config.ts optimizations
 export default defineConfig({
@@ -411,15 +445,16 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu']
-        }
-      }
-    }
-  }
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        },
+      },
+    },
+  },
 });
 ```
 
 **Database Performance**
+
 ```typescript
 // Optimized queries with proper indexing
 const getActiveBuildings = await db
@@ -431,6 +466,7 @@ const getActiveBuildings = await db
 ```
 
 **Runtime Performance Monitoring**
+
 ```typescript
 // Performance monitoring in development
 const performanceObserver = new PerformanceObserver((list) => {
@@ -449,6 +485,7 @@ performanceObserver.observe({ entryTypes: ['measure'] });
 ### Development Environment Issues
 
 **Database Connection Problems**
+
 ```bash
 # Check PostgreSQL status
 pg_ctl status
@@ -461,6 +498,7 @@ npm run db:reset
 ```
 
 **Build Errors**
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -474,6 +512,7 @@ npm test
 ```
 
 **Performance Issues**
+
 ```bash
 # Profile bundle size
 npm run build:analyze
@@ -488,6 +527,7 @@ npm run db:monitor
 ### Quebec Compliance Issues
 
 **Translation Problems**
+
 ```bash
 # Check translation coverage
 npm run i18n:check
@@ -500,6 +540,7 @@ npm run test:i18n
 ```
 
 **Validation Issues**
+
 ```bash
 # Test Quebec-specific validation
 npm run test:quebec
@@ -516,12 +557,14 @@ npm run test:formatting
 ### Communication Guidelines
 
 **Daily Standups**
+
 - Current work status
 - Blockers and dependencies
 - Quebec compliance considerations
 - Help needed from team members
 
 **Code Review Etiquette**
+
 - Be respectful and constructive
 - Focus on code, not the person
 - Provide specific suggestions
@@ -529,6 +572,7 @@ npm run test:formatting
 - Consider Quebec requirements in feedback
 
 **Knowledge Sharing**
+
 - Document complex decisions
 - Share Quebec compliance insights
 - Conduct code walkthroughs for major features
@@ -537,12 +581,13 @@ npm run test:formatting
 ### Documentation Standards
 
 **Code Documentation**
+
 ```typescript
 /**
  * Calculates maintenance costs for Quebec properties
- * 
+ *
  * Considers Quebec-specific regulations and tax implications
- * 
+ *
  * @param buildingId - Unique building identifier
  * @param month - Calculation month (1-12)
  * @param year - Calculation year
@@ -558,12 +603,14 @@ async function calculateMaintenanceCosts(
 ```
 
 **API Documentation**
+
 - Use OpenAPI/Swagger specifications
 - Include Quebec-specific examples
 - Document error responses
 - Provide bilingual descriptions
 
 **User Documentation**
+
 - Write for non-technical users
 - Include screenshots and examples
 - Provide both French and English versions

@@ -1,0 +1,32 @@
+333990e4e64f22994fc2e297c9d6ad4f
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.cn = cn;
+const clsx_1 = require("clsx");
+const tailwind_merge_1 = require("tailwind-merge");
+/**
+ * Combines class names using clsx and merges conflicting Tailwind classes with tailwind-merge.
+ * This utility ensures proper Tailwind CSS class precedence and removes duplicate classes.
+ *
+ * @param {...ClassValue} inputs - Class names to combine (strings, objects, arrays, etc.).
+ * @returns {string} Merged and optimized class name string.
+ * @example
+ * ```typescript
+ * cn('px-4', 'px-2') // Returns 'px-2' (tailwind-merge removes conflicting px-4)
+ * cn('text-red-500', { 'font-bold': true }) // Returns 'text-red-500 font-bold'
+ * ```
+ */
+/**
+ * Cn function.
+ * @param {...any} inputs
+ * @returns Function result.
+ */
+/**
+ * Cn function.
+ * @param ...inputs - ...inputs parameter.
+ * @param {...any} inputs
+ */
+function cn(...inputs) {
+    return (0, tailwind_merge_1.twMerge)((0, clsx_1.clsx)(inputs));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2xpYi91dGlscy50cyIsIm1hcHBpbmdzIjoiOztBQXlCQSxnQkFVQztBQW5DRCwrQkFBNkM7QUFDN0MsbURBQXlDO0FBRXpDOzs7Ozs7Ozs7OztHQVdHO0FBQ0g7Ozs7R0FJRztBQUNIOzs7O0dBSUc7QUFDSCxTQVFBLEVBQUUsQ0FBQyxHQUFHLE1BQW9CO0lBQ3hCLE9BQU8sSUFBQSx3QkFBTyxFQUFDLElBQUEsV0FBSSxFQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUM7QUFDL0IsQ0FBQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvbGliL3V0aWxzLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGNsc3gsIHR5cGUgQ2xhc3NWYWx1ZSB9IGZyb20gJ2Nsc3gnO1xuaW1wb3J0IHsgdHdNZXJnZSB9IGZyb20gJ3RhaWx3aW5kLW1lcmdlJztcblxuLyoqXG4gKiBDb21iaW5lcyBjbGFzcyBuYW1lcyB1c2luZyBjbHN4IGFuZCBtZXJnZXMgY29uZmxpY3RpbmcgVGFpbHdpbmQgY2xhc3NlcyB3aXRoIHRhaWx3aW5kLW1lcmdlLlxuICogVGhpcyB1dGlsaXR5IGVuc3VyZXMgcHJvcGVyIFRhaWx3aW5kIENTUyBjbGFzcyBwcmVjZWRlbmNlIGFuZCByZW1vdmVzIGR1cGxpY2F0ZSBjbGFzc2VzLlxuICpcbiAqIEBwYXJhbSB7Li4uQ2xhc3NWYWx1ZX0gaW5wdXRzIC0gQ2xhc3MgbmFtZXMgdG8gY29tYmluZSAoc3RyaW5ncywgb2JqZWN0cywgYXJyYXlzLCBldGMuKS5cbiAqIEByZXR1cm5zIHtzdHJpbmd9IE1lcmdlZCBhbmQgb3B0aW1pemVkIGNsYXNzIG5hbWUgc3RyaW5nLlxuICogQGV4YW1wbGVcbiAqIGBgYHR5cGVzY3JpcHRcbiAqIGNuKCdweC00JywgJ3B4LTInKSAvLyBSZXR1cm5zICdweC0yJyAodGFpbHdpbmQtbWVyZ2UgcmVtb3ZlcyBjb25mbGljdGluZyBweC00KVxuICogY24oJ3RleHQtcmVkLTUwMCcsIHsgJ2ZvbnQtYm9sZCc6IHRydWUgfSkgLy8gUmV0dXJucyAndGV4dC1yZWQtNTAwIGZvbnQtYm9sZCdcbiAqIGBgYFxuICovXG4vKipcbiAqIENuIGZ1bmN0aW9uLlxuICogQHBhcmFtIHsuLi5hbnl9IGlucHV0c1xuICogQHJldHVybnMgRnVuY3Rpb24gcmVzdWx0LlxuICovXG4vKipcbiAqIENuIGZ1bmN0aW9uLlxuICogQHBhcmFtIC4uLmlucHV0cyAtIC4uLmlucHV0cyBwYXJhbWV0ZXIuXG4gKiBAcGFyYW0gey4uLmFueX0gaW5wdXRzXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiAvKipcbiAqIENuIGZ1bmN0aW9uLlxuICogQHBhcmFtIC4uLmlucHV0cyAtIC4uLmlucHV0cyBwYXJhbWV0ZXIuXG4gKi8gLyoqXG4gKiBDbiBmdW5jdGlvbi5cbiAqIEBwYXJhbSAuLi5pbnB1dHMgLSAuLi5pbnB1dHMgcGFyYW1ldGVyLlxuICovXG5cbmNuKC4uLmlucHV0czogQ2xhc3NWYWx1ZVtdKSB7XG4gIHJldHVybiB0d01lcmdlKGNsc3goaW5wdXRzKSk7XG59XG4iXSwidmVyc2lvbiI6M30=

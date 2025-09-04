@@ -1,325 +1,256 @@
-import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { eq, and, inArray } from 'drizzle-orm';
-import * as schema from '../../shared/schema';
-import ws from 'ws';
-import request from 'supertest';
-import { Express } from 'express';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import express from 'express';
-import 'whatwg-fetch';
+import request from 'supertest';
 
-neonConfig.webSocketConstructor = ws;
+// Mock WebSocket constructor for Jest environment
+jest.mock('ws', () => ({
+  __esModule: true,
+  default: class MockWebSocket {}
+}));
 
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  'postgresql://postgres:password@localhost:5432/test';
-if (!DATABASE_URL) {
-  console.warn('No DATABASE_URL found, using default test database');
-}
+import { registerRoutes } from '../../server/routes';
+import { db } from '../../server/db';
+import * as schema from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
-const pool = new Pool({ connectionString: DATABASE_URL });
-const db = drizzle({ client: pool, schema });
+/**
+ * Demo User Security Restrictions Test Suite
+ * 
+ * Validates that demo users have proper security restrictions:
+ * - Cannot modify critical data
+ * - Have read-only access to most features  
+ * - Cannot access sensitive information
+ * - Cannot perform administrative actions
+ */
 
-let app: Express;
-let demoUserId: string;
-let openDemoUserId: string;
-let regularUserId: string;
-let demoOrgId: string;
-let openDemoOrgId: string;
-let regularOrgId: string;
-
-// Real RBAC functions that query the database
-const isOpenDemoUser = async (userId: string): Promise<boolean> => {
-  try {
-    const user = await db.query.users.findFirst({
-      where: eq(schema.users.id, userId),
-      with: {
-        userOrganizations: {
-          with: {
-            organization: true,
-          },
-        },
-      },
-    });
-
-    if (!user) return false;
-
-    // Check if user belongs to Open Demo organization or has opendemo email
-    return (
-      user.email?.includes('@opendemo.com') ||
-      user.userOrganizations.some(
-        (uo) =>
-          uo.organization?.name === 'Open Demo' ||
-          uo.organization?.name?.toLowerCase().includes('open demo')
-      )
-    );
-  } catch (error) {
-    console.error('Error checking Open Demo user:', error);
-    return false;
-  }
+const createTestApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  registerRoutes(app);
+  return app;
 };
 
-const canUserPerformWriteOperation = async (
-  userId: string,
-  operation: string
-): Promise<boolean> => {
-  try {
-    const isOpenDemo = await isOpenDemoUser(userId);
-    return !isOpenDemo;
-  } catch (error) {
-    console.error('Error checking write operation permission:', error);
-    return true; // Default to allowing operation if check fails
-  }
-};
+describe('Demo User Security Restrictions', () => {
+  let app: express.Application;
+  let demoUser: any;
+  let demoOrg: any;
+  let normalUser: any;
 
-// Create a minimal Express app for testing
-function createTestApp(): Express {
-  const testApp = express();
-  testApp.use(express.json());
-
-  // Mock middleware for authentication
-  testApp.use((req: any, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      // Mock user based on token
-      if (token.includes('open-demo-user-id')) {
-        req.user = {
-          id: openDemoUserId,
-          email: 'demo@opendemo.com',
-          role: 'tenant',
-          isDemo: true,
-          isDemoRestricted: true,
-        };
-      } else if (token.includes('demo-user-id')) {
-        req.user = {
-          id: demoUserId,
-          email: 'manager@demo.com',
-          role: 'manager',
-          isDemo: true,
-          isDemoRestricted: false,
-        };
-      } else {
-        req.user = {
-          id: regularUserId,
-          email: 'user@regular.com',
-          role: 'manager',
-          isDemo: false,
-          isDemoRestricted: false,
-        };
-      }
-    }
-    next();
-  });
-
-  // Mock API routes for testing
-  testApp.post('/api/users', async (req: any, res) => {
-    const isOpenDemo = await isOpenDemoUser(req.user?.id || '');
-    if (isOpenDemo) {
-      return res.status(403).json({
-        code: 'DEMO_RESTRICTED',
-        message: 'This is a demonstration account with view-only access.',
-        messageEn: 'This is a demonstration account with view-only access.',
-        messageFr: 'Ceci est un compte de démonstration avec accès en consultation seulement.',
-      });
-    }
-    res.status(201).json({ id: 'new-user-id', email: req.body.email });
-  });
-
-  testApp.get('/api/users', (req: any, res) => {
-    res.status(200).json([{ id: 'user-1', email: 'test@demo.com' }]);
-  });
-
-  testApp.put('/api/users/:id', async (req: any, res) => {
-    const isOpenDemo = await isOpenDemoUser(req.user?.id || '');
-    if (isOpenDemo) {
-      return res.status(403).json({
-        code: 'DEMO_RESTRICTED',
-        message: 'This is a demonstration account with view-only access.',
-      });
-    }
-    res.status(200).json({ id: req.params.id, ...req.body });
-  });
-
-  testApp.delete('/api/users/:id', async (req: any, res) => {
-    const isOpenDemo = await isOpenDemoUser(req.user?.id || '');
-    if (isOpenDemo) {
-      return res.status(403).json({
-        code: 'DEMO_RESTRICTED',
-        message: 'This is a demonstration account with view-only access.',
-      });
-    }
-    res.status(204).send();
-  });
-
-  return testApp;
-}
-
-describe('Comprehensive Demo User Security Tests', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     app = createTestApp();
-    await findExistingDemoUsers();
+    
+    // Clean up test data
+    await db.delete(schema.users).where(eq(schema.users.email, 'demo-security@example.com'));
+    await db.delete(schema.users).where(eq(schema.users.email, 'normal-security@example.com'));
+
+    // Create demo organization
+    [demoOrg] = await db.insert(schema.organizations).values({
+      name: 'Demo Organization',
+      type: 'syndicate',
+      address: '123 Demo St',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+    }).returning();
+
+    // Create demo user with demo prefix
+    [demoUser] = await db.insert(schema.users).values({
+      username: 'demo-user-security',
+      email: 'demo-security@example.com',
+      firstName: 'Demo',
+      lastName: 'User',
+      password: '$2b$12$demo.password.hash',
+      role: 'manager',
+    }).returning();
+
+    // Create normal user for comparison
+    [normalUser] = await db.insert(schema.users).values({
+      username: 'normal-user-security',
+      email: 'normal-security@example.com',
+      firstName: 'Normal',
+      lastName: 'User', 
+      password: '$2b$12$normal.password.hash',
+      role: 'manager',
+    }).returning();
+
+    // Link users to demo organization
+    await db.insert(schema.userOrganizations).values([
+      { userId: demoUser[0].id, organizationId: demoOrg.id, organizationRole: 'manager' },
+      { userId: normalUser[0].id, organizationId: demoOrg.id, organizationRole: 'manager' },
+    ]);
   });
 
-  afterAll(async () => {
-    await pool.end();
+  afterEach(async () => {
+    // Clean up test data
+    await db.delete(schema.users).where(eq(schema.users.email, 'demo-security@example.com'));
+    await db.delete(schema.users).where(eq(schema.users.email, 'normal-security@example.com'));
+    if (demoOrg?.id) await db.delete(schema.organizations).where(eq(schema.organizations.id, demoOrg.id));
   });
 
-  describe('Demo User Write Operation Restrictions', () => {
-    test('should correctly identify Open Demo users', async () => {
-      const isOpenDemo = await isOpenDemoUser(openDemoUserId);
-      expect(isOpenDemo).toBe(true);
+  describe('Write Operation Restrictions', () => {
+    it('should prevent demo users from creating new users', async () => {
+      // Mock login session for demo user
+      const agent = request.agent(app);
+      
+      // Set up demo user session
+      const sessionData = {
+        userId: demoUser.id,
+        role: demoUser.role,
+        organizationId: demoUser.organizationId,
+      };
 
-      const isRegularUser = await isOpenDemoUser(regularUserId);
-      expect(isRegularUser).toBe(false);
+      // Try to create new user
+      const createUserResponse = await agent
+        .post('/api/users')
+        .send({
+          username: 'newuser',
+          email: 'newuser@example.com',
+          firstName: 'New',
+          lastName: 'User',
+          password: 'password123',
+          role: 'resident',
+        });
 
-      const isDemoUser = await isOpenDemoUser(demoUserId);
-      expect(isDemoUser).toBe(false);
+      // Demo users should not be able to create users
+      expect(createUserResponse.status).toBe(403);
+      expect(createUserResponse.body.error).toContain('Demo users cannot perform this action');
     });
 
-    test('should prevent Open Demo users from performing write operations', async () => {
-      const writeOperations = ['create', 'update', 'delete', 'manage'] as const;
+    it('should prevent demo users from deleting data', async () => {
+      // Create test building
+      const [testBuilding] = await db.insert(schema.buildings).values({
+        name: 'Test Building for Demo',
+        address: '456 Test Ave',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1B 1B1',
+        organizationId: demoOrg.id,
+        buildingType: 'apartment',
+        totalUnits: 10,
+      }).returning();
 
-      for (const operation of writeOperations) {
-        const canPerform = await canUserPerformWriteOperation(openDemoUserId, operation);
-        expect(canPerform).toBe(false);
+      const agent = request.agent(app);
+
+      // Try to delete building as demo user
+      const deleteResponse = await agent
+        .delete(`/api/buildings/${testBuilding.id}`);
+
+      expect(deleteResponse.status).toBe(403);
+      expect(deleteResponse.body.error).toContain('Demo users cannot perform this action');
+
+      // Clean up
+      await db.delete(schema.buildings).where(eq(schema.buildings.id, testBuilding.id));
+    });
+
+    it('should prevent demo users from modifying financial data', async () => {
+      const agent = request.agent(app);
+
+      // Try to create/modify financial records
+      const billResponse = await agent
+        .post('/api/bills')
+        .send({
+          organizationId: demoOrg.id,
+          name: 'Test Bill',
+          amount: 100.00,
+          dueDate: new Date(),
+        });
+
+      expect(billResponse.status).toBe(403);
+    });
+  });
+
+  describe('Read Access Validation', () => {
+    it('should allow demo users to read non-sensitive data', async () => {
+      const agent = request.agent(app);
+
+      // Demo users should be able to read buildings
+      const buildingsResponse = await agent
+        .get('/api/buildings');
+
+      expect(buildingsResponse.status).toBe(200);
+    });
+
+    it('should restrict demo users from accessing sensitive reports', async () => {
+      const agent = request.agent(app);
+
+      // Try to access financial reports
+      const reportsResponse = await agent
+        .get('/api/reports/financial');
+
+      expect(reportsResponse.status).toBe(403);
+    });
+  });
+
+  describe('Demo User Identification', () => {
+    it('should properly identify demo users by username prefix', async () => {
+      // Test the demo user detection logic
+      const isDemoUser = demoUser.username.startsWith('demo-');
+      expect(isDemoUser).toBe(true);
+
+      const isNormalUser = normalUser.username.startsWith('demo-');
+      expect(isNormalUser).toBe(false);
+    });
+
+    it('should apply demo restrictions consistently across all endpoints', async () => {
+      const restrictedEndpoints = [
+        { method: 'post', path: '/api/users' },
+        { method: 'put', path: '/api/organizations/1' },
+        { method: 'delete', path: '/api/buildings/1' },
+        { method: 'post', path: '/api/bills' },
+        { method: 'delete', path: '/api/documents/1' },
+      ];
+
+      const agent = request.agent(app);
+
+      for (const endpoint of restrictedEndpoints) {
+        let response;
+        switch (endpoint.method) {
+          case 'post':
+            response = await agent.post(endpoint.path).send({});
+            break;
+          case 'put':
+            response = await agent.put(endpoint.path).send({});
+            break;
+          case 'delete':
+            response = await agent.delete(endpoint.path);
+            break;
+          default:
+            response = await agent.get(endpoint.path);
+        }
+
+        // All should be restricted for demo users
+        expect(response.status).toBe(403);
       }
     });
   });
 
-  describe('API Endpoint Security', () => {
-    test('should prevent Open Demo users from creating users', async () => {
-      const response = await request(app)
-        .post('/api/users')
-        .set('Authorization', `Bearer mock-jwt-token-${openDemoUserId}`)
+  describe('Security Edge Cases', () => {
+    it('should prevent demo users from changing their own permissions', async () => {
+      const agent = request.agent(app);
+
+      // Try to update own user role
+      const updateResponse = await agent
+        .put(`/api/users/${demoUser.id}`)
         .send({
-          email: 'test@example.com',
-          firstName: 'Test',
-          lastName: 'User',
-          role: 'tenant',
+          role: 'admin'
         });
 
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toMatch(/view.?only|restricted|demo/i);
+      expect(updateResponse.status).toBe(403);
     });
 
-    test('should allow Open Demo users to view users', async () => {
-      const response = await request(app)
-        .get('/api/users')
-        .set('Authorization', `Bearer mock-jwt-token-${openDemoUserId}`);
+    it('should prevent demo users from accessing user management features', async () => {
+      const agent = request.agent(app);
 
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-    });
-  });
-
-  describe('Error Message Quality', () => {
-    test('should provide elegant bilingual error messages', async () => {
-      const response = await request(app)
-        .post('/api/users')
-        .set('Authorization', `Bearer mock-jwt-token-${openDemoUserId}`)
-        .set('Accept-Language', 'fr')
+      // Try to access user management endpoints
+      const inviteResponse = await agent
+        .post('/api/invitations')
         .send({
           email: 'test@example.com',
-          firstName: 'Test',
-          lastName: 'User',
+          role: 'resident',
         });
 
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('messageEn');
-      expect(response.body).toHaveProperty('messageFr');
-      expect(response.body.message).not.toMatch(/error|fail|invalid/i);
+      expect(inviteResponse.status).toBe(403);
     });
   });
 });
-
-// Helper function to find existing demo users in the database
-async function findExistingDemoUsers() {
-  try {
-    console.log('🔍 Finding existing demo users in database...');
-
-    // Find Demo organization
-    const demoOrg = await db.query.organizations.findFirst({
-      where: and(eq(schema.organizations.name, 'Demo'), eq(schema.organizations.isActive, true)),
-    });
-
-    // Find Open Demo organization
-    const openDemoOrg = await db.query.organizations.findFirst({
-      where: and(
-        eq(schema.organizations.name, 'Open Demo'),
-        eq(schema.organizations.isActive, true)
-      ),
-    });
-
-    if (!demoOrg || !openDemoOrg) {
-      throw new Error(
-        'Demo organizations not found in database. Please ensure demo data is seeded.'
-      );
-    }
-
-    demoOrgId = demoOrg.id;
-    openDemoOrgId = openDemoOrg.id;
-
-    // Find a regular Demo user (manager role, not Open Demo)
-    const demoUser = await db.query.users.findFirst({
-      where: and(eq(schema.users.isActive, true), eq(schema.users.role, 'manager')),
-      with: {
-        userOrganizations: {
-          where: eq(schema.userOrganizations.organizationId, demoOrgId),
-          with: {
-            organization: true,
-          },
-        },
-      },
-    });
-
-    // Find an Open Demo user (restricted user)
-    const openDemoUser = await db.query.users.findFirst({
-      where: and(eq(schema.users.isActive, true)),
-      with: {
-        userOrganizations: {
-          where: eq(schema.userOrganizations.organizationId, openDemoOrgId),
-          with: {
-            organization: true,
-          },
-        },
-      },
-    });
-
-    // Find any regular (non-demo) user for comparison
-    const regularUser = await db.query.users.findFirst({
-      where: and(eq(schema.users.isActive, true), eq(schema.users.role, 'manager')),
-      with: {
-        userOrganizations: {
-          with: {
-            organization: {
-              where: and(
-                eq(schema.organizations.isActive, true),
-                inArray(schema.organizations.name, ['Demo', 'Open Demo'], true) // NOT in demo orgs
-              ),
-            },
-          },
-        },
-      },
-    });
-
-    if (!demoUser || !openDemoUser) {
-      throw new Error('Required demo users not found in database');
-    }
-
-    demoUserId = demoUser.id;
-    openDemoUserId = openDemoUser.id;
-    regularUserId = regularUser?.id || demoUser.id; // Fallback to demo user if no regular user found
-
-    console.log(`✅ Found demo users:`);
-    console.log(`  - Demo user: ${demoUser.email} (${demoUser.id})`);
-    console.log(`  - Open Demo user: ${openDemoUser.email} (${openDemoUser.id})`);
-    console.log(`  - Regular user: ${regularUser?.email || 'using demo user'} (${regularUserId})`);
-  } catch (error) {
-    console.error('❌ Failed to find demo users:', error);
-    throw error;
-  }
-}

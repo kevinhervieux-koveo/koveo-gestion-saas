@@ -18,11 +18,13 @@ Koveo Gestion is an AI-powered property management SaaS platform designed specif
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - PostgreSQL database
 - NPM or Yarn
 
 ### Installation
+
 ```bash
 npm install
 npm run db:push
@@ -30,7 +32,9 @@ npm run dev
 ```
 
 ### Environment Setup
+
 Copy `.env.example` to `.env` and configure:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Session encryption key
 - `EMAIL_*`: Email service configuration
@@ -38,7 +42,9 @@ Copy `.env.example` to `.env` and configure:
 ## API Documentation
 
 ### Complete API Reference
+
 See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for comprehensive endpoint documentation including:
+
 - Authentication endpoints
 - User and organization management
 - Financial and maintenance systems
@@ -48,6 +54,7 @@ See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for comprehensive endpoint do
 ### Quick Start Examples
 
 **Authentication:**
+
 ```typescript
 // Login
 POST /api/auth/login
@@ -61,6 +68,7 @@ GET /api/auth/user
 ```
 
 **User Management:**
+
 ```typescript
 // Create user
 POST /api/users
@@ -76,14 +84,18 @@ POST /api/users
 ## Component Documentation
 
 ### UI Components
+
 See [COMPONENT_DOCUMENTATION.md](./COMPONENT_DOCUMENTATION.md) for detailed component usage including:
+
 - Form components with validation
 - Layout and navigation components
 - Data display components
 - Admin interface components
 
 ### Component Architecture
+
 All components follow these patterns:
+
 - **Forms**: Zod validation + React Hook Form
 - **Data Fetching**: TanStack Query
 - **Styling**: Tailwind CSS + Shadcn/ui
@@ -92,6 +104,7 @@ All components follow these patterns:
 ## Architecture Guide
 
 ### System Architecture
+
 ```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │   Database      │
@@ -101,6 +114,7 @@ All components follow these patterns:
 ```
 
 ### Key Technologies
+
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS
 - **Backend**: Express.js, TypeScript, Drizzle ORM
 - **Database**: PostgreSQL with Neon serverless
@@ -108,6 +122,7 @@ All components follow these patterns:
 - **Testing**: Jest, Testing Library
 
 ### Project Structure
+
 ```text
 ├── client/          # React frontend
 │   ├── src/
@@ -125,18 +140,21 @@ All components follow these patterns:
 ## Development Guidelines
 
 ### Code Quality Standards
+
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Comprehensive rule set
 - **Prettier**: Automatic code formatting
 - **Testing**: 80%+ code coverage requirement
 
 ### Development Workflow
+
 1. Create feature branch from `main`
 2. Implement changes with tests
 3. Run quality checks: `npm run lint && npm run test`
 4. Submit pull request with documentation updates
 
 ### Database Changes
+
 ```bash
 # Update schema in shared/schema.ts
 # Push changes to database
@@ -150,6 +168,7 @@ npm run db:migrate
 ## Quality System
 
 ### Automated Quality Checks
+
 - **Static Analysis**: ESLint, TypeScript compiler
 - **Testing**: Unit, integration, and E2E tests
 - **Security**: NPM audit, dependency scanning
@@ -157,12 +176,14 @@ npm run db:migrate
 - **Compliance**: Quebec Law 25 requirements
 
 ### Quality Metrics
+
 - Code coverage: 80%+ required
 - Cyclomatic complexity: ≤10 per function
 - Build success: Zero errors/warnings
 - Documentation: All public APIs documented
 
 ### Pre-commit Hooks
+
 - Code formatting (Prettier)
 - Lint fixes (ESLint)
 - Type checking (TypeScript)
@@ -171,12 +192,14 @@ npm run db:migrate
 ## Deployment Guide
 
 ### Environment Requirements
+
 - **Production**: Replit deployment platform
 - **Database**: Neon PostgreSQL serverless
 - **SSL**: Automatic certificate management
 - **Monitoring**: Built-in health checks
 
 ### Deployment Process
+
 1. Code review and approval
 2. Automated testing pipeline
 3. Build verification
@@ -184,23 +207,27 @@ npm run db:migrate
 5. Health check validation
 
 ### Environment Variables
+
 See [DEPLOYMENT_FIXES.md](../DEPLOYMENT_FIXES.md) for complete environment configuration.
 
 ## Documentation Standards
 
 ### Documentation Types
+
 1. **API Documentation**: Complete endpoint reference
 2. **Component Documentation**: Usage examples and props
 3. **Architecture Documentation**: System design and patterns
 4. **User Documentation**: Feature guides and tutorials
 
 ### Contributing to Documentation
+
 - Update documentation with code changes
 - Include code examples for new features
 - Maintain table of contents for long documents
 - Use consistent terminology across all docs
 
 ### Documentation Quality
+
 - All code blocks must specify language
 - Internal links must be valid
 - Examples must be tested and working
@@ -209,11 +236,13 @@ See [DEPLOYMENT_FIXES.md](../DEPLOYMENT_FIXES.md) for complete environment confi
 ## Support and Resources
 
 ### Internal Resources
+
 - [Quality System Overview](QUALITY_SYSTEM_OVERVIEW.md)
 - [Code Review Guide](CODE_REVIEW_GUIDE.md)
 - [Testing Guidelines](../tests/README.md)
 
 ### External Resources
+
 - [React Documentation](https://react.dev/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Drizzle ORM Guide](https://orm.drizzle.team/)
@@ -222,6 +251,7 @@ See [DEPLOYMENT_FIXES.md](../DEPLOYMENT_FIXES.md) for complete environment confi
 ## License and Compliance
 
 This project maintains compliance with Quebec Law 25 and includes:
+
 - Privacy-first data handling
 - Bilingual interface support
 - Accessibility standards (WCAG 2.1)
@@ -231,4 +261,3 @@ This project maintains compliance with Quebec Law 25 and includes:
 
 Last Updated: 2025-08-17
 Version: 2.0.0
-

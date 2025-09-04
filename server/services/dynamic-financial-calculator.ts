@@ -37,13 +37,11 @@ export class DynamicFinancialCalculator {
     if (!forceRefresh) {
       const cached = await this.getCachedData(buildingId, cacheKey, startDate, endDate);
       if (cached) {
-        console.warn(`💾 Cache hit for building ${buildingId}, period ${startDate} to ${endDate}`);
         return cached;
       }
     }
 
     // Calculate fresh data
-    console.warn(`⚡ Calculating fresh financial data for building ${buildingId}`);
     const financialData = await this.calculateFinancialData(buildingId, startDate, endDate);
 
     // Cache the result
@@ -388,7 +386,6 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-    console.warn(
       `🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`
     );
 
@@ -432,7 +429,6 @@ export class DynamicFinancialCalculator {
    * @param buildingId
    */
   async refreshBuildingCache(buildingId: string): Promise<void> {
-    console.warn(`🔄 Force refreshing all cache for building ${buildingId}`);
     await this.invalidateCache(buildingId, 'manual refresh');
   }
 }

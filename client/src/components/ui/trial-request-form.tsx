@@ -36,27 +36,9 @@ interface TrialRequestFormProps {
 }
 
 /**
- * TrialRequestForm component.
- * @param props - Component props.
- * @param props.children - React children elements.
- * @returns JSX element.
+ * TrialRequestForm component for requesting trial access.
  */
-/**
- * Trial request form function.
- * @param { children } - { children } parameter.
- */
-export function /**
- * Trial request form function.
- * @param { children } - { children } parameter.
- */ /**
- * Trial request form function.
- * @param { children } - { children } parameter.
- */ /**
- * Trial request form function.
- * @param { children } - { children } parameter.
- */
-
-TrialRequestForm({ children }: TrialRequestFormProps) {
+export function TrialRequestForm({ children }: TrialRequestFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -113,20 +95,11 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof TrialRequestFormData, _value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value })); /**
-     * If function.
-     * @param errors[field] - errors[field] parameter.
-     */ /**
-     * If function.
-     * @param errors[field] - errors[field] parameter.
-     */ /**
-     * If function.
-     * @param errors[field] - errors[field] parameter.
-     */
+  const handleInputChange = (field: keyof TrialRequestFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -140,231 +113,228 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/trial-request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      }); /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */ /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */ /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
+      const response = await apiRequest('POST', '/api/trial-requests', {
+        data: formData,
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit request');
+      if (response.ok) {
+        toast({
+          title: 'Demande envoyée avec succès',
+          description: 'Nous vous contacterons dans les plus brefs délais.',
+        });
+        setIsOpen(false);
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          company: '',
+          address: '',
+          city: '',
+          province: 'QC',
+          postalCode: '',
+          numberOfBuildings: '',
+          numberOfResidences: '',
+          message: '',
+        });
+        setErrors({});
+      } else {
+        throw new Error('Failed to submit trial request');
       }
-
+    } catch (error) {
+      // Error submitting trial request
       toast({
-        title: 'Demande envoyée avec succès!',
-        description: 'Nous vous contacterons sous peu pour démarrer votre essai gratuit.',
-        duration: 5000,
-      });
-
-      // Reset form and close dialog
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        company: '',
-        address: '',
-        city: '',
-        province: 'QC',
-        postalCode: '',
-        numberOfBuildings: '',
-        numberOfResidences: '',
-        message: '',
-      });
-      setIsOpen(false);
-    } catch (_error) {
-      /**
-       * Catch function.
-       * @param _error - Error object.
-       */
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */ /**
-       * Catch function.
-       * @param error - Error object.
-       */
-
-      console.error('Error submitting trial request:', _error);
-      toast({
-        title: 'Erreur',
-        description:
-          "Une erreur est survenue lors de l'envoi de votre demande. Veuillez réessayer.",
         variant: 'destructive',
-        duration: 5000,
+        title: 'Erreur lors de l\'envoi',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const provinces = [
+    { value: 'AB', label: 'Alberta' },
+    { value: 'BC', label: 'Colombie-Britannique' },
+    { value: 'MB', label: 'Manitoba' },
+    { value: 'NB', label: 'Nouveau-Brunswick' },
+    { value: 'NL', label: 'Terre-Neuve-et-Labrador' },
+    { value: 'NS', label: 'Nouvelle-Écosse' },
+    { value: 'NT', label: 'Territoires du Nord-Ouest' },
+    { value: 'NU', label: 'Nunavut' },
+    { value: 'ON', label: 'Ontario' },
+    { value: 'PE', label: 'Île-du-Prince-Édouard' },
+    { value: 'QC', label: 'Québec' },
+    { value: 'SK', label: 'Saskatchewan' },
+    { value: 'YT', label: 'Yukon' },
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className='flex items-center space-x-2'>
-            <Building className='h-5 w-5 text-blue-600' />
-            <span>Démarrer votre essai gratuit</span>
+          <DialogTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5 text-koveo-navy" />
+            Demande d'essai gratuit
           </DialogTitle>
           <DialogDescription>
-            Complétez ce formulaire pour recevoir votre accès gratuit à Koveo Gestion. Nous vous
-            contacterons rapidement pour configurer votre compte.
+            Découvrez Koveo Gestion avec un essai gratuit de 30 jours. Remplissez le formulaire ci-dessous et
+            notre équipe vous contactera rapidement.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-6'>
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
           <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg flex items-center space-x-2'>
-                <Users className='h-4 w-4' />
-                <span>Informations personnelles</span>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Informations personnelles
               </CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label htmlFor='firstName'>Prénom *</Label>
-                  <Input
-                    id='firstName'
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target._value)}
-                    className={errors.firstName ? 'border-red-500' : ''}
-                    data-testid='input-first-name'
-                  />
-                  {errors.firstName && (
-                    <p className='text-sm text-red-500 mt-1'>{errors.firstName}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor='lastName'>Nom *</Label>
-                  <Input
-                    id='lastName'
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target._value)}
-                    className={errors.lastName ? 'border-red-500' : ''}
-                    data-testid='input-last-name'
-                  />
-                  {errors.lastName && (
-                    <p className='text-sm text-red-500 mt-1'>{errors.lastName}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label htmlFor='email'>Adresse courriel *</Label>
-                  <Input
-                    id='email'
-                    type='email'
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target._value)}
-                    className={errors.email ? 'border-red-500' : ''}
-                    data-testid='input-email'
-                  />
-                  {errors.email && <p className='text-sm text-red-500 mt-1'>{errors.email}</p>}
-                </div>
-                <div>
-                  <Label htmlFor='phone'>Téléphone *</Label>
-                  <Input
-                    id='phone'
-                    type='tel'
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target._value)}
-                    className={errors.phone ? 'border-red-500' : ''}
-                    placeholder='(514) 555-0123'
-                    data-testid='input-phone'
-                  />
-                  {errors.phone && <p className='text-sm text-red-500 mt-1'>{errors.phone}</p>}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor='company'>Nom de l'entreprise *</Label>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Prénom *</Label>
                 <Input
-                  id='company'
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target._value)}
-                  className={errors.company ? 'border-red-500' : ''}
-                  data-testid='input-company'
+                  id="firstName"
+                  data-testid="input-first-name"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  placeholder="Votre prénom"
                 />
-                {errors.company && <p className='text-sm text-red-500 mt-1'>{errors.company}</p>}
+                {errors.firstName && (
+                  <p className="text-sm text-red-600" data-testid="error-first-name">
+                    {errors.firstName}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Nom *</Label>
+                <Input
+                  id="lastName"
+                  data-testid="input-last-name"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  placeholder="Votre nom"
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-600" data-testid="error-last-name">
+                    {errors.lastName}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Adresse courriel *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  data-testid="input-email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="votre@courriel.com"
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600" data-testid="error-email">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Téléphone *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  data-testid="input-phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="(514) 123-4567"
+                />
+                {errors.phone && (
+                  <p className="text-sm text-red-600" data-testid="error-phone">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Address Information */}
+          {/* Company Information */}
           <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg flex items-center space-x-2'>
-                <MapPin className='h-4 w-4' />
-                <span>Adresse</span>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                Informations sur l'entreprise
               </CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div>
-                <Label htmlFor='address'>Adresse</Label>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="company">Nom de l'entreprise *</Label>
                 <Input
-                  id='address'
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target._value)}
-                  data-testid='input-address'
+                  id="company"
+                  data-testid="input-company"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  placeholder="Nom de votre entreprise"
                 />
+                {errors.company && (
+                  <p className="text-sm text-red-600" data-testid="error-company">
+                    {errors.company}
+                  </p>
+                )}
               </div>
-              <div className='grid grid-cols-3 gap-4'>
-                <div>
-                  <Label htmlFor='city'>Ville</Label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address">Adresse</Label>
                   <Input
-                    id='city'
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target._value)}
-                    data-testid='input-city'
+                    id="address"
+                    data-testid="input-address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    placeholder="123 Rue Principale"
                   />
                 </div>
-                <div>
-                  <Label htmlFor='province'>Province</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville</Label>
+                  <Input
+                    id="city"
+                    data-testid="input-city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Montréal"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province</Label>
                   <select
-                    id='province'
+                    id="province"
+                    data-testid="select-province"
                     value={formData.province}
-                    onChange={(e) => handleInputChange('province', e.target._value)}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    data-testid='select-province'
+                    onChange={(e) => handleInputChange('province', e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value='QC'>Québec</option>
-                    <option value='ON'>Ontario</option>
-                    <option value='BC'>Colombie-Britannique</option>
-                    <option value='AB'>Alberta</option>
-                    <option value='MB'>Manitoba</option>
-                    <option value='SK'>Saskatchewan</option>
-                    <option value='NS'>Nouvelle-Écosse</option>
-                    <option value='NB'>Nouveau-Brunswick</option>
-                    <option value='NL'>Terre-Neuve-et-Labrador</option>
-                    <option value='PE'>Île-du-Prince-Édouard</option>
-                    <option value='NT'>Territoires du Nord-Ouest</option>
-                    <option value='NU'>Nunavut</option>
-                    <option value='YT'>Yukon</option>
+                    {provinces.map((prov) => (
+                      <option key={prov.value} value={prov.value}>
+                        {prov.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div>
-                  <Label htmlFor='postalCode'>Code postal</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Code postal</Label>
                   <Input
-                    id='postalCode'
+                    id="postalCode"
+                    data-testid="input-postal-code"
                     value={formData.postalCode}
-                    onChange={(e) => handleInputChange('postalCode', e.target.value.toUpperCase())}
-                    placeholder='H1A 1A1'
-                    data-testid='input-postal-code'
+                    onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                    placeholder="H1A 1A1"
                   />
                 </div>
               </div>
@@ -373,96 +343,98 @@ TrialRequestForm({ children }: TrialRequestFormProps) {
 
           {/* Property Information */}
           <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg flex items-center space-x-2'>
-                <Building className='h-4 w-4' />
-                <span>Informations sur les propriétés</span>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Informations sur les propriétés
               </CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label htmlFor='numberOfBuildings'>Nombre de bâtiments *</Label>
-                  <Input
-                    id='numberOfBuildings'
-                    type='number'
-                    min='1'
-                    value={formData.numberOfBuildings}
-                    onChange={(e) => handleInputChange('numberOfBuildings', e.target._value)}
-                    className={errors.numberOfBuildings ? 'border-red-500' : ''}
-                    data-testid='input-buildings'
-                  />
-                  {errors.numberOfBuildings && (
-                    <p className='text-sm text-red-500 mt-1'>{errors.numberOfBuildings}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor='numberOfResidences'>Nombre de résidences *</Label>
-                  <Input
-                    id='numberOfResidences'
-                    type='number'
-                    min='1'
-                    value={formData.numberOfResidences}
-                    onChange={(e) => handleInputChange('numberOfResidences', e.target._value)}
-                    className={errors.numberOfResidences ? 'border-red-500' : ''}
-                    data-testid='input-residences'
-                  />
-                  {errors.numberOfResidences && (
-                    <p className='text-sm text-red-500 mt-1'>{errors.numberOfResidences}</p>
-                  )}
-                </div>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="numberOfBuildings">Nombre de bâtiments *</Label>
+                <Input
+                  id="numberOfBuildings"
+                  type="number"
+                  min="1"
+                  data-testid="input-buildings-count"
+                  value={formData.numberOfBuildings}
+                  onChange={(e) => handleInputChange('numberOfBuildings', e.target.value)}
+                  placeholder="1"
+                />
+                {errors.numberOfBuildings && (
+                  <p className="text-sm text-red-600" data-testid="error-buildings-count">
+                    {errors.numberOfBuildings}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numberOfResidences">Nombre total de résidences *</Label>
+                <Input
+                  id="numberOfResidences"
+                  type="number"
+                  min="1"
+                  data-testid="input-residences-count"
+                  value={formData.numberOfResidences}
+                  onChange={(e) => handleInputChange('numberOfResidences', e.target.value)}
+                  placeholder="50"
+                />
+                {errors.numberOfResidences && (
+                  <p className="text-sm text-red-600" data-testid="error-residences-count">
+                    {errors.numberOfResidences}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Message */}
+          {/* Additional Information */}
           <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-lg flex items-center space-x-2'>
-                <MessageSquare className='h-4 w-4' />
-                <span>Message additionnel</span>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Informations supplémentaires
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div>
-                <Label htmlFor='message'>Décrivez vos besoins spécifiques (optionnel)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="message">Message (optionnel)</Label>
                 <Textarea
-                  id='message'
+                  id="message"
+                  data-testid="textarea-message"
                   value={formData.message}
-                  onChange={(e) => handleInputChange('message', e.target._value)}
-                  placeholder='Décrivez vos besoins en gestion immobilière, défis actuels, ou questions spécifiques...'
+                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  placeholder="Décrivez vos besoins spécifiques ou posez-nous vos questions..."
                   rows={4}
-                  data-testid='textarea-message'
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Submit Buttons */}
-          <div className='flex justify-end space-x-3 pt-4 border-t'>
+          {/* Submit Button */}
+          <div className="flex justify-end gap-4">
             <Button
-              type='button'
-              variant='outline'
+              type="button"
+              variant="outline"
               onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-              data-testid='button-cancel'
+              data-testid="button-cancel"
             >
               Annuler
             </Button>
             <Button
-              type='submit'
+              type="submit"
               disabled={isSubmitting}
-              className='bg-blue-600 hover:bg-blue-700'
-              data-testid='button-submit'
+              data-testid="button-submit-trial"
+              className="bg-koveo-navy hover:bg-koveo-navy/90"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Envoi en cours...
                 </>
               ) : (
                 <>
-                  <Send className='mr-2 h-4 w-4' />
+                  <Send className="mr-2 h-4 w-4" />
                   Envoyer la demande
                 </>
               )}

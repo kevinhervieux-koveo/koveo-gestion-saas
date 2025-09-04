@@ -32,6 +32,7 @@ The demo user security system enforces different levels of access:
 #### Elegant Error Messages
 
 All restriction errors include:
+
 - **Bilingual support** (English/French)
 - **User-friendly language** (no technical jargon)
 - **Clear explanations** of demo limitations
@@ -39,6 +40,7 @@ All restriction errors include:
 - **Consistent structure** across all endpoints
 
 Example error response:
+
 ```json
 {
   "success": false,
@@ -77,18 +79,21 @@ Example error response:
 ### 1. Security Tests
 
 #### `tests/security/demo-users-validation.test.ts`
+
 - Validates demo user data integrity
 - Ensures no admin users in demo organizations
 - Verifies realistic Quebec names and email patterns
 - Checks role restrictions
 
 #### `tests/security/comprehensive-demo-user-security.test.ts`
+
 - End-to-end API security tests
 - Tests all CRUD operations restrictions
 - Validates error message quality
 - Tests security edge cases and bypass attempts
 
 #### `tests/integration/demo-user-ui-restrictions.test.tsx`
+
 - Frontend UI restriction tests
 - Error message display validation
 - Accessibility and user experience tests
@@ -97,12 +102,14 @@ Example error response:
 ### 2. Test Runner
 
 #### `tests/security/demo-security-test-runner.ts`
+
 - Comprehensive test execution
 - Security status reporting
 - Critical failure detection
 - Recommendations for security issues
 
 Run all demo security tests:
+
 ```bash
 tsx tests/security/demo-security-test-runner.ts
 ```
@@ -110,6 +117,7 @@ tsx tests/security/demo-security-test-runner.ts
 ## Implementation Checklist
 
 ### Backend Security ✅
+
 - [x] RBAC functions for demo user identification
 - [x] Write operation permission checks
 - [x] Middleware for API endpoint protection
@@ -117,6 +125,7 @@ tsx tests/security/demo-security-test-runner.ts
 - [x] Bilingual error support
 
 ### Frontend Security ✅
+
 - [x] UI component restrictions
 - [x] Button disable/hide logic
 - [x] Error message display
@@ -124,6 +133,7 @@ tsx tests/security/demo-security-test-runner.ts
 - [x] Accessibility considerations
 
 ### Testing ✅
+
 - [x] Database validation tests
 - [x] API endpoint security tests
 - [x] UI restriction tests
@@ -132,6 +142,7 @@ tsx tests/security/demo-security-test-runner.ts
 - [x] Comprehensive test runner
 
 ### Security Monitoring ✅
+
 - [x] Attempt logging for violations
 - [x] User activity tracking
 - [x] Security audit trails
@@ -142,6 +153,7 @@ tsx tests/security/demo-security-test-runner.ts
 ### 1. Defense in Depth
 
 Security is enforced at multiple layers:
+
 1. **Database level**: User role validation
 2. **API middleware**: Route-level restrictions
 3. **Business logic**: Function-level checks
@@ -166,6 +178,7 @@ Security is enforced at multiple layers:
 ### Security Violation Logging
 
 All restricted actions are logged with:
+
 ```
 🚫 Open Demo user {userId} ({email}) attempted restricted action: {method} {path}
 ```
@@ -224,6 +237,7 @@ grep -r "enforceDemoSecurity" server/
 ## Security Contact
 
 For security concerns related to demo user restrictions:
+
 1. Review test results in the security test runner
 2. Check application logs for violation patterns
 3. Verify user organization assignments

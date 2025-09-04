@@ -68,7 +68,6 @@ function logError(error: Error, req: AuthenticatedRequest): void {
     if (error.statusCode >= 500) {
       console.error('🚨 Server Error:', logData);
     } else if (error.statusCode >= 400) {
-      console.warn('⚠️  Client Error:', logData);
     } else {
       console.info('ℹ️  API Info:', logData);
     }
@@ -83,7 +82,6 @@ function logError(error: Error, req: AuthenticatedRequest): void {
  * @param req
  */
 function handleZodError(error: ZodError, req: AuthenticatedRequest): ValidationError {
-  return ValidationError.fromZodError(error);
 }
 
 /**
@@ -173,10 +171,8 @@ export function errorHandler(
     });
   } else if (error.message.includes('database') || error.message.includes('sql')) {
     // Database-related error
-    apiError = handleDatabaseError(error);
   } else {
     // System or unknown error
-    apiError = handleSystemError(error);
   }
 
   // Log the error
@@ -226,7 +222,6 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
     });
 
     error.message = `API route ${req.method} ${req.path} not found`;
-    next(error);
   } else {
     // Let non-API routes continue to frontend serving
     next();
@@ -243,8 +238,6 @@ export function withErrorHandling<T extends Request = Request>(
   return async (req: T, res: Response, next: NextFunction) => {
     try {
       await handler(req, res, next);
-    } catch (error) {
-      next(error);
     }
   };
 }

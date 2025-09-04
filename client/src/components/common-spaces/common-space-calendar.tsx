@@ -404,9 +404,7 @@ export function CommonSpaceCalendar({
                         <Button
                           onClick={() => {
                             // Handle final calendar linking here
-                            console.log(
-                              `Linking ${selectedCalendarType} to ${selectedProvider} for space: ${space.name}`
-                            );
+                            // Link calendar logic
                             setIsLinkDialogOpen(false);
                             setSelectedCalendarType(null);
                             setShowProviderStep(false);
@@ -461,10 +459,10 @@ export function CommonSpaceCalendar({
         spaceId={space.id}
         showControls={false}
         onEventClick={(event) => {
-          console.log('Clicked event:', event);
+          // Event clicked
         }}
         onDateClick={(date) => {
-          console.log('Clicked date:', date);
+          // Date clicked
           onNewBooking?.(date);
         }}
         data-testid={`inline-calendar-${space.id}`}

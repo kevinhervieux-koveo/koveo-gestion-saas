@@ -51,7 +51,6 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
     const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(path));
 
     if (isSuspicious) {
-      console.warn(
         `🚫 Blocked suspicious external request to dev server: ${path} from ${origin || 'unknown'}`
       );
       return res.status(403).json({
@@ -96,7 +95,6 @@ export function devCorsMiddleware(req: Request, res: Response, next: NextFunctio
   if (origin) {
     const isAllowed = allowedOrigins.some((pattern) => pattern.test(origin));
     if (!isAllowed) {
-      console.warn(`🚫 CORS blocked external origin in dev: ${origin}`);
       return res.status(403).json({
         error: 'CORS policy violation in development',
         code: 'DEV_CORS_BLOCK',

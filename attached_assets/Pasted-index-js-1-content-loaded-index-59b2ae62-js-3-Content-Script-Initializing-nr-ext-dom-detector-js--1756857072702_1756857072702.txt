@@ -1,0 +1,304 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+select-BQ0iJTvZ.js:6 Uncaught Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at SelectItem (select-BQ0iJTvZ.js:6:12252)
+    at Object.react_stack_bottom_frame (index-CnCfNTxv.js:261:12449)
+    at Hd (index-CnCfNTxv.js:152:806)
+    at Eg (index-CnCfNTxv.js:173:3313)
+    at xf (index-CnCfNTxv.js:182:12685)
+    at be (index-CnCfNTxv.js:77:109)
+    at mv (index-CnCfNTxv.js:195:29869)
+    at fv (index-CnCfNTxv.js:195:28535)
+    at zf (index-CnCfNTxv.js:195:28368)
+    at sv (index-CnCfNTxv.js:195:24856)
+SelectItem @ select-BQ0iJTvZ.js:6
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+Eg @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<SelectItem>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+SelectItem @ select-BQ0iJTvZ.js:6
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+Eg @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<SelectItem>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+render @ user-management-C8SSWnBi.js:1
+Wu @ schemas-DKFe0a2f.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<Wu>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+j @ form-Lk3EzMC0.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<j>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+un @ user-management-C8SSWnBi.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<un>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+$n @ user-management-C8SSWnBi.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+t1 @ index-CnCfNTxv.js:195
+e1 @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<...>
+UA.r.createElement @ index-CnCfNTxv.js:22
+uw @ index-CnCfNTxv.js:280
+Se @ index-CnCfNTxv.js:280
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+t1 @ index-CnCfNTxv.js:195
+e1 @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<Se>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+ek @ index-CnCfNTxv.js:417
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<ek>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+tk @ index-CnCfNTxv.js:417
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<tk>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+(anonymous) @ index-CnCfNTxv.js:417
+index-CnCfNTxv.js:159 An error occurred in the <SelectItem> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+overrideMethod @ hook.js:608
+vg @ index-CnCfNTxv.js:159
+fu @ index-CnCfNTxv.js:173
+be @ index-CnCfNTxv.js:77
+n.callback @ index-CnCfNTxv.js:173
+Hy @ index-CnCfNTxv.js:139
+Vy @ index-CnCfNTxv.js:139
+be @ index-CnCfNTxv.js:77
+Gg @ index-CnCfNTxv.js:195
+gv @ index-CnCfNTxv.js:195
+Uf @ index-CnCfNTxv.js:195
+lv @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<SelectItem>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+SelectItem @ select-BQ0iJTvZ.js:6
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+Eg @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<SelectItem>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+render @ user-management-C8SSWnBi.js:1
+Wu @ schemas-DKFe0a2f.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<Wu>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+j @ form-Lk3EzMC0.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<j>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+un @ user-management-C8SSWnBi.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Dv @ index-CnCfNTxv.js:217
+gs @ index-CnCfNTxv.js:217
+Hf @ index-CnCfNTxv.js:217
+(anonymous) @ index-CnCfNTxv.js:217
+<un>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+$n @ user-management-C8SSWnBi.js:1
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+t1 @ index-CnCfNTxv.js:195
+e1 @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<...>
+UA.r.createElement @ index-CnCfNTxv.js:22
+uw @ index-CnCfNTxv.js:280
+Se @ index-CnCfNTxv.js:280
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+t1 @ index-CnCfNTxv.js:195
+e1 @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<Se>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+ek @ index-CnCfNTxv.js:417
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<ek>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+tk @ index-CnCfNTxv.js:417
+react_stack_bottom_frame @ index-CnCfNTxv.js:261
+Hd @ index-CnCfNTxv.js:152
+hf @ index-CnCfNTxv.js:173
+xf @ index-CnCfNTxv.js:182
+be @ index-CnCfNTxv.js:77
+mv @ index-CnCfNTxv.js:195
+fv @ index-CnCfNTxv.js:195
+zf @ index-CnCfNTxv.js:195
+sv @ index-CnCfNTxv.js:195
+Cv @ index-CnCfNTxv.js:217
+r @ index-CnCfNTxv.js:43
+<tk>
+LA.Tc.jsxDEV @ index-CnCfNTxv.js:35
+(anonymous) @ index-CnCfNTxv.js:417

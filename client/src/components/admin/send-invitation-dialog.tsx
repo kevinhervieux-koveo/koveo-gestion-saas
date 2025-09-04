@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import React, { useState, useMemo } from 'react';
+=======
 import React from 'react';
+>>>>>>> origin/main
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -33,8 +37,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+<<<<<<< HEAD
+=======
 
 // Checkbox component import removed (unused)
+>>>>>>> origin/main
 import { UserPlus, Shield } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -42,9 +49,9 @@ import { useToast } from '@/hooks/use-toast';
 // Form validation schema
 const invitationSchema = z
   .object({
-    email: z.string().email('Invalid email address').optional(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    email: z.string().email('invalidEmailFormat').optional(),
+    firstName: z.string().max(50, 'firstNameTooLong').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'firstNameInvalidCharacters').optional(),
+    lastName: z.string().max(50, 'lastNameTooLong').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'lastNameInvalidCharacters').optional(),
     role: z.enum([
       'admin',
       'manager',
@@ -54,11 +61,11 @@ const invitationSchema = z
       'demo_tenant',
       'demo_resident',
     ]),
-    organizationId: z.string().min(1, 'Organization is required'),
+    organizationId: z.string().min(1, 'organizationRequired'),
     buildingId: z.string().optional(),
     residenceId: z.string().optional(),
-    personalMessage: z.string().optional(),
-    expiryDays: z.number().min(1).max(30),
+    personalMessage: z.string().max(500, 'personalMessageTooLong').optional(),
+    expiryDays: z.number().min(1, 'expiryDaysInvalid').max(30, 'expiryDaysInvalid'),
   })
   .refine(
     (data) => {
@@ -72,8 +79,12 @@ const invitationSchema = z
       return !!data.email;
     },
     {
+<<<<<<< HEAD
+      message: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+=======
 
       message: 'Email is required for regular roles, first and last name for demo roles',
+>>>>>>> origin/main
       path: ['email'],
     }
   )
@@ -83,15 +94,20 @@ const invitationSchema = z
       if (
         ['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(data.role) &&
         data.buildingId &&
-        data.buildingId !== 'none'
+        data.buildingId !== 'none' &&
+        data.buildingId !== ''
       ) {
-        return !!data.residenceId;
+        return !!data.residenceId && data.residenceId !== '';
       }
       return true;
     },
     {
+<<<<<<< HEAD
+      message: 'Please select a specific residence unit for tenants and residents when a building is selected',
+=======
       message: 'Residence must be assigned for tenants and residents when a building is selected',
 
+>>>>>>> origin/main
       path: ['residenceId'],
     }
   );
@@ -217,21 +233,26 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   // Fetch buildings
-  const { data: buildings } = useQuery<BuildingType[]>({
-    queryKey: ['/api/buildings'],
+  const { data: buildings, error: buildingsError, isLoading: buildingsLoading } = useQuery<BuildingType[]>({
+    queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/buildings');
-      return response.json();
+      const response = await apiRequest('GET', '/api/manager/buildings');
+      const data = await response.json();
+      // The API returns { buildings: [...], meta: {...} } but we need just the buildings array
+      return data.buildings || data;
     },
     enabled: open,
   });
 
-  // Fetch residences
+
+  // Fetch residences  
   const { data: residences } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/residences');
-      return response.json();
+      const data = await response.json();
+      // Handle both direct array and wrapped response formats
+      return data.residences || data;
     },
     enabled: open,
   });
@@ -401,19 +422,28 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     return false;
   };
 
-  // Get available roles based on organization type
-  const getAvailableRoles = () => {
-    const selectedOrg = organizations?.find((org) => org.id === form.watch('organizationId'));
-    const isDemoOrg = selectedOrg?.type === 'Demo';
-
-    if (isDemoOrg) {
-      return ['demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
+  // Get available roles based on organization type using useMemo for proper reactivity
+  const organizationId = form.watch('organizationId');
+  
+  const availableRoles = useMemo(() => {
+    // Return empty array if no organization is selected
+    if (!organizationId) {
+        return [];
     }
 
-    return ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
-  };
+    const selectedOrg = organizations?.find((org) => org.id === organizationId);
+    const isDemoOrg = selectedOrg?.type === 'demo';
 
-  const availableRoles = getAvailableRoles();
+
+    if (isDemoOrg) {
+      // For demo organizations, allow both demo roles and regular roles
+      const roles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'].filter(canInviteRole);
+      return roles;
+    }
+
+    const roles = ['admin', 'manager', 'tenant', 'resident'].filter(canInviteRole);
+    return roles;
+  }, [organizationId, organizations, hasRole]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -452,7 +482,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           // Reset role when switching between demo and regular orgs
                           form.setValue(
                             'role',
-                            selectedOrg?.type === 'Demo' ? 'demo_tenant' : 'tenant'
+                            selectedOrg?.type === 'demo' ? 'demo_tenant' : 'tenant'
                           );
                         }}
                         disabled={currentUser?.role === 'manager'}
@@ -468,7 +498,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
                           return (
                             <option key={org.id} value={org.id} disabled={!canInvite}>
-                              {org.name} {org.type === 'Demo' ? '(Demo)' : ''}
+                              {org.name} {org.type === 'demo' ? '(Demo)' : ''}
                             </option>
                           );
                         })}
@@ -491,14 +521,19 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('role')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      key={`role-select-${organizationId}`}
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={!organizationId}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('selectRole')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableRoles.map((role) => (
+                        {organizationId ? availableRoles.map((role) => (
                           <SelectItem key={role} value={role}>
                             <div className='flex items-center gap-2'>
                               <Shield className='h-4 w-4' />
@@ -517,7 +552,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                                           : 'Demo Resident'}
                             </div>
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="no-organization" disabled>
+                            Please select an organization first
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -526,7 +565,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               />
 
               {/* Conditional fields based on role type */}
-              {selectedOrgType === 'Demo' ? (
+              {['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) ? (
                 <>
                   <FormField
                     control={form.control}
@@ -643,7 +682,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 )}
 
               {/* Only show expiry for regular invitations, not demo users */}
-              {selectedOrgType !== 'Demo' && (
+              {!['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) && (
                 <FormField
                   control={form.control}
                   name='expiryDays'
@@ -671,7 +710,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               )}
 
               {/* Only show personal message for regular invitations, not demo users */}
-              {selectedOrgType !== 'Demo' && (
+              {!['demo_manager', 'demo_tenant', 'demo_resident'].includes(form.watch('role')) && (
                 <FormField
                   control={form.control}
                   name='personalMessage'
@@ -698,7 +737,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                   {t('cancel')}
                 </Button>
-                <Button type='submit' disabled={invitationMutation.isPending}>
+                <Button 
+                  type='submit' 
+                  disabled={invitationMutation.isPending}
+                >
                   {invitationMutation.isPending
                     ? selectedOrgType === 'Demo'
                       ? 'Creating User...'

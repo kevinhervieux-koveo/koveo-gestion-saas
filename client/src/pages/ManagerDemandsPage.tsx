@@ -208,7 +208,6 @@ export default function ManagerDemandsPage() {
         description: 'Demand reviewed successfully',
       });
     },
-    onError: (_error) => {
       toast({
         title: t('error'),
         description: 'Failed to review demand',

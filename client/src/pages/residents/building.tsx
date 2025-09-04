@@ -45,7 +45,13 @@ export default function MyBuilding() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch buildings accessible to the user
+  // Fetch current user
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
+  });
+
+  // Fetch buildings accessible to the user based on their residences
   const {
     data: buildingsData,
     isLoading: isLoadingBuildings,
@@ -54,11 +60,15 @@ export default function MyBuilding() {
     buildings: BuildingWithStats[];
     meta?: any;
   }>({
-    queryKey: ['/api/manager/buildings'],
+    queryKey: ['/api/users/buildings', user?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/manager/buildings');
+      if (!user?.id) {
+        return { buildings: [] };
+      }
+      const response = await apiRequest('GET', `/api/users/${user.id}/buildings`);
       return response.json();
     },
+    enabled: !!user?.id,
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
@@ -195,7 +205,7 @@ export default function MyBuilding() {
                       <div className='grid grid-cols-2 gap-3'>
                         {building.parkingSpaces && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
                             <div className='flex items-center gap-1'>
                               <Car className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -206,7 +216,7 @@ export default function MyBuilding() {
                         )}
                         {building.storageSpaces && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
                             <div className='flex items-center gap-1'>
                               <Package className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -229,10 +239,10 @@ export default function MyBuilding() {
 
                     {/* Occupancy Stats */}
                     <div>
-                      <Label className='text-xs font-medium text-gray-500'>Occupancy</Label>
+                      <Label className='text-xs font-medium text-gray-500'>{t('occupancy')}</Label>
                       <div className='flex items-center gap-2 text-sm'>
                         <Badge variant='outline' className='text-xs'>
-                          {building.occupiedUnits}/{building.totalUnits} units
+                          {building.occupiedUnits}/{building.totalUnits} {t('units')}
                         </Badge>
                         <Badge
                           variant={
@@ -244,14 +254,14 @@ export default function MyBuilding() {
                           }
                           className='text-xs'
                         >
-                          {Math.round(building.occupancyRate)}% occupied
+                          {Math.round(building.occupancyRate)}% {t('occupied')}
                         </Badge>
                       </div>
                     </div>
 
                     {building.amenities && (
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Amenities</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('amenities')}</Label>
                         <div className='flex flex-wrap gap-1 mt-1'>
                           {(() => {
                             try {
@@ -269,7 +279,7 @@ export default function MyBuilding() {
                             } catch (_e) {
                               return (
                                 <span className='text-xs text-muted-foreground'>
-                                  Unable to display amenities
+                                  {t('unableToDisplayAmenities')}
                                 </span>
                               );
                             }
@@ -283,7 +293,7 @@ export default function MyBuilding() {
                               if (Array.isArray(amenities) && amenities.length > 3) {
                                 return (
                                   <Badge variant='outline' className='text-xs'>
-                                    +{amenities.length - 3} more
+                                    +{amenities.length - 3} {t('moreAmenities')}
                                   </Badge>
                                 );
                               }
@@ -305,7 +315,7 @@ export default function MyBuilding() {
                       className='w-full justify-start'
                     >
                       <FileText className='w-4 h-4 mr-2' />
-                      {t('viewDocuments2')}
+                      {t('viewDocumentsButton')}
                     </Button>
                   </div>
                 </CardContent>
@@ -323,7 +333,7 @@ export default function MyBuilding() {
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className='h-4 w-4' />
-                Previous
+                {t('previous')}
               </Button>
 
               <div className='flex gap-1'>
@@ -358,7 +368,7 @@ export default function MyBuilding() {
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('next')}
                 <ChevronRight className='h-4 w-4' />
               </Button>
             </div>
@@ -366,8 +376,8 @@ export default function MyBuilding() {
 
           {/* Page info */}
           <div className='text-center text-sm text-muted-foreground mt-4'>
-            Showing {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
-            buildings
+            {t('showing')} {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
+            {t('buildings')}
           </div>
         </div>
       </div>

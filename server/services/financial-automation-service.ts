@@ -16,7 +16,6 @@ export class FinancialAutomationService {
    * @param action
    */
   async handleBillUpdate(billId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
-    console.warn(`🔄 Handling bill ${action} for ID: ${billId}`);
 
     try {
       // Get the bill and its building
@@ -44,17 +43,13 @@ export class FinancialAutomationService {
           `bill ${action}: ${billNumber}`
         );
 
-        console.warn(`✅ Cache invalidated for building ${buildingId} due to bill ${action}`);
       }
 
       // If this is a recurrent bill, it might affect long-term projections
       if (bill[0]?.paymentType === 'recurrent') {
-        console.warn(
           `📊 Recurrent bill ${billNumber} ${action}d - future projections will be recalculated`
         );
       }
-    } catch (_error) {
-      console.error(`❌ Error handling bill ${action}:`, _error);
       throw error;
     }
   }
@@ -68,7 +63,6 @@ export class FinancialAutomationService {
     residenceId: string,
     action: 'create' | 'update' | 'delete'
   ): Promise<void> {
-    console.warn(`🏠 Handling residence ${action} for ID: ${residenceId}`);
 
     try {
       // Get the residence and its building
@@ -96,10 +90,7 @@ export class FinancialAutomationService {
           `residence ${action}: Unit ${unitNumber}`
         );
 
-        console.warn(`✅ Cache invalidated for building ${buildingId} due to residence ${action}`);
       }
-    } catch (_error) {
-      console.error(`❌ Error handling residence ${action}:`, _error);
       throw error;
     }
   }
@@ -113,15 +104,11 @@ export class FinancialAutomationService {
     buildingId: string,
     action: 'create' | 'update' | 'delete'
   ): Promise<void> {
-    console.warn(`🏢 Handling building ${action} for ID: ${buildingId}`);
 
     try {
       // Always invalidate cache for the building
       await dynamicFinancialCalculator.invalidateCache(buildingId, `building ${action}`);
 
-      console.warn(`✅ Cache invalidated for building ${buildingId} due to building ${action}`);
-    } catch (_error) {
-      console.error(`❌ Error handling building ${action}:`, _error);
       throw error;
     }
   }
@@ -168,8 +155,6 @@ export class FinancialAutomationService {
         lastCalculation: cacheStats.newestEntry,
         systemHealth,
       };
-    } catch (_error) {
-      console.error('❌ Error getting financial statistics:', _error);
       return {
         activeBills: 0,
         activeResidences: 0,
@@ -187,7 +172,6 @@ export class FinancialAutomationService {
     cacheEntriesRemoved: number;
     systemHealth: 'healthy' | 'degraded' | 'unhealthy';
   }> {
-    console.warn('🧹 Performing financial system maintenance...');
 
     try {
       // Get initial cache count
@@ -203,14 +187,11 @@ export class FinancialAutomationService {
       // Get system stats
       const systemStats = await this.getFinancialStatistics();
 
-      console.warn(`✅ Maintenance completed: ${removedEntries} cache entries removed`);
 
       return {
         cacheEntriesRemoved: removedEntries,
         systemHealth: systemStats.systemHealth,
       };
-    } catch (_error) {
-      console.error('❌ Error during maintenance:', _error);
       return {
         cacheEntriesRemoved: 0,
         systemHealth: 'unhealthy',
@@ -222,7 +203,6 @@ export class FinancialAutomationService {
    * Initialize the financial system (create cache table if needed).
    */
   async initialize(): Promise<void> {
-    console.warn('🚀 Initializing Dynamic Financial System...');
 
     try {
       // Create cache table
@@ -251,9 +231,6 @@ export class FinancialAutomationService {
           ON financial_cache(expires_at) WHERE expires_at < NOW()
       `);
 
-      console.warn('✅ Dynamic Financial System initialized successfully');
-    } catch (_error) {
-      console.error('❌ Error initializing financial system:', _error);
       throw error;
     }
   }
