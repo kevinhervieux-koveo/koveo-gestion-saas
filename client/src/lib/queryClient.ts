@@ -170,12 +170,7 @@ export const queryClient = new QueryClient({
 
         // Provide more helpful error messages for common issues
         if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
-          console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);
-          console.error('• API endpoint not found (404)');
-          console.error('• Server error returning error page');
-          console.error('• Route mismatch between frontend and backend');
         } else {
-          console.error('❌ Query failed:', error.message);
         }
       }
     },
@@ -212,7 +207,6 @@ export const queryClient = new QueryClient({
 
       // Only log mutation errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Mutation failed:', error.message);
       }
     },
   }),

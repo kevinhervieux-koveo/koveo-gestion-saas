@@ -343,23 +343,7 @@ export const DevValidationChecker = {
     if (process.env.NODE_ENV === 'development') {
       const validation = FormValidationStandards.validateFormSchema(formSchema, formName);
       
-      if (!validation.isCompliant) {
-        console.warn(`⚠️  Form validation compliance issues in ${formName}:`);
-        validation.issues.forEach(issue => {
-          console.warn(`  - ${issue}`);
-        });
-      }
-
-      if (validation.recommendations.length > 0) {
-        console.info(`💡 Form validation recommendations for ${formName}:`);
-        validation.recommendations.forEach(rec => {
-          console.info(`  - ${rec}`);
-        });
-      }
-
-      if (validation.isCompliant) {
-        console.log(`✅ Form ${formName} meets all validation standards`);
-      }
+      // Validation logging removed for production
     }
   }
 };
