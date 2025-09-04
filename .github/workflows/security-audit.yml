@@ -532,9 +532,15 @@ jobs:
               '⚠️ **Action Required:** Security vulnerabilities detected. Please review the security report before merging.' : 
               '✅ **Ready for Review:** All security checks passed.'}`;
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              console.log('✅ Security audit comment posted successfully');
+            } catch (error) {
+              console.log('⚠️ Could not post security comment (insufficient permissions):', error.message);
+              console.log('🔒 Security results logged to workflow output instead');
+            }

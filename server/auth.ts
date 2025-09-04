@@ -119,6 +119,9 @@ function createSessionStore(requestDomain?: string) {
       connectionString: getDatabaseUrl(requestDomain),
       max: 2, // Small pool for sessions
       min: 1,
+      maxUses: 7500, // Maximum number of times a connection can be reused
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout
+      allowExitOnIdle: true, // Allow pool to close when idle
     });
     
     // Use PostgreSQL session store for persistent sessions

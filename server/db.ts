@@ -41,7 +41,10 @@ console.log(`📊 Database: Using ${config.server.isProduction ? 'PRODUCTION (DA
  * Uses the same pattern as your successful test code.
  * Optimized for serverless environments like Replit deployments.
  */
-export const sql = neon(databaseUrl);
+export const sql = neon(databaseUrl, {
+  arrayMode: false,
+  fullResults: false,
+});
 
 // Test connection
 (async () => {

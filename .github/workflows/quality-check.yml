@@ -333,9 +333,15 @@ jobs:
 
             This PR is ready for code review! 🚀`;
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              console.log('✅ Quality check comment posted successfully');
+            } catch (error) {
+              console.log('⚠️ Could not post quality comment (insufficient permissions):', error.message);
+              console.log('📊 Quality results logged to workflow output instead');
+            }
