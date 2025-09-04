@@ -128,7 +128,7 @@ function createSessionStore(requestDomain?: string) {
     const store = new PostgreSqlStore({
       pool: sessionPool,
       tableName: 'session',
-      createTableIfMissing: false, // Table already exists
+      createTableIfMissing: true, // Auto-create table in production if missing
       errorLog: process.env.NODE_ENV === 'test' ? () => {} : console.error, // Suppress error logging in tests
       
       // Add explicit configuration for session retrieval
