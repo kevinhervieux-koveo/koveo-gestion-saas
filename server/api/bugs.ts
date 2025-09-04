@@ -159,10 +159,6 @@ export function registerBugRoutes(app: Express): void {
             uploadedById: currentUser.id,
           };
 
-          console.log(`🔍 DEBUG: Creating document with data:`, {
-            ...documentData,
-            currentUserId: currentUser.id
-          });
 
           await storage.createDocument(documentData);
           console.log(`📄 Created attachment document for bug ${bug.id}: ${file.originalname}`);

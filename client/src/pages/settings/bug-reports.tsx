@@ -51,6 +51,7 @@ import {
   Trash2,
   MoreHorizontal,
   Paperclip,
+  Eye,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -326,11 +327,6 @@ export default function BugReports() {
     document.body.removeChild(link);
   };
 
-  // Handle bug card click - show view dialog only
-  const handleBugClick = (bug: Bug) => {
-    setViewingBug(bug);
-    setIsViewDialogOpen(true);
-  };
 
   const handleEdit = (bug: Bug) => {
     if (!canEditBug(bug)) {
@@ -834,9 +830,8 @@ export default function BugReports() {
                   {filteredBugs.map((bug: Bug) => (
                     <div
                       key={bug.id}
-                      className={`border rounded-lg p-4 hover:bg-gray-50 transition-colors ${canEditBug(bug) || (bug.attachmentCount && bug.attachmentCount > 0) ? 'cursor-pointer' : ''}`}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                       data-testid={`bug-card-${bug.id}`}
-                      onClick={() => handleBugClick(bug)}
                     >
                       <div className='flex items-start justify-between gap-4'>
                         <div className='flex-1 min-w-0'>
@@ -891,42 +886,69 @@ export default function BugReports() {
                             </div>
                           </div>
                         </div>
-                        {canDeleteBug(bug) && (
-                          <div className='flex-shrink-0'>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant='ghost'
-                                  size='sm'
-                                  className='h-8 w-8 p-0 text-red-600 hover:text-red-700'
-                                  data-testid={`button-delete-${bug.id}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Trash2 className='h-4 w-4' />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this bug report? This action
-                                    cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(bug.id)}
-                                    className='bg-red-600 hover:bg-red-700'
-                                    data-testid={`confirm-delete-${bug.id}`}
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
+                        <div className='flex-shrink-0'>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`button-menu-${bug.id}`}
+                              >
+                                <MoreHorizontal className='w-4 h-4' />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingBug(bug);
+                                setIsViewDialogOpen(true);
+                              }}>
+                                <Eye className='w-4 h-4 mr-2' />
+                                View
+                              </DropdownMenuItem>
+                              {canEditBug(bug) && (
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(bug);
+                                }}>
+                                  <Edit2 className='w-4 h-4 mr-2' />
+                                  Edit
+                                </DropdownMenuItem>
+                              )}
+                              {canDeleteBug(bug) && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem 
+                                      onSelect={(e) => e.preventDefault()} 
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className='w-4 h-4 mr-2 text-red-600' />
+                                      <span className='text-red-600'>Delete</span>
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this bug report? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(bug.id)}
+                                        className='bg-red-600 hover:bg-red-700'
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   ))}
