@@ -6,6 +6,7 @@ import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'luc
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Home page component for Koveo Gestion.

@@ -51,7 +51,6 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { Link } from 'wouter';
-import { useLanguage } from '@/hooks/use-language';
 
 // Form schema for creating/editing buildings
 const buildingFormSchema = z.object({
