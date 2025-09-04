@@ -17,7 +17,7 @@ jest.mock('../../../client/src/lib/queryClient', () => ({
 }));
 
 // Mock authentication context
-jest.mock('../../../client/src/contexts/AuthContext', () => ({
+jest.mock('../../../client/src/hooks/use-auth', () => ({
   useAuth: () => ({
     user: { id: '1', email: 'test@test.com', role: 'admin' },
     isAuthenticated: true,

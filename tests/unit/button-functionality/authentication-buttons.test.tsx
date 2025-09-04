@@ -19,7 +19,7 @@ jest.mock('../../../client/src/lib/queryClient', () => ({
 // Mock authentication context
 const mockLogin = jest.fn();
 const mockLogout = jest.fn();
-jest.mock('../../../client/src/contexts/AuthContext', () => ({
+jest.mock('../../../client/src/hooks/use-auth', () => ({
   useAuth: () => ({
     user: null,
     isAuthenticated: false,
