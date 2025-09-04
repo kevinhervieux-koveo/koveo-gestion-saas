@@ -1031,15 +1031,34 @@ export default function IdeaBox() {
                                 </p>
                               </div>
                             </div>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
-                              className='flex items-center gap-1'
-                              data-testid={`button-download-${attachment.id}`}
-                            >
-                              📁 View
-                            </Button>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => handleFileDownload(attachment.url, attachment.name)}
+                                className='flex items-center gap-1'
+                                data-testid={`button-view-${attachment.id}`}
+                              >
+                                👁️ View
+                              </Button>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => {
+                                  const downloadUrl = `${attachment.url}?download=true`;
+                                  const link = document.createElement('a');
+                                  link.href = downloadUrl;
+                                  link.download = attachment.name;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className='flex items-center gap-1'
+                                data-testid={`button-download-${attachment.id}`}
+                              >
+                                ⬇️ Download
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>

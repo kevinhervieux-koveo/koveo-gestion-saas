@@ -2334,7 +2334,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               attachments: attachments.map(att => ({
                 id: att.id,
                 name: att.name,
-                url: `/api/documents/download/${att.id}`,
+                url: `/api/documents/${att.id}/file`,
                 size: att.fileSize ? parseInt(att.fileSize) : 0,
                 mimeType: att.mimeType,
               })),
