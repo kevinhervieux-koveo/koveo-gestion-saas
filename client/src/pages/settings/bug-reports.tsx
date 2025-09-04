@@ -108,6 +108,13 @@ interface Bug {
   updatedAt: string;
   resolvedAt: string | null;
   resolvedBy: string | null;
+  attachments?: Array<{
+    name: string;
+    size: number;
+    url: string;
+    type: string;
+  }>;
+  attachmentCount?: number;
 }
 
 const categoryLabels = {
@@ -141,7 +148,9 @@ const statusColors = {
 export default function BugReports() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingBug, setEditingBug] = useState<Bug | null>(null);
+  const [viewingBug, setViewingBug] = useState<Bug | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -258,6 +267,29 @@ export default function BugReports() {
   // Handle file attachments
   const handleFilesSelect = (files: File[]) => {
     setAttachedFiles(prev => [...prev, ...files]);
+  };
+
+  // Handle file download
+  const handleFileDownload = (fileUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handle bug card click
+  const handleBugClick = (bug: Bug) => {
+    if (canEditBug(bug)) {
+      handleEdit(bug);
+    } else {
+      // For non-admin users, show view dialog if there are attachments
+      if (bug.attachmentCount && bug.attachmentCount > 0) {
+        setViewingBug(bug);
+        setIsViewDialogOpen(true);
+      }
+    }
   };
 
   const handleEdit = (bug: Bug) => {
@@ -621,6 +653,20 @@ export default function BugReports() {
                           {...editForm.register('description')}
                           rows={4}
                           data-testid='textarea-edit-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {editForm.formState.errors.description && (
                           <p className='text-red-500 text-xs'>
@@ -763,9 +809,9 @@ export default function BugReports() {
                   {filteredBugs.map((bug: Bug) => (
                     <div
                       key={bug.id}
-                      className='border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer'
+                      className={`border rounded-lg p-4 hover:bg-gray-50 transition-colors ${canEditBug(bug) || (bug.attachmentCount && bug.attachmentCount > 0) ? 'cursor-pointer' : ''}`}
                       data-testid={`bug-card-${bug.id}`}
-                      onClick={() => handleEdit(bug)}
+                      onClick={() => handleBugClick(bug)}
                     >
                       <div className='flex items-start justify-between gap-4'>
                         <div className='flex-1 min-w-0'>
@@ -788,6 +834,15 @@ export default function BugReports() {
                             >
                               {bug.status.replace('_', ' ')}
                             </Badge>
+                            {bug.attachmentCount && bug.attachmentCount > 0 && (
+                              <Badge
+                                className='bg-green-100 text-green-800 flex items-center gap-1 px-2 py-1'
+                                data-testid={`badge-attachment-count-${bug.id}`}
+                              >
+                                <Paperclip className='w-3 h-3' />
+                                {bug.attachmentCount} file{bug.attachmentCount > 1 ? 's' : ''}
+                              </Badge>
+                            )}
                           </div>
                           <p
                             className='text-gray-600 mb-3 line-clamp-2'
@@ -854,6 +909,108 @@ export default function BugReports() {
               )}
             </CardContent>
           </Card>
+
+          {/* View Bug Report Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Bug Report Details</DialogTitle>
+              </DialogHeader>
+              {viewingBug && (
+                <div className='space-y-4'>
+                  <div>
+                    <h3 className='text-lg font-semibold mb-2'>{viewingBug.title}</h3>
+                    <div className='flex flex-wrap gap-2 mb-2'>
+                      <Badge className={priorityColors[viewingBug.priority as keyof typeof priorityColors]}>
+                        {viewingBug.priority.toUpperCase()}
+                      </Badge>
+                      <Badge className={statusColors[viewingBug.status as keyof typeof statusColors]}>
+                        {viewingBug.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                      <Badge variant='outline'>
+                        {categoryLabels[viewingBug.category as keyof typeof categoryLabels]}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className='font-medium mb-1'>Description</h4>
+                    <p className='text-gray-600 bg-gray-50 p-3 rounded-lg'>{viewingBug.description}</p>
+                  </div>
+                  
+                  <div className='flex flex-wrap gap-4 text-sm'>
+                    <div className='flex items-center gap-1'>
+                      <Calendar className='w-4 h-4' />
+                      <span>Created: {new Date(viewingBug.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className='flex items-center gap-1'>
+                      <span>📍 Page: {viewingBug.page}</span>
+                    </div>
+                  </div>
+
+                  {viewingBug.reproductionSteps && (
+                    <div>
+                      <h4 className='font-medium mb-1'>Reproduction Steps</h4>
+                      <p className='text-gray-600 bg-blue-50 p-3 rounded-lg'>{viewingBug.reproductionSteps}</p>
+                    </div>
+                  )}
+
+                  {viewingBug.environment && (
+                    <div>
+                      <h4 className='font-medium mb-1'>Environment</h4>
+                      <p className='text-gray-600 bg-yellow-50 p-3 rounded-lg'>{viewingBug.environment}</p>
+                    </div>
+                  )}
+
+                  {viewingBug.attachments && viewingBug.attachments.length > 0 && (
+                    <div className='border-t pt-4'>
+                      <h4 className='font-medium mb-3 flex items-center gap-2'>
+                        <Paperclip className='w-4 h-4' />
+                        Attached Files ({viewingBug.attachments.length})
+                      </h4>
+                      <div className='space-y-2'>
+                        {viewingBug.attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <div className='w-8 h-8 bg-red-100 rounded flex items-center justify-center'>
+                                <Paperclip className='w-4 h-4 text-red-600' />
+                              </div>
+                              <div>
+                                <p className='font-medium text-sm'>{attachment.name}</p>
+                                <p className='text-xs text-gray-500'>
+                                  {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
+                              className='flex items-center gap-1'
+                            >
+                              📁 View
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className='flex justify-end pt-4'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsViewDialogOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
