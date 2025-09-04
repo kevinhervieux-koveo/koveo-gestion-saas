@@ -88,18 +88,19 @@ const emailService = new EmailService();
 const PostgreSqlStore = connectPg(session);
 
 /**
- * Get the correct database URL based on environment.
+ * Get the correct database URL based on environment and request domain.
  * Uses DATABASE_URL_KOVEO for production (koveo-gestion.com), DATABASE_URL for development.
  */
-function getDatabaseUrl(): string {
+function getDatabaseUrl(requestDomain?: string): string {
   const prodUrl = process.env.DATABASE_URL_KOVEO;
   const devUrl = process.env.DATABASE_URL;
   
-  // Use the same logic as config to determine which database URL to use
-  const isProduction = config.server.isProduction;
+  // Use runtime domain detection for better accuracy
+  const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
+  const isProduction = config.server.isProduction || isKoveoRequest;
   const selectedUrl = isProduction && prodUrl ? prodUrl : devUrl;
   
-  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${selectedUrl?.substring(0, 50)}...`);
+  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${selectedUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
   
   if (!selectedUrl) {
     throw new Error('No database URL available for session store');
@@ -113,12 +114,12 @@ function getDatabaseUrl(): string {
  * Uses PostgreSQL session store for scalability and Law 25 compliance.
  * Includes fallback for database connection issues in production.
  */
-function createSessionStore() {
+function createSessionStore(requestDomain?: string) {
   try {
     // Create a proper PostgreSQL pool for the session store
     // connect-pg-simple needs a real PostgreSQL pool, not the Neon HTTP client
     const sessionPool = new Pool({ 
-      connectionString: getDatabaseUrl(),
+      connectionString: getDatabaseUrl(requestDomain),
       max: 2, // Small pool for sessions
       min: 1,
     });
@@ -156,8 +157,18 @@ function createSessionStore() {
   }
 }
 
+// Create session store with better database detection  
+let sessionStore: any;
+try {
+  // Try to create session store with automatic database detection
+  sessionStore = createSessionStore();
+} catch (error) {
+  console.error('❌ Failed to create initial session store:', error);
+  sessionStore = undefined; // Will fall back to memory store
+}
+
 export const sessionConfig = session({
-  store: createSessionStore(), // Use PostgreSQL session store for persistence
+  store: sessionStore, // Use PostgreSQL session store for persistence
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
   resave: false, // Don't save unchanged sessions
   saveUninitialized: false,

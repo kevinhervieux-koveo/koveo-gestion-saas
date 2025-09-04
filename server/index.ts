@@ -79,6 +79,24 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Domain detection middleware - must come before other middleware
+app.use((req, res, next) => {
+  // Extract domain from various headers and sources
+  const host = req.get('host') || req.get('x-forwarded-host') || req.get('x-original-host');
+  const proto = req.get('x-forwarded-proto') || req.protocol;
+  
+  // Store domain information in request for use by other middleware
+  req.domain = host || 'localhost';
+  req.isKoveoProduction = host?.includes('koveo-gestion.com') || false;
+  
+  // Log domain detection for production debugging
+  if (req.isKoveoProduction) {
+    console.log(`🌐 Koveo production request detected: ${req.domain} (${req.method} ${req.path})`);
+  }
+  
+  next();
+});
+
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
