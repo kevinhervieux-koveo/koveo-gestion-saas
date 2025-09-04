@@ -327,17 +327,10 @@ export default function BugReports() {
     document.body.removeChild(link);
   };
 
-  // Handle bug card click
+  // Handle bug card click - show view dialog only
   const handleBugClick = (bug: Bug) => {
-    if (canEditBug(bug)) {
-      handleEdit(bug);
-    } else {
-      // For non-admin users, show view dialog if there are attachments
-      if (bug.attachmentCount && bug.attachmentCount > 0) {
-        setViewingBug(bug);
-        setIsViewDialogOpen(true);
-      }
-    }
+    setViewingBug(bug);
+    setIsViewDialogOpen(true);
   };
 
   const handleEdit = (bug: Bug) => {
