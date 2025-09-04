@@ -24,13 +24,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Security page component for Koveo Gestion.
  * Comprehensive overview of security features and compliance measures.
  */
-export default function /**
- * Security page function.
- */ /**
- * Security page function.
- */
-
-SecurityPage() {
+export default function SecurityPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
@@ -212,9 +206,9 @@ SecurityPage() {
         <div className='grid lg:grid-cols-2 gap-8 mb-16'>
           {securityFeatures.map((feature, _index) => (
             <Card
-              key={index}
+              key={_index}
               className='hover:shadow-lg transition-shadow'
-              data-testid={`security-feature-${index}`}
+              data-testid={`security-feature-${_index}`}
             >
               <CardHeader>
                 <div className='flex items-center justify-between'>
@@ -258,9 +252,9 @@ SecurityPage() {
           <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
             {complianceStandards.map((standard, _index) => (
               <Card
-                key={index}
+                key={_index}
                 className='text-center hover:shadow-lg transition-shadow'
-                data-testid={`compliance-${index}`}
+                data-testid={`compliance-${_index}`}
               >
                 <CardHeader>
                   <standard.icon className='h-12 w-12 text-blue-600 mx-auto mb-4' />
@@ -295,9 +289,9 @@ SecurityPage() {
               <div className='space-y-3'>
                 {privacyFeatures.map((feature, _index) => (
                   <div
-                    key={index}
+                    key={_index}
                     className='flex items-start space-x-2'
-                    data-testid={`privacy-feature-${index}`}
+                    data-testid={`privacy-feature-${_index}`}
                   >
                     <CheckCircle className='h-5 w-5 text-green-600 mt-0.5 flex-shrink-0' />
                     <span className='text-gray-700'>{feature}</span>
@@ -334,9 +328,9 @@ SecurityPage() {
           <div className='grid lg:grid-cols-3 gap-8'>
             {technicalSafeguards.map((safeguard, _index) => (
               <Card
-                key={index}
+                key={_index}
                 className='hover:shadow-lg transition-shadow'
-                data-testid={`safeguard-${index}`}
+                data-testid={`safeguard-${_index}`}
               >
                 <CardHeader>
                   <CardTitle className='text-lg text-center'>{safeguard.category}</CardTitle>
