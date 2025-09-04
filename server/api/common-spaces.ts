@@ -86,7 +86,49 @@ const userIdSchema = z.object({
  * @param user
  */
 async function getAccessibleBuildingIds(user: any): Promise<string[]> {
-  // All users can only access buildings where they have residences
+  // Admin users have access to all buildings
+  if (user.role === 'admin') {
+    const allBuildings = await db
+      .select({ buildingId: buildings.id })
+      .from(buildings)
+      .where(eq(buildings.isActive, true));
+    return allBuildings.map((b) => b.buildingId);
+  }
+
+  // Check if user belongs to Koveo organization (special global access)
+  const userOrgs = await db
+    .select({
+      organizationId: schema.organizations.id,
+      organizationName: schema.organizations.name,
+      canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
+    })
+    .from(schema.organizations)
+    .innerJoin(userOrganizations, eq(userOrganizations.organizationId, schema.organizations.id))
+    .where(and(eq(userOrganizations.userId, user.id), eq(userOrganizations.isActive, true)));
+
+  const hasGlobalAccess = userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+
+  if (hasGlobalAccess) {
+    const allBuildings = await db
+      .select({ buildingId: buildings.id })
+      .from(buildings)
+      .where(eq(buildings.isActive, true));
+    return allBuildings.map((b) => b.buildingId);
+  }
+
+  // Regular users and managers: Get buildings from their organizations
+  if (user.role === 'manager') {
+    if (userOrgs.length > 0) {
+      const orgIds = userOrgs.map((uo) => uo.organizationId);
+      const orgBuildings = await db
+        .select({ buildingId: buildings.id })
+        .from(buildings)
+        .where(and(inArray(buildings.organizationId, orgIds), eq(buildings.isActive, true)));
+      return orgBuildings.map((b) => b.buildingId);
+    }
+  }
+
+  // All users can also access buildings where they have residences
   const userBuildingIds = await db
     .select({ buildingId: schema.residences.buildingId })
     .from(userResidences)
