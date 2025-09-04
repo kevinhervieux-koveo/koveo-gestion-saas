@@ -1039,7 +1039,7 @@ const translations: Record<Language, Translations> = {
     developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec Law 25.',
     launchYear: '2025',
     launchTitle: 'Official Launch',
-    launchDesc: 'Public launch of our platform with first Quebec property management clients.'
+    launchDesc: 'Public launch of our platform with first Quebec property management clients.',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
