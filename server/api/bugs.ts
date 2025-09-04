@@ -156,7 +156,7 @@ export function registerBugRoutes(app: Express): void {
             fileSize: file.size.toString(),
             attachedToType: 'bug' as const,
             attachedToId: bug.id,
-            createdBy: currentUser.id,
+            uploadedById: currentUser.id,
           };
 
           await storage.createDocument(documentData);
