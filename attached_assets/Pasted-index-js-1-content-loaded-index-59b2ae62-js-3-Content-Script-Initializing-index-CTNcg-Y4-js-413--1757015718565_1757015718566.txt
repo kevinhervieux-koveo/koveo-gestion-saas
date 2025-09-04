@@ -1,0 +1,146 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-CTNcg_Y4.js:413  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-CTNcg_Y4.js:413
+d @ index-CTNcg_Y4.js:280
+_ @ index-CTNcg_Y4.js:280
+start @ index-CTNcg_Y4.js:280
+fetch @ index-CTNcg_Y4.js:280
+#d @ index-CTNcg_Y4.js:280
+onSubscribe @ index-CTNcg_Y4.js:280
+subscribe @ index-CTNcg_Y4.js:280
+(anonymous) @ index-CTNcg_Y4.js:293
+Gy @ index-CTNcg_Y4.js:152
+react_stack_bottom_frame @ index-CTNcg_Y4.js:261
+be @ index-CTNcg_Y4.js:77
+fs @ index-CTNcg_Y4.js:182
+jg @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+na @ index-CTNcg_Y4.js:195
+Jg @ index-CTNcg_Y4.js:195
+Sv @ index-CTNcg_Y4.js:195
+ys @ index-CTNcg_Y4.js:195
+Dv @ index-CTNcg_Y4.js:217
+vs @ index-CTNcg_Y4.js:217
+vv @ index-CTNcg_Y4.js:195
+Uf @ index-CTNcg_Y4.js:195
+lv @ index-CTNcg_Y4.js:195
+sv @ index-CTNcg_Y4.js:195
+Cv @ index-CTNcg_Y4.js:217
+r @ index-CTNcg_Y4.js:43
+<u_>
+LA.Tc.jsxDEV @ index-CTNcg_Y4.js:35
+nk @ index-CTNcg_Y4.js:417
+react_stack_bottom_frame @ index-CTNcg_Y4.js:261
+Hd @ index-CTNcg_Y4.js:152
+hf @ index-CTNcg_Y4.js:173
+xf @ index-CTNcg_Y4.js:182
+be @ index-CTNcg_Y4.js:77
+mv @ index-CTNcg_Y4.js:195
+fv @ index-CTNcg_Y4.js:195
+zf @ index-CTNcg_Y4.js:195
+sv @ index-CTNcg_Y4.js:195
+Cv @ index-CTNcg_Y4.js:217
+r @ index-CTNcg_Y4.js:43
+<nk>
+LA.Tc.jsxDEV @ index-CTNcg_Y4.js:35
+(anonymous) @ index-CTNcg_Y4.js:417
+index-CTNcg_Y4.js:168 ReferenceError: index is not defined
+    at story-DGqPQOdB.js:11:18269
+    at Array.map (<anonymous>)
+    at te (story-DGqPQOdB.js:11:18177)
+    at Object.react_stack_bottom_frame (index-CTNcg_Y4.js:261:12449)
+    at Hd (index-CTNcg_Y4.js:152:806)
+    at hf (index-CTNcg_Y4.js:173:5840)
+    at xf (index-CTNcg_Y4.js:182:9691)
+    at be (index-CTNcg_Y4.js:77:109)
+    at mv (index-CTNcg_Y4.js:195:29869)
+    at fv (index-CTNcg_Y4.js:195:28535)
+
+The above error occurred in the <te> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, S_.
+
+overrideMethod @ hook.js:608
+bg @ index-CTNcg_Y4.js:168
+wg @ index-CTNcg_Y4.js:173
+be @ index-CTNcg_Y4.js:77
+c.componentDidCatch.e.callback @ index-CTNcg_Y4.js:173
+Hy @ index-CTNcg_Y4.js:139
+Vy @ index-CTNcg_Y4.js:139
+be @ index-CTNcg_Y4.js:77
+Hg @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+Da @ index-CTNcg_Y4.js:195
+Gg @ index-CTNcg_Y4.js:195
+gv @ index-CTNcg_Y4.js:195
+Uf @ index-CTNcg_Y4.js:195
+lv @ index-CTNcg_Y4.js:195
+<...>
+UA.r.createElement @ index-CTNcg_Y4.js:22
+uw @ index-CTNcg_Y4.js:280
+Se @ index-CTNcg_Y4.js:280
+react_stack_bottom_frame @ index-CTNcg_Y4.js:261
+Hd @ index-CTNcg_Y4.js:152
+hf @ index-CTNcg_Y4.js:173
+xf @ index-CTNcg_Y4.js:182
+be @ index-CTNcg_Y4.js:77
+mv @ index-CTNcg_Y4.js:195
+fv @ index-CTNcg_Y4.js:195
+zf @ index-CTNcg_Y4.js:195
+sv @ index-CTNcg_Y4.js:195
+Cv @ index-CTNcg_Y4.js:217
+r @ index-CTNcg_Y4.js:43
+<Se>
+LA.Tc.jsxDEV @ index-CTNcg_Y4.js:35
+tk @ index-CTNcg_Y4.js:417
+react_stack_bottom_frame @ index-CTNcg_Y4.js:261
+Hd @ index-CTNcg_Y4.js:152
+hf @ index-CTNcg_Y4.js:173
+xf @ index-CTNcg_Y4.js:182
+be @ index-CTNcg_Y4.js:77
+mv @ index-CTNcg_Y4.js:195
+fv @ index-CTNcg_Y4.js:195
+zf @ index-CTNcg_Y4.js:195
+sv @ index-CTNcg_Y4.js:195
+Cv @ index-CTNcg_Y4.js:217
+r @ index-CTNcg_Y4.js:43
+<tk>
+LA.Tc.jsxDEV @ index-CTNcg_Y4.js:35
+nk @ index-CTNcg_Y4.js:417
+react_stack_bottom_frame @ index-CTNcg_Y4.js:261
+Hd @ index-CTNcg_Y4.js:152
+hf @ index-CTNcg_Y4.js:173
+xf @ index-CTNcg_Y4.js:182
+be @ index-CTNcg_Y4.js:77
+mv @ index-CTNcg_Y4.js:195
+fv @ index-CTNcg_Y4.js:195
+zf @ index-CTNcg_Y4.js:195
+sv @ index-CTNcg_Y4.js:195
+Cv @ index-CTNcg_Y4.js:217
+r @ index-CTNcg_Y4.js:43
+<nk>
+LA.Tc.jsxDEV @ index-CTNcg_Y4.js:35
+(anonymous) @ index-CTNcg_Y4.js:417

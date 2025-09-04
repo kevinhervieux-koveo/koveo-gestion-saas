@@ -15,11 +15,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
@@ -287,6 +288,25 @@ export default function LoginPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4'>
+      {/* Header with Language Switcher and Home Button */}
+      <div className='absolute top-4 left-4 right-4 flex justify-between items-center z-10'>
+        <Button
+          variant='ghost'
+          size='sm'
+          asChild
+          className='text-gray-600 hover:text-gray-800 hover:bg-white/80 backdrop-blur-sm'
+          data-testid='button-home'
+        >
+          <Link href='/'>
+            <Home className='w-4 h-4 mr-2' />
+            {language === 'fr' ? 'Accueil' : 'Home'}
+          </Link>
+        </Button>
+        <div className='bg-white/80 backdrop-blur-sm rounded-lg p-1'>
+          <LanguageSwitcher />
+        </div>
+      </div>
+      
       <div className='w-full max-w-md space-y-6'>
         {/* Header */}
         <div className='text-center space-y-4'>
