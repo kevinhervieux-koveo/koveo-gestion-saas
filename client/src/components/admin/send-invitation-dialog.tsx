@@ -78,9 +78,10 @@ const invitationSchema = z
       if (
         ['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(data.role) &&
         data.buildingId &&
-        data.buildingId !== 'none'
+        data.buildingId !== 'none' &&
+        data.buildingId !== ''
       ) {
-        return !!data.residenceId;
+        return !!data.residenceId && data.residenceId !== '';
       }
       return true;
     },
@@ -729,7 +730,26 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       console.log(`  ❌ ${field}:`, error?.message || error);
                     });
                     console.log('🔍 Form values:');
-                    console.log(form.getValues());
+                    const values = form.getValues();
+                    console.log(values);
+                    console.log('🔬 Individual field validation:');
+                    console.log('  Email:', values.email);
+                    console.log('  Role:', values.role);
+                    console.log('  Organization:', values.organizationId);
+                    console.log('  Building:', values.buildingId);
+                    console.log('  Residence:', values.residenceId);
+                    console.log('  ExpiryDays:', values.expiryDays);
+                    
+                    // Manually validate the schema
+                    try {
+                      const result = invitationSchema.safeParse(values);
+                      console.log('🧪 Manual schema validation:', result);
+                      if (!result.success) {
+                        console.log('🚨 Schema validation errors:', result.error.issues);
+                      }
+                    } catch (error) {
+                      console.log('💥 Schema validation threw error:', error);
+                    }
                   }}
                 >
                   {invitationMutation.isPending
