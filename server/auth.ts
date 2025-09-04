@@ -5,6 +5,7 @@ import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { storage } from './storage';
 import { sql, db, pool } from './db';
+import { config } from './config/index';
 import type { User } from '@shared/schema';
 // Database-based permission checking - no config files needed
 import { Pool } from '@neondatabase/serverless';
@@ -87,6 +88,27 @@ const emailService = new EmailService();
 const PostgreSqlStore = connectPg(session);
 
 /**
+ * Get the correct database URL based on environment.
+ * Uses DATABASE_URL_KOVEO for production (koveo-gestion.com), DATABASE_URL for development.
+ */
+function getDatabaseUrl(): string {
+  const prodUrl = process.env.DATABASE_URL_KOVEO;
+  const devUrl = process.env.DATABASE_URL;
+  
+  // Use the same logic as config to determine which database URL to use
+  const isProduction = config.server.isProduction;
+  const selectedUrl = isProduction && prodUrl ? prodUrl : devUrl;
+  
+  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${selectedUrl?.substring(0, 50)}...`);
+  
+  if (!selectedUrl) {
+    throw new Error('No database URL available for session store');
+  }
+  
+  return selectedUrl;
+}
+
+/**
  * Session configuration for Quebec-compliant user authentication.
  * Uses PostgreSQL session store for scalability and Law 25 compliance.
  * Includes fallback for database connection issues in production.
@@ -96,7 +118,7 @@ function createSessionStore() {
     // Create a proper PostgreSQL pool for the session store
     // connect-pg-simple needs a real PostgreSQL pool, not the Neon HTTP client
     const sessionPool = new Pool({ 
-      connectionString: process.env.DATABASE_URL,
+      connectionString: getDatabaseUrl(),
       max: 2, // Small pool for sessions
       min: 1,
     });

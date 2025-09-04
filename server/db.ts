@@ -30,8 +30,10 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
+const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
 console.log('🔗 Connecting to database with URL:', databaseUrl.substring(0, 50) + '...');
 console.log('🌍 Environment:', config.server.nodeEnv);
+console.log(`📊 Database: Using ${config.server.isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database`);
 
 /**
  * Neon serverless database connection using HTTP.
