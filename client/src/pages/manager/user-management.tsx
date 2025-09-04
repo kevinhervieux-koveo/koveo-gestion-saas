@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
-// Temporarily disabled to fix component loading issue
-// import { FilterSort } from '@/components/filter-sort/FilterSort';
+import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -47,8 +46,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
-// Temporarily disabled to fix component loading issue
-// import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
+import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
 import { UserOrganizationsTab } from '@/components/user-tabs/UserOrganizationsTab';
 import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
