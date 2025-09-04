@@ -303,7 +303,8 @@ export default function IdeaBox() {
           formData.append('attachedToType', 'feature_request');
           formData.append('attachedToId', featureRequestId);
           formData.append('category', 'ATTACHMENT');
-          formData.append('documentType', 'file');
+          formData.append('documentType', 'other'); // Use 'other' instead of 'file'
+          formData.append('name', file.name); // API expects 'name' field
           formData.append('title', file.name);
 
           await apiRequest('POST', '/api/documents/upload', formData);
