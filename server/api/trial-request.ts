@@ -6,6 +6,7 @@ const router = express.Router();
 
 // Initialize SendGrid
 if (!process.env.SENDGRID_API_KEY) {
+  console.warn('⚠️ SENDGRID_API_KEY environment variable is not set');
 }
 
 const mailService = new MailService();
@@ -29,9 +30,6 @@ const trialRequestSchema = z.object({
   message: z.string().optional(),
 });
 
-/**
- *
- */
 type TrialRequestData = z.infer<typeof trialRequestSchema>;
 
 /**
@@ -50,7 +48,7 @@ router.post('/trial-request', async (req, res) => {
       });
     }
 
-    const _data: TrialRequestData = validationResult.data;
+    const data: TrialRequestData = validationResult.data;
 
     // Check if SendGrid is configured
     if (!process.env.SENDGRID_API_KEY) {
@@ -209,25 +207,30 @@ Cette demande a été soumise via le site web Koveo Gestion.
     await mailService.send(emailData);
 
     // Log successful request
+    console.log(`✅ Trial request sent successfully for ${data.company} (${data.email})`);
 
     res.status(200).json({
       message: 'Trial request sent successfully',
       success: true,
     });
 
+  } catch (error: any) {
+    console.error('❌ Error processing trial request:', error);
+
     // Send appropriate error response
+    if (error.code) {
       const sgError = error as { code: number; message: string };
       console.error('SendGrid error details:', sgError);
 
       return res.status(500).json({
         message: 'Failed to send trial request email',
-        _error: 'Email service error',
+        error: 'Email service error',
       });
     }
 
     res.status(500).json({
       message: 'Internal server error',
-      _error: 'Failed to process request',
+      error: 'Failed to process request',
     });
   }
 });
@@ -235,11 +238,6 @@ Cette demande a été soumise via le site web Koveo Gestion.
 export default router;
 
 // Export registration function for consistency with other modules
-/**
- *
- * @param app
- * @returns Function result.
- */
 export function registerTrialRequestRoutes(app: express.Application) {
-  app.use('/', router);
+  app.use('/api', router);
 }
