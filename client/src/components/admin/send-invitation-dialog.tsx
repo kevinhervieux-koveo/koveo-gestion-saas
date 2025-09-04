@@ -724,6 +724,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       errors: form.formState.errors,
                       values: form.getValues()
                     });
+                    console.log('🔍 Detailed validation errors:');
+                    Object.entries(form.formState.errors).forEach(([field, error]) => {
+                      console.log(`  ❌ ${field}:`, error?.message || error);
+                    });
+                    console.log('🔍 Form values:');
+                    console.log(form.getValues());
                   }}
                 >
                   {invitationMutation.isPending
