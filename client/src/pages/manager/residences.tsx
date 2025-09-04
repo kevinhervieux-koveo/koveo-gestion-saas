@@ -421,7 +421,7 @@ Residences() {
                         title='Manage residence documents'
                       >
                         <FileText className='w-3 h-3 mr-1' />
-                        Documents
+                        {t('residenceDocumentsButton')}
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>

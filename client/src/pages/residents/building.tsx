@@ -315,7 +315,7 @@ export default function MyBuilding() {
                       className='w-full justify-start'
                     >
                       <FileText className='w-4 h-4 mr-2' />
-                      {t('viewDocuments2')}
+                      {t('viewDocumentsButton')}
                     </Button>
                   </div>
                 </CardContent>

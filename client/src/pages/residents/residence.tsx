@@ -559,13 +559,13 @@ export default function Residence() {
                       <Link href={`/residents/residences/${residence.id}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <FileText className='w-4 h-4 mr-2' />
-                          View Documents
+                          {t('residenceDocumentsButton')}
                         </Button>
                       </Link>
                       <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <Building className='w-4 h-4 mr-2' />
-                          {t('buildingDocuments')}
+                          {t('buildingDocumentsButton')}
                         </Button>
                       </Link>
                     </div>

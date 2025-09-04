@@ -412,6 +412,11 @@ export interface Translations {
   login: string;
   forgotPassword: string;
   dashboard: string;
+  // Document button standardization
+  documentsButton: string;
+  buildingDocumentsButton: string;
+  residenceDocumentsButton: string;
+  viewDocumentsButton: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -958,6 +963,11 @@ const translations: Record<Language, Translations> = {
     login: 'Login',
     forgotPassword: 'Forgot Password',
     dashboard: 'Dashboard',
+    // Document button standardization
+    documentsButton: 'Documents',
+    buildingDocumentsButton: 'Building Documents',
+    residenceDocumentsButton: 'Residence Documents',
+    viewDocumentsButton: 'View Documents',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1503,6 +1513,11 @@ const translations: Record<Language, Translations> = {
     login: 'Connexion',
     forgotPassword: 'Mot de passe oublié',
     dashboard: 'Tableau de bord',
+    // Standardisation des boutons de documents
+    documentsButton: 'Documents',
+    buildingDocumentsButton: 'Documents du bâtiment',
+    residenceDocumentsButton: 'Documents de la résidence',
+    viewDocumentsButton: 'Voir les documents',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',
