@@ -251,7 +251,7 @@ export const validationHelpers = {
 
   // Create pick schema with selected fields
   pickFields: <T extends z.ZodRawShape, K extends keyof T>(schema: z.ZodObject<T>, keys: K[]) =>
-    schema.pick(Object.fromEntries(keys.map((k) => [k, true])) as Record<K, true>),
+    schema.pick(Object.fromEntries(keys.map((k) => [k, true])) as any),
 
   // Validate enum value
   isValidEnum: <T extends readonly string[]>(enumArray: T, value: string): value is T[number] =>

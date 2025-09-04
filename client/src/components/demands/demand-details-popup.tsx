@@ -195,19 +195,14 @@ export default function DemandDetailsPopup({
   const [newComment, setNewComment] = useState('');
 
   // Check permissions
-  const canEdit =
-    demand &&
-    user &&
-    (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && demand.status === 'submitted'));
+  // Nobody can edit demands (as requested)
+  const canEdit = false;
 
   const canDelete =
     demand &&
     user &&
     (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && demand.status === 'submitted'));
+      user.role === 'manager');
 
   const canChangeStatus =
     demand &&
