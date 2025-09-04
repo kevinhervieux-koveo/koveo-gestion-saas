@@ -2030,6 +2030,14 @@ export function registerDocumentRoutes(app: Express): void {
         try {
           // Always serve from local storage (GCS disabled)
           let filePathToServe = document.filePath;
+          console.log(`🔍 Document filePath: "${document.filePath}" (type: ${typeof document.filePath})`);
+          console.log(`🔍 Checking conditions:
+            - startsWith('/'): ${document.filePath.startsWith('/')}
+            - includes('residences/'): ${document.filePath.includes('residences/')}
+            - includes('buildings/'): ${document.filePath.includes('buildings/')}
+            - includes('text-documents/'): ${document.filePath.includes('text-documents/')}
+            - includes('general/'): ${document.filePath.includes('general/')}
+            - includes('tmp'): ${document.filePath.includes('tmp')}`);
 
           // Check if it's an absolute path
           if (document.filePath.startsWith('/')) {
@@ -2052,7 +2060,9 @@ export function registerDocumentRoutes(app: Express): void {
             ];
 
             // Try to find the file in any of these locations
+            console.log(`🔍 Checking ${possiblePaths.length} possible paths for: ${document.filePath}`);
             for (const possiblePath of possiblePaths) {
+              console.log(`  - Trying: ${possiblePath}`);
               if (fs.existsSync(possiblePath)) {
                 filePathToServe = possiblePath;
                 console.log(`📂 Found file at: ${filePathToServe}`);
