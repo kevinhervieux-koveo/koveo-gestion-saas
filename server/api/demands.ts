@@ -13,6 +13,7 @@ import {
 import { eq, and, or, inArray, desc, asc } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
+import { z } from 'zod';
 
 /**
  * Register demand routes for managing resident demands and complaints.
@@ -187,11 +188,17 @@ export function registerDemandRoutes(app: Express) {
       const demandData = req.body;
       
 
-      // Create a schema that omits submitterId since we'll auto-populate it
-      const demandInputSchema = insertDemandSchema.omit({ submitterId: true });
+      // Create a schema that allows optional UUIDs for frontend submission
+      // We'll validate and ensure they're populated before database insertion
+      const demandInputSchema = insertDemandSchema.omit({ submitterId: true }).extend({
+        buildingId: z.string().optional(),
+        residenceId: z.string().optional()
+      });
       
       // Validate input
       const validatedData = demandInputSchema.parse(demandData);
+      
+      console.log('✅ Demand validation passed:', validatedData);
 
       // Auto-populate residence and building from user's primary residence if not provided
       if (!validatedData.residenceId || !validatedData.buildingId) {
@@ -215,12 +222,19 @@ export function registerDemandRoutes(app: Express) {
         validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
       }
 
-      // Ensure required fields are present
+      // Ensure required fields are present after auto-population
       if (!validatedData.buildingId || !validatedData.residenceId) {
         return res.status(400).json({ 
           message: 'Building and residence are required to create a demand' 
         });
       }
+      
+      console.log('✅ Final demand data before insertion:', {
+        buildingId: validatedData.buildingId,
+        residenceId: validatedData.residenceId,
+        type: validatedData.type,
+        description: validatedData.description
+      });
 
       const demandInsertData = {
         ...validatedData,

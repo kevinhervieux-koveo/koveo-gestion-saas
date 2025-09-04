@@ -311,8 +311,8 @@ export const insertDemandSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
-  residenceId: z.string().uuid().optional(),
-  buildingId: z.string().uuid().optional(),
+  residenceId: z.string().uuid(),
+  buildingId: z.string().uuid(),
   status: z.string().default('draft'),
   reviewNotes: z.string().optional(),
 });
