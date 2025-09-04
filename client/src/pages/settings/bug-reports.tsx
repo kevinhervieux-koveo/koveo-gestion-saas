@@ -99,15 +99,15 @@ interface Bug {
   page: string;
   priority: string;
   status: string;
-  createdBy: string;
-  assignedTo: string | null;
-  reproductionSteps: string | null;
+  created_by: string;
+  assigned_to: string | null;
+  reproduction_steps: string | null;
   environment: string | null;
   notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-  resolvedAt: string | null;
-  resolvedBy: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
   attachments?: Array<{
     id: string;
     name: string;
@@ -340,7 +340,7 @@ export default function BugReports() {
       page: bug.page,
       priority: bug.priority as any,
       status: bug.status as any,
-      reproductionSteps: bug.reproductionSteps || '',
+      reproductionSteps: bug.reproduction_steps || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -357,11 +357,11 @@ export default function BugReports() {
 
   // Check if user can edit/delete a bug
   const canEditBug = (bug: Bug) => {
-    return user && (user.role === 'admin' || user.role === 'manager' || bug.createdBy === user.id);
+    return user && (user.role === 'admin' || user.role === 'manager' || bug.created_by === user.id);
   };
 
   const canDeleteBug = (bug: Bug) => {
-    return user && (user.role === 'admin' || bug.createdBy === user.id);
+    return user && (user.role === 'admin' || bug.created_by === user.id);
   };
 
   // Filter bugs
@@ -878,7 +878,7 @@ export default function BugReports() {
                             </div>
                             <div className='flex items-center gap-1'>
                               <Calendar className='w-4 h-4' />
-                              <span>{new Date(bug.createdAt).toLocaleDateString()}</span>
+                              <span>{new Date(bug.created_at).toLocaleDateString()}</span>
                             </div>
                             <div className='flex items-center gap-1'>
                               <span>Page: {bug.page}</span>
@@ -987,17 +987,17 @@ export default function BugReports() {
                   <div className='flex flex-wrap gap-4 text-sm'>
                     <div className='flex items-center gap-1'>
                       <Calendar className='w-4 h-4' />
-                      <span>Created: {new Date(viewingBug.createdAt).toLocaleDateString()}</span>
+                      <span>Created: {new Date(viewingBug.created_at).toLocaleDateString()}</span>
                     </div>
                     <div className='flex items-center gap-1'>
                       <span>📍 Page: {viewingBug.page}</span>
                     </div>
                   </div>
 
-                  {viewingBug.reproductionSteps && (
+                  {viewingBug.reproduction_steps && (
                     <div>
                       <h4 className='font-medium mb-1'>Reproduction Steps</h4>
-                      <p className='text-gray-600 bg-blue-50 p-3 rounded-lg'>{viewingBug.reproductionSteps}</p>
+                      <p className='text-gray-600 bg-blue-50 p-3 rounded-lg'>{viewingBug.reproduction_steps}</p>
                     </div>
                   )}
 
