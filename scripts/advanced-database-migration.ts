@@ -284,6 +284,132 @@ class AdvancedDatabaseMigrator {
     });
   }
 
+  /**
+   * NEW: Compare schemas between development and production databases
+   */
+  private async compareEnvironmentSchemas(): Promise<SchemaAnalysis> {
+    const comparison: SchemaAnalysis = {
+      missingTables: [],
+      extraTables: [],
+      columnMismatches: [],
+      constraintIssues: [],
+      dataRisks: []
+    };
+
+    const devDb = this.databases.get('development');
+    const prodDb = this.databases.get('production');
+
+    if (!devDb || !prodDb) {
+      console.log(chalk.yellow('⚠️  Skipping schema comparison - only one environment available'));
+      return comparison;
+    }
+
+    const spinner = ora('Comparing schemas between development and production...').start();
+
+    try {
+      // Get schema information for both databases
+      const devTables = await this.getTableSchema(devDb);
+      const prodTables = await this.getTableSchema(prodDb);
+
+      // Compare each table
+      const allTables = new Set([...devTables.keys(), ...prodTables.keys()]);
+
+      for (const tableName of allTables) {
+        const devColumns = devTables.get(tableName);
+        const prodColumns = prodTables.get(tableName);
+
+        // Check for missing tables
+        if (!devColumns && prodColumns) {
+          comparison.missingTables.push(`${tableName} (missing in development)`);
+        } else if (devColumns && !prodColumns) {
+          comparison.missingTables.push(`${tableName} (missing in production)`);
+        } else if (devColumns && prodColumns) {
+          // Compare column structures
+          await this.compareTableColumns(tableName, devColumns, prodColumns, comparison);
+        }
+      }
+
+      spinner.succeed('Schema comparison completed');
+    } catch (error) {
+      spinner.fail(`Schema comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+
+    return comparison;
+  }
+
+  private async getTableSchema(database: DatabaseConfig): Promise<Map<string, any[]>> {
+    const result = await database.connection.query(`
+      SELECT table_name, column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+      ORDER BY table_name, ordinal_position
+    `);
+
+    const tables = new Map<string, any[]>();
+    const rows = result.rows || result;
+    
+    rows.forEach((row: any) => {
+      if (!tables.has(row.table_name)) {
+        tables.set(row.table_name, []);
+      }
+      tables.get(row.table_name)!.push(row);
+    });
+
+    return tables;
+  }
+
+  private async compareTableColumns(tableName: string, devColumns: any[], prodColumns: any[], comparison: SchemaAnalysis) {
+    const devColMap = new Map(devColumns.map(col => [col.column_name, col]));
+    const prodColMap = new Map(prodColumns.map(col => [col.column_name, col]));
+
+    // Check for missing columns in production
+    devColumns.forEach(devCol => {
+      const prodCol = prodColMap.get(devCol.column_name);
+      if (!prodCol) {
+        comparison.columnMismatches.push({
+          table: tableName,
+          column: devCol.column_name,
+          expected: `${devCol.data_type} (from dev)`,
+          actual: 'MISSING in production',
+          severity: 'critical'
+        });
+      } else if (devCol.data_type !== prodCol.data_type) {
+        // Check for data type mismatches
+        comparison.columnMismatches.push({
+          table: tableName,
+          column: devCol.column_name,
+          expected: devCol.data_type,
+          actual: prodCol.data_type,
+          severity: 'high'
+        });
+      } else if (devCol.is_nullable !== prodCol.is_nullable) {
+        // Check for nullable differences
+        comparison.columnMismatches.push({
+          table: tableName,
+          column: devCol.column_name,
+          expected: `nullable=${devCol.is_nullable}`,
+          actual: `nullable=${prodCol.is_nullable}`,
+          severity: 'medium'
+        });
+      }
+    });
+
+    // Check for extra columns in production
+    prodColumns.forEach(prodCol => {
+      const devCol = devColMap.get(prodCol.column_name);
+      if (!devCol) {
+        comparison.columnMismatches.push({
+          table: tableName,
+          column: prodCol.column_name,
+          expected: 'NOT PRESENT in dev',
+          actual: `${prodCol.data_type} (extra in production)`,
+          severity: 'high'
+        });
+      }
+    });
+  }
+
   private async analyzeConstraintIssues(database: DatabaseConfig, constraints: any[], analysis: SchemaAnalysis) {
     // Check for foreign key constraints that might fail
     const constraintRows = constraints.rows || constraints;
@@ -524,6 +650,11 @@ class AdvancedDatabaseMigrator {
         this.displayAnalysis(database.name, analysis);
       }
 
+      // NEW: Compare schemas between environments
+      console.log(chalk.blue('\n🔍 Cross-Environment Schema Comparison\n'));
+      const schemaComparison = await this.compareEnvironmentSchemas();
+      this.displaySchemaComparison(schemaComparison);
+
       // Generate migration plan
       const devAnalysis = analyses.get('development')!;
       const prodAnalysis = analyses.get('production');
@@ -602,6 +733,44 @@ class AdvancedDatabaseMigrator {
         analysis.columnMismatches.length === 0 && 
         analysis.constraintIssues.length === 0) {
       console.log(chalk.green('   ✅ Schema is in sync'));
+    }
+  }
+
+  private displaySchemaComparison(comparison: SchemaAnalysis) {
+    console.log(chalk.yellow('📊 Environment Schema Comparison Results:'));
+
+    if (comparison.missingTables.length > 0) {
+      console.log(chalk.red(`\n❌ Table Differences (${comparison.missingTables.length}):`));
+      comparison.missingTables.forEach(table => console.log(`   • ${table}`));
+    }
+
+    if (comparison.columnMismatches.length > 0) {
+      console.log(chalk.red(`\n🔧 Column Schema Drift (${comparison.columnMismatches.length}):`));
+      comparison.columnMismatches.forEach(mismatch => {
+        const severityColor = mismatch.severity === 'critical' ? chalk.red : 
+                             mismatch.severity === 'high' ? chalk.yellow : 
+                             mismatch.severity === 'medium' ? chalk.cyan : chalk.gray;
+        console.log(severityColor(`   • ${mismatch.table}.${mismatch.column}:`));
+        console.log(severityColor(`     Expected: ${mismatch.expected}`));
+        console.log(severityColor(`     Actual: ${mismatch.actual}`));
+        console.log(severityColor(`     Severity: ${mismatch.severity}`));
+        console.log('');
+      });
+    }
+
+    if (comparison.columnMismatches.length === 0 && comparison.missingTables.length === 0) {
+      console.log(chalk.green('   ✅ Development and Production schemas are synchronized'));
+    } else {
+      const criticalCount = comparison.columnMismatches.filter(m => m.severity === 'critical').length;
+      const highCount = comparison.columnMismatches.filter(m => m.severity === 'high').length;
+      
+      if (criticalCount > 0) {
+        console.log(chalk.red.bold(`\n⚠️  CRITICAL: ${criticalCount} critical schema differences found!`));
+        console.log(chalk.red('   These issues must be resolved immediately to prevent application errors.'));
+      } else if (highCount > 0) {
+        console.log(chalk.yellow.bold(`\n⚠️  WARNING: ${highCount} high priority schema differences found!`));
+        console.log(chalk.yellow('   These issues should be resolved in the next deployment.'));
+      }
     }
   }
 
