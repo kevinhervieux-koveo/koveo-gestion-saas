@@ -1752,6 +1752,14 @@ export function registerDocumentRoutes(app: Express): void {
       // Validate form data
       const validatedData = uploadDocumentRecordSchema.parse(formData);
       
+      // DEBUG: Log validated data to see what's being passed
+      console.log(`[${timestamp}] 🔍 VALIDATION DEBUG: Form data before validation:`, formData);
+      console.log(`[${timestamp}] 🔍 VALIDATION DEBUG: Validated data:`, {
+        ...validatedData,
+        hasAttachedToType: !!validatedData.attachedToType,
+        hasAttachedToId: !!validatedData.attachedToId
+      });
+      
       // Production debugging: Log after validation
       if (process.env.NODE_ENV === 'production') {
         console.log('[PROD DEBUG] Form data validation passed:', validatedData);
@@ -1846,7 +1854,9 @@ export function registerDocumentRoutes(app: Express): void {
         type: documentData.documentType,
         buildingId: documentData.buildingId,
         residenceId: documentData.residenceId,
-        uploadedById: documentData.uploadedById
+        uploadedById: documentData.uploadedById,
+        attachedToType: documentData.attachedToType,
+        attachedToId: documentData.attachedToId
       });
 
       // Create document record in database  
