@@ -80,6 +80,8 @@ const uploadDocumentRecordSchema = z.object({
   isVisibleToTenants: z.boolean().default(false),
   residenceId: z.string().uuid().optional(),
   buildingId: z.string().uuid().optional(),
+  attachedToType: z.string().optional(),
+  attachedToId: z.string().optional(),
 });
 
 /**
@@ -1834,6 +1836,8 @@ export function registerDocumentRoutes(app: Express): void {
         residenceId: validatedData.residenceId,
         buildingId: validatedData.buildingId,
         uploadedById: userId,
+        attachedToType: validatedData.attachedToType,
+        attachedToId: validatedData.attachedToId,
       };
 
       // CRITICAL DEBUG POINT: Database creation
