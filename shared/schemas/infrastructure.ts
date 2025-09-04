@@ -44,7 +44,7 @@ export const sslCertificates = pgTable('ssl_certificates', {
   renewalError: text('renewal_error'),
   dnsCredentials: text('dns_credentials'),
   notificationEmails: text('notification_emails'),
-  createdBy: uuid('created_by')
+  createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),

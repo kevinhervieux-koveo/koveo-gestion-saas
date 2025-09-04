@@ -48,7 +48,7 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
@@ -71,7 +71,7 @@ export const users = pgTable('users', {
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
@@ -94,13 +94,13 @@ export const organizations = pgTable('organizations', {
  * Users can belong to multiple organizations with different roles.
  */
 export const userOrganizations = pgTable('user_organizations', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  organizationId: uuid('organization_id')
+  organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   organizationRole: userRoleEnum('organization_role').notNull().default('tenant'),
@@ -148,10 +148,10 @@ export const invitations = pgTable('invitations', {
  * Stores temporary tokens that expire after a set time for security.
  */
 export const passwordResetTokens = pgTable('password_reset_tokens', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   token: text('token').notNull().unique(),
@@ -169,12 +169,12 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
  * Provides comprehensive logging for invitation lifecycle and security monitoring.
  */
 export const invitationAuditLog = pgTable('invitation_audit_log', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   invitationId: varchar('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
   action: text('action').notNull(),
-  performedBy: uuid('performed_by').references(() => users.id),
+  performedBy: varchar('performed_by').references(() => users.id),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   details: json('details'),
@@ -241,7 +241,7 @@ export const rolePermissions = pgTable('role_permissions', {
   permissionId: uuid('permission_id')
     .notNull()
     .references(() => permissions.id),
-  grantedBy: uuid('granted_by').references(() => users.id),
+  grantedBy: varchar('granted_by').references(() => users.id),
   grantedAt: timestamp('granted_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -250,7 +250,7 @@ export const userPermissions = pgTable('user_permissions', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
   permissionId: uuid('permission_id')

@@ -112,7 +112,7 @@ export const predictionValidations = pgTable('prediction_validations', {
   validationStatus: validationStatusEnum('validation_status').notNull(),
   actualOutcome: text('actual_outcome').notNull(),
   validationMethod: text('validation_method').notNull(),
-  validatorId: uuid('validator_id').references(() => users.id),
+  validatorId: varchar('validator_id').references(() => users.id),
   timeTaken: integer('time_taken'), // Hours to validate
   impactLevel: issueSeverityEnum('impact_level'),
   resolutionActions: text('resolution_actions'),
@@ -164,7 +164,7 @@ export const qualityIssues = pgTable('quality_issues', {
   filePath: text('file_path').notNull(),
   lineNumber: integer('line_number'),
   detectionMethod: text('detection_method').notNull(),
-  detectedBy: uuid('detected_by').references(() => users.id),
+  detectedBy: varchar('detected_by').references(() => users.id),
   relatedMetricType: metricTypeEnum('related_metric_type'),
   wasPredicted: boolean('was_predicted').notNull().default(false),
   predictionId: uuid('prediction_id').references(() => metricPredictions.id),
