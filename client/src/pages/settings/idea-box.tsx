@@ -167,6 +167,7 @@ export default function IdeaBox() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -286,8 +287,47 @@ export default function IdeaBox() {
     },
   });
 
-  const onSubmit = (data: FeatureRequestFormData) => {
-    createFeatureRequestMutation.mutate(data);
+  const onSubmit = async (data: FeatureRequestFormData) => {
+    try {
+      setIsSubmitting(true);
+      // First create the feature request
+      const featureRequestResponse = await apiRequest('POST', '/api/feature-requests', data);
+      const featureRequestId = (featureRequestResponse as any).id;
+
+      // Upload attachments if any
+      if (attachedFiles.length > 0) {
+        // Upload files one by one since the API expects single file uploads
+        for (const file of attachedFiles) {
+          const formData = new FormData();
+          formData.append('file', file); // API expects 'file' not 'files'
+          formData.append('attachedToType', 'feature_request');
+          formData.append('attachedToId', featureRequestId);
+          formData.append('category', 'ATTACHMENT');
+          formData.append('documentType', 'file');
+          formData.append('title', file.name);
+
+          await apiRequest('POST', '/api/documents/upload', formData);
+        }
+      }
+
+      // Clear form and files
+      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+      setIsCreateDialogOpen(false);
+      setAttachedFiles([]);
+      form.reset();
+      toast({
+        title: 'Feature request submitted',
+        description: `Your feature request has been submitted successfully${attachedFiles.length > 0 ? ` with ${attachedFiles.length} attachment(s)` : ''}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit feature request',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle file attachments for mockups, wireframes, or supporting documents
@@ -629,10 +669,10 @@ export default function IdeaBox() {
                         </Button>
                         <Button
                           type='submit'
-                          disabled={createFeatureRequestMutation.isPending}
+                          disabled={isSubmitting}
                           data-testid='button-submit-feature-request'
                         >
-                          {createFeatureRequestMutation.isPending
+                          {isSubmitting
                             ? 'Submitting...'
                             : 'Submit Feature Request'}
                         </Button>

@@ -176,7 +176,9 @@ export interface IStorage {
   createBug(_bug: InsertBug): Promise<Bug>;
   updateBug(_id: string, _updates: Partial<Bug>): Promise<Bug | undefined>;
   getFeatureRequests(): Promise<FeatureRequest[]>;
+  getFeatureRequestsForUser(_userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest[]>;
   getFeatureRequest(_id: string): Promise<FeatureRequest | undefined>;
+  getFeatureRequest(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest | undefined>;
   createFeatureRequest(_request: InsertFeatureRequest): Promise<FeatureRequest>;
   updateFeatureRequest(
     _id: string,
@@ -933,10 +935,40 @@ export class MemStorage implements IStorage {
   }
 
   async getFeatureRequests(): Promise<FeatureRequest[]> {
-    return Array.from(this.featureRequests.values());
+    const featureRequests = Array.from(this.featureRequests.values());
+    // Add attachment information to each feature request
+    const enrichedRequests = await Promise.all(
+      featureRequests.map(async (request) => {
+        // For now, return empty attachments - will be implemented once storage is fixed
+        const attachments: any[] = [];
+        return {
+          ...request,
+          attachmentCount: attachments.length,
+          attachments: []
+        };
+      })
+    );
+    return enrichedRequests;
   }
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
-    return this.featureRequests.get(id);
+  
+  async getFeatureRequestsForUser(userId: string, role: string, organizationId?: string): Promise<FeatureRequest[]> {
+    // For now, just return all feature requests - proper filtering can be added later
+    return this.getFeatureRequests();
+  }
+  
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined>;
+  async getFeatureRequest(id: string, userId?: string, role?: string, organizationId?: string): Promise<FeatureRequest | undefined> {
+    const request = this.featureRequests.get(id);
+    if (!request) return undefined;
+    
+    // For now, return empty attachments - will be implemented once storage is fixed
+    const attachments: any[] = [];
+    
+    return {
+      ...request,
+      attachmentCount: attachments.length,
+      attachments: []
+    };
   }
   async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
     const id = randomUUID();
