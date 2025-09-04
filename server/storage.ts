@@ -172,9 +172,13 @@ export interface IStorage {
   getCommentsByDemand(_demandId: string): Promise<DemandComment[]>;
   createDemandComment(_comment: InsertDemandComment): Promise<DemandComment>;
   getBugs(): Promise<Bug[]>;
+  getBugsForUser(_userId: string, _userRole: string, _organizationId?: string): Promise<Bug[]>;
   getBug(_id: string): Promise<Bug | undefined>;
+  getBug(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<Bug | undefined>;
   createBug(_bug: InsertBug): Promise<Bug>;
   updateBug(_id: string, _updates: Partial<Bug>): Promise<Bug | undefined>;
+  updateBug(_id: string, _updates: Partial<Bug>, _userId: string, _role: string): Promise<Bug | undefined>;
+  deleteBug(_id: string, _userId: string, _role: string): Promise<boolean>;
   getFeatureRequests(): Promise<FeatureRequest[]>;
   getFeatureRequestsForUser(_userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest[]>;
   getFeatureRequest(_id: string): Promise<FeatureRequest | undefined>;
@@ -905,9 +909,42 @@ export class MemStorage implements IStorage {
   async getBugs(): Promise<Bug[]> {
     return Array.from(this.bugs.values());
   }
-  async getBug(id: string): Promise<Bug | undefined> {
-    return this.bugs.get(id);
+  
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
+    const allBugs = Array.from(this.bugs.values());
+    
+    if (userRole === 'admin') {
+      // Admin can see all bugs
+      return allBugs;
+    } else if (userRole === 'manager' && organizationId) {
+      // For managers, return all bugs for now (can be refined later based on organization)
+      return allBugs;
+    } else {
+      // For residents and tenants, return only their own bugs
+      return allBugs.filter(bug => bug.createdBy === userId);
+    }
   }
+  
+  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    // If access control parameters are provided, check permissions
+    if (userId && role) {
+      if (role === 'admin') {
+        return bug;
+      } else if (role === 'manager' && organizationId) {
+        return bug;
+      } else if (bug.createdBy === userId) {
+        return bug;
+      } else {
+        return undefined; // Access denied
+      }
+    }
+    
+    return bug;
+  }
+  
   async createBug(bug: InsertBug): Promise<Bug> {
     const id = randomUUID();
     const newBug: Bug = {
@@ -926,12 +963,38 @@ export class MemStorage implements IStorage {
     this.bugs.set(id, newBug);
     return newBug;
   }
-  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+  
+  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
     const existing = this.bugs.get(id);
     if (!existing) return undefined;
+    
+    // If access control parameters are provided, check permissions
+    if (userId && role) {
+      if (role === 'admin' || role === 'manager') {
+        // Admin and managers can edit any bug
+      } else if (existing.createdBy === userId) {
+        // Users can edit their own bugs
+      } else {
+        return undefined; // Access denied
+      }
+    }
+    
     const updated = { ...existing, ...updates, updatedAt: new Date() };
     this.bugs.set(id, updated);
     return updated;
+  }
+  
+  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
+    const existing = this.bugs.get(id);
+    if (!existing) return false;
+    
+    // Check permissions - only admins and bug creators can delete bugs
+    if (role === 'admin' || existing.createdBy === userId) {
+      this.bugs.delete(id);
+      return true;
+    }
+    
+    return false; // Access denied
   }
 
   async getFeatureRequests(): Promise<FeatureRequest[]> {
@@ -1565,14 +1628,25 @@ class ProductionFallbackStorage implements IStorage {
   async getBugs(): Promise<Bug[]> {
     return [];
   }
-  async getBug(id: string): Promise<Bug | undefined> {
+  
+  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
+    return [];
+  }
+  
+  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
     return undefined;
   }
+  
   async createBug(bug: InsertBug): Promise<Bug> {
     throw new Error('Not implemented in fallback');
   }
-  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined> {
+  
+  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
     return undefined;
+  }
+  
+  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
+    return false;
   }
   async getFeatureRequests(): Promise<FeatureRequest[]> {
     return [];
