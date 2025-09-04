@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import {
   Dialog,
   DialogContent,
@@ -78,7 +77,7 @@ const bugFormSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
   environment: z.string().max(200, 'Environment description must be less than 200 characters').optional(),
@@ -368,8 +367,7 @@ export default function BugReports() {
                     <DialogHeader>
                       <DialogTitle>Report a Bug</DialogTitle>
                     </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
                       <div>
                         <Label htmlFor='title'>Title*</Label>
                         <Input
@@ -545,8 +543,7 @@ export default function BugReports() {
                           {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
                         </Button>
                       </div>
-                      </form>
-                    </Form>
+                    </form>
                   </DialogContent>
                 </Dialog>
 
