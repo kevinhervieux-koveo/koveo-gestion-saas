@@ -161,7 +161,7 @@ PrivacyPolicyPage() {
                 <br />
                 Koveo Gestion
                 <br />
-                Courriel : privacy@koveogestion.com
+                Courriel : info@koveo-gestion.com
                 <br />
                 Téléphone : 1-514-712-8441
               </p>
