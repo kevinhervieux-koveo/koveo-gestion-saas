@@ -13,9 +13,9 @@ import { registerRoutes } from './routes';
 console.log('🚀 Server starting with enhanced debugging...');
 
 const app = express();
-// Configure port - always use environment PORT or fallback to 5000
-const port = parseInt(process.env.PORT || '5000', 10);
-const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
+// Configure port - use environment PORT or appropriate fallback for deployment
+const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
+const host = '0.0.0.0'; // Always bind to all interfaces for deployments
 
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
