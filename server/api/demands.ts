@@ -214,9 +214,19 @@ export function registerDemandRoutes(app: Express) {
         validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
       }
 
+      // Ensure required fields are present
+      if (!validatedData.buildingId || !validatedData.residenceId) {
+        return res.status(400).json({ 
+          message: 'Building and residence are required to create a demand' 
+        });
+      }
+
       const demandInsertData = {
         ...validatedData,
+        buildingId: validatedData.buildingId,
+        residenceId: validatedData.residenceId,
         submitterId: user.id,
+        status: (validatedData.status as 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled') || 'draft',
       };
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();

@@ -438,7 +438,11 @@ ResidentDemandsPage() {
                       )}
                     />
                     <DialogFooter>
-                      <Button type='submit' disabled={createDemandMutation.isPending}>
+                      <Button 
+                        type='submit' 
+                        disabled={createDemandMutation.isPending}
+                        data-testid="button-create-draft"
+                      >
                         {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
                       </Button>
                     </DialogFooter>
