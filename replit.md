@@ -51,6 +51,7 @@ Preferred communication style: Simple, everyday language.
 ### Development Framework (Pillar Methodology)
 
 - **Core Principles**: Modular components for quality assurance, testing, and security.
+- **Hot Reload System**: Automated development server with file watching and rapid rebuild capabilities.
 - **Monitoring**: Real-time workspace status, automated quality metrics.
 - **Configuration**: Dynamic framework configuration.
 - **Progress Tracking**: Automated validation.
@@ -107,6 +108,16 @@ Preferred communication style: Simple, everyday language.
 - **Replit**: Development and hosting platform.
 - **Express.js**: Web application framework.
 - **SendGrid**: Email service integration (for password reset and invitations).
+
+### Hot Reload Development System (September 2025)
+
+- **Automated Development Server**: Implemented comprehensive hot reload system using chokidar file watching and intelligent restart logic
+- **Smart File Detection**: Monitors TypeScript, React, and configuration files while excluding documentation and test files
+- **Rapid Rebuild Capabilities**: 1-3 second rebuild times with debounced restart logic to prevent excessive rebuilds
+- **Selective Restart Logic**: Frontend changes handled by Vite HMR, backend changes trigger server restart, shared code changes restart entire stack
+- **Development Workflow Integration**: Seamless integration with existing Vite + TSX setup, preserves production build processes
+- **Replit Environment Optimization**: Configured for Replit's container constraints with proper process management and graceful shutdown
+- **Multiple Development Modes**: Standard hot reload (npm run dev), manual mode (dev:manual), enhanced watching (dev:watch), and fast mode (dev:fast)
 
 ## Recent Changes
 
