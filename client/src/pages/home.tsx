@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { HamburgerMenu } from '@/components/ui/hamburger-menu';
 import { TrialRequestForm } from '@/components/ui/trial-request-form';
-import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
+import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle, LogIn } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
@@ -14,7 +15,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  */
 export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
   return (
@@ -31,7 +32,29 @@ export default function HomePage() {
               data-testid='logo-link'
             />
           </div>
-          <HamburgerMenu />
+          <div className='flex items-center gap-4'>
+            {/* Language Switcher */}
+            <div className='hidden sm:block'>
+              <LanguageSwitcher />
+            </div>
+            
+            {/* Login Button - only show if not authenticated */}
+            {!isAuthenticated && (
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => setLocation('/login')}
+                className='hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800'
+                data-testid='header-login-button'
+              >
+                <LogIn className='w-4 h-4' />
+                {language === 'fr' ? 'Connexion' : 'Login'}
+              </Button>
+            )}
+            
+            {/* Hamburger Menu */}
+            <HamburgerMenu />
+          </div>
         </div>
       </header>
 
