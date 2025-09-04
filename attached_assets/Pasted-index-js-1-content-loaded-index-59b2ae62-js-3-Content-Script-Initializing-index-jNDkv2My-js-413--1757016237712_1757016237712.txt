@@ -1,0 +1,146 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-jNDkv2My.js:413  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-jNDkv2My.js:413
+d @ index-jNDkv2My.js:280
+_ @ index-jNDkv2My.js:280
+start @ index-jNDkv2My.js:280
+fetch @ index-jNDkv2My.js:280
+#d @ index-jNDkv2My.js:280
+onSubscribe @ index-jNDkv2My.js:280
+subscribe @ index-jNDkv2My.js:280
+(anonymous) @ index-jNDkv2My.js:293
+Gy @ index-jNDkv2My.js:152
+react_stack_bottom_frame @ index-jNDkv2My.js:261
+be @ index-jNDkv2My.js:77
+fs @ index-jNDkv2My.js:182
+jg @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+na @ index-jNDkv2My.js:195
+Jg @ index-jNDkv2My.js:195
+Sv @ index-jNDkv2My.js:195
+ys @ index-jNDkv2My.js:195
+Dv @ index-jNDkv2My.js:217
+vs @ index-jNDkv2My.js:217
+vv @ index-jNDkv2My.js:195
+Uf @ index-jNDkv2My.js:195
+lv @ index-jNDkv2My.js:195
+sv @ index-jNDkv2My.js:195
+Cv @ index-jNDkv2My.js:217
+r @ index-jNDkv2My.js:43
+<u_>
+LA.Tc.jsxDEV @ index-jNDkv2My.js:35
+nk @ index-jNDkv2My.js:417
+react_stack_bottom_frame @ index-jNDkv2My.js:261
+Hd @ index-jNDkv2My.js:152
+hf @ index-jNDkv2My.js:173
+xf @ index-jNDkv2My.js:182
+be @ index-jNDkv2My.js:77
+mv @ index-jNDkv2My.js:195
+fv @ index-jNDkv2My.js:195
+zf @ index-jNDkv2My.js:195
+sv @ index-jNDkv2My.js:195
+Cv @ index-jNDkv2My.js:217
+r @ index-jNDkv2My.js:43
+<nk>
+LA.Tc.jsxDEV @ index-jNDkv2My.js:35
+(anonymous) @ index-jNDkv2My.js:417
+index-jNDkv2My.js:168 ReferenceError: index is not defined
+    at security-Bj9KiOSi.js:11:6956
+    at Array.map (<anonymous>)
+    at Y (security-Bj9KiOSi.js:11:6853)
+    at Object.react_stack_bottom_frame (index-jNDkv2My.js:261:12449)
+    at Hd (index-jNDkv2My.js:152:806)
+    at hf (index-jNDkv2My.js:173:5840)
+    at xf (index-jNDkv2My.js:182:9691)
+    at be (index-jNDkv2My.js:77:109)
+    at mv (index-jNDkv2My.js:195:29869)
+    at fv (index-jNDkv2My.js:195:28535)
+
+The above error occurred in the <Y> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, S_.
+
+overrideMethod @ hook.js:608
+bg @ index-jNDkv2My.js:168
+wg @ index-jNDkv2My.js:173
+be @ index-jNDkv2My.js:77
+c.componentDidCatch.e.callback @ index-jNDkv2My.js:173
+Hy @ index-jNDkv2My.js:139
+Vy @ index-jNDkv2My.js:139
+be @ index-jNDkv2My.js:77
+Hg @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+Da @ index-jNDkv2My.js:195
+Gg @ index-jNDkv2My.js:195
+gv @ index-jNDkv2My.js:195
+Uf @ index-jNDkv2My.js:195
+lv @ index-jNDkv2My.js:195
+<...>
+UA.r.createElement @ index-jNDkv2My.js:22
+uw @ index-jNDkv2My.js:280
+Se @ index-jNDkv2My.js:280
+react_stack_bottom_frame @ index-jNDkv2My.js:261
+Hd @ index-jNDkv2My.js:152
+hf @ index-jNDkv2My.js:173
+xf @ index-jNDkv2My.js:182
+be @ index-jNDkv2My.js:77
+mv @ index-jNDkv2My.js:195
+fv @ index-jNDkv2My.js:195
+zf @ index-jNDkv2My.js:195
+sv @ index-jNDkv2My.js:195
+Cv @ index-jNDkv2My.js:217
+r @ index-jNDkv2My.js:43
+<Se>
+LA.Tc.jsxDEV @ index-jNDkv2My.js:35
+tk @ index-jNDkv2My.js:417
+react_stack_bottom_frame @ index-jNDkv2My.js:261
+Hd @ index-jNDkv2My.js:152
+hf @ index-jNDkv2My.js:173
+xf @ index-jNDkv2My.js:182
+be @ index-jNDkv2My.js:77
+mv @ index-jNDkv2My.js:195
+fv @ index-jNDkv2My.js:195
+zf @ index-jNDkv2My.js:195
+sv @ index-jNDkv2My.js:195
+Cv @ index-jNDkv2My.js:217
+r @ index-jNDkv2My.js:43
+<tk>
+LA.Tc.jsxDEV @ index-jNDkv2My.js:35
+nk @ index-jNDkv2My.js:417
+react_stack_bottom_frame @ index-jNDkv2My.js:261
+Hd @ index-jNDkv2My.js:152
+hf @ index-jNDkv2My.js:173
+xf @ index-jNDkv2My.js:182
+be @ index-jNDkv2My.js:77
+mv @ index-jNDkv2My.js:195
+fv @ index-jNDkv2My.js:195
+zf @ index-jNDkv2My.js:195
+sv @ index-jNDkv2My.js:195
+Cv @ index-jNDkv2My.js:217
+r @ index-jNDkv2My.js:43
+<nk>
+LA.Tc.jsxDEV @ index-jNDkv2My.js:35
+(anonymous) @ index-jNDkv2My.js:417

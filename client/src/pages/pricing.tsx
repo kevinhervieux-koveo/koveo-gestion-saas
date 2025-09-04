@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import {
   Check,
   ArrowRight,
@@ -14,6 +15,7 @@ import {
   MessageSquare,
   Calendar,
   Settings,
+  LogIn,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -26,7 +28,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  */
 export default function PricingPage() {
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
   const mainFeatures = [
@@ -97,58 +99,43 @@ export default function PricingPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'>
-      {/* Navigation */}
-      <nav className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between items-center h-16'>
-            <div className='flex items-center'>
-              <Link href='/'>
-                <img
-                  src={koveoLogo}
-                  alt='Koveo Gestion'
-                  className='h-8 w-auto cursor-pointer'
-                  data-testid='nav-logo'
-                />
-              </Link>
+      {/* Navigation Header */}
+      <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>
+        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
+          <div className='flex items-center'>
+            <img
+              src={koveoLogo}
+              alt='Koveo Gestion'
+              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
+              onClick={() => setLocation('/')}
+              data-testid='logo-link'
+            />
+          </div>
+          <div className='flex items-center gap-4'>
+            {/* Language Switcher */}
+            <div className='hidden sm:block'>
+              <LanguageSwitcher />
             </div>
-            <div className='hidden md:flex items-center space-x-8'>
-              <Link href='/' className='text-gray-600 hover:text-koveo-navy transition-colors'>
-                {t('home')}
-              </Link>
-              <Link
-                href='/features'
-                className='text-gray-600 hover:text-koveo-navy transition-colors'
+            
+            {/* Login Button - only show if not authenticated */}
+            {!isAuthenticated && (
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => setLocation('/login')}
+                className='hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800'
+                data-testid='header-login-button'
               >
-                {t('features')}
-              </Link>
-              <Link href='/pricing' className='text-koveo-navy font-medium'>
-                {t('pricing')}
-              </Link>
-              <Link
-                href='/security'
-                className='text-gray-600 hover:text-koveo-navy transition-colors'
-              >
-                {t('security')}
-              </Link>
-              {isAuthenticated ? (
-                <Button
-                  onClick={() => setLocation('/dashboard/quick-actions')}
-                  data-testid='nav-dashboard'
-                >
-                  {t('goToDashboard')}
-                </Button>
-              ) : (
-                <Button onClick={() => setLocation('/login')} data-testid='nav-get-started'>
-                  {t('getStarted')}
-                </Button>
-              )}
-            </div>
-            <div className='md:hidden'>
-              <HamburgerMenu />
-            </div>
+                <LogIn className='w-4 h-4' />
+                {language === 'fr' ? 'Connexion' : 'Login'}
+              </Button>
+            )}
+            
+            {/* Hamburger Menu */}
+            <HamburgerMenu />
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Hero Section */}
       <section className='py-20 px-4 sm:px-6 lg:px-8'>
