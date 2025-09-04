@@ -293,6 +293,10 @@ export default function IdeaBox() {
       // First create the feature request
       const featureRequestResponse = await apiRequest('POST', '/api/feature-requests', data);
       const featureRequestId = (featureRequestResponse as any).id;
+      
+      if (!featureRequestId) {
+        throw new Error('Failed to create feature request - no ID returned');
+      }
 
       // Upload attachments if any
       if (attachedFiles.length > 0) {
@@ -301,7 +305,7 @@ export default function IdeaBox() {
           const formData = new FormData();
           formData.append('file', file); // API expects 'file' not 'files'
           formData.append('attachedToType', 'feature_request');
-          formData.append('attachedToId', featureRequestId);
+          formData.append('attachedToId', String(featureRequestId));
           formData.append('category', 'ATTACHMENT');
           formData.append('documentType', 'other'); // Use 'other' instead of 'file'
           formData.append('name', file.name); // API expects 'name' field
@@ -806,7 +810,10 @@ export default function IdeaBox() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align='end'>
-                              <DropdownMenuItem onClick={() => handleEdit(request)}>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(request);
+                              }}>
                                 <Edit2 className='w-4 h-4 mr-2' />
                                 Edit
                               </DropdownMenuItem>
