@@ -935,7 +935,32 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      const residences = await storage.getUserResidences(userId);
+      // Get full residence details with building information
+      const residencesWithDetails = await storage.getUserResidencesWithDetails(userId);
+      
+      // Transform the data to match the expected frontend format
+      const residences = residencesWithDetails.map(item => ({
+        id: item.residence.id,
+        unitNumber: item.residence.unitNumber,
+        floor: item.residence.floor,
+        squareFootage: item.residence.squareFootage,
+        bedrooms: item.residence.bedrooms,
+        bathrooms: item.residence.bathrooms,
+        balcony: item.residence.balcony,
+        parkingSpaceNumbers: item.residence.parkingSpaceNumbers,
+        storageSpaceNumbers: item.residence.storageSpaceNumbers,
+        isActive: item.residence.isActive,
+        buildingId: item.residence.buildingId,
+        building: {
+          id: item.building.id,
+          name: item.building.name,
+          address: item.building.address,
+          city: item.building.city,
+          province: item.building.province,
+          postalCode: item.building.postalCode,
+        },
+      }));
+
       res.json(residences);
     } catch (error: any) {
       console.error('❌ Error getting user residences:', error);
