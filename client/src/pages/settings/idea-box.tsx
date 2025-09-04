@@ -48,6 +48,7 @@ import {
   User,
   Tag,
   Edit2,
+  Eye,
   Trash2,
   MoreHorizontal,
   TrendingUp,
@@ -380,13 +381,9 @@ export default function IdeaBox() {
   };
 
   const handleFeatureRequestClick = (featureRequest: FeatureRequest) => {
-    if (canEditFeatureRequest()) {
-      handleEdit(featureRequest);
-    } else {
-      // For non-admin users, always show view dialog
-      setViewingFeatureRequest(featureRequest);
-      setIsViewDialogOpen(true);
-    }
+    // Always show view dialog when clicking on card
+    setViewingFeatureRequest(featureRequest);
+    setIsViewDialogOpen(true);
   };
 
   const handleDelete = (featureRequestId: string) => {
@@ -813,6 +810,14 @@ export default function IdeaBox() {
                             <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
+                                setViewingFeatureRequest(request);
+                                setIsViewDialogOpen(true);
+                              }}>
+                                <Eye className='w-4 h-4 mr-2' />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
                                 handleEdit(request);
                               }}>
                                 <Edit2 className='w-4 h-4 mr-2' />
@@ -1002,6 +1007,50 @@ export default function IdeaBox() {
                     />
                   </div>
 
+                  {/* Attached Files Section */}
+                  <div className='border-t pt-4'>
+                    <h4 className='font-medium mb-3 flex items-center gap-2'>
+                      <Paperclip className='w-4 h-4' />
+                      Attached Files
+                    </h4>
+                    {editingFeatureRequest?.attachments && editingFeatureRequest.attachments.length > 0 ? (
+                      <div className='space-y-2'>
+                        {editingFeatureRequest.attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <div className='w-8 h-8 bg-blue-100 rounded flex items-center justify-center'>
+                                <Paperclip className='w-4 h-4 text-blue-600' />
+                              </div>
+                              <div>
+                                <p className='font-medium text-sm'>{attachment.name}</p>
+                                <p className='text-xs text-gray-500'>
+                                  {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
+                              className='flex items-center gap-1'
+                              data-testid={`button-download-${attachment.id}`}
+                            >
+                              📁 View
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className='text-center py-4 text-gray-500 bg-gray-50 rounded-lg'>
+                        <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
+                        <p className='text-sm'>No files attached to this feature request</p>
+                      </div>
+                    )}
+                  </div>
+
                   <div className='flex justify-end gap-2 pt-4'>
                     <Button
                       type='button'
@@ -1057,47 +1106,6 @@ export default function IdeaBox() {
                     <Badge variant='outline'>📍 {viewingFeatureRequest.page}</Badge>
                   </div>
 
-                  <div className='border-t pt-4'>
-                    <h4 className='font-medium mb-3 flex items-center gap-2'>
-                      <Paperclip className='w-4 h-4' />
-                      Attached Files
-                    </h4>
-                    {viewingFeatureRequest.attachments && viewingFeatureRequest.attachments.length > 0 ? (
-                      <div className='space-y-2'>
-                        {viewingFeatureRequest.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
-                          >
-                            <div className='flex items-center gap-3'>
-                              <div className='w-8 h-8 bg-blue-100 rounded flex items-center justify-center'>
-                                <Paperclip className='w-4 h-4 text-blue-600' />
-                              </div>
-                              <div>
-                                <p className='font-medium text-sm'>{attachment.name}</p>
-                                <p className='text-xs text-gray-500'>
-                                  {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
-                              className='flex items-center gap-1'
-                            >
-                              📁 View
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className='text-center py-4 text-gray-500 bg-gray-50 rounded-lg'>
-                        <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
-                        <p className='text-sm'>No files attached to this feature request</p>
-                      </div>
-                    )}
-                  </div>
 
                   <div className='flex justify-end pt-4'>
                     <Button

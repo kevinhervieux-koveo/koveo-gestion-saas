@@ -2328,8 +2328,6 @@ export class OptimizedDatabaseStorage implements IStorage {
                 )
               );
 
-            console.log(`🔍 ATTACHMENT DEBUG: Request ${request.id} (${request.title}) has ${attachments.length} attachments:`, attachments.map(a => a.name));
-
             return {
               ...request,
               attachmentCount: attachments.length,
@@ -2343,8 +2341,6 @@ export class OptimizedDatabaseStorage implements IStorage {
             };
           })
         );
-
-        console.log('🔍 ATTACHMENT DEBUG: Final requests with attachment counts:', requestsWithAttachments.map(r => ({ id: r.id, title: r.title, attachmentCount: r.attachmentCount })));
 
         // All users can see all feature requests, but non-admins don't see who submitted
         if (userRole === 'admin') {
