@@ -185,6 +185,9 @@ export function registerDemandRoutes(app: Express) {
     try {
       const user = req.user;
       const demandData = req.body;
+      
+      console.log('📝 Creating demand with data:', JSON.stringify(demandData, null, 2));
+      console.log('👤 User making request:', { id: user.id, role: user.role });
 
       // Create a schema that omits submitterId since we'll auto-populate it
       const demandInputSchema = insertDemandSchema.omit({ submitterId: true });
@@ -233,7 +236,9 @@ export function registerDemandRoutes(app: Express) {
 
       res.status(201).json(newDemand[0]);
     } catch (error: any) {
+      console.error('❌ Create demand error:', error);
       if (error.name === 'ZodError') {
+        console.error('❌ Validation errors:', error.errors);
         return res.status(400).json({ message: 'Invalid demand data', errors: error.errors });
       }
       res.status(500).json({ message: 'Failed to create demand' });
