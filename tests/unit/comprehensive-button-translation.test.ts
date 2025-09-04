@@ -187,6 +187,98 @@ describe('Comprehensive Button Translation Coverage', () => {
     });
   });
 
+  describe('French-Only Pages Translation Coverage', () => {
+    const frenchOnlyPageKeys = [
+      'security',
+      'ourStory', 
+      'privacyPolicy'
+    ];
+
+    it('should have French-only page navigation translations in both languages', () => {
+      frenchOnlyPageKeys.forEach(key => {
+        languages.forEach(lang => {
+          const t = translations[lang] as any;
+          expect(t[key]).toBeDefined();
+          expect(typeof t[key]).toBe('string');
+          expect(t[key].length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    it('should have appropriate navigation text for French-only pages', () => {
+      const en = translations.en;
+      const fr = translations.fr;
+      
+      // English should indicate what these pages are about
+      expect(en.security).toBe('Security');
+      expect(en.ourStory).toBe('Our Story');
+      expect(en.privacyPolicy).toBe('Privacy Policy');
+      
+      // French should have proper Quebec French terms
+      expect(fr.security).toBe('Sécurité');
+      expect(fr.ourStory).toBe('Notre histoire');
+      expect(fr.privacyPolicy).toBe('Politique de confidentialité');
+    });
+  });
+
+  describe('Bidirectional Translation Validation', () => {
+    it('should have consistent translation coverage regardless of direction', () => {
+      const allEnglishKeys = Object.keys(translations.en);
+      const allFrenchKeys = Object.keys(translations.fr);
+      
+      // Both languages should have exactly the same keys
+      expect(allEnglishKeys.sort()).toEqual(allFrenchKeys.sort());
+    });
+
+    it('should handle Quebec-specific content appropriately in both directions', () => {
+      const quebecSpecificKeys = [
+        'law25Compliant',
+        'quebecCompliance', 
+        'bilingualSupport',
+        'privacyPolicy'
+      ];
+
+      quebecSpecificKeys.forEach(key => {
+        const en = (translations.en as any)[key];
+        const fr = (translations.fr as any)[key];
+        
+        if (en && fr) {
+          // English versions should reference Quebec
+          if (key.includes('quebec') || key.includes('law25')) {
+            expect(en.toLowerCase()).toMatch(/quebec|law 25|québec|loi 25/i);
+          }
+          
+          // French versions should use proper Quebec terminology
+          if (key.includes('quebec') || key.includes('law25')) {
+            expect(fr.toLowerCase()).toMatch(/québec|loi 25|quebec|conformité québécoise/i);
+          }
+        }
+      });
+    });
+
+    it('should support language switching for navigation to French-only pages', () => {
+      // These keys help users understand what French-only pages contain
+      const navigationSupportKeys = [
+        'security',
+        'ourStory',
+        'privacyPolicy',
+        'features',
+        'navigation',
+        'menu'
+      ];
+
+      navigationSupportKeys.forEach(key => {
+        languages.forEach(lang => {
+          const t = translations[lang] as any;
+          if (t[key]) {
+            expect(typeof t[key]).toBe('string');
+            expect(t[key].length).toBeGreaterThan(0);
+          }
+        });
+      });
+    });
+  });
+
   describe('Translation Consistency Validation', () => {
     it('should have no missing translations between languages', () => {
       const enKeys = Object.keys(translations.en);
