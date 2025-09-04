@@ -200,7 +200,7 @@ export default function DemandDetailsPopup({
     user &&
     (user.role === 'admin' ||
       user.role === 'manager' ||
-      (demand.submitterId === user.id && ['submitted'].includes(demand.status)));
+      (demand.submitterId === user.id && demand.status === 'submitted'));
 
   const canDelete =
     demand &&
@@ -214,7 +214,7 @@ export default function DemandDetailsPopup({
     user &&
     (user.role === 'admin' ||
       user.role === 'manager' ||
-      (demand.submitterId === user.id && user.role === 'resident'));
+      (demand.submitterId === user.id && user.role === 'resident' && demand.status === 'submitted'));
 
   const canEscalate =
     demand &&
