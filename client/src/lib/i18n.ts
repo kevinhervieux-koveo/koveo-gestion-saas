@@ -417,6 +417,7 @@ export interface Translations {
   buildingDocumentsButton: string;
   residenceDocumentsButton: string;
   viewDocumentsButton: string;
+  startFreeTrial: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -968,6 +969,7 @@ const translations: Record<Language, Translations> = {
     buildingDocumentsButton: 'Building Documents',
     residenceDocumentsButton: 'Residence Documents',
     viewDocumentsButton: 'View Documents',
+    startFreeTrial: 'Start your free trial',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1518,6 +1520,7 @@ const translations: Record<Language, Translations> = {
     buildingDocumentsButton: 'Documents du bâtiment',
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
+    startFreeTrial: 'Commencez votre essai gratuit',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',
