@@ -115,17 +115,17 @@ export const userOrganizations = pgTable('user_organizations', {
  * Supports role-based invitations with expiration and security features.
  */
 export const invitations = pgTable('invitations', {
-  id: text('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: text('organization_id'),
-  buildingId: text('building_id'),
+  organizationId: varchar('organization_id'),
+  buildingId: varchar('building_id'),
   residenceId: text('residence_id'),
   email: text('email').notNull(),
   token: text('token').notNull().unique(),
   role: userRoleEnum('role').notNull(),
   status: invitationStatusEnum('status').notNull().default('pending'),
-  invitedByUserId: text('invited_by_user_id').notNull(),
+  invitedByUserId: varchar('invited_by_user_id').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   tokenHash: text('token_hash').notNull(),
   usageCount: integer('usage_count').notNull().default(0),
@@ -135,7 +135,7 @@ export const invitations = pgTable('invitations', {
   securityLevel: text('security_level'),
   requires2fa: boolean('requires_2fa').notNull().default(false),
   acceptedAt: timestamp('accepted_at'),
-  acceptedBy: text('accepted_by_user_id'),
+  acceptedBy: varchar('accepted_by_user_id'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   lastAccessedAt: timestamp('last_accessed_at'),
@@ -172,7 +172,7 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  invitationId: text('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
+  invitationId: varchar('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
   action: text('action').notNull(),
   performedBy: uuid('performed_by').references(() => users.id),
   ipAddress: text('ip_address'),
