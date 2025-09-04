@@ -969,6 +969,246 @@ export function setupAuthRoutes(app: any) {
   });
 }
 
+/**
+ * Document RBAC Functions - Role-Based Access Control for Documents
+ * Implements the four-tier permission system: Admin > Manager > Resident > Tenant
+ */
+
+/**
+ * Check if user can view a specific document based on RBAC rules
+ * @param user - The authenticated user
+ * @param document - The document to check access for
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can view document
+ */
+export async function canViewDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can view all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can view all documents in their organization
+    if (user.role === 'manager') {
+      // Check if document belongs to manager's organization
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true; // Manager can view organization-level docs
+    }
+
+    // Resident: Can view documents in their residence/building
+    if (user.role === 'resident') {
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      if (document.buildingId) {
+        // Can view building docs if they live in that building
+        const userBuildingIds = userResidences?.map(async ur => {
+          const residence = await storage.getResidence(ur.residenceId);
+          return residence?.buildingId;
+        });
+        const buildingIds = await Promise.all(userBuildingIds || []);
+        return buildingIds.includes(document.buildingId);
+      }
+      return false;
+    }
+
+    // Tenant: Can only view documents marked as visible to tenants
+    if (user.role === 'tenant') {
+      if (!document.isVisibleToTenants) {
+        return false;
+      }
+      
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      if (document.buildingId) {
+        const userBuildingIds = userResidences?.map(async ur => {
+          const residence = await storage.getResidence(ur.residenceId);
+          return residence?.buildingId;
+        });
+        const buildingIds = await Promise.all(userBuildingIds || []);
+        return buildingIds.includes(document.buildingId);
+      }
+      return false;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Document view permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can edit a specific document
+ * @param user - The authenticated user
+ * @param document - The document to check
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can edit document
+ */
+export async function canEditDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can edit all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can edit all documents in their organization
+    if (user.role === 'manager') {
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can edit documents they created or in their residence
+    if (user.role === 'resident') {
+      // Can edit own documents
+      if (document.uploadedBy === user.id) {
+        return true;
+      }
+      
+      // Can edit residence documents
+      if (document.residenceId) {
+        return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
+      }
+      return false;
+    }
+
+    // Tenant: Cannot edit documents (read-only access)
+    return false;
+  } catch (error) {
+    console.error('Document edit permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can delete a specific document
+ * @param user - The authenticated user
+ * @param document - The document to check
+ * @param userResidences - User's residence associations
+ * @returns Promise<boolean> - True if user can delete document
+ */
+export async function canDeleteDocument(
+  user: AuthenticatedUser, 
+  document: any, 
+  userResidences?: any[]
+): Promise<boolean> {
+  try {
+    // Admin: Can delete all documents
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can delete documents in their organization
+    if (user.role === 'manager') {
+      if (document.buildingId) {
+        const building = await storage.getBuilding(document.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (document.residenceId) {
+        const residence = await storage.getResidence(document.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can only delete documents they uploaded
+    if (user.role === 'resident') {
+      return document.uploadedBy === user.id;
+    }
+
+    // Tenant: Cannot delete documents
+    return false;
+  } catch (error) {
+    console.error('Document delete permission check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user can create documents in a specific context
+ * @param user - The authenticated user
+ * @param context - The context (buildingId, residenceId, or organization)
+ * @returns Promise<boolean> - True if user can create documents
+ */
+export async function canCreateDocument(
+  user: AuthenticatedUser,
+  context: { buildingId?: string; residenceId?: string; organizationId?: string }
+): Promise<boolean> {
+  try {
+    // Admin: Can create documents anywhere
+    if (user.role === 'admin') {
+      return true;
+    }
+
+    // Manager: Can create documents in their organization
+    if (user.role === 'manager') {
+      if (context.organizationId) {
+        return context.organizationId === user.organizationId;
+      }
+      if (context.buildingId) {
+        const building = await storage.getBuilding(context.buildingId);
+        return building?.organizationId === user.organizationId;
+      }
+      if (context.residenceId) {
+        const residence = await storage.getResidence(context.residenceId);
+        if (residence) {
+          const building = await storage.getBuilding(residence.buildingId);
+          return building?.organizationId === user.organizationId;
+        }
+      }
+      return true;
+    }
+
+    // Resident: Can create documents in their residence
+    if (user.role === 'resident') {
+      if (context.residenceId) {
+        // Check if user lives in this residence
+        const userResidences = await storage.getUserResidences(user.id);
+        return userResidences.some(ur => ur.residenceId === context.residenceId);
+      }
+      return false;
+    }
+
+    // Tenant: Cannot create documents
+    return false;
+  } catch (error) {
+    console.error('Document create permission check failed:', error);
+    return false;
+  }
+}
+
 // Extended user interface for authentication context
 interface AuthenticatedUser extends User {
   organizations?: string[];

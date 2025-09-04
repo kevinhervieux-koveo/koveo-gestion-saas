@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,9 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Upload, Sparkles } from 'lucide-react';
+import { FileText, Upload, Sparkles, Paperclip } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
+import { FileUpload } from '@/components/ui/file-upload';
 
 // Unified form schema
 const billFormSchema = z.object({
@@ -156,6 +157,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -324,7 +326,17 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
   const onSubmit = (values: BillFormData) => {
     submitMutation.mutate(values);
+    // TODO: Handle attached files upload after bill creation
   };
+
+  // Handle file attachments
+  const handleFilesSelect = useCallback((files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+  }, []);
+
+  const handleFileRemove = useCallback((fileIndex: number) => {
+    setAttachedFiles(prev => prev.filter((_, index) => index !== fileIndex));
+  }, []);
 
   const renderFormFields = () => (
     <>
@@ -562,6 +574,39 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           </FormItem>
         )}
       />
+
+      {/* File Attachments */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Paperclip className="w-4 h-4 text-gray-500" />
+          <label className="text-sm font-medium text-gray-700">
+            Attachments
+          </label>
+          <span className="text-xs text-gray-500">
+            (Optional - Screenshots, receipts, supporting documents)
+          </span>
+        </div>
+        <FileUpload
+          onFilesSelect={handleFilesSelect}
+          onFilesRemove={handleFileRemove}
+          maxFiles={5}
+          maxSize={10}
+          acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
+          allowPaste={true}
+          className="border border-gray-200 rounded-lg p-4"
+          data-testid="bill-file-upload"
+        >
+          <div className="text-center py-6">
+            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">
+              Drop files here, click to browse, or paste screenshots
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Attach receipts, screenshots, or supporting documents
+            </p>
+          </div>
+        </FileUpload>
+      </div>
     </>
   );
 

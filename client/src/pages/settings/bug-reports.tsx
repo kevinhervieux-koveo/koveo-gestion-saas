@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ import {
   Edit2,
   Trash2,
   MoreHorizontal,
+  Paperclip,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +59,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 // Bug form schema
 const bugFormSchema = z.object({
@@ -75,7 +78,7 @@ const bugFormSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium'),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
   environment: z.string().max(200, 'Environment description must be less than 200 characters').optional(),
@@ -143,6 +146,7 @@ export default function BugReports() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -250,6 +254,11 @@ export default function BugReports() {
     if (editingBug) {
       updateBugMutation.mutate({ id: editingBug.id, data });
     }
+  };
+
+  // Handle file attachments
+  const handleFilesSelect = (files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
   };
 
   const handleEdit = (bug: Bug) => {
@@ -476,6 +485,48 @@ export default function BugReports() {
                           {...form.register('environment')}
                           data-testid='input-bug-environment'
                         />
+                      </div>
+
+                      {/* File Attachments */}
+                      <div className="space-y-3 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-gray-500" />
+                            <Label className="text-sm font-medium">Screenshots & Files</Label>
+                            <span className="text-xs text-gray-500">
+                              (Optional - Screenshots, error logs, console outputs)
+                            </span>
+                          </div>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
+                          />
+                        </div>
+                        {attachedFiles.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Selected files ({attachedFiles.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {attachedFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  <span className="truncate max-w-[100px]">{file.name}</span>
+                                  <button
+                                    onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                    className="text-gray-500 hover:text-red-500"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
