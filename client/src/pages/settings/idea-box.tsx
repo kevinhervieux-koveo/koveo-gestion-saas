@@ -126,6 +126,8 @@ interface FeatureRequest {
   mergedIntoId: string | null;
   createdAt: string;
   updatedAt: string;
+  attachmentCount?: number;
+  attachments?: Array<{id: string; name: string; url: string; size: number}>;
 }
 
 const categoryLabels = {
@@ -159,6 +161,8 @@ const statusColors = {
 export default function IdeaBox() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [viewingFeatureRequest, setViewingFeatureRequest] = useState<FeatureRequest | null>(null);
   const [editingFeatureRequest, setEditingFeatureRequest] = useState<FeatureRequest | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -293,6 +297,16 @@ export default function IdeaBox() {
     setAttachedFiles(prev => [...prev, ...files]);
   };
 
+  // Handle file download
+  const handleFileDownload = (fileUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const onEditSubmit = (data: AdminEditFormData) => {
     if (editingFeatureRequest) {
       updateFeatureRequestMutation.mutate({ id: editingFeatureRequest.id, data });
@@ -321,6 +335,12 @@ export default function IdeaBox() {
   const handleFeatureRequestClick = (featureRequest: FeatureRequest) => {
     if (canEditFeatureRequest()) {
       handleEdit(featureRequest);
+    } else {
+      // For non-admin users, show view dialog if there are attachments
+      if (featureRequest.attachmentCount && featureRequest.attachmentCount > 0) {
+        setViewingFeatureRequest(featureRequest);
+        setIsViewDialogOpen(true);
+      }
     }
   };
 
@@ -652,7 +672,7 @@ export default function IdeaBox() {
               filteredAndSortedFeatureRequests.map((request: FeatureRequest) => (
                 <Card
                   key={request.id}
-                  className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() || (request.attachmentCount && request.attachmentCount > 0) ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                   onClick={() => handleFeatureRequestClick(request)}
                   data-testid={`card-feature-request-${request.id}`}
                 >
@@ -707,6 +727,12 @@ export default function IdeaBox() {
                             <Badge variant='outline' className='flex items-center gap-1'>
                               <User className='w-3 h-3' />
                               Submitted by: {request.createdBy}
+                            </Badge>
+                          )}
+                          {(request.attachmentCount && request.attachmentCount > 0) && (
+                            <Badge variant='outline' className='flex items-center gap-1 bg-green-50 text-green-700 border-green-200'>
+                              <Paperclip className='w-3 h-3' />
+                              {request.attachmentCount} file{request.attachmentCount > 1 ? 's' : ''}
                             </Badge>
                           )}
                         </div>
@@ -958,6 +984,88 @@ export default function IdeaBox() {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* View Feature Request Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Feature Request Details</DialogTitle>
+              </DialogHeader>
+              {viewingFeatureRequest && (
+                <div className='space-y-4'>
+                  <div>
+                    <h3 className='text-lg font-semibold mb-2'>{viewingFeatureRequest.title}</h3>
+                    <Badge className={statusColors[viewingFeatureRequest.status as keyof typeof statusColors]}>
+                      {viewingFeatureRequest.status.replace('_', ' ').toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <h4 className='font-medium mb-1'>Description</h4>
+                    <p className='text-gray-600'>{viewingFeatureRequest.description}</p>
+                  </div>
+                  
+                  <div className='bg-blue-50 p-3 rounded-lg'>
+                    <h4 className='font-medium text-blue-800 mb-1'>Need</h4>
+                    <p className='text-blue-700'>{viewingFeatureRequest.need}</p>
+                  </div>
+
+                  <div className='flex flex-wrap gap-2'>
+                    <Badge variant='outline'>
+                      {categoryLabels[viewingFeatureRequest.category as keyof typeof categoryLabels]}
+                    </Badge>
+                    <Badge variant='outline'>📍 {viewingFeatureRequest.page}</Badge>
+                  </div>
+
+                  {viewingFeatureRequest.attachments && viewingFeatureRequest.attachments.length > 0 && (
+                    <div className='border-t pt-4'>
+                      <h4 className='font-medium mb-3 flex items-center gap-2'>
+                        <Paperclip className='w-4 h-4' />
+                        Attached Files ({viewingFeatureRequest.attachments.length})
+                      </h4>
+                      <div className='space-y-2'>
+                        {viewingFeatureRequest.attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <div className='w-8 h-8 bg-blue-100 rounded flex items-center justify-center'>
+                                <Paperclip className='w-4 h-4 text-blue-600' />
+                              </div>
+                              <div>
+                                <p className='font-medium text-sm'>{attachment.name}</p>
+                                <p className='text-xs text-gray-500'>
+                                  {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
+                              className='flex items-center gap-1'
+                            >
+                              📁 View
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className='flex justify-end pt-4'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsViewDialogOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
