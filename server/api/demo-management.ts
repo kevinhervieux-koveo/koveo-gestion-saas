@@ -48,15 +48,15 @@ export function registerDemoManagementRoutes(app: Express): void {
       const { eq, and, inArray } = await import('drizzle-orm');
       const schema = await import('../../shared/schema');
 
-      // Get Demo Test Organization
-      const demoOrg = await db.query.organizations.findFirst({
-        where: eq(schema.organizations.name, 'Demo Test Organization'),
+      // Get demo organizations (by type instead of name)
+      const demoOrgs = await db.query.organizations.findMany({
+        where: eq(schema.organizations.type, 'demo'),
       });
 
-      if (!demoOrg) {
+      if (demoOrgs.length === 0) {
         return res.status(404).json({
           success: false,
-          message: 'Demo organization not found',
+          message: 'No demo organizations found',
         });
       }
 
