@@ -24,15 +24,8 @@ jest.mock('./server/db', () => {
   };
 });
 
-// Mock the schema tables that tests import directly
-jest.mock('./shared/schema', () => {
-  const { mockSchemaObject } = require('./tests/mocks/database');
-  return {
-    ...mockSchemaObject,
-    // Also export all the original exports for other imports
-    ...jest.requireActual('./shared/schema')
-  };
-});
+// Don't mock the shared schema - let tests import real schema objects
+// The database operations themselves are mocked through ./server/db mock
 
 // Mock email service to prevent actual SendGrid calls during tests
 jest.mock('./server/services/email-service', () => ({
@@ -170,10 +163,7 @@ if (typeof BroadcastChannel === 'undefined') {
 // Mock runQuery function for integration tests
 global.runQuery = jest.fn(() => Promise.resolve([]));
 
-// Set up test database URL if missing
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/koveo_test';
-}
+// Database URL is now set in global setup, don't override here
 
 // Mock implementations for browser APIs
 (global as any).ResizeObserver = function () {

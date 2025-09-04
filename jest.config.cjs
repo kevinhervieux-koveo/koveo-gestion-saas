@@ -9,6 +9,9 @@ const config = {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
+    // Fix database mock imports
+    '^\\./server/db$': '<rootDir>/tests/mocks/database.js',
+    '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
       '<rootDir>/tests/mocks/fileMock.js',
@@ -26,19 +29,7 @@ const config = {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
-        tsconfig: {
-          jsx: 'react-jsx',
-          jsxImportSource: 'react',
-          module: 'CommonJS',
-          moduleResolution: 'node',
-          allowSyntheticDefaultImports: true,
-          esModuleInterop: true,
-          target: 'ES2022',
-          lib: ['ES2022', 'DOM', 'DOM.Iterable'],
-  
-          skipLibCheck: true,
-          types: ['jest', 'node', '@testing-library/jest-dom', '@types/jest'],
-        },
+        tsconfig: '<rootDir>/tsconfig.test.json',
 
       },
     ],
@@ -57,7 +48,7 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web|lucide-react))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web|lucide-react|drizzle-orm|drizzle-zod))'
   ],
   testTimeout: 15000,
   clearMocks: true,
