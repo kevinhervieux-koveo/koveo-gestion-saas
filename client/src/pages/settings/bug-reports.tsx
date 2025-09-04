@@ -779,6 +779,115 @@ export default function BugReports() {
                         />
                       </div>
 
+                      {/* Attached Files Section */}
+                      <div className='border-t pt-4'>
+                        <h4 className='font-medium mb-3 flex items-center gap-2'>
+                          <Paperclip className='w-4 h-4' />
+                          Attached Files
+                        </h4>
+                        {editingBug?.attachments && editingBug.attachments.length > 0 ? (
+                          <div className='space-y-2'>
+                            {editingBug.attachments.map((attachment, index) => (
+                              <div
+                                key={index}
+                                className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                              >
+                                <div className='flex items-center gap-3'>
+                                  <div className='w-8 h-8 bg-red-100 rounded flex items-center justify-center'>
+                                    <Paperclip className='w-4 h-4 text-red-600' />
+                                  </div>
+                                  <div>
+                                    <p className='font-medium text-sm'>{attachment.name}</p>
+                                    <p className='text-xs text-gray-500'>
+                                      {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className='flex gap-2'>
+                                  <Button
+                                    type="button"
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      window.open(`/api/documents/${attachment.id}/file`, '_blank');
+                                    }}
+                                    className='flex items-center gap-1'
+                                    data-testid={`button-view-${attachment.id}`}
+                                  >
+                                    👁️ View
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const link = document.createElement('a');
+                                      link.href = `/api/documents/${attachment.id}/file?download=true`;
+                                      link.download = attachment.name;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                    }}
+                                    className='flex items-center gap-1'
+                                    data-testid={`button-download-${attachment.id}`}
+                                  >
+                                    ⬇️ Download
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className='text-center py-8 border-2 border-dashed border-gray-200 rounded-lg'>
+                            <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
+                            <p className='text-sm text-gray-500'>No files attached to this bug report</p>
+                          </div>
+                        )}
+                        
+                        <div className='mt-4'>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
+                          />
+                        </div>
+                        
+                        {attachedFiles.length > 0 && (
+                          <div className='mt-4 space-y-2'>
+                            <h5 className='text-sm font-medium text-gray-700'>New Files to Upload:</h5>
+                            {attachedFiles.map((file, index) => (
+                              <div
+                                key={index}
+                                className='flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded'
+                              >
+                                <div className='flex items-center gap-2'>
+                                  <Paperclip className='w-4 h-4 text-blue-600' />
+                                  <span className='text-sm'>{file.name}</span>
+                                  <span className='text-xs text-gray-500'>
+                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                  </span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => {
+                                    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+                                  }}
+                                  className='text-red-600 hover:bg-red-100'
+                                  data-testid={`button-remove-file-${index}`}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
                         <Button
@@ -1002,69 +1111,6 @@ export default function BugReports() {
                   )}
 
 
-                  {viewingBug.attachments && viewingBug.attachments.length > 0 && (
-                    <div className='border-t pt-4'>
-                      <h4 className='font-medium mb-3 flex items-center gap-2'>
-                        <Paperclip className='w-4 h-4' />
-                        Attached Files ({viewingBug.attachments.length})
-                      </h4>
-                      <div className='space-y-2'>
-                        {viewingBug.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
-                          >
-                            <div className='flex items-center gap-3'>
-                              <div className='w-8 h-8 bg-red-100 rounded flex items-center justify-center'>
-                                <Paperclip className='w-4 h-4 text-red-600' />
-                              </div>
-                              <div>
-                                <p className='font-medium text-sm'>{attachment.name}</p>
-                                <p className='text-xs text-gray-500'>
-                                  {(attachment.size / 1024 / 1024).toFixed(2)} MB
-                                </p>
-                              </div>
-                            </div>
-                            <div className='flex gap-2'>
-                              <Button
-                                type="button"
-                                variant='outline'
-                                size='sm'
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  window.open(`/api/documents/${attachment.id}/file`, '_blank');
-                                }}
-                                className='flex items-center gap-1'
-                                data-testid={`button-view-${attachment.id}`}
-                              >
-                                👁️ View
-                              </Button>
-                              <Button
-                                type="button"
-                                variant='outline'
-                                size='sm'
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const link = document.createElement('a');
-                                  link.href = `/api/documents/${attachment.id}/file?download=true`;
-                                  link.download = attachment.name;
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                }}
-                                className='flex items-center gap-1'
-                                data-testid={`button-download-${attachment.id}`}
-                              >
-                                ⬇️ Download
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   <div className='flex justify-end pt-4'>
                     <Button
