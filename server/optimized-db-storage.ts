@@ -483,11 +483,21 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
+      // Automatically set demo password for demo role users
+      let password = insertUser.password;
+      const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(insertUser.role);
+      
+      if (isDemoRole) {
+        // Always set the standard demo password hash for demo users, regardless of provided password
+        password = '$2b$12$cOc/QjMjzlhqAQqF2b/MTOZr2QAtERbXJGd4OSa1CXMlF04FC3F02'; // demo123456
+        console.log('🎭 Setting demo password for user with role:', insertUser.role);
+      }
+
       // Filter only the fields that exist in the database schema
       const userData = {
         username: insertUser.username,
         email: insertUser.email,
-        password: insertUser.password,
+        password,
         firstName: insertUser.firstName,
         lastName: insertUser.lastName,
         phone: insertUser.phone || '',
