@@ -115,20 +115,8 @@ describe('File Upload Forms Test Suite', () => {
     const BugReportForm = require('../../client/src/pages/settings/bug-reports.tsx').default;
 
     beforeEach(() => {
-      // Mock queries for bug reports
-      jest.mock('@tanstack/react-query', () => ({
-        ...jest.requireActual('@tanstack/react-query'),
-        useQuery: jest.fn(() => ({
-          data: [],
-          isLoading: false,
-          error: null,
-        })),
-        useMutation: jest.fn(() => ({
-          mutate: jest.fn(),
-          isPending: false,
-          isError: false,
-        })),
-      }));
+      // Reset mocks for this test suite
+      jest.clearAllMocks();
     });
 
     it('should render bug report form with file upload capability', async () => {

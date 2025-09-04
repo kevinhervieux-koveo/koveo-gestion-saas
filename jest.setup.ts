@@ -133,7 +133,9 @@ jest.mock('@/lib/queryClient', () => {
 // Performance: Mock Neon database for faster unit tests
 jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => {
-    const { mockSql } = require('./tests/mocks/database');
+    const mockSql = jest.fn().mockResolvedValue([{ version: 'Mock PostgreSQL 16.0' }]);
+    // Add setTypeParser mock to prevent undefined errors
+    mockSql.setTypeParser = jest.fn();
     return mockSql;
   }),
   Pool: jest.fn().mockImplementation(() => ({

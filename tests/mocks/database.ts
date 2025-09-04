@@ -149,7 +149,7 @@ export const mockSchemaObject = {
   demands: createMockTable('demands')
 };
 
-// Mock SQL template function
+// Mock SQL template function with Neon compatibility
 export const mockSql = jest.fn().mockImplementation(async (strings: TemplateStringsArray, ...values: any[]) => {
   const query = strings.join('?');
   if (query.includes('SELECT version()')) {
@@ -157,3 +157,7 @@ export const mockSql = jest.fn().mockImplementation(async (strings: TemplateStri
   }
   return [];
 });
+
+// Add Neon-specific methods to prevent TypeScript errors
+mockSql.setTypeParser = jest.fn();
+mockSql.sql = mockSql; // Self-reference for compatibility
