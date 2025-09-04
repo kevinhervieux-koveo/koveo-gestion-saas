@@ -2309,13 +2309,46 @@ export class OptimizedDatabaseStorage implements IStorage {
           .from(schema.featureRequests)
           .orderBy(desc(schema.featureRequests.createdAt));
 
+        // Get attachment counts and details for each feature request
+        const requestsWithAttachments = await Promise.all(
+          results.map(async (request) => {
+            const attachments = await db
+              .select({
+                id: schema.documents.id,
+                name: schema.documents.name,
+                filePath: schema.documents.filePath,
+                fileSize: schema.documents.fileSize,
+                mimeType: schema.documents.mimeType,
+              })
+              .from(schema.documents)
+              .where(
+                and(
+                  eq(schema.documents.attachedToType, 'feature_request'),
+                  eq(schema.documents.attachedToId, request.id)
+                )
+              );
+
+            return {
+              ...request,
+              attachmentCount: attachments.length,
+              attachments: attachments.map(att => ({
+                id: att.id,
+                name: att.name,
+                url: `/api/documents/download/${att.id}`,
+                size: att.fileSize ? parseInt(att.fileSize) : 0,
+                mimeType: att.mimeType,
+              })),
+            };
+          })
+        );
+
         // All users can see all feature requests, but non-admins don't see who submitted
         if (userRole === 'admin') {
-          return results;
+          return requestsWithAttachments;
         }
 
         // For non-admin users, hide the createdBy field
-        return results.map((request) => ({
+        return requestsWithAttachments.map((request) => ({
           ...request,
           createdBy: null as any,
         }));

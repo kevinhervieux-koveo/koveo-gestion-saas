@@ -1742,6 +1742,8 @@ export function registerDocumentRoutes(app: Express): void {
         isVisibleToTenants: req.body.isVisibleToTenants === 'true',
         residenceId: req.body.residenceId || undefined,
         buildingId: req.body.buildingId || undefined,
+        attachedToType: req.body.attachedToType || undefined,
+        attachedToId: req.body.attachedToId || undefined,
       };
 
       // Production debugging: Log form data before validation
