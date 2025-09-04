@@ -9,6 +9,7 @@ import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
+import { registerBugRoutes } from './api/bugs';
 import { registerBillRoutes } from './api/bills';
 import { registerResidenceRoutes } from './api/residences';
 import { registerDemandRoutes } from './api/demands';
@@ -37,6 +38,7 @@ export async function registerRoutes(app: Express) {
   registerUserRoutes(app);
   registerBuildingRoutes(app);
   registerDocumentRoutes(app);
+  registerBugRoutes(app);
   registerBillRoutes(app);
   registerResidenceRoutes(app);
   registerDemandRoutes(app);

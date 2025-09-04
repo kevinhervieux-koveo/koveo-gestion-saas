@@ -391,6 +391,20 @@ export default function BugReports() {
                           rows={4}
                           {...form.register('description')}
                           data-testid='textarea-bug-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {form.formState.errors.description && (
                           <p className='text-sm text-red-600 mt-1'>

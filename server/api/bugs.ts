@@ -33,6 +33,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
       res.json(bugs);
+    } catch (error: any) {
+      console.error('❌ Error fetching bugs:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bugs',
@@ -77,6 +79,8 @@ export function registerBugRoutes(app: Express): void {
       }
 
       res.json(bug);
+    } catch (error: any) {
+      console.error('❌ Error fetching bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bug',
@@ -116,6 +120,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
+    } catch (error: any) {
+      console.error('❌ Error creating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create bug',
@@ -201,6 +207,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`📝 Updated bug ${id} by user ${currentUser.id}`);
       res.json(bug);
+    } catch (error: any) {
+      console.error('❌ Error updating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update bug',
@@ -242,6 +250,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`🗑️ Deleted bug ${id} by user ${currentUser.id}`);
       res.status(204).send();
+    } catch (error: any) {
+      console.error('❌ Error deleting bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete bug',
