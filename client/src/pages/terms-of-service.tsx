@@ -183,9 +183,9 @@ TermsOfServicePage() {
               <p className='text-gray-700'>
                 <strong>Service client Koveo Gestion</strong>
                 <br />
-                Courriel : support@koveogestion.com
+                Courriel : info@koveo-gestion.com
                 <br />
-                Téléphone : 1-XXX-XXX-XXXX
+                Téléphone : 1-514-712-8441
                 <br />
                 Adresse : Montréal, Québec, Canada
               </p>

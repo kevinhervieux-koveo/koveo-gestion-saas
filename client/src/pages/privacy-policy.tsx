@@ -163,7 +163,7 @@ PrivacyPolicyPage() {
                 <br />
                 Courriel : privacy@koveogestion.com
                 <br />
-                Téléphone : 1-XXX-XXX-XXXX
+                Téléphone : 1-514-712-8441
               </p>
             </div>
           </div>
