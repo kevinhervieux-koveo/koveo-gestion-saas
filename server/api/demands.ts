@@ -186,8 +186,11 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
       const demandData = req.body;
 
+      // Create a schema that omits submitterId since we'll auto-populate it
+      const demandInputSchema = insertDemandSchema.omit({ submitterId: true });
+      
       // Validate input
-      const validatedData = insertDemandSchema.parse(demandData);
+      const validatedData = demandInputSchema.parse(demandData);
 
       // Auto-populate residence and building from user's primary residence if not provided
       if (!validatedData.residenceId || !validatedData.buildingId) {
