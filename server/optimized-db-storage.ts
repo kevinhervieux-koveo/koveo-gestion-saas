@@ -2121,30 +2121,70 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
-    try {
-      if (userRole === 'admin') {
-        // Admin can see all bugs
-        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-        return result || [];
-      }
+    return this.withOptimizations(
+      'getBugsForUser',
+      `bugs:${userRole}:${userId}`,
+      'bugs',
+      async () => {
+        let results;
+        
+        if (userRole === 'admin') {
+          // Admin can see all bugs
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .orderBy(desc(schema.bugs.createdAt));
+        } else if (userRole === 'manager' && organizationId) {
+          // For managers, return all bugs for now (can be refined later)
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .orderBy(desc(schema.bugs.createdAt));
+        } else {
+          // For residents and tenants, return only their own bugs
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .where(eq(schema.bugs.createdBy, userId))
+            .orderBy(desc(schema.bugs.createdAt));
+        }
 
-      if (userRole === 'manager' && organizationId) {
-        // For managers, return all bugs for now (can be refined later)
-        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-        return result || [];
-      }
+        // Get attachment counts and details for each bug
+        const bugsWithAttachments = await Promise.all(
+          results.map(async (bug) => {
+            const attachments = await db
+              .select({
+                id: schema.documents.id,
+                name: schema.documents.name,
+                fileName: schema.documents.fileName,
+                fileSize: schema.documents.fileSize,
+                filePath: schema.documents.filePath,
+              })
+              .from(schema.documents)
+              .where(
+                and(
+                  eq(schema.documents.attachedToType, 'bug'),
+                  eq(schema.documents.attachedToId, bug.id)
+                )
+              );
 
-      // For residents and tenants, return only their own bugs
-      const result = await db
-        .select()
-        .from(schema.bugs)
-        .where(eq(schema.bugs.createdBy, userId))
-        .orderBy(desc(schema.bugs.createdAt));
-      return result || [];
-    } catch (error: any) {
-      console.error('❌ Error getting bugs for user:', error);
-      return [];
-    }
+            return {
+              ...bug,
+              attachmentCount: attachments.length,
+              attachments: attachments.map(att => ({
+                id: att.id,
+                name: att.fileName || att.name,
+                size: parseInt(att.fileSize || '0'),
+                url: `/api/documents/${att.id}/file`,
+                type: att.fileName ? att.fileName.split('.').pop()?.toLowerCase() || 'unknown' : 'unknown'
+              }))
+            };
+          })
+        );
+
+        return bugsWithAttachments;
+      }
+    );
   }
 
   /**

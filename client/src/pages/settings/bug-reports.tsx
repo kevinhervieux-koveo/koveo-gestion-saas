@@ -255,7 +255,55 @@ export default function BugReports() {
   });
 
   const onSubmit = (data: BugFormData) => {
-    createBugMutation.mutate(data);
+    if (attachedFiles.length > 0) {
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      
+      // Add bug data
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Add attached files
+      attachedFiles.forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      // Make multipart request
+      fetch('/api/bugs', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+          }
+          return response.json();
+        })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
+          setAttachedFiles([]);
+          form.reset();
+          setIsCreateDialogOpen(false);
+          toast({
+            title: 'Bug created',
+            description: 'Bug report has been created successfully.',
+          });
+        })
+        .catch((error) => {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to create bug report',
+            variant: 'destructive',
+          });
+        });
+    } else {
+      // No files, use regular API request
+      createBugMutation.mutate(data);
+    }
   };
 
   const onEditSubmit = (data: BugFormData) => {
@@ -985,14 +1033,41 @@ export default function BugReports() {
                                 </p>
                               </div>
                             </div>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              onClick={() => handleFileDownload(attachment.url, attachment.name)}
-                              className='flex items-center gap-1'
-                            >
-                              📁 View
-                            </Button>
+                            <div className='flex gap-2'>
+                              <Button
+                                type="button"
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  window.open(`/api/documents/${attachment.id}/file`, '_blank');
+                                }}
+                                className='flex items-center gap-1'
+                                data-testid={`button-view-${attachment.id}`}
+                              >
+                                👁️ View
+                              </Button>
+                              <Button
+                                type="button"
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const link = document.createElement('a');
+                                  link.href = `/api/documents/${attachment.id}/file?download=true`;
+                                  link.download = attachment.name;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className='flex items-center gap-1'
+                                data-testid={`button-download-${attachment.id}`}
+                              >
+                                ⬇️ Download
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
