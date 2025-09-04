@@ -78,7 +78,7 @@ const bugFormSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
 });
@@ -109,6 +109,7 @@ interface Bug {
   resolvedAt: string | null;
   resolvedBy: string | null;
   attachments?: Array<{
+    id: string;
     name: string;
     size: number;
     url: string;
@@ -168,7 +169,6 @@ export default function BugReports() {
       page: '',
       priority: 'medium' as const,
       reproductionSteps: '',
-      environment: '',
     },
   });
 
@@ -181,7 +181,6 @@ export default function BugReports() {
       page: '',
       priority: 'medium' as const,
       reproductionSteps: '',
-      environment: '',
     },
   });
 

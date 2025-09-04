@@ -16,7 +16,30 @@ jest.mock('@google/genai', () => ({
 
 // Performance: Mock database for unit tests to avoid network calls
 jest.mock('./server/db', () => {
-  const { mockDb, mockSql } = require('./tests/mocks/database');
+  const mockDb = {
+    query: jest.fn().mockResolvedValue([]),
+    insert: jest.fn().mockImplementation(() => ({
+      values: jest.fn().mockImplementation(() => ({
+        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
+      }))
+    })),
+    select: jest.fn().mockImplementation(() => ({
+      from: jest.fn().mockImplementation(() => ({
+        where: jest.fn().mockResolvedValue([])
+      }))
+    })),
+    update: jest.fn().mockImplementation(() => ({
+      set: jest.fn().mockImplementation(() => ({
+        where: jest.fn().mockResolvedValue({ affectedRows: 0 })
+      }))
+    })),
+    delete: jest.fn().mockImplementation(() => ({
+      where: jest.fn().mockResolvedValue({ affectedRows: 0 })
+    }))
+  };
+  
+  const mockSql = jest.fn().mockResolvedValue([]);
+  
   return {
     db: mockDb,
     sql: mockSql,

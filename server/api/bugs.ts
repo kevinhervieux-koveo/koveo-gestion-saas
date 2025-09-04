@@ -160,7 +160,10 @@ export function registerBugRoutes(app: Express): void {
           };
 
 
-          await storage.createDocument(documentData);
+          await storage.createDocument({
+            ...documentData,
+            isVisibleToTenants: false
+          });
           console.log(`📄 Created attachment document for bug ${bug.id}: ${file.originalname}`);
         }
       }
