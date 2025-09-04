@@ -24,7 +24,7 @@ export class BillGenerationService {
     try {
       const existingBills = await db.select().from(bills).where(eq(bills.reference, parentBillId));
 
-      return existingBills;
+      return existingBills as Bill[];
     } catch (_error) {
       console.error(`❌ Error fetching bills by reference:`, _error);
       return [];
@@ -49,7 +49,7 @@ export class BillGenerationService {
       console.warn(`📅 Set recurrence end date for bill ${billId}: ${endDate.toISOString()}`);
     } catch (_error) {
       console.error(`❌ Error setting recurrence end date:`, _error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -189,7 +189,7 @@ export class BillGenerationService {
         paymentParts.push({
           amount,
           dueDate,
-          partNumber: index + 1,
+          partNumber: _index + 1,
         });
       });
     }
@@ -361,12 +361,12 @@ export class BillGenerationService {
    * Batch insert bills for performance.
    * @param billBatch
    */
-  private async insertBillsBatch(billBatch: unknown[]): Promise<void> {
+  private async insertBillsBatch(billBatch: any[]): Promise<void> {
     try {
       await db.insert(bills).values(billBatch);
     } catch (_error) {
       console.error('Error inserting bill batch:', _error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -392,7 +392,7 @@ export class BillGenerationService {
     let billsUpdated = 0;
 
     for (const generatedBill of generatedBills) {
-      const updatedFields: unknown = {};
+      const updatedFields: any = {};
 
       // Update fields that should propagate to generated bills
       if (updates.title) {
