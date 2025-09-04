@@ -12,6 +12,44 @@ import { registerRoutes } from './routes';
 // Production debugging: Log server startup
 console.log('🚀 Server starting with enhanced debugging...');
 
+// Add global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  // Don't exit in development to avoid interrupting work
+  if (process.env.NODE_ENV !== 'development') {
+    setTimeout(() => process.exit(1), 1000);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit in development to maintain stability
+  if (process.env.NODE_ENV !== 'development') {
+    setTimeout(() => process.exit(1), 1000);
+  }
+});
+
+// Handle SIGTERM and SIGINT gracefully
+process.on('SIGTERM', () => {
+  console.log('🔄 SIGTERM received, gracefully shutting down...');
+  if (server) {
+    server.close(() => {
+      console.log('✅ Server closed gracefully');
+      process.exit(0);
+    });
+  }
+});
+
+process.on('SIGINT', () => {
+  console.log('🔄 SIGINT received, gracefully shutting down...');
+  if (server) {
+    server.close(() => {
+      console.log('✅ Server closed gracefully');
+      process.exit(0);
+    });
+  }
+});
+
 const app = express();
 // Configure port - use environment PORT or appropriate fallback for deployment
 const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
@@ -101,13 +139,23 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request timeout middleware
+// Request timeout middleware with better error handling
 app.use((req, res, next) => {
-  req.setTimeout(5000, () => {
+  // Set a more generous timeout for development to avoid interruptions
+  const timeout = process.env.NODE_ENV === 'development' ? 30000 : 5000;
+  
+  req.setTimeout(timeout, () => {
     if (!res.headersSent) {
-      res.status(408).send('Request Timeout');
+      console.warn(`⚠️ Request timeout after ${timeout}ms: ${req.method} ${req.url}`);
+      res.status(408).json({ error: 'Request Timeout', url: req.url });
     }
   });
+  
+  // Add error handling for response
+  res.on('error', (err) => {
+    console.error('❌ Response error:', err);
+  });
+  
   next();
 });
 
