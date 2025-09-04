@@ -312,23 +312,30 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Single invitation mutation
   const invitationMutation = useMutation({
     mutationFn: async (data: InvitationFormData) => {
+      console.log('🚀 Mutation started with data:', data);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
 
       // For demo roles, create user directly instead of sending invitation
       if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(data.role)) {
-        const response = await apiRequest('POST', '/api/users/demo', {
+        console.log('👤 Creating demo user');
+        const requestData = {
           firstName: data.firstName,
           lastName: data.lastName,
           role: data.role,
           organizationId: data.organizationId,
           residenceId: data.residenceId || null,
-        });
-        return response.json();
+        };
+        console.log('📤 Demo user request:', requestData);
+        const response = await apiRequest('POST', '/api/users/demo', requestData);
+        const result = await response.json();
+        console.log('✅ Demo user response:', result);
+        return result;
       }
 
       // Regular invitation flow
-      const response = await apiRequest('POST', '/api/invitations', {
+      console.log('📧 Sending regular invitation');
+      const requestData = {
         organizationId: data.organizationId,
         residenceId: data.residenceId || null,
         email: data.email,
@@ -336,8 +343,12 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         invitedByUserId: currentUser?.id,
         expiresAt: expiresAt.toISOString(),
         personalMessage: data.personalMessage || null,
-      });
-      return response.json();
+      };
+      console.log('📤 Invitation request:', requestData);
+      const response = await apiRequest('POST', '/api/invitations', requestData);
+      const result = await response.json();
+      console.log('✅ Invitation response:', result);
+      return result;
     },
     onSuccess: (_, variables) => {
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
@@ -352,6 +363,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      console.error('❌ Mutation error:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Full error object:', error);
       toast({
         title: 'Error',
         description: error.message,
@@ -361,6 +375,11 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   });
 
   const onSubmit = (_data: InvitationFormData) => {
+    console.log('🚀 Form submission started');
+    console.log('📝 Form data:', _data);
+    console.log('✅ Form validation state:', form.formState.isValid);
+    console.log('❌ Form errors:', form.formState.errors);
+    console.log('🔄 Mutation pending:', invitationMutation.isPending);
     invitationMutation.mutate(_data);
   };
 
@@ -694,7 +713,19 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
                   {t('cancel')}
                 </Button>
-                <Button type='submit' disabled={invitationMutation.isPending}>
+                <Button 
+                  type='submit' 
+                  disabled={invitationMutation.isPending}
+                  onClick={() => {
+                    console.log('🖱️ Submit button clicked');
+                    console.log('📋 Form state:', {
+                      isValid: form.formState.isValid,
+                      isSubmitting: form.formState.isSubmitting,
+                      errors: form.formState.errors,
+                      values: form.getValues()
+                    });
+                  }}
+                >
                   {invitationMutation.isPending
                     ? selectedOrgType === 'Demo'
                       ? 'Creating User...'
