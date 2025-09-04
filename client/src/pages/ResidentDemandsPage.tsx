@@ -55,7 +55,6 @@ interface Demand {
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
   status:
-    | 'draft'
     | 'submitted'
     | 'under_review'
     | 'approved'
@@ -115,7 +114,6 @@ const demandSchema = schemas.demand;
 type DemandFormData = z.infer<typeof demandSchema>;
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-800',
   submitted: 'bg-blue-100 text-blue-800',
   under_review: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
@@ -255,8 +253,7 @@ ResidentDemandsPage() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Group demands by status
-  const draftDemands = filteredDemands.filter((d: Demand) => d.status === 'draft');
+  // Group demands by status (no draft demands since we removed draft logic)
   const activeDemands = filteredDemands.filter((d: Demand) =>
     ['submitted', 'under_review', 'approved', 'in_progress'].includes(d.status)
   );

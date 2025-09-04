@@ -227,7 +227,7 @@ export function registerDemandRoutes(app: Express) {
         buildingId: validatedData.buildingId,
         residenceId: validatedData.residenceId,
         submitterId: user.id,
-        status: (validatedData.status as 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled') || 'draft',
+        status: (validatedData.status as 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled') || 'submitted',
       };
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();

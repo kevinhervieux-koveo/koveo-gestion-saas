@@ -38,7 +38,6 @@ interface Demand {
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
   status:
-    | 'draft'
     | 'submitted'
     | 'under_review'
     | 'approved'
@@ -121,7 +120,6 @@ const editDemandSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)').max(2000, 'Description must be less than 2000 characters'),
   status: z
     .enum([
-      'draft',
       'submitted',
       'under_review',
       'approved',
@@ -148,7 +146,6 @@ type EditDemandFormData = z.infer<typeof editDemandSchema>;
 type _CommentFormData = z.infer<typeof _commentSchema>;
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-800',
   submitted: 'bg-blue-100 text-blue-800',
   under_review: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
@@ -166,7 +163,6 @@ const typeLabels = {
 };
 
 const statusLabels = {
-  draft: 'Draft',
   submitted: 'Submitted',
   under_review: 'Under Review',
   approved: 'Approved',
@@ -204,14 +200,14 @@ export default function DemandDetailsPopup({
     user &&
     (user.role === 'admin' ||
       user.role === 'manager' ||
-      (demand.submitterId === user.id && ['draft', 'submitted'].includes(demand.status)));
+      (demand.submitterId === user.id && ['submitted'].includes(demand.status)));
 
   const canDelete =
     demand &&
     user &&
     (user.role === 'admin' ||
       user.role === 'manager' ||
-      (demand.submitterId === user.id && demand.status === 'draft'));
+      (demand.submitterId === user.id && demand.status === 'submitted'));
 
   const canChangeStatus =
     demand &&
@@ -239,7 +235,7 @@ export default function DemandDetailsPopup({
     defaultValues: {
       type: demand?.type || 'maintenance',
       description: demand?.description || '',
-      status: demand?.status || 'draft',
+      status: demand?.status || 'submitted',
       reviewNotes: demand?.reviewNotes || '',
     },
   });
@@ -440,14 +436,24 @@ export default function DemandDetailsPopup({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='draft'>Draft</SelectItem>
-                      <SelectItem value='submitted'>Submitted</SelectItem>
-                      <SelectItem value='under_review'>Under Review</SelectItem>
-                      <SelectItem value='approved'>Approved</SelectItem>
-                      <SelectItem value='rejected'>Rejected</SelectItem>
-                      <SelectItem value='in_progress'>In Progress</SelectItem>
-                      <SelectItem value='completed'>Completed</SelectItem>
-                      <SelectItem value='cancelled'>Cancelled</SelectItem>
+                      {user?.role === 'resident' ? (
+                        // Residents can only change status to submitted or cancelled
+                        <>
+                          <SelectItem value='submitted'>Submitted</SelectItem>
+                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                        </>
+                      ) : (
+                        // Managers and admins can change to any status (except draft)
+                        <>
+                          <SelectItem value='submitted'>Submitted</SelectItem>
+                          <SelectItem value='under_review'>Under Review</SelectItem>
+                          <SelectItem value='approved'>Approved</SelectItem>
+                          <SelectItem value='rejected'>Rejected</SelectItem>
+                          <SelectItem value='in_progress'>In Progress</SelectItem>
+                          <SelectItem value='completed'>Completed</SelectItem>
+                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 )}

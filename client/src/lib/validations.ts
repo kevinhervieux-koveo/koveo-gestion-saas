@@ -4,7 +4,6 @@ import { z } from 'zod';
 export const USER_ROLES = ['admin', 'manager', 'tenant', 'resident'] as const;
 export const DEMAND_TYPES = ['maintenance', 'complaint', 'information', 'other'] as const;
 export const DEMAND_STATUSES = [
-  'draft',
   'submitted',
   'under_review',
   'approved',
