@@ -27,7 +27,7 @@ export default function HomePage() {
             <img
               src={koveoLogo}
               alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
+              className='koveo-logo h-12 w-12 sm:h-14 sm:w-14 rounded-lg object-cover cursor-pointer shadow-sm'
               onClick={() => setLocation('/')}
               data-testid='logo-link'
             />
@@ -225,7 +225,7 @@ export default function HomePage() {
         <div className='container mx-auto px-4'>
           <div className='flex flex-col md:flex-row items-center justify-between'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-8 rounded object-cover' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
             </div>
             <div className='flex items-center space-x-4 text-sm text-gray-400'>
               <Shield className='h-4 w-4' />

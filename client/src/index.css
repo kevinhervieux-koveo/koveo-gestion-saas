@@ -173,3 +173,24 @@
 .border-koveo-silver {
   border-color: var(--koveo-silver);
 }
+
+/* Mobile-optimized logo styles */
+.koveo-logo {
+  transition: all 0.2s ease-in-out;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.koveo-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Enhanced visibility on very small screens */
+@media (max-width: 374px) {
+  .koveo-logo {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}

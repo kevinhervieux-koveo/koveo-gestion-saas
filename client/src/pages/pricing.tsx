@@ -106,7 +106,7 @@ export default function PricingPage() {
             <img
               src={koveoLogo}
               alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
+              className='koveo-logo h-12 w-12 sm:h-14 sm:w-14 rounded-lg object-cover cursor-pointer shadow-sm'
               onClick={() => setLocation('/')}
               data-testid='logo-link'
             />
@@ -270,7 +270,7 @@ export default function PricingPage() {
         <div className='max-w-7xl mx-auto'>
           <div className='flex flex-col md:flex-row justify-between items-center'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-auto mr-4' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm mr-4' />
               <span className='text-lg font-semibold'>Koveo Gestion</span>
             </div>
             <div className='flex space-x-6'>
