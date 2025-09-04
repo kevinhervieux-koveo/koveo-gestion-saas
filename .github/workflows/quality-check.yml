@@ -312,7 +312,11 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> origin/main
             const comment = `## 🎯 Quality Check Results
 
             ✅ **All quality gates passed!**
@@ -332,6 +336,7 @@ jobs:
             - Bilingual support: ≥80% coverage (enforced)
 
             This PR is ready for code review! 🚀`;
+<<<<<<< HEAD
 
             try {
               await github.rest.issues.createComment({
@@ -345,3 +350,12 @@ jobs:
               console.log('⚠️ Could not post quality comment (insufficient permissions):', error.message);
               console.log('📊 Quality results logged to workflow output instead');
             }
+=======
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+>>>>>>> origin/main

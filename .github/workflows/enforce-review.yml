@@ -173,5 +173,8 @@ jobs:
               core.setFailed('PR requirements not met');
             } else {
               console.log('✅ PR requirements check passed');
+<<<<<<< HEAD
               console.log('🚀 PR is ready for review and merge');
+=======
+>>>>>>> origin/main
             }
