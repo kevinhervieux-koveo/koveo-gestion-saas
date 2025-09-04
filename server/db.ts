@@ -24,8 +24,8 @@ import {
   monthlyBudgets,
 } from '@shared/schema';
 
-// Always use dev DATABASE_URL for all environments as requested
-const databaseUrl = process.env.DATABASE_URL || config.database.url;
+// Use correct database URL based on environment (production uses DATABASE_URL_KOVEO)
+const databaseUrl = config.database.url;
 
 if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');

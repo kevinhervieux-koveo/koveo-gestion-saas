@@ -89,16 +89,13 @@ const PostgreSqlStore = connectPg(session);
 
 /**
  * Get the correct database URL based on environment and request domain.
- * Uses DATABASE_URL_KOVEO for production (koveo-gestion.com), DATABASE_URL for development.
+ * Uses centralized configuration to determine the appropriate database.
  */
 function getDatabaseUrl(requestDomain?: string): string {
-  const prodUrl = process.env.DATABASE_URL_KOVEO;
-  const devUrl = process.env.DATABASE_URL;
-  
-  // Use runtime domain detection for better accuracy
+  // Use the centralized database configuration
+  const selectedUrl = config.database.getRuntimeDatabaseUrl(requestDomain);
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
-  const selectedUrl = isProduction && prodUrl ? prodUrl : devUrl;
   
   console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${selectedUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
   
