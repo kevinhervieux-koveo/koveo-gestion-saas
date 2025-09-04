@@ -5,6 +5,7 @@ import { LogIn, User } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { useSmoothLocationSetter } from '@/hooks/use-smooth-navigation';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
@@ -12,9 +13,9 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Provides consistent navigation with logo, language switcher, user menu, and authentication controls
  */
 export function TopNavigationBar() {
-  const [, setLocation] = useLocation();
   const { t, language } = useLanguage();
   const { isAuthenticated, user } = useAuth();
+  const setLocation = useSmoothLocationSetter();
 
   return (
     <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>

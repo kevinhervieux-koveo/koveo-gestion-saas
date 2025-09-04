@@ -10,6 +10,7 @@ import { Suspense, useEffect } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
+import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
 
 // Start memory monitoring for better performance
 memoryOptimizer.start();
@@ -233,6 +234,9 @@ const InvitationAcceptancePage = createOptimizedLoader(
 function Router() {
   const { isAuthenticated, isLoading, isAuthenticating } = useAuth();
   const [location] = useLocation();
+  
+  // Enable smooth scroll-to-top on navigation
+  useSmoothNavigation();
 
   // Show loading spinner while authentication is being determined
   if (isLoading || isAuthenticating) {
