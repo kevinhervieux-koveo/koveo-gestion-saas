@@ -70,14 +70,14 @@ jest.mock('./server/services/email-service', () => ({
 
 // Mock React Router hooks for component tests
 jest.mock('wouter', () => ({
-  useLocation: jest.fn(() => ['/', jest.fn()]),
-  useParams: jest.fn(() => ({})),
-  useRoute: jest.fn(() => [false, {}]),
-  Link: jest.fn(({ children }: any) => children),
-  Route: jest.fn(({ children }: any) => children),
-  Switch: jest.fn(({ children }: any) => children),
-  Router: jest.fn(({ children }: any) => children),
-  Redirect: jest.fn(() => null),
+  useLocation: () => ['/', jest.fn()],
+  useParams: () => ({}),
+  useRoute: () => [false, {}],
+  Link: ({ children }: any) => children,
+  Route: ({ children }: any) => children,
+  Switch: ({ children }: any) => children,
+  Router: ({ children }: any) => children,
+  Redirect: () => null,
 }));
 
 // Mock language hook and provider
@@ -135,7 +135,7 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => {
     const mockSql = jest.fn().mockResolvedValue([{ version: 'Mock PostgreSQL 16.0' }]);
     // Add setTypeParser mock to prevent undefined errors
-    mockSql.setTypeParser = jest.fn();
+    (mockSql as any).setTypeParser = jest.fn();
     return mockSql;
   }),
   Pool: jest.fn().mockImplementation(() => ({
