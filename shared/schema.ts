@@ -113,7 +113,7 @@ export type {
   InsertMetricPrediction,
 } from './schemas/monitoring';
 
-export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
+export type { SslCertificate, InsertSslCertificate, Session, InsertSession } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
 export {
@@ -135,3 +135,7 @@ export {
   actionableItems,
   improvementSuggestions,
 } from './schemas/development';
+export {
+  sslCertificates,
+  sessions,
+} from './schemas/infrastructure';

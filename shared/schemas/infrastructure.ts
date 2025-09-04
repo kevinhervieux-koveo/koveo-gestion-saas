@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, pgEnum, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum, boolean, integer, varchar, json } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
@@ -51,6 +51,17 @@ export const sslCertificates = pgTable('ssl_certificates', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Session table for PostgreSQL session store.
+ * This table stores user session data for authentication.
+ * CRITICAL: This table must never be deleted as it's required for user sessions.
+ */
+export const sessions = pgTable('session', {
+  sid: varchar('sid').primaryKey().notNull(),
+  sess: json('sess').notNull(),
+  expire: timestamp('expire', { precision: 6 }).notNull(),
+});
+
 // Insert schemas
 export const insertSslCertificateSchema = z.object({
   domain: z.string(),
@@ -73,14 +84,18 @@ export const insertSslCertificateSchema = z.object({
 });
 
 // Types
-/**
- *
- */
+// Session table schema (no insert schema needed - managed by connect-pg-simple)
+export const insertSessionSchema = z.object({
+  sid: z.string(),
+  sess: z.any(), // JSON data
+  expire: z.date(),
+});
+
+// Types
 export type InsertSslCertificate = z.infer<typeof insertSslCertificateSchema>;
-/**
- *
- */
 export type SslCertificate = typeof sslCertificates.$inferSelect;
+export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type Session = typeof sessions.$inferSelect;
 
 // Relations - temporarily commented out due to drizzle-orm version compatibility
 // export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
