@@ -292,7 +292,8 @@ export default function IdeaBox() {
       setIsSubmitting(true);
       // First create the feature request
       const featureRequestResponse = await apiRequest('POST', '/api/feature-requests', data);
-      const featureRequestId = (featureRequestResponse as any).id;
+      const featureRequestData = await featureRequestResponse.json();
+      const featureRequestId = featureRequestData.id;
       
       if (!featureRequestId) {
         throw new Error('Failed to create feature request - no ID returned');
@@ -809,7 +810,7 @@ export default function IdeaBox() {
                                 <MoreHorizontal className='w-4 h-4' />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end'>
+                            <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
                                 handleEdit(request);
@@ -819,7 +820,10 @@ export default function IdeaBox() {
                               </DropdownMenuItem>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem 
+                                    onSelect={(e) => e.preventDefault()} 
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     <Trash2 className='w-4 h-4 mr-2 text-red-600' />
                                     <span className='text-red-600'>Delete</span>
                                   </DropdownMenuItem>
