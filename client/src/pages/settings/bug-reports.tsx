@@ -80,7 +80,6 @@ const bugFormSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
-  environment: z.string().max(200, 'Environment description must be less than 200 characters').optional(),
 });
 
 /**
@@ -347,7 +346,6 @@ export default function BugReports() {
       priority: bug.priority as any,
       status: bug.status as any,
       reproductionSteps: bug.reproductionSteps || '',
-      environment: bug.environment || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -568,15 +566,6 @@ export default function BugReports() {
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor='environment'>Environment</Label>
-                        <Input
-                          id='environment'
-                          placeholder='e.g., Chrome 120, Windows 11, Mobile Safari'
-                          {...form.register('environment')}
-                          data-testid='input-bug-environment'
-                        />
-                      </div>
 
                       {/* File Attachments */}
                       <div className="space-y-3 border-t pt-4">
@@ -795,17 +784,6 @@ export default function BugReports() {
                         />
                       </div>
 
-                      <div className='space-y-2'>
-                        <Label htmlFor='edit-environment' className='text-sm font-medium'>
-                          Environment (Optional)
-                        </Label>
-                        <Input
-                          id='edit-environment'
-                          {...editForm.register('environment')}
-                          placeholder='e.g., Chrome 120, Safari iOS 17, etc.'
-                          data-testid='input-edit-environment'
-                        />
-                      </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
                         <Button
@@ -1002,12 +980,6 @@ export default function BugReports() {
                     </div>
                   )}
 
-                  {viewingBug.environment && (
-                    <div>
-                      <h4 className='font-medium mb-1'>Environment</h4>
-                      <p className='text-gray-600 bg-yellow-50 p-3 rounded-lg'>{viewingBug.environment}</p>
-                    </div>
-                  )}
 
                   {viewingBug.attachments && viewingBug.attachments.length > 0 && (
                     <div className='border-t pt-4'>
