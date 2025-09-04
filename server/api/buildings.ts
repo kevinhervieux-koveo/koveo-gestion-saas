@@ -209,8 +209,11 @@ export function registerBuildingRoutes(app: Express): void {
 
       let buildingsQuery;
 
-      if (user.role === 'admin' && user.canAccessAllOrganizations) {
-        // Admin with global access can see all buildings
+      // Admin users should always have access to all buildings, regardless of organization assignments
+      if (user.role === 'admin') {
+        console.log(
+          `🏢 [BUILDINGS DEBUG] Admin user detected - granting access to ALL buildings`
+        );
         buildingsQuery = db
           .select({
             id: buildings.id,
@@ -235,9 +238,9 @@ export function registerBuildingRoutes(app: Express): void {
           .where(eq(buildings.isActive, true))
           .orderBy(organizations.name, buildings.name);
       } else {
-        // Manager or admin without global access: only buildings from their organizations
+        // Managers and other roles: only buildings from their organizations
         console.log(
-          `🔍 [BUILDINGS DEBUG] Taking ELSE path - User ${user.id} organizations:`,
+          `🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`,
           user.organizations
         );
         if (!user.organizations || user.organizations.length === 0) {
@@ -294,7 +297,8 @@ export function registerBuildingRoutes(app: Express): void {
               )
               .orderBy(organizations.name, buildings.name);
           } else {
-            return res.json([]); // No organizations = no buildings for managers/admins
+            console.log(`🔍 [BUILDINGS DEBUG] Manager/other role user ${user.id} has no organizations - returning empty result`);
+            return res.json([]); // No organizations = no buildings for managers/others
           }
         } else {
           // User has organizations - use organization-based access

@@ -731,6 +731,83 @@ describe('RBAC Buildings and Residences Actions', () => {
     });
   });
 
+  describe('Buildings API Access Control', () => {
+    it('should allow admin to access all buildings regardless of organization assignments', async () => {
+      // Test the specific bug scenario: admin user without organization assignments
+      // should still have access to all buildings
+      
+      // First, ensure admin user has no organization assignments
+      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, adminUser.id));
+      
+      const response = await request(app)
+        .get('/api/buildings')
+        .set('x-test-user-id', adminUser.id)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      
+      // Verify admin can see all buildings from different organizations
+      const buildingNames = response.body.map((b: any) => b.name);
+      expect(buildingNames).toContain('Test Building');
+      expect(buildingNames).toContain('Other Building');
+      
+      // Verify response includes proper organization information
+      const testBuildingResult = response.body.find((b: any) => b.name === 'Test Building');
+      expect(testBuildingResult).toBeDefined();
+      expect(testBuildingResult.organizationName).toBe('Test Organization');
+    });
+
+    it('should restrict manager to only buildings in their organizations', async () => {
+      const response = await request(app)
+        .get('/api/buildings')
+        .set('x-test-user-id', managerUser.id)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      
+      // Manager should only see buildings from Test Organization
+      expect(response.body[0].name).toBe('Test Building');
+      expect(response.body[0].organizationName).toBe('Test Organization');
+    });
+
+    it('should return empty array for manager with no organization assignments', async () => {
+      // Remove manager's organization assignment
+      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, managerUser.id));
+      
+      const response = await request(app)
+        .get('/api/buildings')
+        .set('x-test-user-id', managerUser.id)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(0);
+    });
+
+    it('should allow tenant to access buildings through their residences', async () => {
+      const response = await request(app)
+        .get('/api/buildings')
+        .set('x-test-user-id', tenantUser.id)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].name).toBe('Test Building');
+    });
+
+    it('should allow resident to access buildings through their residences', async () => {
+      const response = await request(app)
+        .get('/api/buildings')
+        .set('x-test-user-id', residentUser.id)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].name).toBe('Test Building');
+    });
+  });
+
   describe('Data Access by Role', () => {
     it('should allow admin to view all buildings', async () => {
       const response = await request(app)
