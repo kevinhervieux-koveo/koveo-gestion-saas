@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
-import { FilterSort } from '@/components/filter-sort/FilterSort';
+// Temporarily disabled to fix component loading issue
+// import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -46,7 +47,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { User, UserWithAssignments, Organization, Building, Residence } from '@shared/schema';
-import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
+// Temporarily disabled to fix component loading issue
+// import type { FilterValue, SortValue } from '@/lib/filter-sort/types';
 import { UserAssignmentsTable } from '@/components/UserAssignmentsTableClean';
 import { UserOrganizationsTab } from '@/components/user-tabs/UserOrganizationsTab';
 import { UserBuildingsTab } from '@/components/user-tabs/UserBuildingsTab';
@@ -91,10 +93,11 @@ export default function UserManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
-  // Filter and search state
-  const [filters, setFilters] = useState<FilterValue[]>([]);
-  const [sort, setSort] = useState<SortValue | null>(null);
+  // Filter and search state - simplified for quick fix
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [organizationFilter, setOrganizationFilter] = useState('');
 
   // Fetch users 
   const {
@@ -463,58 +466,58 @@ export default function UserManagement() {
   const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
   const canDeleteUsers = currentUser?.role === 'admin';
 
-  // Filter configuration
-  const filterConfig = {
-    searchable: true,
-    searchFields: ['firstName', 'lastName', 'email', 'username'],
-    filters: [
-      {
-        id: 'role',
-        field: 'role',
-        label: 'Role',
-        type: 'select' as const,
-        options: [
-          { label: 'Admin', _value: 'admin' },
-          { label: 'Manager', _value: 'manager' },
-          { label: 'Tenant', _value: 'tenant' },
-          { label: 'Resident', _value: 'resident' },
-          { label: 'Demo Manager', _value: 'demo_manager' },
-          { label: 'Demo Tenant', _value: 'demo_tenant' },
-          { label: 'Demo Resident', _value: 'demo_resident' },
-        ],
-      },
-      {
-        id: 'isActive',
-        field: 'isActive',
-        label: 'Status',
-        type: 'select' as const,
-        options: [
-          { label: 'Active', _value: 'true' },
-          { label: 'Inactive', _value: 'false' },
-        ],
-      },
-      {
-        id: 'organization',
-        field: 'organization',
-        label: 'Organization',
-        type: 'select' as const,
-        options: organizations?.map((org) => ({ label: org.name, _value: org.id })) || [],
-      },
-    ],
-    sortOptions: [
-      { field: 'firstName', label: 'First Name' },
-      { field: 'lastName', label: 'Last Name' },
-      { field: 'email', label: 'Email' },
-      { field: 'role', label: 'Role' },
-      { field: 'createdAt', label: 'Created Date' },
-    ],
-  };
+  // Filter configuration - temporarily simplified
+  // const filterConfig = {
+  //   searchable: true,
+  //   searchFields: ['firstName', 'lastName', 'email', 'username'],
+  //   filters: [
+  //     {
+  //       id: 'role',
+  //       field: 'role',
+  //       label: 'Role',
+  //       type: 'select' as const,
+  //       options: [
+  //         { label: 'Admin', _value: 'admin' },
+  //         { label: 'Manager', _value: 'manager' },
+  //         { label: 'Tenant', _value: 'tenant' },
+  //         { label: 'Resident', _value: 'resident' },
+  //         { label: 'Demo Manager', _value: 'demo_manager' },
+  //         { label: 'Demo Tenant', _value: 'demo_tenant' },
+  //         { label: 'Demo Resident', _value: 'demo_resident' },
+  //       ],
+  //     },
+  //     {
+  //       id: 'isActive',
+  //       field: 'isActive',
+  //       label: 'Status',
+  //       type: 'select' as const,
+  //       options: [
+  //         { label: 'Active', _value: 'true' },
+  //         { label: 'Inactive', _value: 'false' },
+  //       ],
+  //     },
+  //     {
+  //       id: 'organization',
+  //       field: 'organization',
+  //       label: 'Organization',
+  //       type: 'select' as const,
+  //       options: organizations?.map((org) => ({ label: org.name, _value: org.id })) || [],
+  //     },
+  //   ],
+  //   sortOptions: [
+  //     { field: 'firstName', label: 'First Name' },
+  //     { field: 'lastName', label: 'Last Name' },
+  //     { field: 'email', label: 'Email' },
+  //     { field: 'role', label: 'Role' },
+  //     { field: 'createdAt', label: 'Created Date' },
+  //   ],
+  // };
 
 
 
 
 
-  // Apply filters, search, and sort
+  // Apply search and simple filters
   const filteredUsers = useMemo(() => {
     let result = [...users];
 
@@ -530,75 +533,53 @@ export default function UserManagement() {
       );
     }
 
-    // Apply filters
-    filters.forEach((filter) => {
-      switch (filter.field) {
-        case 'role':
-          result = result.filter((user) => user.role === filter._value);
-          break;
-        case 'isActive':
-          result = result.filter((user) => user.isActive.toString() === filter._value);
-          break;
-        case 'organization':
-          result = result.filter((user) =>
-            user.organizations.some((org) => org.id === filter._value)
-          );
-          break;
-      }
-    });
+    // Apply role filter
+    if (roleFilter) {
+      result = result.filter((user) => user.role === roleFilter);
+    }
 
-    // Apply sort
-    if (sort) {
-      result.sort((a, b) => {
-        let aVal = a[sort.field as keyof typeof a];
-        let bVal = b[sort.field as keyof typeof b];
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter((user) => user.isActive.toString() === statusFilter);
+    }
 
-        if (typeof aVal === 'string') {
-          aVal = aVal.toLowerCase();
-        }
-        if (typeof bVal === 'string') {
-          bVal = bVal.toLowerCase();
-        }
-
-        if (aVal < bVal) {
-          return sort.direction === 'asc' ? -1 : 1;
-        }
-        if (aVal > bVal) {
-          return sort.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
+    // Apply organization filter
+    if (organizationFilter) {
+      result = result.filter((user) =>
+        user.organizations.some((org) => org.id === organizationFilter)
+      );
     }
 
     return result;
-  }, [users, search, filters, sort]);
+  }, [users, search, roleFilter, statusFilter, organizationFilter]);
 
-  // Filter handlers
-  const handleAddFilter = (filter: FilterValue) => {
-    setFilters((prev) => [...prev.filter((f) => f.field !== filter.field), filter]);
-  };
+  // Filter handlers - temporarily disabled
+  // const handleAddFilter = (filter: FilterValue) => {
+  //   setFilters((prev) => [...prev.filter((f) => f.field !== filter.field), filter]);
+  // };
 
-  const handleRemoveFilter = (field: string) => {
-    setFilters((prev) => prev.filter((f) => f.field !== field));
-  };
+  // const handleRemoveFilter = (field: string) => {
+  //   setFilters((prev) => prev.filter((f) => f.field !== field));
+  // };
 
-  const handleFilterUpdate = (field: string, filter: FilterValue) => {
-    setFilters((prev) => prev.map((f) => (f.field === field ? filter : f)));
-  };
+  // const handleFilterUpdate = (field: string, filter: FilterValue) => {
+  //   setFilters((prev) => prev.map((f) => (f.field === field ? filter : f)));
+  // };
 
   const handleClearFilters = () => {
-    setFilters([]);
     setSearch('');
-    setSort(null);
+    setRoleFilter('');
+    setStatusFilter('');
+    setOrganizationFilter('');
   };
 
-  const handleToggleSort = (field: string) => {
-    if (sort?.field === field) {
-      setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
-    } else {
-      setSort({ field, direction: 'asc' });
-    }
-  };
+  // const handleToggleSort = (field: string) => {
+  //   if (sort?.field === field) {
+  //     setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
+  //   } else {
+  //     setSort({ field, direction: 'asc' });
+  //   }
+  // };
 
   // Calculate stats and pagination
   const totalUsers = users?.length || 0;
@@ -710,18 +691,8 @@ export default function UserManagement() {
 
                       {/* Role Filter */}
                       <select
-                        value={filters.find((f) => f.field === 'role')?._value || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleAddFilter({
-                              field: 'role',
-                              operator: 'equals',
-                              _value: e.target.value,
-                            });
-                          } else {
-                            handleRemoveFilter('role');
-                          }
-                        }}
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
                         <option value=''>All Roles</option>
@@ -733,18 +704,8 @@ export default function UserManagement() {
 
                       {/* Status Filter */}
                       <select
-                        value={filters.find((f) => f.field === 'isActive')?._value || ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleAddFilter({
-                              field: 'isActive',
-                              operator: 'equals',
-                              _value: e.target.value,
-                            });
-                          } else {
-                            handleRemoveFilter('isActive');
-                          }
-                        }}
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
                         <option value=''>All Status</option>
@@ -755,18 +716,8 @@ export default function UserManagement() {
                       {/* Organization Filter */}
                       {organizations && organizations.length > 0 && (
                         <select
-                          value={filters.find((f) => f.field === 'organization')?._value || ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleAddFilter({
-                                field: 'organization',
-                                operator: 'equals',
-                                _value: e.target.value,
-                              });
-                            } else {
-                              handleRemoveFilter('organization');
-                            }
-                          }}
+                          value={organizationFilter}
+                          onChange={(e) => setOrganizationFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
                           <option value=''>All Organizations</option>
@@ -779,7 +730,7 @@ export default function UserManagement() {
                       )}
 
                       {/* Clear Filters */}
-                      {(filters.length > 0 || search) && (
+                      {(roleFilter || statusFilter || organizationFilter || search) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           Clear All
                         </Button>
