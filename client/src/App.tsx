@@ -50,10 +50,10 @@ const AdminCompliance = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
-// Manager User Management component
+// Manager User Management component - using simplified version temporarily
 const ManagerUserManagement = createOptimizedLoader(
-  () => import('@/pages/manager/user-management'),
-  'manager-user-management',
+  () => import('@/pages/manager/user-management-simple'),
+  'manager-user-management-simple',
   { enableMemoryCleanup: true }
 );
 
