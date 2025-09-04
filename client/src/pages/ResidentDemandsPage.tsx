@@ -207,7 +207,11 @@ ResidentDemandsPage() {
         },
         body: JSON.stringify({
           ...data,
-          status: 'submitted'
+          status: 'submitted',
+          // Convert empty strings to undefined for optional UUID fields
+          residenceId: data.residenceId || undefined,
+          assignationBuildingId: data.assignationBuildingId || undefined,
+          assignationResidenceId: data.assignationResidenceId || undefined,
         }),
       });
 
@@ -234,9 +238,9 @@ ResidentDemandsPage() {
       type: 'maintenance',
       description: '',
       buildingId: '',
-      residenceId: '',
-      assignationBuildingId: '',
-      assignationResidenceId: '',
+      residenceId: undefined,
+      assignationBuildingId: undefined,
+      assignationResidenceId: undefined,
     },
   });
 
