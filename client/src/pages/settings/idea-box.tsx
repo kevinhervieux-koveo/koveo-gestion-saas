@@ -93,7 +93,6 @@ const featureRequestFormSchema = z.object({
 // Enhanced edit form schema for admins (includes status)
 const adminEditFormSchema = featureRequestFormSchema.extend({
   status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']),
-  assignedTo: z.string().max(100, 'Assigned person name must be less than 100 characters').optional(),
   adminNotes: z.string().max(1000, 'Admin notes must be less than 1000 characters').optional(),
 });
 
@@ -119,7 +118,6 @@ interface FeatureRequest {
   status: string;
   upvoteCount: number;
   createdBy: string | null;
-  assignedTo: string | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
   adminNotes: string | null;
@@ -297,14 +295,18 @@ export default function IdeaBox() {
     setAttachedFiles(prev => [...prev, ...files]);
   };
 
-  // Handle file download
+  // Handle file download/view
   const handleFileDownload = (fileUrl: string, fileName: string) => {
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (fileUrl) {
+      // Open file in new tab to view or download
+      window.open(fileUrl, '_blank');
+    } else {
+      toast({
+        title: 'File not available',
+        description: 'The requested file could not be found.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const onEditSubmit = (data: AdminEditFormData) => {
@@ -326,7 +328,6 @@ export default function IdeaBox() {
       category: featureRequest.category as any,
       page: featureRequest.page,
       status: featureRequest.status as any,
-      assignedTo: featureRequest.assignedTo || '',
       adminNotes: featureRequest.adminNotes || '',
     });
     setIsEditDialogOpen(true);
@@ -336,11 +337,9 @@ export default function IdeaBox() {
     if (canEditFeatureRequest()) {
       handleEdit(featureRequest);
     } else {
-      // For non-admin users, show view dialog if there are attachments
-      if (featureRequest.attachmentCount && featureRequest.attachmentCount > 0) {
-        setViewingFeatureRequest(featureRequest);
-        setIsViewDialogOpen(true);
-      }
+      // For non-admin users, always show view dialog
+      setViewingFeatureRequest(featureRequest);
+      setIsViewDialogOpen(true);
     }
   };
 
@@ -672,7 +671,7 @@ export default function IdeaBox() {
               filteredAndSortedFeatureRequests.map((request: FeatureRequest) => (
                 <Card
                   key={request.id}
-                  className={`hover:shadow-md transition-shadow ${canEditFeatureRequest() || (request.attachmentCount && request.attachmentCount > 0) ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  className='hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50'
                   onClick={() => handleFeatureRequestClick(request)}
                   data-testid={`card-feature-request-${request.id}`}
                 >
@@ -885,17 +884,6 @@ export default function IdeaBox() {
                       )}
                     </div>
 
-                    <div className='space-y-2'>
-                      <Label htmlFor='edit-assigned-to' className='text-sm font-medium'>
-                        Assigned To
-                      </Label>
-                      <Input
-                        id='edit-assigned-to'
-                        {...editForm.register('assignedTo')}
-                        placeholder='Assign to team member'
-                        data-testid='input-edit-assigned-to'
-                      />
-                    </div>
                   </div>
 
                   <div className='space-y-2'>
@@ -1017,12 +1005,12 @@ export default function IdeaBox() {
                     <Badge variant='outline'>📍 {viewingFeatureRequest.page}</Badge>
                   </div>
 
-                  {viewingFeatureRequest.attachments && viewingFeatureRequest.attachments.length > 0 && (
-                    <div className='border-t pt-4'>
-                      <h4 className='font-medium mb-3 flex items-center gap-2'>
-                        <Paperclip className='w-4 h-4' />
-                        Attached Files ({viewingFeatureRequest.attachments.length})
-                      </h4>
+                  <div className='border-t pt-4'>
+                    <h4 className='font-medium mb-3 flex items-center gap-2'>
+                      <Paperclip className='w-4 h-4' />
+                      Attached Files
+                    </h4>
+                    {viewingFeatureRequest.attachments && viewingFeatureRequest.attachments.length > 0 ? (
                       <div className='space-y-2'>
                         {viewingFeatureRequest.attachments.map((attachment, index) => (
                           <div
@@ -1036,7 +1024,7 @@ export default function IdeaBox() {
                               <div>
                                 <p className='font-medium text-sm'>{attachment.name}</p>
                                 <p className='text-xs text-gray-500'>
-                                  {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                                  {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
                                 </p>
                               </div>
                             </div>
@@ -1051,8 +1039,13 @@ export default function IdeaBox() {
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className='text-center py-4 text-gray-500 bg-gray-50 rounded-lg'>
+                        <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
+                        <p className='text-sm'>No files attached to this feature request</p>
+                      </div>
+                    )}
+                  </div>
 
                   <div className='flex justify-end pt-4'>
                     <Button
