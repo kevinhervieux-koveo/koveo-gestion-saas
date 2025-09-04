@@ -41,8 +41,8 @@ import { useToast } from '@/hooks/use-toast';
 const invitationSchema = z
   .object({
     email: z.string().email('Please enter a valid email address (example: user@domain.com)').optional(),
-    firstName: z.string().min(1, 'First name is required for demo users (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens').optional(),
-    lastName: z.string().min(1, 'Last name is required for demo users (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens').optional(),
+    firstName: z.string().max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'First name can only contain letters, spaces, apostrophes and hyphens').optional(),
+    lastName: z.string().max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'Last name can only contain letters, spaces, apostrophes and hyphens').optional(),
     role: z.enum([
       'admin',
       'manager',
