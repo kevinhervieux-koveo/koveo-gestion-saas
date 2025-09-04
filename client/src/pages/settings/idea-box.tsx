@@ -1035,7 +1035,9 @@ export default function IdeaBox() {
                               <Button
                                 variant='outline'
                                 size='sm'
-                                onClick={() => handleFileDownload(attachment.url, attachment.name)}
+                                onClick={() => {
+                                  window.open(`/api/documents/${attachment.id}/file`, '_blank');
+                                }}
                                 className='flex items-center gap-1'
                                 data-testid={`button-view-${attachment.id}`}
                               >
@@ -1045,9 +1047,8 @@ export default function IdeaBox() {
                                 variant='outline'
                                 size='sm'
                                 onClick={() => {
-                                  const downloadUrl = `${attachment.url}?download=true`;
                                   const link = document.createElement('a');
-                                  link.href = downloadUrl;
+                                  link.href = `/api/documents/${attachment.id}/file?download=true`;
                                   link.download = attachment.name;
                                   document.body.appendChild(link);
                                   link.click();

@@ -2039,7 +2039,8 @@ export function registerDocumentRoutes(app: Express): void {
           else if (
             document.filePath.includes('residences/') ||
             document.filePath.includes('buildings/') ||
-            document.filePath.includes('text-documents/')
+            document.filePath.includes('text-documents/') ||
+            document.filePath.includes('general/')
           ) {
             // For development, try to find the file in common upload directories
             const possiblePaths = [
