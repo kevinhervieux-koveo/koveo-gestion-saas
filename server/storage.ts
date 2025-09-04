@@ -1577,3 +1577,6 @@ class ProductionFallbackStorage implements IStorage {
 
 // Use optimized database storage for production
 export const storage = new OptimizedDatabaseStorage();
+
+// Export the OptimizedDatabaseStorage class for direct usage
+export { OptimizedDatabaseStorage } from './optimized-db-storage';
