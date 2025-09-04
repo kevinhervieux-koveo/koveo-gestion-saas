@@ -35,6 +35,7 @@
     "build:client": "vite build",
     "build:server": "npx tsx scripts/build-server.ts",
     "db:push": "npx drizzle-kit push",
+    "db:migrate-advanced": "npx tsx scripts/advanced-database-migration.ts",
     "start": "NODE_ENV=production PORT=${PORT:-5000} node dist/index.js",
     "test": "npx jest --passWithNoTests=false --maxWorkers=50% --cache",
     "test:unit": "TEST_TYPE=unit npx jest tests/unit/ --passWithNoTests=false --maxWorkers=50% --cache --forceExit",
