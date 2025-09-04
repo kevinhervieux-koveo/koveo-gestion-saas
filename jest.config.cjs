@@ -37,7 +37,7 @@ const config = {
           lib: ['ES2022', 'DOM', 'DOM.Iterable'],
   
           skipLibCheck: true,
-          types: ['jest', 'node', '@testing-library/jest-dom'],
+          types: ['jest', 'node', '@testing-library/jest-dom', '@types/jest'],
         },
 
       },
@@ -57,7 +57,7 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web|lucide-react))'
   ],
   testTimeout: 15000,
   clearMocks: true,

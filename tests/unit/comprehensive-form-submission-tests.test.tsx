@@ -13,8 +13,10 @@
  * 6. Maintenance Forms (demands, bug reports)
  */
 
+/// <reference path="../types/jest-dom.d.ts" />
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -90,7 +92,7 @@ jest.mock('@/hooks/use-language', () => ({
 describe('Comprehensive Form Submission Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockApiRequest.mockResolvedValue({ success: true });
+    (mockApiRequest as jest.MockedFunction<any>).mockResolvedValue({ success: true });
   });
 
   describe('Authentication Form Submissions', () => {
@@ -163,7 +165,7 @@ describe('Comprehensive Form Submission Tests', () => {
     });
 
     it('should handle login form validation errors', async () => {
-      mockApiRequest.mockRejectedValue(new Error('Invalid credentials'));
+      (mockApiRequest as jest.MockedFunction<any>).mockRejectedValue(new Error('Invalid credentials'));
 
       const LoginForm = () => {
         const [email, setEmail] = React.useState('');
@@ -212,7 +214,8 @@ describe('Comprehensive Form Submission Tests', () => {
       await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toHaveTextContent('Invalid credentials');
+        const errorElement = screen.getByTestId('error-message');
+        expect(errorElement.textContent).toBe('Invalid credentials');
       });
     });
   });
@@ -656,7 +659,7 @@ describe('Comprehensive Form Submission Tests', () => {
 
   describe('Edge Cases and Error Handling', () => {
     it('should handle network errors gracefully', async () => {
-      mockApiRequest.mockRejectedValue(new Error('Network error'));
+      (mockApiRequest as jest.MockedFunction<any>).mockRejectedValue(new Error('Network error'));
 
       const TestForm = () => {
         const [error, setError] = React.useState('');
@@ -685,13 +688,14 @@ describe('Comprehensive Form Submission Tests', () => {
       await userEvent.click(screen.getByTestId('submit-button'));
 
       await waitFor(() => {
-        expect(screen.getByTestId('error-display')).toHaveTextContent('Network error');
+        const errorElement = screen.getByTestId('error-display');
+        expect(errorElement.textContent).toBe('Network error');
       });
     });
 
     it('should prevent multiple submissions', async () => {
       let submitCount = 0;
-      mockApiRequest.mockImplementation(() => {
+      (mockApiRequest as jest.MockedFunction<any>).mockImplementation(() => {
         submitCount++;
         return new Promise(resolve => setTimeout(resolve, 100));
       });
@@ -771,13 +775,14 @@ describe('Comprehensive Form Submission Tests', () => {
       const submitButton = screen.getByTestId('submit-button');
 
       await userEvent.type(input, 'test value');
-      expect(input).toHaveValue('test value');
+      expect((input as HTMLInputElement).value).toBe('test value');
 
       await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByTestId('success-message')).toBeInTheDocument();
-        expect(input).toHaveValue(''); // Form should be reset
+        const successElement = screen.getByTestId('success-message');
+        expect(successElement).toBeTruthy();
+        expect((input as HTMLInputElement).value).toBe(''); // Form should be reset
       });
     });
   });
