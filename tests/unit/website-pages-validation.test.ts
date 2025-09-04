@@ -42,7 +42,10 @@ jest.mock('../../client/src/lib/queryClient', () => ({
 }));
 
 describe('Website Pages Validation Suite', () => {
-  // List of all website pages with their expected elements
+  // Complete list of all PUBLIC website pages (non-authenticated) with their expected elements
+  // This test suite covers ALL public routes from App.tsx:
+  // ✓ / (Home) ✓ /features ✓ /pricing ✓ /security ✓ /story ✓ /privacy-policy ✓ /terms-of-service ✓ /login
+  // Translation validation ensures French/English support for Quebec Law 25 compliance
   const websitePages = [
     {
       name: 'Home',
@@ -66,7 +69,7 @@ describe('Website Pages Validation Suite', () => {
         headerLoginButton: 'header-login-button',
         hamburgerMenu: 'hamburger-menu-button',
       },
-      expectedTranslationKeys: ['simplePricing', 'pricingSubtitle', 'professionalPlan'],
+      expectedTranslationKeys: ['simplePricing', 'pricingSubtitle', 'standardPlan'],
     },
     {
       name: 'Features',
@@ -105,7 +108,8 @@ describe('Website Pages Validation Suite', () => {
       expectedElements: {
         footerTermsLink: 'footer-terms-link',
       },
-      expectedTranslationKeys: [],
+      expectedTranslationKeys: ['Contact', '9. Contact', 'Responsable de la protection des données'],
+      expectedContent: ['info@koveo-gestion.com', '1-514-712-8441', 'Loi 25'],
     },
     {
       name: 'Terms of Service',
@@ -114,7 +118,8 @@ describe('Website Pages Validation Suite', () => {
       expectedElements: {
         footerPrivacyLink: 'footer-privacy-link',
       },
-      expectedTranslationKeys: [],
+      expectedTranslationKeys: ['Contact', '13. Contact', 'Service client Koveo Gestion'],
+      expectedContent: ['info@koveo-gestion.com', '1-514-712-8441', 'Québec'],
     },
     {
       name: 'Login',
@@ -368,15 +373,63 @@ describe('Website Pages Validation Suite', () => {
         renderPageWithProviders(pageConfig.component, '/test');
 
         await waitFor(() => {
-          // Check for updated contact information
+          // Check for updated contact information - should be info@koveo-gestion.com, NOT privacy@koveogestion.com
           const phoneNumber = screen.queryByText('1-514-712-8441');
-          const email = screen.queryByText(/info@koveo-gestion\.com|privacy@koveogestion\.com/);
+          const correctEmail = screen.queryByText(/info@koveo-gestion\.com/);
+          const oldEmail = screen.queryByText(/privacy@koveogestion\.com/);
           
-          expect(phoneNumber || email).toBeInTheDocument();
+          expect(phoneNumber).toBeInTheDocument();
+          expect(correctEmail).toBeInTheDocument();
+          expect(oldEmail).not.toBeInTheDocument(); // Old email should not exist
         });
 
         cleanup();
       }
+    });
+  });
+
+  describe('Complete Website Translation Coverage', () => {
+    it('should validate all pages contain French content for Quebec compliance', async () => {
+      const pagesWithFrenchContent = [
+        { component: HomePage, name: 'Home', frenchIndicators: ['Gestion', 'Québec', 'immobilière'] },
+        { component: PricingPage, name: 'Pricing', frenchIndicators: ['Standard', 'Tarification', 'mois'] },
+        { component: PrivacyPolicyPage, name: 'Privacy Policy', frenchIndicators: ['Responsable de la protection des données', 'Koveo Gestion', 'Courriel'] },
+        { component: TermsOfServicePage, name: 'Terms of Service', frenchIndicators: ['Service client', 'Koveo Gestion', 'Québec'] },
+        { component: SecurityPage, name: 'Security', frenchIndicators: ['Sécurité', 'données'] },
+        { component: FeaturesPage, name: 'Features', frenchIndicators: ['Fonctionnalités'] },
+        { component: StoryPage, name: 'Story', frenchIndicators: ['Histoire'] }
+      ];
+
+      for (const pageConfig of pagesWithFrenchContent) {
+        renderPageWithProviders(pageConfig.component, '/test');
+
+        await waitFor(() => {
+          // Check that at least one French indicator is present
+          const hasFrenchContent = pageConfig.frenchIndicators.some(indicator => {
+            const element = screen.queryByText(new RegExp(indicator, 'i'));
+            return element !== null;
+          });
+          
+          expect(hasFrenchContent).toBe(true);
+        }, { timeout: 3000 });
+
+        cleanup();
+      }
+    });
+
+    it('should validate privacy policy specifically contains updated contact info', async () => {
+      renderPageWithProviders(PrivacyPolicyPage, '/privacy-policy');
+
+      await waitFor(() => {
+        // Specific privacy policy validations
+        expect(screen.getByText(/info@koveo-gestion\.com/)).toBeInTheDocument();
+        expect(screen.getByText(/1-514-712-8441/)).toBeInTheDocument();
+        expect(screen.getByText(/Responsable de la protection des données/)).toBeInTheDocument();
+        expect(screen.getByText(/Koveo Gestion/)).toBeInTheDocument();
+        
+        // Ensure old email format is not present
+        expect(screen.queryByText(/privacy@koveogestion\.com/)).not.toBeInTheDocument();
+      });
     });
   });
 
