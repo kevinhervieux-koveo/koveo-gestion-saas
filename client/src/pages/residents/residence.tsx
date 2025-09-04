@@ -377,7 +377,7 @@ export default function Residence() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title="My Residence"
+          title={t('myResidence')}
           subtitle={t('viewResidenceInfo')}
         />
 
@@ -399,8 +399,8 @@ export default function Residence() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title="My Residence"
-        subtitle="View your residence information and contacts"
+        title={t('myResidence')}
+        subtitle={t('myResidenceInfo')}
       />
 
       <div className='flex-1 overflow-auto p-6'>

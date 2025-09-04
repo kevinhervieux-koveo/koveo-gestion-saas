@@ -100,6 +100,52 @@ describe('Comprehensive Button Translation Coverage', () => {
     });
   });
 
+  describe('Page Title Translation Coverage', () => {
+    const pageTitleKeys = [
+      'myResidence',
+      'myResidenceInfo', 
+      'viewResidenceInfo',
+      'myBuilding',
+      'myBuildings',
+      'residenceDocuments',
+      'manageDocumentsResidence',
+      'myDemands',
+      'buildings',
+      'dashboard'
+    ];
+
+    it('should have all page title translations in both languages', () => {
+      pageTitleKeys.forEach(key => {
+        languages.forEach(lang => {
+          const t = translations[lang] as any;
+          expect(t[key]).toBeDefined();
+          expect(typeof t[key]).toBe('string');
+          expect(t[key].length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    it('should have proper French translations for key page titles', () => {
+      const fr = translations.fr;
+      
+      // Validate specific Quebec French page titles
+      expect(fr.myResidence).toBe('Ma résidence');
+      expect(fr.myResidenceInfo).toBe('Voir les informations de votre résidence et les contacts');
+      expect(fr.dashboard).toBe('Tableau de bord');
+      expect(fr.buildings).toBe('Bâtiments');
+    });
+
+    it('should have proper English translations for key page titles', () => {
+      const en = translations.en;
+      
+      // Validate English page titles
+      expect(en.myResidence).toBe('My Residence');
+      expect(en.myResidenceInfo).toBe('View your residence information and contacts');
+      expect(en.dashboard).toBe('Dashboard');
+      expect(en.buildings).toBe('Buildings');
+    });
+  });
+
   describe('Action Button Translation Validation', () => {
     it('should have consistent action button patterns', () => {
       const actionKeys = Object.keys(translations.en).filter(key => 

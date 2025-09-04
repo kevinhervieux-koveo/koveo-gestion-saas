@@ -59,7 +59,7 @@ export default function Dashboard() {
           testId: 'card-organizations',
         },
         {
-          title: 'User Management',
+          title: t('userManagement'),
           description: 'Manage users across all organizations',
           icon: Users,
           path: '/admin/organizations',
@@ -73,7 +73,7 @@ export default function Dashboard() {
     if (user.role === 'manager' || user.role === 'demo_manager' || user.role === 'admin') {
       actions.push(
         {
-          title: 'Buildings',
+          title: t('buildings'),
           description: 'Manage your property portfolio',
           icon: Building,
           path: '/manager/buildings',
@@ -81,7 +81,7 @@ export default function Dashboard() {
           testId: 'card-buildings',
         },
         {
-          title: 'Financial Reports',
+          title: t('financialReports'),
           description: 'View revenue, expenses, and financial analytics',
           icon: BarChart3,
           path: '/manager/budget',
@@ -89,7 +89,7 @@ export default function Dashboard() {
           testId: 'card-reports',
         },
         {
-          title: 'Maintenance',
+          title: t('maintenance'),
           description: 'Track and manage maintenance requests',
           icon: Settings,
           path: '/manager/demands',
@@ -103,7 +103,7 @@ export default function Dashboard() {
     if (user.role === 'tenant' || user.role === 'demo_tenant') {
       actions.push(
         {
-          title: 'My Residence',
+          title: t('myResidence'),
           description: 'View your residence information and details',
           icon: Home,
           path: '/residents/residence',
@@ -111,7 +111,7 @@ export default function Dashboard() {
           testId: 'card-tenant-residence',
         },
         {
-          title: 'Maintenance Requests',
+          title: t('demands'),
           description: 'Submit and track maintenance requests',
           icon: Settings,
           path: '/residents/maintenance',
@@ -119,7 +119,7 @@ export default function Dashboard() {
           testId: 'card-tenant-maintenance',
         },
         {
-          title: 'Documents',
+          title: t('documents'),
           description: 'View important documents and notices',
           icon: FileText,
           path: '/residents/documents',
@@ -133,7 +133,7 @@ export default function Dashboard() {
     if (user.role === 'resident' || user.role === 'demo_resident') {
       actions.push(
         {
-          title: 'My Home',
+          title: t('myResidence'),
           description: 'Access your residence dashboard',
           icon: Home,
           path: '/residents/dashboard',
@@ -141,7 +141,7 @@ export default function Dashboard() {
           testId: 'card-resident-home',
         },
         {
-          title: 'Maintenance Requests',
+          title: t('demands'),
           description: 'Submit and track maintenance requests',
           icon: Settings,
           path: '/residents/maintenance',
@@ -149,7 +149,7 @@ export default function Dashboard() {
           testId: 'card-resident-maintenance',
         },
         {
-          title: 'Documents',
+          title: t('documents'),
           description: 'View important documents and notices',
           icon: FileText,
           path: '/residents/documents',
