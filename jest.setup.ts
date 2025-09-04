@@ -112,15 +112,23 @@ jest.mock('@/hooks/use-mobile-menu', () => ({
   MobileMenuProvider: ({ children }: any) => children,
 }));
 
-// Mock query client
-jest.mock('@/lib/queryClient', () => ({
-  apiRequest: jest.fn().mockResolvedValue({ success: true, data: [] }),
-  queryClient: {
-    invalidateQueries: jest.fn(),
-    setQueryData: jest.fn(),
-    getQueryData: jest.fn(),
-  },
-}));
+// Mock query client with proper TanStack Query setup
+jest.mock('@/lib/queryClient', () => {
+  const { QueryClient } = require('@tanstack/react-query');
+  const mockQueryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        queryFn: jest.fn().mockResolvedValue([]),
+      },
+    },
+  });
+  
+  return {
+    apiRequest: jest.fn().mockResolvedValue({ success: true, data: [] }),
+    queryClient: mockQueryClient,
+  };
+});
 
 // Performance: Mock Neon database for faster unit tests
 jest.mock('@neondatabase/serverless', () => ({

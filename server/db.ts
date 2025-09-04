@@ -24,7 +24,8 @@ import {
   monthlyBudgets,
 } from '@shared/schema';
 
-const databaseUrl = config.database.url;
+// Always use dev DATABASE_URL for all environments as requested
+const databaseUrl = process.env.DATABASE_URL || config.database.url;
 
 if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');

@@ -49,8 +49,8 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 // Mock API request function
-const mockApiRequest = jest.fn();
-const mockFetch = jest.fn();
+const mockApiRequest = jest.fn() as jest.MockedFunction<any>;
+const mockFetch = jest.fn() as jest.MockedFunction<any>;
 
 jest.mock('@/lib/queryClient', () => ({
   apiRequest: mockApiRequest,
@@ -79,7 +79,7 @@ jest.mock('@/hooks/use-toast', () => ({
 }));
 
 // Mock global fetch
-global.fetch = mockFetch;
+global.fetch = mockFetch as any;
 
 // Create mock files for testing
 const createMockFile = (name: string, size: number, type: string) => {

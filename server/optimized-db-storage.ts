@@ -736,7 +736,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createResidence(insertResidence: InsertResidence): Promise<Residence> {
     const result = await dbPerformanceMonitor.trackQuery('createResidence', async () => {
-      return db.insert(schema.residences).values(insertResidence).returning();
+      return db.insert(schema.residences).values([insertResidence]).returning();
     });
 
     // Invalidate residence caches
@@ -1620,12 +1620,14 @@ export class OptimizedDatabaseStorage implements IStorage {
         return null;
       }
 
-      // Create user
+      // Create user with required fields
       const user = await this.createUser({
+        username: invitation.email.split('@')[0], // Use email prefix as username
         email: invitation.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
         password: userData.password, // This should be hashed
+        language: 'en', // Default language
         role: invitation.role,
       });
 
