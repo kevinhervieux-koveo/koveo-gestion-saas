@@ -1625,7 +1625,7 @@ const translations: Record<Language, Translations> = {
     developmentDesc: 'Conception et développement de notre solution complète en conformité avec la Loi 25 du Québec.',
     launchYear: '2025',
     launchTitle: 'Lancement officiel',
-    launchDesc: 'Lancement public de notre plateforme avec les premiers clients de gestion immobilière du Québec.'
+    launchDesc: 'Lancement public de notre plateforme avec les premiers clients de gestion immobilière du Québec.',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',
