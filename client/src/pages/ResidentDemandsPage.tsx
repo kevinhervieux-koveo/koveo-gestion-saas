@@ -205,7 +205,10 @@ ResidentDemandsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          status: 'submitted'
+        }),
       });
 
       if (!response.ok) {
@@ -276,6 +279,7 @@ ResidentDemandsPage() {
   };
 
   const handleCreateDemand = (data: DemandFormData) => {
+    // Create demand directly as submitted (no draft logic)
     createDemandMutation.mutate(data);
   };
 
@@ -441,9 +445,9 @@ ResidentDemandsPage() {
                       <Button 
                         type='submit' 
                         disabled={createDemandMutation.isPending}
-                        data-testid="button-create-draft"
+                        data-testid="button-create-demand"
                       >
-                        {createDemandMutation.isPending ? 'Creating...' : 'Create Draft'}
+                        {createDemandMutation.isPending ? 'Creating...' : 'Create Demand'}
                       </Button>
                     </DialogFooter>
                   </form>

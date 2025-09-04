@@ -284,7 +284,7 @@ describe('Form Action Buttons Functionality', () => {
         return (
           <div>
             <button 
-              data-testid="button-create-draft" 
+              data-testid="button-create-demand" 
               onClick={handleCreateDraft}
               disabled={isSubmitting}
             >
@@ -304,12 +304,12 @@ describe('Form Action Buttons Functionality', () => {
 
       renderWithProvider(<MockCreateDraftComponent />);
       
-      const createDraftButton = screen.getByTestId('button-create-draft');
-      expect(createDraftButton).toBeInTheDocument();
-      expect(createDraftButton).toHaveTextContent('Create Draft');
+      const createDemandButton = screen.getByTestId('button-create-demand');
+      expect(createDemandButton).toBeInTheDocument();
+      expect(createDemandButton).toHaveTextContent('Create Draft');
       
       // Click the button and verify it calls the API
-      await user.click(createDraftButton);
+      await user.click(createDemandButton);
       
       // Verify the API was called correctly
       expect(global.fetch).toHaveBeenCalledWith('/api/demands', {
@@ -329,8 +329,8 @@ describe('Form Action Buttons Functionality', () => {
       });
       
       // Verify button is no longer disabled after error
-      expect(createDraftButton).not.toBeDisabled();
-      expect(createDraftButton).toHaveTextContent('Create Draft');
+      expect(createDemandButton).not.toBeDisabled();
+      expect(createDemandButton).toHaveTextContent('Create Draft');
     });
   });
 });
