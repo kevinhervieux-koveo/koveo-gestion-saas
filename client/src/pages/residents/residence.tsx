@@ -431,7 +431,7 @@ export default function Residence() {
                           <SelectValue placeholder={t('selectABuilding')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Buildings</SelectItem>
+                          <SelectItem value="all">{t('allBuildings')}</SelectItem>
                           {buildings.map((building: any) => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name} - {building.address}
@@ -455,7 +455,7 @@ export default function Residence() {
                         <SelectContent>
                           {filteredResidences.map((residence) => (
                             <SelectItem key={residence.id} value={residence.id}>
-                              Unit {residence.unitNumber} - {residence.building?.name || 'N/A'}
+                              {t('unit')} {residence.unitNumber} - {residence.building?.name || 'N/A'}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -475,18 +475,18 @@ export default function Residence() {
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                       <Home className='w-5 h-5' />
-                      Unit {residence.unitNumber}
+                      {t('unit')} {residence.unitNumber}
                     </CardTitle>
                     <div className='text-sm text-gray-600'>
-                      {residence.building?.name || 'Building information unavailable'}
+                      {residence.building?.name || t('buildingInfoUnavailable')}
                     </div>
                   </CardHeader>
                   <CardContent className='space-y-4'>
                     <div className='grid grid-cols-1 gap-3'>
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
                         <p className='text-sm text-gray-700'>
-                          {residence.building?.address || 'Address unavailable'}
+                          {residence.building?.address || t('addressUnavailable')}
                         </p>
                         <p className='text-sm text-gray-700'>
                           {residence.building?.city || 'N/A'},{' '}
@@ -498,19 +498,19 @@ export default function Residence() {
                       <div className='grid grid-cols-2 gap-3'>
                         {residence.floor && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Floor</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('floor')}</Label>
                             <p className='text-sm text-gray-700'>{residence.floor}</p>
                           </div>
                         )}
                         {residence.squareFootage && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Sq Ft</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('sqFt')}</Label>
                             <p className='text-sm text-gray-700'>{residence.squareFootage}</p>
                           </div>
                         )}
                         {residence.bedrooms && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Bedrooms</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('bedrooms')}</Label>
                             <div className='flex items-center gap-1'>
                               <Bed className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>{residence.bedrooms}</span>
@@ -519,7 +519,7 @@ export default function Residence() {
                         )}
                         {residence.bathrooms && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Bathrooms</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('bathrooms')}</Label>
                             <div className='flex items-center gap-1'>
                               <Bath className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>{residence.bathrooms}</span>
@@ -531,7 +531,7 @@ export default function Residence() {
                       {residence.parkingSpaceNumbers &&
                         residence.parkingSpaceNumbers.length > 0 && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
                             <div className='flex items-center gap-1'>
                               <Car className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -544,7 +544,7 @@ export default function Residence() {
                       {residence.storageSpaceNumbers &&
                         residence.storageSpaceNumbers.length > 0 && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
                             <div className='flex items-center gap-1'>
                               <Package className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -565,7 +565,7 @@ export default function Residence() {
                       <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <Building className='w-4 h-4 mr-2' />
-                          Building Documents
+                          {t('buildingDocuments')}
                         </Button>
                       </Link>
                     </div>
@@ -585,7 +585,7 @@ export default function Residence() {
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className='h-4 w-4' />
-                Previous
+                {t('previous')}
               </Button>
 
               <div className='flex gap-1'>
@@ -620,7 +620,7 @@ export default function Residence() {
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('next')}
                 <ChevronRight className='h-4 w-4' />
               </Button>
             </div>
@@ -629,8 +629,8 @@ export default function Residence() {
           {/* Page info */}
           {filteredResidences.length > 0 && (
             <div className='text-center text-sm text-muted-foreground mt-4'>
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
-              {filteredResidences.length} residences
+              {t('showing')} {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
+              {filteredResidences.length} {t('residences')}
             </div>
           )}
         </div>

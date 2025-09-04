@@ -339,6 +339,19 @@ export interface Translations {
   totalUnits: string;
   managementCompany: string;
   occupancyStats: string;
+  allBuildings: string;
+  units: string;
+  occupied: string;
+  amenities: string;
+  moreAmenities: string;
+  unableToDisplayAmenities: string;
+  buildingInfoUnavailable: string;
+  addressUnavailable: string;
+  previous: string;
+  next: string;
+  showing: string;
+  residences: string;
+  buildingDocuments: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -812,6 +825,19 @@ const translations: Record<Language, Translations> = {
     totalUnits: 'Total Units',
     managementCompany: 'Management Company',
     occupancyStats: 'Occupancy Stats',
+    allBuildings: 'All Buildings',
+    units: 'units',
+    occupied: 'occupied',
+    amenities: 'Amenities',
+    moreAmenities: 'more',
+    unableToDisplayAmenities: 'Unable to display amenities',
+    buildingInfoUnavailable: 'Building information unavailable',
+    addressUnavailable: 'Address unavailable',
+    previous: 'Previous',
+    next: 'Next',
+    showing: 'Showing',
+    residences: 'residences',
+    buildingDocuments: 'Building Documents',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1284,6 +1310,19 @@ const translations: Record<Language, Translations> = {
     totalUnits: 'Unités totales',
     managementCompany: 'Compagnie de gestion',
     occupancyStats: "Statistiques d'occupation",
+    allBuildings: 'Tous les bâtiments',
+    units: 'unités',
+    occupied: 'occupé',
+    amenities: 'Commodités',
+    moreAmenities: 'de plus',
+    unableToDisplayAmenities: 'Impossible d\'afficher les commodités',
+    buildingInfoUnavailable: 'Informations du bâtiment non disponibles',
+    addressUnavailable: 'Adresse non disponible',
+    previous: 'Précédent',
+    next: 'Suivant',
+    showing: 'Affichage',
+    residences: 'résidences',
+    buildingDocuments: 'Documents du bâtiment',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',
