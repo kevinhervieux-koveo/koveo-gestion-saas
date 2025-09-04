@@ -19,13 +19,13 @@ export function TopNavigationBar() {
 
   return (
     <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>
-      <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
+      <div className='container mx-auto px-4 py-3 flex items-center justify-between'>
         {/* Logo */}
         <div className='flex items-center'>
           <img
             src={koveoLogo}
             alt='Koveo Gestion'
-            className='koveo-logo h-12 w-12 sm:h-14 sm:w-14 rounded-lg object-cover cursor-pointer shadow-sm hover:shadow-md transition-shadow'
+            className='koveo-logo h-16 w-32 sm:h-20 sm:w-40 lg:h-24 lg:w-48 rounded-lg object-contain cursor-pointer shadow-sm hover:shadow-md transition-shadow bg-white/50 p-2'
             onClick={() => setLocation('/')}
             data-testid='logo-link'
           />
