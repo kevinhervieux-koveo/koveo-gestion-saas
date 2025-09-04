@@ -698,6 +698,11 @@ export class MemStorage implements IStorage {
       category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
       priority: (suggestion.priority as 'Low' | 'Medium' | 'High' | 'Critical') || 'Medium',
       assignedTo: suggestion.assignedTo || null,
+      technicalDetails: suggestion.technicalDetails || null,
+      businessImpact: suggestion.businessImpact || null,
+      implementationEffort: suggestion.implementationEffort || null,
+      quebecComplianceRelevance: suggestion.quebecComplianceRelevance || null,
+      suggestedBy: suggestion.suggestedBy || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       acknowledgedAt: null,
@@ -767,24 +772,27 @@ export class MemStorage implements IStorage {
     const newFeature: Feature = {
       ...feature,
       id,
-      isPublicRoadmap: feature.isPublicRoadmap ?? true,
+      isPublicRoadmap: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       requestedBy: feature.requestedBy || null,
       assignedTo: feature.assignedTo || null,
-      estimatedHours: feature.estimatedHours || 0,
-      businessObjective: feature.businessObjective || '',
-      targetUsers: feature.targetUsers || '',
-      successMetrics: feature.successMetrics || '',
-      technicalComplexity: feature.technicalComplexity || '',
-      dependencies: feature.dependencies?.join(',') || '',
-      userFlow: feature.userFlow || '',
+      estimatedHours: feature.estimatedHours || null,
+      businessObjective: feature.businessObjective || null,
+      targetUsers: feature.targetUsers || null,
+      successMetrics: feature.successMetrics || null,
+      technicalComplexity: feature.technicalComplexity || null,
+      dependencies: feature.dependencies?.join(',') || null,
+      userFlow: feature.userFlow || null,
       actualHours: null,
       startDate: null,
       completedDate: null,
-      tags: [],
-      metadata: {},
-      syncedAt: new Date(),
+      tags: null,
+      metadata: null,
+      aiAnalysisResult: null,
+      aiAnalyzedAt: null,
+      isStrategicPath: false,
+      syncedAt: null,
     };
     this.features.set(id, newFeature);
     return newFeature;
@@ -815,12 +823,19 @@ export class MemStorage implements IStorage {
     const newItem: ActionableItem = {
       ...item,
       id,
+      featureId: item.featureId || randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      estimatedHours: item.estimatedHours || 0,
-      dependencies: item.dependencies || [],
-      completedAt: null,
+      estimatedHours: item.estimatedHours || null,
+      actualHours: null,
+      dependencies: item.dependencies || null,
+      technicalDetails: null,
+      implementationPrompt: null,
+      testingRequirements: null,
+      estimatedEffort: null,
+      orderIndex: 0,
       startedAt: null,
+      completedAt: null,
     };
     this.actionableItems.set(id, newItem);
     return newItem;
@@ -850,10 +865,10 @@ export class MemStorage implements IStorage {
       token: randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: 'pending',
+      status: 'pending' as 'pending' | 'accepted' | 'expired' | 'cancelled',
       ipAddress: '',
       userAgent: '',
-      isUsed: false,
+      tokenHash: null,
       usedAt: null,
       createdByUserId: invitation.invitedByUserId,
       acceptedByUserId: null,
@@ -1459,10 +1474,10 @@ class ProductionFallbackStorage implements IStorage {
   async deleteDocument(id: string): Promise<boolean> {
     return false;
   }
-  async getDocumentsByBuilding(buildingId: string): Promise<DocumentBuilding[]> {
+  async getDocumentsByBuilding(buildingId: string): Promise<Document[]> {
     return [];
   }
-  async createDocumentBuilding(doc: InsertDocumentBuilding): Promise<DocumentBuilding> {
+  async createDocumentBuilding(doc: InsertDocument): Promise<Document> {
     // Note: External storage integration removed
     const id = randomUUID();
     return {
@@ -1475,10 +1490,10 @@ class ProductionFallbackStorage implements IStorage {
   async deleteDocumentBuilding(documentId: string, buildingId: string): Promise<boolean> {
     return false;
   }
-  async getDocumentsByResident(residentId: string): Promise<DocumentResident[]> {
+  async getDocumentsByResident(residentId: string): Promise<Document[]> {
     return [];
   }
-  async createDocumentResident(doc: InsertDocumentResident): Promise<DocumentResident> {
+  async createDocumentResident(doc: InsertDocument): Promise<Document> {
     // Note: External storage integration removed
     const id = randomUUID();
     return {

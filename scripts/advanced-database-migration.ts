@@ -121,7 +121,7 @@ class AdvancedDatabaseMigrator {
       }
       
       const devConnection = neon(devUrl);
-      const devDb = drizzle(devConnection);
+      const devDb = drizzle({ client: devConnection });
       
       this.databases.set('development', {
         name: 'Development',
@@ -138,7 +138,7 @@ class AdvancedDatabaseMigrator {
           this.devOnly = true;
         } else {
           const prodConnection = neon(prodUrl);
-          const prodDb = drizzle(prodConnection);
+          const prodDb = drizzle({ client: prodConnection });
           
           this.databases.set('production', {
             name: 'Production',

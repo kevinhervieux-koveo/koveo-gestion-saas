@@ -287,11 +287,16 @@ export class OptimizedDatabaseStorage implements IStorage {
           .select({
             id: schema.users.id,
             username: schema.users.username,
+            password: schema.users.password,
             email: schema.users.email,
             firstName: schema.users.firstName,
             lastName: schema.users.lastName,
+            phone: schema.users.phone,
+            profileImage: schema.users.profileImage,
+            language: schema.users.language,
             role: schema.users.role,
             isActive: schema.users.isActive,
+            lastLoginAt: schema.users.lastLoginAt,
             createdAt: schema.users.createdAt,
             updatedAt: schema.users.updatedAt,
           })
