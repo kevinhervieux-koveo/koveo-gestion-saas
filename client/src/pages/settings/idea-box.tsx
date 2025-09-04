@@ -51,6 +51,7 @@ import {
   Trash2,
   MoreHorizontal,
   TrendingUp,
+  Paperclip,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,6 +59,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 // Feature request form schema
 const featureRequestFormSchema = z.object({
@@ -162,6 +164,7 @@ export default function IdeaBox() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -283,6 +286,11 @@ export default function IdeaBox() {
 
   const onSubmit = (data: FeatureRequestFormData) => {
     createFeatureRequestMutation.mutate(data);
+  };
+
+  // Handle file attachments for mockups, wireframes, or supporting documents
+  const handleFilesSelect = (files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
   };
 
   const onEditSubmit = (data: AdminEditFormData) => {
@@ -468,6 +476,20 @@ export default function IdeaBox() {
                           rows={4}
                           {...form.register('description')}
                           data-testid='textarea-feature-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {form.formState.errors.description && (
                           <p className='text-sm text-red-600 mt-1'>
@@ -534,6 +556,48 @@ export default function IdeaBox() {
                             </p>
                           )}
                         </div>
+                      </div>
+
+                      {/* File Attachments */}
+                      <div className="space-y-3 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-gray-500" />
+                            <Label className="text-sm font-medium">Supporting Documents</Label>
+                            <span className="text-xs text-gray-500">
+                              (Optional - Mockups, wireframes, screenshots, requirements docs)
+                            </span>
+                          </div>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                          />
+                        </div>
+                        {attachedFiles.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Selected files ({attachedFiles.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {attachedFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  <span className="truncate max-w-[100px]">{file.name}</span>
+                                  <button
+                                    onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                    className="text-gray-500 hover:text-red-500"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
