@@ -185,12 +185,12 @@ export default function Dashboard() {
               {isFullscreen ? (
                 <>
                   <Minimize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Exit Fullscreen</span>
+                  <span className='hidden sm:inline'>{t('exitFullscreen')}</span>
                 </>
               ) : (
                 <>
                   <Maximize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Fullscreen</span>
+                  <span className='hidden sm:inline'>{t('fullscreen')}</span>
                 </>
               )}
             </Button>

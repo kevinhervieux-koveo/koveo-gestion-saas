@@ -474,6 +474,9 @@ export interface Translations {
   manageBuildingsOrganization: string;
   searchBuildingsAddress: string;
   addBuilding: string;
+  // Fullscreen controls
+  fullscreen: string;
+  exitFullscreen: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -939,6 +942,9 @@ const translations: Record<Language, Translations> = {
     showingResults: 'Showing {start} to {end} of {total} demands',
     manageBuildingsOrganization: 'Manage {count} buildings in your organization',
     searchBuildingsAddress: 'Search buildings by name or address...',
+    // Fullscreen controls
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -1411,6 +1417,9 @@ const translations: Record<Language, Translations> = {
     showingResults: 'Affichage de {start} à {end} sur {total} demandes',
     manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
     searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
+    // Fullscreen controls
+    fullscreen: 'Plein écran',
+    exitFullscreen: 'Quitter le plein écran',
   },
 };
 
