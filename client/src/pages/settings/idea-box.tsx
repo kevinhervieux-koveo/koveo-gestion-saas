@@ -1033,9 +1033,12 @@ export default function IdeaBox() {
                             </div>
                             <div className='flex gap-2'>
                               <Button
+                                type="button"
                                 variant='outline'
                                 size='sm'
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   window.open(`/api/documents/${attachment.id}/file`, '_blank');
                                 }}
                                 className='flex items-center gap-1'
@@ -1044,9 +1047,12 @@ export default function IdeaBox() {
                                 👁️ View
                               </Button>
                               <Button
+                                type="button"
                                 variant='outline'
                                 size='sm'
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   const link = document.createElement('a');
                                   link.href = `/api/documents/${attachment.id}/file?download=true`;
                                   link.download = attachment.name;
