@@ -353,6 +353,12 @@ export default function BugReports() {
   };
 
   const handleDelete = (bugId: string) => {
+    // Close any open dialogs before deleting
+    setIsEditDialogOpen(false);
+    setIsViewDialogOpen(false);
+    setEditingBug(null);
+    setViewingBug(null);
+    
     deleteBugMutation.mutate(bugId);
   };
 

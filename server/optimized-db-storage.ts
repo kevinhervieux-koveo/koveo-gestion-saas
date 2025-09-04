@@ -1838,6 +1838,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   async createDocument(document: InsertDocument): Promise<Document> {
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
+      console.log(`🔍 DEBUG: createDocument received data:`, JSON.stringify(document, null, 2));
       
       const result = await db.insert(schema.documents).values(document).returning();
       
