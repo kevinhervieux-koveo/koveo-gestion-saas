@@ -249,8 +249,8 @@ describe('Form Action Buttons Functionality', () => {
       expect(button).toBeDisabled();
     });
 
-    it('should handle Create Draft button and API error coverage', async () => {
-      // Test that the Create Draft button exists and is testable now
+    it('should handle Create Demand button and API error coverage', async () => {
+      // Test that the Create Demand button exists and is testable now
       const MockCreateDraftComponent = () => {
         const [isSubmitting, setIsSubmitting] = React.useState(false);
         const [errorMessage, setErrorMessage] = React.useState('');
@@ -288,7 +288,7 @@ describe('Form Action Buttons Functionality', () => {
               onClick={handleCreateDraft}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating...' : 'Create Draft'}
+              {isSubmitting ? 'Creating...' : 'Create Demand'}
             </button>
             {errorMessage && <div data-testid="error-message">{errorMessage}</div>}
           </div>
@@ -306,7 +306,7 @@ describe('Form Action Buttons Functionality', () => {
       
       const createDemandButton = screen.getByTestId('button-create-demand');
       expect(createDemandButton).toBeInTheDocument();
-      expect(createDemandButton).toHaveTextContent('Create Draft');
+      expect(createDemandButton).toHaveTextContent('Create Demand');
       
       // Click the button and verify it calls the API
       await user.click(createDemandButton);
@@ -330,7 +330,7 @@ describe('Form Action Buttons Functionality', () => {
       
       // Verify button is no longer disabled after error
       expect(createDemandButton).not.toBeDisabled();
-      expect(createDemandButton).toHaveTextContent('Create Draft');
+      expect(createDemandButton).toHaveTextContent('Create Demand');
     });
   });
 });
