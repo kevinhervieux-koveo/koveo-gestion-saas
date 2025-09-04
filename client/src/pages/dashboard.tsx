@@ -43,23 +43,23 @@ export default function Dashboard() {
     if (user.role === 'admin') {
       actions.push(
         {
-          title: 'System Management',
-          description: 'Manage organizations, users, and system settings',
+          title: t('systemManagement'),
+          description: t('manageOrganizationsUsers'),
           icon: Settings,
           path: '/admin/organizations',
           color: 'bg-red-500',
           testId: 'card-admin',
         },
         {
-          title: 'Organization Overview',
-          description: 'View and manage all organizations',
+          title: t('organizationOverview'),
+          description: t('viewManageOrganizations'),
           icon: Building,
           path: '/admin/organizations',
           color: 'bg-blue-500',
           testId: 'card-organizations',
         },
         {
-          title: 'User Management',
+          title: t('userManagement'),
           description: 'Manage users across all organizations',
           icon: Users,
           path: '/admin/organizations',
@@ -70,10 +70,10 @@ export default function Dashboard() {
     }
 
     // Manager actions
-    if (user.role === 'manager' || user.role === 'admin') {
+    if (user.role === 'manager' || user.role === 'demo_manager' || user.role === 'admin') {
       actions.push(
         {
-          title: 'Buildings',
+          title: t('buildings'),
           description: 'Manage your property portfolio',
           icon: Building,
           path: '/manager/buildings',
@@ -81,7 +81,7 @@ export default function Dashboard() {
           testId: 'card-buildings',
         },
         {
-          title: 'Financial Reports',
+          title: t('financialReports'),
           description: 'View revenue, expenses, and financial analytics',
           icon: BarChart3,
           path: '/manager/budget',
@@ -89,7 +89,7 @@ export default function Dashboard() {
           testId: 'card-reports',
         },
         {
-          title: 'Maintenance',
+          title: t('maintenance'),
           description: 'Track and manage maintenance requests',
           icon: Settings,
           path: '/manager/demands',
@@ -99,11 +99,41 @@ export default function Dashboard() {
       );
     }
 
-    // Resident actions
-    if (user.role === 'resident') {
+    // Tenant actions
+    if (user.role === 'tenant' || user.role === 'demo_tenant') {
       actions.push(
         {
-          title: 'My Home',
+          title: t('myResidence'),
+          description: 'View your residence information and details',
+          icon: Home,
+          path: '/residents/residence',
+          color: 'bg-green-600',
+          testId: 'card-tenant-residence',
+        },
+        {
+          title: t('demands'),
+          description: 'Submit and track maintenance requests',
+          icon: Settings,
+          path: '/residents/maintenance',
+          color: 'bg-orange-500',
+          testId: 'card-tenant-maintenance',
+        },
+        {
+          title: t('documents'),
+          description: 'View important documents and notices',
+          icon: FileText,
+          path: '/residents/documents',
+          color: 'bg-blue-500',
+          testId: 'card-tenant-documents',
+        }
+      );
+    }
+
+    // Resident actions
+    if (user.role === 'resident' || user.role === 'demo_resident') {
+      actions.push(
+        {
+          title: t('myResidence'),
           description: 'Access your residence dashboard',
           icon: Home,
           path: '/residents/dashboard',
@@ -111,7 +141,7 @@ export default function Dashboard() {
           testId: 'card-resident-home',
         },
         {
-          title: 'Maintenance Requests',
+          title: t('demands'),
           description: 'Submit and track maintenance requests',
           icon: Settings,
           path: '/residents/maintenance',
@@ -119,7 +149,7 @@ export default function Dashboard() {
           testId: 'card-resident-maintenance',
         },
         {
-          title: 'Documents',
+          title: t('documents'),
           description: 'View important documents and notices',
           icon: FileText,
           path: '/residents/documents',
@@ -137,8 +167,8 @@ export default function Dashboard() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={`Welcome back, ${user?.firstName || 'User'}`}
-        subtitle='Your personalized dashboard - quick access to everything you need'
+        title={`${t('welcomeBack')}, ${user?.firstName || 'User'}`}
+        subtitle={t('personalizedDashboard')}
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -155,26 +185,17 @@ export default function Dashboard() {
               {isFullscreen ? (
                 <>
                   <Minimize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Exit Fullscreen</span>
+                  <span className='hidden sm:inline'>{t('exitFullscreen')}</span>
                 </>
               ) : (
                 <>
                   <Maximize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Fullscreen</span>
+                  <span className='hidden sm:inline'>{t('fullscreen')}</span>
                 </>
               )}
             </Button>
           </div>
 
-          {/* User Role Badge */}
-          <div className='mb-6'>
-            <div className='flex items-center gap-4'>
-              <Badge variant='secondary' className='px-3 py-1'>
-                {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} Dashboard
-              </Badge>
-              <div className='text-sm text-muted-foreground'>Organization: Not assigned</div>
-            </div>
-          </div>
 
           {/* Quick Actions Grid */}
           {roleActions.length > 0 ? (
@@ -216,76 +237,6 @@ export default function Dashboard() {
             </Card>
           )}
 
-          {/* Quick Stats */}
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-8'>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Active Notifications</CardTitle>
-                <Bell className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>3</div>
-                <p className='text-xs text-muted-foreground'>+2 from last week</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Upcoming Events</CardTitle>
-                <Calendar className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>2</div>
-                <p className='text-xs text-muted-foreground'>This week</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>System Status</CardTitle>
-                <TrendingUp className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold text-green-600'>Good</div>
-                <p className='text-xs text-muted-foreground'>All systems operational</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-4'>
-                <div className='flex items-center space-x-4'>
-                  <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-                  <div className='flex-1'>
-                    <p className='text-sm font-medium'>System updated successfully</p>
-                    <p className='text-xs text-muted-foreground'>Database optimizations applied</p>
-                  </div>
-                  <p className='text-xs text-muted-foreground'>2 min ago</p>
-                </div>
-                <div className='flex items-center space-x-4'>
-                  <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-                  <div className='flex-1'>
-                    <p className='text-sm font-medium'>Performance improvements</p>
-                    <p className='text-xs text-muted-foreground'>Page load times reduced by 40%</p>
-                  </div>
-                  <p className='text-xs text-muted-foreground'>1 hour ago</p>
-                </div>
-                <div className='flex items-center space-x-4'>
-                  <div className='w-2 h-2 bg-orange-500 rounded-full'></div>
-                  <div className='flex-1'>
-                    <p className='text-sm font-medium'>Maintenance completed</p>
-                    <p className='text-xs text-muted-foreground'>All critical issues resolved</p>
-                  </div>
-                  <p className='text-xs text-muted-foreground'>3 hours ago</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

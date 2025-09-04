@@ -36,10 +36,19 @@ async function throwIfResNotOk(res: Response) {
  * @throws Error if response status is not ok.
  */
 export async function apiRequest(method: string, url: string, data?: unknown): Promise<Response> {
+  const headers: Record<string, string> = {};
+
+  // Handle FormData vs JSON data
+  if (data instanceof FormData) {
+    // Don't set Content-Type for FormData - let browser set it with boundary
+  } else if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { 'Content-Type': 'application/json' } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     credentials: 'include',
   });
 
@@ -127,6 +136,26 @@ export const queryClient = new QueryClient({
   // Limit query cache size to prevent memory bloat
   queryCache: new QueryCache({
     onError: (error) => {
+      // Handle session expiry globally - redirect to login
+      if (error.message.includes('401') || error.message.includes('Authentication required')) {
+        // Check if we're not already on login or public pages
+        const currentPath = window.location.pathname;
+        const isPublicPath = [
+          '/',
+          '/auth/login',
+          '/auth/register',
+          '/features',
+          '/pricing',
+          '/security',
+          '/story',
+        ].includes(currentPath);
+
+        if (!isPublicPath) {
+          window.location.href = '/auth/login';
+          return;
+        }
+      }
+
       // Only log query errors in development
       if (process.env.NODE_ENV === 'development') {
         // Skip logging authentication timing errors and common API errors to reduce console noise
@@ -141,12 +170,7 @@ export const queryClient = new QueryClient({
 
         // Provide more helpful error messages for common issues
         if (error.message.includes('DOCTYPE') || error.message.includes('Unexpected token')) {
-          console.error('❌ API returned HTML instead of JSON. This usually means:', error.message);
-          console.error('• API endpoint not found (404)');
-          console.error('• Server error returning error page');
-          console.error('• Route mismatch between frontend and backend');
         } else {
-          console.error('Query error:', error);
         }
       }
     },
@@ -161,9 +185,28 @@ export const queryClient = new QueryClient({
   // Limit mutation cache size
   mutationCache: new MutationCache({
     onError: (error) => {
+      // Handle session expiry globally for mutations - redirect to login
+      if (error.message.includes('401') || error.message.includes('Authentication required')) {
+        // Check if we're not already on login or public pages
+        const currentPath = window.location.pathname;
+        const isPublicPath = [
+          '/',
+          '/auth/login',
+          '/auth/register',
+          '/features',
+          '/pricing',
+          '/security',
+          '/story',
+        ].includes(currentPath);
+
+        if (!isPublicPath) {
+          window.location.href = '/auth/login';
+          return;
+        }
+      }
+
       // Only log mutation errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('Mutation error:', error);
       }
     },
   }),

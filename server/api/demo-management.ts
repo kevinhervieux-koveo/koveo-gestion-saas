@@ -28,11 +28,69 @@ export function registerDemoManagementRoutes(app: Express): void {
         data: health,
       });
     } catch (error) {
-      console.error('Demo health check failed:', error);
-
       res.status(500).json({
         success: false,
         message: 'Demo health check failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/demo/users
+   * Get demo users for login page.
+   * Public endpoint for demo mode.
+   */
+  app.get('/api/demo/users', async (req: Request, res: Response) => {
+    try {
+      // Import database connection
+      const { db } = await import('../db');
+      const { eq, and, inArray } = await import('drizzle-orm');
+      const schema = await import('../../shared/schema');
+
+      // Get demo organizations (by type instead of name)
+      const demoOrgs = await db.query.organizations.findMany({
+        where: eq(schema.organizations.type, 'demo'),
+      });
+
+      if (demoOrgs.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No demo organizations found',
+        });
+      }
+
+      // Get demo users with demo roles
+      const demoUsers = await db.query.users.findMany({
+        where: and(
+          eq(schema.users.isActive, true),
+          inArray(schema.users.role, ['demo_manager', 'demo_tenant', 'demo_resident'])
+        ),
+        columns: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+
+      // Group users by role for frontend consumption
+      const usersByRole = {
+        demo_manager: demoUsers.filter(user => user.role === 'demo_manager'),
+        demo_tenant: demoUsers.filter(user => user.role === 'demo_tenant'),
+        demo_resident: demoUsers.filter(user => user.role === 'demo_resident'),
+      };
+
+      res.json({
+        success: true,
+        data: usersByRole,
+      });
+    } catch (error) {
+      console.error('❌ Error fetching demo users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch demo users',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -52,8 +110,6 @@ export function registerDemoManagementRoutes(app: Express): void {
         data: info,
       });
     } catch (error) {
-      console.error('Failed to get demo status:', error);
-
       res.status(500).json({
         success: false,
         message: 'Failed to get demo status',
@@ -84,8 +140,6 @@ export function registerDemoManagementRoutes(app: Express): void {
           },
         });
       } catch (error) {
-        console.error('Failed to ensure demo organizations:', error);
-
         res.status(500).json({
           success: false,
           message: 'Failed to ensure demo organizations',
@@ -117,8 +171,6 @@ export function registerDemoManagementRoutes(app: Express): void {
           },
         });
       } catch (error) {
-        console.error('Failed to recreate demo organizations:', error);
-
         res.status(500).json({
           success: false,
           message: 'Failed to recreate demo organizations',
@@ -149,8 +201,6 @@ export function registerDemoManagementRoutes(app: Express): void {
           },
         });
       } catch (error) {
-        console.error('Failed to run demo maintenance:', error);
-
         res.status(500).json({
           success: false,
           message: 'Failed to run demo maintenance',

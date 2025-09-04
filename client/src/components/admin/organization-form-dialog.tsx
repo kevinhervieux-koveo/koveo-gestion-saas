@@ -34,16 +34,19 @@ import type { Organization } from '@shared/schema';
 
 // Organization form schema matching the database schema
 const organizationSchema = z.object({
-  name: z.string().min(1, 'Organization name is required'),
-  type: z.string().min(1, 'Organization type is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
+  name: z.string().min(1, 'Organization name is required (example: Maple Property Management)').max(200, 'Organization name must be less than 200 characters'),
+  type: z.string().min(1, 'Please select an organization type from the dropdown'),
+  address: z.string().min(1, 'Street address is required (example: 123 Rue Saint-Denis)').max(300, 'Address must be less than 300 characters'),
+  city: z.string().min(1, 'City name is required (example: Montréal)').max(100, 'City name must be less than 100 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'City name can only contain letters, spaces, apostrophes and hyphens'),
   province: z.string().min(1, 'Province is required'),
-  postalCode: z.string().min(1, 'Postal code is required'),
-  phone: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  website: z.string().url().optional().or(z.literal('')),
-  registrationNumber: z.string().optional(),
+  postalCode: z.string().min(1, 'Postal code is required').regex(/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/, 'Postal code must follow Canadian format (example: H1A 1B1)'),
+  phone: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return /^(\+1\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}$/.test(val);
+  }, 'Phone number must be a valid North American format (example: (514) 123-4567)'),
+  email: z.string().email('Please enter a valid email address (example: contact@organization.com)').optional().or(z.literal('')),
+  website: z.string().url('Website must be a valid URL (example: https://www.organization.com)').optional().or(z.literal('')),
+  registrationNumber: z.string().max(50, 'Registration number must be less than 50 characters').optional(),
 });
 
 /**
@@ -205,6 +208,7 @@ export function OrganizationFormDialog({
                         <SelectItem value='syndicate'>Syndicate</SelectItem>
                         <SelectItem value='cooperative'>Cooperative</SelectItem>
                         <SelectItem value='condo_association'>Condo Association</SelectItem>
+                        <SelectItem value='demo'>Demo</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

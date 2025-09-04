@@ -16,21 +16,53 @@ import {
   AreaChart,
 } from 'lucide-react';
 
+// Import translation keys for navigation
+export const NAVIGATION_KEYS = {
+  dashboard: 'dashboard',
+  quickActions: 'quickActions',
+  calendar: 'calendar',
+  residents: 'residents',
+  myResidence: 'myResidence',
+  myBuilding: 'myBuilding',
+  myDemands: 'myDemands',
+  commonSpaces: 'commonSpaces',
+  manager: 'manager',
+  buildings: 'buildings',
+  residences: 'residences',
+  budget: 'budget',
+  bills: 'bills',
+  demands: 'demands',
+  userManagement: 'userManagement',
+  manageCommonSpaces: 'manageCommonSpaces',
+  admin: 'admin',
+  organizations: 'organizations',
+  documentation: 'documentation',
+  pillars: 'pillars',
+  roadmap: 'roadmap',
+  qualityAssurance: 'qualityAssurance',
+  law25Compliance: 'law25Compliance',
+  suggestions: 'suggestions',
+  rbacPermissions: 'rbacPermissions',
+  settings: 'settings',
+  bugReports: 'bugReports',
+  ideaBox: 'ideaBox',
+} as const;
+
 /**
- *
+ * Navigation item with translation key
  */
 export interface NavigationItem {
-  name: string;
+  nameKey: string; // Translation key instead of hardcoded name
   href: string;
   icon: React.ComponentType<any>;
   requiredRole?: string;
 }
 
 /**
- *
+ * Navigation section with translation key
  */
 export interface NavigationSection {
-  name: string;
+  nameKey: string; // Translation key instead of hardcoded name
   _key: string;
   icon: React.ComponentType<any>;
   requiredRole: string;
@@ -45,26 +77,26 @@ export interface NavigationSection {
  */
 export const NAVIGATION_CONFIG: NavigationSection[] = [
   {
-    name: 'Dashboard',
+    nameKey: 'dashboard',
     _key: 'dashboard',
     icon: LayoutDashboard,
     requiredRole: 'tenant',
     items: [
-      { name: 'Quick Actions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
-      { name: 'Calendar', href: '/dashboard/calendar', icon: AreaChart },
+      { nameKey: 'quickActions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
+      { nameKey: 'calendar', href: '/dashboard/calendar', icon: AreaChart },
     ],
   },
   {
-    name: 'Residents',
+    nameKey: 'residents',
     _key: 'residents',
     icon: Users,
     requiredRole: 'tenant',
     items: [
-      { name: 'My Residence', href: '/residents/residence', icon: Home },
-      { name: 'My Building', href: '/residents/building', icon: Building },
-      { name: 'My Demands', href: '/residents/demands', icon: AlertCircle },
+      { nameKey: 'myResidence', href: '/residents/residence', icon: Home },
+      { nameKey: 'myBuilding', href: '/residents/building', icon: Building },
+      { nameKey: 'myDemands', href: '/residents/demands', icon: AlertCircle },
       {
-        name: 'Common Spaces',
+        nameKey: 'commonSpaces',
         href: '/resident/common-spaces',
         icon: Building2,
         requiredRole: 'resident',
@@ -72,46 +104,46 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     ],
   },
   {
-    name: 'Manager',
+    nameKey: 'manager',
     _key: 'manager',
     icon: Building,
     requiredRole: 'manager',
     items: [
-      { name: 'Buildings', href: '/manager/buildings', icon: Building },
-      { name: 'Residences', href: '/manager/residences', icon: Home },
-      { name: 'Budget', href: '/manager/budget', icon: DollarSign },
-      { name: 'Bills', href: '/manager/bills', icon: FileText },
-      { name: 'Demands', href: '/manager/demands', icon: AlertCircle },
-      { name: 'User Management', href: '/manager/user-management', icon: Users },
-      { name: 'Manage Common Spaces', href: '/manager/common-spaces-stats', icon: AreaChart },
+      { nameKey: 'buildings', href: '/manager/buildings', icon: Building },
+      { nameKey: 'residences', href: '/manager/residences', icon: Home },
+      { nameKey: 'budget', href: '/manager/budget', icon: DollarSign },
+      { nameKey: 'bills', href: '/manager/bills', icon: FileText },
+      { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
+      { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
+      { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
     ],
   },
 
   {
-    name: 'Admin',
+    nameKey: 'admin',
     _key: 'admin',
     icon: User,
     requiredRole: 'admin',
     items: [
-      { name: 'Organizations', href: '/admin/organizations', icon: Building },
-      { name: 'Documentation', href: '/admin/documentation', icon: FileText },
-      { name: 'Pillars', href: '/admin/pillars', icon: Building },
-      { name: 'Roadmap', href: '/admin/roadmap', icon: ShieldCheck },
-      { name: 'Quality Assurance', href: '/admin/quality', icon: CheckCircle },
-      { name: 'Law 25 Compliance', href: '/admin/compliance', icon: Shield },
-      { name: 'Suggestions', href: '/admin/suggestions', icon: Lightbulb },
-      { name: 'RBAC Permissions', href: '/admin/permissions', icon: ShieldCheck },
+      { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
+      { nameKey: 'documentation', href: '/admin/documentation', icon: FileText },
+      { nameKey: 'pillars', href: '/admin/pillars', icon: Building },
+      { nameKey: 'roadmap', href: '/admin/roadmap', icon: ShieldCheck },
+      { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
+      { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
+      { nameKey: 'suggestions', href: '/admin/suggestions', icon: Lightbulb },
+      { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
     ],
   },
   {
-    name: 'Settings',
+    nameKey: 'settings',
     _key: 'settings',
     icon: Settings,
     requiredRole: 'tenant',
     items: [
-      { name: 'Settings', href: '/settings/settings', icon: Settings },
-      { name: 'Bug Reports', href: '/settings/bug-reports', icon: AlertCircle },
-      { name: 'Idea Box', href: '/settings/idea-box', icon: Lightbulb },
+      { nameKey: 'settings', href: '/settings/settings', icon: Settings },
+      { nameKey: 'bugReports', href: '/settings/bug-reports', icon: AlertCircle },
+      { nameKey: 'ideaBox', href: '/settings/idea-box', icon: Lightbulb },
     ],
   },
 ];
@@ -123,7 +155,10 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
 export const ROLE_HIERARCHY = {
   tenant: 1,
   resident: 1,
+  demo_tenant: 1, // Demo tenant has same permissions as tenant
+  demo_resident: 1, // Demo resident has same permissions as resident
   manager: 2,
+  demo_manager: 2, // Demo manager has same permissions as manager
   admin: 3,
 } as const;
 

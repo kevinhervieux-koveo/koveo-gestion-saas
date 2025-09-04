@@ -74,11 +74,14 @@ export function QuebecPrivacyConsentStep({
   // Validate form whenever consent data changes
   useEffect(() => {
     const isValid = formData.dataCollectionConsent && formData.acknowledgedRights;
-    const updatedData = { ...formData, isValid };
-
-    onDataChange(updatedData);
-    onValidationChange(isValid);
-  }, [formData]); // Remove callbacks from dependency array to prevent infinite loop
+    
+    // Only update if validation state actually changed
+    if (formData.isValid !== isValid) {
+      const updatedData = { ...formData, isValid };
+      onDataChange(updatedData);
+      onValidationChange(isValid);
+    }
+  }, [formData.dataCollectionConsent, formData.acknowledgedRights, formData.isValid]);
 
   const _validateForm = () => {
     // Required consents: data collection and rights acknowledgment

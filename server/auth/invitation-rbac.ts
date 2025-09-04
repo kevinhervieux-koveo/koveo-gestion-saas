@@ -8,7 +8,9 @@ import { hasRoleOrHigher } from '../../config';
 // Note: createInvitationAuditLog will be defined locally or imported when needed
 import ws from 'ws';
 
-neonConfig.webSocketConstructor = ws;
+if (typeof neonConfig !== 'undefined' && neonConfig) {
+  neonConfig.webSocketConstructor = ws;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
@@ -74,7 +76,7 @@ export class InvitationSecurityMonitor {
    * @param alert
    */
   static async triggerAlert(alert: SecurityAlert) {
-    console.warn(`🚨 SECURITY ALERT [${alert.level.toUpperCase()}]: ${alert.type}`, {
+    console.log('🚨 Security Alert:', {
       description: alert.description,
       userId: alert.userId,
       ipAddress: alert.ipAddress,
@@ -85,8 +87,8 @@ export class InvitationSecurityMonitor {
     this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
-      } catch (____error) {
-        console.error('Error in security alert callback:', _error);
+      } catch (error: any) {
+        console.error('❌ Error in security alert callback:', error);
       }
     });
 
@@ -107,8 +109,8 @@ export class InvitationSecurityMonitor {
         previousStatus: null,
         newStatus: null,
       });
-    } catch (____error) {
-      console.error('Failed to log security alert:', _error);
+    } catch (error: any) {
+      console.error('❌ Error logging security alert to database:', error);
     }
   }
 
@@ -213,7 +215,7 @@ export function rateLimitInvitations(maxRequests: number, windowMs: number = 360
     const key = `${req.user?.id || req.ip}:${req.method}:${req.path}`;
     const now = Date.now();
 
-    const current = rateLimitStore.get(_key);
+    const current = rateLimitStore.get(key);
 
     if (!current || now > current.resetTime) {
       rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
@@ -338,7 +340,7 @@ export class InvitationPermissionValidator {
     }
 
     // Users can only manage their own invitations
-    if (invitation.invitedBy !== userId) {
+    if (invitation.invitedByUserId !== userId) {
       return { valid: false, reason: 'Can only manage own invitations' };
     }
 
@@ -389,30 +391,30 @@ export class InvitationPermissionValidator {
  * Enhanced RBAC middleware specifically for invitation operations.
  * Combines role-based permissions with context-aware validation.
  * @param action
- * @param options
- * @param options.validateContext
- * @param options.requireOwnership
- * @param options.allowSelfAccess
- * @param options.auditAction
- */
-/**
- * RequireInvitationPermission function.
- * @param action
- * @param options
- * @param options.validateContext
- * @param options.requireOwnership
- * @param options.allowSelfAccess
- * @param options.auditAction
  * @param _options
  * @param _options.validateContext
  * @param _options.requireOwnership
  * @param _options.allowSelfAccess
  * @param _options.auditAction
+ */
+/**
+ * RequireInvitationPermission function.
+ * @param action
+ * @param _options
+ * @param _options.validateContext
+ * @param _options.requireOwnership
+ * @param _options.allowSelfAccess
+ * @param _options.auditAction
+ * @param __options
+ * @param __options.validateContext
+ * @param __options.requireOwnership
+ * @param __options.allowSelfAccess
+ * @param __options.auditAction
  * @returns Function result.
  */
 export function requireInvitationPermission(
   action: string,
-  _options: {
+  options: {
     validateContext?: boolean;
     requireOwnership?: boolean;
     allowSelfAccess?: boolean;
@@ -522,8 +524,8 @@ export function requireInvitationPermission(
       );
 
       next();
-    } catch (_error) {
-      console.error('Invitation RBAC _error:', _error);
+    } catch (error: any) {
+      console.error('❌ Permission validation failed:', error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'RBAC_ERROR',
@@ -597,7 +599,7 @@ export async function createEnhancedInvitationAuditLog(
     ]);
 
     // Log to console for immediate visibility
-    console.warn(`📋 INVITATION AUDIT: ${action}`, {
+    console.log('📝 Enhanced invitation audit log created:', {
       invitationId,
       performedBy,
       ipAddress,
@@ -605,8 +607,8 @@ export async function createEnhancedInvitationAuditLog(
       previousStatus,
       newStatus,
     });
-  } catch (_error) {
-    console.error('Failed to create enhanced audit log:', _error);
+  } catch (error: any) {
+    console.error('❌ Error creating enhanced invitation audit log:', error);
   }
 }
 
@@ -692,8 +694,8 @@ export function withPermissionInheritance(baseAction: string) {
         required: baseAction,
         userRole: req.user.role,
       });
-    } catch (_error) {
-      console.error('Permission inheritance _error:', _error);
+    } catch (error: any) {
+      console.error('❌ Permission inheritance check failed:', error);
       return res.status(500).json({
         message: 'Permission validation failed',
         code: 'INHERITANCE_ERROR',
@@ -708,5 +710,4 @@ InvitationSecurityMonitor.onAlert((alert) => {
   // - Send alerts to security team
   // - Log to external monitoring service
   // - Trigger automated responses
-  console.warn(`🔔 Security Alert Handler: ${alert.type} - ${alert.description}`);
 });

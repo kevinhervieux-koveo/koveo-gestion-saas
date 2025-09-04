@@ -3,8 +3,8 @@ name: Safe Dependency Updates
 on:
   # Run weekly dependency updates
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
-  
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
+
   # Manual trigger
   workflow_dispatch:
     inputs:
@@ -14,10 +14,10 @@ on:
         default: 'security'
         type: choice
         options:
-          - security      # Security patches only
-          - patch         # Patch version updates
-          - minor         # Minor version updates
-          - major         # Major version updates (requires manual review)
+          - security # Security patches only
+          - patch # Patch version updates
+          - minor # Minor version updates
+          - major # Major version updates (requires manual review)
 
 permissions:
   contents: write
@@ -54,14 +54,18 @@ jobs:
         id: check_updates
         run: |
           echo "🔍 Checking for security updates..."
-          
+
           # Get current audit state
           npm audit --json > audit-before.json || true
           BEFORE_CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-before.json)
           BEFORE_HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-before.json)
-          
+
           echo "📊 Current vulnerabilities: Critical=$BEFORE_CRITICAL, High=$BEFORE_HIGH"
-          
+
+          # Save to environment for later steps
+          echo "before_critical=$BEFORE_CRITICAL" >> $GITHUB_ENV
+          echo "before_high=$BEFORE_HIGH" >> $GITHUB_ENV
+
           # Check if security updates are available
           if [ $BEFORE_CRITICAL -gt 0 ] || [ $BEFORE_HIGH -gt 0 ]; then
             echo "updates_available=true" >> $GITHUB_OUTPUT
@@ -75,31 +79,33 @@ jobs:
         if: steps.check_updates.outputs.updates_available == 'true'
         run: |
           echo "🔧 Applying security fixes..."
-          
+
           # Create branch for updates
           BRANCH_NAME="security/automated-updates-$(date +%Y%m%d-%H%M%S)"
           git checkout -b "$BRANCH_NAME"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
-          
+
           # Apply security fixes only
           npm audit fix --only=prod --force || true
-          
+
           # Verify fixes don't break dependencies
           if ! npm ci; then
             echo "❌ Dependency fixes broke installation"
             git checkout main
             exit 1
           fi
-          
+
           # Re-audit to check improvements
           npm audit --json > audit-after.json || true
           AFTER_CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-after.json)
           AFTER_HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-after.json)
-          
+
           echo "📊 After fixes: Critical=$AFTER_CRITICAL, High=$AFTER_HIGH"
-          
+
           # Check if fixes actually improved security
-          if [ $AFTER_CRITICAL -lt ${{ env.BEFORE_CRITICAL:-999 }} ] || [ $AFTER_HIGH -lt ${{ env.BEFORE_HIGH:-999 }} ]; then
+          BEFORE_CRITICAL_VAL=${{ env.before_critical || '999' }}
+          BEFORE_HIGH_VAL=${{ env.before_high || '999' }}
+          if [ $AFTER_CRITICAL -lt $BEFORE_CRITICAL_VAL ] || [ $AFTER_HIGH -lt $BEFORE_HIGH_VAL ]; then
             echo "✅ Security improvements detected"
             echo "security_improved=true" >> $GITHUB_ENV
           else
@@ -113,56 +119,56 @@ jobs:
         if: env.security_improved == 'true'
         run: |
           echo "🇨🇦 Validating Quebec Law 25 compliance after updates..."
-          
+
           COMPLIANCE_ISSUES=0
-          
+
           # Check if security libraries are still present
           if ! grep -q "bcrypt\|passport\|express-session\|helmet" package.json; then
             echo "❌ Critical security libraries missing after updates"
             COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
           fi
-          
+
           # Verify encryption dependencies
           if ! grep -q "crypto" package-lock.json; then
             echo "⚠️  Crypto dependencies may have been affected"
           fi
-          
+
           # Test basic functionality
           echo "🧪 Testing basic functionality..."
           if ! npm run typecheck; then
             echo "❌ TypeScript compilation failed after updates"
             COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
           fi
-          
+
           if ! timeout 30s npm run build:server; then
             echo "❌ Server build failed after updates"
             COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
           fi
-          
+
           if [ $COMPLIANCE_ISSUES -gt 0 ]; then
             echo "❌ Found $COMPLIANCE_ISSUES compliance issues after updates"
             echo "🔄 Reverting changes..."
             git checkout main
             exit 1
           fi
-          
+
           echo "✅ Quebec Law 25 compliance maintained after updates"
 
       - name: Test authentication systems
         if: env.security_improved == 'true'
         run: |
           echo "🔑 Testing authentication systems after security updates..."
-          
+
           # Build and temporarily start server for testing
           npm run build:server
           timeout 60s npm run dev:server &
           SERVER_PID=$!
-          
+
           # Wait for server to start
           sleep 15
-          
+
           AUTH_FUNCTIONAL=true
-          
+
           # Test login endpoint
           if ! curl -f -s "http://localhost:5000/api/auth/login" \
                 -X POST \
@@ -170,94 +176,94 @@ jobs:
                 -d '{"email":"test@example.com","password":"test"}' > /dev/null 2>&1; then
             echo "⚠️  Login endpoint test completed (expected to fail without valid credentials)"
           fi
-          
+
           # Test that protected endpoints require auth
           if curl -f -s "http://localhost:5000/api/users" > /dev/null 2>&1; then
             echo "❌ Protected endpoint accessible without authentication"
             AUTH_FUNCTIONAL=false
           fi
-          
+
           # Test health endpoint (should be public)
           if ! curl -f -s "http://localhost:5000/api/health" > /dev/null 2>&1; then
             echo "❌ Health endpoint not responding"
             AUTH_FUNCTIONAL=false
           fi
-          
+
           # Stop server
           kill $SERVER_PID 2>/dev/null || true
-          
+
           if [ "$AUTH_FUNCTIONAL" = false ]; then
             echo "❌ Authentication system broken after updates"
             git checkout main
             exit 1
           fi
-          
+
           echo "✅ Authentication systems functional after updates"
 
       - name: Generate update report
         if: env.security_improved == 'true'
         run: |
           echo "📋 Generating security update report..."
-          
+
           cat > security-update-report.md << 'EOF'
           # 🔒 Security Updates Applied
-          
+
           **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
           **Type:** Automated Security Fixes
           **Branch:** ${{ env.branch_name }}
-          
+
           ## 📊 Vulnerability Improvements
-          
+
           | Severity | Before | After | Improvement |
           |----------|--------|-------|-------------|
           | Critical | $(cat audit-before.json | jq -r '.metadata.vulnerabilities.critical // 0') | $(cat audit-after.json | jq -r '.metadata.vulnerabilities.critical // 0') | $(echo $(($(cat audit-before.json | jq -r '.metadata.vulnerabilities.critical // 0') - $(cat audit-after.json | jq -r '.metadata.vulnerabilities.critical // 0')))) |
           | High     | $(cat audit-before.json | jq -r '.metadata.vulnerabilities.high // 0') | $(cat audit-after.json | jq -r '.metadata.vulnerabilities.high // 0') | $(echo $(($(cat audit-before.json | jq -r '.metadata.vulnerabilities.high // 0') - $(cat audit-after.json | jq -r '.metadata.vulnerabilities.high // 0')))) |
-          
+
           ## 🇨🇦 Quebec Law 25 Compliance Status
-          
+
           - ✅ **Authentication Systems:** Validated and functional
           - ✅ **Data Protection:** Security libraries maintained
           - ✅ **Encryption Standards:** Dependencies verified
           - ✅ **Privacy Controls:** No regressions detected
-          
+
           ## 🧪 Validation Tests Passed
-          
+
           - ✅ TypeScript compilation
           - ✅ Server build process
           - ✅ Authentication endpoints
           - ✅ Protected route security
           - ✅ System health checks
-          
+
           ## 📦 Dependencies Updated
-          
+
           ```bash
           # Review the specific packages updated:
           git diff HEAD~1 package-lock.json
           ```
-          
+
           ## ⚠️  Review Required
-          
+
           This automated security update has been tested but requires manual review before merging:
-          
+
           1. **Functional Testing:** Verify all application features work correctly
           2. **Integration Testing:** Run full test suites
           3. **Security Review:** Confirm all security measures are intact
           4. **Quebec Compliance:** Validate Law 25 requirements are met
-          
+
           EOF
-          
+
           # Commit changes
           git config --global user.name 'Security Update Bot'
           git config --global user.email 'security@koveogestion.com'
-          
+
           git add .
           git commit -m "security: automated security dependency updates
-          
+
           - Applied npm audit fixes for security vulnerabilities
           - Validated Quebec Law 25 compliance maintained
           - Tested authentication and data protection systems
           - All automated security checks passed
-          
+
           [automated-security-update]"
 
       - name: Create security update pull request
@@ -265,9 +271,9 @@ jobs:
         id: create_pr
         run: |
           echo "📤 Creating security update pull request..."
-          
+
           git push origin "${{ env.branch_name }}"
-          
+
           gh pr create \
             --title "🔒 Automated Security Updates - $(date +%Y-%m-%d)" \
             --body-file security-update-report.md \
@@ -275,7 +281,7 @@ jobs:
             --assignee "@me" \
             --base main \
             --head "${{ env.branch_name }}"
-          
+
           echo "pr_created=true" >> $GITHUB_OUTPUT
           echo "✅ Security update PR created successfully"
         env:
@@ -303,7 +309,7 @@ jobs:
       - name: Apply updates based on type
         run: |
           echo "🔄 Applying ${{ github.event.inputs.update_type }} updates..."
-          
+
           case "${{ github.event.inputs.update_type }}" in
             "patch")
               echo "📦 Applying patch updates..."
@@ -319,25 +325,25 @@ jobs:
               echo "🚨 MAJOR UPDATES APPLIED - Extensive testing required!"
               ;;
           esac
-          
+
           npm install
 
       - name: Run comprehensive validation
         run: |
           echo "🧪 Running comprehensive validation..."
-          
+
           # TypeScript check
           npm run typecheck || exit 1
-          
+
           # Lint check
           npm run lint:check || exit 1
-          
+
           # Build check
           npm run build || exit 1
-          
+
           # Security audit
           npm audit --audit-level=high || exit 1
-          
+
           echo "✅ All validations passed"
 
       - name: Create manual update summary

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Language, translations } from '@/lib/i18n';
 
 /**
@@ -8,6 +8,7 @@ import { Language, translations } from '@/lib/i18n';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: (_key: keyof typeof translations.en) => string;
 }
 
@@ -29,39 +30,33 @@ interface LanguageProviderProps {
  * @param {ReactNode} props.children - Child components that will have access to language context.
  * @returns {JSX.Element} Language context provider wrapper.
  */
-/**
- * LanguageProvider function.
- * @param root0
- * @param root0.children
- * @returns Function result.
- */
-/**
- * LanguageProvider component.
- * @param props - Component props.
- * @param props.children - React children elements.
- * @returns JSX element.
- */
-/**
- * Language provider function.
- * @param { children } - { children } parameter.
- */
-export function /**
- * Language provider function.
- * @param { children } - { children } parameter.
- */ /**
- * Language provider function.
- * @param { children } - { children } parameter.
- */
+export function LanguageProvider({ children }: LanguageProviderProps) {
+  // Initialize language from localStorage or default to French for Quebec
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('koveo-language') as Language;
+      return savedLanguage || 'fr'; // Default to French for Quebec
+    }
+    return 'fr';
+  });
 
-LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguage] = useState<Language>('en');
+  // Save language preference to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('koveo-language', language);
+    }
+  }, [language]);
+
+  const toggleLanguage = () => {
+    setLanguage((current) => (current === 'en' ? 'fr' : 'en'));
+  };
 
   const t = (_key: keyof typeof translations.en): string => {
     return translations[language][_key] || _key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
@@ -80,31 +75,8 @@ LanguageProvider({ children }: LanguageProviderProps) {
  * setLanguage('fr'); // Switch to French
  * ```
  */
-/**
- * UseLanguage function.
- * @returns Function result.
- */
-/**
- * UseLanguage custom hook.
- * @returns Hook return value.
- */
-/**
- * Use language function.
- */
-export function /**
- * Use language function.
- */ /**
- * Use language function.
- */
-
-useLanguage() {
-  const context = useContext(LanguageContext); /**
-   * If function.
-   * @param context === undefined - context === undefined parameter.
-   */ /**
-   * If function.
-   * @param context === undefined - context === undefined parameter.
-   */
+export function useLanguage() {
+  const context = useContext(LanguageContext);
 
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');

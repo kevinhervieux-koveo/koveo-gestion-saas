@@ -13,7 +13,7 @@
  * - monitoring: Quality metrics, predictions, and AI monitoring.
  */
 
-// Re-export all enums
+// Re-export all enums, schemas, and validation schemas
 export * from './schemas/core';
 export * from './schemas/property';
 export * from './schemas/financial';
@@ -27,6 +27,7 @@ export * from './schemas/infrastructure';
 // These are the most frequently imported items across the codebase
 export type {
   User,
+  UserWithAssignments,
   InsertUser,
   Organization,
   InsertOrganization,
@@ -86,12 +87,7 @@ export type {
 export type {
   Document,
   InsertDocument,
-  DocumentBuilding,
-  InsertDocumentBuilding,
-  DocumentResident,
-  InsertDocumentResident,
 } from './schemas/documents';
-
 
 export type {
   Feature,
@@ -117,16 +113,29 @@ export type {
   InsertMetricPrediction,
 } from './schemas/monitoring';
 
-export type { SslCertificate, InsertSslCertificate } from './schemas/infrastructure';
+export type { SslCertificate, InsertSslCertificate, Session, InsertSession } from './schemas/infrastructure';
 
 // Export tables for use in storage and API layers
-export { bugs, featureRequests, featureRequestUpvotes } from './schemas/operations';
-export { 
-  developmentPillars, 
-  workspaceStatus, 
-  qualityMetrics, 
+export {
+  bugs,
+  featureRequests,
+  featureRequestUpvotes,
+  maintenanceRequests,
+  notifications,
+} from './schemas/operations';
+export {
+  documents,
+} from './schemas/documents';
+export {
+  developmentPillars,
+  workspaceStatus,
+  qualityMetrics,
   frameworkConfiguration,
   features,
   actionableItems,
-  improvementSuggestions
+  improvementSuggestions,
 } from './schemas/development';
+export {
+  sslCertificates,
+  sessions,
+} from './schemas/infrastructure';

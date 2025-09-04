@@ -3,11 +3,16 @@ node_modules/
 dist/
 build/
 coverage/
+.cache/
+.vite/
+.jest-cache/
 
 # Generated files
 *.generated.*
 *.min.js
 *.min.css
+*.bundle.js
+*.chunk.js
 
 # Test files that don't need compliance checking
 *.test.ts
@@ -16,19 +21,62 @@ coverage/
 *.spec.tsx
 __tests__/
 __mocks__/
+tests/mocks/
+jest.setup.ts
+jest.config.*
 
 # Configuration files
 *.config.js
 *.config.ts
+*.config.mjs
+*.config.cjs
 vite.config.ts
 tailwind.config.ts
 drizzle.config.ts
+eslint.config.*
+commitlint.config.*
+tsconfig*.json
 
-# Documentation
+# Documentation and static files
 docs/
 *.md
 *.txt
+*.pdf
+README*
+CHANGELOG*
+LICENSE*
 
-# Logs
+# Reports and temporary files
+reports/
 *.log
 logs/
+*.tmp
+*.temp
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Asset files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Migration files (already validated)
+migrations/
+*.sql

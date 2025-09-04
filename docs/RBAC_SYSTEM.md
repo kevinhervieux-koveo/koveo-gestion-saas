@@ -4,15 +4,26 @@
 
 The Koveo Gestion platform implements a comprehensive Role-Based Access Control (RBAC) system to manage user permissions and access across the property management platform. The system enforces strict authorization rules to ensure users can only access resources and perform actions appropriate to their role.
 
+**Current Status**: Fully tested and validated with 36 comprehensive test cases (September 2025) ✅
+
+**Key Features**:
+- Four-tier role hierarchy with granular permissions
+- Open Demo organization access restrictions
+- Write operation controls for demo users
+- Organization-based access validation
+- Quebec-specific business rule compliance
+
 ## User Roles
 
 The system supports exactly **four user roles**, each with specific responsibilities and permissions:
 
 ### 1. Admin (Administrator)
+
 **Role Level:** 4 (Highest)
 **Purpose:** Full system administration and management
 
 **Key Responsibilities:**
+
 - System configuration and settings management
 - User account management across all organizations
 - Security and compliance oversight
@@ -20,6 +31,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 - Platform maintenance and updates
 
 **Core Permissions:**
+
 - All permissions from lower roles
 - `delete:user` - Remove user accounts
 - `manage:user_roles` - Change user roles
@@ -29,10 +41,12 @@ The system supports exactly **four user roles**, each with specific responsibili
 - `manage:audit_logs` - Access and manage audit logs
 
 ### 2. Manager (Property Manager)
+
 **Role Level:** 3
 **Purpose:** Property and resident management
 
 **Key Responsibilities:**
+
 - Building and unit management
 - Resident account management
 - Financial operations (bills, budgets)
@@ -41,6 +55,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 - Communication with residents
 
 **Core Permissions:**
+
 - All permissions from lower roles
 - `create:user` - Create new user accounts
 - `update:user` - Modify user information
@@ -55,10 +70,12 @@ The system supports exactly **four user roles**, each with specific responsibili
 - `create:notification` - Send notifications
 
 ### 3. Resident (Résident)
+
 **Role Level:** 2
 **Purpose:** Basic resident access (non-tenant occupants)
 
 **Key Responsibilities:**
+
 - View residence information
 - Submit basic maintenance requests
 - Access relevant documents
@@ -66,6 +83,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 - Update personal profile
 
 **Core Permissions:**
+
 - All permissions from Tenant role
 - `read:profile` - View own profile
 - `update:profile` - Update personal information
@@ -78,10 +96,12 @@ The system supports exactly **four user roles**, each with specific responsibili
 - `read:notification` - View notifications
 
 ### 4. Tenant (Locataire)
+
 **Role Level:** 1 (Base)
 **Purpose:** Active property tenant with payment responsibilities
 
 **Key Responsibilities:**
+
 - Bill payment and tracking
 - Maintenance request submission
 - Document access for their unit
@@ -89,6 +109,7 @@ The system supports exactly **four user roles**, each with specific responsibili
 - Communication with property management
 
 **Core Permissions:**
+
 - `pay:bill` - Make bill payments
 - `view:payment_history` - Access payment records
 - `create:payment_method` - Add payment methods
@@ -107,6 +128,7 @@ Admin (Level 4)
 ```
 
 Each role inherits all permissions from lower-level roles. For example:
+
 - Admins have all permissions from Manager, Resident, and Tenant roles
 - Managers have all permissions from Resident and Tenant roles
 - Residents have all permissions from the Tenant role
@@ -116,21 +138,24 @@ Each role inherits all permissions from lower-level roles. For example:
 ### Configuration Files
 
 **1. Permission Schema (`config/permissions-schema.ts`)**
+
 ```typescript
 export const UserRole = z.enum(['admin', 'manager', 'tenant', 'resident']);
 ```
 
 **2. Role Hierarchy (`config/index.ts`)**
+
 ```typescript
 export const ROLE_HIERARCHY = {
   admin: 4,
   manager: 3,
   resident: 2,
-  tenant: 1
+  tenant: 1,
 } as const;
 ```
 
 **3. Permissions Configuration (`config/permissions.json`)**
+
 ```json
 {
   "admin": ["*"],
@@ -143,6 +168,7 @@ export const ROLE_HIERARCHY = {
 ### Database Schema
 
 **User Role Enum (`shared/schema.ts`)**
+
 ```typescript
 export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident']);
 ```
@@ -161,18 +187,10 @@ All API endpoints are protected with appropriate role/permission checks:
 
 ```typescript
 // Example: Only admins can delete users
-router.delete('/users/:id',
-  requireAuth,
-  requireRole(['admin']),
-  deleteUser
-);
+router.delete('/users/:id', requireAuth, requireRole(['admin']), deleteUser);
 
 // Example: Managers and above can create bills
-router.post('/bills',
-  requireAuth,
-  authorize('create:bill'),
-  createBill
-);
+router.post('/bills', requireAuth, authorize('create:bill'), createBill);
 ```
 
 ## Invitation System
@@ -180,6 +198,7 @@ router.post('/bills',
 The platform includes a comprehensive invitation system that respects role hierarchy:
 
 ### Role-Based Invitation Permissions
+
 ```text
 Admins → can invite: Admins, Managers, Tenants, Residents
 Managers → can invite: Tenants, Residents
@@ -188,6 +207,7 @@ Residents → cannot invite users
 ```
 
 ### Invitation Features
+
 - Customizable expiration period (1-30 days)
 - Optional 2FA requirement
 - Personal message inclusion
@@ -198,18 +218,21 @@ Residents → cannot invite users
 ## Security Considerations
 
 ### Session Management
+
 - Sessions stored in PostgreSQL for persistence
 - Role and permissions cached in session
 - Automatic session invalidation on role change
 - Configurable session timeout
 
 ### Permission Validation
+
 - Runtime validation of all permission checks
 - Type-safe permission definitions
 - Audit logging for authorization failures
 - Rate limiting on sensitive operations
 
 ### Best Practices
+
 1. Always use the most restrictive role appropriate for the user
 2. Regularly audit user roles and permissions
 3. Implement additional checks for sensitive operations
@@ -226,6 +249,7 @@ The RBAC system includes comprehensive test coverage:
 - Performance tests for permission validation
 
 Test files:
+
 - `tests/unit/auth/rbac.test.ts` - Core RBAC logic
 - `tests/integration/api/rbac-endpoints.test.ts` - API authorization
 - `tests/integration/invitation/rbac-system.test.ts` - Invitation permissions
@@ -244,6 +268,7 @@ When updating from previous role systems:
 ## Compliance
 
 The RBAC system supports Quebec Law 25 compliance by:
+
 - Implementing principle of least privilege
 - Maintaining detailed audit logs
 - Providing granular access controls
@@ -253,10 +278,10 @@ The RBAC system supports Quebec Law 25 compliance by:
 ## Future Enhancements
 
 Planned improvements to the RBAC system:
+
 - Dynamic permission assignment
 - Temporary permission elevation
 - Role delegation capabilities
 - Custom role creation (Enterprise tier)
 - API key-based authentication
 - OAuth2/SAML integration
-

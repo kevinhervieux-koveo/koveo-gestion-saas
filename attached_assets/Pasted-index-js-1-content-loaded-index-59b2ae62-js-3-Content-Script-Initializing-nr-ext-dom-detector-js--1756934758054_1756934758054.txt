@@ -1,0 +1,146 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-J-wbLiIZ.js:1 Uncaught ReferenceError: setEditingUserOrganizations is not defined
+    at is (user-management-J-wbLiIZ.js:1:74477)
+    at Object.react_stack_bottom_frame (index-BszBEAUO.js:261:12449)
+    at Hd (index-BszBEAUO.js:152:806)
+    at hf (index-BszBEAUO.js:173:5840)
+    at xf (index-BszBEAUO.js:182:10144)
+    at be (index-BszBEAUO.js:77:109)
+    at mv (index-BszBEAUO.js:195:29869)
+    at fv (index-BszBEAUO.js:195:28535)
+    at zf (index-BszBEAUO.js:195:28368)
+    at sv (index-BszBEAUO.js:195:24856)
+is @ user-management-J-wbLiIZ.js:1
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+fv @ index-BszBEAUO.js:195
+zf @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Dv @ index-BszBEAUO.js:217
+gs @ index-BszBEAUO.js:217
+Hf @ index-BszBEAUO.js:217
+(anonymous) @ index-BszBEAUO.js:217
+<...>
+UA.r.createElement @ index-BszBEAUO.js:22
+uw @ index-BszBEAUO.js:280
+Se @ index-BszBEAUO.js:280
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+t1 @ index-BszBEAUO.js:195
+e1 @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<Se>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+ek @ index-BszBEAUO.js:417
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+fv @ index-BszBEAUO.js:195
+zf @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<ek>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+tk @ index-BszBEAUO.js:417
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+fv @ index-BszBEAUO.js:195
+zf @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<tk>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+(anonymous) @ index-BszBEAUO.js:417
+index-BszBEAUO.js:159 An error occurred in the <is> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+overrideMethod @ hook.js:608
+vg @ index-BszBEAUO.js:159
+fu @ index-BszBEAUO.js:173
+be @ index-BszBEAUO.js:77
+n.callback @ index-BszBEAUO.js:173
+Hy @ index-BszBEAUO.js:139
+Vy @ index-BszBEAUO.js:139
+be @ index-BszBEAUO.js:77
+Gg @ index-BszBEAUO.js:195
+gv @ index-BszBEAUO.js:195
+Uf @ index-BszBEAUO.js:195
+lv @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Dv @ index-BszBEAUO.js:217
+gs @ index-BszBEAUO.js:217
+Hf @ index-BszBEAUO.js:217
+(anonymous) @ index-BszBEAUO.js:217
+<...>
+UA.r.createElement @ index-BszBEAUO.js:22
+uw @ index-BszBEAUO.js:280
+Se @ index-BszBEAUO.js:280
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+t1 @ index-BszBEAUO.js:195
+e1 @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<Se>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+ek @ index-BszBEAUO.js:417
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+fv @ index-BszBEAUO.js:195
+zf @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<ek>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+tk @ index-BszBEAUO.js:417
+react_stack_bottom_frame @ index-BszBEAUO.js:261
+Hd @ index-BszBEAUO.js:152
+hf @ index-BszBEAUO.js:173
+xf @ index-BszBEAUO.js:182
+be @ index-BszBEAUO.js:77
+mv @ index-BszBEAUO.js:195
+fv @ index-BszBEAUO.js:195
+zf @ index-BszBEAUO.js:195
+sv @ index-BszBEAUO.js:195
+Cv @ index-BszBEAUO.js:217
+r @ index-BszBEAUO.js:43
+<tk>
+LA.Tc.jsxDEV @ index-BszBEAUO.js:35
+(anonymous) @ index-BszBEAUO.js:417

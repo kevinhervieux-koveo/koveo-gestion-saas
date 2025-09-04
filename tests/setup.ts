@@ -1,16 +1,6 @@
 // Import jest-dom matchers for React Testing Library
 import '@testing-library/jest-dom';
-import { jest } from '@jest/globals';
-
-// Explicitly import Jest DOM matchers for TypeScript
-import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
-
-declare global {
-  namespace jest {
-    interface Matchers<R = void>
-      extends TestingLibraryMatchers<typeof expect.stringContaining, R> {}
-  }
-}
+import { jest, beforeAll, afterEach, afterAll, expect } from '@jest/globals';
 
 // React 19 compatibility - configure React testing environment
 import { configure } from '@testing-library/react';
@@ -27,18 +17,16 @@ configure({
 let server: any;
 
 try {
-  // Try ES module import first
-  const mswModule = require('./mocks/server');
-  server = mswModule.server;
-} catch (_error) {
+  // Try different import methods for MSW server
   try {
-    // Fallback for ES module environment
-    import('./mocks/server.js').then((module) => {
-      server = module.server;
-    });
-  } catch (___fallbackError) {
-    console.warn('MSW server setup failed, tests will run without API mocking');
+    const mswModule = require('./mocks/server');
+    server = mswModule.server;
+  } catch (requireError) {
+    // MSW server not available - tests will run without API mocking
+    console.warn('MSW server setup skipped, tests will run without API mocking');
   }
+} catch (_error) {
+  console.warn('MSW server setup failed, tests will run without API mocking');
 }
 
 beforeAll(() => {

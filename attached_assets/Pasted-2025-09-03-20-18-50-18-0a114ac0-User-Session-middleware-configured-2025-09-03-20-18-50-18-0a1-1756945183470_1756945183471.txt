@@ -1,0 +1,128 @@
+2025-09-03 20:18:50.18
+0a114ac0
+User
+✅ Session middleware configured
+2025-09-03 20:18:50.18
+0a114ac0
+User
+🔄 Loading authentication routes...
+2025-09-03 20:18:50.18
+0a114ac0
+User
+✅ Authentication routes loaded on /api/auth/
+2025-09-03 20:18:50.18
+0a114ac0
+User
+🔄 Loading API routes...
+2025-09-03 20:18:50.18
+0a114ac0
+User
+[2025-09-04T00:18:50.187Z] 🔧 Registering document routes...
+2025-09-03 20:18:50.19
+0a114ac0
+User
+✅ Demo management API routes registered
+2025-09-03 20:18:50.19
+0a114ac0
+User
+✅ All API routes registered
+2025-09-03 20:18:50.19
+0a114ac0
+User
+✅ Setting up static file serving from /home/runner/workspace/dist/public
+2025-09-03 20:18:50.19
+0a114ac0
+User
+✅ All routes registered successfully
+2025-09-03 20:18:50.63
+0a114ac0
+User
+❌ Session store connection test failed: error: relation "public.session" does not exist
+2025-09-03 20:18:50.63
+0a114ac0
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1087:33
+2025-09-03 20:18:50.63
+0a114ac0
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-09-03 20:18:50.63
+0a114ac0
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21) {
+2025-09-03 20:18:50.63
+0a114ac0
+User
+length: 113,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+severity: 'ERROR',
+2025-09-03 20:18:50.63
+0a114ac0
+User
+code: '42P01',
+2025-09-03 20:18:50.63
+0a114ac0
+User
+detail: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+hint: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+position: '18',
+2025-09-03 20:18:50.63
+0a114ac0
+User
+internalPosition: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+internalQuery: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+where: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+schema: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+table: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+column: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+dataType: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+constraint: undefined,
+2025-09-03 20:18:50.63
+0a114ac0
+User
+file: 'parse_relation.c',
+2025-09-03 20:18:50.63
+0a114ac0
+User
+line: '1428',
+2025-09-03 20:18:50.63
+0a114ac0
+User
+routine: 'parserOpenTable'
+2025-09-03 20:18:50.63
+0a114ac0
+User
+}
+2025-09-03 20:18:50.64
+0a114ac0
+User
+✅ Database connection successful: PostgreSQL 17.5 (1b53132) on aarch64-unknown-linux...

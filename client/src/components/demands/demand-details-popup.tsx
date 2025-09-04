@@ -38,7 +38,6 @@ interface Demand {
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
   status:
-    | 'draft'
     | 'submitted'
     | 'under_review'
     | 'approved'
@@ -80,9 +79,10 @@ interface Demand {
 interface DemandComment {
   id: string;
   demandId: string;
-  comment: string;
-  orderIndex: number;
-  createdBy: string;
+  commentText: string;
+  commentType?: string;
+  isInternal?: boolean;
+  commenterId: string;
   createdAt: string;
   author: {
     id: string;
@@ -117,10 +117,9 @@ interface DemandDetailsPopupProps {
 // Form schemas
 const editDemandSchema = z.object({
   type: z.enum(['maintenance', 'complaint', 'information', 'other']),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)').max(2000, 'Description must be less than 2000 characters'),
   status: z
     .enum([
-      'draft',
       'submitted',
       'under_review',
       'approved',
@@ -130,11 +129,11 @@ const editDemandSchema = z.object({
       'cancelled',
     ])
     .optional(),
-  reviewNotes: z.string().optional(),
+  reviewNotes: z.string().max(1000, 'Review notes must be less than 1000 characters').optional(),
 });
 
 const _commentSchema = z.object({
-  comment: z.string().min(1, 'Comment cannot be empty'),
+  comment: z.string().min(1, 'Comment text is required (minimum 1 character)').max(1000, 'Comment must be less than 1000 characters'),
 });
 
 /**
@@ -147,7 +146,6 @@ type EditDemandFormData = z.infer<typeof editDemandSchema>;
 type _CommentFormData = z.infer<typeof _commentSchema>;
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-800',
   submitted: 'bg-blue-100 text-blue-800',
   under_review: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
@@ -165,7 +163,6 @@ const typeLabels = {
 };
 
 const statusLabels = {
-  draft: 'Draft',
   submitted: 'Submitted',
   under_review: 'Under Review',
   approved: 'Approved',
@@ -198,26 +195,20 @@ export default function DemandDetailsPopup({
   const [newComment, setNewComment] = useState('');
 
   // Check permissions
-  const canEdit =
-    demand &&
-    user &&
-    (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && ['draft', 'submitted'].includes(demand.status)));
+  // Nobody can edit demands (as requested)
+  const canEdit = false;
 
   const canDelete =
     demand &&
     user &&
     (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && demand.status === 'draft'));
+      user.role === 'manager');
 
   const canChangeStatus =
     demand &&
     user &&
     (user.role === 'admin' ||
-      user.role === 'manager' ||
-      (demand.submitterId === user.id && user.role === 'resident'));
+      user.role === 'manager');
 
   const canEscalate =
     demand &&
@@ -238,7 +229,7 @@ export default function DemandDetailsPopup({
     defaultValues: {
       type: demand?.type || 'maintenance',
       description: demand?.description || '',
-      status: demand?.status || 'draft',
+      status: demand?.status || 'submitted',
       reviewNotes: demand?.reviewNotes || '',
     },
   });
@@ -313,7 +304,7 @@ export default function DemandDetailsPopup({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment, orderIndex: comments.length + 1 }),
+        body: JSON.stringify({ commentText: comment }),
       });
       if (!response.ok) {
         throw new Error('Failed to add comment');
@@ -439,14 +430,24 @@ export default function DemandDetailsPopup({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='draft'>Draft</SelectItem>
-                      <SelectItem value='submitted'>Submitted</SelectItem>
-                      <SelectItem value='under_review'>Under Review</SelectItem>
-                      <SelectItem value='approved'>Approved</SelectItem>
-                      <SelectItem value='rejected'>Rejected</SelectItem>
-                      <SelectItem value='in_progress'>In Progress</SelectItem>
-                      <SelectItem value='completed'>Completed</SelectItem>
-                      <SelectItem value='cancelled'>Cancelled</SelectItem>
+                      {user?.role === 'resident' ? (
+                        // Residents can only change status to submitted or cancelled
+                        <>
+                          <SelectItem value='submitted'>Submitted</SelectItem>
+                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                        </>
+                      ) : (
+                        // Managers and admins can change to any status (except draft)
+                        <>
+                          <SelectItem value='submitted'>Submitted</SelectItem>
+                          <SelectItem value='under_review'>Under Review</SelectItem>
+                          <SelectItem value='approved'>Approved</SelectItem>
+                          <SelectItem value='rejected'>Rejected</SelectItem>
+                          <SelectItem value='in_progress'>In Progress</SelectItem>
+                          <SelectItem value='completed'>Completed</SelectItem>
+                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 )}
@@ -575,23 +576,32 @@ export default function DemandDetailsPopup({
           <div className='space-y-4'>
             <h3 className='font-semibold'>Comments ({comments.length})</h3>
 
-            {/* Add Comment */}
-            <div className='space-y-2'>
-              <Textarea
-                placeholder='Add a comment...'
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                rows={3}
-              />
-              <Button
-                onClick={handleAddComment}
-                disabled={!newComment.trim() || addCommentMutation.isPending}
-                size='sm'
-              >
-                <Send className='h-4 w-4 mr-1' />
-                {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
-              </Button>
-            </div>
+            {/* Add Comment - only if demand is not closed */}
+            {demand && !['cancelled', 'completed', 'rejected'].includes(demand.status) && (
+              <div className='space-y-2'>
+                <Textarea
+                  placeholder='Add a comment...'
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={3}
+                />
+                <Button
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim() || addCommentMutation.isPending}
+                  size='sm'
+                >
+                  <Send className='h-4 w-4 mr-1' />
+                  {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+                </Button>
+              </div>
+            )}
+            
+            {/* Show message if demand is closed */}
+            {demand && ['cancelled', 'completed', 'rejected'].includes(demand.status) && (
+              <p className='text-sm text-muted-foreground bg-gray-50 p-3 rounded'>
+                Comments are disabled for {demand.status} demands.
+              </p>
+            )}
 
             {/* Comments List */}
             <div className='space-y-3 max-h-60 overflow-y-auto'>
@@ -606,7 +616,7 @@ export default function DemandDetailsPopup({
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
                     </div>
-                    <p className='text-sm whitespace-pre-wrap'>{comment.comment}</p>
+                    <p className='text-sm whitespace-pre-wrap'>{comment.commentText}</p>
                   </CardContent>
                 </Card>
               ))}

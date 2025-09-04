@@ -91,24 +91,6 @@ getDisplayableFileUrl(fileUrl: string): string {
     return fileUrl;
   }
 
-  // If it's a Google Cloud Storage URL, convert to objects route
-  if (fileUrl.includes('storage.googleapis.com') || fileUrl.includes('googleapis.com')) {
-    // Extract the path part after the bucket name
-    const urlParts = fileUrl.split('/');
-    const bucketIndex = urlParts.findIndex((part) => part.includes('googleapis.com')); /**
-     * If function.
-     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-     */ /**
-     * If function.
-     * @param bucketIndex >= 0 && bucketIndex + 2 < urlParts.length - bucketIndex >= 0 && bucketIndex + 2 < urlParts.length parameter.
-     */
-
-    if (bucketIndex >= 0 && bucketIndex + 2 < urlParts.length) {
-      const pathAfterBucket = urlParts.slice(bucketIndex + 2).join('/');
-      return `/objects/${pathAfterBucket}`;
-    }
-  }
-
   // If it starts with /objects/, use as-is
   if (fileUrl.startsWith('/objects/')) {
     return fileUrl;
@@ -185,30 +167,14 @@ export function createUploadHandler(
        * @param result.successful && result.successful.length > 0 - result.successful && result.successful.length > 0 parameter.
        */
 
-      if (result.successful && result.successful.length > 0) {
+      if (_result.successful && _result.successful.length > 0) {
         onSuccess?.();
-      } else if (result.failed && result.failed.length > 0) {
-        /**
-         * If function.
-         * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
-         */ /**
-         * If function.
-         * @param result.failed && result.failed.length > 0 - result.failed && result.failed.length > 0 parameter.
-         */
-
-        const error = new Error(`Upload failed: ${result.failed[0].error}`);
+      } else if (_result.failed && _result.failed.length > 0) {
+        const error = new Error(`Upload failed: ${_result.failed[0].error}`);
         onError?.(error);
       }
-    } catch (_error) {
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */ /**
-       * Catch function.
-       * @param error - Error object.
-       */
-
-      onError?.(_error as Error);
+    } catch (error) {
+      onError?.(error as Error);
     }
   };
 }

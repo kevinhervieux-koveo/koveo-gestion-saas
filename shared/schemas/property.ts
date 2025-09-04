@@ -44,10 +44,10 @@ export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancell
  * Each building represents a distinct property managed by an organization.
  */
 export const buildings = pgTable('buildings', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: uuid('organization_id')
+  organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -80,10 +80,10 @@ export const buildings = pgTable('buildings', {
  * Represents apartments, condos, or units that can be occupied by tenants.
  */
 export const residences = pgTable('residences', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  buildingId: uuid('building_id')
+  buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   unitNumber: text('unit_number').notNull(),
@@ -94,7 +94,7 @@ export const residences = pgTable('residences', {
   balcony: boolean('balcony').default(false),
   parkingSpaceNumbers: text('parking_space_numbers').array(),
   storageSpaceNumbers: text('storage_space_numbers').array(),
-  ownershipPercentage: decimal('ownership_percentage', { precision: 5, scale: 4 }), // For condos
+  ownershipPercentage: decimal('ownership_percentage', { precision: 5, scale: 2 }), // For condos, 0-100 scale
   monthlyFees: decimal('monthly_fees', { precision: 10, scale: 2 }),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
@@ -106,13 +106,13 @@ export const residences = pgTable('residences', {
  * Supports owner, tenant, and occupant relationships with date ranges.
  */
 export const userResidences = pgTable('user_residences', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  residenceId: uuid('residence_id')
+  residenceId: varchar('residence_id')
     .notNull()
     .references(() => residences.id, { onDelete: 'cascade' }),
   relationshipType: text('relationship_type').notNull(), // 'owner', 'tenant', 'occupant'
@@ -135,7 +135,7 @@ export const contacts = pgTable('contacts', {
   email: text('email'),
   phone: text('phone'),
   entity: contactEntityEnum('entity').notNull(),
-  entityId: uuid('entity_id').notNull(),
+  entityId: varchar('entity_id').notNull(),
   contactCategory: contactCategoryEnum('contact_category').notNull(),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
@@ -147,17 +147,17 @@ export const contacts = pgTable('contacts', {
  * Represents spaces like gyms, lounges, meeting rooms that can be reserved by residents.
  */
 export const commonSpaces = pgTable('common_spaces', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  buildingId: uuid('building_id')
+  buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   isReservable: boolean('is_reservable').notNull().default(false),
   capacity: integer('capacity'),
-  contactPersonId: uuid('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
+  contactPersonId: varchar('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
   openingHours: jsonb('opening_hours'),
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -169,13 +169,13 @@ export const commonSpaces = pgTable('common_spaces', {
  * Tracks user reservations for common spaces with time slots and status.
  */
 export const bookings = pgTable('bookings', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  commonSpaceId: uuid('common_space_id')
+  commonSpaceId: varchar('common_space_id')
     .notNull()
     .references(() => commonSpaces.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   startTime: timestamp('start_time', { withTimezone: true }).notNull(),
@@ -190,13 +190,13 @@ export const bookings = pgTable('bookings', {
  * Allows administrators to block specific users from booking certain common spaces.
  */
 export const userBookingRestrictions = pgTable('user_booking_restrictions', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  commonSpaceId: uuid('common_space_id')
+  commonSpaceId: varchar('common_space_id')
     .notNull()
     .references(() => commonSpaces.id, { onDelete: 'cascade' }),
   isBlocked: boolean('is_blocked').notNull().default(true),
@@ -210,13 +210,13 @@ export const userBookingRestrictions = pgTable('user_booking_restrictions', {
  * Allows setting monthly/yearly limits on how much time users can reserve.
  */
 export const userTimeLimits = pgTable('user_time_limits', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  commonSpaceId: uuid('common_space_id').references(() => commonSpaces.id, { onDelete: 'cascade' }), // null means applies to all spaces
+  commonSpaceId: varchar('common_space_id').references(() => commonSpaces.id, { onDelete: 'cascade' }), // null means applies to all spaces
   limitType: varchar('limit_type', { length: 20 }).notNull(), // 'monthly' or 'yearly'
   limitHours: integer('limit_hours').notNull(), // Maximum hours allowed
   createdAt: timestamp('created_at').defaultNow(),

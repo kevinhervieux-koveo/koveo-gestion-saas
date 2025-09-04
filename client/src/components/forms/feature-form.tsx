@@ -19,10 +19,11 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, FileText, Zap, Save, Clock, Trash2, Plus } from 'lucide-react';
+import { Copy, FileText, Zap, Save, Clock, Trash2, Plus, Paperclip } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 /**
  * Props for the FeatureForm component.
@@ -96,7 +97,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       // Close the dialog
       handleClose(false);
     },
-    onError: (_error) => {
+    onError: () => {
       toast({
         title: 'Integration Failed',
         description: 'Failed to add the feature to the roadmap. Please try again.',
@@ -147,7 +148,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'The development prompt has been saved as an actionable item.',
       });
     },
-    onError: (_error) => {
+    onError: () => {
       toast({
         title: 'Save Failed',
         description: 'Failed to save the prompt as an actionable item.',
@@ -200,6 +201,7 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   /**
    * Gets the localStorage key for drafts.
@@ -229,8 +231,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
-      console.error('Failed to save draft:', _error);
+    } catch (error) {
+      // Error saving draft
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -253,8 +255,8 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
-      console.error('Failed to load draft:', _error);
+    } catch (error) {
+      // Error loading draft
     }
   }, [feature?.id, getDraftKey]);
 
@@ -266,13 +268,13 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
       window.localStorage.removeItem(getDraftKey());
       setLastSaved(null);
       setIsDirty(false);
-
+      
       toast({
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
-      console.error('Failed to clear draft:', _error);
+    } catch (error) {
+      // Error clearing draft
     }
   }, [feature?.id, toast, getDraftKey]);
 
@@ -282,10 +284,18 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
    * @param value - The new value for the field.
    * @param _value
    */
-  const updateFormData = (field: string, _value: string | boolean | unknown) => {
+  const updateFormData = (field: string, value: string | boolean | unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
+
+  /**
+   * Handle file attachments for mockups, wireframes, or supporting documents.
+   */
+  const handleFilesSelect = useCallback((files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+    setIsDirty(true);
+  }, []);
 
   /**
    * Generates a comprehensive development prompt based on the collected requirements.
@@ -479,7 +489,8 @@ ${formData.additionalNotes || 'No additional notes'}
         title: 'Prompt Copied',
         description: 'The development prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error copying prompt:', error);
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy prompt to clipboard.',
@@ -592,18 +603,17 @@ ${formData.additionalNotes || 'No additional notes'}
 
         draftKeys.forEach((key) => {
           try {
-            const draftData = JSON.parse(window.localStorage.getItem(_key) || '{}');
+            const draftData = JSON.parse(window.localStorage.getItem(key) || '{}');
             if (draftData.formData?.featureCategory === 'Strategic Path') {
-              window.localStorage.removeItem(_key);
-              console.warn('Cleared invalid draft:', _key);
+              window.localStorage.removeItem(key);
             }
-          } catch (_error) {
+          } catch (error) {
             // Invalid JSON, remove it
-            window.localStorage.removeItem(_key);
+            window.localStorage.removeItem(key);
           }
         });
-      } catch (_error) {
-        console.error('Error clearing invalid drafts:', _error);
+      } catch (error) {
+        console.error('Error clearing invalid drafts:', error);
       }
 
       loadDraft();
@@ -689,7 +699,7 @@ ${formData.additionalNotes || 'No additional notes'}
                       id='featureName'
                       placeholder='Enter feature name'
                       value={formData.featureName || ''}
-                      onChange={(e) => updateFormData('featureName', e.target._value)}
+                      onChange={(e) => updateFormData('featureName', e.target.value)}
                     />
                   </div>
                   <div>
@@ -729,7 +739,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='featureDescription'
                     placeholder='Describe what this feature will do'
                     value={formData.featureDescription || ''}
-                    onChange={(e) => updateFormData('featureDescription', e.target._value)}
+                    onChange={(e) => updateFormData('featureDescription', e.target.value)}
                   />
                 </div>
 
@@ -764,7 +774,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='businessObjective'
                     placeholder='What problem does this feature solve? What business value does it provide?'
                     value={formData.businessObjective}
-                    onChange={(e) => updateFormData('businessObjective', e.target._value)}
+                    onChange={(e) => updateFormData('businessObjective', e.target.value)}
                   />
                 </div>
 
@@ -774,7 +784,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='targetUsers'
                     placeholder='e.g., Property managers, Tenants, Owners'
                     value={formData.targetUsers}
-                    onChange={(e) => updateFormData('targetUsers', e.target._value)}
+                    onChange={(e) => updateFormData('targetUsers', e.target.value)}
                   />
                 </div>
 
@@ -784,7 +794,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='successMetrics'
                     placeholder='How will we measure success? What are the KPIs?'
                     value={formData.successMetrics}
-                    onChange={(e) => updateFormData('successMetrics', e.target._value)}
+                    onChange={(e) => updateFormData('successMetrics', e.target.value)}
                   />
                 </div>
 
@@ -812,7 +822,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='timeline'
                     placeholder='e.g., 2 weeks, 1 month, Next sprint'
                     value={formData.timeline}
-                    onChange={(e) => updateFormData('timeline', e.target._value)}
+                    onChange={(e) => updateFormData('timeline', e.target.value)}
                   />
                 </div>
               </div>
@@ -845,7 +855,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='dependencies'
                     placeholder='What other features, APIs, or systems does this depend on?'
                     value={formData.dependencies}
-                    onChange={(e) => updateFormData('dependencies', e.target._value)}
+                    onChange={(e) => updateFormData('dependencies', e.target.value)}
                   />
                 </div>
 
@@ -855,7 +865,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='dataRequirements'
                     placeholder='What data needs to be stored, modified, or accessed?'
                     value={formData.dataRequirements}
-                    onChange={(e) => updateFormData('dataRequirements', e.target._value)}
+                    onChange={(e) => updateFormData('dataRequirements', e.target.value)}
                   />
                 </div>
 
@@ -865,7 +875,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='integrationNeeds'
                     placeholder='External APIs, services, or third-party integrations needed'
                     value={formData.integrationNeeds}
-                    onChange={(e) => updateFormData('integrationNeeds', e.target._value)}
+                    onChange={(e) => updateFormData('integrationNeeds', e.target.value)}
                   />
                 </div>
 
@@ -875,7 +885,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='securityConsiderations'
                     placeholder='Authentication, authorization, data privacy concerns'
                     value={formData.securityConsiderations}
-                    onChange={(e) => updateFormData('securityConsiderations', e.target._value)}
+                    onChange={(e) => updateFormData('securityConsiderations', e.target.value)}
                   />
                 </div>
               </div>
@@ -891,7 +901,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='userFlow'
                     placeholder='Describe the step-by-step user interaction with this feature'
                     value={formData.userFlow}
-                    onChange={(e) => updateFormData('userFlow', e.target._value)}
+                    onChange={(e) => updateFormData('userFlow', e.target.value)}
                   />
                 </div>
 
@@ -901,7 +911,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='uiRequirements'
                     placeholder='Specific UI components, layouts, or visual requirements'
                     value={formData.uiRequirements}
-                    onChange={(e) => updateFormData('uiRequirements', e.target._value)}
+                    onChange={(e) => updateFormData('uiRequirements', e.target.value)}
                   />
                 </div>
               </div>
@@ -912,7 +922,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   id='accessibilityNeeds'
                   placeholder='Screen reader support, keyboard navigation, color contrast'
                   value={formData.accessibilityNeeds}
-                  onChange={(e) => updateFormData('accessibilityNeeds', e.target._value)}
+                  onChange={(e) => updateFormData('accessibilityNeeds', e.target.value)}
                 />
               </div>
             </div>
@@ -927,7 +937,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='performanceRequirements'
                     placeholder='Load times, data processing speed, scalability needs'
                     value={formData.performanceRequirements}
-                    onChange={(e) => updateFormData('performanceRequirements', e.target._value)}
+                    onChange={(e) => updateFormData('performanceRequirements', e.target.value)}
                   />
                 </div>
 
@@ -937,7 +947,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     id='testingStrategy'
                     placeholder='Unit tests, integration tests, user acceptance criteria'
                     value={formData.testingStrategy}
-                    onChange={(e) => updateFormData('testingStrategy', e.target._value)}
+                    onChange={(e) => updateFormData('testingStrategy', e.target.value)}
                   />
                 </div>
               </div>
@@ -1041,8 +1051,50 @@ ${formData.additionalNotes || 'No additional notes'}
                 id='additionalNotes'
                 placeholder='Any other requirements, constraints, or considerations'
                 value={formData.additionalNotes}
-                onChange={(e) => updateFormData('additionalNotes', e.target._value)}
+                onChange={(e) => updateFormData('additionalNotes', e.target.value)}
               />
+            </div>
+
+            {/* File Attachments */}
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="w-4 h-4 text-gray-500" />
+                  <Label className="text-sm font-medium">Supporting Documents</Label>
+                  <span className="text-xs text-gray-500">
+                    (Optional - Mockups, wireframes, screenshots, requirements docs)
+                  </span>
+                </div>
+                <CompactFileUpload
+                  onFilesSelect={handleFilesSelect}
+                  maxFiles={5}
+                  acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                />
+              </div>
+              {attachedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-600">
+                    Selected files ({attachedFiles.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {attachedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                      >
+                        <span className="truncate max-w-[100px]">{file.name}</span>
+                        <button
+                          onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                          className="text-gray-500 hover:text-red-500"
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

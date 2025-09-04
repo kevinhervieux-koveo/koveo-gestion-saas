@@ -19,11 +19,8 @@ import type {
   InsertResidence,
   Document,
   InsertDocument,
-  DocumentBuilding,
-  InsertDocumentBuilding,
-  DocumentResident,
-  InsertDocumentResident,
   InsertPillar,
+  Pillar as DevelopmentPillar,
   WorkspaceStatus,
   InsertWorkspaceStatus,
   QualityMetric,
@@ -49,7 +46,7 @@ import type {
   InsertBug,
 } from '@shared/schema';
 import type { IStorage } from './storage';
-import type { DevelopmentPillar } from '../shared/schemas/development';
+import type { Pillar } from '@shared/schema';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
 import { queryCache, CacheInvalidator } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
@@ -93,8 +90,8 @@ export class OptimizedDatabaseStorage implements IStorage {
     try {
       await QueryOptimizer.applyCoreOptimizations();
       // Database optimizations applied
-    } catch (error) {
-      console.error('Failed to apply database optimizations:', error);
+    } catch (error: any) {
+      console.error('❌ Error initializing database optimizations:', error);
     }
   }
 
@@ -147,6 +144,118 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * Retrieves all active users with their assignments (organizations, buildings, residences).
+   */
+  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+    // Clear any existing cache to ensure fresh data
+    queryCache.invalidate('users', 'all_users_assignments_v2');
+    queryCache.invalidate('users', 'all_users_assignments_v3');
+    
+    try {
+      // Get all users first
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.isActive, true))
+        .limit(100)
+        .orderBy(desc(schema.users.createdAt));
+
+
+      // For each user, fetch their assignments with limited concurrency to prevent connection issues
+      const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
+      const usersWithAssignments = [];
+      
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (user) => {
+          try {
+            // Get user organizations
+            const userOrgs = await db
+              .select({
+                id: schema.organizations.id,
+                name: schema.organizations.name,
+                type: schema.organizations.type,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.organizations.isActive, true)
+                )
+              );
+
+            // Get user buildings (through organization relationships)
+            const userBuildings = await db
+              .select({
+                id: schema.buildings.id,
+                name: schema.buildings.name,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.buildings.isActive, true)
+                )
+              );
+
+            // Get user residences
+            const userResidences = await db
+              .select({
+                id: schema.residences.id,
+                unitNumber: schema.residences.unitNumber,
+                buildingId: schema.residences.buildingId,
+                buildingName: schema.buildings.name,
+              })
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(
+                and(
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true)
+                )
+              );
+
+            const result = {
+              ...user,
+              organizations: userOrgs || [],
+              buildings: userBuildings || [],
+              residences: userResidences || [],
+            };
+
+
+            return result;
+          } catch (error: any) {
+            console.error('❌ Error getting user assignments:', error);
+            // Return user with empty assignments if there's an error
+            return {
+              ...user,
+              organizations: [],
+              buildings: [],
+              residences: [],
+            };
+          }
+        })
+      );
+      
+      usersWithAssignments.push(...batchResults);
+      }
+
+      return usersWithAssignments;
+    } catch (error: any) {
+      console.error('❌ Critical error getting users with assignments:', error);
+      // Return empty array on critical error
+      return [];
+    }
+  }
+
+  /**
    * Retrieves users from organizations that a specific user has access to.
    * @param userId
    */
@@ -178,11 +287,16 @@ export class OptimizedDatabaseStorage implements IStorage {
           .select({
             id: schema.users.id,
             username: schema.users.username,
+            password: schema.users.password,
             email: schema.users.email,
             firstName: schema.users.firstName,
             lastName: schema.users.lastName,
+            phone: schema.users.phone,
+            profileImage: schema.users.profileImage,
+            language: schema.users.language,
             role: schema.users.role,
             isActive: schema.users.isActive,
+            lastLoginAt: schema.users.lastLoginAt,
             createdAt: schema.users.createdAt,
             updatedAt: schema.users.updatedAt,
           })
@@ -341,7 +455,18 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getUser(id: string): Promise<User | undefined> {
     return this.withOptimizations('getUser', `user:${id}`, 'users', async () => {
+      
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
+      
+      if (result.length > 0) {
+        console.log(`🔍 Storage.getUser: Found user:`, {
+          id: result[0].id,
+          email: result[0].email,
+          role: result[0].role,
+        });
+      } else {
+        
+      }
       return result[0];
     });
   }
@@ -363,8 +488,48 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await dbPerformanceMonitor.trackQuery('createUser', async () => {
-      const inserted = await db.insert(schema.users).values([insertUser]).returning();
-      return inserted;
+      // Automatically set demo password for demo role users
+      let password = insertUser.password;
+      const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(insertUser.role);
+      
+      if (isDemoRole) {
+        // Always set the standard demo password hash for demo users, regardless of provided password
+        password = '$2b$12$cOc/QjMjzlhqAQqF2b/MTOZr2QAtERbXJGd4OSa1CXMlF04FC3F02'; // demo123456
+        console.log('🎭 Setting demo password for user with role:', insertUser.role);
+      }
+
+      // Filter only the fields that exist in the database schema
+      const userData = {
+        username: insertUser.username,
+        email: insertUser.email,
+        password,
+        firstName: insertUser.firstName,
+        lastName: insertUser.lastName,
+        phone: insertUser.phone || '',
+        profileImage: insertUser.profileImage,
+        language: insertUser.language || 'fr',
+        role: insertUser.role,
+        isActive: true, // Default value for new users
+      };
+
+      console.log('🔍 Creating user with data:', {
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        language: userData.language,
+        hasPassword: !!userData.password,
+      });
+
+      try {
+        const inserted = await db.insert(schema.users).values([userData]).returning();
+        
+        return inserted;
+      } catch (error: any) {
+        console.error('❌ Error creating user:', error);
+        throw error;
+      }
     });
 
     // Invalidate related caches
@@ -403,11 +568,18 @@ export class OptimizedDatabaseStorage implements IStorage {
       `user_orgs:${userId}`,
       'users',
       async () => {
-        const user = await this.getUser(userId);
-        if (!user || !user.organizationId) {
-          return [];
-        }
-        return [{ organizationId: user.organizationId }];
+        const result = await db
+          .select({
+            organizationId: schema.userOrganizations.organizationId,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, userId),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+        return result;
       }
     );
   }
@@ -569,7 +741,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createResidence(insertResidence: InsertResidence): Promise<Residence> {
     const result = await dbPerformanceMonitor.trackQuery('createResidence', async () => {
-      return db.insert(schema.residences).values(insertResidence).returning();
+      return db.insert(schema.residences).values([insertResidence]).returning();
     });
 
     // Invalidate residence caches
@@ -1453,12 +1625,14 @@ export class OptimizedDatabaseStorage implements IStorage {
         return null;
       }
 
-      // Create user
+      // Create user with required fields
       const user = await this.createUser({
+        username: invitation.email.split('@')[0], // Use email prefix as username
         email: invitation.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
         password: userData.password, // This should be hashed
+        language: 'en', // Default language
         role: invitation.role,
       });
 
@@ -1614,385 +1788,116 @@ export class OptimizedDatabaseStorage implements IStorage {
         .orderBy(schema.userPermissions.userId);
 
       return results || [];
-    } catch (error) {
-      console.error('Error fetching user permissions:', error);
+    } catch (error: any) {
+      console.error('❌ Error getting user permissions:', error);
       return [];
     }
   }
 
-  // Building Document operations
+  // Old building document methods removed - using unified documents table
 
-  /**
-   * Gets building documents for user based on role and permissions.
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param buildingIds
-   */
-  async getBuildingDocumentsForUser(
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    buildingIds?: string[]
-  ): Promise<DocumentBuilding[]> {
+  // Unified Document operations
+  async getDocuments(filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    documentType?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Document[]> {
     return this.withOptimizations(
-      'getBuildingDocumentsForUser',
-      `building_docs:${userId}:${userRole}`,
-      'building_documents',
+      'getDocuments',
+      `documents:${JSON.stringify(filters)}`,
+      'documents',
       async () => {
-        const query = db.select().from(schema.documentsBuildings);
+        let query = db.select().from(schema.documents);
 
-        // Role-based filtering
-        if (userRole === 'admin') {
-          // Admin can see all building documents
-          return await query.orderBy(desc(schema.documentsBuildings.uploadDate));
-        } else if (userRole === 'manager' && organizationId) {
-          // Manager can see documents for buildings in their organization
-          return await query
-            .innerJoin(
-              schema.buildings,
-              eq(schema.documentsBuildings.buildingId, schema.buildings.id)
-            )
-            .where(eq(schema.buildings.organizationId, organizationId))
-            .orderBy(desc(schema.documentsBuildings.uploadDate));
-        } else if (
-          (userRole === 'resident' || userRole === 'tenant') &&
-          buildingIds &&
-          buildingIds.length > 0
-        ) {
-          // Residents/tenants can see documents for their buildings
-          return await query
-            .where(inArray(schema.documentsBuildings.buildingId, buildingIds))
-            .orderBy(desc(schema.documentsBuildings.uploadDate));
+        const conditions = [];
+        if (filters?.buildingId) {
+          conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+        }
+        if (filters?.residenceId) {
+          conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+        }
+        if (filters?.documentType) {
+          conditions.push(eq(schema.documents.documentType, filters.documentType));
         }
 
-        return [];
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
+
+        const result = await query.orderBy(desc(schema.documents.createdAt));
+        return result || [];
       }
     );
   }
 
-  /**
-   * Gets specific building document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param buildingIds
-   */
-  async getBuildingDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    buildingIds?: string[]
-  ): Promise<DocumentBuilding | undefined> {
-    return this.withOptimizations(
-      'getBuildingDocument',
-      `building_doc:${id}:${userId}`,
-      'building_documents',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.documentsBuildings)
-          .where(eq(schema.documentsBuildings.id, id));
-        const document = result[0];
-
-        if (!document) {
-          return undefined;
-        }
-
-        // Permission check based on role
-        if (userRole === 'admin') {
-          return document;
-        } else if (userRole === 'manager' && organizationId) {
-          // Check if document belongs to manager's organization
-          const building = await this.getBuilding(document.buildingId);
-          if (building && building.organizationId === organizationId) {
-            return document;
-          }
-        } else if (
-          (userRole === 'resident' || userRole === 'tenant') &&
-          buildingIds &&
-          buildingIds.includes(document.buildingId)
-        ) {
-          return document;
-        }
-
-        return undefined;
-      }
-    );
+  async getDocument(id: string): Promise<Document | undefined> {
+    return this.withOptimizations('getDocument', `document:${id}`, 'documents', async () => {
+      const result = await db
+        .select()
+        .from(schema.documents)
+        .where(eq(schema.documents.id, id))
+        .limit(1);
+      return result[0];
+    });
   }
 
-  /**
-   * Creates building document.
-   * @param document
-   */
-  async createBuildingDocument(document: InsertDocumentBuilding): Promise<DocumentBuilding> {
-    return dbPerformanceMonitor.trackQuery('createBuildingDocument', async () => {
-      const result = await db.insert(schema.documentsBuildings).values(document).returning();
+  async createDocument(document: InsertDocument): Promise<Document> {
+    return dbPerformanceMonitor.trackQuery('createDocument', async () => {
+      
+      const result = await db.insert(schema.documents).values(document).returning();
+      
 
-      // Invalidate building document caches
-      queryCache.invalidate('building_documents');
+      // Invalidate related caches
+      if (document.buildingId) {
+        queryCache.invalidate('documents', `*buildingId*${document.buildingId}*`);
+      }
+      if (document.residenceId) {
+        queryCache.invalidate('documents', `*residenceId*${document.residenceId}*`);
+      }
 
       return result[0];
     });
   }
 
-  /**
-   * Updates building document with permission check.
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async updateBuildingDocument(
-    id: string,
-    updates: Partial<InsertDocumentBuilding>,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<DocumentBuilding | undefined> {
-    return dbPerformanceMonitor.trackQuery('updateBuildingDocument', async () => {
-      // First check if user has permission to update this document
-      const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) {
-        return undefined;
-      }
-
+  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
+    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
       const result = await db
-        .update(schema.documentsBuildings)
+        .update(schema.documents)
         .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.documentsBuildings.id, id))
+        .where(eq(schema.documents.id, id))
         .returning();
 
-      // Invalidate building document caches
-      queryCache.invalidate('building_documents');
+      if (result[0]) {
+        // Invalidate caches
+        queryCache.invalidate('documents', `document:${id}`);
+        queryCache.invalidate('documents', '*');
+      }
 
       return result[0];
     });
   }
 
-  /**
-   * Deletes building document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async deleteBuildingDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<boolean> {
-    return dbPerformanceMonitor.trackQuery('deleteBuildingDocument', async () => {
-      // First check if user has permission to delete this document
-      const document = await this.getBuildingDocument(id, userId, userRole, organizationId);
-      if (!document) {
-        return false;
-      }
-
+  async deleteDocument(id: string): Promise<boolean> {
+    return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
       const result = await db
-        .delete(schema.documentsBuildings)
-        .where(eq(schema.documentsBuildings.id, id))
-        .returning();
+        .delete(schema.documents)
+        .where(eq(schema.documents.id, id))
+        .returning({ id: schema.documents.id });
 
-      // Invalidate building document caches
-      queryCache.invalidate('building_documents');
+      if (result.length > 0) {
+        // Invalidate caches
+        queryCache.invalidate('documents', `document:${id}`);
+        queryCache.invalidate('documents', '*');
+        return true;
+      }
 
-      return result.length > 0;
+      return false;
     });
   }
 
-  // Resident Document operations
-
-  /**
-   * Gets resident documents for user based on role and permissions.
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param residenceIds
-   */
-  async getResidentDocumentsForUser(
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    residenceIds?: string[]
-  ): Promise<DocumentResident[]> {
-    return this.withOptimizations(
-      'getResidentDocumentsForUser',
-      `resident_docs:${userId}:${userRole}`,
-      'resident_documents',
-      async () => {
-        const query = db.select().from(schema.documentsResidents);
-
-        // Role-based filtering
-        if (userRole === 'admin') {
-          // Admin can see all resident documents
-          return await query.orderBy(desc(schema.documentsResidents.uploadDate));
-        } else if (userRole === 'manager' && organizationId) {
-          // Manager can see documents for residences in their organization
-          return await query
-            .innerJoin(
-              schema.residences,
-              eq(schema.documentsResidents.residenceId, schema.residences.id)
-            )
-            .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-            .where(eq(schema.buildings.organizationId, organizationId))
-            .orderBy(desc(schema.documentsResidents.uploadDate));
-        } else if (
-          (userRole === 'resident' || userRole === 'tenant') &&
-          residenceIds &&
-          residenceIds.length > 0
-        ) {
-          // Residents/tenants can see documents for their residences
-          return await query
-            .where(inArray(schema.documentsResidents.residenceId, residenceIds))
-            .orderBy(desc(schema.documentsResidents.uploadDate));
-        }
-
-        return [];
-      }
-    );
-  }
-
-  /**
-   * Gets specific resident document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param residenceIds
-   */
-  async getResidentDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    residenceIds?: string[]
-  ): Promise<DocumentResident | undefined> {
-    return this.withOptimizations(
-      'getResidentDocument',
-      `resident_doc:${id}:${userId}`,
-      'resident_documents',
-      async () => {
-        const result = await db
-          .select()
-          .from(schema.documentsResidents)
-          .where(eq(schema.documentsResidents.id, id));
-        const document = result[0];
-
-        if (!document) {
-          return undefined;
-        }
-
-        // Permission check based on role
-        if (userRole === 'admin') {
-          return document;
-        } else if (userRole === 'manager' && organizationId) {
-          // Check if document belongs to manager's organization
-          const residence = await this.getResidence(document.residenceId);
-          if (residence) {
-            const building = await this.getBuilding(residence.buildingId);
-            if (building && building.organizationId === organizationId) {
-              return document;
-            }
-          }
-        } else if (
-          (userRole === 'resident' || userRole === 'tenant') &&
-          residenceIds &&
-          residenceIds.includes(document.residenceId)
-        ) {
-          return document;
-        }
-
-        return undefined;
-      }
-    );
-  }
-
-  /**
-   * Creates resident document.
-   * @param document
-   */
-  async createResidentDocument(document: InsertDocumentResident): Promise<DocumentResident> {
-    return dbPerformanceMonitor.trackQuery('createResidentDocument', async () => {
-      const result = await db.insert(schema.documentsResidents).values(document).returning();
-
-      // Invalidate resident document caches
-      queryCache.invalidate('resident_documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Updates resident document with permission check.
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async updateResidentDocument(
-    id: string,
-    updates: Partial<InsertDocumentResident>,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<DocumentResident | undefined> {
-    return dbPerformanceMonitor.trackQuery('updateResidentDocument', async () => {
-      // First check if user has permission to update this document
-      const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) {
-        return undefined;
-      }
-
-      const result = await db
-        .update(schema.documentsResidents)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.documentsResidents.id, id))
-        .returning();
-
-      // Invalidate resident document caches
-      queryCache.invalidate('resident_documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Deletes resident document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async deleteResidentDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<boolean> {
-    return dbPerformanceMonitor.trackQuery('deleteResidentDocument', async () => {
-      // First check if user has permission to delete this document
-      const document = await this.getResidentDocument(id, userId, userRole, organizationId);
-      if (!document) {
-        return false;
-      }
-
-      const result = await db
-        .delete(schema.documentsResidents)
-        .where(eq(schema.documentsResidents.id, id))
-        .returning();
-
-      // Invalidate resident document caches
-      queryCache.invalidate('resident_documents');
-
-      return result.length > 0;
-    });
-  }
+  // Old resident document methods removed - using unified documents table
 
   // Legacy Document operations (kept for migration purposes)
 
@@ -2014,102 +1919,9 @@ export class OptimizedDatabaseStorage implements IStorage {
       `legacy_docs:${userId}:${userRole}`,
       'documents',
       async () => {
-        return await db.select().from(schema.documents).orderBy(desc(schema.documents.uploadDate));
+        return await db.select().from(schema.documents).orderBy(desc(schema.documents.createdAt));
       }
     );
-  }
-
-  /**
-   * Gets specific legacy document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   * @param residenceIds
-   */
-  async getDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string,
-    residenceIds?: string[]
-  ): Promise<Document | undefined> {
-    return this.withOptimizations(
-      'getDocument',
-      `legacy_doc:${id}:${userId}`,
-      'documents',
-      async () => {
-        const result = await db.select().from(schema.documents).where(eq(schema.documents.id, id));
-        return result[0];
-      }
-    );
-  }
-
-  /**
-   * Creates legacy document.
-   * @param document
-   */
-  async createDocument(document: InsertDocument): Promise<Document> {
-    return dbPerformanceMonitor.trackQuery('createDocument', async () => {
-      const result = await db.insert(schema.documents).values(document).returning();
-
-      queryCache.invalidate('documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Updates legacy document with permission check.
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async updateDocument(
-    id: string,
-    updates: Partial<InsertDocument>,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<Document | undefined> {
-    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
-      const result = await db
-        .update(schema.documents)
-        .set(updates)
-        .where(eq(schema.documents.id, id))
-        .returning();
-
-      queryCache.invalidate('documents');
-
-      return result[0];
-    });
-  }
-
-  /**
-   * Deletes legacy document with permission check.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
-  async deleteDocument(
-    id: string,
-    userId: string,
-    userRole: string,
-    organizationId?: string
-  ): Promise<boolean> {
-    return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
-      const result = await db
-        .delete(schema.documents)
-        .where(eq(schema.documents.id, id))
-        .returning();
-
-      queryCache.invalidate('documents');
-
-      return result.length > 0;
-    });
   }
 
   // Password reset operations
@@ -2316,30 +2128,70 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param organizationId
    */
   async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
-    try {
-      if (userRole === 'admin') {
-        // Admin can see all bugs
-        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-        return result || [];
-      }
+    return this.withOptimizations(
+      'getBugsForUser',
+      `bugs:${userRole}:${userId}`,
+      'bugs',
+      async () => {
+        let results;
+        
+        if (userRole === 'admin') {
+          // Admin can see all bugs
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .orderBy(desc(schema.bugs.createdAt));
+        } else if (userRole === 'manager' && organizationId) {
+          // For managers, return all bugs for now (can be refined later)
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .orderBy(desc(schema.bugs.createdAt));
+        } else {
+          // For residents and tenants, return only their own bugs
+          results = await db
+            .select()
+            .from(schema.bugs)
+            .where(eq(schema.bugs.createdBy, userId))
+            .orderBy(desc(schema.bugs.createdAt));
+        }
 
-      if (userRole === 'manager' && organizationId) {
-        // For managers, return all bugs for now (can be refined later)
-        const result = await db.select().from(schema.bugs).orderBy(desc(schema.bugs.createdAt));
-        return result || [];
-      }
+        // Get attachment counts and details for each bug
+        const bugsWithAttachments = await Promise.all(
+          results.map(async (bug) => {
+            const attachments = await db
+              .select({
+                id: schema.documents.id,
+                name: schema.documents.name,
+                fileName: schema.documents.fileName,
+                fileSize: schema.documents.fileSize,
+                filePath: schema.documents.filePath,
+              })
+              .from(schema.documents)
+              .where(
+                and(
+                  eq(schema.documents.attachedToType, 'bug'),
+                  eq(schema.documents.attachedToId, bug.id)
+                )
+              );
 
-      // For residents and tenants, return only their own bugs
-      const result = await db
-        .select()
-        .from(schema.bugs)
-        .where(eq(schema.bugs.createdBy, userId))
-        .orderBy(desc(schema.bugs.createdAt));
-      return result || [];
-    } catch (error) {
-      console.error('Error fetching bugs:', error);
-      return [];
-    }
+            return {
+              ...bug,
+              attachmentCount: attachments.length,
+              attachments: attachments.map(att => ({
+                id: att.id,
+                name: att.fileName || att.name,
+                size: parseInt(att.fileSize || '0'),
+                url: `/api/documents/${att.id}/file`,
+                type: att.fileName ? att.fileName.split('.').pop()?.toLowerCase() || 'unknown' : 'unknown'
+              }))
+            };
+          })
+        );
+
+        return bugsWithAttachments;
+      }
+    );
   }
 
   /**
@@ -2504,13 +2356,46 @@ export class OptimizedDatabaseStorage implements IStorage {
           .from(schema.featureRequests)
           .orderBy(desc(schema.featureRequests.createdAt));
 
+        // Get attachment counts and details for each feature request
+        const requestsWithAttachments = await Promise.all(
+          results.map(async (request) => {
+            const attachments = await db
+              .select({
+                id: schema.documents.id,
+                name: schema.documents.name,
+                filePath: schema.documents.filePath,
+                fileSize: schema.documents.fileSize,
+                mimeType: schema.documents.mimeType,
+              })
+              .from(schema.documents)
+              .where(
+                and(
+                  eq(schema.documents.attachedToType, 'feature_request'),
+                  eq(schema.documents.attachedToId, request.id)
+                )
+              );
+
+            return {
+              ...request,
+              attachmentCount: attachments.length,
+              attachments: attachments.map(att => ({
+                id: att.id,
+                name: att.name,
+                url: `/api/documents/${att.id}/file`,
+                size: att.fileSize ? parseInt(att.fileSize) : 0,
+                mimeType: att.mimeType,
+              })),
+            };
+          })
+        );
+
         // All users can see all feature requests, but non-admins don't see who submitted
         if (userRole === 'admin') {
-          return results;
+          return requestsWithAttachments;
         }
 
         // For non-admin users, hide the createdBy field
-        return results.map((request) => ({
+        return requestsWithAttachments.map((request) => ({
           ...request,
           createdBy: null as any,
         }));
@@ -2732,7 +2617,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Error upvoting feature request:', error);
       return {
         success: false,
         message: 'Failed to upvote feature request',
@@ -2802,7 +2688,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           featureRequest: updatedFeatureRequest[0],
         },
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Error removing feature request upvote:', error);
       return {
         success: false,
         message: 'Failed to remove upvote',

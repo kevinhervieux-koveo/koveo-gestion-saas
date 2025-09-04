@@ -1,0 +1,43 @@
+fe0463b06bb34a9a9eb5ab94af0b640a
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useSmoothNavigation = useSmoothNavigation;
+exports.useSmoothLocationSetter = useSmoothLocationSetter;
+const wouter_1 = require("wouter");
+const react_1 = require("react");
+/**
+ * Custom hook that provides smooth scroll-to-top behavior on page navigation.
+ * Automatically scrolls to the top of the page whenever the route changes.
+ */
+function useSmoothNavigation() {
+    const [location] = (0, wouter_1.useLocation)();
+    (0, react_1.useEffect)(() => {
+        // Smooth scroll to top when location changes
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }, [location]);
+}
+/**
+ * Enhanced setLocation function that provides smooth scroll-to-top behavior
+ * when navigating to a new page.
+ */
+function useSmoothLocationSetter() {
+    const [, setLocationOriginal] = (0, wouter_1.useLocation)();
+    const setLocation = (path) => {
+        // First scroll to top smoothly
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+        // Small delay to let the scroll animation start, then navigate
+        setTimeout(() => {
+            setLocationOriginal(path);
+        }, 50);
+    };
+    return setLocation;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2hvb2tzL3VzZS1zbW9vdGgtbmF2aWdhdGlvbi50c3giLCJtYXBwaW5ncyI6Ijs7QUFPQSxrREFXQztBQU1ELDBEQWtCQztBQTFDRCxtQ0FBcUM7QUFDckMsaUNBQWtDO0FBRWxDOzs7R0FHRztBQUNILFNBQWdCLG1CQUFtQjtJQUNqQyxNQUFNLENBQUMsUUFBUSxDQUFDLEdBQUcsSUFBQSxvQkFBVyxHQUFFLENBQUM7SUFFakMsSUFBQSxpQkFBUyxFQUFDLEdBQUcsRUFBRTtRQUNiLDZDQUE2QztRQUM3QyxNQUFNLENBQUMsUUFBUSxDQUFDO1lBQ2QsR0FBRyxFQUFFLENBQUM7WUFDTixJQUFJLEVBQUUsQ0FBQztZQUNQLFFBQVEsRUFBRSxRQUFRO1NBQ25CLENBQUMsQ0FBQztJQUNMLENBQUMsRUFBRSxDQUFDLFFBQVEsQ0FBQyxDQUFDLENBQUM7QUFDakIsQ0FBQztBQUVEOzs7R0FHRztBQUNILFNBQWdCLHVCQUF1QjtJQUNyQyxNQUFNLENBQUMsRUFBRSxtQkFBbUIsQ0FBQyxHQUFHLElBQUEsb0JBQVcsR0FBRSxDQUFDO0lBRTlDLE1BQU0sV0FBVyxHQUFHLENBQUMsSUFBWSxFQUFFLEVBQUU7UUFDbkMsK0JBQStCO1FBQy9CLE1BQU0sQ0FBQyxRQUFRLENBQUM7WUFDZCxHQUFHLEVBQUUsQ0FBQztZQUNOLElBQUksRUFBRSxDQUFDO1lBQ1AsUUFBUSxFQUFFLFFBQVE7U0FDbkIsQ0FBQyxDQUFDO1FBRUgsK0RBQStEO1FBQy9ELFVBQVUsQ0FBQyxHQUFHLEVBQUU7WUFDZCxtQkFBbUIsQ0FBQyxJQUFJLENBQUMsQ0FBQztRQUM1QixDQUFDLEVBQUUsRUFBRSxDQUFDLENBQUM7SUFDVCxDQUFDLENBQUM7SUFFRixPQUFPLFdBQVcsQ0FBQztBQUNyQixDQUFDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9ob29rcy91c2Utc21vb3RoLW5hdmlnYXRpb24udHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHVzZUxvY2F0aW9uIH0gZnJvbSAnd291dGVyJztcbmltcG9ydCB7IHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JztcblxuLyoqXG4gKiBDdXN0b20gaG9vayB0aGF0IHByb3ZpZGVzIHNtb290aCBzY3JvbGwtdG8tdG9wIGJlaGF2aW9yIG9uIHBhZ2UgbmF2aWdhdGlvbi5cbiAqIEF1dG9tYXRpY2FsbHkgc2Nyb2xscyB0byB0aGUgdG9wIG9mIHRoZSBwYWdlIHdoZW5ldmVyIHRoZSByb3V0ZSBjaGFuZ2VzLlxuICovXG5leHBvcnQgZnVuY3Rpb24gdXNlU21vb3RoTmF2aWdhdGlvbigpIHtcbiAgY29uc3QgW2xvY2F0aW9uXSA9IHVzZUxvY2F0aW9uKCk7XG5cbiAgdXNlRWZmZWN0KCgpID0+IHtcbiAgICAvLyBTbW9vdGggc2Nyb2xsIHRvIHRvcCB3aGVuIGxvY2F0aW9uIGNoYW5nZXNcbiAgICB3aW5kb3cuc2Nyb2xsVG8oe1xuICAgICAgdG9wOiAwLFxuICAgICAgbGVmdDogMCxcbiAgICAgIGJlaGF2aW9yOiAnc21vb3RoJ1xuICAgIH0pO1xuICB9LCBbbG9jYXRpb25dKTtcbn1cblxuLyoqXG4gKiBFbmhhbmNlZCBzZXRMb2NhdGlvbiBmdW5jdGlvbiB0aGF0IHByb3ZpZGVzIHNtb290aCBzY3JvbGwtdG8tdG9wIGJlaGF2aW9yXG4gKiB3aGVuIG5hdmlnYXRpbmcgdG8gYSBuZXcgcGFnZS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIHVzZVNtb290aExvY2F0aW9uU2V0dGVyKCkge1xuICBjb25zdCBbLCBzZXRMb2NhdGlvbk9yaWdpbmFsXSA9IHVzZUxvY2F0aW9uKCk7XG4gIFxuICBjb25zdCBzZXRMb2NhdGlvbiA9IChwYXRoOiBzdHJpbmcpID0+IHtcbiAgICAvLyBGaXJzdCBzY3JvbGwgdG8gdG9wIHNtb290aGx5XG4gICAgd2luZG93LnNjcm9sbFRvKHtcbiAgICAgIHRvcDogMCxcbiAgICAgIGxlZnQ6IDAsXG4gICAgICBiZWhhdmlvcjogJ3Ntb290aCdcbiAgICB9KTtcbiAgICBcbiAgICAvLyBTbWFsbCBkZWxheSB0byBsZXQgdGhlIHNjcm9sbCBhbmltYXRpb24gc3RhcnQsIHRoZW4gbmF2aWdhdGVcbiAgICBzZXRUaW1lb3V0KCgpID0+IHtcbiAgICAgIHNldExvY2F0aW9uT3JpZ2luYWwocGF0aCk7XG4gICAgfSwgNTApO1xuICB9O1xuXG4gIHJldHVybiBzZXRMb2NhdGlvbjtcbn0iXSwidmVyc2lvbiI6M30=

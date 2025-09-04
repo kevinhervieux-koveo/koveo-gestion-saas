@@ -58,7 +58,6 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
   const hasValidatedRef = useRef<Set<string>>(new Set()); // Prevent duplicate validations completely
 
   const validateToken = async (token: string) => {
-    console.warn('🔍 Starting token validation for:', token.substring(0, 8) + '...');
 
     // Triple-check: state, sessionStorage, and ref guard
     const sessionValidatedToken = sessionStorage.getItem('koveo-validated-token');
@@ -70,12 +69,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       hasValidatedRef.current.has(token) ||
       isValidating
     ) {
-      console.warn('⚠️ Token already processed, skipping duplicate validation:', {
-        validatedToken: validatedToken?.substring(0, 8),
-        sessionToken: sessionValidatedToken?.substring(0, 8),
-        refGuard: hasValidatedRef.current.has(token),
-        isValidating,
-      });
+      // Token validation skipped
       return;
     }
 
@@ -94,9 +88,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         body: JSON.stringify({ token }),
       });
 
-      console.warn('📡 API response status:', response.status);
       const result = await response.json();
-      console.warn('📄 API response _data:', result);
 
       if (response.ok && result.isValid) {
         const validationData: TokenValidationData = {
@@ -109,7 +101,6 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
           isValid: true,
         };
 
-        console.warn('✅ Token validation successful, updating wizard state');
 
         // Store successful validation in sessionStorage
         sessionStorage.setItem('koveo-validation-result', JSON.stringify(validationData));
@@ -129,12 +120,12 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
           error: result.message || 'Token invalide',
         };
 
-        console.warn('❌ Token validation failed:', result.message);
         setValidationResult(errorData);
         onDataChange(errorData as unknown as Record<string, unknown>);
         onValidationChange(false);
       }
-    } catch (_error) {
+    } catch (error: any) {
+      // Error validating token
       const errorData: TokenValidationData = {
         token,
         email: '',
@@ -154,24 +145,21 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     }
   };
 
+  // Track if initial effect has run to prevent multiple executions
+  const initialEffectRan = useRef(false);
+
   useEffect(() => {
+    // Prevent running multiple times
+    if (initialEffectRan.current) return;
+    initialEffectRan.current = true;
+
     // Auto-validate if token is provided via URL params
     const urlParams = new window.URLSearchParams(window.location.search);
     const token = urlParams.get('token') || urlParams.get('invitation');
-    console.warn('🔍 Checking URL for token:', {
-      token: token ? `${token.substring(0, 8)}...` : 'not found',
-      url: window.location.search,
-      hasValidationResult: !!validationResult,
-      alreadyValidated: validatedToken === token,
-    });
+    // Token auto-validation check
 
     if (token && validatedToken !== token && !hasValidatedRef.current.has(token) && !isValidating) {
-      console.warn('✅ Found new token, starting validation...');
       validateToken(token);
-    } else if (!token) {
-      console.warn('❌ No token found in URL parameters');
-    } else {
-      console.warn('⏭️ Token already processed, skipping validation');
     }
   }, []); // Only run once on component mount
 

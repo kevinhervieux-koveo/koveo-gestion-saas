@@ -52,8 +52,6 @@ export function registerFeatureManagementRoutes(app: Express): void {
       };
 
       res.json(feature);
-    } catch (error) {
-      console.error('Feature status update error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -93,8 +91,6 @@ export function registerFeatureManagementRoutes(app: Express): void {
       };
 
       res.json(feature);
-    } catch (error) {
-      console.error('Feature strategic toggle error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -140,8 +136,6 @@ export function registerFeatureManagementRoutes(app: Express): void {
           updatedAt: row.updated_at,
         },
       });
-    } catch (error) {
-      console.error('Feature analysis error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -170,8 +164,6 @@ export function registerFeatureManagementRoutes(app: Express): void {
         syncedAt: new Date().toISOString(),
         totalFeatures: totalSynced,
       });
-    } catch (error) {
-      console.error('Features sync error:', error);
       res.status(500).json({
         message: 'Failed to synchronize features to production',
         success: false,

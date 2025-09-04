@@ -131,7 +131,6 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         description:
           'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
-    } catch (_error) {
       // Fallback to creating a text area and selecting the text
       try {
         const textArea = document.createElement('textarea');

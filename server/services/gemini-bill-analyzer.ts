@@ -113,7 +113,6 @@ export class GeminiBillAnalyzer {
       });
 
       const rawJson = response.text;
-      console.warn(`🤖 Gemini Bill Analysis Result: ${rawJson}`);
 
       if (rawJson) {
         const analysis: BillAnalysisResult = JSON.parse(rawJson);
@@ -126,8 +125,8 @@ export class GeminiBillAnalyzer {
       } else {
         throw new Error('Empty response from Gemini');
       }
-    } catch (_error) {
-      console.error('Error analyzing bill with Gemini:', _error);
+    } catch (error: any) {
+      console.error('❌ Error analyzing bill document:', error);
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
   }
@@ -198,8 +197,8 @@ export class GeminiBillAnalyzer {
 
       const result = JSON.parse(response.text || '{}');
       return result;
-    } catch (_error) {
-      console.error('Error getting payment schedule suggestion:', _error);
+    } catch (error: any) {
+      console.error('❌ Error suggesting payment schedule:', error);
       return {
         paymentType: 'unique',
         reasoning: 'Default to unique payment due to analysis error',

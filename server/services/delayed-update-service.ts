@@ -19,7 +19,6 @@ class DelayedUpdateService {
    *
    */
   private constructor() {
-    console.warn(`🕐 Delayed Update Service initialized with ${this.DELAY_MINUTES}-minute delay`);
   }
 
   /**
@@ -39,30 +38,25 @@ class DelayedUpdateService {
   scheduleBillUpdate(billId: string): void {
     // Avoid duplicate updates for the same bill
     if (this.pendingBillUpdates.has(billId)) {
-      console.warn(`📋 Bill ${billId} already has a pending update, skipping duplicate`);
       return;
     }
 
     this.pendingBillUpdates.add(billId);
-    console.warn(
+    console.log(
       `⏰ Scheduling money flow update for bill ${billId} in ${this.DELAY_MINUTES} minutes`
     );
 
     setTimeout(async () => {
       try {
-        console.warn(`🔄 Executing delayed money flow update for bill ${billId}`);
 
         // Generate money flow entries for the bill
         const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
-        console.warn(`💰 Generated ${moneyFlowEntries} money flow entries for bill ${billId}`);
 
         // Get the building ID from the bill to update budgets
         const buildingId = await this.getBuildingIdFromBill(billId);
         if (buildingId) {
           await this.scheduleBudgetUpdate(buildingId);
         }
-      } catch (_error) {
-        console.error(`❌ Failed delayed money flow update for bill ${billId}:`, _error);
       } finally {
         this.pendingBillUpdates.delete(billId);
       }
@@ -76,22 +70,20 @@ class DelayedUpdateService {
   scheduleResidenceUpdate(residenceId: string): void {
     // Avoid duplicate updates for the same residence
     if (this.pendingResidenceUpdates.has(residenceId)) {
-      console.warn(`🏠 Residence ${residenceId} already has a pending update, skipping duplicate`);
       return;
     }
 
     this.pendingResidenceUpdates.add(residenceId);
-    console.warn(
+    console.log(
       `⏰ Scheduling money flow update for residence ${residenceId} in ${this.DELAY_MINUTES} minutes`
     );
 
     setTimeout(async () => {
       try {
-        console.warn(`🔄 Executing delayed money flow update for residence ${residenceId}`);
 
         // Generate money flow entries for the residence
         const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
-        console.warn(
+        console.log(
           `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
         );
 
@@ -100,8 +92,6 @@ class DelayedUpdateService {
         if (buildingId) {
           await this.scheduleBudgetUpdate(buildingId);
         }
-      } catch (_error) {
-        console.error(`❌ Failed delayed money flow update for residence ${residenceId}:`, _error);
       } finally {
         this.pendingResidenceUpdates.delete(residenceId);
       }
@@ -116,26 +106,22 @@ class DelayedUpdateService {
   private async scheduleBudgetUpdate(buildingId: string): Promise<void> {
     // Avoid duplicate updates for the same building
     if (this.pendingBuildingBudgetUpdates.has(buildingId)) {
-      console.warn(
+      console.log(
         `🏢 Building ${buildingId} already has a pending budget update, skipping duplicate`
       );
       return;
     }
 
     this.pendingBuildingBudgetUpdates.add(buildingId);
-    console.warn(
+    console.log(
       `⏰ Scheduling budget update for building ${buildingId} in ${this.DELAY_MINUTES} minutes`
     );
 
     setTimeout(async () => {
       try {
-        console.warn(`🔄 Executing delayed budget update for building ${buildingId}`);
 
         // Repopulate budget entries for the building
         const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
-        console.warn(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
-      } catch (_error) {
-        console.error(`❌ Failed delayed budget update for building ${buildingId}:`, _error);
       } finally {
         this.pendingBuildingBudgetUpdates.delete(buildingId);
       }
@@ -159,8 +145,8 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
-    } catch (_error) {
-      console.error(`❌ Failed to get building ID for bill ${billId}:`, _error);
+    } catch (error: any) {
+      console.error('❌ Error getting building ID:', error);
       return null;
     }
   }
@@ -182,8 +168,8 @@ class DelayedUpdateService {
         .limit(1);
 
       return result.length > 0 ? result[0].buildingId : null;
-    } catch (_error) {
-      console.error(`❌ Failed to get building ID for residence ${residenceId}:`, _error);
+    } catch (error: any) {
+      console.error('❌ Error getting building ID:', error);
       return null;
     }
   }
@@ -193,17 +179,14 @@ class DelayedUpdateService {
    * @param billId
    */
   async forceImmediateBillUpdate(billId: string): Promise<void> {
-    console.warn(`⚡ Force immediate update for bill ${billId}`);
 
     // Generate money flow entries for the bill
     const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
-    console.warn(`💰 Generated ${moneyFlowEntries} money flow entries for bill ${billId}`);
 
     // Update budget immediately
     const buildingId = await this.getBuildingIdFromBill(billId);
     if (buildingId) {
       const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
-      console.warn(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
     }
   }
 
@@ -212,11 +195,10 @@ class DelayedUpdateService {
    * @param residenceId
    */
   async forceImmediateResidenceUpdate(residenceId: string): Promise<void> {
-    console.warn(`⚡ Force immediate update for residence ${residenceId}`);
 
     // Generate money flow entries for the residence
     const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
-    console.warn(
+    console.log(
       `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
     );
 
@@ -224,7 +206,6 @@ class DelayedUpdateService {
     const buildingId = await this.getBuildingIdFromResidence(residenceId);
     if (buildingId) {
       const budgetEntries = await monthlyBudgetService.repopulateBudgetsForBuilding(buildingId);
-      console.warn(`📊 Updated ${budgetEntries} budget entries for building ${buildingId}`);
     }
   }
 

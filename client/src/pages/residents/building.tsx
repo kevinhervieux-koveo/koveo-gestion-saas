@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Building as BuildingType, Contact } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  *
@@ -40,15 +41,34 @@ interface BuildingWithStats extends BuildingType {
  */
 export default function MyBuilding() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch buildings accessible to the user
-  const { data: buildingsData, isLoading: isLoadingBuildings } = useQuery<{
+  // Fetch current user
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
+  });
+
+  // Fetch buildings accessible to the user based on their residences
+  const {
+    data: buildingsData,
+    isLoading: isLoadingBuildings,
+    error: buildingsError,
+  } = useQuery<{
     buildings: BuildingWithStats[];
+    meta?: any;
   }>({
-    queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest('GET', '/api/manager/buildings'),
+    queryKey: ['/api/users/buildings', user?.id],
+    queryFn: async () => {
+      if (!user?.id) {
+        return { buildings: [] };
+      }
+      const response = await apiRequest('GET', `/api/users/${user.id}/buildings`);
+      return response.json();
+    },
+    enabled: !!user?.id,
   });
 
   const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
@@ -78,7 +98,7 @@ export default function MyBuilding() {
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View buildings you have access to' />
+        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <div className='text-center py-8'>
@@ -94,13 +114,15 @@ export default function MyBuilding() {
   if (buildings.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View buildings you have access to' />
+        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
                 <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Buildings Found</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  {t('noBuildingsFound')}
+                </h3>
                 <p className='text-gray-500'>You don't have access to any buildings yet.</p>
               </CardContent>
             </Card>
@@ -130,7 +152,7 @@ export default function MyBuilding() {
                 <CardContent className='space-y-4'>
                   <div className='grid grid-cols-1 gap-3'>
                     <div>
-                      <Label className='text-xs font-medium text-gray-500'>Address</Label>
+                      <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
                       <div className='flex items-start gap-2'>
                         <MapPin className='w-3 h-3 mt-0.5' />
                         <div>
@@ -144,12 +166,16 @@ export default function MyBuilding() {
 
                     <div className='grid grid-cols-2 gap-3'>
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Building Type</Label>
+                        <Label className='text-xs font-medium text-gray-500'>
+                          {t('buildingType')}
+                        </Label>
                         <p className='text-sm text-gray-700 capitalize'>{building.buildingType}</p>
                       </div>
                       {building.yearBuilt && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>Year Built</Label>
+                          <Label className='text-xs font-medium text-gray-500'>
+                            {t('yearBuilt')}
+                          </Label>
                           <div className='flex items-center gap-1'>
                             <Calendar className='w-3 h-3' />
                             <span className='text-sm text-gray-700'>{building.yearBuilt}</span>
@@ -157,7 +183,9 @@ export default function MyBuilding() {
                         </div>
                       )}
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Total Units</Label>
+                        <Label className='text-xs font-medium text-gray-500'>
+                          {t('totalUnits')}
+                        </Label>
                         <div className='flex items-center gap-1'>
                           <Home className='w-3 h-3' />
                           <span className='text-sm text-gray-700'>{building.totalUnits}</span>
@@ -165,7 +193,9 @@ export default function MyBuilding() {
                       </div>
                       {building.totalFloors && (
                         <div>
-                          <Label className='text-xs font-medium text-gray-500'>Floors</Label>
+                          <Label className='text-xs font-medium text-gray-500'>
+                            {t('totalFloors')}
+                          </Label>
                           <p className='text-sm text-gray-700'>{building.totalFloors}</p>
                         </div>
                       )}
@@ -175,7 +205,7 @@ export default function MyBuilding() {
                       <div className='grid grid-cols-2 gap-3'>
                         {building.parkingSpaces && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Parking</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
                             <div className='flex items-center gap-1'>
                               <Car className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -186,7 +216,7 @@ export default function MyBuilding() {
                         )}
                         {building.storageSpaces && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>Storage</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
                             <div className='flex items-center gap-1'>
                               <Package className='w-3 h-3' />
                               <span className='text-sm text-gray-700'>
@@ -201,7 +231,7 @@ export default function MyBuilding() {
                     {building.managementCompany && (
                       <div>
                         <Label className='text-xs font-medium text-gray-500'>
-                          Management Company
+                          {t('managementCompany')}
                         </Label>
                         <p className='text-sm text-gray-700'>{building.managementCompany}</p>
                       </div>
@@ -209,10 +239,10 @@ export default function MyBuilding() {
 
                     {/* Occupancy Stats */}
                     <div>
-                      <Label className='text-xs font-medium text-gray-500'>Occupancy</Label>
+                      <Label className='text-xs font-medium text-gray-500'>{t('occupancy')}</Label>
                       <div className='flex items-center gap-2 text-sm'>
                         <Badge variant='outline' className='text-xs'>
-                          {building.occupiedUnits}/{building.totalUnits} units
+                          {building.occupiedUnits}/{building.totalUnits} {t('units')}
                         </Badge>
                         <Badge
                           variant={
@@ -224,14 +254,14 @@ export default function MyBuilding() {
                           }
                           className='text-xs'
                         >
-                          {Math.round(building.occupancyRate)}% occupied
+                          {Math.round(building.occupancyRate)}% {t('occupied')}
                         </Badge>
                       </div>
                     </div>
 
                     {building.amenities && (
                       <div>
-                        <Label className='text-xs font-medium text-gray-500'>Amenities</Label>
+                        <Label className='text-xs font-medium text-gray-500'>{t('amenities')}</Label>
                         <div className='flex flex-wrap gap-1 mt-1'>
                           {(() => {
                             try {
@@ -249,7 +279,7 @@ export default function MyBuilding() {
                             } catch (_e) {
                               return (
                                 <span className='text-xs text-muted-foreground'>
-                                  Unable to display amenities
+                                  {t('unableToDisplayAmenities')}
                                 </span>
                               );
                             }
@@ -263,7 +293,7 @@ export default function MyBuilding() {
                               if (Array.isArray(amenities) && amenities.length > 3) {
                                 return (
                                   <Badge variant='outline' className='text-xs'>
-                                    +{amenities.length - 3} more
+                                    +{amenities.length - 3} {t('moreAmenities')}
                                   </Badge>
                                 );
                               }
@@ -285,7 +315,7 @@ export default function MyBuilding() {
                       className='w-full justify-start'
                     >
                       <FileText className='w-4 h-4 mr-2' />
-                      View Documents
+                      {t('viewDocumentsButton')}
                     </Button>
                   </div>
                 </CardContent>
@@ -303,7 +333,7 @@ export default function MyBuilding() {
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className='h-4 w-4' />
-                Previous
+                {t('previous')}
               </Button>
 
               <div className='flex gap-1'>
@@ -338,7 +368,7 @@ export default function MyBuilding() {
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('next')}
                 <ChevronRight className='h-4 w-4' />
               </Button>
             </div>
@@ -346,8 +376,8 @@ export default function MyBuilding() {
 
           {/* Page info */}
           <div className='text-center text-sm text-muted-foreground mt-4'>
-            Showing {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
-            buildings
+            {t('showing')} {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
+            {t('buildings')}
           </div>
         </div>
       </div>

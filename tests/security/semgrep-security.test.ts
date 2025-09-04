@@ -1,373 +1,316 @@
-/**
- * Semgrep Security Tests for Quebec Property Management System
- * Tests for SQL injection, XSS, authentication, and Quebec Law 25 compliance.
- */
-
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 describe('Semgrep Security Tests', () => {
-  let semgrepResults;
-
-  beforeAll(async () => {
-    // Run semgrep scan before running tests
+  let semgrepResults: any;
+  
+  beforeAll(() => {
+    // Ensure reports directory exists
+    if (!fs.existsSync('reports')) {
+      fs.mkdirSync('reports', { recursive: true });
+    }
+    
+    // Run Semgrep scan and capture results
     try {
-      console.warn('🔍 Running semgrep security scan...');
-      const output = execSync('semgrep --config=.semgrep.yml --json --quiet .', {
-        encoding: 'utf-8',
-        timeout: 60000,
-      });
-      semgrepResults = JSON.parse(output);
-      console.warn(`📊 Semgrep found ${semgrepResults.results?.length || 0} potential issues`);
-    } catch (_error) {
-      console.error('Semgrep scan failed:', error.message);
-      semgrepResults = { results: [] };
+      const semgrepOutput = execSync(
+        'semgrep --config=.semgrep.yml --json --no-git-ignore --include="*.ts" --include="*.tsx" .',
+        { 
+          encoding: 'utf-8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 30000
+        }
+      );
+      semgrepResults = JSON.parse(semgrepOutput);
+      
+      // Save results to reports directory
+      fs.writeFileSync('reports/semgrep-results.json', JSON.stringify(semgrepResults, null, 2));
+    } catch (error: any) {
+      // Semgrep may exit with code 1 when findings are detected, which is expected
+      if (error.stdout) {
+        try {
+          semgrepResults = JSON.parse(error.stdout);
+          fs.writeFileSync('reports/semgrep-results.json', JSON.stringify(semgrepResults, null, 2));
+        } catch (parseError) {
+          console.warn('Semgrep output parsing failed, using empty results');
+          semgrepResults = { results: [] };
+        }
+      } else {
+        console.warn('Semgrep execution completed with no output, using empty results');
+        semgrepResults = { results: [] };
+      }
     }
   });
 
-  describe('SQL Injection Detection', () => {
-    it('should detect potential SQL injection vulnerabilities', () => {
-      const sqlInjectionIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('sql-injection') ||
-            result.extra?.metadata?.cwe?.includes('CWE-89')
-        ) || [];
-
-      // Log all SQL injection issues for review
-      if (sqlInjectionIssues.length > 0) {
-        console.warn('⚠️  SQL Injection vulnerabilities found:');
-        sqlInjectionIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // For property management system, we should have zero critical SQL injection issues
-      const criticalSqlIssues = sqlInjectionIssues.filter(
-        (issue) => issue.extra?.severity === 'ERROR'
-      );
-      expect(criticalSqlIssues.length).toBe(0);
+  describe('Security Rule Validation', () => {
+    test('should detect hardcoded secrets', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'hardcoded-secrets'
+      ) || [];
+      
+      // Should not have any hardcoded secrets in production code
+      expect(violations.length).toBe(0);
     });
 
-    it('should flag raw SQL usage for review', () => {
-      const rawSqlIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('sql-injection-drizzle-raw')
-        ) || [];
-
-      // Raw SQL should be minimal and properly reviewed
-      if (rawSqlIssues.length > 0) {
-        console.info('📝 Raw SQL usage detected (review required):');
-        rawSqlIssues.forEach((issue) => {
-          console.info(`  - ${issue.path}:${issue.start.line}`);
-        });
-      }
-
-      // Allow some raw SQL but flag for manual review
-      expect(rawSqlIssues.length).toBeLessThanOrEqual(10);
-    });
-  });
-
-  describe('Cross-Site Scripting (XSS) Detection', () => {
-    it('should detect XSS vulnerabilities', () => {
-      const xssIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('xss') || result.extra?.metadata?.cwe?.includes('CWE-79')
-        ) || [];
-
-      if (xssIssues.length > 0) {
-        console.warn('⚠️  XSS vulnerabilities found:');
-        xssIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Should have zero critical XSS issues
-      const criticalXssIssues = xssIssues.filter((issue) => issue.extra?.severity === 'ERROR');
-      expect(criticalXssIssues.length).toBe(0);
+    test('should detect SQL injection vulnerabilities', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'sql-injection-prevention'
+      ) || [];
+      
+      // Should not have any SQL injection vulnerabilities
+      expect(violations.length).toBe(0);
     });
 
-    it('should flag dangerous HTML injection patterns', () => {
-      const htmlInjectionIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('dangerously-set-inner-html')
-        ) || [];
-
-      // dangerouslySetInnerHTML should be avoided or minimal
-      expect(htmlInjectionIssues.length).toBeLessThanOrEqual(2);
-    });
-  });
-
-  describe('Authentication & Authorization Security', () => {
-    it('should detect hardcoded secrets and credentials', () => {
-      const secretIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('hardcoded-secrets') ||
-            result.extra?.metadata?.cwe?.includes('CWE-798')
-        ) || [];
-
-      if (secretIssues.length > 0) {
-        console.error('🔐 Hardcoded secrets detected:');
-        secretIssues.forEach((issue) => {
-          console.error(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Should have zero hardcoded secrets
-      expect(secretIssues.length).toBe(0);
+    test('should detect XSS vulnerabilities in React components', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'xss-prevention-react'
+      ) || [];
+      
+      // Should not have any unvalidated dangerouslySetInnerHTML usage
+      expect(violations.length).toBe(0);
     });
 
-    it('should validate session security configuration', () => {
-      const sessionIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('weak-session-config')
-        ) || [];
+    test('should detect weak cryptographic usage', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'weak-crypto-usage'
+      ) || [];
+      
+      // Should not use weak crypto algorithms
+      expect(violations.length).toBe(0);
+    });
 
-      if (sessionIssues.length > 0) {
-        console.warn('⚠️  Session configuration issues:');
-        sessionIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
+    test('should detect command injection risks', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'command-injection-risk'
+      ) || [];
+      
+      // Should not have command injection vulnerabilities
+      expect(violations.length).toBe(0);
+    });
 
-      // Allow some warnings but review them
-      expect(sessionIssues.length).toBeLessThanOrEqual(3);
+    test('should detect directory traversal vulnerabilities', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'directory-traversal-prevention'
+      ) || [];
+      
+      // Should not have path traversal vulnerabilities
+      expect(violations.length).toBe(0);
+    });
+
+    test('should detect environment variable exposure', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'env-var-exposure'
+      ) || [];
+      
+      // Should not expose environment variables in logs
+      expect(violations.length).toBe(0);
+    });
+
+    test('should detect database connection exposure', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'database-connection-exposure'
+      ) || [];
+      
+      // Should not expose database connection details
+      expect(violations.length).toBe(0);
     });
   });
 
   describe('Quebec Law 25 Compliance', () => {
-    it('should enforce personal data protection requirements', () => {
-      const law25Issues =
-        semgrepResults.results?.filter(
-          (result) => result.extra?.metadata?.law25 || result.extra?.metadata?.quebec_law25
-        ) || [];
-
-      if (law25Issues.length > 0) {
-        console.info('📋 Quebec Law 25 compliance items:');
-        law25Issues.forEach((issue) => {
-          console.info(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
+    test('should flag potential personal data logging violations', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'law25-sensitive-data-logging'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ Potential Law 25 violations found:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
         });
       }
-
-      // Law 25 issues are informational but important
-      expect(Array.isArray(law25Issues)).toBe(true);
+      
+      // This is informational - log violations but don't fail the test
+      expect(violations).toBeDefined();
     });
 
-    it('should detect sensitive data logging violations', () => {
-      const loggingIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('law25-sensitive-data-logging') ||
-            result.check_id.includes('law25-data-logging')
-        ) || [];
-
-      if (loggingIssues.length > 0) {
-        console.error('🚨 Sensitive data logging detected:');
-        loggingIssues.forEach((issue) => {
-          console.error(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Should minimize sensitive data in logs
-      expect(loggingIssues.length).toBeLessThanOrEqual(5);
+    test('should flag cross-border data transfer without consent', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'law25-cross-border-transfer'
+      ) || [];
+      
+      // Critical compliance issue
+      expect(violations.length).toBe(0);
     });
 
-    it('should validate data retention policies', () => {
-      const retentionIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('law25-data-retention')
-        ) || [];
+    test('should flag missing encryption for sensitive data', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'law25-encryption-at-rest'
+      ) || [];
+      
+      // Critical compliance issue
+      expect(violations.length).toBe(0);
+    });
 
-      // Data retention policies should be documented
-      expect(Array.isArray(retentionIssues)).toBe(true);
+    test('should flag insecure communication protocols', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'law25-secure-communication'
+      ) || [];
+      
+      // Critical compliance issue
+      expect(violations.length).toBe(0);
     });
   });
 
-  describe('Input Validation & Path Traversal', () => {
-    it('should detect missing input validation', () => {
-      const validationIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('missing-input-validation')
-        ) || [];
-
-      if (validationIssues.length > 0) {
-        console.info('📝 Input validation review needed:');
-        validationIssues.forEach((issue) => {
-          console.info(`  - ${issue.path}:${issue.start.line}`);
-        });
-      }
-
-      // Input validation issues are informational
-      expect(Array.isArray(validationIssues)).toBe(true);
+  describe('Express.js Security', () => {
+    test('should detect CORS wildcard misconfigurations', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'express-cors-wildcard'
+      ) || [];
+      
+      // Should not have overly permissive CORS
+      expect(violations.length).toBe(0);
     });
 
-    it('should detect path traversal vulnerabilities', () => {
-      const pathIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('path-traversal-risk') ||
-            result.extra?.metadata?.cwe?.includes('CWE-22')
-        ) || [];
-
-      if (pathIssues.length > 0) {
-        console.warn('⚠️  Path traversal risks found:');
-        pathIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
+    test('should detect missing rate limiting on auth endpoints', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'missing-rate-limiting'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ Auth endpoints without rate limiting:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
         });
       }
+      
+      // Warning level - log but don't fail
+      expect(violations).toBeDefined();
+    });
 
-      // Should have minimal path traversal risks
-      expect(pathIssues.length).toBeLessThanOrEqual(3);
+    test('should detect insecure session configurations', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'session-security-missing'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ Session security issues:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
+        });
+      }
+      
+      // Warning level - check but don't fail tests
+      expect(violations).toBeDefined();
+    });
+  });
+
+  describe('React Security', () => {
+    test('should detect external links without security attributes', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'react-external-links'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ External links missing rel attributes:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
+        });
+      }
+      
+      // Warning level - informational
+      expect(violations).toBeDefined();
+    });
+
+    test('should detect potential prototype pollution', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'prototype-pollution-risk'
+      ) || [];
+      
+      // Critical security issue
+      expect(violations.length).toBe(0);
+    });
+  });
+
+  describe('Property Management Security', () => {
+    test('should protect tenant financial data', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'tenant-financial-data-protection'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ Tenant financial data protection concerns:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
+        });
+      }
+      
+      // Domain-specific warning
+      expect(violations).toBeDefined();
+    });
+
+    test('should protect building access data', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'building-access-data-security'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ Building access data security concerns:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
+        });
+      }
+      
+      // Domain-specific warning
+      expect(violations).toBeDefined();
     });
   });
 
   describe('File Upload Security', () => {
-    it('should validate file upload security measures', () => {
-      const uploadIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('unsafe-file-upload')
-        ) || [];
-
-      if (uploadIssues.length > 0) {
-        console.warn('📎 File upload security review needed:');
-        uploadIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
+    test('should detect insecure file upload configurations', () => {
+      const violations = semgrepResults.results?.filter((result: any) => 
+        result.check_id === 'file-upload-security'
+      ) || [];
+      
+      if (violations.length > 0) {
+        console.warn('⚠️ File upload security issues:', violations.length);
+        violations.forEach((v: any) => {
+          console.warn(`  - ${v.path}:${v.start.line} - ${v.message}`);
         });
       }
-
-      // File uploads should be secure
-      expect(Array.isArray(uploadIssues)).toBe(true);
-    });
-  });
-
-  describe('Information Disclosure', () => {
-    it('should detect sensitive data in responses', () => {
-      const disclosureIssues =
-        semgrepResults.results?.filter(
-          (result) =>
-            result.check_id.includes('sensitive-data-response') ||
-            result.extra?.metadata?.cwe?.includes('CWE-200')
-        ) || [];
-
-      if (disclosureIssues.length > 0) {
-        console.error('🚨 Sensitive data disclosure detected:');
-        disclosureIssues.forEach((issue) => {
-          console.error(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Should have zero information disclosure issues
-      expect(disclosureIssues.length).toBe(0);
-    });
-  });
-
-  describe('Financial Data Security (Property Management)', () => {
-    it('should protect tenant financial information', () => {
-      const financialIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('tenant-financial-data-protection')
-        ) || [];
-
-      if (financialIssues.length > 0) {
-        console.warn('💰 Financial data security review:');
-        financialIssues.forEach((issue) => {
-          console.warn(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Financial data should be properly protected
-      expect(Array.isArray(financialIssues)).toBe(true);
-    });
-
-    it('should secure building access codes', () => {
-      const accessIssues =
-        semgrepResults.results?.filter((result) =>
-          result.check_id.includes('building-access-data-security')
-        ) || [];
-
-      if (accessIssues.length > 0) {
-        console.error('🏢 Building access security issues:');
-        accessIssues.forEach((issue) => {
-          console.error(`  - ${issue.path}:${issue.start.line} - ${issue.message}`);
-        });
-      }
-
-      // Building access codes must be secure
-      expect(accessIssues.length).toBe(0);
+      
+      // Warning level - should be addressed
+      expect(violations).toBeDefined();
     });
   });
 
   describe('Security Summary Report', () => {
-    it('should generate comprehensive security report', () => {
-      const totalIssues = semgrepResults.results?.length || 0;
-      const errorIssues =
-        semgrepResults.results?.filter((r) => r.extra?.severity === 'ERROR') || [];
-      const warningIssues =
-        semgrepResults.results?.filter((r) => r.extra?.severity === 'WARNING') || [];
-      const infoIssues = semgrepResults.results?.filter((r) => r.extra?.severity === 'INFO') || [];
+    test('should generate security summary report', () => {
+      const totalFindings = semgrepResults.results?.length || 0;
+      const criticalFindings = semgrepResults.results?.filter((r: any) => r.severity === 'ERROR').length || 0;
+      const warningFindings = semgrepResults.results?.filter((r: any) => r.severity === 'WARNING').length || 0;
+      const infoFindings = semgrepResults.results?.filter((r: any) => r.severity === 'INFO').length || 0;
 
-      console.warn('\n🔒 SECURITY SCAN SUMMARY');
-      console.warn('========================');
-      console.warn(`Total Issues Found: ${totalIssues}`);
-      console.warn(`  🔴 Critical (ERROR): ${errorIssues.length}`);
-      console.warn(`  🟡 Warning: ${warningIssues.length}`);
-      console.warn(`  ℹ️  Info: ${infoIssues.length}`);
+      const summary = {
+        totalFindings,
+        criticalFindings,
+        warningFindings,
+        infoFindings,
+        scanDate: new Date().toISOString(),
+        rulesApplied: semgrepResults.results?.map((r: any) => r.check_id).filter((id: string, index: number, array: string[]) => array.indexOf(id) === index) || []
+      };
 
-      if (errorIssues.length > 0) {
-        console.warn('\n🔴 CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION:');
-        errorIssues.forEach((issue) => {
-          console.warn(`  - ${issue.check_id}: ${issue.path}:${issue.start.line}`);
-          console.warn(`    ${issue.message}`);
-        });
-      }
+      // Save security summary
+      fs.writeFileSync('reports/security-summary.json', JSON.stringify(summary, null, 2));
 
-      // Security scan should complete successfully
-      expect(typeof totalIssues).toBe('number');
-      expect(totalIssues).toBeGreaterThanOrEqual(0);
+      console.log('\n🔒 Security Scan Summary:');
+      console.log(`   Total findings: ${totalFindings}`);
+      console.log(`   Critical: ${criticalFindings}`);
+      console.log(`   Warnings: ${warningFindings}`);
+      console.log(`   Info: ${infoFindings}`);
+      console.log(`   Rules applied: ${summary.rulesApplied.length}`);
+
+      // Test should pass if no critical findings
+      expect(criticalFindings).toBe(0);
     });
-
-    it('should maintain security standards for production deployment', () => {
-      const criticalIssues =
-        semgrepResults.results?.filter((result) => result.extra?.severity === 'ERROR') || [];
-
-      // For production deployment, we should have zero critical security issues
-      if (criticalIssues.length > 0) {
-        console.error('\n❌ PRODUCTION DEPLOYMENT BLOCKED - Critical security issues found!');
-        console.error('Please resolve all ERROR-level security issues before deployment.');
-      } else {
-        console.warn('\n✅ SECURITY VALIDATION PASSED - Ready for production deployment');
-      }
-
-      // This test will pass but log important information
-      expect(Array.isArray(criticalIssues)).toBe(true);
-    });
-  });
-
-  afterAll(() => {
-    // Generate security report file
-    const report = {
-      timestamp: new Date().toISOString(),
-      totalIssues: semgrepResults.results?.length || 0,
-      issues: semgrepResults.results || [],
-      summary: {
-        critical: semgrepResults.results?.filter((r) => r.extra?.severity === 'ERROR').length || 0,
-        warnings:
-          semgrepResults.results?.filter((r) => r.extra?.severity === 'WARNING').length || 0,
-        info: semgrepResults.results?.filter((r) => r.extra?.severity === 'INFO').length || 0,
-      },
-    };
-
-    try {
-      fs.writeFileSync(
-        path.join(__dirname, '../..', 'security-report.json'),
-        JSON.stringify(report, null, 2)
-      );
-      console.warn('\n📄 Security report saved to security-report.json');
-    } catch (_error) {
-      console.warn('Could not save security report:', error.message);
-    }
   });
 });

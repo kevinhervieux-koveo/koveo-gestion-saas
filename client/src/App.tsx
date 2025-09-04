@@ -10,6 +10,7 @@ import { Suspense, useEffect } from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
+import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
 
 // Start memory monitoring for better performance
 memoryOptimizer.start();
@@ -20,6 +21,7 @@ if (typeof window !== 'undefined') {
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
+import { AuthErrorBoundary } from '@/components/common/AuthErrorBoundary';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -84,11 +86,9 @@ const ResidentsBuildingDocuments = createOptimizedLoader(
   'residents-building-documents-page',
   { enableMemoryCleanup: true }
 );
-const ManagerBudget = createOptimizedLoader(
-  () => import('@/pages/manager/budget'),
-  'manager-budget',
-  { enableMemoryCleanup: true }
-);
+const ManagerBudget = createOptimizedLoader(() => import('@/pages/manager/budget'), 'manager-budget', {
+  enableMemoryCleanup: true,
+});
 const ManagerBills = createOptimizedLoader(() => import('@/pages/manager/bills'), 'manager-bills', {
   enableMemoryCleanup: true,
 });
@@ -232,11 +232,14 @@ const InvitationAcceptancePage = createOptimizedLoader(
  * @returns Function result.
  */
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAuthenticating } = useAuth();
   const [location] = useLocation();
+  
+  // Enable smooth scroll-to-top on navigation
+  useSmoothNavigation();
 
   // Show loading spinner while authentication is being determined
-  if (isLoading) {
+  if (isLoading || isAuthenticating) {
     return <LoadingSpinner />;
   }
 
@@ -244,9 +247,13 @@ function Router() {
   const isPublicPage = [
     '/',
     '/login',
+    '/auth/login',
     '/forgot-password',
+    '/auth/forgot-password',
     '/reset-password',
+    '/auth/reset-password',
     '/accept-invitation',
+    '/auth/accept-invitation',
     '/register',
     '/features',
     '/pricing',
@@ -269,9 +276,13 @@ function Router() {
           <Route path='/privacy-policy' component={PrivacyPolicyPage} />
           <Route path='/terms-of-service' component={TermsOfServicePage} />
           <Route path='/login' component={isAuthenticated ? LoginRedirect : LoginPage} />
+          <Route path='/auth/login' component={isAuthenticated ? LoginRedirect : LoginPage} />
           <Route path='/forgot-password' component={ForgotPasswordPage} />
+          <Route path='/auth/forgot-password' component={ForgotPasswordPage} />
           <Route path='/reset-password' component={ResetPasswordPage} />
+          <Route path='/auth/reset-password' component={ResetPasswordPage} />
           <Route path='/accept-invitation' component={InvitationAcceptancePage} />
+          <Route path='/auth/accept-invitation' component={InvitationAcceptancePage} />
           <Route path='/register' component={InvitationAcceptancePage} />
         </Switch>
       </Suspense>
@@ -280,9 +291,8 @@ function Router() {
 
   // For protected routes, require authentication
   if (!isAuthenticated) {
-    // Only redirect to home if we're certain the user is not authenticated
-    // and we're not in a loading state
-    // IMPORTANT: Don't redirect immediately - show loading to prevent F5 redirect issue
+    // Show loading spinner instead of immediate redirect to prevent race conditions
+    // The redirect logic is now handled in the useAuth hook with proper delays
     return <LoadingSpinner />;
   }
 
@@ -304,6 +314,7 @@ function Router() {
           <Switch>
             {/* Login page - redirect authenticated users to dashboard */}
             <Route path='/login' component={LoginRedirect} />
+            <Route path='/auth/login' component={LoginRedirect} />
 
             {/* Main Dashboard */}
             <Route path='/dashboard/quick-actions' component={DashboardPage} />
@@ -325,11 +336,17 @@ function Router() {
             <Route path='/manager/buildings' component={ManagerBuildings} />
             <Route path='/manager/buildings/documents' component={() => <BuildingDocuments />} />
             {/* Support dynamic building ID in URL path */}
-            <Route path='/manager/buildings/:buildingId/documents' component={() => <BuildingDocuments />} />
+            <Route
+              path='/manager/buildings/:buildingId/documents'
+              component={() => <BuildingDocuments />}
+            />
             <Route path='/manager/residences' component={ManagerResidences} />
             <Route path='/manager/residences/documents' component={() => <ResidenceDocuments />} />
             {/* Support dynamic residence ID in URL path */}
-            <Route path='/manager/residences/:residenceId/documents' component={() => <ResidenceDocuments />} />
+            <Route
+              path='/manager/residences/:residenceId/documents'
+              component={() => <ResidenceDocuments />}
+            />
             <Route path='/manager/budget' component={ManagerBudget} />
             <Route path='/manager/bills' component={ManagerBills} />
             <Route path='/manager/demands' component={ManagerDemands} />
@@ -425,14 +442,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <AuthProvider>
+        <AuthErrorBoundary>
+          <AuthProvider>
           <MobileMenuProvider>
             <TooltipProvider>
               <Toaster />
               <Router />
             </TooltipProvider>
           </MobileMenuProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </AuthErrorBoundary>
       </LanguageProvider>
     </QueryClientProvider>
   );

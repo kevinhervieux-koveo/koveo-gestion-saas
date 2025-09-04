@@ -48,8 +48,6 @@ async function createInvitationAuditLog(
       currentValue,
       metadata: metadata ? JSON.stringify(metadata) : null,
     });
-  } catch (____error) {
-    console.error('Error creating invitation audit log:', _error);
   }
 }
 
@@ -129,8 +127,6 @@ export function registerEmailRoutes(app: Express) {
         } else {
           res.status(500).json({ message: 'Failed to send reminder email' });
         }
-      } catch (____error) {
-        console.error('Error sending reminder email:', _error);
         res.status(500).json({ message: 'Failed to send reminder email' });
       }
     }
@@ -198,8 +194,6 @@ export function registerEmailRoutes(app: Express) {
             } else {
               failureCount++;
             }
-          } catch (____error) {
-            console.error(`Failed to send reminder for invitation ${invitation.id}:`, _error);
             failureCount++;
           }
         }
@@ -210,8 +204,6 @@ export function registerEmailRoutes(app: Express) {
           failureCount,
           totalProcessed: pendingInvitations.length,
         });
-      } catch (____error) {
-        console.error('Error sending bulk reminder emails:', _error);
         res.status(500).json({ message: 'Failed to send bulk reminder emails' });
       }
     }
@@ -264,8 +256,6 @@ export function registerEmailRoutes(app: Express) {
         </body>
         </html>
       `);
-    } catch (____error) {
-      console.error('Error processing unsubscribe:', _error);
       res.status(500).send('Erreur lors du désabonnement. Veuillez réessayer.');
     }
   });
@@ -308,8 +298,6 @@ export function registerEmailRoutes(app: Express) {
         ];
 
         res.json({ templates });
-      } catch (_error) {
-        console.error('Error fetching email templates:', _error);
         res.status(500).json({ message: 'Failed to fetch email templates' });
       }
     }
@@ -341,8 +329,6 @@ export function registerEmailRoutes(app: Express) {
           message: 'Template content would be returned here',
           note: 'Templates are currently embedded in the email service class',
         });
-      } catch (_error) {
-        console.error('Error fetching template:', _error);
         res.status(500).json({ message: 'Failed to fetch template' });
       }
     }

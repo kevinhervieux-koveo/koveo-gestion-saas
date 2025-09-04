@@ -157,7 +157,6 @@ const getCorsConfig = (isDevelopment: boolean) => {
       if (isAllowed) {
         callback(null, true);
       } else {
-        console.warn(`CORS blocked origin: ${origin}`);
         callback(new Error('CORS policy violation'), false);
       }
     },
@@ -378,7 +377,6 @@ export function configureSecurityMiddleware(app: Express): void {
     express.json({ type: 'application/csp-report' }),
     (req: Request, res: Response) => {
       const report = req.body;
-      console.warn('CSP Violation Report:', {
         userAgent: req.get('User-Agent'),
         ip: req.ip,
         timestamp: new Date().toISOString(),
@@ -391,7 +389,6 @@ export function configureSecurityMiddleware(app: Express): void {
   // Certificate Transparency Report Endpoint (for legacy support)
   app.post('/api/security/ct-report', express.json(), (req: Request, res: Response) => {
     const report = req.body;
-    console.warn('CT Report:', {
       userAgent: req.get('User-Agent'),
       ip: req.ip,
       timestamp: new Date().toISOString(),
@@ -418,7 +415,6 @@ export function securityHealthCheck(req: Request, res: Response, next: NextFunct
     process.env.NODE_ENV === 'development';
 
   if (!isSecure && process.env.NODE_ENV === 'production') {
-    console.warn('Insecure request detected in production:', {
       url: req.url,
       ip: req.ip,
       userAgent: req.get('User-Agent'),

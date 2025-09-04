@@ -1,0 +1,21 @@
+901f2b24461ff587f7348bd771789379
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.config = void 0;
+// Simplified database configuration - always use DATABASE_URL
+const nodeEnv = process.env.NODE_ENV || 'development';
+// Use DATABASE_URL from environment (configured differently in workspace vs deployment)
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+    throw new Error('DATABASE_URL must be set');
+}
+const config = {
+    database: {
+        url: databaseUrl
+    },
+    server: {
+        nodeEnv
+    }
+};
+exports.config = config;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zZXJ2ZXIvY29uZmlnL2luZGV4LmpzIiwibWFwcGluZ3MiOiI7OztBQUFBLDhEQUE4RDtBQUM5RCxNQUFNLE9BQU8sR0FBRyxPQUFPLENBQUMsR0FBRyxDQUFDLFFBQVEsSUFBSSxhQUFhLENBQUM7QUFFdEQsd0ZBQXdGO0FBQ3hGLE1BQU0sV0FBVyxHQUFHLE9BQU8sQ0FBQyxHQUFHLENBQUMsWUFBWSxDQUFDO0FBRTdDLElBQUksQ0FBQyxXQUFXLEVBQUUsQ0FBQztJQUNqQixNQUFNLElBQUksS0FBSyxDQUFDLDBCQUEwQixDQUFDLENBQUM7QUFDOUMsQ0FBQztBQUVELE1BQU0sTUFBTSxHQUFHO0lBQ2IsUUFBUSxFQUFFO1FBQ1IsR0FBRyxFQUFFLFdBQVc7S0FDakI7SUFDRCxNQUFNLEVBQUU7UUFDTixPQUFPO0tBQ1I7Q0FDRixDQUFDO0FBRU8sd0JBQU0iLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zZXJ2ZXIvY29uZmlnL2luZGV4LmpzIl0sInNvdXJjZXNDb250ZW50IjpbIi8vIFNpbXBsaWZpZWQgZGF0YWJhc2UgY29uZmlndXJhdGlvbiAtIGFsd2F5cyB1c2UgREFUQUJBU0VfVVJMXG5jb25zdCBub2RlRW52ID0gcHJvY2Vzcy5lbnYuTk9ERV9FTlYgfHwgJ2RldmVsb3BtZW50JztcblxuLy8gVXNlIERBVEFCQVNFX1VSTCBmcm9tIGVudmlyb25tZW50IChjb25maWd1cmVkIGRpZmZlcmVudGx5IGluIHdvcmtzcGFjZSB2cyBkZXBsb3ltZW50KVxuY29uc3QgZGF0YWJhc2VVcmwgPSBwcm9jZXNzLmVudi5EQVRBQkFTRV9VUkw7XG5cbmlmICghZGF0YWJhc2VVcmwpIHtcbiAgdGhyb3cgbmV3IEVycm9yKCdEQVRBQkFTRV9VUkwgbXVzdCBiZSBzZXQnKTtcbn1cblxuY29uc3QgY29uZmlnID0ge1xuICBkYXRhYmFzZToge1xuICAgIHVybDogZGF0YWJhc2VVcmxcbiAgfSxcbiAgc2VydmVyOiB7XG4gICAgbm9kZUVudlxuICB9XG59O1xuXG5leHBvcnQgeyBjb25maWcgfTsiXSwidmVyc2lvbiI6M30=

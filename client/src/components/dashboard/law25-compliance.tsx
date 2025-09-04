@@ -34,13 +34,13 @@ interface Law25ComplianceData {
     dataSubjectRights: number;
   };
   violations: Array<{
-    severity: 'error' | 'warning' | 'info';
     rule: string;
     message: string;
     file: string;
     line: number;
     category: string;
     law25Aspect: string;
+    severity: string;
   }>;
 }
 
@@ -106,7 +106,7 @@ export function Law25Compliance() {
     return labels[category as keyof typeof labels] || category;
   };
 
-  const getSeverityColor = (severity: 'error' | 'warning' | 'info') => {
+  const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'error':
         return 'text-red-600 bg-red-50';
@@ -114,6 +114,8 @@ export function Law25Compliance() {
         return 'text-yellow-600 bg-yellow-50';
       case 'info':
         return 'text-blue-600 bg-blue-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
     }
   };
 

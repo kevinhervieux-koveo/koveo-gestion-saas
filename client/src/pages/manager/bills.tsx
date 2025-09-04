@@ -118,7 +118,11 @@ Bills() {
   const queryClient = useQueryClient();
 
   // Fetch buildings for filter dropdown
-  const { data: buildings = [], isLoading: buildingsLoading, error: buildingsError } = useQuery<Building[]>({
+  const {
+    data: buildings = [],
+    isLoading: buildingsLoading,
+    error: buildingsError,
+  } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/buildings');
@@ -289,7 +293,9 @@ Bills() {
   };
 
   // Get building construction year for minimum year calculation
-  const selectedBuilding = Array.isArray(buildings) ? buildings.find((b) => b.id === filters.buildingId) : undefined;
+  const selectedBuilding = Array.isArray(buildings)
+    ? buildings.find((b) => b.id === filters.buildingId)
+    : undefined;
   const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
   const currentYear = new Date().getFullYear();
 
@@ -341,8 +347,8 @@ Bills() {
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <p className='text-red-500 mb-4'>Failed to load buildings</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
             >
               Retry
@@ -382,11 +388,12 @@ Bills() {
                       <SelectValue placeholder='Select building' />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(buildings) && buildings.map((building: Building) => (
-                        <SelectItem key={building.id} value={building.id}>
-                          {building.name}
-                        </SelectItem>
-                      ))}
+                      {Array.isArray(buildings) &&
+                        buildings.map((building: Building) => (
+                          <SelectItem key={building.id} value={building.id}>
+                            {building.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

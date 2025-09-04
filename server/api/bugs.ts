@@ -3,6 +3,29 @@ import { storage } from '../storage';
 import { insertBugSchema, type Bug, type InsertBug } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+
+// Configure multer for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'general');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueId = uuidv4();
+    const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${uniqueId}-${originalName}`;
+    cb(null, fileName);
+  },
+});
+
+const upload = multer({ storage: storage_config });
 
 /**
  * Registers all bug-related API endpoints.
@@ -33,8 +56,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
       res.json(bugs);
-    } catch (error) {
-      console.error('Failed to fetch bugs:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching bugs:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bugs',
@@ -79,8 +102,8 @@ export function registerBugRoutes(app: Express): void {
       }
 
       res.json(bug);
-    } catch (error) {
-      console.error('Failed to fetch bug:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bug',
@@ -89,9 +112,9 @@ export function registerBugRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/bugs - Creates a new bug report.
+   * POST /api/bugs - Creates a new bug report with optional file attachments.
    */
-  app.post('/api/bugs', requireAuth, async (req: any, res) => {
+  app.post('/api/bugs', requireAuth, upload.array('attachments', 10), async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -118,10 +141,37 @@ export function registerBugRoutes(app: Express): void {
       const bugData = validation.data;
       const bug = await storage.createBug(bugData);
 
+      // Handle file attachments if present
+      if (req.files && req.files.length > 0) {
+        console.log(`📎 Processing ${req.files.length} attachments for bug ${bug.id}`);
+
+        for (const file of req.files) {
+          // Create document record for each attachment
+          const documentData = {
+            name: file.originalname,
+            description: `Attachment for bug: ${bug.title}`,
+            documentType: 'attachment',
+            filePath: `general/${file.filename}`,
+            fileName: file.originalname,
+            fileSize: file.size.toString(),
+            attachedToType: 'bug' as const,
+            attachedToId: bug.id,
+            uploadedById: currentUser.id,
+          };
+
+
+          await storage.createDocument({
+            ...documentData,
+            isVisibleToTenants: false
+          });
+          console.log(`📄 Created attachment document for bug ${bug.id}: ${file.originalname}`);
+        }
+      }
+
       console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
-    } catch (error) {
-      console.error('Failed to create bug:', error);
+    } catch (error: any) {
+      console.error('❌ Error creating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create bug',
@@ -207,8 +257,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`📝 Updated bug ${id} by user ${currentUser.id}`);
       res.json(bug);
-    } catch (error) {
-      console.error('Failed to update bug:', error);
+    } catch (error: any) {
+      console.error('❌ Error updating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update bug',
@@ -250,8 +300,8 @@ export function registerBugRoutes(app: Express): void {
 
       console.log(`🗑️ Deleted bug ${id} by user ${currentUser.id}`);
       res.status(204).send();
-    } catch (error) {
-      console.error('Failed to delete bug:', error);
+    } catch (error: any) {
+      console.error('❌ Error deleting bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete bug',

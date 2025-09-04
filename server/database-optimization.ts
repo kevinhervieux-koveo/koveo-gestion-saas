@@ -365,21 +365,19 @@ export class QueryOptimizer {
           'idx_bills_residence_id'
         )
       `;
-      
+
       // Handle both array and direct result formats
       const row = Array.isArray(result) ? result[0] : result;
       if (!row || typeof row.count === 'undefined') {
-        // In production, suppress detailed query format warnings to reduce log noise
         if (process.env.NODE_ENV !== 'production') {
-          console.warn('Unexpected result format from index check query:', result);
         }
         return false;
       }
-      
+
       const indexCount = parseInt(String(row.count));
       return indexCount >= 4; // If we have these key indexes, assume setup is complete
-    } catch (error) {
-      console.warn('Could not check index status:', error);
+    } catch (error: any) {
+      console.error('❌ Error checking database indexes:', error);
       return false;
     }
   }
@@ -388,7 +386,6 @@ export class QueryOptimizer {
    * Applies all core database indexes for Quebec property management.
    */
   static async applyCoreOptimizations(): Promise<void> {
-    console.warn('Applying core database optimizations...');
 
     const allIndexes = [
       ...DatabaseOptimization.coreIndexes,
@@ -401,9 +398,8 @@ export class QueryOptimizer {
     for (const indexQuery of allIndexes) {
       try {
         await sql`${indexQuery}`;
-        console.warn(`✓ Applied: ${indexQuery}`);
-      } catch (error) {
-        console.warn(`⚠ Failed to apply index: ${indexQuery}`, error);
+      } catch (error: any) {
+        console.error('❌ Error applying core index:', error);
       }
     }
 
@@ -411,9 +407,8 @@ export class QueryOptimizer {
     for (const indexQuery of DatabaseOptimization.coveringIndexes) {
       try {
         await sql`${indexQuery}`;
-        console.warn(`✓ Applied covering _index: ${indexQuery}`);
-      } catch (error) {
-        console.warn(`⚠ Failed to apply covering index: ${indexQuery}`, error);
+      } catch (error: any) {
+        console.error('❌ Error applying covering index:', error);
       }
     }
 
@@ -421,20 +416,17 @@ export class QueryOptimizer {
     for (const viewQuery of DatabaseOptimization.materializedViews) {
       try {
         await sql`${viewQuery}`;
-        console.warn(`✓ Created materialized view`);
-      } catch (error) {
-        console.warn(`⚠ Failed to create materialized view`, error);
+      } catch (error: any) {
+        console.error('❌ Error creating materialized view:', error);
       }
     }
 
-    console.warn('Database optimizations complete');
   }
 
   /**
    * Analyzes query performance and suggests optimizations.
    */
   static async analyzeQueryPerformance(): Promise<void> {
-    console.warn('Analyzing query performance...');
 
     try {
       // Enable query logging temporarily
@@ -450,7 +442,6 @@ export class QueryOptimizer {
         LIMIT 10
       `;
 
-      console.warn('Slow queries detected:', slowQueries);
 
       // Check index usage
       const indexUsage = await sql`
@@ -460,10 +451,8 @@ export class QueryOptimizer {
         ORDER BY idx_tup_read DESC
         LIMIT 20
       `;
-
-      console.warn('Index usage statistics:', indexUsage);
-    } catch (_error) {
-      console.warn('Query performance analysis failed:', _error);
+    } catch (error: any) {
+      console.error('❌ Error analyzing query performance:', error);
     }
   }
 
@@ -502,12 +491,10 @@ export class QueryOptimizer {
     // Replace IN with EXISTS for better performance
     if (_options.useExists && optimizedQuery.toLowerCase().includes(' in (')) {
       // This is a simplified replacement - in practice, this would need more sophisticated parsing
-      console.warn('Consider replacing IN subqueries with EXISTS for better performance');
     }
 
     // Suggest JOIN order optimization
     if (optimizedQuery.toLowerCase().includes('join') && _options.optimizeJoins) {
-      console.warn('Tip: Place most selective tables first in JOIN sequence');
     }
 
     return optimizedQuery;
@@ -517,16 +504,14 @@ export class QueryOptimizer {
    * Refreshes materialized views for up-to-date aggregated data.
    */
   static async refreshMaterializedViews(): Promise<void> {
-    console.warn('Refreshing materialized views...');
 
     const views = ['mv_building_stats', 'mv_organization_overview', 'mv_financial_summary'];
 
     for (const view of views) {
       try {
         await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`;
-        console.warn(`✓ Refreshed: ${view}`);
-      } catch (_error) {
-        console.warn(`⚠ Failed to refresh ${view}:`, _error);
+      } catch (error: any) {
+        console.error(`❌ Error refreshing materialized view ${view}:`, error);
       }
     }
   }
@@ -540,29 +525,23 @@ export class DatabaseMaintenance {
    * Performs routine database maintenance for optimal performance.
    */
   static async performMaintenance(): Promise<void> {
-    console.warn('Starting database maintenance...');
 
     try {
       // Update table statistics
       await sql`ANALYZE`;
-      console.warn('✓ Updated table statistics');
 
       // Clean up unused space
       await sql`VACUUM`;
-      console.warn('✓ Cleaned up unused space');
 
       // Reindex for optimal performance
       await sql`REINDEX DATABASE CONCURRENTLY ${process.env.PGDATABASE}`;
-      console.warn('✓ Rebuilt indexes');
 
       // Refresh materialized views
       await QueryOptimizer.refreshMaterializedViews();
-      console.warn('✓ Refreshed materialized views');
-    } catch (_error) {
-      console.warn('Database maintenance completed with warnings:', _error);
+    } catch (error: any) {
+      console.error('❌ Error performing database maintenance:', error);
     }
 
-    console.warn('Database maintenance complete');
   }
 
   /**
@@ -590,8 +569,8 @@ export class DatabaseMaintenance {
       `;
 
       return metrics;
-    } catch (_error) {
-      console.warn('Failed to get performance metrics:', _error);
+    } catch (error: any) {
+      console.error('❌ Error getting performance metrics:', error);
       return [];
     }
   }

@@ -11,7 +11,8 @@ import {
   date,
   jsonb,
 } from 'drizzle-orm/pg-core';
-import { bills, residences, buildings } from './property';
+import { residences, buildings } from './property';
+import { bills } from './financial';
 
 /**
  * Real-time financial calculator that replaces the money_flow table
@@ -50,10 +51,10 @@ export const activeFinancialSources = pgMaterializedView('active_financial_sourc
           id: residences.id,
           buildingId: residences.buildingId,
           sourceType: sql<string>`'residence'`.as('source_type'),
-          category: sql<string>`'monthly_fees'`.as('category'),
+          category: sql<'maintenance'>`'maintenance'`.as('category'),
           title: sql<string>`CONCAT('Monthly fees - Unit ', ${residences.unitNumber})`.as('title'),
           amount: residences.monthlyFees,
-          costs: sql<decimal[]>`ARRAY[${residences.monthlyFees}]`.as('costs'),
+          costs: sql<string[]>`ARRAY[${residences.monthlyFees}]`.as('costs'),
           schedulePayment: sql<string>`'monthly'`.as('schedule_payment'),
           scheduleCustom: sql<string[]>`NULL`.as('schedule_custom'),
           startDate: sql<string>`CURRENT_DATE`.as('start_date'),
@@ -81,13 +82,13 @@ export const currentMonthFinancials = pgView('current_month_financials').as((qb)
       buildingId: activeFinancialSources.buildingId,
       month: sql<number>`EXTRACT(MONTH FROM CURRENT_DATE)::int`.as('month'),
       year: sql<number>`EXTRACT(YEAR FROM CURRENT_DATE)::int`.as('year'),
-      totalIncome: sql<decimal>`
+      totalIncome: sql<string>`
           COALESCE(
             SUM(CASE WHEN ${activeFinancialSources.flowType} = 'income' 
                      THEN ${activeFinancialSources.amount} ELSE 0 END), 0
           )
         `.as('total_income'),
-      totalExpenses: sql<decimal>`
+      totalExpenses: sql<string>`
           COALESCE(
             SUM(CASE WHEN ${activeFinancialSources.flowType} = 'expense' 
                      THEN ${activeFinancialSources.amount} ELSE 0 END), 0
@@ -99,7 +100,7 @@ export const currentMonthFinancials = pgView('current_month_financials').as((qb)
       activeExpenseStreams: sql<number>`
           COUNT(CASE WHEN ${activeFinancialSources.flowType} = 'expense' THEN 1 END)::int
         `.as('active_expense_streams'),
-      lastUpdated: sql<timestamp>`MAX(${activeFinancialSources.updatedAt})`.as('last_updated'),
+      lastUpdated: sql<string>`MAX(${activeFinancialSources.updatedAt})`.as('last_updated'),
     })
     .from(activeFinancialSources)
     .where(sql`${activeFinancialSources.isActive} = true`)

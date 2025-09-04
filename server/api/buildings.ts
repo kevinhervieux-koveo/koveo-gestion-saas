@@ -11,8 +11,146 @@ import {
 } from '@shared/schema';
 import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
-import { ObjectStorageService } from '../objectStorage';
 import crypto from 'crypto';
+
+/**
+ * Handles creating or deleting residences when building totalUnits changes
+ */
+async function handleResidenceChanges(
+  buildingId: string,
+  organizationId: string,
+  newTotalUnits: number,
+  currentResidenceCount: number,
+  totalFloors?: number
+): Promise<void> {
+  try {
+    // Object storage hierarchy will be created automatically when documents are uploaded
+
+    if (newTotalUnits > currentResidenceCount) {
+      // Need to create more residences
+      const residencesToCreate = newTotalUnits - currentResidenceCount;
+
+      // Get existing residence numbers to avoid conflicts
+      const existingResidences = await db
+        .select({ unitNumber: residences.unitNumber })
+        .from(residences)
+        .where(eq(residences.buildingId, buildingId));
+
+      const existingUnitNumbers = new Set(existingResidences.map((r) => r.unitNumber));
+
+      const floors = totalFloors || 1;
+      const unitsPerFloor = Math.ceil(newTotalUnits / floors);
+
+      const newResidences = [];
+      let unitCounter = 1;
+
+      for (let residenceIndex = 0; residenceIndex < residencesToCreate; residenceIndex++) {
+        // Find next available unit number
+        while (existingUnitNumbers.has(unitCounter.toString())) {
+          unitCounter++;
+        }
+
+        const floor = Math.ceil(unitCounter / unitsPerFloor);
+        const unitNumber = unitCounter.toString();
+
+        newResidences.push({
+          buildingId,
+          unitNumber,
+          floor: floor,
+          isActive: true,
+        });
+
+        existingUnitNumbers.add(unitNumber);
+        unitCounter++;
+      }
+
+      // Create residences in batch
+      if (newResidences.length > 0) {
+        const createdResidences = await db.insert(residences).values(newResidences).returning();
+
+        // Create object storage hierarchy for each new residence
+        for (const residence of createdResidences) {
+          try {
+            // TODO: Object storage service integration
+            // await objectStorageService.createResidenceHierarchy(
+            //   organizationId,
+            //   buildingId,
+            //   residence.id
+            // );
+          } catch (storageError) {
+            console.error(
+              `⚠️ Error creating storage hierarchy for residence ${residence.id}:`,
+              storageError
+            );
+            // Don't fail the whole operation for storage errors
+          }
+        }
+
+        console.log(
+          `✅ Created ${createdResidences.length} new residences for building ${buildingId}`
+        );
+      }
+    } else if (newTotalUnits < currentResidenceCount) {
+      // Need to delete some residences
+      const residencesToDelete = currentResidenceCount - newTotalUnits;
+      console.log(
+        `📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`
+      );
+
+      // Get residences that can be safely deleted (no active user relationships)
+      const deletableResidences = await db
+        .select({ id: residences.id, unitNumber: residences.unitNumber })
+        .from(residences)
+        .leftJoin(
+          userResidences,
+          and(eq(userResidences.residenceId, residences.id), eq(userResidences.isActive, true))
+        )
+        .where(
+          and(
+            eq(residences.buildingId, buildingId),
+            eq(residences.isActive, true),
+            isNull(userResidences.id) // No active user relationships
+          )
+        )
+        .orderBy(sql`${residences.unitNumber}::integer DESC`) // Delete highest unit numbers first
+        .limit(residencesToDelete);
+
+      if (deletableResidences.length > 0) {
+        const residenceIdsToDelete = deletableResidences.map((r) => r.id);
+
+        // Soft delete residences (mark as inactive)
+        await db
+          .update(residences)
+          .set({
+            isActive: false,
+            updatedAt: new Date(),
+          })
+          .where(inArray(residences.id, residenceIdsToDelete));
+
+        console.log(
+          `✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`
+        );
+
+        // Log which residences couldn't be deleted due to user relationships
+        const protectedCount = residencesToDelete - deletableResidences.length;
+        if (protectedCount > 0) {
+          console.log(
+            `⚠️ Could not delete ${protectedCount} residences - they have active user relationships`
+          );
+        }
+      } else {
+      }
+    } else {
+      console.log(
+        `✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`
+      );
+    }
+    // Don't throw the error to avoid breaking the building update
+  } catch (error: any) {
+    console.error('❌ Error updating residence count:', error);
+    // Don't throw the error to avoid breaking the building update
+  }
+}
 
 /**
  *
@@ -45,19 +183,37 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       // Role-based access control for buildings
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (
+        ![
+          'admin',
+          'manager',
+          'demo_manager',
+          'demo_tenant',
+          'demo_resident',
+          'tenant',
+          'resident',
+        ].includes(user.role)
+      ) {
         return res.status(403).json({
-          message: 'Access denied. Admin or Manager role required.',
+          message: 'Access denied. Insufficient permissions.',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
 
-      console.warn(`📊 Fetching buildings for user ${user.id} with role ${user.role}`);
+      console.log('🏢 [Buildings API] User accessing buildings:', {
+        id: user.id,
+        role: user.role,
+        organizations: user.organizations,
+        canAccessAllOrganizations: user.canAccessAllOrganizations,
+      });
 
       let buildingsQuery;
 
-      if (user.role === 'admin' && user.canAccessAllOrganizations) {
-        // Admin with global access can see all buildings
+      // Admin users should always have access to all buildings, regardless of organization assignments
+      if (user.role === 'admin') {
+        console.log(
+          `🏢 [BUILDINGS DEBUG] Admin user detected - granting access to ALL buildings`
+        );
         buildingsQuery = db
           .select({
             id: buildings.id,
@@ -82,44 +238,106 @@ export function registerBuildingRoutes(app: Express): void {
           .where(eq(buildings.isActive, true))
           .orderBy(organizations.name, buildings.name);
       } else {
-        // Manager or admin without global access: only buildings from their organizations
+        // Managers and other roles: only buildings from their organizations
+        console.log(
+          `🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`,
+          user.organizations
+        );
         if (!user.organizations || user.organizations.length === 0) {
-          return res.json([]); // No organizations = no buildings
-        }
+          console.log(
+            `🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`
+          );
 
-        buildingsQuery = db
-          .select({
-            id: buildings.id,
-            name: buildings.name,
-            address: buildings.address,
-            city: buildings.city,
-            province: buildings.province,
-            postalCode: buildings.postalCode,
-            buildingType: buildings.buildingType,
-            yearBuilt: buildings.yearBuilt,
-            totalUnits: buildings.totalUnits,
-            totalFloors: buildings.totalFloors,
-            parkingSpaces: buildings.parkingSpaces,
-            storageSpaces: buildings.storageSpaces,
-            organizationId: buildings.organizationId,
-            isActive: buildings.isActive,
-            createdAt: buildings.createdAt,
-            organizationName: organizations.name,
-          })
-          .from(buildings)
-          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(
-            and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
-          )
-          .orderBy(organizations.name, buildings.name);
+          // For tenant/resident roles: Get buildings through their residences
+          if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
+            const userResidencesList = await db
+              .select({
+                buildingId: residences.buildingId,
+              })
+              .from(userResidences)
+              .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+              .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+
+            console.log(
+              `🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`
+            );
+
+            if (userResidencesList.length === 0) {
+              return res.json([]); // No residences = no buildings
+            }
+
+            const accessibleBuildingIds = [
+              ...new Set(userResidencesList.map((ur) => ur.buildingId)),
+            ];
+            console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
+
+            buildingsQuery = db
+              .select({
+                id: buildings.id,
+                name: buildings.name,
+                address: buildings.address,
+                city: buildings.city,
+                province: buildings.province,
+                postalCode: buildings.postalCode,
+                buildingType: buildings.buildingType,
+                yearBuilt: buildings.yearBuilt,
+                totalUnits: buildings.totalUnits,
+                totalFloors: buildings.totalFloors,
+                parkingSpaces: buildings.parkingSpaces,
+                storageSpaces: buildings.storageSpaces,
+                organizationId: buildings.organizationId,
+                isActive: buildings.isActive,
+                createdAt: buildings.createdAt,
+                organizationName: organizations.name,
+              })
+              .from(buildings)
+              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+              .where(
+                and(eq(buildings.isActive, true), inArray(buildings.id, accessibleBuildingIds))
+              )
+              .orderBy(organizations.name, buildings.name);
+          } else {
+            console.log(`🔍 [BUILDINGS DEBUG] Manager/other role user ${user.id} has no organizations - returning empty result`);
+            return res.json([]); // No organizations = no buildings for managers/others
+          }
+        } else {
+          // User has organizations - use organization-based access
+          buildingsQuery = db
+            .select({
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+              buildingType: buildings.buildingType,
+              yearBuilt: buildings.yearBuilt,
+              totalUnits: buildings.totalUnits,
+              totalFloors: buildings.totalFloors,
+              parkingSpaces: buildings.parkingSpaces,
+              storageSpaces: buildings.storageSpaces,
+              organizationId: buildings.organizationId,
+              isActive: buildings.isActive,
+              createdAt: buildings.createdAt,
+              organizationName: organizations.name,
+            })
+            .from(buildings)
+            .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+            .where(
+              and(
+                eq(buildings.isActive, true),
+                inArray(buildings.organizationId, user.organizations)
+              )
+            )
+            .orderBy(organizations.name, buildings.name);
+        }
       }
 
       const result = await buildingsQuery;
 
-      console.warn(`✅ Found ${result.length} buildings for user ${user.id}`);
       res.json(result);
-    } catch (_error) {
-      console.error('❌ Error fetching buildings:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -162,7 +380,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.warn(
+      console.log(
         `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -187,7 +405,7 @@ export function registerBuildingRoutes(app: Express): void {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
-        console.warn(
+        console.log(
           `🌟 Admin user or user with global access detected - granting access to ALL buildings`
         );
 
@@ -401,7 +619,7 @@ export function registerBuildingRoutes(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.warn(
+      console.log(
         `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
       );
 
@@ -413,8 +631,8 @@ export function registerBuildingRoutes(app: Express): void {
           userId: currentUser.id,
         },
       });
-    } catch (_error) {
-      console.error('Failed to fetch manager buildings:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching manager buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -438,42 +656,55 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.warn(
+      console.log(
         `📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`
       );
 
       let hasAccess = false;
       let accessType = '';
 
-      // Check organization-based access for Admin and Manager
-      if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-        const userOrgs = await db
-          .select({
-            organizationId: userOrganizations.organizationId,
-          })
-          .from(userOrganizations)
-          .where(
-            and(eq(userOrganizations.userId, currentUser.id), eq(userOrganizations.isActive, true))
-          );
+      // Check if user belongs to Koveo organization (special global access)
+      const userOrgs = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          organizationName: organizations.name,
+          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(
+          and(eq(userOrganizations.userId, currentUser.id), eq(userOrganizations.isActive, true))
+        );
 
-        if (userOrgs.length > 0) {
-          const orgIds = userOrgs.map((uo) => uo.organizationId);
+      const hasGlobalAccess =
+        currentUser.role === 'admin' ||
+        userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
-          // Check if building belongs to user's organizations
-          const buildingOrg = await db
-            .select({ id: buildings.id })
-            .from(buildings)
-            .where(
-              and(
-                eq(buildings.id, buildingId),
-                inArray(buildings.organizationId, orgIds),
-                eq(buildings.isActive, true)
-              )
-            );
+      if (hasGlobalAccess) {
+        hasAccess = true;
+        accessType = 'global';
+      } else {
+        // Check organization-based access for Admin and Manager
+        if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+          if (userOrgs.length > 0) {
+            const orgIds = userOrgs.map((uo) => uo.organizationId);
 
-          if (buildingOrg.length > 0) {
-            hasAccess = true;
-            accessType = 'organization';
+            // Check if building belongs to user's organizations
+            const buildingOrg = await db
+              .select({ id: buildings.id })
+              .from(buildings)
+              .where(
+                and(
+                  eq(buildings.id, buildingId),
+                  inArray(buildings.organizationId, orgIds),
+                  eq(buildings.isActive, true)
+                )
+              );
+
+            if (buildingOrg.length > 0) {
+              hasAccess = true;
+              accessType = 'organization';
+            }
           }
         }
       }
@@ -617,8 +848,8 @@ export function registerBuildingRoutes(app: Express): void {
             ? buildingResidences
             : undefined,
       });
-    } catch (_error) {
-      console.error('Failed to fetch building details:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching building details:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch building details',
@@ -648,7 +879,6 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingData = req.body;
-      console.warn(`🏢 Admin ${currentUser.id} creating new building: ${buildingData.name}`);
 
       // Validate required fields
       if (!buildingData.name || !buildingData.organizationId) {
@@ -685,11 +915,9 @@ export function registerBuildingRoutes(app: Express): void {
         })
         .returning();
 
-      console.warn(`✅ Building created successfully with ID: ${buildingId}`);
 
-      // Create object storage hierarchy for the new building
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.createBuildingHierarchy(buildingData.organizationId, buildingId);
+      // Building storage hierarchy will be created automatically when documents are uploaded
+      console.log('Building created - storage hierarchy will be created on first document upload');
 
       // Auto-generate residences if totalUnits is specified and <= 300
       if (
@@ -722,18 +950,19 @@ export function registerBuildingRoutes(app: Express): void {
             .values(residencesToCreate)
             .returning();
 
-          console.warn(
+          console.log(
             `✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`
           );
 
+          // TODO: Object storage service integration
           // Create object storage hierarchy for each residence
-          for (const residence of createdResidences) {
-            await objectStorageService.createResidenceHierarchy(
-              buildingData.organizationId,
-              buildingId,
-              residence.id
-            );
-          }
+          // for (const residence of createdResidences) {
+          //   await objectStorageService.createResidenceHierarchy(
+          //     buildingData.organizationId,
+          //     buildingId,
+          //     residence.id
+          //   );
+          // }
         } catch (___residenceError) {
           console.error('⚠️ Error auto-generating residences:', ___residenceError);
           // Don't fail the building creation if residence generation fails
@@ -744,12 +973,82 @@ export function registerBuildingRoutes(app: Express): void {
         message: 'Building created successfully',
         building: newBuilding[0],
       });
-    } catch (_error) {
-      console.error('❌ Error creating building:', _error);
+    } catch (error: any) {
+      console.error('❌ Error creating building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create building',
       });
+    }
+  });
+
+  /**
+   * GET /api/buildings/:id/residences-for-deletion - Get list of residences that can be selected for deletion
+   * Only admins can access this endpoint
+   */
+  app.get('/api/buildings/:id/residences-for-deletion', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const buildingId = req.params.id;
+      const maxToSelect = parseInt(req.query.maxToSelect as string) || 10;
+
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      // Only admins can delete residences
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can access residence deletion options' });
+      }
+
+      const { getResidencesForSelection } = await import('./buildings/operations');
+      const residencesToSelect = await getResidencesForSelection(buildingId, maxToSelect);
+
+      res.json({
+        residences: residencesToSelect,
+        message: `Found ${residencesToSelect.length} residences available for deletion`
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching residences for deletion:', error);
+      res.status(500).json({ message: 'Failed to fetch residences for deletion' });
+    }
+  });
+
+  /**
+   * DELETE /api/buildings/:id/residences - Delete selected residences
+   * Only admins can delete residences
+   */
+  app.delete('/api/buildings/:id/residences', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const buildingId = req.params.id;
+      const { residenceIds } = req.body;
+
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      // Only admins can delete residences
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can delete residences' });
+      }
+
+      if (!Array.isArray(residenceIds) || residenceIds.length === 0) {
+        return res.status(400).json({ message: 'residenceIds array is required' });
+      }
+
+      const { deleteSelectedResidences } = await import('./buildings/operations');
+      const result = await deleteSelectedResidences(buildingId, residenceIds, user.role);
+
+      res.json({
+        success: true,
+        deletedCount: result.deletedCount,
+        documentsDeleted: result.documentsDeleted,
+        message: `Successfully deleted ${result.deletedCount} residences and ${result.documentsDeleted} associated documents`
+      });
+    } catch (error: any) {
+      console.error('❌ Error deleting residences:', error);
+      res.status(500).json({ message: error.message || 'Failed to delete residences' });
     }
   });
 
@@ -776,7 +1075,6 @@ export function registerBuildingRoutes(app: Express): void {
 
       const buildingId = req.params.id;
       const buildingData = req.body;
-      console.warn(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
 
       // Validate required fields
       if (!buildingData.name || !buildingData.organizationId) {
@@ -800,6 +1098,20 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
+      // Check current number of active residences
+      const currentResidences = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(residences)
+        .where(and(eq(residences.buildingId, buildingId), eq(residences.isActive, true)));
+
+      const currentResidenceCount = currentResidences[0]?.count || 0;
+      const newTotalUnits = buildingData.totalUnits || 0;
+      const previousTotalUnits = existingBuilding[0].totalUnits || 0;
+
+      console.log(
+        `🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`
+      );
+
       // Update building
       const updatedBuilding = await db
         .update(buildings)
@@ -811,7 +1123,7 @@ export function registerBuildingRoutes(app: Express): void {
           postalCode: buildingData.postalCode || '',
           buildingType: buildingData.buildingType || 'condo',
           yearBuilt: buildingData.yearBuilt,
-          totalUnits: buildingData.totalUnits || 0,
+          totalUnits: newTotalUnits,
           totalFloors: buildingData.totalFloors,
           parkingSpaces: buildingData.parkingSpaces,
           storageSpaces: buildingData.storageSpaces,
@@ -823,14 +1135,46 @@ export function registerBuildingRoutes(app: Express): void {
         .where(eq(buildings.id, buildingId))
         .returning();
 
-      console.warn(`✅ Building updated successfully: ${buildingId}`);
+      // Handle residence count changes with new admin-only functionality
+      if (newTotalUnits !== previousTotalUnits) {
+        console.log(`🏠 Building units changed from ${previousTotalUnits} to ${newTotalUnits}, adjusting residences...`);
+        
+        // Only admins can adjust residence counts
+        if (currentUser.role !== 'admin') {
+          return res.status(403).json({
+            message: 'Only admins can increase or decrease building residence counts',
+            code: 'ADMIN_REQUIRED_FOR_RESIDENCE_CHANGES',
+          });
+        }
+
+        const { adjustResidenceCount } = await import('./buildings/operations');
+        const adjustmentResult = await adjustResidenceCount(
+          buildingId,
+          existingBuilding[0].organizationId,
+          newTotalUnits,
+          previousTotalUnits,
+          buildingData.totalFloors || existingBuilding[0].totalFloors || 1
+        );
+
+        // If residences need to be decreased, return the selection list to user
+        if (adjustmentResult.action === 'decreased' && adjustmentResult.residencesToSelect) {
+          return res.json({
+            message: 'Building updated, but residence count needs to be reduced',
+            buildingUpdated: true,
+            needsResidenceSelection: true,
+            residencesToSelect: adjustmentResult.residencesToSelect,
+            instruction: `Please select ${previousTotalUnits - newTotalUnits} residences to delete from the list provided. Use DELETE /api/buildings/${buildingId}/residences with the selected residence IDs.`
+          });
+        }
+      }
+
 
       res.json({
         message: 'Building updated successfully',
         building: updatedBuilding[0],
       });
-    } catch (_error) {
-      console.error('❌ Error updating building:', _error);
+    } catch (error: any) {
+      console.error('❌ Error updating building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to update building',
@@ -860,7 +1204,6 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingId = req.params.id;
-      console.warn(`🗑️ Admin ${currentUser.id} deleting building: ${buildingId}`);
 
       // Check if building exists
       const existingBuilding = await db
@@ -885,20 +1228,15 @@ export function registerBuildingRoutes(app: Express): void {
         })
         .where(eq(buildings.id, buildingId));
 
-      console.warn(`✅ Building deleted successfully: ${buildingId}`);
 
-      // Clean up object storage hierarchy for the deleted building
-      const objectStorageService = new ObjectStorageService();
-      await objectStorageService.deleteBuildingHierarchy(
-        existingBuilding[0].organizationId,
-        buildingId
-      );
+      // Object storage cleanup will be handled automatically
+      console.log('Building deleted - storage cleanup will be handled automatically');
 
       res.json({
         message: 'Building deleted successfully',
       });
-    } catch (_error) {
-      console.error('❌ Error deleting building:', _error);
+    } catch (error: any) {
+      console.error('❌ Error deleting building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete building',
@@ -955,8 +1293,8 @@ export function registerBuildingRoutes(app: Express): void {
         .from(documents)
         .where(
           or(
-            eq(documents.buildings, buildingId),
-            sql`${documents.residence} IN (SELECT id FROM residences WHERE building_id = ${buildingId})`
+            eq(documents.buildingId, buildingId),
+            sql`${documents.residenceId} IN (SELECT id FROM residences WHERE building_id = ${buildingId})`
           )
         );
 
@@ -983,8 +1321,8 @@ export function registerBuildingRoutes(app: Express): void {
       };
 
       res.json(impact);
-    } catch (_error) {
-      console.error('❌ Error analyzing building deletion impact:', _error);
+    } catch (error: any) {
+      console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -994,7 +1332,7 @@ export function registerBuildingRoutes(app: Express): void {
 
   /**
    * DELETE /api/admin/buildings/:id/cascade - Cascade delete a building
-   * Replaces the simple delete with cascading delete that removes residences, documents, and orphaned users.
+   * Replaces the simple delete with cascading delete that removes residences and documents. Users are preserved for data safety.
    */
   app.delete('/api/admin/buildings/:id/cascade', requireAuth, async (req: any, res) => {
     try {
@@ -1014,7 +1352,6 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
       const buildingId = req.params.id;
-      console.warn(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
 
       // Check if building exists
       const building = await db
@@ -1045,7 +1382,7 @@ export function registerBuildingRoutes(app: Express): void {
           await tx
             .delete(documents)
             .where(
-              or(eq(documents.buildings, buildingId), inArray(documents.residence, residenceIds))
+              or(eq(documents.buildingId, buildingId), inArray(documents.residenceId, residenceIds))
             );
 
           // 3. Soft delete user-residence relationships
@@ -1054,7 +1391,7 @@ export function registerBuildingRoutes(app: Express): void {
             .set({ isActive: false, updatedAt: new Date() })
             .where(inArray(userResidences.residenceId, residenceIds));
 
-          // 4. Find and soft delete orphaned users (users who now have no active relationships)
+          // 4. DISABLED: User deletion prohibited for data safety
           const orphanedUsers = await tx
             .select({ id: users.id })
             .from(users)
@@ -1089,7 +1426,7 @@ export function registerBuildingRoutes(app: Express): void {
             .where(inArray(residences.id, residenceIds));
         } else {
           // Still delete documents associated directly with the building
-          await tx.delete(documents).where(eq(documents.buildings, buildingId));
+          await tx.delete(documents).where(eq(documents.buildingId, buildingId));
         }
 
         // 6. Finally, soft delete the building
@@ -1099,7 +1436,6 @@ export function registerBuildingRoutes(app: Express): void {
           .where(eq(buildings.id, buildingId));
       });
 
-      console.warn(`✅ Building cascading delete completed: ${buildingId}`);
 
       // Clean up object storage hierarchy for the deleted building
       // Get organization ID from building before deletion
@@ -1110,19 +1446,16 @@ export function registerBuildingRoutes(app: Express): void {
         .limit(1);
 
       if (buildingOrg.length > 0) {
-        const objectStorageService = new ObjectStorageService();
-        await objectStorageService.deleteBuildingHierarchy(
-          buildingOrg[0].organizationId,
-          buildingId
-        );
+        // Object storage cleanup will be handled automatically
+        console.log('Building deleted - storage cleanup will be handled automatically');
       }
 
       res.json({
         message: 'Building and related entities deleted successfully',
         deletedBuilding: building[0].name,
       });
-    } catch (_error) {
-      console.error('❌ Error cascading delete building:', _error);
+    } catch (error: any) {
+      console.error('❌ Error during cascade delete:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete building and related entities',

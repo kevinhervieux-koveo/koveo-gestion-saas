@@ -192,9 +192,6 @@ export default function OwnerRoadmap() {
   });
 
   // Minimal debug logging only for actual errors
-  if (error) {
-    console.error('Features query error:', error);
-  }
 
   /**
    * Fetches actionable items for a specific feature.
@@ -215,10 +212,10 @@ export default function OwnerRoadmap() {
         const items = await response.json();
         setActionableItems((current) => ({ ...current, [featureId]: items }));
       } else {
-        console.error('Failed to fetch actionable items:', response.statusText);
+        // Failed to fetch actionable items
       }
-    } catch (_error) {
-      console.error('Failed to fetch actionable items:', _error);
+    } catch (error) {
+      // Error fetching actionable items
     }
   }, []);
 
@@ -233,7 +230,8 @@ export default function OwnerRoadmap() {
         title: 'Prompt copied!',
         description: 'The implementation prompt has been copied to your clipboard.',
       });
-    } catch (_error) {
+    } catch (error) {
+      // Error copying to clipboard
       toast({
         title: 'Failed to copy',
         description: 'Could not copy the prompt to clipboard.',
@@ -312,7 +310,8 @@ export default function OwnerRoadmap() {
           'The enhanced feature discussion form with Koveo Gestion context has been copied. The LLM will focus specifically on your requirements.',
         duration: 3000,
       });
-    } catch (_error) {
+    } catch (error) {
+      // Error copying LLM form
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the form to clipboard.',

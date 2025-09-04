@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-// useMutation and useQueryClient imports removed (unused)
 import {
   Dialog,
   DialogContent,
@@ -95,8 +94,6 @@ export function DeleteConfirmationDialog({
       const response = await apiRequest('GET', endpoint);
       const impactData = await response.json();
       setImpact(impactData);
-    } catch (_error) {
-      console.error('Error fetching deletion impact:', _error);
       toast({
         title: 'Error',
         description: 'Failed to analyze deletion impact',

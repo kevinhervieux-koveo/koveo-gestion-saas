@@ -47,12 +47,10 @@ export function startMemoryMonitoring(): void {
     const totalMem = memUsage.heapUsed + memUsage.external;
 
     if (totalMem > MEMORY_THRESHOLD) {
-      // Only log memory warnings in development or when memory is critically high
       const isProduction = process.env.NODE_ENV === 'production';
       const isCritical = totalMem > 400 * 1024 * 1024; // 400MB
 
       if (!isProduction || isCritical) {
-        console.warn(`⚠️  High memory usage: ${Math.round(totalMem / 1024 / 1024)}MB`);
 
         // Log memory breakdown only for critical situations
         if (isCritical) {

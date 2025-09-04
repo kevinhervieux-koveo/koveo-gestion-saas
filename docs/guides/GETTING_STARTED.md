@@ -5,8 +5,9 @@
 ## Quick Setup (5 minutes)
 
 ### Prerequisites
+
 - **Node.js**: Version 20 or higher
-- **PostgreSQL**: Version 14 or higher  
+- **PostgreSQL**: Version 14 or higher
 - **Git**: For version control
 - **Code Editor**: VS Code recommended
 
@@ -38,18 +39,21 @@ The application will be running at `http://localhost:5000`
 Access the platform with these pre-configured accounts:
 
 **Admin User**
+
 ```
 Email: admin@koveo.com
 Password: admin123
 ```
 
 **Manager User**
+
 ```
-Email: manager@koveo.com  
+Email: manager@koveo.com
 Password: manager123
 ```
 
 **Tenant User**
+
 ```
 Email: tenant@koveo.com
 Password: tenant123
@@ -73,21 +77,25 @@ Koveo Gestion is a comprehensive property management system designed specificall
 ### User Roles Explained
 
 **Admin**
+
 - Complete system control
 - Organization and user management
 - System configuration and monitoring
 
-**Manager**  
+**Manager**
+
 - Building and property oversight
 - Financial management and reporting
 - Maintenance coordination
 
 **Tenant**
+
 - Unit management and resident coordination
 - Maintenance approval and oversight
 - Financial reporting for managed properties
 
 **Resident**
+
 - Personal profile management
 - Maintenance request submission
 - Bill viewing and payment tracking
@@ -118,18 +126,21 @@ The main navigation varies by role but typically includes:
 ### 3. Try Key Features
 
 **Create a Maintenance Request** (All Roles)
+
 1. Navigate to Maintenance section
 2. Click "New Request"
 3. Fill in details (title, description, priority)
 4. Submit and track progress
 
 **Manage a Building** (Admin/Manager)
+
 1. Go to Buildings section
-2. Click "Add Building"  
+2. Click "Add Building"
 3. Enter building details
 4. Set up units and residents
 
 **Review Financial Reports** (Admin/Manager/Tenant)
+
 1. Access Reports section
 2. Select report type (budget, expenses, etc.)
 3. Choose date range
@@ -144,7 +155,7 @@ koveo-gestion/
 ├── client/              # React frontend
 │   ├── src/
 │   │   ├── components/  # Reusable UI components
-│   │   ├── pages/       # Page components  
+│   │   ├── pages/       # Page components
 │   │   ├── hooks/       # Custom React hooks
 │   │   └── lib/         # Utilities and helpers
 ├── server/              # Express.js backend
@@ -159,6 +170,7 @@ koveo-gestion/
 ### Available Commands
 
 **Development**
+
 ```bash
 npm run dev              # Start development server
 npm run build           # Build for production
@@ -166,6 +178,7 @@ npm run preview         # Preview production build
 ```
 
 **Database**
+
 ```bash
 npm run db:push         # Push schema changes
 npm run db:generate     # Generate migration files
@@ -173,6 +186,7 @@ npm run db:studio       # Open database GUI
 ```
 
 **Testing**
+
 ```bash
 npm test                # Run all tests
 npm run test:unit       # Unit tests only
@@ -181,6 +195,7 @@ npm run test:coverage   # Generate coverage report
 ```
 
 **Code Quality**
+
 ```bash
 npm run lint            # Check code style
 npm run format          # Auto-format code
@@ -216,12 +231,14 @@ SYNC_DEMO_ON_DEPLOY=false
 Koveo Gestion implements Quebec's privacy law requirements:
 
 **Data Protection**
+
 - Explicit consent for data collection
-- Data minimization principles  
+- Data minimization principles
 - Right to deletion and portability
 - Breach notification procedures
 
 **Implementation Examples**
+
 ```typescript
 // Consent tracking
 interface ConsentRecord {
@@ -245,29 +262,29 @@ class DataRetentionService {
 The platform supports both English and French:
 
 **Translation Structure**
+
 ```typescript
 const translations = {
   en: {
     dashboard: 'Dashboard',
     maintenance: 'Maintenance',
-    bills: 'Bills'
+    bills: 'Bills',
   },
   fr: {
-    dashboard: 'Tableau de bord', 
+    dashboard: 'Tableau de bord',
     maintenance: 'Entretien',
-    bills: 'Factures'
-  }
+    bills: 'Factures',
+  },
 };
 ```
 
 **Using Translations**
+
 ```tsx
 function ComponentExample() {
   const { t } = useTranslation();
-  
-  return (
-    <h1>{t('dashboard.welcome')}</h1>
-  );
+
+  return <h1>{t('dashboard.welcome')}</h1>;
 }
 ```
 
@@ -276,6 +293,7 @@ function ComponentExample() {
 ### Adding a New Page
 
 1. **Create Page Component**
+
    ```tsx
    // client/src/pages/NewFeaturePage.tsx
    export default function NewFeaturePage() {
@@ -289,43 +307,49 @@ function ComponentExample() {
    ```
 
 2. **Add Route**
+
    ```tsx
    // client/src/App.tsx
    import NewFeaturePage from './pages/NewFeaturePage';
-   
-   <Route path="/new-feature" component={NewFeaturePage} />
+
+   <Route path='/new-feature' component={NewFeaturePage} />;
    ```
 
 3. **Update Navigation**
    ```tsx
    // Add to navigation component
-   <Link href="/new-feature">New Feature</Link>
+   <Link href='/new-feature'>New Feature</Link>
    ```
 
 ### Creating API Endpoints
 
 1. **Define Schema**
+
    ```typescript
    // shared/schema.ts
    export const newFeatures = pgTable('new_features', {
      id: uuid('id').primaryKey().defaultRandom(),
      name: text('name').notNull(),
      description: text('description'),
-     createdAt: timestamp('created_at').defaultNow()
+     createdAt: timestamp('created_at').defaultNow(),
    });
    ```
 
 2. **Add API Route**
+
    ```typescript
    // server/api/new-features.ts
    export async function createNewFeature(req: Request, res: Response) {
      const { name, description } = req.body;
-     
-     const feature = await db.insert(newFeatures).values({
-       name,
-       description
-     }).returning();
-     
+
+     const feature = await db
+       .insert(newFeatures)
+       .values({
+         name,
+         description,
+       })
+       .returning();
+
      res.json(feature[0]);
    }
    ```
@@ -337,7 +361,7 @@ function ComponentExample() {
      mutationFn: (data) => apiRequest('POST', '/api/new-features', data),
      onSuccess: () => {
        // Handle success
-     }
+     },
    });
    ```
 
@@ -346,6 +370,7 @@ function ComponentExample() {
 ### Common Issues
 
 **Database Connection Failed**
+
 ```bash
 # Check PostgreSQL is running
 pg_ctl status
@@ -358,6 +383,7 @@ npm run db:studio
 ```
 
 **Build Errors**
+
 ```bash
 # Clear node modules and reinstall
 rm -rf node_modules package-lock.json
@@ -371,6 +397,7 @@ npm run lint --fix
 ```
 
 **Tests Failing**
+
 ```bash
 # Run specific test file
 npm test -- auth-hooks.test.tsx
@@ -385,11 +412,13 @@ npm run test:coverage
 ### Getting Help
 
 **Documentation**
+
 - [API Reference](../API_DOCUMENTATION.md)
-- [Component Guide](../COMPONENT_DOCUMENTATION.md)  
+- [Component Guide](../COMPONENT_DOCUMENTATION.md)
 - [Quebec Compliance](../QUEBEC_COMPLIANCE_EXAMPLES.md)
 
 **Development Resources**
+
 - [Contributing Guide](../../CONTRIBUTING.md)
 - [Code Review Standards](../CODE_REVIEW_GUIDE.md)
 - [Architecture Overview](../references/PROJECT_STRUCTURE_GUIDE.md)

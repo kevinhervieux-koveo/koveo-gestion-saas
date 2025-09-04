@@ -1,0 +1,210 @@
+Run actions/github-script@v7
+  with:
+    github-token: ***
+    script: const pr = context.payload.pull_request;
+  
+  console.log('🔍 Checking PR requirements...');
+  
+  let failures = [];
+  let warnings = [];
+  
+  // Check PR title format
+  const titlePattern = /^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?: .+/;
+  if (!titlePattern.test(pr.title)) {
+    failures.push('❌ PR title must follow conventional commit format: `type(scope): description`');
+  }
+  
+  // Check PR description
+  if (!pr.body || pr.body.trim().length < 50) {
+    failures.push('❌ PR description must be at least 50 characters');
+  }
+  
+  // Check for breaking changes
+  if (pr.body && pr.body.includes('BREAKING CHANGE')) {
+    warnings.push('⚠️  This PR contains breaking changes - ensure proper communication');
+  }
+  
+  // Check PR size (number of changed files)
+  const files = await github.rest.pulls.listFiles({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    pull_number: pr.number
+  });
+  
+  if (files.data.length > 20) {
+    warnings.push(`⚠️  Large PR with ${files.data.length} files - consider breaking into smaller PRs`);
+  }
+  
+  // Check for tests in code changes
+  const hasCodeChanges = files.data.some(file => 
+    file.filename.match(/\.(ts|tsx)$/) && 
+    !file.filename.includes('test') && 
+    !file.filename.includes('.d.ts') &&
+    file.status !== 'removed'
+  );
+  
+  const hasTestChanges = files.data.some(file => 
+    file.filename.includes('test') || 
+    file.filename.includes('spec')
+  );
+  
+  if (hasCodeChanges && !hasTestChanges) {
+    warnings.push('⚠️  Code changes detected but no test files modified - ensure adequate test coverage');
+  }
+  
+  // Check for database schema changes
+  const hasSchemaChanges = files.data.some(file => 
+    file.filename.includes('schema.ts') || 
+    file.filename.includes('migration')
+  );
+  
+  if (hasSchemaChanges) {
+    warnings.push('🔄 Database schema changes detected - ensure backward compatibility and migration safety');
+  }
+  
+  // Check for security-sensitive files
+  const securityFiles = files.data.filter(file =>
+    file.filename.includes('auth') ||
+    file.filename.includes('security') ||
+    file.filename.includes('password') ||
+    file.filename.includes('token')
+  );
+  
+  if (securityFiles.length > 0) {
+    warnings.push('🔒 Security-related changes detected - mandatory security review required');
+  }
+  
+  // Create status comment
+  let commentBody = '## 🔍 Code Review Requirements Check\n\n';
+  
+  if (failures.length === 0) {
+    commentBody += '✅ **All mandatory requirements met**\n\n';
+  } else {
+    commentBody += '❌ **Mandatory requirements not met:**\n';
+    failures.forEach(failure => {
+      commentBody += `- ${failure}\n`;
+    });
+    commentBody += '\n';
+  }
+  
+  if (warnings.length > 0) {
+    commentBody += '⚠️  **Warnings and recommendations:**\n';
+    warnings.forEach(warning => {
+      commentBody += `- ${warning}\n`;
+    });
+    commentBody += '\n';
+  }
+  
+  commentBody += '### Review Checklist for Reviewers\n\n';
+  commentBody += '**Mandatory checks:**\n';
+  commentBody += '- [ ] Code follows TypeScript and project conventions\n';
+  commentBody += '- [ ] All tests pass and coverage is adequate\n';
+  commentBody += '- [ ] Changes are well-documented (JSDoc for public APIs)\n';
+  commentBody += '- [ ] No security vulnerabilities introduced\n';
+  commentBody += '- [ ] Quebec compliance maintained (bilingual, accessibility)\n';
+  commentBody += '- [ ] Database changes are safe and backward-compatible\n\n';
+  
+  commentBody += '**Additional checks:**\n';
+  commentBody += '- [ ] Performance impact considered\n';
+  commentBody += '- [ ] Error handling is comprehensive\n';
+  commentBody += '- [ ] Code is maintainable and follows SOLID principles\n';
+  commentBody += '- [ ] Changes align with project architecture\n\n';
+  
+  if (hasSchemaChanges) {
+    commentBody += '**Database Review Required:**\n';
+    commentBody += '- [ ] Migration is safe and tested\n';
+    commentBody += '- [ ] Backward compatibility maintained\n';
+    commentBody += '- [ ] Data integrity preserved\n\n';
+  }
+  
+  if (securityFiles.length > 0) {
+    commentBody += '**Security Review Required:**\n';
+    commentBody += '- [ ] Authentication changes are secure\n';
+    commentBody += '- [ ] No sensitive data exposed\n';
+    commentBody += '- [ ] Proper authorization checks\n';
+    commentBody += '- [ ] Quebec Law 25 compliance maintained\n\n';
+  }
+  
+  commentBody += '---\n';
+  commentBody += '*This check is automated. All mandatory requirements must be met before merge.*';
+  
+  // Post comment
+  await github.rest.issues.createComment({
+    issue_number: pr.number,
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    body: commentBody
+  });
+  
+  // Set status check
+  if (failures.length > 0) {
+    console.log('❌ PR requirements check failed');
+    process.exit(1);
+  } else {
+    console.log('✅ PR requirements check passed');
+  }
+  
+    debug: false
+    user-agent: actions/github-script
+    result-encoding: json
+    retries: 0
+    retry-exempt-status-codes: 400,401,403,404,422
+🔍 Checking PR requirements...
+RequestError [HttpError]: Resource not accessible by integration
+Error: Unhandled error: HttpError: Resource not accessible by integration
+    at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:9537:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (eval at callAsyncFunction (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35424:16), <anonymous>:131:1)
+    at async main (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:35522:20) {
+  status: 403,
+  response: {
+    url: 'https://api.github.com/repos/kevinhervieux-koveo/koveo-gestion-saas/issues/6/comments',
+    status: 403,
+    headers: {
+      'access-control-allow-origin': '*',
+      'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset',
+      'content-encoding': 'gzip',
+      'content-security-policy': "default-src 'none'",
+      'content-type': 'application/json; charset=utf-8',
+      date: 'Tue, 02 Sep 2025 21:39:09 GMT',
+      'referrer-policy': 'origin-when-cross-origin, strict-origin-when-cross-origin',
+      server: 'github.com',
+      'strict-transport-security': 'max-age=31536000; includeSubdomains; preload',
+      'transfer-encoding': 'chunked',
+      vary: 'Accept-Encoding, Accept, X-Requested-With',
+      'x-accepted-github-permissions': 'issues=write; pull_requests=write',
+      'x-content-type-options': 'nosniff',
+      'x-frame-options': 'deny',
+      'x-github-api-version-selected': '2022-11-28',
+      'x-github-media-type': 'github.v3; format=json',
+      'x-github-request-id': 'F411:20BD7E:3CEFD5:DBFA4B:68B763FD',
+      'x-ratelimit-limit': '5000',
+      'x-ratelimit-remaining': '4992',
+      'x-ratelimit-reset': '1756852178',
+      'x-ratelimit-resource': 'core',
+      'x-ratelimit-used': '8',
+      'x-xss-protection': '0'
+    },
+    data: {
+      message: 'Resource not accessible by integration',
+      documentation_url: 'https://docs.github.com/rest/issues/comments#create-an-issue-comment',
+      status: '403'
+    }
+  },
+  request: {
+    method: 'POST',
+    url: 'https://api.github.com/repos/kevinhervieux-koveo/koveo-gestion-saas/issues/6/comments',
+    headers: {
+      accept: 'application/vnd.github.v3+json',
+      'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.4 (linux; x64)',
+      authorization: 'token [REDACTED]',
+      'content-type': 'application/json; charset=utf-8'
+    },
+    body: '{"body":"## 🔍 Code Review Requirements Check\\n\\n❌ **Mandatory requirements not met:**\\n- ❌ PR title must follow conventional commit format: `type(scope): description`\\n\\n⚠️  **Warnings and recommendations:**\\n- ⚠️  Large PR with 30 files - consider breaking into smaller PRs\\n- 🔒 Security-related changes detected - mandatory security review required\\n\\n### Review Checklist for Reviewers\\n\\n**Mandatory checks:**\\n- [ ] Code follows TypeScript and project conventions\\n- [ ] All tests pass and coverage is adequate\\n- [ ] Changes are well-documented (JSDoc for public APIs)\\n- [ ] No security vulnerabilities introduced\\n- [ ] Quebec compliance maintained (bilingual, accessibility)\\n- [ ] Database changes are safe and backward-compatible\\n\\n**Additional checks:**\\n- [ ] Performance impact considered\\n- [ ] Error handling is comprehensive\\n- [ ] Code is maintainable and follows SOLID principles\\n- [ ] Changes align with project architecture\\n\\n**Security Review Required:**\\n- [ ] Authentication changes are secure\\n- [ ] No sensitive data exposed\\n- [ ] Proper authorization checks\\n- [ ] Quebec Law 25 compliance maintained\\n\\n---\\n*This check is automated. All mandatory requirements must be met before merge.*"}',
+    request: {
+      agent: [Agent],
+      fetch: [Function: proxyFetch],
+      hook: [Function: bound bound register]
+    }
+  }
+}

@@ -1,0 +1,97 @@
+Enhance Form Validation with Red Field Titles and Expected Format Messages
+Implement enhanced form validation behavior across the entire Koveo Gestion application. When users enter incorrect, invalid, or unexpected data in any form field, the system should:
+
+Display the field label in red color to clearly indicate which field has an error
+Show a clear, user-friendly error message that includes the expected format or value range
+Apply this consistently across all forms and input components throughout the application
+Current Application Form Structure
+The application uses:
+
+React Hook Form with Zod validation schemas
+Shadcn UI components (FormField, FormLabel, FormMessage, etc.)
+Custom form components (FormInput, FormSelect, FormTextArea in /components/common/)
+Multiple form patterns across different pages and components
+Required Changes
+1. Update Core Form UI Components
+Modify the FormLabel component in client/src/components/ui/form.tsx to show labels in red when there are validation errors.
+
+2. Enhance Zod Validation Messages
+Update all Zod schemas throughout the application to include detailed, user-friendly error messages that specify:
+
+Expected format (e.g., "Please enter a valid email address (example: user@domain.com)")
+Valid ranges (e.g., "Floor must be between 0 and 50")
+Required format (e.g., "Unit number must be alphanumeric (example: 101A)")
+Character limits (e.g., "Username must be 3-20 characters long")
+3. Components to Update
+Apply this validation enhancement to ALL forms in these locations:
+
+Main Form Components:
+
+client/src/components/forms/residence-edit-form.tsx
+client/src/components/forms/organization-form.tsx
+client/src/components/buildings/building-form.tsx
+client/src/components/common/BillForm.tsx
+client/src/components/BillCreateForm.tsx
+client/src/components/BillEditForm.tsx
+Authentication Forms:
+
+client/src/pages/auth/login.tsx
+client/src/pages/auth/forgot-password.tsx
+client/src/pages/auth/reset-password.tsx
+client/src/components/auth/steps/password-creation-step.tsx
+client/src/components/auth/steps/profile-completion-step.tsx
+Admin and Management Forms:
+
+client/src/components/admin/send-invitation-dialog.tsx
+client/src/components/admin/organization-form-dialog.tsx
+client/src/pages/manager/user-management.tsx
+client/src/pages/settings/settings.tsx
+Common Input Components:
+
+client/src/components/common/FormInput.tsx
+client/src/components/common/FormSelect.tsx
+client/src/components/common/FormTextArea.tsx
+Other Form-Containing Pages:
+
+client/src/pages/Documents.tsx
+client/src/pages/settings/idea-box.tsx
+client/src/pages/settings/bug-reports.tsx
+client/src/components/demands/demand-details-popup.tsx
+client/src/components/roadmap/llm-help-form.tsx
+4. Example Validation Messages
+Transform generic error messages like these:
+
+❌ "Invalid email" → ✅ "Please enter a valid email address (example: user@domain.com)"
+❌ "Required" → ✅ "Unit number is required and must be alphanumeric (example: 101A)"
+❌ "Number too small" → ✅ "Floor must be between 0 and 50"
+❌ "Invalid format" → ✅ "Postal code must follow Quebec format (example: H1A 1B1)"
+5. Visual Requirements
+Field labels should turn red (#DC2626) when validation fails
+Error messages should be clear and specific about expected formats
+Maintain the existing form layout and styling
+Keep the bilingual support (French/English) intact
+Preserve all existing data-testid attributes for testing
+6. Specific Field Types to Address
+Numeric Fields:
+
+Unit numbers, floor numbers, square footage, bedroom counts, bathroom counts
+Monthly fees, ownership percentages, total amounts
+Year built, total units, parking spaces, storage spaces
+Text Fields:
+
+Email addresses, names, usernames, passwords
+Addresses, postal codes, phone numbers
+Descriptions, notes, comments
+Selection Fields:
+
+Dropdown menus, organization selections, role selections
+Building types, payment types, categories, statuses
+7. Implementation Notes
+Use the existing FormMessage component to display error messages
+Update Zod schemas with .min(), .max(), .email(), .regex() with detailed messages
+Ensure the enhanced validation works with both the shadcn Form components and custom form components
+Test that the validation works in both French and English languages
+Maintain backward compatibility with existing form submissions
+Don't break any existing functionality or tests
+Expected Outcome
+After implementation, every form field in the application should provide clear, helpful feedback when users enter invalid data, making the application more user-friendly and reducing user confusion when filling out forms.

@@ -1,13 +1,15 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { config } from './config/index';
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
-import { 
-  users, 
-  organizations, 
-  buildings, 
+import {
+  users,
+  organizations,
+  buildings,
   residences,
   userOrganizations,
+  userResidences,
   invitations,
   documents,
   bills,
@@ -19,21 +21,30 @@ import {
   userPermissions,
   rolePermissions,
   budgets,
-  monthlyBudgets
+  monthlyBudgets,
 } from '@shared/schema';
 
-if (!process.env.DATABASE_URL) {
+// Use correct database URL based on environment (production uses DATABASE_URL_KOVEO)
+const databaseUrl = config.database.url;
+
+if (!databaseUrl) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
-console.log('🔗 Connecting to database with URL:', process.env.DATABASE_URL?.substring(0, 50) + '...');
+const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
+console.log('🔗 Connecting to database with URL:', databaseUrl.substring(0, 50) + '...');
+console.log('🌍 Environment:', config.server.nodeEnv);
+console.log(`📊 Database: Using ${config.server.isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database`);
 
 /**
  * Neon serverless database connection using HTTP.
  * Uses the same pattern as your successful test code.
  * Optimized for serverless environments like Replit deployments.
  */
-export const sql = neon(process.env.DATABASE_URL);
+export const sql = neon(databaseUrl, {
+  arrayMode: false,
+  fullResults: false,
+});
 
 // Test connection
 (async () => {
@@ -45,7 +56,6 @@ export const sql = neon(process.env.DATABASE_URL);
   }
 })();
 
-
 // Create schema object with only tables (no relations to avoid production errors)
 const schema = {
   users,
@@ -53,6 +63,7 @@ const schema = {
   buildings,
   residences,
   userOrganizations,
+  userResidences,
   invitations,
   documents,
   bills,

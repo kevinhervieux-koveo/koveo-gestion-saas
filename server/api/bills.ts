@@ -2,12 +2,12 @@ import type { Express, Request, Response } from 'express';
 import { eq, desc, and, sql, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { requireAuth } from '../auth';
+import { storage } from '../storage';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
-import { ObjectStorageService } from '../objectStorage';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -148,11 +148,11 @@ export function registerBillRoutes(app: Express) {
         .orderBy(desc(bills.startDate));
 
       res.json(billsList);
-    } catch (_error) {
-      console.error('Error fetching bills:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bills:', _error);
       res.status(500).json({
         message: 'Failed to fetch bills',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -195,11 +195,11 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(bill[0]);
-    } catch (_error) {
-      console.error('Error fetching bill:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bill:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -246,18 +246,17 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the new bill
       try {
         delayedUpdateService.scheduleBillUpdate(newBill[0].id);
-        console.warn(`💰 Scheduled delayed update for new bill ${newBill[0].id}`);
-      } catch (_error) {
-        console.error('Failed to schedule delayed update for new bill:', _error);
+      } catch (schedulingError) {
+        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill creation if scheduling fails
       }
 
       res.status(201).json(newBill[0]);
-    } catch (_error) {
-      console.error('Error creating bill:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error creating bill:', _error);
       res.status(500).json({
         message: 'Failed to create bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -329,11 +328,11 @@ export function registerBillRoutes(app: Express) {
       }
 
       res.json(updatedBill[0]);
-    } catch (_error) {
-      console.error('Error updating bill:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error updating bill (PATCH):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -404,18 +403,17 @@ export function registerBillRoutes(app: Express) {
       // Schedule delayed money flow and budget update for the updated bill
       try {
         delayedUpdateService.scheduleBillUpdate(id);
-        console.warn(`💰 Scheduled delayed update for updated bill ${id}`);
-      } catch (_error) {
-        console.error('Failed to schedule delayed update for updated bill:', _error);
+      } catch (schedulingError) {
+        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill update if scheduling fails
       }
 
       res.json(updatedBill[0]);
-    } catch (_error) {
-      console.error('Error updating bill:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error updating bill (PUT):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -440,11 +438,11 @@ export function registerBillRoutes(app: Express) {
         message: 'Bill deleted successfully',
         bill: deletedBill[0],
       });
-    } catch (_error) {
-      console.error('Error deleting bill:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error deleting bill:', _error);
       res.status(500).json({
         message: 'Failed to delete bill',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -465,37 +463,23 @@ export function registerBillRoutes(app: Express) {
           return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // Upload to object storage
-        const objectStorageService = new ObjectStorageService();
-        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        // Get organization ID for document organization
+        const organizations = await storage.getUserOrganizations(req.user.id);
+        const organizationId =
+          organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-        // Read the uploaded file
-        const fileBuffer = fs.readFileSync(req.file.path);
+        // Note: File upload to external storage removed
 
-        // Upload to object storage
-        const uploadResponse = await fetch(uploadURL, {
-          method: 'PUT',
-          body: fileBuffer.buffer,
-          headers: {
-            'Content-Type': req.file.mimetype,
-          },
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload file to object storage');
-        }
-
-        // Get the object path
-        const documentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+        // Create document path in the expected format
+        const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
 
         // Analyze document with Gemini AI (only for images)
         let analysisResult = null;
         if (req.file.mimetype.startsWith('image/')) {
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
-            console.warn('🤖 Gemini analysis completed:', analysisResult);
-          } catch (_error) {
-            console.error('AI analysis failed:', _error);
+          } catch (aiError) {
+            console.warn('⚠️ AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
         }
@@ -523,25 +507,63 @@ export function registerBillRoutes(app: Express) {
           bill: updatedBill[0],
           analysisResult,
         });
-      } catch (_error) {
-        console.error('Error uploading document:', _error);
-
+      } catch (_error: any) {
+        console.error('❌ Error uploading document:', _error);
+        
         // Clean up temporary file if it exists
         if (req.file?.path) {
           try {
             fs.unlinkSync(req.file.path);
           } catch (___cleanupError) {
-            console.error('Error cleaning up temp file:', cleanupError);
+            console.error('Error cleaning up temp file:', ___cleanupError);
           }
         }
 
         res.status(500).json({
           message: 'Failed to upload document',
-          _error: error instanceof Error ? error.message : 'Unknown error',
+          _error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }
   );
+
+  /**
+   * Download bill document using secure signed URL
+   * GET /api/bills/:id/download-document.
+   */
+  app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+
+      // Get the bill to check if it has a document
+      const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+
+      if (bill.length === 0) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+
+      const billData = bill[0];
+
+      if (!billData.documentPath || !billData.documentName) {
+        return res.status(404).json({ message: 'No document associated with this bill' });
+      }
+
+      // Get organization ID for document access
+      const organizations = await storage.getUserOrganizations(req.user.id);
+      const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+
+      // Document download functionality removed (no external storage)
+      res.status(404).json({
+        message: 'Document download functionality has been disabled',
+      });
+    } catch (_error: any) {
+      console.error('❌ Error downloading document:', _error);
+      res.status(500).json({
+        message: 'Failed to generate document download URL',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      });
+    }
+  });
 
   /**
    * Apply AI analysis to bill form data
@@ -599,11 +621,11 @@ export function registerBillRoutes(app: Express) {
         analysis,
         scheduleSignestion,
       });
-    } catch (_error) {
-      console.error('Error applying AI analysis:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error applying AI analysis:', _error);
       res.status(500).json({
         message: 'Failed to apply AI analysis',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -677,11 +699,11 @@ export function registerBillRoutes(app: Express) {
         billsCreated: result.billsCreated,
         generatedUntil: result.generatedUntil,
       });
-    } catch (_error) {
-      console.error('Error generating future bills:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error generating future bills:', _error);
       res.status(500).json({
         message: 'Failed to generate future bills',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -711,11 +733,11 @@ export function registerBillRoutes(app: Express) {
       ];
 
       res.json(categories);
-    } catch (_error) {
-      console.error('Error fetching bill categories:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error fetching bill categories:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill categories',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
@@ -794,11 +816,11 @@ export function registerBillRoutes(app: Express) {
         parentBill: bill[0],
         generatedBills: stats,
       });
-    } catch (_error) {
-      console.error('Error getting generated bills stats:', _error);
+    } catch (_error: any) {
+      console.error('❌ Error getting generated bills statistics:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
-        _error: error instanceof Error ? error.message : 'Unknown error',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });

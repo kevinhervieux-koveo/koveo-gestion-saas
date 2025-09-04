@@ -129,7 +129,7 @@ export function FilterSort({
               type='text'
               placeholder={config.searchPlaceholder || 'Search...'}
               value={search}
-              onChange={(e) => onSetSearch(e.target._value)}
+              onChange={(e) => onSetSearch(e.target.value)}
               className='pl-9 pr-9'
             />
             {search && (
@@ -231,7 +231,7 @@ export function FilterSort({
                         type={selectedFilter.type === 'number' ? 'number' : 'text'}
                         placeholder={selectedFilter.placeholder || 'Enter value'}
                         value={filterValue}
-                        onChange={(e) => setFilterValue(e.target._value)}
+                        onChange={(e) => setFilterValue(e.target.value)}
                       />
                     )}
                   </div>
@@ -365,10 +365,10 @@ export function FilterSort({
           {filters.map((filter, _index) => {
             const filterConfig = config.filters.find((f) => f.field === filter.field);
             return (
-              <Badge key={`${filter.field}-${index}`} variant='secondary' className='pl-2'>
+              <Badge key={`${filter.field}-${_index}`} variant='secondary' className='pl-2'>
                 <span className='mr-1'>{filterConfig?.label || filter.field}:</span>
                 <span className='font-normal'>
-                  {getOperatorLabel(filter.operator)} {filter.value}
+                  {getOperatorLabel(filter.operator)} {filter._value}
                 </span>
                 <button
                   onClick={() => onRemoveFilter(filter.field)}

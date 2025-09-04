@@ -2,24 +2,12 @@
  * Supported languages for the Quebec property management platform.
  * Provides bilingual support as required by Quebec regulations.
  */
-/**
- * Language type definition.
- */
-/**
- * Language type definition.
- */
 export type Language = 'en' | 'fr';
 
 /**
  * Translation keys interface for multilingual support.
  * Defines all translatable text keys used throughout the application.
  * Supports Quebec's bilingual requirements with French and English translations.
- */
-/**
- * Translations type definition.
- */
-/**
- * Translations type definition.
  */
 export interface Translations {
   dashboard: string;
@@ -236,6 +224,259 @@ export interface Translations {
   cancelling: string;
   daysRemaining: string;
   hoursRemaining: string;
+  // Form and UI translations
+  formStatus: string;
+  formType: string;
+  building: string;
+  allBuildings: string;
+  searchDemands: string;
+  title: string;
+  vendor: string;
+  category: string;
+  selectCategory: string;
+  billTitle: string;
+  companyOrServiceProvider: string;
+  selectPaymentType: string;
+  selectSchedule: string;
+  selectStatus: string;
+  // Page content translations
+  loadingDemands: string;
+  searchDemandsUsers: string;
+  submitAndTrack: string;
+  reviewDemand: string;
+  failedToReviewDemand: string;
+  error: string;
+  submitted: string;
+  underReview: string;
+  approved: string;
+  completed: string;
+  rejected: string;
+  // Status label translations
+  draft: string;
+  maintenance: string;
+  complaint: string;
+  information: string;
+  other: string;
+  allStatus: string;
+  // Dialog and form translations
+  createNewBill: string;
+  billCreationForm: string;
+  createBill: string;
+  createNewDemand: string;
+  submitNewRequest: string;
+  submitAndTrackRequests: string;
+  newDemand: string;
+  selectType: string;
+  selectBuilding: string;
+  addNewDocument: string;
+  addDocument: string;
+  documentName: string;
+  enterDocumentName: string;
+  documentType: string;
+  selectDocumentType: string;
+  enterDocumentDescription: string;
+  backToResidences: string;
+  documents: string;
+  documentsAvailableToTenants: string;
+  allResidenceDocuments: string;
+  loadingDemands2: string;
+  noDemandsFound: string;
+  success: string;
+  updateStatusAndNotes: string;
+  // Additional form labels and placeholders
+  describeRequestDetail: string;
+  submittedBy: string;
+  addNotesReviewDecision: string;
+  addNotesReview: string;
+  selectBuilding2: string;
+  // Status options for manager
+  submitted2: string;
+  // Document management translations
+  // Type placeholders
+  typePlaceholder: string;
+  buildingPlaceholder: string;
+  // Dashboard and major page content
+  welcomeBack: string;
+  personalizedDashboard: string;
+  quickAccessEverything: string;
+  adminDashboard: string;
+  systemManagement: string;
+  manageOrganizationsUsers: string;
+  organizationOverview: string;
+  viewManageOrganizations: string;
+  viewManageResidences: string;
+  selectBuildingResidence: string;
+  building2: string;
+  residence: string;
+  selectABuilding: string;
+  address: string;
+  floor: string;
+  sqFt: string;
+  bedrooms: string;
+  bathrooms: string;
+  viewDocuments2: string;
+  unit: string;
+  allFloors: string;
+  totalFloors: string;
+  // More residence page translations
+  myResidenceInfo: string;
+  viewResidenceInfo: string;
+  loading: string;
+  noResidencesFound: string;
+  noResidencesFoundOrg: string;
+  notAssignedResidences: string;
+  selectResidence: string;
+  selectAResidence: string;
+  areYouSureDelete: string;
+  parkingSpaces: string;
+  storageSpaces: string;
+  // Building page translations
+  myBuildings: string;
+  viewBuildingsAccess: string;
+  noBuildingsFound: string;
+  buildingType: string;
+  yearBuilt: string;
+  totalUnits: string;
+  managementCompany: string;
+  occupancyStats: string;
+  allBuildings: string;
+  units: string;
+  occupied: string;
+  amenities: string;
+  moreAmenities: string;
+  unableToDisplayAmenities: string;
+  buildingInfoUnavailable: string;
+  addressUnavailable: string;
+  previous: string;
+  next: string;
+  showing: string;
+  residences: string;
+  buildingDocuments: string;
+  signIn: string;
+  demoMode: string;
+  selectRole: string;
+  firstName: string;
+  lastName: string;
+  confirmPassword: string;
+  enterEmailAddress: string;
+  enterPassword: string;
+  enterFirstName: string;
+  enterLastName: string;
+  selectOrganization: string;
+  selectBuilding: string;
+  selectResidence: string;
+  optional: string;
+  required: string;
+  submit: string;
+  send: string;
+  sendInvitation: string;
+  reset: string;
+  clear: string;
+  add: string;
+  remove: string;
+  update: string;
+  create: string;
+  // Error Messages
+  fieldRequired: string;
+  emailRequired: string;
+  passwordRequired: string;
+  invalidEmail: string;
+  invalidEmailFormat: string;
+  passwordTooShort: string;
+  passwordTooWeak: string;
+  passwordsNotMatch: string;
+  firstNameRequired: string;
+  lastNameRequired: string;
+  organizationRequired: string;
+  buildingRequired: string;
+  residenceRequired: string;
+  loginFailed: string;
+  invalidCredentials: string;
+  networkError: string;
+  serverError: string;
+  unexpectedError: string;
+  loadingFailed: string;
+  saveFailed: string;
+  updateFailed: string;
+  deleteFailed: string;
+  firstNameTooLong: string;
+  firstNameInvalidCharacters: string;
+  lastNameTooLong: string;
+  lastNameInvalidCharacters: string;
+  personalMessageTooLong: string;
+  expiryDaysInvalid: string;
+  emailOrNameRequired: string;
+  // Core field labels for forms
+  email: string;
+  password: string;
+  login: string;
+  forgotPassword: string;
+  dashboard: string;
+  // Document button standardization
+  documentsButton: string;
+  buildingDocumentsButton: string;
+  residenceDocumentsButton: string;
+  viewDocumentsButton: string;
+  startFreeTrial: string;
+  // Privacy Policy page
+  privacyPolicyTitle: string;
+  lastUpdated: string;
+  privacyPolicyIntro: string;
+  informationCollection: string;
+  informationCollectionDesc: string;
+  informationUse: string;
+  informationUseDesc: string;
+  informationSharing: string;
+  privacyRights: string;
+  dataSecurity: string;
+  contactPrivacy: string;
+  // Security page
+  securityTitle: string;
+  securityIntro: string;
+  enterpriseEncryption: string;
+  enterpriseEncryptionDesc: string;
+  roleBasedAccess: string;
+  roleBasedAccessDesc: string;
+  quebecDataProtection: string;
+  quebecDataProtectionDesc: string;
+  secureInfrastructure: string;
+  secureInfrastructureDesc: string;
+  // Story page
+  ourStoryTitle: string;
+  storyIntro: string;
+  foundationYear: string;
+  foundationTitle: string;
+  foundationDesc: string;
+  developmentYear: string;
+  developmentTitle: string;
+  developmentDesc: string;
+  launchYear: string;
+  launchTitle: string;
+  launchDesc: string;
+  // Documents page translations
+  // Navigation translations
+  quickActions: string;
+  calendar: string;
+  residents: string;
+  myResidence: string;
+  myBuilding: string;
+  commonSpaces: string;
+  buildings: string;
+  budget: string;
+  bills: string;
+  demands: string;
+  navUserManagement: string;
+  manageCommonSpaces: string;
+  organizations: string;
+  documentation: string;
+  pillars: string;
+  roadmap: string;
+  navQualityAssurance: string;
+  navLaw25Compliance: string;
+  rbacPermissions: string;
+  settings: string;
+  bugReports: string;
+  ideaBox: string;
   // Home page translations
   modernPropertyManagement: string;
   forQuebec: string;
@@ -324,6 +565,32 @@ export interface Translations {
   viewAllFeatures: string;
   readyToGetStarted: string;
   allRightsReserved: string;
+  // Building related translations
+  myBuildings: string;
+  viewBuildingsAccess: string;
+  noBuildingsFound: string;
+  // Residence Documents translations
+  residenceDocuments: string;
+  manageDocumentsResidence: string;
+  backToResidences: string;
+  documentsCount: string;
+  allResidenceDocuments: string;
+  noDocumentsFound: string;
+  noDocumentsUploadedYet: string;
+  // Demands page translations
+  myDemands: string;
+  submitAndTrackRequests: string;
+  searchDemands: string;
+  allTypes: string;
+  showingResults: string;
+  // Buildings management translations
+  buildings: string;
+  manageBuildingsOrganization: string;
+  searchBuildingsAddress: string;
+  addBuilding: string;
+  // Fullscreen controls
+  fullscreen: string;
+  exitFullscreen: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -382,7 +649,8 @@ const translations: Record<Language, Translations> = {
     configureTesting: 'Configure Testing',
     // Continuous Improvement translations
     continuousImprovementPillar: 'Continuous Improvement',
-    continuousImprovementDescription: 'AI-driven metrics, analytics, and automated improvement suggestions',
+    continuousImprovementDescription:
+      'AI-driven metrics, analytics, and automated improvement suggestions',
     documentationPillar: 'Documentation & Knowledge',
     documentationDescription: 'Comprehensive documentation and knowledge management system',
     activePillar: 'Active',
@@ -543,6 +811,241 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Cancelling',
     daysRemaining: 'days remaining',
     hoursRemaining: 'hours remaining',
+    // Form and UI translations
+    formStatus: 'Status',
+    formType: 'Type',
+    building: 'Building',
+    allBuildings: 'All Buildings',
+    searchDemands: 'Search demands...',
+    title: 'Title',
+    vendor: 'Vendor',
+    category: 'Category',
+    selectCategory: 'Select category',
+    billTitle: 'Bill title',
+    companyOrServiceProvider: 'Company or service provider',
+    selectPaymentType: 'Select payment type',
+    selectSchedule: 'Select schedule',
+    selectStatus: 'Select status',
+    // Page content translations
+    loadingDemands: 'Loading demands...',
+    searchDemandsUsers: 'Search demands, users...',
+    submitAndTrack: 'Submit and track maintenance requests',
+    reviewDemand: 'Review Demand',
+    failedToReviewDemand: 'Failed to review demand',
+    error: 'Error',
+    submitted: 'Submitted',
+    underReview: 'Under Review',
+    approved: 'Approved',
+    completed: 'Completed',
+    rejected: 'Rejected',
+    // Additional status labels
+    draft: 'Draft',
+    maintenance: 'Maintenance',
+    complaint: 'Complaint',
+    information: 'Information',
+    other: 'Other',
+    allStatus: 'All Status',
+    // Dialog and form translations
+    createNewBill: 'Create New Bill',
+    billCreationForm: 'Bill creation form for {building}',
+    createBill: 'Create Bill',
+    createNewDemand: 'Create New Demand',
+    submitNewRequest: 'Submit a new request or complaint',
+    submitAndTrackRequests: 'Submit and track your requests',
+    newDemand: 'New Demand',
+    selectType: 'Select type',
+    selectBuilding: 'Select building',
+    addNewDocument: 'Add New Document',
+    addDocument: 'Add Document',
+    documentName: 'Document Name',
+    enterDocumentName: 'Enter document name',
+    documentType: 'Document Type',
+    selectDocumentType: 'Select document type',
+    enterDocumentDescription: 'Enter document description',
+    backToResidences: 'Back to Residences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents available to tenants',
+    allResidenceDocuments: 'All residence documents',
+    loadingDemands2: 'Loading demands...',
+    noDemandsFound: 'No demands found',
+    success: 'Success',
+    updateStatusAndNotes: 'Update the status and add review notes',
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Describe your request in detail...',
+    submittedBy: 'Submitted by',
+    addNotesReview: 'Add notes about your review decision...',
+    addNotesReviewDecision: 'Add notes about your review decision...',
+    selectBuilding2: 'Select building',
+    // Status options for manager
+    submitted2: 'Submitted',
+    // Document management translations
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Building',
+    // Dashboard and major page content
+    welcomeBack: 'Welcome back',
+    personalizedDashboard: 'Your personalized dashboard - quick access to everything you need',
+    quickAccessEverything: 'quick access to everything you need',
+    adminDashboard: 'Admin Dashboard',
+    systemManagement: 'System Management',
+    manageOrganizationsUsers: 'Manage organizations, users, and system settings',
+    organizationOverview: 'Organization Overview',
+    viewManageOrganizations: 'View and manage all organizations',
+    viewManageResidences: 'View and manage organization residences',
+    selectBuildingResidence: 'Select Building & Residence',
+    building2: 'Building',
+    residence: 'Residence',
+    selectABuilding: 'Select a building',
+    address: 'Address',
+    floor: 'Floor',
+    sqFt: 'Sq Ft',
+    bedrooms: 'Bedrooms',
+    bathrooms: 'Bathrooms',
+    viewDocuments2: 'View Documents',
+    unit: 'Unit',
+    allFloors: 'All Floors',
+    totalFloors: 'Total Floors',
+    // More residence page translations
+    myResidenceInfo: 'View your residence information and contacts',
+    viewResidenceInfo: 'View your residence information and contacts',
+    loading: 'Loading...',
+    noResidencesFound: 'No Residences Found',
+    noResidencesFoundOrg: 'No residences found in your organization.',
+    notAssignedResidences: 'You are not assigned to any residences.',
+    selectResidence: 'Select Residence',
+    selectAResidence: 'Select a residence',
+    areYouSureDelete: 'Are you sure you want to delete this contact?',
+    parkingSpaces: 'Parking Spaces',
+    storageSpaces: 'Storage Spaces',
+    // Building page translations
+    myBuildings: 'My Buildings',
+    viewBuildingsAccess: 'View buildings you have access to',
+    noBuildingsFound: 'No Buildings Found',
+    buildingType: 'Building Type',
+    yearBuilt: 'Year Built',
+    totalUnits: 'Total Units',
+    managementCompany: 'Management Company',
+    occupancyStats: 'Occupancy Stats',
+    units: 'units',
+    occupied: 'occupied',
+    amenities: 'Amenities',
+    moreAmenities: 'more',
+    unableToDisplayAmenities: 'Unable to display amenities',
+    buildingInfoUnavailable: 'Building information unavailable',
+    addressUnavailable: 'Address unavailable',
+    previous: 'Previous',
+    next: 'Next',
+    showing: 'Showing',
+    residences: 'residences',
+    buildingDocuments: 'Building Documents',
+    signIn: 'Sign In',
+    demoMode: 'Demo Mode',
+    reset: 'Reset',
+    clear: 'Clear',
+    add: 'Add',
+    remove: 'Remove',
+    update: 'Update',
+    create: 'Create',
+    // Error Messages
+    fieldRequired: 'This field is required',
+    emailRequired: 'Email address is required to sign in',
+    passwordRequired: 'Password is required to sign in',
+    invalidEmail: 'Please enter a valid email address (example: user@domain.com)',
+    invalidEmailFormat: 'Please enter a valid email address (example: user@domain.com)',
+    passwordTooShort: 'Password must be at least 8 characters long',
+    passwordTooWeak: 'Password is too weak - please use a stronger password',
+    passwordsNotMatch: 'Passwords do not match - please check both fields',
+    firstNameRequired: 'First name is required for registration',
+    lastNameRequired: 'Last name is required for registration',
+    organizationRequired: 'Please select an organization from the dropdown',
+    buildingRequired: 'Please select a building from the dropdown',
+    residenceRequired: 'Please select a specific residence unit for tenants and residents',
+    loginFailed: 'Login failed - please check your credentials and try again',
+    invalidCredentials: 'Invalid email or password - please try again',
+    networkError: 'Network connection error - please check your internet connection',
+    serverError: 'Server error occurred - please try again later',
+    unexpectedError: 'An unexpected error occurred - please contact support if this continues',
+    loadingFailed: 'Failed to load data - please refresh the page and try again',
+    saveFailed: 'Failed to save changes - please try again',
+    updateFailed: 'Failed to update information - please try again',
+    deleteFailed: 'Failed to delete item - please try again',
+    firstNameTooLong: 'First name must be less than 50 characters',
+    firstNameInvalidCharacters: 'First name can only contain letters, spaces, apostrophes and hyphens',
+    lastNameTooLong: 'Last name must be less than 50 characters',
+    lastNameInvalidCharacters: 'Last name can only contain letters, spaces, apostrophes and hyphens',
+    personalMessageTooLong: 'Personal message must be less than 500 characters',
+    expiryDaysInvalid: 'Expiry days must be between 1 and 30 days',
+    emailOrNameRequired: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+    // Core field labels for forms
+    email: 'Email',
+    password: 'Password',
+    login: 'Login',
+    forgotPassword: 'Forgot Password',
+    // Document button standardization
+    documentsButton: 'Documents',
+    buildingDocumentsButton: 'Building Documents',
+    residenceDocumentsButton: 'Residence Documents',
+    viewDocumentsButton: 'View Documents',
+    startFreeTrial: 'Start your free trial',
+    // Privacy Policy page
+    privacyPolicyTitle: 'Privacy Policy',
+    lastUpdated: 'Last updated:',
+    privacyPolicyIntro: 'At Koveo Gestion, we are committed to protecting your personal information in compliance with Quebec Law 25 on the protection of personal information in the private sector and industry best practices.',
+    informationCollection: '1. Information Collection',
+    informationCollectionDesc: 'We collect the following personal information as part of our services:',
+    informationUse: '2. Use of Information',
+    informationUseDesc: 'Your personal information is used exclusively for:',
+    informationSharing: '3. Sharing and Disclosure',
+    privacyRights: '4. Your Rights',
+    dataSecurity: '5. Data Security',
+    contactPrivacy: '6. Contact Us',
+    // Security page
+    securityTitle: 'Security & Compliance',
+    securityIntro: 'Your data security is our top priority. Discover how we protect your information with enterprise-grade security measures and Quebec Law 25 compliance.',
+    enterpriseEncryption: 'Enterprise-Level Encryption',
+    enterpriseEncryptionDesc: 'All data is encrypted in transit and at rest with military-grade AES-256 standards.',
+    roleBasedAccess: 'Role-Based Access Control',
+    roleBasedAccessDesc: 'Granular authorization system ensuring each user only accesses necessary information.',
+    quebecDataProtection: 'Quebec Data Protection',
+    quebecDataProtectionDesc: 'Strict compliance with Quebec Law 25 with data hosting in Canada.',
+    secureInfrastructure: 'Secure Infrastructure',
+    secureInfrastructureDesc: 'Redundant cloud architecture with 24/7 monitoring and automated backups.',
+    // Story page
+    ourStoryTitle: 'Our Story',
+    storyIntro: 'Discover the story behind Koveo Gestion and our mission to modernize property management in Quebec.',
+    foundationYear: '2023',
+    foundationTitle: 'Foundation of Koveo Gestion',
+    foundationDesc: 'Creation of the company with a mission to modernize property management in Quebec.',
+    developmentYear: '2024',
+    developmentTitle: 'Platform Development',
+    developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec Law 25.',
+    launchYear: '2025',
+    launchTitle: 'Official Launch',
+    launchDesc: 'Public launch of our platform with first Quebec property management clients.',
+    // Documents page translations
+    // Navigation translations
+    quickActions: 'Quick Actions',
+    calendar: 'Calendar',
+    residents: 'Residents',
+    myResidence: 'My Residence',
+    myBuilding: 'My Building',
+    commonSpaces: 'Common Spaces',
+    buildings: 'Buildings',
+    budget: 'Budget',
+    bills: 'Bills',
+    demands: 'Demands',
+    navUserManagement: 'User Management',
+    manageCommonSpaces: 'Manage Common Spaces',
+    organizations: 'Organizations',
+    documentation: 'Documentation',
+    pillars: 'Pillars',
+    roadmap: 'Roadmap',
+    navQualityAssurance: 'Quality Assurance',
+    navLaw25Compliance: 'Law 25 Compliance',
+    rbacPermissions: 'RBAC Permissions',
+    settings: 'Settings',
+    bugReports: 'Bug Reports',
+    ideaBox: 'Idea Box',
     // Home page translations
     modernPropertyManagement: 'Modern Property Management',
     forQuebec: 'for Quebec',
@@ -571,8 +1074,6 @@ const translations: Record<Language, Translations> = {
       "Full compliance with Quebec's privacy and data protection regulations.",
     bilingualSupport: 'Bilingual Support',
     bilingualSupportDesc: 'Full French and English language support for all users.',
-    roleBasedAccess: 'Role-Based Access',
-    roleBasedAccessDesc: 'Secure access controls for owners, managers, and residents.',
     cloudBasedSecurity: 'Cloud-Based Security',
     cloudBasedSecurityDesc: 'Enterprise-grade security with automatic backups and updates.',
     mobileResponsive: 'Mobile Responsive',
@@ -594,7 +1095,6 @@ const translations: Record<Language, Translations> = {
     ourStory: 'Our Story',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
-    login: 'Login',
     logout: 'Logout',
     getStarted: 'Get Started',
     language: 'Language',
@@ -606,7 +1106,7 @@ const translations: Record<Language, Translations> = {
     pricing: 'Pricing',
     simplePricing: 'Simple, Transparent Pricing',
     pricingSubtitle: 'Professional property management that scales with your business',
-    professionalPlan: 'Professional Plan',
+    professionalPlan: 'Standard Plan',
     perfectForPropertyManagers: 'Perfect for property managers of all sizes',
     perDoorPerMonth: 'per door per month',
     noSetupFees: 'No setup fees',
@@ -640,6 +1140,18 @@ const translations: Record<Language, Translations> = {
     viewAllFeatures: 'View All Features',
     readyToGetStarted: 'Ready to Get Started?',
     allRightsReserved: 'All rights reserved',
+    // Additional translations for missing elements
+    residenceDocuments: 'Residence Documents',
+    manageDocumentsResidence: 'Manage documents for this residence',
+    documentsCount: 'Documents ({count})',
+    noDocumentsUploadedYet: 'No documents have been uploaded for this residence yet.',
+    myDemands: 'My Demands',
+    showingResults: 'Showing {start} to {end} of {total} demands',
+    manageBuildingsOrganization: 'Manage {count} buildings in your organization',
+    searchBuildingsAddress: 'Search buildings by name or address...',
+    // Fullscreen controls
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -697,12 +1209,13 @@ const translations: Record<Language, Translations> = {
     configureTesting: 'Configurer les tests',
     // Continuous Improvement translations
     continuousImprovementPillar: 'Amélioration Continue',
-    continuousImprovementDescription: 'Métriques IA, analyses et suggestions d\'amélioration automatisées',
+    continuousImprovementDescription:
+      "Métriques IA, analyses et suggestions d'amélioration automatisées",
     documentationPillar: 'Documentation et Connaissances',
     documentationDescription: 'Système complet de documentation et de gestion des connaissances',
     activePillar: 'Actif',
     systemHealth: 'Santé du Système',
-    completedToday: 'Complétées Aujourd\'hui',
+    completedToday: "Complétées Aujourd'hui",
     activeSuggestions: 'Suggestions Actives',
     healthy: 'sain',
     suggestions: 'suggestions',
@@ -862,6 +1375,260 @@ const translations: Record<Language, Translations> = {
     cancelling: 'Annulation',
     daysRemaining: 'jours restants',
     hoursRemaining: 'heures restantes',
+    // Form and UI translations
+    formStatus: 'Statut',
+    formType: 'Type',
+    building: 'Bâtiment',
+    allBuildings: 'Tous les bâtiments',
+    searchDemands: 'Rechercher des demandes...',
+    title: 'Titre',
+    vendor: 'Fournisseur',
+    category: 'Catégorie',
+    selectCategory: 'Sélectionner une catégorie',
+    billTitle: 'Titre de la facture',
+    companyOrServiceProvider: 'Entreprise ou fournisseur de service',
+    selectPaymentType: 'Sélectionner le type de paiement',
+    selectSchedule: "Sélectionner l'horaire",
+    selectStatus: 'Sélectionner le statut',
+    // Page content translations
+    loadingDemands: 'Chargement des demandes...',
+    searchDemandsUsers: 'Rechercher demandes, utilisateurs...',
+    submitAndTrack: 'Soumettre et suivre les demandes de maintenance',
+    reviewDemand: 'Examiner la demande',
+    failedToReviewDemand: "Échec de l'examen de la demande",
+    error: 'Erreur',
+    submitted: 'Soumis',
+    underReview: "En cours d'examen",
+    approved: 'Approuvé',
+    completed: 'Terminé',
+    rejected: 'Rejeté',
+    // Additional status labels
+    draft: 'Brouillon',
+    maintenance: 'Entretien',
+    complaint: 'Plainte',
+    information: 'Information',
+    other: 'Autre',
+    allStatus: 'Tous les statuts',
+    // Dialog and form translations
+    createNewBill: 'Créer une nouvelle facture',
+    billCreationForm: 'Formulaire de création de facture pour {building}',
+    createBill: 'Créer la facture',
+    createNewDemand: 'Créer une nouvelle demande',
+    submitNewRequest: 'Soumettre une nouvelle demande ou plainte',
+    submitAndTrackRequests: 'Soumettre et suivre vos demandes',
+    newDemand: 'Nouvelle demande',
+    selectType: 'Sélectionner le type',
+    selectBuilding: 'Sélectionner le bâtiment',
+    addNewDocument: 'Ajouter un nouveau document',
+    addDocument: 'Ajouter un document',
+    documentName: 'Nom du document',
+    enterDocumentName: 'Saisir le nom du document',
+    documentType: 'Type de document',
+    selectDocumentType: 'Sélectionner le type de document',
+    enterDocumentDescription: 'Saisir la description du document',
+    backToResidences: 'Retour aux résidences',
+    documents: 'Documents',
+    documentsAvailableToTenants: 'Documents disponibles aux locataires',
+    allResidenceDocuments: 'Tous les documents de résidence',
+    loadingDemands2: 'Chargement des demandes...',
+    noDemandsFound: 'Aucune demande trouvée',
+    success: 'Succès',
+    updateStatusAndNotes: "Mettre à jour le statut et ajouter des notes d'examen",
+    // Additional form labels and placeholders
+    describeRequestDetail: 'Décrivez votre demande en détail...',
+    submittedBy: 'Soumis par',
+    addNotesReview: "Ajouter des notes sur votre décision d'examen...",
+    selectBuilding2: 'Sélectionner le bâtiment',
+    addNotesReviewDecision: "Ajoutez des notes sur votre décision d'examen...",
+    // Status options for manager
+    submitted2: 'Soumis',
+    // Document management translations
+    // Type placeholders
+    typePlaceholder: 'Type',
+    buildingPlaceholder: 'Bâtiment',
+    // Dashboard and major page content
+    welcomeBack: 'Bienvenue',
+    personalizedDashboard:
+      'Votre tableau de bord personnalisé - accès rapide à tout ce dont vous avez besoin',
+    quickAccessEverything: 'accès rapide à tout ce dont vous avez besoin',
+    adminDashboard: 'Tableau de bord administrateur',
+    systemManagement: 'Gestion du système',
+    manageOrganizationsUsers: 'Gérer les organisations, utilisateurs et paramètres système',
+    organizationOverview: "Aperçu de l'organisation",
+    viewManageOrganizations: 'Voir et gérer toutes les organisations',
+    viewManageResidences: "Voir et gérer les résidences de l'organisation",
+    selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
+    building2: 'Bâtiment',
+    residence: 'Résidence',
+    selectABuilding: 'Sélectionner un bâtiment',
+    address: 'Adresse',
+    floor: 'Étage',
+    sqFt: 'Pi²',
+    bedrooms: 'Chambres',
+    bathrooms: 'Salles de bain',
+    viewDocuments2: 'Voir les documents',
+    unit: 'Unité',
+    allFloors: 'Tous les étages',
+    totalFloors: 'Étages totaux',
+    // More residence page translations
+    myResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    viewResidenceInfo: 'Voir les informations de votre résidence et les contacts',
+    loading: 'Chargement...',
+    noResidencesFound: 'Aucune résidence trouvée',
+    noResidencesFoundOrg: 'Aucune résidence trouvée dans votre organisation.',
+    notAssignedResidences: "Vous n'êtes assigné à aucune résidence.",
+    selectResidence: 'Sélectionner une résidence',
+    selectAResidence: 'Sélectionner une résidence',
+    areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer ce contact?',
+    parkingSpaces: 'Espaces de stationnement',
+    storageSpaces: 'Espaces de rangement',
+    // Building page translations
+    myBuildings: 'Mes bâtiments',
+    viewBuildingsAccess: 'Voir les bâtiments auxquels vous avez accès',
+    noBuildingsFound: 'Aucun bâtiment trouvé',
+    buildingType: 'Type de bâtiment',
+    yearBuilt: 'Année de construction',
+    totalUnits: 'Unités totales',
+    managementCompany: 'Compagnie de gestion',
+    occupancyStats: "Statistiques d'occupation",
+    allBuildings: 'Tous les bâtiments',
+    units: 'unités',
+    occupied: 'occupé',
+    amenities: 'Commodités',
+    moreAmenities: 'de plus',
+    unableToDisplayAmenities: 'Impossible d\'afficher les commodités',
+    buildingInfoUnavailable: 'Informations du bâtiment non disponibles',
+    addressUnavailable: 'Adresse non disponible',
+    previous: 'Précédent',
+    next: 'Suivant',
+    showing: 'Affichage',
+    residences: 'résidences',
+    buildingDocuments: 'Documents du bâtiment',
+    signIn: 'Se connecter',
+    demoMode: 'Mode démo',
+    selectRole: 'Sélectionner le rôle',
+    firstName: 'Prénom',
+    lastName: 'Nom de famille',
+    confirmPassword: 'Confirmer le mot de passe',
+    enterEmailAddress: 'Entrez l\'adresse courriel',
+    enterPassword: 'Entrez le mot de passe',
+    enterFirstName: 'Entrez le prénom',
+    enterLastName: 'Entrez le nom de famille',
+    selectOrganization: 'Sélectionner l\'organisation',
+    selectBuilding: 'Sélectionner le bâtiment',
+    selectResidence: 'Sélectionner la résidence',
+    optional: 'Optionnel',
+    required: 'Requis',
+    submit: 'Soumettre',
+    send: 'Envoyer',
+    sendInvitation: 'Envoyer l\'invitation',
+    reset: 'Réinitialiser',
+    clear: 'Effacer',
+    add: 'Ajouter',
+    remove: 'Retirer',
+    update: 'Mettre à jour',
+    create: 'Créer',
+    // Messages d'erreur
+    fieldRequired: 'Ce champ est requis',
+    emailRequired: 'L\'adresse courriel est requise pour se connecter',
+    passwordRequired: 'Le mot de passe est requis pour se connecter',
+    invalidEmail: 'Veuillez entrer une adresse courriel valide (exemple: utilisateur@domaine.com)',
+    invalidEmailFormat: 'Veuillez entrer une adresse courriel valide (exemple: utilisateur@domaine.com)',
+    passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
+    passwordTooWeak: 'Le mot de passe est trop faible - veuillez utiliser un mot de passe plus fort',
+    passwordsNotMatch: 'Les mots de passe ne correspondent pas - veuillez vérifier les deux champs',
+    firstNameRequired: 'Le prénom est requis pour l\'inscription',
+    lastNameRequired: 'Le nom de famille est requis pour l\'inscription',
+    organizationRequired: 'Veuillez sélectionner une organisation dans le menu déroulant',
+    buildingRequired: 'Veuillez sélectionner un bâtiment dans le menu déroulant',
+    residenceRequired: 'Veuillez sélectionner une unité de résidence spécifique pour les locataires et résidents',
+    loginFailed: 'Connexion échouée - veuillez vérifier vos identifiants et réessayer',
+    invalidCredentials: 'Courriel ou mot de passe invalide - veuillez réessayer',
+    networkError: 'Erreur de connexion réseau - veuillez vérifier votre connexion Internet',
+    serverError: 'Erreur serveur survenue - veuillez réessayer plus tard',
+    unexpectedError: 'Une erreur inattendue s\'est produite - veuillez contacter le support si cela continue',
+    loadingFailed: 'Échec du chargement des données - veuillez actualiser la page et réessayer',
+    saveFailed: 'Échec de l\'enregistrement des modifications - veuillez réessayer',
+    updateFailed: 'Échec de la mise à jour des informations - veuillez réessayer',
+    deleteFailed: 'Échec de la suppression de l\'élément - veuillez réessayer',
+    firstNameTooLong: 'Le prénom doit contenir moins de 50 caractères',
+    firstNameInvalidCharacters: 'Le prénom ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    lastNameTooLong: 'Le nom de famille doit contenir moins de 50 caractères',
+    lastNameInvalidCharacters: 'Le nom de famille ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    personalMessageTooLong: 'Le message personnel doit contenir moins de 500 caractères',
+    expiryDaysInvalid: 'Les jours d\'expiration doivent être entre 1 et 30 jours',
+    emailOrNameRequired: 'L\'adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs de démo, fournissez le prénom et le nom de famille.',
+    // Étiquettes de champs de base pour les formulaires
+    email: 'Courriel',
+    password: 'Mot de passe',
+    login: 'Connexion',
+    forgotPassword: 'Mot de passe oublié',
+    dashboard: 'Tableau de bord',
+    // Standardisation des boutons de documents
+    documentsButton: 'Documents',
+    buildingDocumentsButton: 'Documents du bâtiment',
+    residenceDocumentsButton: 'Documents de la résidence',
+    viewDocumentsButton: 'Voir les documents',
+    startFreeTrial: 'Commencez votre essai gratuit',
+    // Privacy Policy page
+    privacyPolicyTitle: 'Politique de confidentialité',
+    lastUpdated: 'Dernière mise à jour :',
+    privacyPolicyIntro: 'Chez Koveo Gestion, nous nous engageons à protéger vos renseignements personnels en conformité avec la Loi 25 du Québec sur la protection des renseignements personnels dans le secteur privé et les meilleures pratiques de l\'industrie.',
+    informationCollection: '1. Collecte des renseignements',
+    informationCollectionDesc: 'Nous collectons les renseignements personnels suivants dans le cadre de nos services :',
+    informationUse: '2. Utilisation des renseignements',
+    informationUseDesc: 'Vos renseignements personnels sont utilisés exclusivement pour :',
+    informationSharing: '3. Partage et divulgation',
+    privacyRights: '4. Vos droits',
+    dataSecurity: '5. Sécurité des données',
+    contactPrivacy: '6. Nous contacter',
+    // Security page
+    securityTitle: 'Sécurité et conformité',
+    securityIntro: 'La sécurité de vos données est notre priorité absolue. Découvrez comment nous protégeons vos informations avec des mesures de sécurité de niveau entreprise et la conformité à la Loi 25 du Québec.',
+    enterpriseEncryption: 'Chiffrement de niveau entreprise',
+    enterpriseEncryptionDesc: 'Toutes les données sont chiffrées en transit et au repos avec des standards militaires AES-256.',
+    roleBasedAccess: 'Contrôle d\'accès basé sur les rôles',
+    roleBasedAccessDesc: 'Système d\'autorisation granulaire garantissant que chaque utilisateur n\'accède qu\'aux informations nécessaires.',
+    quebecDataProtection: 'Protection des données québécoises',
+    quebecDataProtectionDesc: 'Conformité stricte à la Loi 25 du Québec avec hébergement des données au Canada.',
+    secureInfrastructure: 'Infrastructure sécurisée',
+    secureInfrastructureDesc: 'Architecture cloud redondante avec surveillance 24/7 et sauvegardes automatisées.',
+    // Story page
+    ourStoryTitle: 'Notre histoire',
+    storyIntro: 'Découvrez l\'histoire derrière Koveo Gestion et notre mission de moderniser la gestion immobilière au Québec.',
+    foundationYear: '2023',
+    foundationTitle: 'Fondation de Koveo Gestion',
+    foundationDesc: 'Création de l\'entreprise avec pour mission de moderniser la gestion immobilière au Québec.',
+    developmentYear: '2024',
+    developmentTitle: 'Développement de la plateforme',
+    developmentDesc: 'Conception et développement de notre solution complète en conformité avec la Loi 25 du Québec.',
+    launchYear: '2025',
+    launchTitle: 'Lancement officiel',
+    launchDesc: 'Lancement public de notre plateforme avec les premiers clients de gestion immobilière du Québec.',
+    // Documents page translations
+    // Navigation translations
+    quickActions: 'Actions rapides',
+    calendar: 'Calendrier',
+    residents: 'Résidents',
+    myResidence: 'Ma résidence',
+    myBuilding: 'Mon bâtiment',
+    commonSpaces: 'Espaces communs',
+    buildings: 'Bâtiments',
+    budget: 'Budget',
+    bills: 'Factures',
+    demands: 'Demandes',
+    navUserManagement: 'Gestion des utilisateurs',
+    manageCommonSpaces: 'Gérer les espaces communs',
+    organizations: 'Organisations',
+    documentation: 'Documentation',
+    pillars: 'Piliers',
+    roadmap: 'Feuille de route',
+    navQualityAssurance: 'Assurance qualité',
+    navLaw25Compliance: 'Conformité Loi 25',
+    rbacPermissions: 'Permissions RBAC',
+    settings: 'Paramètres',
+    bugReports: 'Rapports de bogues',
+    ideaBox: 'Boîte à idées',
     // Home page translations
     modernPropertyManagement: 'Gestion Immobilière Moderne',
     forQuebec: 'pour le Québec',
@@ -916,7 +1683,7 @@ const translations: Record<Language, Translations> = {
     ourStory: 'Notre histoire',
     privacyPolicy: 'Politique de confidentialité',
     termsOfService: "Conditions d'utilisation",
-    login: 'Se connecter',
+    login: 'Connexion',
     logout: 'Déconnexion',
     getStarted: 'Commencer',
     language: 'Langue',
@@ -928,7 +1695,7 @@ const translations: Record<Language, Translations> = {
     pricing: 'Tarification',
     simplePricing: 'Tarification Simple et Transparente',
     pricingSubtitle: 'Gestion immobilière professionnelle qui évolue avec votre entreprise',
-    professionalPlan: 'Plan Professionnel',
+    professionalPlan: 'Plan Standard',
     perfectForPropertyManagers: 'Parfait pour les gestionnaires immobiliers de toutes tailles',
     perDoorPerMonth: 'par porte par mois',
     noSetupFees: "Aucuns frais d'installation",
@@ -962,6 +1729,18 @@ const translations: Record<Language, Translations> = {
     viewAllFeatures: 'Voir toutes les fonctionnalités',
     readyToGetStarted: 'Prêt à commencer?',
     allRightsReserved: 'Tous droits réservés',
+    // Additional translations for missing elements
+    residenceDocuments: 'Documents de résidence',
+    manageDocumentsResidence: 'Gérer les documents de cette résidence',
+    documentsCount: 'Documents ({count})',
+    noDocumentsUploadedYet: "Aucun document n'a encore été téléchargé pour cette résidence.",
+    myDemands: 'Mes demandes',
+    showingResults: 'Affichage de {start} à {end} sur {total} demandes',
+    manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
+    searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
+    // Fullscreen controls
+    fullscreen: 'Plein écran',
+    exitFullscreen: 'Quitter le plein écran',
   },
 };
 

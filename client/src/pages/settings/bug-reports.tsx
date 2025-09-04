@@ -50,6 +50,8 @@ import {
   Edit2,
   Trash2,
   MoreHorizontal,
+  Paperclip,
+  Eye,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,14 +59,15 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { CompactFileUpload } from '@/components/ui/file-upload';
 
 // Bug form schema
 const bugFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  title: z.string().min(1, 'Bug title is required (example: Login button not working on mobile)').max(200, 'Title must be less than 200 characters'),
   description: z
     .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
+    .min(10, 'Bug description must be at least 10 characters long (example: When I click the login button on my phone, nothing happens and no error message appears)')
+    .max(2000, 'Description must be less than 2000 characters'),
   category: z.enum([
     'ui_ux',
     'functionality',
@@ -74,11 +77,10 @@ const bugFormSchema = z.object({
     'integration',
     'other',
   ]),
-  page: z.string().min(1, 'Page is required'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
   status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
-  reproductionSteps: z.string().optional(),
-  environment: z.string().optional(),
+  reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
 });
 
 /**
@@ -97,15 +99,23 @@ interface Bug {
   page: string;
   priority: string;
   status: string;
-  createdBy: string;
-  assignedTo: string | null;
-  reproductionSteps: string | null;
+  created_by: string;
+  assigned_to: string | null;
+  reproduction_steps: string | null;
   environment: string | null;
   notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-  resolvedAt: string | null;
-  resolvedBy: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  attachments?: Array<{
+    id: string;
+    name: string;
+    size: number;
+    url: string;
+    type: string;
+  }>;
+  attachmentCount?: number;
 }
 
 const categoryLabels = {
@@ -139,10 +149,13 @@ const statusColors = {
 export default function BugReports() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingBug, setEditingBug] = useState<Bug | null>(null);
+  const [viewingBug, setViewingBug] = useState<Bug | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -150,12 +163,25 @@ export default function BugReports() {
   const form = useForm<BugFormData>({
     resolver: zodResolver(bugFormSchema),
     defaultValues: {
-      priority: 'medium',
+      title: '',
+      description: '',
+      category: 'functionality' as const,
+      page: '',
+      priority: 'medium' as const,
+      reproductionSteps: '',
     },
   });
 
   const editForm = useForm<BugFormData>({
     resolver: zodResolver(bugFormSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: 'functionality' as const,
+      page: '',
+      priority: 'medium' as const,
+      reproductionSteps: '',
+    },
   });
 
   // Fetch bugs
@@ -228,7 +254,55 @@ export default function BugReports() {
   });
 
   const onSubmit = (data: BugFormData) => {
-    createBugMutation.mutate(data);
+    if (attachedFiles.length > 0) {
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      
+      // Add bug data
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Add attached files
+      attachedFiles.forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      // Make multipart request
+      fetch('/api/bugs', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+          }
+          return response.json();
+        })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
+          setAttachedFiles([]);
+          form.reset();
+          setIsCreateDialogOpen(false);
+          toast({
+            title: 'Bug created',
+            description: 'Bug report has been created successfully.',
+          });
+        })
+        .catch((error) => {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to create bug report',
+            variant: 'destructive',
+          });
+        });
+    } else {
+      // No files, use regular API request
+      createBugMutation.mutate(data);
+    }
   };
 
   const onEditSubmit = (data: BugFormData) => {
@@ -236,6 +310,22 @@ export default function BugReports() {
       updateBugMutation.mutate({ id: editingBug.id, data });
     }
   };
+
+  // Handle file attachments
+  const handleFilesSelect = (files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+  };
+
+  // Handle file download
+  const handleFileDownload = (fileUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const handleEdit = (bug: Bug) => {
     if (!canEditBug(bug)) {
@@ -250,27 +340,32 @@ export default function BugReports() {
       page: bug.page,
       priority: bug.priority as any,
       status: bug.status as any,
-      reproductionSteps: bug.reproductionSteps || '',
-      environment: bug.environment || '',
+      reproductionSteps: bug.reproduction_steps || '',
     });
     setIsEditDialogOpen(true);
   };
 
   const handleDelete = (bugId: string) => {
+    // Close any open dialogs before deleting
+    setIsEditDialogOpen(false);
+    setIsViewDialogOpen(false);
+    setEditingBug(null);
+    setViewingBug(null);
+    
     deleteBugMutation.mutate(bugId);
   };
 
   // Check if user can edit/delete a bug
   const canEditBug = (bug: Bug) => {
-    return user && (user.role === 'admin' || user.role === 'manager' || bug.createdBy === user.id);
+    return user && (user.role === 'admin' || user.role === 'manager' || bug.created_by === user.id);
   };
 
   const canDeleteBug = (bug: Bug) => {
-    return user && (user.role === 'admin' || bug.createdBy === user.id);
+    return user && (user.role === 'admin' || bug.created_by === user.id);
   };
 
   // Filter bugs
-  const filteredBugs = bugs.filter((bug: Bug) => {
+  const filteredBugs = (bugs as Bug[]).filter((bug: Bug) => {
     const matchesSearch =
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bug.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -368,6 +463,20 @@ export default function BugReports() {
                           rows={4}
                           {...form.register('description')}
                           data-testid='textarea-bug-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {form.formState.errors.description && (
                           <p className='text-sm text-red-600 mt-1'>
@@ -452,14 +561,47 @@ export default function BugReports() {
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor='environment'>Environment</Label>
-                        <Input
-                          id='environment'
-                          placeholder='e.g., Chrome 120, Windows 11, Mobile Safari'
-                          {...form.register('environment')}
-                          data-testid='input-bug-environment'
-                        />
+
+                      {/* File Attachments */}
+                      <div className="space-y-3 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-gray-500" />
+                            <Label className="text-sm font-medium">Screenshots & Files</Label>
+                            <span className="text-xs text-gray-500">
+                              (Optional - Screenshots, error logs, console outputs)
+                            </span>
+                          </div>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
+                          />
+                        </div>
+                        {attachedFiles.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Selected files ({attachedFiles.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {attachedFiles.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  <span className="truncate max-w-[100px]">{file.name}</span>
+                                  <button
+                                    onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                    className="text-gray-500 hover:text-red-500"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
@@ -542,6 +684,20 @@ export default function BugReports() {
                           {...editForm.register('description')}
                           rows={4}
                           data-testid='textarea-edit-description'
+                          onPaste={(e) => {
+                            const items = Array.from(e.clipboardData?.items || []);
+                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
+                            
+                            if (imageItems.length > 0) {
+                              e.preventDefault();
+                              imageItems.forEach(item => {
+                                const file = item.getAsFile();
+                                if (file) {
+                                  handleFilesSelect([file]);
+                                }
+                              });
+                            }
+                          }}
                         />
                         {editForm.formState.errors.description && (
                           <p className='text-red-500 text-xs'>
@@ -623,16 +779,114 @@ export default function BugReports() {
                         />
                       </div>
 
-                      <div className='space-y-2'>
-                        <Label htmlFor='edit-environment' className='text-sm font-medium'>
-                          Environment (Optional)
-                        </Label>
-                        <Input
-                          id='edit-environment'
-                          {...editForm.register('environment')}
-                          placeholder='e.g., Chrome 120, Safari iOS 17, etc.'
-                          data-testid='input-edit-environment'
-                        />
+                      {/* Attached Files Section */}
+                      <div className='border-t pt-4'>
+                        <h4 className='font-medium mb-3 flex items-center gap-2'>
+                          <Paperclip className='w-4 h-4' />
+                          Attached Files
+                        </h4>
+                        {editingBug?.attachments && editingBug.attachments.length > 0 ? (
+                          <div className='space-y-2'>
+                            {editingBug.attachments.map((attachment, index) => (
+                              <div
+                                key={index}
+                                className='flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                              >
+                                <div className='flex items-center gap-3'>
+                                  <div className='w-8 h-8 bg-red-100 rounded flex items-center justify-center'>
+                                    <Paperclip className='w-4 h-4 text-red-600' />
+                                  </div>
+                                  <div>
+                                    <p className='font-medium text-sm'>{attachment.name}</p>
+                                    <p className='text-xs text-gray-500'>
+                                      {attachment.size ? `${(attachment.size / 1024 / 1024).toFixed(2)} MB` : 'Size unknown'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className='flex gap-2'>
+                                  <Button
+                                    type="button"
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      window.open(`/api/documents/${attachment.id}/file`, '_blank');
+                                    }}
+                                    className='flex items-center gap-1'
+                                    data-testid={`button-view-${attachment.id}`}
+                                  >
+                                    👁️ View
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const link = document.createElement('a');
+                                      link.href = `/api/documents/${attachment.id}/file?download=true`;
+                                      link.download = attachment.name;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                    }}
+                                    className='flex items-center gap-1'
+                                    data-testid={`button-download-${attachment.id}`}
+                                  >
+                                    ⬇️ Download
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className='text-center py-8 border-2 border-dashed border-gray-200 rounded-lg'>
+                            <Paperclip className='w-8 h-8 mx-auto mb-2 text-gray-400' />
+                            <p className='text-sm text-gray-500'>No files attached to this bug report</p>
+                          </div>
+                        )}
+                        
+                        <div className='mt-4'>
+                          <CompactFileUpload
+                            onFilesSelect={handleFilesSelect}
+                            maxFiles={5}
+                            acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
+                          />
+                        </div>
+                        
+                        {attachedFiles.length > 0 && (
+                          <div className='mt-4 space-y-2'>
+                            <h5 className='text-sm font-medium text-gray-700'>New Files to Upload:</h5>
+                            {attachedFiles.map((file, index) => (
+                              <div
+                                key={index}
+                                className='flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded'
+                              >
+                                <div className='flex items-center gap-2'>
+                                  <Paperclip className='w-4 h-4 text-blue-600' />
+                                  <span className='text-sm'>{file.name}</span>
+                                  <span className='text-xs text-gray-500'>
+                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                  </span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => {
+                                    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+                                  }}
+                                  className='text-red-600 hover:bg-red-100'
+                                  data-testid={`button-remove-file-${index}`}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       <div className='flex justify-end gap-2 pt-4'>
@@ -684,9 +938,8 @@ export default function BugReports() {
                   {filteredBugs.map((bug: Bug) => (
                     <div
                       key={bug.id}
-                      className='border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer'
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                       data-testid={`bug-card-${bug.id}`}
-                      onClick={() => handleEdit(bug)}
                     >
                       <div className='flex items-start justify-between gap-4'>
                         <div className='flex-1 min-w-0'>
@@ -709,6 +962,15 @@ export default function BugReports() {
                             >
                               {bug.status.replace('_', ' ')}
                             </Badge>
+                            {bug.attachmentCount && bug.attachmentCount > 0 && (
+                              <Badge
+                                className='bg-green-100 text-green-800 flex items-center gap-1 px-2 py-1'
+                                data-testid={`badge-attachment-count-${bug.id}`}
+                              >
+                                <Paperclip className='w-3 h-3' />
+                                {bug.attachmentCount} file{bug.attachmentCount > 1 ? 's' : ''}
+                              </Badge>
+                            )}
                           </div>
                           <p
                             className='text-gray-600 mb-3 line-clamp-2'
@@ -725,49 +987,76 @@ export default function BugReports() {
                             </div>
                             <div className='flex items-center gap-1'>
                               <Calendar className='w-4 h-4' />
-                              <span>{new Date(bug.createdAt).toLocaleDateString()}</span>
+                              <span>{new Date(bug.created_at).toLocaleDateString()}</span>
                             </div>
                             <div className='flex items-center gap-1'>
                               <span>Page: {bug.page}</span>
                             </div>
                           </div>
                         </div>
-                        {canDeleteBug(bug) && (
-                          <div className='flex-shrink-0'>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant='ghost'
-                                  size='sm'
-                                  className='h-8 w-8 p-0 text-red-600 hover:text-red-700'
-                                  data-testid={`button-delete-${bug.id}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Trash2 className='h-4 w-4' />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this bug report? This action
-                                    cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(bug.id)}
-                                    className='bg-red-600 hover:bg-red-700'
-                                    data-testid={`confirm-delete-${bug.id}`}
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
+                        <div className='flex-shrink-0'>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`button-menu-${bug.id}`}
+                              >
+                                <MoreHorizontal className='w-4 h-4' />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingBug(bug);
+                                setIsViewDialogOpen(true);
+                              }}>
+                                <Eye className='w-4 h-4 mr-2' />
+                                View
+                              </DropdownMenuItem>
+                              {canEditBug(bug) && (
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(bug);
+                                }}>
+                                  <Edit2 className='w-4 h-4 mr-2' />
+                                  Edit
+                                </DropdownMenuItem>
+                              )}
+                              {canDeleteBug(bug) && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem 
+                                      onSelect={(e) => e.preventDefault()} 
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className='w-4 h-4 mr-2 text-red-600' />
+                                      <span className='text-red-600'>Delete</span>
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this bug report? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(bug.id)}
+                                        className='bg-red-600 hover:bg-red-700'
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -775,6 +1064,66 @@ export default function BugReports() {
               )}
             </CardContent>
           </Card>
+
+          {/* View Bug Report Dialog */}
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+              <DialogHeader>
+                <DialogTitle>Bug Report Details</DialogTitle>
+              </DialogHeader>
+              {viewingBug && (
+                <div className='space-y-4'>
+                  <div>
+                    <h3 className='text-lg font-semibold mb-2'>{viewingBug.title}</h3>
+                    <div className='flex flex-wrap gap-2 mb-2'>
+                      <Badge className={priorityColors[viewingBug.priority as keyof typeof priorityColors]}>
+                        {viewingBug.priority.toUpperCase()}
+                      </Badge>
+                      <Badge className={statusColors[viewingBug.status as keyof typeof statusColors]}>
+                        {viewingBug.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                      <Badge variant='outline'>
+                        {categoryLabels[viewingBug.category as keyof typeof categoryLabels]}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className='font-medium mb-1'>Description</h4>
+                    <p className='text-gray-600 bg-gray-50 p-3 rounded-lg'>{viewingBug.description}</p>
+                  </div>
+                  
+                  <div className='flex flex-wrap gap-4 text-sm'>
+                    <div className='flex items-center gap-1'>
+                      <Calendar className='w-4 h-4' />
+                      <span>Created: {new Date(viewingBug.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className='flex items-center gap-1'>
+                      <span>📍 Page: {viewingBug.page}</span>
+                    </div>
+                  </div>
+
+                  {viewingBug.reproduction_steps && (
+                    <div>
+                      <h4 className='font-medium mb-1'>Reproduction Steps</h4>
+                      <p className='text-gray-600 bg-blue-50 p-3 rounded-lg'>{viewingBug.reproduction_steps}</p>
+                    </div>
+                  )}
+
+
+
+                  <div className='flex justify-end pt-4'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsViewDialogOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

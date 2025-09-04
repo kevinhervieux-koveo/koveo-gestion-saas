@@ -11,6 +11,7 @@ import type { User } from '@shared/schema';
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAuthenticating: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ user: User }>;
   logout: () => Promise<void>;
@@ -34,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [lastAuthCheck, setLastAuthCheck] = useState<number>(0);
 
   // Check if we're on a public page that doesn't need auth
   const isPublicPage =
@@ -42,17 +45,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.pathname.includes('/forgot-password') ||
     window.location.pathname.includes('/reset-password') ||
     window.location.pathname.includes('/accept-invitation') ||
-    window.location.pathname === '/';
+    window.location.pathname === '/' ||
+    window.location.pathname === '/features' ||
+    window.location.pathname === '/pricing' ||
+    window.location.pathname === '/security' ||
+    window.location.pathname === '/story' ||
+    window.location.pathname === '/privacy-policy' ||
+    window.location.pathname === '/terms-of-service';
 
-  // Query to get current user (always enabled, but we handle public pages differently)
+  // Query to get current user with optimized caching and minimal refetches
   const {
     data: userData,
     isLoading,
     isError,
+    isFetching,
   } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
-    enabled: true, // Always run auth query to prevent reload redirects
+    enabled: true,
     queryFn: async () => {
+      setIsAuthenticating(true);
       try {
         const response = await fetch('/api/auth/user', {
           credentials: 'include',
@@ -66,32 +77,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error(`${response.status}: ${response.statusText}`);
         }
 
-        return (await response.json()) as User;
-      } catch (_error) {
+        const userData = (await response.json()) as User;
+        setLastAuthCheck(Date.now());
+        return userData;
+      } catch (error) {
         // Silently handle auth failures on public pages
         if (!isPublicPage) {
-          console.warn('Auth check failed:', _error);
+          // Auth error occurred
         }
         return null;
+      } finally {
+        setIsAuthenticating(false);
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false, // Prevent unnecessary refetches on focus
-    refetchOnMount: true, // Always check on mount to handle page refreshes
+    retryOnMount: false, // Prevent retry loops
+    staleTime: 5 * 60 * 1000, // 5 minutes - longer cache time
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    refetchOnWindowFocus: false, // Disable focus refetches
+    refetchOnMount: true, // Always check on mount
+    refetchInterval: false, // No automatic intervals
+    networkMode: 'offlineFirst', // Better offline resilience
   });
 
   useEffect(() => {
-    setUser(userData || null);
-
-    // If user is null (unauthorized) and we're not on a public page, redirect to home
-
-    if (userData === null && !isPublicPage && !isLoading) {
-      console.warn('Unauthorized access detected, redirecting to home page');
-      setLocation('/');
+    // Optimistic state management - maintain user state during refetches
+    if (userData !== undefined) {
+      setUser(userData);
     }
-  }, [userData, isPublicPage, isLoading, setLocation]);
+
+    // Only redirect after a complete auth check with proper delays
+    // Ensure we're not in any loading/fetching state before redirecting
+    if (
+      userData === null && 
+      !isPublicPage && 
+      !isLoading && 
+      !isFetching && 
+      !isAuthenticating && 
+      !isError &&
+      Date.now() - lastAuthCheck > 1000 // Minimum 1 second delay
+    ) {
+      // Add slight delay to prevent flash redirects
+      const redirectTimer = setTimeout(() => {
+        setLocation('/login');
+      }, 500);
+      
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [userData, isPublicPage, isLoading, isFetching, isAuthenticating, isError, lastAuthCheck, setLocation]);
 
   // Login mutation
   const loginMutation = useMutation({
@@ -236,7 +269,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const _value: AuthContextType = {
     user,
-    isLoading,
+    isLoading: isLoading || isFetching,
+    isAuthenticating,
     isAuthenticated: !!user,
     login,
     logout,

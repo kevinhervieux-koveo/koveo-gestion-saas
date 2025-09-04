@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true
+  },
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "scripts/**/*", "config/**/*"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "coverage",
+    "tests/**/*",
+    "server/optimized-db-storage.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

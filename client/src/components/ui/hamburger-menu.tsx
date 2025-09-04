@@ -62,8 +62,6 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       setIsLoggingOut(true);
       await logout();
       closeMenu();
-    } catch (error) {
-      console.error('Logout failed:', error);
     } finally {
       setIsLoggingOut(false);
     }
@@ -194,7 +192,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                   data-testid='nav-login'
                 >
                   <UserPlus className='mr-2 h-4 w-4' />
-                  {t('signIn')}
+                  {t('login')}
                 </Button>
               </div>
             </div>
@@ -207,7 +205,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
                 <User className='h-8 w-8 text-gray-500 mr-3' />
                 <div>
                   <p className='font-medium text-sm'>
-                    {user.first_name} {user.last_name}
+                    {user.firstName} {user.lastName}
                   </p>
                   <p className='text-xs text-gray-500'>{user.email}</p>
                 </div>

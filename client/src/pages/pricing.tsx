@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import {
   Check,
   ArrowRight,
@@ -14,11 +15,11 @@ import {
   MessageSquare,
   Calendar,
   Settings,
+  LogIn,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Pricing page component for Koveo Gestion.
@@ -26,7 +27,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  */
 export default function PricingPage() {
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
   const mainFeatures = [
@@ -97,58 +98,8 @@ export default function PricingPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'>
-      {/* Navigation */}
-      <nav className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between items-center h-16'>
-            <div className='flex items-center'>
-              <Link href='/'>
-                <img
-                  src={koveoLogo}
-                  alt='Koveo Gestion'
-                  className='h-8 w-auto cursor-pointer'
-                  data-testid='nav-logo'
-                />
-              </Link>
-            </div>
-            <div className='hidden md:flex items-center space-x-8'>
-              <Link href='/' className='text-gray-600 hover:text-koveo-navy transition-colors'>
-                {t('home')}
-              </Link>
-              <Link
-                href='/features'
-                className='text-gray-600 hover:text-koveo-navy transition-colors'
-              >
-                {t('features')}
-              </Link>
-              <Link href='/pricing' className='text-koveo-navy font-medium'>
-                {t('pricing')}
-              </Link>
-              <Link
-                href='/security'
-                className='text-gray-600 hover:text-koveo-navy transition-colors'
-              >
-                {t('security')}
-              </Link>
-              {isAuthenticated ? (
-                <Button
-                  onClick={() => setLocation('/dashboard/quick-actions')}
-                  data-testid='nav-dashboard'
-                >
-                  {t('goToDashboard')}
-                </Button>
-              ) : (
-                <Button onClick={() => setLocation('/login')} data-testid='nav-get-started'>
-                  {t('getStarted')}
-                </Button>
-              )}
-            </div>
-            <div className='md:hidden'>
-              <HamburgerMenu />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Navigation Header */}
+      <TopNavigationBar />
 
       {/* Hero Section */}
       <section className='py-20 px-4 sm:px-6 lg:px-8'>
@@ -169,7 +120,7 @@ export default function PricingPage() {
             <CardContent className='p-8'>
               <div className='text-center mb-8'>
                 <div className='text-5xl font-bold text-koveo-navy mb-2'>
-                  $9.50 <span className='text-lg font-normal text-gray-600'>+ taxes</span>
+                  $9.50 CAD <span className='text-lg font-normal text-gray-600'>+ taxes</span>
                 </div>
                 <div className='text-gray-600'>{t('perDoorPerMonth')}</div>
                 <div className='text-sm text-gray-500 mt-2'>{t('noSetupFees')}</div>
@@ -283,7 +234,7 @@ export default function PricingPage() {
         <div className='max-w-7xl mx-auto'>
           <div className='flex flex-col md:flex-row justify-between items-center'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-auto mr-4' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm mr-4' />
               <span className='text-lg font-semibold'>Koveo Gestion</span>
             </div>
             <div className='flex space-x-6'>

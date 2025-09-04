@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
 import { TrialRequestForm } from '@/components/ui/trial-request-form';
 import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
@@ -12,34 +12,15 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
  * Home page component for Koveo Gestion.
  * Public-facing landing page with company information and call-to-action.
  */
-export default function /**
- * Home page function.
- */ /**
- * Home page function.
- */
-
-HomePage() {
+export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50'>
       {/* Navigation Header */}
-      <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50'>
-        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
-          <div className='flex items-center'>
-            <img
-              src={koveoLogo}
-              alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
-              onClick={() => setLocation('/')}
-              data-testid='logo-link'
-            />
-          </div>
-          <HamburgerMenu />
-        </div>
-      </header>
+      <TopNavigationBar />
 
       {/* Hero Section */}
       <section className='container mx-auto px-4 py-16 text-center'>
@@ -69,7 +50,7 @@ HomePage() {
                   className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
                   data-testid='button-start-trial'
                 >
-                  {t('startManagingToday')}
+                  {t('startFreeTrial')}
                   <ArrowRight className='ml-2 h-5 w-5' />
                 </Button>
               </TrialRequestForm>
@@ -208,7 +189,7 @@ HomePage() {
         <div className='container mx-auto px-4'>
           <div className='flex flex-col md:flex-row items-center justify-between'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-8 rounded object-cover' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
             </div>
             <div className='flex items-center space-x-4 text-sm text-gray-400'>
               <Shield className='h-4 w-4' />

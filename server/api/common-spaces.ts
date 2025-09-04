@@ -86,41 +86,55 @@ const userIdSchema = z.object({
  * @param user
  */
 async function getAccessibleBuildingIds(user: any): Promise<string[]> {
-  if (user.role === 'admin' && user.canAccessAllOrganizations) {
-    // Admin with global access can see all buildings
+  // Admin users have access to all buildings
+  if (user.role === 'admin') {
     const allBuildings = await db
-      .select({ id: buildings.id })
+      .select({ buildingId: buildings.id })
       .from(buildings)
       .where(eq(buildings.isActive, true));
-    return allBuildings.map((b) => b.id);
+    return allBuildings.map((b) => b.buildingId);
   }
 
-  if (['admin', 'manager'].includes(user.role)) {
-    // Manager or admin without global access: only buildings from their organizations
-    if (!user.organizations || user.organizations.length === 0) {
-      return []; // No organizations = no buildings
-    }
+  // Check if user belongs to Koveo organization (special global access)
+  const userOrgs = await db
+    .select({
+      organizationId: schema.organizations.id,
+      organizationName: schema.organizations.name,
+      canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
+    })
+    .from(schema.organizations)
+    .innerJoin(userOrganizations, eq(userOrganizations.organizationId, schema.organizations.id))
+    .where(and(eq(userOrganizations.userId, user.id), eq(userOrganizations.isActive, true)));
 
-    const orgBuildings = await db
-      .select({ id: buildings.id })
+  const hasGlobalAccess = userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+
+  if (hasGlobalAccess) {
+    const allBuildings = await db
+      .select({ buildingId: buildings.id })
       .from(buildings)
-      .where(
-        and(eq(buildings.isActive, true), inArray(buildings.organizationId, user.organizations))
-      );
-    return orgBuildings.map((b) => b.id);
+      .where(eq(buildings.isActive, true));
+    return allBuildings.map((b) => b.buildingId);
   }
 
-  if (['resident', 'tenant'].includes(user.role)) {
-    // Residents/tenants can only access buildings where they have residences
-    const userBuildingIds = await db
-      .select({ buildingId: schema.residences.buildingId })
-      .from(userResidences)
-      .innerJoin(schema.residences, eq(userResidences.residenceId, schema.residences.id))
-      .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
-    return userBuildingIds.map((b) => b.buildingId);
+  // Regular users and managers: Get buildings from their organizations
+  if (user.role === 'manager') {
+    if (userOrgs.length > 0) {
+      const orgIds = userOrgs.map((uo) => uo.organizationId);
+      const orgBuildings = await db
+        .select({ buildingId: buildings.id })
+        .from(buildings)
+        .where(and(inArray(buildings.organizationId, orgIds), eq(buildings.isActive, true)));
+      return orgBuildings.map((b) => b.buildingId);
+    }
   }
 
-  return []; // No access by default
+  // All users can also access buildings where they have residences
+  const userBuildingIds = await db
+    .select({ buildingId: schema.residences.buildingId })
+    .from(userResidences)
+    .innerJoin(schema.residences, eq(userResidences.residenceId, schema.residences.id))
+    .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
+  return userBuildingIds.map((b) => b.buildingId);
 }
 
 /**
@@ -336,7 +350,6 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       const { building_id } = queryValidation.data;
 
-      console.warn(`📊 Fetching common spaces for user ${user.id} with role ${user.role}`);
 
       // Get accessible building IDs
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
@@ -382,10 +395,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .where(and(...conditions))
         .orderBy(buildings.name, commonSpaces.name);
 
-      console.warn(`✅ Found ${spaces.length} common spaces for user ${user.id}`);
       res.json(spaces);
-    } catch (error) {
-      console.error('Error fetching common spaces:', error);
+    } catch (error: any) {
       res.status(500).json({
         message: 'Failed to fetch common spaces',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -481,8 +492,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(bookings.startTime);
 
       res.json(spaceBookings);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch bookings',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -641,8 +652,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         message: 'Booking created successfully',
         booking: newBooking[0],
       });
-    } catch (error) {
-      console.error('Error creating booking:', error);
+    } catch (error: any) {
+      console.error('❌ Error creating booking:', error);
       res.status(500).json({
         message: 'Failed to create booking',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -793,8 +804,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
       };
 
       res.json(calendarData);
-    } catch (error) {
-      console.error('Error fetching calendar data:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching calendar data:', error);
       res.status(500).json({
         message: 'Failed to fetch calendar data',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -829,8 +840,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         .orderBy(desc(bookings.startTime));
 
       res.json(userBookings);
-    } catch (error) {
-      console.error('Error fetching user bookings:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching user bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch user bookings',
         details: error instanceof Error ? error.message : 'Unknown error',
@@ -918,8 +929,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           message: 'Booking cancelled successfully',
         });
-      } catch (error) {
-        console.error('Error cancelling booking:', error);
+      } catch (error: any) {
+        console.error('❌ Error cancelling booking:', error);
         res.status(500).json({
           message: 'Failed to cancel booking',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1031,8 +1042,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
           summary: totalStats[0],
           userStats: stats,
         });
-      } catch (error) {
-        console.error('Error fetching space stats:', error);
+      } catch (error: any) {
+        console.error('❌ Error fetching space statistics:', error);
         res.status(500).json({
           message: 'Failed to fetch space statistics',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1158,8 +1169,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           message: `User ${is_blocked ? 'blocked from' : 'unblocked from'} booking this space`,
         });
-      } catch (error) {
-        console.error('Error managing user restriction:', error);
+      } catch (error: any) {
+        console.error('❌ Error managing user restriction:', error);
         res.status(500).json({
           message: 'Failed to manage user restriction',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1266,8 +1277,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
             createdAt: newSpace[0].createdAt,
           },
         });
-      } catch (error) {
-        console.error('Error creating common space:', error);
+      } catch (error: any) {
+        console.error('❌ Error creating common space:', error);
         res.status(500).json({
           message: 'Failed to create common space',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1410,8 +1421,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
             spaceId: common_space_id,
           },
         });
-      } catch (error) {
-        console.error('Error setting time limit:', error);
+      } catch (error: any) {
+        console.error('❌ Error setting time limit:', error);
         res.status(500).json({
           message: 'Failed to set time limit',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1476,8 +1487,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
         res.json({
           limits: limitsWithUsage,
         });
-      } catch (error) {
-        console.error('Error fetching time limits:', error);
+      } catch (error: any) {
+        console.error('❌ Error fetching time limits:', error);
         res.status(500).json({
           message: 'Failed to fetch time limits',
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -1560,8 +1571,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
           }, 0),
         },
       });
-    } catch (error) {
-      console.error('Error fetching user calendar:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching user calendar:', error);
       res.status(500).json({
         message: 'Failed to fetch user calendar',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1712,8 +1723,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
             uniqueUsers: [...new Set(buildingBookings.map((b) => b.userId))].length,
           },
         });
-      } catch (error) {
-        console.error('Error fetching building calendar:', error);
+      } catch (error: any) {
+        console.error('❌ Error fetching building calendar:', error);
         res.status(500).json({
           message: 'Failed to fetch building calendar',
           error: error instanceof Error ? error.message : 'Unknown error',

@@ -1,14 +1,18 @@
 # Feature Documentation Template
 
 ## Overview
+
 [Brief description of the feature]
 
 ## Purpose
+
 [Why this feature exists and what problem it solves]
 
 ## Usage
+
 ### Basic Usage
-```typescript
+
+````typescript
 // Example code
 ```bash
 
@@ -45,3 +49,4 @@
 - **Date**: Changes made
 
 
+````

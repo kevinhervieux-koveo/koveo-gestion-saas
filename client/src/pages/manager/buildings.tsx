@@ -32,6 +32,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -157,7 +158,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
           <div className='pt-2 flex gap-2'>
             <Link href={`/manager/buildings/${building.id}/documents`}>
               <Button size='sm' variant='outline' className='flex-1'>
-                Documents
+                {t('buildingDocumentsButton')}
               </Button>
             </Link>
             <Link href={`/manager/residences?buildingId=${building.id}`}>
@@ -343,7 +344,12 @@ function BuildingForm({
                   <FormItem>
                     <FormLabel>Total Units</FormLabel>
                     <FormControl>
-                      <Input type='number' placeholder='Enter total units' {...field} />
+                      <Input
+                        type='number'
+                        placeholder='Enter total units'
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -397,6 +403,7 @@ function BuildingForm({
 export default function Buildings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // State variables
   const [searchTerm, setSearchTerm] = useState('');
@@ -470,7 +477,7 @@ export default function Buildings() {
 
   // Mutations
   const createBuildingMutation = useMutation({
-    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/buildings', data),
+    mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/admin/buildings', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsAddDialogOpen(false);
@@ -491,7 +498,7 @@ export default function Buildings() {
 
   const updateBuildingMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: BuildingFormData }) =>
-      apiRequest('PUT', `/api/buildings/${id}`, data),
+      apiRequest('PUT', `/api/admin/buildings/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       setIsEditDialogOpen(false);
@@ -604,7 +611,7 @@ export default function Buildings() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title='Buildings'
+        title={t('buildings')}
         subtitle={`Manage ${filteredBuildings.length} building${filteredBuildings.length !== 1 ? 's' : ''} in your organization`}
       />
 
@@ -615,7 +622,7 @@ export default function Buildings() {
             <div className='relative w-full sm:w-96'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
               <Input
-                placeholder='Search buildings by name or address...'
+                placeholder={t('searchBuildingsAddress')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className='pl-10'
@@ -625,7 +632,7 @@ export default function Buildings() {
             {user?.role === 'admin' && (
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className='w-4 h-4 mr-2' />
-                Add Building
+                {t('addBuilding')}
               </Button>
             )}
           </div>

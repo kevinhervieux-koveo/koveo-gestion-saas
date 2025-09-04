@@ -33,6 +33,7 @@ npm run dev
 ### 3. Development Workflow
 
 1. **Create Feature Branch**:
+
    ```bash
    git checkout -b feature/new-dashboard-widget
    ```
@@ -43,6 +44,7 @@ npm run dev
    - Update documentation
 
 3. **Quality Checks**:
+
    ```bash
    npm run lint          # Code linting
    npm run type-check    # TypeScript validation
@@ -51,6 +53,7 @@ npm run dev
    ```
 
 4. **Commit Changes**:
+
    ```bash
    # Use conventional commits
    git commit -m "feat: add new dashboard widget for maintenance overview"
@@ -89,8 +92,8 @@ try {
  * @returns Promise resolving to cost breakdown
  */
 async function calculateMaintenance(
-  buildingId: string, 
-  month: number, 
+  buildingId: string,
+  month: number,
   year: number
 ): Promise<MaintenanceCost> {
   // Implementation
@@ -111,22 +114,18 @@ interface DashboardProps {
 function Dashboard({ userId, organizationId, onUpdate }: DashboardProps) {
   const { data, error, isLoading } = useQuery({
     queryKey: ['dashboard', userId],
-    queryFn: () => fetchDashboard(userId)
+    queryFn: () => fetchDashboard(userId),
   });
 
   if (error) {
-    return <ErrorDisplay message="Failed to load dashboard" />;
+    return <ErrorDisplay message='Failed to load dashboard' />;
   }
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  return (
-    <div className="dashboard">
-      {/* Component content */}
-    </div>
-  );
+  return <div className='dashboard'>{/* Component content */}</div>;
 }
 ```
 
@@ -139,19 +138,24 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   residenceId: uuid('residence_id').references(() => residences.id),
   title: text('title').notNull(),
   description: text('description'),
-  priority: text('priority', { 
-    enum: ['low', 'medium', 'high', 'urgent'] 
+  priority: text('priority', {
+    enum: ['low', 'medium', 'high', 'urgent'],
   }).notNull(),
   status: text('status', {
-    enum: ['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled']
-  }).notNull().default('submitted'),
+    enum: ['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled'],
+  })
+    .notNull()
+    .default('submitted'),
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 // Create proper insert schemas
-export const insertMaintenanceRequestSchema = createInsertSchema(maintenanceRequests)
-  .omit({ id: true, createdAt: true, updatedAt: true });
+export const insertMaintenanceRequestSchema = createInsertSchema(maintenanceRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export type InsertMaintenanceRequest = z.infer<typeof insertMaintenanceRequestSchema>;
 ```
@@ -172,7 +176,7 @@ describe('UserProfile Component', () => {
     };
 
     render(<UserProfile user={mockUser} />);
-    
+
     expect(screen.getByText('Jean Dupont')).toBeInTheDocument();
     expect(screen.getByText('jean.dupont@example.com')).toBeInTheDocument();
   });
@@ -183,13 +187,13 @@ describe('User API', () => {
   it('creates user successfully', async () => {
     const userData = {
       firstName: 'Marie',
-      lastName: 'Martin', 
+      lastName: 'Martin',
       email: 'marie.martin@example.com',
       role: 'resident'
     };
 
     const result = await userService.create(userData);
-    
+
     expect(result.id).toBeDefined();
     expect(result.email).toBe(userData.email);
   });
@@ -205,13 +209,10 @@ describe('Building Management API', () => {
       name: 'Les Jardins du Plateau',
       address: '123 Rue Saint-Denis',
       city: 'Montréal',
-      organizationId: testOrgId
+      organizationId: testOrgId,
     };
 
-    const response = await request(app)
-      .post('/api/buildings')
-      .send(buildingData)
-      .expect(201);
+    const response = await request(app).post('/api/buildings').send(buildingData).expect(201);
 
     expect(response.body.name).toBe(buildingData.name);
     expect(response.body.id).toBeDefined();
@@ -240,7 +241,7 @@ const translations = {
   },
   fr: {
     dashboard: 'Tableau de bord',
-    maintenance: 'Entretien', 
+    maintenance: 'Entretien',
     bills: 'Factures'
   }
 };
@@ -248,7 +249,7 @@ const translations = {
 // Use translation helper
 function MaintenanceHeader() {
   const { t } = useTranslation();
-  
+
   return (
     <h1>{t('maintenance.title')}</h1>
   );
@@ -272,7 +273,7 @@ class DataRetentionService {
   async scheduleDataDeletion(userId: string, retentionPeriod: number) {
     // Schedule automatic data deletion
   }
-  
+
   async handleDataPortability(userId: string): Promise<UserDataExport> {
     // Export user data in portable format
   }
@@ -283,16 +284,16 @@ class DataRetentionService {
 
 ### Code Documentation
 
-```typescript
+````typescript
 /**
  * Service for managing building maintenance requests in Quebec properties
- * 
+ *
  * Handles the complete lifecycle of maintenance requests including:
  * - Request submission and validation
  * - Priority assignment based on Quebec housing standards
  * - Contractor coordination and scheduling
  * - Completion verification and billing
- * 
+ *
  * @example
  * ```typescript
  * const service = new MaintenanceService();
@@ -306,7 +307,7 @@ class DataRetentionService {
 class MaintenanceService {
   /**
    * Creates new maintenance request with Quebec compliance validation
-   * 
+   *
    * @param requestData - Maintenance request details
    * @returns Promise resolving to created request with tracking ID
    * @throws ValidationError when data doesn't meet Quebec standards
@@ -315,7 +316,7 @@ class MaintenanceService {
     // Implementation
   }
 }
-```
+````
 
 ### README Updates
 
@@ -331,9 +332,11 @@ When adding new features, update relevant documentation:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
@@ -341,18 +344,21 @@ Brief description of changes
 - [ ] Quebec compliance update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 - [ ] Quebec compliance verified
 
 ## Documentation
+
 - [ ] Code comments updated
 - [ ] API documentation updated
 - [ ] User documentation updated
 - [ ] Quebec examples added
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Tests pass
@@ -380,7 +386,7 @@ Brief description of changes
 ### Communication
 
 - **Questions**: Create GitHub discussions
-- **Bugs**: File GitHub issues with reproduction steps  
+- **Bugs**: File GitHub issues with reproduction steps
 - **Features**: Discuss in GitHub issues before implementation
 - **Urgent Issues**: Contact development team directly
 
@@ -389,7 +395,7 @@ Brief description of changes
 Contributors will be recognized in:
 
 - Project documentation
-- Release notes for significant contributions  
+- Release notes for significant contributions
 - Annual contributor recognition
 
 Thank you for helping make Koveo Gestion the best property management platform for Quebec!

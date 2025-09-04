@@ -37,16 +37,16 @@ interface Residence {
 }
 
 const residenceEditSchema = z.object({
-  unitNumber: z.string().min(1, 'Unit number is required'),
-  floor: z.number().min(0, 'Floor must be 0 or greater').optional(),
-  squareFootage: z.string().optional(),
-  bedrooms: z.number().min(0, 'Bedrooms must be 0 or greater').optional(),
-  bathrooms: z.string().optional(),
+  unitNumber: z.string().min(1, 'Unit number is required and must be alphanumeric (example: 101A)'),
+  floor: z.coerce.number().min(0, 'Floor must be between 0 and 50 (example: 2)').max(50, 'Floor must be between 0 and 50 (example: 2)').optional(),
+  squareFootage: z.union([z.coerce.number().min(1, 'Square footage must be between 1 and 10,000 sq ft (example: 1200)').max(10000, 'Square footage must be between 1 and 10,000 sq ft (example: 1200)'), z.literal('')]).optional(),
+  bedrooms: z.coerce.number().min(0, 'Bedrooms must be between 0 and 10 (example: 2)').max(10, 'Bedrooms must be between 0 and 10 (example: 2)').optional(),
+  bathrooms: z.union([z.coerce.number().min(0, 'Bathrooms must be between 0 and 10 (example: 1.5)').max(10, 'Bathrooms must be between 0 and 10 (example: 1.5)'), z.literal('')]).optional(),
   balcony: z.boolean(),
   parkingSpaceNumbers: z.array(z.string()).optional(),
   storageSpaceNumbers: z.array(z.string()).optional(),
-  ownershipPercentage: z.string().optional(),
-  monthlyFees: z.string().optional(),
+  ownershipPercentage: z.union([z.coerce.number().min(0, 'Ownership percentage must be between 0 and 100 (example: 25)').max(100, 'Ownership percentage must be between 0 and 100 (example: 25)'), z.literal('')]).optional(),
+  monthlyFees: z.union([z.coerce.number().min(0, 'Monthly fees must be a positive amount in CAD (example: 350.00)').max(99999, 'Monthly fees must be less than $99,999 CAD (example: 350.00)'), z.literal('')]).optional(),
 });
 
 /**
@@ -89,33 +89,42 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     defaultValues: {
       unitNumber: residence.unitNumber,
       floor: residence.floor || 0,
-      squareFootage: residence.squareFootage || '',
+      squareFootage: residence.squareFootage ? Number(residence.squareFootage) : '',
       bedrooms: residence.bedrooms || 0,
-      bathrooms: residence.bathrooms || '',
+      bathrooms: residence.bathrooms ? Number(residence.bathrooms) : '',
       balcony: residence.balcony || false,
       parkingSpaceNumbers: residence.parkingSpaceNumbers || [],
       storageSpaceNumbers: residence.storageSpaceNumbers || [],
-      ownershipPercentage: residence.ownershipPercentage || '',
-      monthlyFees: residence.monthlyFees || '',
+      ownershipPercentage: residence.ownershipPercentage ? 
+        (Number(residence.ownershipPercentage) < 1 ? Number(residence.ownershipPercentage) * 100 : Number(residence.ownershipPercentage)) : '',
+      monthlyFees: residence.monthlyFees ? Number(residence.monthlyFees) : '',
     },
   });
 
   const updateResidenceMutation = useMutation({
     mutationFn: async (_data: ResidenceEditFormData) => {
+      // Convert empty strings to null for optional numeric fields
+      const processedData = {
+        ..._data,
+        squareFootage: _data.squareFootage === '' ? null : _data.squareFootage,
+        bathrooms: _data.bathrooms === '' ? null : _data.bathrooms,
+        ownershipPercentage: _data.ownershipPercentage === '' ? null : Number(_data.ownershipPercentage),
+        monthlyFees: _data.monthlyFees === '' ? null : _data.monthlyFees,
+        parkingSpaceNumbers: parkingSpaces,
+        storageSpaceNumbers: storageSpaces,
+      };
+
       const response = await fetch(`/api/residences/${residence.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...data,
-          parkingSpaceNumbers: parkingSpaces,
-          storageSpaceNumbers: storageSpaces,
-        }),
+        body: JSON.stringify(processedData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update residence');
+        const errorText = await response.text();
+        throw new Error(`Failed to update residence: ${errorText}`);
       }
 
       return response.json();
@@ -131,7 +140,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     onError: (_error: unknown) => {
       toast({
         title: 'Error',
-        description: (error as Error)?.message || 'Failed to update residence',
+        description: (_error as Error)?.message || 'Failed to update residence',
         variant: 'destructive',
       });
     },
@@ -148,8 +157,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeParkingSpace = (_index: number) => {
-    setParkingSpaces(parkingSpaces.filter((_, i) => i !== _index));
+  const removeParkingSpace = (index: number) => {
+    setParkingSpaces(parkingSpaces.filter((_, i) => i !== index));
   };
 
   const addStorageSpace = () => {
@@ -159,8 +168,8 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     }
   };
 
-  const removeStorageSpace = (_index: number) => {
-    setStorageSpaces(storageSpaces.filter((_, i) => i !== _index));
+  const removeStorageSpace = (index: number) => {
+    setStorageSpaces(storageSpaces.filter((_, i) => i !== index));
   };
 
   return (
@@ -245,10 +254,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='ownershipPercentage'>Ownership %</Label>
+              <Label htmlFor='ownershipPercentage'>Ownership 0-100%</Label>
               <Input
                 id='ownershipPercentage'
-                placeholder='e.g., 0.025'
+                placeholder='e.g., 17'
                 {...form.register('ownershipPercentage')}
               />
               {form.formState.errors.ownershipPercentage && (
@@ -277,10 +286,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {parkingSpaces.map((space, _index) => (
+            {parkingSpaces.map((space, index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X className='w-3 h-3 cursor-pointer' onClick={() => removeParkingSpace(_index)} />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeParkingSpace(index)} />
               </Badge>
             ))}
           </div>
@@ -289,7 +298,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add parking space number'
               value={newParkingSpace}
-              onChange={(e) => setNewParkingSpace(e.target._value)}
+              onChange={(e) => setNewParkingSpace(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addParkingSpace())}
             />
             <Button type='button' onClick={addParkingSpace} size='sm'>
@@ -306,10 +315,10 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='flex flex-wrap gap-2'>
-            {storageSpaces.map((space, _index) => (
+            {storageSpaces.map((space, index) => (
               <Badge key={index} variant='secondary' className='flex items-center gap-1'>
                 {space}
-                <X className='w-3 h-3 cursor-pointer' onClick={() => removeStorageSpace(_index)} />
+                <X className='w-3 h-3 cursor-pointer' onClick={() => removeStorageSpace(index)} />
               </Badge>
             ))}
           </div>
@@ -318,7 +327,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
             <Input
               placeholder='Add storage space number'
               value={newStorageSpace}
-              onChange={(e) => setNewStorageSpace(e.target._value)}
+              onChange={(e) => setNewStorageSpace(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addStorageSpace())}
             />
             <Button type='button' onClick={addStorageSpace} size='sm'>

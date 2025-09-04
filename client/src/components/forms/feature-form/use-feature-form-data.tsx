@@ -114,8 +114,6 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
-    } catch (_error) {
-      console.error('Failed to save draft:', _error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -138,8 +136,6 @@ export function useFeatureFormData(feature: Feature | null) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
-    } catch (_error) {
-      console.error('Failed to load draft:', _error);
     }
   }, [getDraftKey]);
 
@@ -157,8 +153,6 @@ export function useFeatureFormData(feature: Feature | null) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
-    } catch (_error) {
-      console.error('Failed to clear draft:', _error);
     }
   }, [getDraftKey, toast]);
 
@@ -167,7 +161,7 @@ export function useFeatureFormData(feature: Feature | null) {
    * @returns Void.
    */
   const updateFormData = useCallback((field: string, _value: string | boolean | unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: _value }));
     setIsDirty(true);
   }, []);
 
@@ -182,7 +176,7 @@ export function useFeatureFormData(feature: Feature | null) {
         ...prev.rbacRoles,
         [role]: {
           ...prev.rbacRoles[role as keyof typeof prev.rbacRoles],
-          [field]: value,
+          [field]: _value,
         },
       },
     }));

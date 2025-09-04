@@ -110,7 +110,6 @@ export function useFilterSort<T>(options: UseFilterSortOptions<T>): UseFilterSor
         try {
           return JSON.parse(stored);
         } catch (e) {
-          console.warn('Failed to parse stored filter state', e);
         }
       }
     }

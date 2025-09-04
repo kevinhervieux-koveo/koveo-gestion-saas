@@ -244,7 +244,6 @@ export default function OwnerDocumentation() {
         30 * 60 * 1000
       ); // 30 minutes
 
-      console.warn('📄 Documentation auto-refresh enabled (every 30 minutes)');
     }
 
     return () => {
@@ -282,7 +281,6 @@ export default function OwnerDocumentation() {
         title: 'Documentation Refreshed',
         description: 'Documentation data has been updated with the latest information.',
       });
-    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Refresh Failed',
@@ -316,7 +314,6 @@ export default function OwnerDocumentation() {
         title: 'Documentation Exported',
         description: 'Google Suite documentation package has been downloaded successfully.',
       });
-    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -343,7 +340,6 @@ export default function OwnerDocumentation() {
         description:
           'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
-    } catch (_error) {
       toast({
         variant: 'destructive',
         title: 'Export Failed',

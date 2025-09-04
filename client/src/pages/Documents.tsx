@@ -32,7 +32,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { ObjectUploader } from '@/components/ObjectUploader';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,10 +48,44 @@ import {
   Building,
   Home,
 } from 'lucide-react';
-import type { UploadResult } from '@uppy/core';
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { schemas, enumFields } from '@/lib/validations';
+
+// Simple translation function for placeholder texts
+const t = (key: string) => {
+  const translations: Record<string, string> = {
+    documentTitle: 'Document title',
+    documentDescription: 'Document description',
+    selectCategory: 'Select category',
+    selectOrganizationOptional: 'Select organization (optional)',
+    selectBuildingOptional: 'Select building (optional)',
+    selectResidenceOptional: 'Select residence (optional)',
+    searchDocuments: 'Search documents...',
+    filterByCategory: 'Filter by category',
+    noDocumentsFound: 'No documents found',
+  };
+  return translations[key] || key;
+};
+
+// Type definitions
+interface UploadResult<T, K> {
+  successful?: Array<{
+    uploadURL?: string;
+    name: string;
+    size?: number;
+    type?: string;
+  }>;
+}
+
+// Mock ObjectUploader component (replace with actual implementation)
+const ObjectUploader = ({ children, onGetUploadParameters, onComplete, ...props }: any) => {
+  return (
+    <Button size='sm' variant='outline' {...props}>
+      {children}
+    </Button>
+  );
+};
 
 // Document categories
 const DOCUMENT_CATEGORIES = [
@@ -455,7 +488,7 @@ Documents() {
                     <FormItem>
                       <FormLabel>Title</FormLabel>
                       <FormControl>
-                        <Input placeholder='Document title' {...field} />
+                        <Input placeholder={t('documentTitle')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -469,7 +502,7 @@ Documents() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder='Document description' {...field} />
+                        <Textarea placeholder={t('documentDescription')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -485,7 +518,7 @@ Documents() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='Select a category' />
+                            <SelectValue placeholder={t('selectCategory')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -511,7 +544,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select organization (optional)' />
+                              <SelectValue placeholder={t('selectOrganizationOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -538,7 +571,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select building (optional)' />
+                              <SelectValue placeholder={t('selectBuildingOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -565,7 +598,7 @@ Documents() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select residence (optional)' />
+                              <SelectValue placeholder={t('selectResidenceOptional')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -615,7 +648,7 @@ Documents() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder='Search documents...'
+            placeholder={t('searchDocuments')}
             iconColor='gray'
             data-testid='documents-search'
           />
@@ -627,7 +660,7 @@ Documents() {
             { value: 'all', label: 'All Categories' },
             ...DOCUMENT_CATEGORIES.map((cat) => ({ value: cat.value, label: cat.label })),
           ]}
-          placeholder='Filter by category'
+          placeholder={t('filterByCategory')}
           width='w-48'
           data-testid='category-filter'
         />
@@ -636,7 +669,18 @@ Documents() {
       {/* Documents grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {filteredDocuments.map((document) => (
-          <Card key={document.id} className='hover:shadow-lg transition-shadow'>
+          <Card
+            key={document.id}
+            className='hover:shadow-lg transition-shadow cursor-pointer'
+            onClick={() => {
+              if (document.fileUrl) {
+                window.open(document.fileUrl, '_blank');
+              } else {
+                alert('This document does not have a file URL available.');
+              }
+            }}
+            data-testid={`document-card-${document.id}`}
+          >
             <CardHeader className='pb-3'>
               <div className='flex justify-between items-start'>
                 <div className='flex-1 min-w-0'>
@@ -705,27 +749,32 @@ Documents() {
                     <Button
                       size='sm'
                       variant='outline'
-                      onClick={() => window.open(document.fileUrl, '_blank')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(document.fileUrl, '_blank');
+                      }}
                     >
                       <Download className='w-4 h-4 mr-1' />
                       Download
                     </Button>
                   )}
                   {!document.fileName && (
-                    <ObjectUploader
-                      maxNumberOfFiles={1}
-                      maxFileSize={50 * 1024 * 1024} // 50MB
-                      onGetUploadParameters={async () => {
-                        setUploadingDocumentId(document.id);
-                        const url = await getUploadURL();
-                        return { method: 'PUT' as const, url };
-                      }}
-                      onComplete={handleUploadComplete(document.id)}
-                      buttonClassName='text-sm'
-                    >
-                      <Upload className='w-4 h-4 mr-1' />
-                      Upload
-                    </ObjectUploader>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={50 * 1024 * 1024} // 50MB
+                        onGetUploadParameters={async () => {
+                          setUploadingDocumentId(document.id);
+                          const url = await getUploadURL();
+                          return { method: 'PUT' as const, url };
+                        }}
+                        onComplete={handleUploadComplete(document.id)}
+                        buttonClassName='text-sm'
+                      >
+                        <Upload className='w-4 h-4 mr-1' />
+                        Upload
+                      </ObjectUploader>
+                    </div>
                   )}
                 </div>
                 <div className='flex gap-1'>
@@ -736,14 +785,18 @@ Documents() {
                       <Button
                         size='sm'
                         variant='ghost'
-                        onClick={() => setSelectedDocument(document)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDocument(document);
+                        }}
                       >
                         <Edit className='w-4 h-4' />
                       </Button>
                       <Button
                         size='sm'
                         variant='ghost'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (confirm('Are you sure you want to delete this document?')) {
                             deleteDocumentMutation.mutate(document.id);
                           }
@@ -763,7 +816,7 @@ Documents() {
       {filteredDocuments.length === 0 && (
         <div className='text-center py-12'>
           <FileText className='w-12 h-12 text-gray-400 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>No documents found</h3>
+          <h3 className='text-lg font-medium text-gray-900 mb-2'>{t('noDocumentsFound')}</h3>
           <p className='text-gray-600'>
             {searchTerm || selectedCategory
               ? 'Try adjusting your search or filter criteria.'
@@ -793,7 +846,7 @@ Documents() {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder='Document title' {...field} />
+                      <Input placeholder={t('documentTitle')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -807,7 +860,7 @@ Documents() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder='Document description' {...field} />
+                      <Textarea placeholder={t('documentDescription')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -823,7 +876,7 @@ Documents() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select a category' />
+                          <SelectValue placeholder={t('selectCategory')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

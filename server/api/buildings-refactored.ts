@@ -68,7 +68,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(
         `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -77,7 +76,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       let accessibleBuildings: unknown[] = [];
 
       if (userAccess.isKoveoUser) {
-        console.warn(`🌟 Koveo organization user detected - granting access to ALL buildings`);
 
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await getAllBuildingsWithOrg();
@@ -118,7 +116,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.warn(
         `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
       );
 
@@ -130,8 +127,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
           userId: currentUser.id,
         },
       });
-    } catch (_error) {
-      console.error('Failed to fetch manager buildings:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -164,7 +159,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(
         `📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -197,8 +191,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       res.json({
         building: buildingWithStats,
       });
-    } catch (_error) {
-      console.error('Failed to fetch building details:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch building details',
@@ -238,19 +230,15 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(`🏢 Admin ${currentUser.id} creating building: ${buildingData.name}`);
 
       // Create building
       const newBuilding = await createBuilding(buildingData);
 
-      console.warn(`✅ Building created successfully with ID: ${newBuilding.id}`);
 
       res.status(201).json({
         message: 'Building created successfully',
         building: newBuilding,
       });
-    } catch (_error) {
-      console.error('❌ Error creating building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create building',
@@ -302,7 +290,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(`🏢 ${currentUser.role} ${currentUser.id} updating building: ${buildingId}`);
 
       // Check if building exists
       if (!(await buildingExists(buildingId))) {
@@ -315,14 +302,11 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Update building
       const updatedBuilding = await updateBuilding(buildingId, buildingData);
 
-      console.warn(`✅ Building updated successfully: ${buildingId}`);
 
       res.json({
         message: 'Building updated successfully',
         building: updatedBuilding,
       });
-    } catch (_error) {
-      console.error('❌ Error updating building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to update building',
@@ -363,7 +347,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(
         `🔍 Admin ${currentUser.id} analyzing deletion impact for building: ${buildingId}`
       );
 
@@ -382,14 +365,11 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         buildingId,
         impact: {
           ...impact,
-          warning:
             impact.residencesCount > 0 || impact.documentsCount > 0 || impact.affectedUsersCount > 0
               ? 'This action will affect multiple entities. Use cascade delete to proceed.'
               : null,
         },
       });
-    } catch (_error) {
-      console.error('❌ Error analyzing building deletion impact:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -430,12 +410,10 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.warn(`🗑️ Admin ${currentUser.id} cascading delete building: ${buildingId}`);
 
       // Perform cascade delete
       const deletedBuilding = await cascadeDeleteBuilding(buildingId);
 
-      console.warn(`✅ Building cascading delete completed: ${buildingId}`);
 
       res.json({
         message: 'Building and related entities deleted successfully',
@@ -449,7 +427,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.error('❌ Error cascading delete building:', _error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete building and related entities',

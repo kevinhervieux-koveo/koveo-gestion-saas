@@ -95,12 +95,10 @@ class QueryCacheManager {
     const result = cache.get(_key);
     if (result !== undefined) {
       this.hitCounts.set(cacheType, (this.hitCounts.get(cacheType) || 0) + 1);
-      console.warn(`Cache hit: ${cacheType}:${_key}`);
       return result;
     }
 
     this.missCounts.set(cacheType, (this.missCounts.get(cacheType) || 0) + 1);
-    console.warn(`Cache miss: ${cacheType}:${_key}`);
     return undefined;
   }
 
@@ -119,7 +117,6 @@ class QueryCacheManager {
     }
 
     cache.set(_key, _data);
-    console.warn(`Cached: ${cacheType}:${_key}`);
   }
 
   /**
@@ -138,13 +135,11 @@ class QueryCacheManager {
       for (const key of cache.keys()) {
         if (this.matchesPattern(key, pattern)) {
           cache.delete(key);
-          console.warn(`Invalidated: ${cacheType}:${key}`);
         }
       }
     } else {
       // Clear entire cache
       cache.clear();
-      console.warn(`Cleared cache: ${cacheType}`);
     }
   }
 
@@ -182,7 +177,6 @@ class QueryCacheManager {
       this.hitCounts.set(_type, 0);
       this.missCounts.set(_type, 0);
     }
-    console.warn('All caches cleared');
   }
 
   /**
@@ -249,7 +243,7 @@ export function withCache<T>(
       queryCache.set(cacheType, cacheKey, result);
 
       resolve(result);
-    } catch (error) {
+    } catch (error: any) {
       reject(error);
     }
   });
@@ -306,7 +300,6 @@ export class CacheMonitor {
    */
   static logPerformanceStats(): void {
     const stats = queryCache.getStats();
-    console.warn('Cache Performance Statistics:');
     console.table(stats);
   }
 
@@ -359,14 +352,12 @@ export class CacheWarmer {
    * Warms up caches with frequently accessed data.
    */
   static async warmCaches(): Promise<void> {
-    console.warn('Warming up caches...');
 
     try {
       // This would be implemented with actual database calls
       // Example: Pre-load active users, organizations, etc.
-      console.warn('Cache warming complete');
-    } catch (_error) {
-      console.warn('Cache warming failed:', _error);
+    } catch (error: any) {
+      console.error('❌ Error warming caches:', error);
     }
   }
 }

@@ -14,15 +14,10 @@ import { sslRenewalJob } from './ssl_renewal_job';
  */
 export async function startJobs(): Promise<void> {
   try {
-    console.warn('Starting background jobs...');
 
     // Start SSL renewal job
     await sslRenewalJob.start();
 
-
-    console.warn('All background jobs started successfully');
-  } catch (____error) {
-    console.error('Failed to start background jobs:', _error);
     throw ___error;
   }
 }
@@ -35,11 +30,9 @@ export async function startJobs(): Promise<void> {
  * @returns Function result.
  */
 export function stopJobs(): void {
-  console.warn('Stopping background jobs...');
 
   sslRenewalJob.stop();
 
-  console.warn('All background jobs stopped');
 }
 
 /**
@@ -57,13 +50,11 @@ export function getJobsStatus(): Record<string, any> {
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
-  console.warn('Received SIGTERM, stopping background jobs...');
   stopJobs();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.warn('Received SIGINT, stopping background jobs...');
   stopJobs();
   process.exit(0);
 });

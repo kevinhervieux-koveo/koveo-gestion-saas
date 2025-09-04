@@ -6,10 +6,12 @@ import { z } from 'zod';
 
 // Environment schema validation
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_URL_KOVEO: z.string().optional(), // Production database
   SESSION_SECRET: z.string().optional(),
+  REPL_SLUG: z.string().optional(),
+  REPL_OWNER: z.string().optional(),
 
   // Email configuration
   SENDGRID_API_KEY: z.string().optional(),
@@ -41,28 +43,80 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
+// Detect environment based on domain instead of NODE_ENV
+const detectEnvironment = () => {
+  // Get domain from various sources - check multiple environment variables
+  const replDomain = env.REPL_SLUG && env.REPL_OWNER ? `${env.REPL_SLUG}.${env.REPL_OWNER}.repl.co` : null;
+  const hostDomain = process.env.REPLIT_DOMAINS || process.env.HOST || process.env.DOMAIN;
+  
+  // Check if we're on a custom domain (production deployment)
+  const requestHost = process.env.REQUEST_HOST || process.env.HTTP_HOST;
+  const serverName = process.env.SERVER_NAME;
+  
+  // Use the most specific domain available
+  const domain = requestHost || serverName || hostDomain || replDomain || 'localhost';
+
+  // Production domains (add your production domains here)
+  const productionDomains = ['koveo-gestion.com', 'www.koveo-gestion.com', 'app.koveo-gestion.com'];
+
+  // Check for production indicators
+  const isExplicitProduction = process.env.NODE_ENV === 'production';
+  const isDomainProduction = productionDomains.some((prodDomain) => 
+    domain.includes(prodDomain) || domain === prodDomain
+  );
+  
+  // Force production mode if we detect koveo-gestion.com domain
+  const isKoveoProduction = domain.includes('koveo-gestion.com');
+  
+  // Prioritize explicit NODE_ENV setting (deployment environment)
+  const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction;
+  const isDevelopment = !isProduction;
+
+  console.log(
+    `🌍 Environment detected: ${isDevelopment ? 'development' : 'production'} (domain: ${domain}, koveo: ${isKoveoProduction})`
+  );
+
+  return {
+    environment: isDevelopment ? 'development' : 'production',
+    isDevelopment,
+    isProduction,
+    isTest: false,
+    domain,
+  };
+};
+
+const envConfig = detectEnvironment();
+
 export const config = {
   // Server configuration
   server: {
     port: env.PORT,
-    nodeEnv: env.NODE_ENV,
-    isDevelopment: env.NODE_ENV === 'development',
-    isProduction: env.NODE_ENV === 'production',
-    isTest: env.NODE_ENV === 'test',
+    nodeEnv: envConfig.environment,
+    isDevelopment: envConfig.isDevelopment,
+    isProduction: envConfig.isProduction,
+    isTest: envConfig.isTest,
+    domain: envConfig.domain,
   },
 
   // Database configuration
   database: {
-    url: env.DATABASE_URL,
+    // Use DATABASE_URL_KOVEO for production (koveo-gestion.com), DATABASE_URL for development
+    url: envConfig.isProduction && env.DATABASE_URL_KOVEO ? env.DATABASE_URL_KOVEO : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
+    // Helper function to get database URL at runtime based on request
+    getRuntimeDatabaseUrl: (requestDomain?: string) => {
+      const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
+      const shouldUseProduction = envConfig.isProduction || isKoveoRequest;
+      return shouldUseProduction && env.DATABASE_URL_KOVEO ? env.DATABASE_URL_KOVEO : env.DATABASE_URL;
+    },
   },
 
   // Session configuration
   session: {
     secret: env.SESSION_SECRET || 'koveo-gestion-secret-key',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    secure: env.NODE_ENV === 'production',
+    secure: envConfig.isProduction,
     httpOnly: true,
     sameSite: 'strict' as const,
   },

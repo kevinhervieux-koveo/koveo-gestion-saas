@@ -1,0 +1,313 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-DqN1eaEX.js:1 🔍 [INVITE FORM] Buildings state: {isLoading: true, hasError: false, error: undefined, buildingsCount: 0, buildings: Array(0)}
+index-ZEvQ2SZY.js:293  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/manager/residences 404 (Not Found)
+ok @ index-ZEvQ2SZY.js:293
+queryFn @ user-management-DqN1eaEX.js:1
+d @ index-ZEvQ2SZY.js:280
+_ @ index-ZEvQ2SZY.js:280
+start @ index-ZEvQ2SZY.js:280
+fetch @ index-ZEvQ2SZY.js:280
+#d @ index-ZEvQ2SZY.js:280
+setOptions @ index-ZEvQ2SZY.js:280
+(anonymous) @ index-ZEvQ2SZY.js:293
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+be @ index-ZEvQ2SZY.js:77
+fs @ index-ZEvQ2SZY.js:182
+jg @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+na @ index-ZEvQ2SZY.js:195
+Jg @ index-ZEvQ2SZY.js:195
+Sv @ index-ZEvQ2SZY.js:195
+ys @ index-ZEvQ2SZY.js:195
+vv @ index-ZEvQ2SZY.js:195
+Uf @ index-ZEvQ2SZY.js:195
+lv @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Dv @ index-ZEvQ2SZY.js:217
+vs @ index-ZEvQ2SZY.js:217
+Hf @ index-ZEvQ2SZY.js:217
+(anonymous) @ index-ZEvQ2SZY.js:217
+<zn>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+hs @ user-management-DqN1eaEX.js:1
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+t1 @ index-ZEvQ2SZY.js:195
+e1 @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<...>
+UA.r.createElement @ index-ZEvQ2SZY.js:22
+uw @ index-ZEvQ2SZY.js:280
+Se @ index-ZEvQ2SZY.js:280
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+t1 @ index-ZEvQ2SZY.js:195
+e1 @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<Se>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+tk @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+fv @ index-ZEvQ2SZY.js:195
+zf @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Dv @ index-ZEvQ2SZY.js:217
+vs @ index-ZEvQ2SZY.js:217
+Hf @ index-ZEvQ2SZY.js:217
+(anonymous) @ index-ZEvQ2SZY.js:217
+<tk>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+nk @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+fv @ index-ZEvQ2SZY.js:195
+zf @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<nk>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+(anonymous) @ index-ZEvQ2SZY.js:417
+user-management-DqN1eaEX.js:1 🏢 [BUILDINGS API] Fetched buildings data: {buildings: Array(2), meta: {…}}
+index-ZEvQ2SZY.js:168 TypeError: t?.map is not a function
+    at user-management-DqN1eaEX.js:1:3774
+    at Object.react_stack_bottom_frame (index-ZEvQ2SZY.js:261:13438)
+    at be (index-ZEvQ2SZY.js:77:109)
+    at fs (index-ZEvQ2SZY.js:182:24690)
+    at jg (index-ZEvQ2SZY.js:195:1133)
+    at Jg (index-ZEvQ2SZY.js:195:19626)
+    at na (index-ZEvQ2SZY.js:195:19510)
+    at Jg (index-ZEvQ2SZY.js:195:20360)
+    at na (index-ZEvQ2SZY.js:195:19510)
+    at Jg (index-ZEvQ2SZY.js:195:20360)
+
+The above error occurred in the <zn> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, S_.
+
+overrideMethod @ hook.js:608
+bg @ index-ZEvQ2SZY.js:168
+wg @ index-ZEvQ2SZY.js:173
+be @ index-ZEvQ2SZY.js:77
+c.componentDidCatch.e.callback @ index-ZEvQ2SZY.js:173
+Hy @ index-ZEvQ2SZY.js:139
+Vy @ index-ZEvQ2SZY.js:139
+be @ index-ZEvQ2SZY.js:77
+Hg @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+gv @ index-ZEvQ2SZY.js:195
+Uf @ index-ZEvQ2SZY.js:195
+lv @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Dv @ index-ZEvQ2SZY.js:217
+vs @ index-ZEvQ2SZY.js:217
+Hf @ index-ZEvQ2SZY.js:217
+(anonymous) @ index-ZEvQ2SZY.js:217
+<zn>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+hs @ user-management-DqN1eaEX.js:1
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+t1 @ index-ZEvQ2SZY.js:195
+e1 @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<...>
+UA.r.createElement @ index-ZEvQ2SZY.js:22
+uw @ index-ZEvQ2SZY.js:280
+Se @ index-ZEvQ2SZY.js:280
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+t1 @ index-ZEvQ2SZY.js:195
+e1 @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<Se>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+tk @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+fv @ index-ZEvQ2SZY.js:195
+zf @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Dv @ index-ZEvQ2SZY.js:217
+vs @ index-ZEvQ2SZY.js:217
+Hf @ index-ZEvQ2SZY.js:217
+(anonymous) @ index-ZEvQ2SZY.js:217
+<tk>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+nk @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+fv @ index-ZEvQ2SZY.js:195
+zf @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<nk>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+(anonymous) @ index-ZEvQ2SZY.js:417
+index-ZEvQ2SZY.js:417 Authentication Error Boundary caught an error: TypeError: t?.map is not a function
+    at user-management-DqN1eaEX.js:1:3774
+    at Object.react_stack_bottom_frame (index-ZEvQ2SZY.js:261:13438)
+    at be (index-ZEvQ2SZY.js:77:109)
+    at fs (index-ZEvQ2SZY.js:182:24690)
+    at jg (index-ZEvQ2SZY.js:195:1133)
+    at Jg (index-ZEvQ2SZY.js:195:19626)
+    at na (index-ZEvQ2SZY.js:195:19510)
+    at Jg (index-ZEvQ2SZY.js:195:20360)
+    at na (index-ZEvQ2SZY.js:195:19510)
+    at Jg (index-ZEvQ2SZY.js:195:20360) {componentStack: '\n    at zn (https://723dd16d-7686-454e-a8f7-5701a0…rd.replit.dev/assets/index-ZEvQ2SZY.js:417:27719)'}
+overrideMethod @ hook.js:608
+componentDidCatch @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+c.componentDidCatch.e.callback @ index-ZEvQ2SZY.js:173
+Hy @ index-ZEvQ2SZY.js:139
+Vy @ index-ZEvQ2SZY.js:139
+be @ index-ZEvQ2SZY.js:77
+Hg @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+Da @ index-ZEvQ2SZY.js:195
+Gg @ index-ZEvQ2SZY.js:195
+gv @ index-ZEvQ2SZY.js:195
+Uf @ index-ZEvQ2SZY.js:195
+lv @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Dv @ index-ZEvQ2SZY.js:217
+vs @ index-ZEvQ2SZY.js:217
+Hf @ index-ZEvQ2SZY.js:217
+(anonymous) @ index-ZEvQ2SZY.js:217
+<S_>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+nk @ index-ZEvQ2SZY.js:417
+react_stack_bottom_frame @ index-ZEvQ2SZY.js:261
+Hd @ index-ZEvQ2SZY.js:152
+hf @ index-ZEvQ2SZY.js:173
+xf @ index-ZEvQ2SZY.js:182
+be @ index-ZEvQ2SZY.js:77
+mv @ index-ZEvQ2SZY.js:195
+fv @ index-ZEvQ2SZY.js:195
+zf @ index-ZEvQ2SZY.js:195
+sv @ index-ZEvQ2SZY.js:195
+Cv @ index-ZEvQ2SZY.js:217
+r @ index-ZEvQ2SZY.js:43
+<nk>
+LA.Tc.jsxDEV @ index-ZEvQ2SZY.js:35
+(anonymous) @ index-ZEvQ2SZY.js:417

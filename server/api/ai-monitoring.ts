@@ -116,8 +116,6 @@ export async function getAIMetrics(req: Request, res: Response) {
       lastAnalysis: metrics.lastAnalysis || new Date(),
       aiEfficiency: parseFloat(metrics.aiEfficiency || '0'),
     });
-  } catch (____error) {
-    console.error('Error fetching AI metrics:', _error);
     res.status(500).json({ _error: 'Failed to fetch AI metrics' });
   }
 }
@@ -163,8 +161,6 @@ export async function getAIInteractions(req: Request, res: Response) {
       .limit(50);
 
     res.json(interactions);
-  } catch (____error) {
-    console.error('Error fetching AI interactions:', _error);
     res.status(500).json({ _error: 'Failed to fetch AI interactions' });
   }
 }
@@ -210,8 +206,6 @@ export async function getAIInsights(req: Request, res: Response) {
       .limit(20);
 
     res.json(insights);
-  } catch (____error) {
-    console.error('Error fetching AI insights:', _error);
     res.status(500).json({ _error: 'Failed to fetch AI insights' });
   }
 }
@@ -326,8 +320,6 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       message: 'AI analysis triggered successfully',
       insightsGenerated: numberOfInsights,
     });
-  } catch (____error) {
-    console.error('Error triggering AI analysis:', _error);
     res.status(500).json({ _error: 'Failed to trigger AI analysis' });
   }
 }
@@ -404,8 +396,6 @@ export async function applyAISuggestion(req: Request, res: Response) {
       message: 'Suggestion applied successfully',
       insight: updatedInsight,
     });
-  } catch (____error) {
-    console.error('Error applying AI suggestion:', _error);
     res.status(500).json({ _error: 'Failed to apply AI suggestion' });
   }
 }
@@ -531,8 +521,6 @@ export async function recordAIInteraction(req: Request, res: Response) {
     await updateAIMetrics();
 
     res.json(newInteraction);
-  } catch (error) {
-    console.error('Error recording AI interaction:', error);
     res.status(500).json({ _error: 'Failed to record AI interaction' });
   }
 }
@@ -555,8 +543,6 @@ export function registerAIMonitoringRoutes(app: Express): void {
         message: 'AI analysis triggered successfully',
         insightsGenerated,
       });
-    } catch (error) {
-      console.error('AI analysis trigger error:', error);
       res.status(500).json({ _error: 'Failed to trigger AI analysis' });
     }
   });
@@ -591,8 +577,6 @@ export function registerAIMonitoringRoutes(app: Express): void {
         message: 'Suggestion applied successfully',
         insight: updatedInsight,
       });
-    } catch (error) {
-      console.error('Apply AI insight error:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });

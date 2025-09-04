@@ -22,7 +22,7 @@ class ReplitMonitor {
       errors: 0,
       averageResponseTime: 0,
       memoryUsage: 0,
-      uptime: 0
+      uptime: 0,
     };
   }
 
@@ -35,10 +35,10 @@ class ReplitMonitor {
       // Memory usage
       const memUsage = process.memoryUsage();
       this.metrics.memoryUsage = Math.round(memUsage.heapUsed / 1024 / 1024);
-      
+
       // Uptime
       this.metrics.uptime = Math.round((Date.now() - this.startTime) / 1000);
-      
+
       // Disk usage
       if (process.platform !== 'win32') {
         try {
@@ -48,7 +48,7 @@ class ReplitMonitor {
           // Silent fail for disk usage
         }
       }
-      
+
       return this.metrics;
     } catch (_error) {
       console.error('Error collecting metrics:', _error.message);
@@ -63,19 +63,21 @@ class ReplitMonitor {
   start() {
     console.warn('🔍 Starting Replit Environment Monitor...');
     console.warn('Monitoring started at:', new Date().toISOString());
-    
+
     // Display metrics every 30 seconds
     setInterval(() => {
       const metrics = this.collectMetrics();
-      console.warn(`[${new Date().toLocaleTimeString()}] Memory: ${metrics.memoryUsage}MB | Uptime: ${metrics.uptime}s`);
+      console.warn(
+        `[${new Date().toLocaleTimeString()}] Memory: ${metrics.memoryUsage}MB | Uptime: ${metrics.uptime}s`
+      );
     }, 30000);
-    
+
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       console.warn('\n🛑 Monitoring stopped');
       process.exit(0);
     });
-    
+
     console.warn('Monitor running... Press Ctrl+C to stop');
   }
 }

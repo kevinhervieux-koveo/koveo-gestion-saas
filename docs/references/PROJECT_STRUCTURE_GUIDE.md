@@ -54,16 +54,19 @@ koveo-gestion/
 ## Organization Principles
 
 ### 1. Separation of Concerns
+
 - **Client**: All frontend code in `client/`
 - **Server**: All backend code in `server/`
 - **Shared**: Common types and schemas in `shared/`
 
 ### 2. Feature-Based Organization
+
 - API routes organized by domain (`users`, `organizations`, `buildings`)
 - Page components organized by user role (`admin`, `manager`, `residents`)
 - Database queries grouped by entity type
 
 ### 3. Consistent Naming Conventions
+
 - **Files**: kebab-case (`user-management.tsx`)
 - **Directories**: kebab-case (`api-routes/`)
 - **Components**: PascalCase (`UserManagement`)
@@ -71,6 +74,7 @@ koveo-gestion/
 - **Constants**: SCREAMING_SNAKE_CASE (`HTTP_STATUS`)
 
 ### 4. Index File Exports
+
 - Each major directory has an `index.ts` for clean imports
 - Re-export patterns for commonly used modules
 - Centralized access to related functionality
@@ -78,6 +82,7 @@ koveo-gestion/
 ## Client Structure Details
 
 ### Components Organization
+
 ```
 client/src/components/
 ├── ui/                    # Base UI components (buttons, inputs, etc.)
@@ -91,6 +96,7 @@ client/src/components/
 ```
 
 ### Pages Organization
+
 ```
 client/src/pages/
 ├── admin/                 # Admin role pages
@@ -108,6 +114,7 @@ client/src/pages/
 ## Server Structure Details
 
 ### API Organization
+
 ```
 server/api/
 ├── users.ts              # User-related endpoints
@@ -118,6 +125,7 @@ server/api/
 ```
 
 ### Configuration Management
+
 ```
 server/config/
 ├── index.ts              # Main configuration
@@ -127,6 +135,7 @@ server/config/
 ```
 
 ### Type Definitions
+
 ```
 server/types/
 ├── index.ts              # Main type exports
@@ -138,6 +147,7 @@ server/types/
 ## Best Practices
 
 ### 1. Import Organization
+
 ```typescript
 // External imports first
 import React from 'react';
@@ -150,6 +160,7 @@ import { getUserById } from '@shared/schema';
 ```
 
 ### 2. Component Structure
+
 ```typescript
 // Component definition
 interface ComponentProps {
@@ -166,12 +177,14 @@ export { Component }; // For reusable components
 ```
 
 ### 3. File Naming
+
 - Use descriptive, specific names
 - Avoid generic names like `utils.ts` or `helpers.ts`
 - Include the entity or feature in the name
 - Examples: `user-validation.ts`, `building-queries.ts`
 
 ### 4. Directory Organization
+
 - Group related files together
 - Use subdirectories for complex features
 - Maintain consistent depth (avoid deep nesting)
@@ -180,12 +193,14 @@ export { Component }; // For reusable components
 ## Configuration Standards
 
 ### Environment Variables
+
 - Use TypeScript schema validation
 - Provide sensible defaults
 - Document all required variables
 - Group by functionality (database, email, security)
 
 ### Type Safety
+
 - Define interfaces for all data structures
 - Use strict TypeScript configuration
 - Validate data at boundaries (API, database)
@@ -194,12 +209,14 @@ export { Component }; // For reusable components
 ## Documentation Standards
 
 ### Code Documentation
+
 - JSDoc comments for all public functions
 - Interface documentation with examples
 - Complex logic explanation
 - Quebec compliance notes where applicable
 
 ### File Documentation
+
 - README files for major directories
 - Architecture decision records (ADRs)
 - API documentation with examples
@@ -208,18 +225,21 @@ export { Component }; // For reusable components
 ## Maintenance Guidelines
 
 ### Regular Cleanup
+
 - Remove unused files and dependencies
 - Update outdated documentation
 - Refactor inconsistent naming
 - Consolidate duplicate functionality
 
 ### Quality Checks
+
 - Run linting and formatting tools
 - Validate import organization
 - Check for circular dependencies
 - Monitor bundle size and performance
 
 ### Consistency Monitoring
+
 - Automated checks for naming conventions
 - File organization validation
 - Documentation coverage tracking

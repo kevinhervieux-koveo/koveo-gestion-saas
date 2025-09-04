@@ -20,7 +20,15 @@ import { relations } from 'drizzle-orm';
  * Enum defining user roles in the Quebec property management system.
  * Determines user permissions and access levels across the application.
  */
-export const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident']);
+export const userRoleEnum = pgEnum('user_role', [
+  'admin',
+  'manager',
+  'tenant',
+  'resident',
+  'demo_manager',
+  'demo_tenant',
+  'demo_resident',
+]);
 
 /**
  * Enum defining invitation status values for user invitation system.
@@ -40,7 +48,7 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
@@ -63,11 +71,11 @@ export const users = pgTable('users', {
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
-  type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative'
+  type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),
   city: text('city').notNull(),
   province: text('province').notNull().default('QC'),
@@ -86,13 +94,13 @@ export const organizations = pgTable('organizations', {
  * Users can belong to multiple organizations with different roles.
  */
 export const userOrganizations = pgTable('user_organizations', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  organizationId: uuid('organization_id')
+  organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   organizationRole: userRoleEnum('organization_role').notNull().default('tenant'),
@@ -107,17 +115,17 @@ export const userOrganizations = pgTable('user_organizations', {
  * Supports role-based invitations with expiration and security features.
  */
 export const invitations = pgTable('invitations', {
-  id: text('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  organizationId: text('organization_id'),
-  buildingId: text('building_id'),
+  organizationId: varchar('organization_id'),
+  buildingId: varchar('building_id'),
   residenceId: text('residence_id'),
   email: text('email').notNull(),
   token: text('token').notNull().unique(),
   role: userRoleEnum('role').notNull(),
   status: invitationStatusEnum('status').notNull().default('pending'),
-  invitedByUserId: text('invited_by_user_id').notNull(),
+  invitedByUserId: varchar('invited_by_user_id').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   tokenHash: text('token_hash').notNull(),
   usageCount: integer('usage_count').notNull().default(0),
@@ -127,7 +135,7 @@ export const invitations = pgTable('invitations', {
   securityLevel: text('security_level'),
   requires2fa: boolean('requires_2fa').notNull().default(false),
   acceptedAt: timestamp('accepted_at'),
-  acceptedBy: text('accepted_by_user_id'),
+  acceptedBy: varchar('accepted_by_user_id'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   lastAccessedAt: timestamp('last_accessed_at'),
@@ -140,10 +148,10 @@ export const invitations = pgTable('invitations', {
  * Stores temporary tokens that expire after a set time for security.
  */
 export const passwordResetTokens = pgTable('password_reset_tokens', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   token: text('token').notNull().unique(),
@@ -161,12 +169,12 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
  * Provides comprehensive logging for invitation lifecycle and security monitoring.
  */
 export const invitationAuditLog = pgTable('invitation_audit_log', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  invitationId: text('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
+  invitationId: varchar('invitation_id').references(() => invitations.id, { onDelete: 'cascade' }),
   action: text('action').notNull(),
-  performedBy: uuid('performed_by').references(() => users.id),
+  performedBy: varchar('performed_by').references(() => users.id),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   details: json('details'),
@@ -178,6 +186,7 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
   'user',
+  'users', // Added to handle existing production data
   'organization',
   'building',
   'residence',
@@ -232,6 +241,8 @@ export const rolePermissions = pgTable('role_permissions', {
   permissionId: uuid('permission_id')
     .notNull()
     .references(() => permissions.id),
+  grantedBy: varchar('granted_by').references(() => users.id),
+  grantedAt: timestamp('granted_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -239,7 +250,7 @@ export const userPermissions = pgTable('user_permissions', {
   id: uuid('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: uuid('user_id')
+  userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
   permissionId: uuid('permission_id')
@@ -252,15 +263,38 @@ export const userPermissions = pgTable('user_permissions', {
 
 // Insert schemas - manual Zod schemas to avoid drizzle-zod compatibility issues
 export const insertUserSchema = z.object({
-  username: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().min(1).max(100, 'First name must be at most 100 characters'),
-  lastName: z.string().min(1).max(100, 'Last name must be at most 100 characters'),
-  phone: z.string().optional(),
+  username: z.string().min(1).max(50, 'Username must be between 1-50 characters'),
+  email: z.string().email('Must be a valid email address').toLowerCase(),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
+      'Password must contain uppercase, lowercase, number, and special character'
+    ),
+  firstName: z.string().min(1).max(100, 'First name must be 1-100 characters').trim(),
+  lastName: z.string().min(1).max(100, 'Last name must be 1-100 characters').trim(),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (phone) =>
+        !phone || /^(\+1\s?)?(\([0-9]{3}\)|[0-9]{3})[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}$/.test(phone),
+      'Phone must be a valid North American format (e.g., 514-123-4567 or (514) 123-4567)'
+    ),
   profileImage: z.string().optional(),
   language: z.string().default('fr'),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
+  role: z
+    .enum([
+      'admin',
+      'manager',
+      'tenant',
+      'resident',
+      'demo_manager',
+      'demo_tenant',
+      'demo_resident',
+    ])
+    .default('tenant'),
 });
 
 export const insertOrganizationSchema = z.object({
@@ -279,15 +313,33 @@ export const insertOrganizationSchema = z.object({
 export const insertUserOrganizationSchema = z.object({
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
-  organizationRole: z.enum(['admin', 'manager', 'tenant', 'resident']).default('tenant'),
+  organizationRole: z
+    .enum([
+      'admin',
+      'manager',
+      'tenant',
+      'resident',
+      'demo_manager',
+      'demo_tenant',
+      'demo_resident',
+    ])
+    .default('tenant'),
   canAccessAllOrganizations: z.boolean().default(false),
 });
 
 export const insertInvitationSchema = z.object({
   organizationId: z.string().uuid().optional(),
-  residenceId: z.string().uuid().optional(),
+  residenceId: z.union([z.string().uuid(), z.null()]).optional(),
   email: z.string().email(),
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  role: z.enum([
+    'admin',
+    'manager',
+    'tenant',
+    'resident',
+    'demo_manager',
+    'demo_tenant',
+    'demo_resident',
+  ]),
   invitedByUserId: z.string().uuid(),
   expiresAt: z.union([
     z.date(),
@@ -329,7 +381,15 @@ export const insertPermissionSchema = z.object({
 });
 
 export const insertRolePermissionSchema = z.object({
-  role: z.enum(['admin', 'manager', 'tenant', 'resident']),
+  role: z.enum([
+    'admin',
+    'manager',
+    'tenant',
+    'resident',
+    'demo_manager',
+    'demo_tenant',
+    'demo_resident',
+  ]),
   permissionId: z.string().uuid(),
 });
 
@@ -348,6 +408,25 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
  *
  */
 export type User = typeof users.$inferSelect;
+
+// Extended user type with assignment data for user management
+export type UserWithAssignments = User & {
+  organizations: Array<{
+    id: string;
+    name: string;
+    type: string;
+  }>;
+  buildings: Array<{
+    id: string;
+    name: string;
+  }>;
+  residences: Array<{
+    id: string;
+    unitNumber: string;
+    buildingId: string;
+    buildingName: string;
+  }>;
+};
 
 /**
  *

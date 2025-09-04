@@ -1,9 +1,14 @@
 import { Express } from 'express';
 import { db } from '../db';
-import { contacts, residences, buildings, organizations } from '../../shared/schema';
+import {
+  contacts,
+  residences,
+  buildings,
+  organizations,
+  insertContactSchema,
+} from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
-import { insertContactSchema } from '../../shared/schemas/property';
 
 /**
  * Register contact routes for managing entity contacts.
@@ -40,8 +45,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
-    } catch (_error) {
-      console.error('Error fetching contacts:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching entity contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -79,8 +84,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(residenceContacts);
-    } catch (_error) {
-      console.error('Error fetching residence contacts:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching residence contacts:', error);
       res.status(500).json({ message: 'Failed to fetch residence contacts' });
     }
   });
@@ -123,8 +128,8 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
-    } catch (_error) {
-      console.error('Error fetching contacts:', _error);
+    } catch (error: any) {
+      console.error('❌ Error fetching contacts:', error);
       res.status(500).json({ message: 'Failed to fetch contacts' });
     }
   });
@@ -186,8 +191,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newContact);
-    } catch (_error) {
-      console.error('Error creating contact:', _error);
+    } catch (error: any) {
+      console.error('❌ Error creating contact:', error);
       res.status(500).json({ message: 'Failed to create contact' });
     }
   });
@@ -224,8 +229,8 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.json(updatedContact);
-    } catch (_error) {
-      console.error('Error updating contact:', _error);
+    } catch (error: any) {
+      console.error('❌ Error updating contact:', error);
       res.status(500).json({ message: 'Failed to update contact' });
     }
   });
@@ -260,8 +265,8 @@ export function registerContactRoutes(app: Express) {
         .where(eq(contacts.id, id));
 
       res.json({ message: 'Contact deleted successfully' });
-    } catch (_error) {
-      console.error('Error deleting contact:', _error);
+    } catch (error: any) {
+      console.error('❌ Error deleting contact:', error);
       res.status(500).json({ message: 'Failed to delete contact' });
     }
   });

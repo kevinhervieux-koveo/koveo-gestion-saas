@@ -60,7 +60,6 @@ class DatabasePerformanceMonitor {
         this.slowQueries.shift();
       }
 
-      console.warn(`Slow query detected: ${queryName} took ${duration.toFixed(2)}ms`);
     }
   }
 

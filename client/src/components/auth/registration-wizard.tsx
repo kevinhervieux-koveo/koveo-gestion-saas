@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -94,22 +94,26 @@ export function RegistrationWizard({
     );
   };
 
-  // Handle data changes from step components
-  const handleDataChange = (stepData: Record<string, unknown>) => {
+  // Handle data changes from step components - memoized to prevent infinite loops
+  const handleDataChange = useCallback((stepData: Record<string, unknown>) => {
     setWizardData((prevData: Record<string, unknown>) => ({
       ...prevData,
       [currentStep.id]: stepData,
     }));
-  };
+  }, [currentStep.id]);
 
-  // Handle validation changes from step components
-  const handleValidationChange = (isValid: boolean) => {
-    updateStepValidation(currentStep.id, isValid);
+  // Handle validation changes from step components - memoized to prevent infinite loops
+  const handleValidationChange = useCallback((isValid: boolean) => {
+    setSteps((prevSteps) =>
+      prevSteps.map((step) => (step.id === currentStep.id ? { ...step, isValid } : step))
+    );
     // Auto-complete step if valid and has required data
-    if (isValid && wizardData[currentStep.id]) {
-      updateStepCompletion(currentStep.id, true);
+    if (isValid) {
+      setSteps((prevSteps) =>
+        prevSteps.map((step) => (step.id === currentStep.id ? { ...step, isComplete: true } : step))
+      );
     }
-  };
+  }, [currentStep.id]);
 
   // Navigate to next step
   const handleNext = () => {
@@ -132,9 +136,6 @@ export function RegistrationWizard({
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      // Mark final step as complete
-      updateStepCompletion(currentStep.id, true);
-
       // Combine all wizard data
       const completeData = {
         ...wizardData,
@@ -142,8 +143,14 @@ export function RegistrationWizard({
       };
 
       await onComplete(completeData);
-    } catch (_error) {
-      console.error('Wizard completion _error:', _error);
+
+      // Only mark final step as complete after successful submission
+      updateStepCompletion(currentStep.id, true);
+    } catch (error) {
+      // Wizard completion error
+      // Reset step completion on error to allow retry
+      updateStepCompletion(currentStep.id, false);
+    } finally {
       setIsSubmitting(false);
     }
   };

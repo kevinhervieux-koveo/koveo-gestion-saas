@@ -6,13 +6,13 @@ rules:
           $FORM.register($FIELD, { required: true })
       - pattern: |
           $FIELD: z.string().min(1)
-    message: "Personal data collection requires explicit consent under Quebec Law 25"
+    message: 'Personal data collection requires explicit consent under Quebec Law 25'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
       category: privacy
       law25: data-collection
-      
+
   - id: law25-sensitive-data-logging
     pattern-either:
       - pattern: console.log($...ARGS)
@@ -25,8 +25,8 @@ rules:
       metavariable: $...ARGS
       patterns:
         - pattern-either:
-          - pattern-regex: '.*(?i)(password|ssn|sin|nas|email|phone|address|postalcode|postal_code).*'
-    message: "Potentially sensitive personal data detected in logging - violates Quebec Law 25 data minimization"
+            - pattern-regex: '.*(?i)(password|ssn|sin|nas|email|phone|address|postalcode|postal_code).*'
+    message: 'Potentially sensitive personal data detected in logging - violates Quebec Law 25 data minimization'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -39,7 +39,7 @@ rules:
           const $VAR = { ..., createdAt: ..., ...}
       - pattern: |
           $TABLE.insert({ ..., created_at: ..., ...})
-    message: "Data retention policy required for personal data under Quebec Law 25"
+    message: 'Data retention policy required for personal data under Quebec Law 25'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -54,7 +54,7 @@ rules:
           $USER.phone
       - pattern: |
           $USER.address
-    message: "Access to personal data requires consent tracking under Quebec Law 25"
+    message: 'Access to personal data requires consent tracking under Quebec Law 25'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -72,7 +72,7 @@ rules:
           $...VARS.rent
       - pattern: |
           bill.$FIELD
-    message: "Tenant financial data requires encryption and proper access controls"
+    message: 'Tenant financial data requires encryption and proper access controls'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -87,7 +87,7 @@ rules:
           $...VARS.accessCode
       - pattern: |
           $...VARS.buzzerCode
-    message: "Building access data must be encrypted and access-controlled"
+    message: 'Building access data must be encrypted and access-controlled'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -107,7 +107,7 @@ rules:
       metavariable: $URL
       patterns:
         - pattern-not-regex: '^(\/|\.\/|\.\.\/|https?:\/\/(localhost|127\.0\.0\.1|.*\.replit\.app))'
-    message: "Cross-border data transfer requires explicit consent under Quebec Law 25"
+    message: 'Cross-border data transfer requires explicit consent under Quebec Law 25'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -120,7 +120,7 @@ rules:
           try { ... } catch ($ERR) { ... }
       - pattern: |
           .catch($ERR => ...)
-    message: "Data breach detection and notification procedures required under Quebec Law 25"
+    message: 'Data breach detection and notification procedures required under Quebec Law 25'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -134,7 +134,7 @@ rules:
           const consent = { ..., granted: true, ... }
       - pattern: |
           $USER.consent = true
-    message: "Consent withdrawal mechanism required under Quebec Law 25"
+    message: 'Consent withdrawal mechanism required under Quebec Law 25'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
@@ -149,7 +149,7 @@ rules:
           $USER.update($DATA)
       - pattern: |
           deleteUser($ID)
-    message: "Data subject rights implementation (access, rectification, erasure) required under Quebec Law 25"
+    message: 'Data subject rights implementation (access, rectification, erasure) required under Quebec Law 25'
     languages: [typescript, javascript]
     severity: INFO
     metadata:
@@ -167,7 +167,7 @@ rules:
       metavariable: $SENSITIVE_FIELD
       patterns:
         - pattern-regex: '.*(?i)(password|ssn|sin|nas|credit_card|bank_account).*'
-    message: "Sensitive data must be encrypted at rest under Quebec Law 25"
+    message: 'Sensitive data must be encrypted at rest under Quebec Law 25'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -180,7 +180,7 @@ rules:
           http://$...REST
       - pattern: |
           new URL("http://$...REST")
-    message: "Personal data transmission must use secure protocols (HTTPS) under Quebec Law 25"
+    message: 'Personal data transmission must use secure protocols (HTTPS) under Quebec Law 25'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
@@ -196,12 +196,12 @@ rules:
           "INSERT INTO " + $TABLE + " VALUES (" + $VALUES + ")"
       - pattern: |
           db.query($QUERY + $USER_INPUT)
-    message: "SQL injection vulnerability - use parameterized queries instead"
+    message: 'SQL injection vulnerability - use parameterized queries instead'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
       category: security
-      cwe: "CWE-89: SQL Injection"
+      cwe: 'CWE-89: SQL Injection'
 
   - id: xss-prevention-react
     pattern-either:
@@ -209,12 +209,12 @@ rules:
           <div dangerouslySetInnerHTML={{__html: $HTML}} />
       - pattern: |
           React.createElement("div", {dangerouslySetInnerHTML: {__html: $HTML}})
-    message: "XSS risk - sanitize HTML content before using dangerouslySetInnerHTML"
+    message: 'XSS risk - sanitize HTML content before using dangerouslySetInnerHTML'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
       category: security
-      cwe: "CWE-79: Cross-site Scripting"
+      cwe: 'CWE-79: Cross-site Scripting'
 
   - id: weak-crypto-usage
     pattern-either:
@@ -229,24 +229,24 @@ rules:
     metavariable-comparison:
       comparison: $ROUNDS < 10
       metavariable: $ROUNDS
-    message: "Weak cryptographic algorithm - use SHA-256 or bcrypt with rounds >= 10"
+    message: 'Weak cryptographic algorithm - use SHA-256 or bcrypt with rounds >= 10'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
       category: security
-      cwe: "CWE-327: Weak Cryptography"
+      cwe: 'CWE-327: Weak Cryptography'
 
   - id: insecure-random-generation
     pattern-either:
       - pattern: Math.random()
       - pattern: new Date().getTime()
       - pattern: Date.now()
-    message: "Insecure random number generation - use crypto.randomBytes() for security-sensitive operations"
+    message: 'Insecure random number generation - use crypto.randomBytes() for security-sensitive operations'
     languages: [typescript, javascript]
     severity: WARNING
     metadata:
       category: security
-      cwe: "CWE-338: Weak PRNG"
+      cwe: 'CWE-338: Weak PRNG'
 
   - id: command-injection-risk
     pattern-either:
@@ -256,12 +256,12 @@ rules:
           spawn($CMD, [$USER_INPUT])
       - pattern: |
           execSync(`${$CMD} ${$USER_INPUT}`)
-    message: "Command injection risk - sanitize user input before executing shell commands"
+    message: 'Command injection risk - sanitize user input before executing shell commands'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
       category: security
-      cwe: "CWE-78: Command Injection"
+      cwe: 'CWE-78: Command Injection'
 
   - id: directory-traversal-prevention
     pattern-either:
@@ -271,9 +271,238 @@ rules:
           fs.writeFile($USER_INPUT, ...)
       - pattern: |
           require($USER_INPUT)
-    message: "Directory traversal vulnerability - validate and sanitize file paths"
+    message: 'Directory traversal vulnerability - validate and sanitize file paths'
     languages: [typescript, javascript]
     severity: ERROR
     metadata:
       category: security
-      cwe: "CWE-22: Path Traversal"
+      cwe: 'CWE-22: Path Traversal'
+
+  # Express.js Security Rules
+  - id: express-missing-helmet
+    pattern-either:
+      - pattern: |
+          const app = express()
+      - pattern: |
+          app = express()
+    pattern-not-inside: |
+      $...
+      app.use(helmet())
+      $...
+    message: 'Express app missing Helmet.js security headers middleware'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-693: Protection Mechanism Failure'
+
+  - id: express-cors-wildcard
+    pattern-either:
+      - pattern: |
+          cors({ origin: "*" })
+      - pattern: |
+          cors({ origin: true })
+    message: 'Overly permissive CORS policy - specify allowed origins explicitly'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-942: Permissive Cross-domain Policy'
+
+  - id: session-security-missing
+    pattern-either:
+      - pattern: |
+          session({ secret: $SECRET })
+      - pattern: |
+          session({ $...OPTS })
+    pattern-not-inside: |
+      session({
+        $...BEFORE,
+        secure: true,
+        $...AFTER
+      })
+    message: 'Session configuration missing security options (secure, httpOnly, sameSite)'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-614: Sensitive Cookie Without Secure Flag'
+
+  # Authentication & Authorization
+  - id: hardcoded-secrets
+    pattern-either:
+      - pattern: |
+          const apiKey = "$KEY"
+      - pattern: |
+          const secret = "$SECRET"
+      - pattern: |
+          const password = "$PWD"
+      - pattern: |
+          JWT_SECRET = "$SECRET"
+    metavariable-pattern:
+      metavariable: $KEY
+      pattern-regex: '[A-Za-z0-9_-]{20,}'
+    message: 'Hardcoded secret detected - use environment variables instead'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-798: Hardcoded Credentials'
+
+  - id: jwt-weak-secret
+    pattern-either:
+      - pattern: |
+          jwt.sign($PAYLOAD, "$SECRET")
+      - pattern: |
+          jwt.verify($TOKEN, "$SECRET")
+    metavariable-pattern:
+      metavariable: $SECRET
+      patterns:
+        - pattern-regex: '^.{1,31}$'
+    message: 'JWT secret too short - use at least 32 characters'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-326: Inadequate Encryption Strength'
+
+  # Input Validation
+  - id: missing-input-validation
+    pattern-either:
+      - pattern: |
+          app.post($ROUTE, ($REQ, $RES) => { $...BODY })
+      - pattern: |
+          app.put($ROUTE, ($REQ, $RES) => { $...BODY })
+      - pattern: |
+          app.patch($ROUTE, ($REQ, $RES) => { $...BODY })
+    pattern-not-inside: |
+      $...
+      $REQ.body.$FIELD
+      $...
+      $SCHEMA.parse($...ARGS)
+      $...
+    message: 'Missing input validation - validate request body with Zod schema'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-20: Improper Input Validation'
+
+  - id: prototype-pollution-risk
+    pattern-either:
+      - pattern: |
+          $OBJ[$KEY] = $VALUE
+      - pattern: |
+          $OBJ.hasOwnProperty($KEY)
+      - pattern: |
+          for ($KEY in $OBJ) { $...BODY }
+    metavariable-pattern:
+      metavariable: $KEY
+      patterns:
+        - pattern-regex: '.*(__proto__|constructor|prototype).*'
+    message: 'Prototype pollution risk - avoid direct property access with user input'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-1321: Prototype Pollution'
+
+  # File Upload Security
+  - id: file-upload-security
+    pattern-either:
+      - pattern: |
+          multer({ dest: $DEST })
+      - pattern: |
+          multer({ storage: $STORAGE })
+    pattern-not-inside: |
+      multer({
+        $...BEFORE,
+        fileFilter: $FILTER,
+        $...AFTER
+      })
+    message: 'File upload missing security validation - implement fileFilter and limits'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-434: Unrestricted Upload'
+
+  # Rate Limiting
+  - id: missing-rate-limiting
+    pattern-either:
+      - pattern: |
+          app.post("/api/auth/login", $HANDLER)
+      - pattern: |
+          app.post("/api/auth/register", $HANDLER)
+      - pattern: |
+          app.post("/api/auth/reset-password", $HANDLER)
+    pattern-not-inside: |
+      $...
+      rateLimit($...OPTS)
+      $...
+    message: 'Authentication endpoints missing rate limiting protection'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-307: Improper Restriction of Excessive Authentication Attempts'
+
+  # React Security
+  - id: react-unsafe-refs
+    pattern: |
+      React.createRef()
+    message: 'Consider using useRef() hook instead of createRef() for better security and performance'
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: security
+      framework: react
+
+  - id: react-external-links
+    pattern-either:
+      - pattern: |
+          <a href={$URL} target="_blank">
+      - pattern: |
+          <a href=$URL target="_blank">
+    pattern-not-inside: |
+      <a $...ATTRS rel="noopener noreferrer" $...MORE_ATTRS>
+    message: 'External links missing security attributes - add rel="noopener noreferrer"'
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: 'CWE-200: Information Exposure'
+
+  # Environment Variable Security
+  - id: env-var-exposure
+    pattern-either:
+      - pattern: |
+          console.log(process.env)
+      - pattern: |
+          console.log(import.meta.env)
+      - pattern: |
+          JSON.stringify(process.env)
+    message: 'Environment variables exposure risk - avoid logging entire env object'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-532: Information Exposure Through Log Files'
+
+  # Database Security
+  - id: database-connection-exposure
+    pattern-either:
+      - pattern: |
+          console.log($...ARGS)
+      - pattern: |
+          logger.info($...ARGS)
+    metavariable-pattern:
+      metavariable: $...ARGS
+      patterns:
+        - pattern-regex: '.*(?i)(database_url|connection_string|db_pass|db_password).*'
+    message: 'Database connection details in logs - potential security exposure'
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: 'CWE-532: Information Exposure Through Log Files'

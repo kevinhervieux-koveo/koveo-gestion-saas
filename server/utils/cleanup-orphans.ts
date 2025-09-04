@@ -73,35 +73,37 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
   let cleanedUp = false;
 
   try {
-    await db.transaction(async (tx) => {
-      // Clean up orphan buildings
-      if (orphanBuildings.length > 0) {
-        const buildingIds = orphanBuildings.map((b) => b.id);
-        console.log(`🗑️ Removing ${buildingIds.length} orphan buildings:`, buildingIds);
+    // Since Neon HTTP driver doesn't support transactions, do cleanup without transaction
+    // Clean up orphan buildings
+    if (orphanBuildings.length > 0) {
+      const buildingIds = orphanBuildings.map((b) => b.id);
+      console.log(`🗑️ Removing ${buildingIds.length} orphan buildings:`, buildingIds);
 
-        await tx
+      // Clean up each building individually
+      for (const buildingId of buildingIds) {
+        await db
           .update(buildings)
           .set({ isActive: false, updatedAt: new Date() })
-          .where(eq(buildings.id, buildingIds[0])); // Using first ID as example, would need to loop for all
+          .where(eq(buildings.id, buildingId));
       }
+    }
 
-      // Clean up orphan residences
-      if (orphanResidences.length > 0) {
-        const residenceIds = orphanResidences.map((r) => r.id);
-        console.log(`🗑️ Removing ${residenceIds.length} orphan residences:`, residenceIds);
+    // Clean up orphan residences
+    if (orphanResidences.length > 0) {
+      const residenceIds = orphanResidences.map((r) => r.id);
+      console.log(`🗑️ Removing ${residenceIds.length} orphan residences:`, residenceIds);
 
-        await tx
+      // Clean up each residence individually
+      for (const residenceId of residenceIds) {
+        await db
           .update(residences)
           .set({ isActive: false, updatedAt: new Date() })
-          .where(eq(residences.id, residenceIds[0])); // Using first ID as example, would need to loop for all
+          .where(eq(residences.id, residenceId));
       }
+    }
 
-      cleanedUp = true;
-    });
-
+    cleanedUp = true;
     console.log('✅ Orphan cleanup completed successfully');
-  } catch (error) {
-    console.error('❌ Failed to clean up orphans:', error);
   }
 
   return {

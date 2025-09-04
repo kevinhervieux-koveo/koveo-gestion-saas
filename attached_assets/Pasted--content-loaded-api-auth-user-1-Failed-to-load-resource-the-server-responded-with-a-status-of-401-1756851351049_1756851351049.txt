@@ -1,0 +1,21 @@
+ content loaded
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+index.59b2ae62.js:3 Content Script: Initializing
+login:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input class=​"flex w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:​border-0 file:​bg-transparent file:​text-sm file:​font-medium file:​text-foreground placeholder:​text-muted-foreground focus-visible:​outline-none focus-visible:​ring-2 focus-visible:​ring-ring focus-visible:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 md:​text-sm h-11 pr-10" placeholder=​"Votre mot de passe" data-testid=​"input-password" type=​"password" value=​"admin123" name=​"password" disabled>​
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+VM22820 bootstrap-autofill-overlay.js:3782 Uncaught TypeError: Cannot read properties of null (reading 'username')
+    at AutofillOverlayContentService.getFormFieldData (bootstrap-autofill-overlay.js:3782:55)
+    at AutofillOverlayContentService.handleFormFieldSubmitEvent (bootstrap-autofill-overlay.js:3763:71)
+    at AutofillOverlayContentService.handleSubmitButtonInteraction (bootstrap-autofill-overlay.js:3757:18)
+    at HTMLDocument.<anonymous> (bootstrap-autofill-overlay.js:397:22)
+VM22820 bootstrap-autofill-overlay.js:3782 Uncaught TypeError: Cannot read properties of null (reading 'username')
+    at AutofillOverlayContentService.getFormFieldData (bootstrap-autofill-overlay.js:3782:55)
+    at AutofillOverlayContentService.handleFormFieldSubmitEvent (bootstrap-autofill-overlay.js:3763:71)
+    at AutofillOverlayContentService.handleSubmitButtonInteraction (bootstrap-autofill-overlay.js:3757:18)
+    at HTMLDocument.<anonymous> (bootstrap-autofill-overlay.js:397:22)
+VM22820 bootstrap-autofill-overlay.js:3782 Uncaught TypeError: Cannot read properties of null (reading 'username')
+    at AutofillOverlayContentService.getFormFieldData (bootstrap-autofill-overlay.js:3782:55)
+    at AutofillOverlayContentService.handleFormFieldSubmitEvent (bootstrap-autofill-overlay.js:3763:71)
+api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+login:1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) <input class=​"flex w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:​border-0 file:​bg-transparent file:​text-sm file:​font-medium file:​text-foreground placeholder:​text-muted-foreground focus-visible:​outline-none focus-visible:​ring-2 focus-visible:​ring-ring focus-visible:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 md:​text-sm h-11 pr-10" placeholder=​"Votre mot de passe" data-testid=​"input-password" type=​"password" value name=​"password">​flex

@@ -4,7 +4,7 @@
 
 ### ✅ Adding a New Page
 
-```bash
+````bash
 # 1. Create page component
 # client/src/pages/[role]/[page-name].tsx
 
@@ -154,3 +154,4 @@ When you can modify package.json, add these scripts:
 ⚠️ **Test after changes** - Use the validation script
 ⚠️ **Document route changes** - Update this checklist if needed
 
+````

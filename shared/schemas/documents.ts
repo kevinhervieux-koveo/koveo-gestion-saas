@@ -1,138 +1,111 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, varchar, uuid } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
 
-// Separate document tables for buildings and residents
-/**
- * Documents table for building-related documents.
- */
-export const documentsBuildings = pgTable('documents_buildings', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: text('name').notNull(),
-  uploadDate: timestamp('upload_date').defaultNow().notNull(),
-  dateReference: timestamp('date_reference'),
-  type: text('type').notNull(),
-  buildingId: uuid('building_id')
-    .references(() => buildings.id)
-    .notNull(),
-  fileUrl: text('file_url'),
-  fileName: text('file_name'),
-  fileSize: text('file_size'),
-  mimeType: text('mime_type'),
-  uploadedBy: uuid('uploaded_by').notNull(),
-  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
 
+// Unified documents table
 /**
- * Documents table for resident-related documents (includes tenants).
+ * Unified documents table for all document types across the system.
+ * Stores documents that can be associated with either residences, buildings, or neither.
+ * Enhanced with file metadata, content type, and attachment relationships.
  */
-export const documentsResidents = pgTable('documents_residents', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: text('name').notNull(),
-  uploadDate: timestamp('upload_date').defaultNow().notNull(),
-  dateReference: timestamp('date_reference'),
-  type: text('type').notNull(),
-  residenceId: uuid('residence_id')
-    .references(() => residences.id)
-    .notNull(),
-  fileUrl: text('file_url'),
-  fileName: text('file_name'),
-  fileSize: text('file_size'),
-  mimeType: text('mime_type'),
-  uploadedBy: uuid('uploaded_by').notNull(),
-  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-// Insert schemas
-export const insertDocumentBuildingSchema = z.object({
-  name: z.string(),
-  dateReference: z
-    .string()
-    .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  type: z.string(),
-  buildingId: z.string().uuid(),
-  fileUrl: z.string().optional(),
-  fileName: z.string().optional(),
-  fileSize: z.string().optional(),
-  mimeType: z.string().optional(),
-  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
-  isVisibleToTenants: z.boolean().default(false),
-});
-
-export const insertDocumentResidentSchema = z.object({
-  name: z.string(),
-  dateReference: z
-    .string()
-    .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-  type: z.string(),
-  residenceId: z.string().uuid(),
-  fileUrl: z.string().optional(),
-  fileName: z.string().optional(),
-  fileSize: z.string().optional(),
-  mimeType: z.string().optional(),
-  uploadedBy: z.string().min(1, 'Uploaded by user ID is required'),
-  isVisibleToTenants: z.boolean().default(false),
-});
-
-// Types
-/**
- *
- */
-export type InsertDocumentBuilding = z.infer<typeof insertDocumentBuildingSchema>;
-/**
- *
- */
-export type DocumentBuilding = typeof documentsBuildings.$inferSelect;
-/**
- *
- */
-export type InsertDocumentResident = z.infer<typeof insertDocumentResidentSchema>;
-/**
- *
- */
-export type DocumentResident = typeof documentsResidents.$inferSelect;
-
-// Legacy document table (kept for migration purposes)
 export const documents = pgTable('documents', {
-  id: uuid('id')
+  id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
-  uploadDate: timestamp('upload_date').defaultNow().notNull(),
-  dateReference: timestamp('date_reference'),
-  type: text('type').notNull(),
-  buildings: text('buildings').notNull().default('false'),
-  residence: text('residence').notNull().default('false'),
-  tenant: text('tenant').notNull().default('false'),
+  description: text('description'),
+  documentType: text('document_type').notNull(),
+  filePath: text('file_path').notNull().unique(),
+  fileName: text('file_name'), // Original filename
+  fileSize: varchar('file_size'), // File size in bytes
+  mimeType: text('mime_type'), // MIME type for proper handling
+  isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
+  residenceId: varchar('residence_id').references(() => residences.id),
+  buildingId: varchar('building_id').references(() => buildings.id),
+  uploadedById: varchar('uploaded_by_id').notNull(),
+  // Support for document attachments to forms
+  attachedToType: text('attached_to_type'), // 'bill', 'feature_request', 'bug_report', etc.
+  attachedToId: varchar('attached_to_id'), // ID of the entity this document is attached to
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Legacy types for migration
+// Enhanced document schema with file metadata
 export const insertDocumentSchema = z.object({
-  name: z.string(),
-  dateReference: z.date().optional(),
-  type: z.string(),
-  buildings: z.string().default('false'),
-  residence: z.string().default('false'),
-  tenant: z.string().default('false'),
+  name: z.string().min(1, 'Document name is required'),
+  description: z.string().optional(),
+  documentType: z.string().min(1, 'Document type is required'),
+  filePath: z.string().min(1, 'File path is required'),
+  fileName: z.string().optional(),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  isVisibleToTenants: z.boolean().default(false),
+  residenceId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional(),
+  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
+  attachedToType: z.string().optional(),
+  attachedToId: z.string().uuid().optional(),
+});
+
+// Schema for form-attached documents
+export const attachDocumentSchema = z.object({
+  name: z.string().min(1, 'Document name is required'),
+  description: z.string().optional(),
+  documentType: z.enum(['attachment', 'screenshot', 'evidence', 'supporting_document']).default('attachment'),
+  fileName: z.string().min(1, 'File name is required'),
+  fileSize: z.string().optional(),
+  mimeType: z.string().optional(),
+  attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
+  attachedToId: z.string().uuid().min(1, 'Attached entity ID is required'),
+  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
 });
 
 /**
- *
+ * Insert type for unified documents
  */
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
 /**
- *
+ * Insert type for form-attached documents
+ */
+export type AttachDocument = z.infer<typeof attachDocumentSchema>;
+
+/**
+ * Select type for unified documents
  */
 export type Document = typeof documents.$inferSelect;
+
+// Document type constants for consistency
+export const DOCUMENT_TYPES = {
+  // Building/Residence documents
+  BYLAW: 'bylaw',
+  FINANCIAL: 'financial', 
+  MAINTENANCE: 'maintenance',
+  LEGAL: 'legal',
+  MEETING_MINUTES: 'meeting_minutes',
+  INSURANCE: 'insurance',
+  CONTRACTS: 'contracts',
+  PERMITS: 'permits',
+  INSPECTION: 'inspection',
+  LEASE: 'lease',
+  CORRESPONDENCE: 'correspondence',
+  UTILITIES: 'utilities',
+  OTHER: 'other',
+  
+  // Form attachments
+  ATTACHMENT: 'attachment',
+  SCREENSHOT: 'screenshot', 
+  EVIDENCE: 'evidence',
+  SUPPORTING_DOCUMENT: 'supporting_document'
+} as const;
+
+// Entity types that can have attached documents
+export const ATTACHABLE_ENTITY_TYPES = {
+  BILL: 'bill',
+  FEATURE_REQUEST: 'feature_request',
+  BUG_REPORT: 'bug_report', 
+  MAINTENANCE_REQUEST: 'maintenance_request'
+} as const;

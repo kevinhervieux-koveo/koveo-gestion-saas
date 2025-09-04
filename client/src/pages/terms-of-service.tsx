@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { HamburgerMenu } from '@/components/ui/hamburger-menu';
+import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Terms of Service page component for Koveo Gestion.
@@ -24,20 +24,7 @@ TermsOfServicePage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Navigation Header */}
-      <header className='border-b bg-white sticky top-0 z-50'>
-        <div className='container mx-auto px-4 py-4 flex items-center justify-between'>
-          <div className='flex items-center'>
-            <img
-              src={koveoLogo}
-              alt='Koveo Gestion'
-              className='h-10 w-10 rounded-lg object-cover cursor-pointer'
-              onClick={() => setLocation('/')}
-              data-testid='logo-link'
-            />
-          </div>
-          <HamburgerMenu />
-        </div>
-      </header>
+      <TopNavigationBar />
 
       {/* Content */}
       <div className='container mx-auto px-4 py-12 max-w-4xl'>
@@ -183,9 +170,9 @@ TermsOfServicePage() {
               <p className='text-gray-700'>
                 <strong>Service client Koveo Gestion</strong>
                 <br />
-                Courriel : support@koveogestion.com
+                Courriel : info@koveo-gestion.com
                 <br />
-                Téléphone : 1-XXX-XXX-XXXX
+                Téléphone : 1-514-712-8441
                 <br />
                 Adresse : Montréal, Québec, Canada
               </p>
@@ -199,7 +186,7 @@ TermsOfServicePage() {
         <div className='container mx-auto px-4'>
           <div className='flex flex-col md:flex-row items-center justify-between'>
             <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-8 w-8 rounded object-cover' />
+              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
             </div>
             <div className='flex items-center space-x-4 text-sm text-gray-400'>
               <Shield className='h-4 w-4' />

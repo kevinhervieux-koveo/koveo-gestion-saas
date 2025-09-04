@@ -75,7 +75,6 @@ class PerformanceMonitor {
 
       // Log slow components
       if (loadTime > 1000) {
-        console.warn(`Slow component load: ${componentName} took ${loadTime.toFixed(2)}ms`);
       }
     }
   }
@@ -117,8 +116,6 @@ class PerformanceMonitor {
           }
         });
         observer.observe({ entryTypes: ['paint'] });
-      } catch (_error) {
-        console.warn('Failed to observe paint metrics:', _error);
       }
     }
   }
@@ -136,9 +133,7 @@ class PerformanceMonitor {
       if (usage) {
         this.metrics.memoryUsage = usage.used;
 
-        // Log memory pressure warnings
         if (usage.percentage > 80) {
-          console.warn(`High memory usage: ${usage.used}MB (${usage.percentage}%)`);
         }
       }
 
@@ -162,7 +157,6 @@ class PerformanceMonitor {
         for (const entry of list.getEntries()) {
           if (entry.duration > 2000) {
             // Log slow resources
-            console.warn(`Slow resource: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
           }
         }
       });
@@ -171,12 +165,9 @@ class PerformanceMonitor {
       // Observe long tasks
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          console.warn(`Long task detected: ${entry.duration.toFixed(2)}ms`);
         }
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
-    } catch (_error) {
-      console.warn('Failed to set up performance observers:', _error);
     }
   }
 }
@@ -215,22 +206,15 @@ export function usePerformanceTracking(componentName: string): void {
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();
 
-  console.warn('Performance Analysis');
-  console.warn('Load Time:', metrics.loadTime ? `${metrics.loadTime}ms` : 'N/A');
-  console.warn(
     'DOM Content Loaded:',
     metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A'
   );
-  console.warn(
     'First Contentful Paint:',
     metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A'
   );
-  console.warn('Memory Usage:', metrics.memoryUsage ? `${metrics.memoryUsage}MB` : 'N/A');
 
   if (metrics.componentLoadTimes) {
-    console.warn('Component Load Times:');
     Object.entries(metrics.componentLoadTimes).forEach(([name, time]) => {
-      console.warn(`  ${name}: ${time.toFixed(2)}ms`);
     });
   }
 
@@ -258,7 +242,5 @@ export function analyzePerformance(): void {
   }
 
   if (suggestions.length > 0) {
-    console.warn('Optimization Suggestions:');
-    suggestions.forEach((suggestion) => console.warn('•', suggestion));
   }
 }

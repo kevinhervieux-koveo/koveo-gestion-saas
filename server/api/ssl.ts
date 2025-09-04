@@ -127,8 +127,6 @@ export function registerSSLRoutes(app: Express): void {
         success: true,
         _data: responseData,
       });
-    } catch (____error) {
-      console.error(`Failed to fetch SSL certificate for domain ${req.params.domain}:`, _error);
       res.status(500).json({
         _error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificate information',
@@ -202,8 +200,6 @@ export function registerSSLRoutes(app: Express): void {
         _data: certificatesWithStatus,
         count: certificatesWithStatus.length,
       });
-    } catch (____error) {
-      console.error('Failed to fetch SSL certificates:', _error);
       res.status(500).json({
         _error: 'Internal Server Error',
         message: 'Failed to retrieve SSL certificates',
@@ -214,7 +210,6 @@ export function registerSSLRoutes(app: Express): void {
   /**
    * GET /api/ssl/:domain/status - Get detailed status information for a certificate.
    *
-   * Returns detailed certificate status including expiry warnings and renewal information.
    */
   app.get('/api/ssl/:domain/status', requireAuth, async (req, res) => {
     try {
@@ -281,29 +276,22 @@ export function registerSSLRoutes(app: Express): void {
         canAutoRenew:
           certificate.autoRenew && certificate.renewalAttempts < certificate.maxRenewalAttempts,
         nextRenewalEligible: certificate.renewalAttempts < certificate.maxRenewalAttempts,
-        warnings: [],
       };
 
-      // Add warnings based on certificate status
       if (status.status === 'expired') {
-        statusInfo.warnings.push('Certificate has expired and needs immediate renewal');
       } else if (status.isExpiring) {
-        statusInfo.warnings.push(`Certificate expires in ${status.daysUntilExpiry} days`);
       }
 
       if (certificate.renewalAttempts >= certificate.maxRenewalAttempts) {
-        statusInfo.warnings.push('Maximum renewal attempts reached - manual intervention required');
       }
 
       if (certificate.renewalError) {
-        statusInfo.warnings.push(`Last renewal failed: ${certificate.renewalError}`);
       }
 
       res.json({
         success: true,
         _data: statusInfo,
       });
-    } catch (____error) {
       console.error(
         `Failed to fetch SSL certificate status for domain ${req.params.domain}:`,
         _error

@@ -19,7 +19,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { ArrowLeft, Mail } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Veuillez entrer une adresse e-mail valide'),
+  email: z.string()
+    .min(1, 'Adresse e-mail requise pour la réinitialisation')
+    .email('Veuillez entrer une adresse e-mail valide (exemple: utilisateur@domaine.com)'),
 });
 
 /**
@@ -54,7 +56,6 @@ export default function ForgotPasswordPage() {
       });
     } catch (_error: unknown) {
       if (import.meta.env.DEV) {
-        console.error('Forgot password error:', _error);
       }
       const errorMessage =
         _error instanceof Error

@@ -104,7 +104,7 @@ export function RBACConfiguration({
                     placeholder='e.g., own building only'
                     value={permissions.organizationalLimitation}
                     onChange={(e) => {
-                      onUpdateRBACRole(role, 'organizationalLimitation', e.target._value);
+                      onUpdateRBACRole(role, 'organizationalLimitation', e.target.value);
                     }}
                     className='text-xs'
                   />
