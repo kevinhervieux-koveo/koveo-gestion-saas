@@ -418,6 +418,41 @@ export interface Translations {
   residenceDocumentsButton: string;
   viewDocumentsButton: string;
   startFreeTrial: string;
+  // Privacy Policy page
+  privacyPolicyTitle: string;
+  lastUpdated: string;
+  privacyPolicyIntro: string;
+  informationCollection: string;
+  informationCollectionDesc: string;
+  informationUse: string;
+  informationUseDesc: string;
+  informationSharing: string;
+  privacyRights: string;
+  dataSecurity: string;
+  contactPrivacy: string;
+  // Security page
+  securityTitle: string;
+  securityIntro: string;
+  enterpriseEncryption: string;
+  enterpriseEncryptionDesc: string;
+  roleBasedAccess: string;
+  roleBasedAccessDesc: string;
+  quebecDataProtection: string;
+  quebecDataProtectionDesc: string;
+  secureInfrastructure: string;
+  secureInfrastructureDesc: string;
+  // Story page
+  ourStoryTitle: string;
+  storyIntro: string;
+  foundationYear: string;
+  foundationTitle: string;
+  foundationDesc: string;
+  developmentYear: string;
+  developmentTitle: string;
+  developmentDesc: string;
+  launchYear: string;
+  launchTitle: string;
+  launchDesc: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -970,6 +1005,41 @@ const translations: Record<Language, Translations> = {
     residenceDocumentsButton: 'Residence Documents',
     viewDocumentsButton: 'View Documents',
     startFreeTrial: 'Start your free trial',
+    // Privacy Policy page
+    privacyPolicyTitle: 'Privacy Policy',
+    lastUpdated: 'Last updated:',
+    privacyPolicyIntro: 'At Koveo Gestion, we are committed to protecting your personal information in compliance with Quebec Law 25 on the protection of personal information in the private sector and industry best practices.',
+    informationCollection: '1. Information Collection',
+    informationCollectionDesc: 'We collect the following personal information as part of our services:',
+    informationUse: '2. Use of Information',
+    informationUseDesc: 'Your personal information is used exclusively for:',
+    informationSharing: '3. Sharing and Disclosure',
+    privacyRights: '4. Your Rights',
+    dataSecurity: '5. Data Security',
+    contactPrivacy: '6. Contact Us',
+    // Security page
+    securityTitle: 'Security & Compliance',
+    securityIntro: 'Your data security is our top priority. Discover how we protect your information with enterprise-grade security measures and Quebec Law 25 compliance.',
+    enterpriseEncryption: 'Enterprise-Level Encryption',
+    enterpriseEncryptionDesc: 'All data is encrypted in transit and at rest with military-grade AES-256 standards.',
+    roleBasedAccess: 'Role-Based Access Control',
+    roleBasedAccessDesc: 'Granular authorization system ensuring each user only accesses necessary information.',
+    quebecDataProtection: 'Quebec Data Protection',
+    quebecDataProtectionDesc: 'Strict compliance with Quebec Law 25 with data hosting in Canada.',
+    secureInfrastructure: 'Secure Infrastructure',
+    secureInfrastructureDesc: 'Redundant cloud architecture with 24/7 monitoring and automated backups.',
+    // Story page
+    ourStoryTitle: 'Our Story',
+    storyIntro: 'Discover the story behind Koveo Gestion and our mission to modernize property management in Quebec.',
+    foundationYear: '2023',
+    foundationTitle: 'Foundation of Koveo Gestion',
+    foundationDesc: 'Creation of the company with a mission to modernize property management in Quebec.',
+    developmentYear: '2024',
+    developmentTitle: 'Platform Development',
+    developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec Law 25.',
+    launchYear: '2025',
+    launchTitle: 'Official Launch',
+    launchDesc: 'Public launch of our platform with first Quebec property management clients.'
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1521,6 +1591,41 @@ const translations: Record<Language, Translations> = {
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
     startFreeTrial: 'Commencez votre essai gratuit',
+    // Privacy Policy page
+    privacyPolicyTitle: 'Politique de confidentialité',
+    lastUpdated: 'Dernière mise à jour :',
+    privacyPolicyIntro: 'Chez Koveo Gestion, nous nous engageons à protéger vos renseignements personnels en conformité avec la Loi 25 du Québec sur la protection des renseignements personnels dans le secteur privé et les meilleures pratiques de l\'industrie.',
+    informationCollection: '1. Collecte des renseignements',
+    informationCollectionDesc: 'Nous collectons les renseignements personnels suivants dans le cadre de nos services :',
+    informationUse: '2. Utilisation des renseignements',
+    informationUseDesc: 'Vos renseignements personnels sont utilisés exclusivement pour :',
+    informationSharing: '3. Partage et divulgation',
+    privacyRights: '4. Vos droits',
+    dataSecurity: '5. Sécurité des données',
+    contactPrivacy: '6. Nous contacter',
+    // Security page
+    securityTitle: 'Sécurité et conformité',
+    securityIntro: 'La sécurité de vos données est notre priorité absolue. Découvrez comment nous protégeons vos informations avec des mesures de sécurité de niveau entreprise et la conformité à la Loi 25 du Québec.',
+    enterpriseEncryption: 'Chiffrement de niveau entreprise',
+    enterpriseEncryptionDesc: 'Toutes les données sont chiffrées en transit et au repos avec des standards militaires AES-256.',
+    roleBasedAccess: 'Contrôle d\'accès basé sur les rôles',
+    roleBasedAccessDesc: 'Système d\'autorisation granulaire garantissant que chaque utilisateur n\'accède qu\'aux informations nécessaires.',
+    quebecDataProtection: 'Protection des données québécoises',
+    quebecDataProtectionDesc: 'Conformité stricte à la Loi 25 du Québec avec hébergement des données au Canada.',
+    secureInfrastructure: 'Infrastructure sécurisée',
+    secureInfrastructureDesc: 'Architecture cloud redondante avec surveillance 24/7 et sauvegardes automatisées.',
+    // Story page
+    ourStoryTitle: 'Notre histoire',
+    storyIntro: 'Découvrez l\'histoire derrière Koveo Gestion et notre mission de moderniser la gestion immobilière au Québec.',
+    foundationYear: '2023',
+    foundationTitle: 'Fondation de Koveo Gestion',
+    foundationDesc: 'Création de l\'entreprise avec pour mission de moderniser la gestion immobilière au Québec.',
+    developmentYear: '2024',
+    developmentTitle: 'Développement de la plateforme',
+    developmentDesc: 'Conception et développement de notre solution complète en conformité avec la Loi 25 du Québec.',
+    launchYear: '2025',
+    launchTitle: 'Lancement officiel',
+    launchDesc: 'Lancement public de notre plateforme avec les premiers clients de gestion immobilière du Québec.'
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',

@@ -9,13 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
  * Privacy Policy page component for Koveo Gestion.
  * Comprehensive privacy policy compliant with Quebec Law 25.
  */
-export default function /**
- * Privacy policy page function.
- */ /**
- * Privacy policy page function.
- */
-
-PrivacyPolicyPage() {
+export default function PrivacyPolicyPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
@@ -30,25 +24,23 @@ PrivacyPolicyPage() {
         <div className='bg-white rounded-lg shadow-sm p-8'>
           <div className='flex items-center space-x-3 mb-8'>
             <Shield className='h-8 w-8 text-blue-600' />
-            <h1 className='text-3xl font-bold text-gray-900'>Politique de confidentialité</h1>
+            <h1 className='text-3xl font-bold text-gray-900'>{t('privacyPolicyTitle')}</h1>
           </div>
 
           <div className='prose max-w-none'>
             <p className='text-gray-600 mb-6'>
-              <strong>Dernière mise à jour :</strong> Janvier 2025
+              <strong>{t('lastUpdated')}</strong> Janvier 2025
             </p>
 
             <p className='text-gray-700 mb-8'>
-              Chez Koveo Gestion, nous nous engageons à protéger vos renseignements personnels en
-              conformité avec la Loi 25 du Québec sur la protection des renseignements personnels
-              dans le secteur privé et les meilleures pratiques de l'industrie.
+              {t('privacyPolicyIntro')}
             </p>
 
             <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
-              1. Collecte des renseignements
+              {t('informationCollection')}
             </h2>
             <p className='text-gray-700 mb-4'>
-              Nous collectons les renseignements personnels suivants dans le cadre de nos services :
+              {t('informationCollectionDesc')}
             </p>
             <ul className='list-disc pl-6 text-gray-700 mb-6'>
               <li>Informations d'identification (nom, adresse courriel, numéro de téléphone)</li>
@@ -59,10 +51,10 @@ PrivacyPolicyPage() {
             </ul>
 
             <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
-              2. Utilisation des renseignements
+              {t('informationUse')}
             </h2>
             <p className='text-gray-700 mb-4'>
-              Vos renseignements personnels sont utilisés exclusivement pour :
+              {t('informationUseDesc')}
             </p>
             <ul className='list-disc pl-6 text-gray-700 mb-6'>
               <li>Fournir et améliorer nos services de gestion immobilière</li>
@@ -72,7 +64,7 @@ PrivacyPolicyPage() {
               <li>Respecter nos obligations légales et réglementaires</li>
             </ul>
 
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>3. Partage et divulgation</h2>
+            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>{t('informationSharing')}</h2>
             <p className='text-gray-700 mb-4'>
               Nous ne vendons, ne louons, ni ne partageons vos renseignements personnels, sauf dans
               les cas suivants :
@@ -84,7 +76,7 @@ PrivacyPolicyPage() {
               <li>Pour protéger nos droits, notre sécurité ou celle de nos utilisateurs</li>
             </ul>
 
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>4. Protection des données</h2>
+            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>{t('dataSecurity')}</h2>
             <p className='text-gray-700 mb-4'>
               Nous mettons en place des mesures de sécurité techniques, physiques et administratives
               appropriées :
@@ -92,90 +84,63 @@ PrivacyPolicyPage() {
             <ul className='list-disc pl-6 text-gray-700 mb-6'>
               <li>Chiffrement des données en transit et au repos (AES-256)</li>
               <li>Contrôles d'accès stricts et authentification à deux facteurs</li>
-              <li>Surveillance continue de la sécurité et audits réguliers</li>
+              <li>Surveillance continue et audits de sécurité réguliers</li>
               <li>Formation du personnel sur la protection des données</li>
-              <li>Hébergement des données au Canada uniquement</li>
+              <li>Sauvegarde sécurisée et plans de récupération</li>
             </ul>
 
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
-              5. Conservation des données
-            </h2>
-            <p className='text-gray-700 mb-6'>
-              Nous conservons vos renseignements personnels uniquement pour la durée nécessaire aux
-              fins pour lesquelles ils ont été collectés, ou selon les exigences légales
-              applicables. Les données sont supprimées de manière sécurisée à la fin de la période
-              de conservation.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>6. Vos droits</h2>
-            <p className='text-gray-700 mb-4'>Conformément à la Loi 25, vous avez le droit de :</p>
-            <ul className='list-disc pl-6 text-gray-700 mb-6'>
-              <li>Accéder à vos renseignements personnels que nous détenons</li>
-              <li>Demander la correction de renseignements inexacts ou incomplets</li>
-              <li>Demander la suppression de vos renseignements dans certaines circonstances</li>
-              <li>Vous opposer au traitement de vos données à des fins spécifiques</li>
-              <li>Retirer votre consentement à tout moment</li>
-              <li>Déposer une plainte auprès de la Commission d'accès à l'information du Québec</li>
-            </ul>
-
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
-              7. Cookies et technologies similaires
-            </h2>
-            <p className='text-gray-700 mb-6'>
-              Nous utilisons des cookies et des technologies similaires pour améliorer votre
-              expérience, analyser l'utilisation de notre site et personnaliser le contenu. Vous
-              pouvez gérer vos préférences de cookies dans les paramètres de votre navigateur.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>
-              8. Modifications de la politique
-            </h2>
-            <p className='text-gray-700 mb-6'>
-              Nous pouvons modifier cette politique de confidentialité occasionnellement. Toute
-              modification importante sera communiquée par courriel et affichée sur notre site. La
-              date de dernière mise à jour est indiquée en haut de cette page.
-            </p>
-
-            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>9. Contact</h2>
+            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>{t('privacyRights')}</h2>
             <p className='text-gray-700 mb-4'>
+              Conformément à la Loi 25, vous avez le droit de :
+            </p>
+            <ul className='list-disc pl-6 text-gray-700 mb-6'>
+              <li>Accéder à vos renseignements personnels</li>
+              <li>Demander la rectification de vos données</li>
+              <li>Demander la suppression de vos renseignements</li>
+              <li>Retirer votre consentement à tout moment</li>
+              <li>Porter plainte auprès de la Commission d'accès à l'information</li>
+            </ul>
+
+            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>{t('contactPrivacy')}</h2>
+            <p className='text-gray-700 mb-6'>
               Pour toute question concernant cette politique de confidentialité ou pour exercer vos
-              droits :
+              droits, contactez-nous :
             </p>
             <div className='bg-blue-50 p-6 rounded-lg'>
+              <p className='text-gray-700 mb-2'>
+                <strong>Koveo Gestion</strong>
+              </p>
+              <p className='text-gray-700 mb-2'>
+                Courriel : <a href='mailto:privacy@koveo-gestion.com' className='text-blue-600 hover:underline'>privacy@koveo-gestion.com</a>
+              </p>
               <p className='text-gray-700'>
-                <strong>Responsable de la protection des données</strong>
-                <br />
-                Koveo Gestion
-                <br />
-                Courriel : info@koveo-gestion.com
-                <br />
-                Téléphone : 1-514-712-8441
+                Responsable de la protection des renseignements personnels
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12'>
-        <div className='container mx-auto px-4'>
-          <div className='flex flex-col md:flex-row items-center justify-between'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
-            </div>
-            <div className='flex items-center space-x-4 text-sm text-gray-400'>
-              <Shield className='h-4 w-4' />
-              <span>Conforme à la Loi 25 du Québec</span>
-              <span>•</span>
-              <span>Vos données sont protégées</span>
-              <span>•</span>
-              <Link href='/terms-of-service' data-testid='footer-terms-link'>
-                <span className='hover:text-white cursor-pointer'>Conditions d'utilisation</span>
+          {/* Navigation */}
+          <div className='mt-12 pt-8 border-t border-gray-200 flex justify-between'>
+            <Button
+              variant='outline'
+              onClick={() => setLocation('/')}
+              data-testid='button-back-home'
+            >
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              Retour à l'accueil
+            </Button>
+            
+            {!isAuthenticated && (
+              <Link href='/login'>
+                <Button data-testid='button-login'>
+                  Se connecter
+                  <ArrowRight className='ml-2 h-4 w-4' />
+                </Button>
               </Link>
-            </div>
+            )}
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }

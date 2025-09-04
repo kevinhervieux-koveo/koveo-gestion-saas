@@ -14,6 +14,7 @@ import {
   Server,
   Zap,
   AlertTriangle,
+  ArrowLeft,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -31,9 +32,8 @@ export default function SecurityPage() {
   const securityFeatures = [
     {
       icon: Lock,
-      title: 'Chiffrement de niveau entreprise',
-      description:
-        'Toutes les données sont chiffrées en transit et au repos avec des standards militaires AES-256.',
+      title: t('enterpriseEncryption'),
+      description: t('enterpriseEncryptionDesc'),
       features: [
         'Chiffrement AES-256 pour tous les données',
         'Connexions HTTPS/TLS 1.3 obligatoires',
@@ -44,9 +44,8 @@ export default function SecurityPage() {
     },
     {
       icon: UserCheck,
-      title: "Contrôle d'accès basé sur les rôles",
-      description:
-        "Système d'autorisation granulaire garantissant que chaque utilisateur n'accède qu'aux informations nécessaires.",
+      title: t('roleBasedAccess'),
+      description: t('roleBasedAccessDesc'),
       features: [
         'Rôles définis : administrateur, gestionnaire, résident',
         'Permissions granulaires par fonctionnalité',
@@ -57,9 +56,8 @@ export default function SecurityPage() {
     },
     {
       icon: Database,
-      title: 'Protection des données québécoises',
-      description:
-        'Conformité stricte à la Loi 25 du Québec avec hébergement des données au Canada.',
+      title: t('quebecDataProtection'),
+      description: t('quebecDataProtectionDesc'),
       features: [
         'Données hébergées exclusivement au Canada',
         'Conformité Loi 25 - Protection des renseignements',
@@ -70,9 +68,8 @@ export default function SecurityPage() {
     },
     {
       icon: Server,
-      title: 'Infrastructure sécurisée',
-      description:
-        'Architecture cloud redondante avec surveillance 24/7 et sauvegardes automatisées.',
+      title: t('secureInfrastructure'),
+      description: t('secureInfrastructureDesc'),
       features: [
         'Redondance multi-centres de données',
         'Surveillance de sécurité 24/7/365',
@@ -97,236 +94,69 @@ export default function SecurityPage() {
       status: 'Conforme',
     },
     {
-      icon: Eye,
-      title: 'Audits de sécurité',
-      description: 'Audits réguliers par des experts en cybersécurité indépendants',
-      status: 'Régulier',
-    },
-    {
-      icon: AlertTriangle,
-      title: 'Gestion des incidents',
-      description: 'Protocole de réponse aux incidents et notification transparente',
-      status: 'Protocole actif',
-    },
-  ];
-
-  const privacyFeatures = [
-    'Anonymisation automatique des données sensibles',
-    'Contrôle utilisateur sur ses données personnelles',
-    'Suppression sécurisée à la fin de contrat',
-    'Audit trail complet des accès aux données',
-    'Chiffrement des communications internes',
-    'Isolation des données par organisation',
-  ];
-
-  const technicalSafeguards = [
-    {
-      category: 'Sécurité réseau',
-      items: [
-        'Pare-feu nouvelle génération (NGFW)',
-        "Détection d'intrusion en temps réel",
-        'Isolation des environnements de données',
-        'VPN sécurisé pour accès administrateur',
-      ],
-    },
-    {
-      category: 'Sécurité applicative',
-      items: [
-        'Tests de pénétration réguliers',
-        'Analyse statique du code source',
-        'Validation stricte des entrées utilisateur',
-        'Protection contre OWASP Top 10',
-      ],
-    },
-    {
-      category: 'Sécurité opérationnelle',
-      items: [
-        'Formation continue du personnel',
-        'Gestion centralisée des logs de sécurité',
-        'Monitoring des anomalies comportementales',
-        'Mise à jour automatique des composants',
-      ],
+      icon: Key,
+      title: 'Chiffrement avancé',
+      description: 'Implémentation des standards de chiffrement les plus récents',
+      status: 'Actif',
     },
   ];
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50'>
+    <div className='min-h-screen bg-gray-50'>
       {/* Navigation Header */}
       <TopNavigationBar />
 
       {/* Hero Section */}
-      <section className='container mx-auto px-4 py-16 text-center'>
-        <div className='max-w-4xl mx-auto'>
-          <h1 className='text-5xl font-bold text-gray-900 mb-6 leading-tight'>
-            Sécurité de niveau entreprise pour
-            <span className='text-blue-600'> vos données immobilières</span>
-          </h1>
-          <p className='text-xl text-gray-600 mb-8 leading-relaxed'>
-            Koveo Gestion utilise les technologies de sécurité les plus avancées pour protéger vos
-            données personnelles et celles de vos résidents, en conformité avec la Loi 25 du Québec.
-          </p>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-            <Button
-              size='lg'
-              className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-              onClick={() => setLocation('/login')}
-              data-testid='button-secure-start'
-            >
-              Commencer en toute sécurité
-              <ArrowRight className='ml-2 h-5 w-5' />
-            </Button>
+      <section className='bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20'>
+        <div className='container mx-auto px-4 text-center'>
+          <div className='max-w-3xl mx-auto'>
+            <Shield className='h-16 w-16 mx-auto mb-6 text-blue-200' />
+            <h1 className='text-4xl md:text-5xl font-bold mb-6'>
+              {t('securityTitle')}
+            </h1>
+            <p className='text-xl text-blue-100 mb-8'>
+              {t('securityIntro')}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Security Features Section */}
-      <section className='container mx-auto px-4 py-16'>
-        <div className='text-center mb-16'>
-          <h2 className='text-3xl font-bold text-gray-900 mb-4'>Sécurité multicouche</h2>
-          <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-            Notre approche de sécurité en profondeur protège vos données à chaque niveau de notre
-            plateforme.
-          </p>
-        </div>
+      {/* Security Features */}
+      <section className='py-20'>
+        <div className='container mx-auto px-4'>
+          <div className='text-center mb-16'>
+            <h2 className='text-3xl font-bold text-gray-900 mb-4'>
+              Sécurité de niveau entreprise
+            </h2>
+            <p className='text-xl text-gray-600 max-w-3xl mx-auto'>
+              Notre plateforme intègre les plus hautes mesures de sécurité pour protéger vos données
+              et garantir la confidentialité des informations de vos propriétés.
+            </p>
+          </div>
 
-        <div className='grid lg:grid-cols-2 gap-8 mb-16'>
-          {securityFeatures.map((feature, _index) => (
-            <Card
-              key={_index}
-              className='hover:shadow-lg transition-shadow'
-              data-testid={`security-feature-${_index}`}
-            >
-              <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center space-x-4'>
-                    <feature.icon className='h-12 w-12 text-blue-600' />
-                    <div>
-                      <CardTitle className='text-xl'>{feature.title}</CardTitle>
-                    </div>
-                  </div>
-                  <span className='bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full'>
+          <div className='grid md:grid-cols-2 gap-8 max-w-6xl mx-auto'>
+            {securityFeatures.map((feature, index) => (
+              <Card key={index} className='relative overflow-hidden border-0 shadow-lg'>
+                <div className='absolute top-4 right-4'>
+                  <span className='bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full'>
                     {feature.badge}
                   </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className='text-base mb-4'>{feature.description}</CardDescription>
-                <ul className='space-y-2'>
-                  {feature.features.map((item, itemIndex) => (
-                    <li key={itemIndex} className='flex items-start space-x-2'>
-                      <CheckCircle className='h-5 w-5 text-green-600 mt-0.5 flex-shrink-0' />
-                      <span className='text-sm text-gray-700'>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Compliance Standards */}
-      <section className='bg-gray-50 py-16'>
-        <div className='container mx-auto px-4'>
-          <div className='text-center mb-12'>
-            <h2 className='text-3xl font-bold text-gray-900 mb-4'>Conformité et certifications</h2>
-            <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-              Nous respectons les plus hauts standards de sécurité et de confidentialité.
-            </p>
-          </div>
-
-          <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
-            {complianceStandards.map((standard, _index) => (
-              <Card
-                key={_index}
-                className='text-center hover:shadow-lg transition-shadow'
-                data-testid={`compliance-${_index}`}
-              >
-                <CardHeader>
-                  <standard.icon className='h-12 w-12 text-blue-600 mx-auto mb-4' />
-                  <CardTitle className='text-lg'>{standard.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className='mb-4'>{standard.description}</CardDescription>
-                  <span className='bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full'>
-                    {standard.status}
-                  </span>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Privacy Protection */}
-      <section className='container mx-auto px-4 py-16'>
-        <div className='max-w-4xl mx-auto'>
-          <div className='text-center mb-12'>
-            <h2 className='text-3xl font-bold text-gray-900 mb-4'>Protection de la vie privée</h2>
-            <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-              Vos données personnelles et celles de vos résidents sont protégées selon les plus
-              hauts standards.
-            </p>
-          </div>
-
-          <div className='grid md:grid-cols-2 gap-8'>
-            <div>
-              <h3 className='text-xl font-semibold mb-4'>Mesures de confidentialité</h3>
-              <div className='space-y-3'>
-                {privacyFeatures.map((feature, _index) => (
-                  <div
-                    key={_index}
-                    className='flex items-start space-x-2'
-                    data-testid={`privacy-feature-${_index}`}
-                  >
-                    <CheckCircle className='h-5 w-5 text-green-600 mt-0.5 flex-shrink-0' />
-                    <span className='text-gray-700'>{feature}</span>
+                <CardHeader className='pb-4'>
+                  <div className='flex items-center space-x-3 mb-3'>
+                    <feature.icon className='h-8 w-8 text-blue-600' />
+                    <CardTitle className='text-xl'>{feature.title}</CardTitle>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className='bg-blue-50 p-6 rounded-lg'>
-              <h3 className='text-xl font-semibold mb-4 text-blue-900'>Engagement Loi 25</h3>
-              <p className='text-blue-800 mb-4'>
-                Koveo Gestion s'engage à respecter intégralement la Loi 25 du Québec sur la
-                protection des renseignements personnels.
-              </p>
-              <ul className='space-y-2 text-blue-700'>
-                <li>• Consentement éclairé et révocable</li>
-                <li>• Transparence sur l'utilisation des données</li>
-                <li>• Droit d'accès et de rectification</li>
-                <li>• Notification des incidents de sécurité</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Technical Safeguards */}
-      <section className='bg-gray-50 py-16'>
-        <div className='container mx-auto px-4'>
-          <div className='text-center mb-12'>
-            <h2 className='text-3xl font-bold text-gray-900 mb-4'>
-              Mesures techniques de protection
-            </h2>
-          </div>
-
-          <div className='grid lg:grid-cols-3 gap-8'>
-            {technicalSafeguards.map((safeguard, _index) => (
-              <Card
-                key={_index}
-                className='hover:shadow-lg transition-shadow'
-                data-testid={`safeguard-${_index}`}
-              >
-                <CardHeader>
-                  <CardTitle className='text-lg text-center'>{safeguard.category}</CardTitle>
+                  <CardDescription className='text-gray-600 text-base'>
+                    {feature.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className='space-y-3'>
-                    {safeguard.items.map((item, itemIndex) => (
-                      <li key={itemIndex} className='flex items-start space-x-2'>
-                        <Zap className='h-4 w-4 text-blue-600 mt-1 flex-shrink-0' />
-                        <span className='text-sm text-gray-700'>{item}</span>
+                  <ul className='space-y-2'>
+                    {feature.features.map((item, i) => (
+                      <li key={i} className='flex items-start space-x-2'>
+                        <CheckCircle className='h-4 w-4 text-green-500 mt-0.5 flex-shrink-0' />
+                        <span className='text-gray-700 text-sm'>{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -337,56 +167,183 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className='bg-blue-600 text-white py-16'>
-        <div className='container mx-auto px-4 text-center'>
-          <div className='max-w-2xl mx-auto'>
-            <h2 className='text-3xl font-bold mb-4'>
-              Vos données en sécurité, votre gestion simplifiée
+      {/* Compliance Section */}
+      <section className='bg-white py-20'>
+        <div className='container mx-auto px-4'>
+          <div className='text-center mb-16'>
+            <h2 className='text-3xl font-bold text-gray-900 mb-4'>
+              Conformité et certifications
             </h2>
-            <p className='text-lg mb-8 text-blue-100'>
-              Profitez d'une plateforme de gestion immobilière sécurisée qui respecte vos exigences
-              de confidentialité et de conformité.
+            <p className='text-xl text-gray-600 max-w-3xl mx-auto'>
+              Koveo Gestion respecte les réglementations les plus strictes pour assurer la protection
+              de vos données et la conformité légale.
             </p>
-            <Button
-              size='lg'
-              className='bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3'
-              onClick={() => setLocation('/login')}
-              data-testid='button-secure-trial'
-            >
-              Essai sécurisé gratuit
-              <ArrowRight className='ml-2 h-5 w-5' />
-            </Button>
+          </div>
+
+          <div className='grid md:grid-cols-3 gap-8 max-w-4xl mx-auto'>
+            {complianceStandards.map((standard, index) => (
+              <Card key={index} className='text-center border-0 shadow-lg'>
+                <CardHeader>
+                  <standard.icon className='h-12 w-12 text-blue-600 mx-auto mb-4' />
+                  <CardTitle className='text-lg'>{standard.title}</CardTitle>
+                  <div className='mt-2'>
+                    <span className='bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full'>
+                      {standard.status}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className='text-gray-600'>
+                    {standard.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12'>
+      {/* Security Measures Detail */}
+      <section className='bg-gray-50 py-20'>
         <div className='container mx-auto px-4'>
-          <div className='flex flex-col md:flex-row items-center justify-between'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
+          <div className='max-w-4xl mx-auto'>
+            <div className='text-center mb-16'>
+              <h2 className='text-3xl font-bold text-gray-900 mb-4'>
+                Mesures de sécurité détaillées
+              </h2>
+              <p className='text-xl text-gray-600'>
+                Découvrez en détail comment nous protégeons vos données.
+              </p>
             </div>
-            <div className='flex items-center space-x-4 text-sm text-gray-400'>
-              <Shield className='h-4 w-4' />
-              <span>Conforme à la Loi 25 du Québec</span>
-              <span>•</span>
-              <span>Vos données sont protégées</span>
-              <span>•</span>
-              <Link href='/privacy-policy' data-testid='footer-privacy-link'>
-                <span className='hover:text-white cursor-pointer'>
-                  Politique de confidentialité
-                </span>
-              </Link>
-              <span>•</span>
-              <Link href='/terms-of-service' data-testid='footer-terms-link'>
-                <span className='hover:text-white cursor-pointer'>Conditions d'utilisation</span>
-              </Link>
+
+            <div className='grid md:grid-cols-2 gap-8'>
+              <Card className='border-0 shadow-lg'>
+                <CardHeader>
+                  <div className='flex items-center space-x-3'>
+                    <Database className='h-6 w-6 text-blue-600' />
+                    <CardTitle>Protection des données</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Chiffrement AES-256 pour toutes les données sensibles
+                    </span>
+                  </div>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Hachage sécurisé des mots de passe avec salt unique
+                    </span>
+                  </div>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Anonymisation des données pour les analyses
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className='border-0 shadow-lg'>
+                <CardHeader>
+                  <div className='flex items-center space-x-3'>
+                    <Eye className='h-6 w-6 text-blue-600' />
+                    <CardTitle>Surveillance et audit</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Journalisation complète de tous les accès
+                    </span>
+                  </div>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Détection automatique des activités suspectes
+                    </span>
+                  </div>
+                  <div className='flex items-start space-x-3'>
+                    <CheckCircle className='h-4 w-4 text-green-500 mt-1' />
+                    <span className='text-gray-700 text-sm'>
+                      Audits de sécurité réguliers par des tiers
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* CTA Section */}
+      <section className='bg-blue-900 text-white py-20'>
+        <div className='container mx-auto px-4 text-center'>
+          <h2 className='text-3xl font-bold mb-4'>
+            Prêt à sécuriser votre gestion immobilière?
+          </h2>
+          <p className='text-xl text-blue-100 mb-8 max-w-2xl mx-auto'>
+            Rejoignez les propriétaires qui font confiance à Koveo Gestion pour la sécurité de
+            leurs données.
+          </p>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+            {!isAuthenticated ? (
+              <>
+                <Link href='/'>
+                  <Button size='lg' className='bg-white text-blue-900 hover:bg-gray-100'>
+                    Commencer l'essai gratuit
+                    <ArrowRight className='ml-2 h-4 w-4' />
+                  </Button>
+                </Link>
+                <Link href='/privacy-policy'>
+                  <Button size='lg' variant='outline' className='border-blue-300 text-white hover:bg-blue-800'>
+                    Voir la politique de confidentialité
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Button
+                size='lg'
+                className='bg-white text-blue-900 hover:bg-gray-100'
+                onClick={() => setLocation('/dashboard/quick-actions')}
+              >
+                Accéder au tableau de bord
+                <ArrowRight className='ml-2 h-4 w-4' />
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Navigation */}
+      <div className='container mx-auto px-4 py-8'>
+        <div className='flex justify-between items-center'>
+          <Button
+            variant='outline'
+            onClick={() => setLocation('/')}
+            data-testid='button-back-home'
+          >
+            <ArrowLeft className='mr-2 h-4 w-4' />
+            Retour à l'accueil
+          </Button>
+          
+          <div className='flex space-x-4'>
+            <Link href='/privacy-policy'>
+              <Button variant='outline' size='sm'>
+                Politique de confidentialité
+              </Button>
+            </Link>
+            <Link href='/story'>
+              <Button variant='outline' size='sm'>
+                Notre histoire
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
