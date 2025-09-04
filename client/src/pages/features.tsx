@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import {
   Building,
   Users,

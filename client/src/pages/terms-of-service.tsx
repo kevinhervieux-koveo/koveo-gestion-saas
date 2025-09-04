@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import koveoLogo from '@/assets/koveo-logo.jpg';
 import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
