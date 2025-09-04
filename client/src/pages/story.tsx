@@ -237,7 +237,7 @@ StoryPage() {
                 {/* Display sections from the PDF content */}
                 {companyHistory.content.sections && companyHistory.content.sections.length > 0 && (
                   <div className='grid gap-6'>
-                    {companyHistory.content.sections.map((section: any, _index: number) => (
+                    {companyHistory.content.sections.map((section: any, index: number) => (
                       <Card
                         key={index}
                         className='hover:shadow-lg transition-shadow'
@@ -290,7 +290,7 @@ StoryPage() {
                       Nos valeurs fondamentales
                     </h3>
                     <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                      {companyHistory.content.values.map((_value: string, _index: number) => (
+                      {companyHistory.content.values.map((value: string, index: number) => (
                         <div
                           key={index}
                           className='bg-white p-4 rounded-lg border border-gray-200 flex items-center space-x-3'
@@ -388,7 +388,7 @@ StoryPage() {
 
           <div className='max-w-4xl mx-auto'>
             <div className='space-y-8'>
-              {timeline.map((event, _index) => (
+              {timeline.map((event, index) => (
                 <div
                   key={index}
                   className='flex items-start space-x-6'
@@ -427,7 +427,7 @@ StoryPage() {
         </div>
 
         <div className='grid md:grid-cols-2 gap-8'>
-          {values.map((value, _index) => (
+          {values.map((value, index) => (
             <Card
               key={index}
               className='hover:shadow-lg transition-shadow'
@@ -462,7 +462,7 @@ StoryPage() {
               <div>
                 <h3 className='text-2xl font-semibold mb-6'>Expertise québécoise</h3>
                 <div className='space-y-4'>
-                  {teamHighlights.map((highlight, _index) => (
+                  {teamHighlights.map((highlight, index) => (
                     <div
                       key={index}
                       className='flex items-start space-x-3'
@@ -500,7 +500,7 @@ StoryPage() {
         </div>
 
         <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-6'>
-          {achievements.map((achievement, _index) => (
+          {achievements.map((achievement, index) => (
             <Card
               key={index}
               className='text-center hover:shadow-lg transition-shadow'
