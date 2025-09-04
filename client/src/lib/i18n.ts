@@ -352,6 +352,65 @@ export interface Translations {
   showing: string;
   residences: string;
   buildingDocuments: string;
+  signIn: string;
+  demoMode: string;
+  selectRole: string;
+  firstName: string;
+  lastName: string;
+  confirmPassword: string;
+  enterEmailAddress: string;
+  enterPassword: string;
+  enterFirstName: string;
+  enterLastName: string;
+  selectOrganization: string;
+  selectBuilding: string;
+  selectResidence: string;
+  optional: string;
+  required: string;
+  submit: string;
+  send: string;
+  sendInvitation: string;
+  reset: string;
+  clear: string;
+  add: string;
+  remove: string;
+  update: string;
+  create: string;
+  // Error Messages
+  fieldRequired: string;
+  emailRequired: string;
+  passwordRequired: string;
+  invalidEmail: string;
+  invalidEmailFormat: string;
+  passwordTooShort: string;
+  passwordTooWeak: string;
+  passwordsNotMatch: string;
+  firstNameRequired: string;
+  lastNameRequired: string;
+  organizationRequired: string;
+  buildingRequired: string;
+  residenceRequired: string;
+  loginFailed: string;
+  invalidCredentials: string;
+  networkError: string;
+  serverError: string;
+  unexpectedError: string;
+  loadingFailed: string;
+  saveFailed: string;
+  updateFailed: string;
+  deleteFailed: string;
+  firstNameTooLong: string;
+  firstNameInvalidCharacters: string;
+  lastNameTooLong: string;
+  lastNameInvalidCharacters: string;
+  personalMessageTooLong: string;
+  expiryDaysInvalid: string;
+  emailOrNameRequired: string;
+  // Core field labels for forms
+  email: string;
+  password: string;
+  login: string;
+  forgotPassword: string;
   // Documents page translations
   // Navigation translations
   quickActions: string;
@@ -838,6 +897,65 @@ const translations: Record<Language, Translations> = {
     showing: 'Showing',
     residences: 'residences',
     buildingDocuments: 'Building Documents',
+    signIn: 'Sign In',
+    demoMode: 'Demo Mode',
+    selectRole: 'Select Role',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    confirmPassword: 'Confirm Password',
+    enterEmailAddress: 'Enter email address',
+    enterPassword: 'Enter password',
+    enterFirstName: 'Enter first name',
+    enterLastName: 'Enter last name',
+    selectOrganization: 'Select organization',
+    selectBuilding: 'Select building',
+    selectResidence: 'Select residence',
+    optional: 'Optional',
+    required: 'Required',
+    submit: 'Submit',
+    send: 'Send',
+    sendInvitation: 'Send Invitation',
+    reset: 'Reset',
+    clear: 'Clear',
+    add: 'Add',
+    remove: 'Remove',
+    update: 'Update',
+    create: 'Create',
+    // Error Messages
+    fieldRequired: 'This field is required',
+    emailRequired: 'Email address is required to sign in',
+    passwordRequired: 'Password is required to sign in',
+    invalidEmail: 'Please enter a valid email address (example: user@domain.com)',
+    invalidEmailFormat: 'Please enter a valid email address (example: user@domain.com)',
+    passwordTooShort: 'Password must be at least 8 characters long',
+    passwordTooWeak: 'Password is too weak - please use a stronger password',
+    passwordsNotMatch: 'Passwords do not match - please check both fields',
+    firstNameRequired: 'First name is required for registration',
+    lastNameRequired: 'Last name is required for registration',
+    organizationRequired: 'Please select an organization from the dropdown',
+    buildingRequired: 'Please select a building from the dropdown',
+    residenceRequired: 'Please select a specific residence unit for tenants and residents',
+    loginFailed: 'Login failed - please check your credentials and try again',
+    invalidCredentials: 'Invalid email or password - please try again',
+    networkError: 'Network connection error - please check your internet connection',
+    serverError: 'Server error occurred - please try again later',
+    unexpectedError: 'An unexpected error occurred - please contact support if this continues',
+    loadingFailed: 'Failed to load data - please refresh the page and try again',
+    saveFailed: 'Failed to save changes - please try again',
+    updateFailed: 'Failed to update information - please try again',
+    deleteFailed: 'Failed to delete item - please try again',
+    firstNameTooLong: 'First name must be less than 50 characters',
+    firstNameInvalidCharacters: 'First name can only contain letters, spaces, apostrophes and hyphens',
+    lastNameTooLong: 'Last name must be less than 50 characters',
+    lastNameInvalidCharacters: 'Last name can only contain letters, spaces, apostrophes and hyphens',
+    personalMessageTooLong: 'Personal message must be less than 500 characters',
+    expiryDaysInvalid: 'Expiry days must be between 1 and 30 days',
+    emailOrNameRequired: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+    // Core field labels for forms
+    email: 'Email',
+    password: 'Password',
+    login: 'Login',
+    forgotPassword: 'Forgot Password',
     // Documents page translations
     // Navigation translations
     quickActions: 'Quick Actions',
@@ -1323,6 +1441,65 @@ const translations: Record<Language, Translations> = {
     showing: 'Affichage',
     residences: 'résidences',
     buildingDocuments: 'Documents du bâtiment',
+    signIn: 'Se connecter',
+    demoMode: 'Mode démo',
+    selectRole: 'Sélectionner le rôle',
+    firstName: 'Prénom',
+    lastName: 'Nom de famille',
+    confirmPassword: 'Confirmer le mot de passe',
+    enterEmailAddress: 'Entrez l\'adresse courriel',
+    enterPassword: 'Entrez le mot de passe',
+    enterFirstName: 'Entrez le prénom',
+    enterLastName: 'Entrez le nom de famille',
+    selectOrganization: 'Sélectionner l\'organisation',
+    selectBuilding: 'Sélectionner le bâtiment',
+    selectResidence: 'Sélectionner la résidence',
+    optional: 'Optionnel',
+    required: 'Requis',
+    submit: 'Soumettre',
+    send: 'Envoyer',
+    sendInvitation: 'Envoyer l\'invitation',
+    reset: 'Réinitialiser',
+    clear: 'Effacer',
+    add: 'Ajouter',
+    remove: 'Retirer',
+    update: 'Mettre à jour',
+    create: 'Créer',
+    // Messages d'erreur
+    fieldRequired: 'Ce champ est requis',
+    emailRequired: 'L\'adresse courriel est requise pour se connecter',
+    passwordRequired: 'Le mot de passe est requis pour se connecter',
+    invalidEmail: 'Veuillez entrer une adresse courriel valide (exemple: utilisateur@domaine.com)',
+    invalidEmailFormat: 'Veuillez entrer une adresse courriel valide (exemple: utilisateur@domaine.com)',
+    passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
+    passwordTooWeak: 'Le mot de passe est trop faible - veuillez utiliser un mot de passe plus fort',
+    passwordsNotMatch: 'Les mots de passe ne correspondent pas - veuillez vérifier les deux champs',
+    firstNameRequired: 'Le prénom est requis pour l\'inscription',
+    lastNameRequired: 'Le nom de famille est requis pour l\'inscription',
+    organizationRequired: 'Veuillez sélectionner une organisation dans le menu déroulant',
+    buildingRequired: 'Veuillez sélectionner un bâtiment dans le menu déroulant',
+    residenceRequired: 'Veuillez sélectionner une unité de résidence spécifique pour les locataires et résidents',
+    loginFailed: 'Connexion échouée - veuillez vérifier vos identifiants et réessayer',
+    invalidCredentials: 'Courriel ou mot de passe invalide - veuillez réessayer',
+    networkError: 'Erreur de connexion réseau - veuillez vérifier votre connexion Internet',
+    serverError: 'Erreur serveur survenue - veuillez réessayer plus tard',
+    unexpectedError: 'Une erreur inattendue s\'est produite - veuillez contacter le support si cela continue',
+    loadingFailed: 'Échec du chargement des données - veuillez actualiser la page et réessayer',
+    saveFailed: 'Échec de l\'enregistrement des modifications - veuillez réessayer',
+    updateFailed: 'Échec de la mise à jour des informations - veuillez réessayer',
+    deleteFailed: 'Échec de la suppression de l\'élément - veuillez réessayer',
+    firstNameTooLong: 'Le prénom doit contenir moins de 50 caractères',
+    firstNameInvalidCharacters: 'Le prénom ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    lastNameTooLong: 'Le nom de famille doit contenir moins de 50 caractères',
+    lastNameInvalidCharacters: 'Le nom de famille ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    personalMessageTooLong: 'Le message personnel doit contenir moins de 500 caractères',
+    expiryDaysInvalid: 'Les jours d\'expiration doivent être entre 1 et 30 jours',
+    emailOrNameRequired: 'L\'adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs de démo, fournissez le prénom et le nom de famille.',
+    // Étiquettes de champs de base pour les formulaires
+    email: 'Courriel',
+    password: 'Mot de passe',
+    login: 'Connexion',
+    forgotPassword: 'Mot de passe oublié',
     // Documents page translations
     // Navigation translations
     quickActions: 'Actions rapides',
@@ -1401,7 +1578,7 @@ const translations: Record<Language, Translations> = {
     ourStory: 'Notre histoire',
     privacyPolicy: 'Politique de confidentialité',
     termsOfService: "Conditions d'utilisation",
-    login: 'Se connecter',
+    login: 'Connexion',
     logout: 'Déconnexion',
     getStarted: 'Commencer',
     language: 'Langue',

@@ -39,9 +39,9 @@ import { useToast } from '@/hooks/use-toast';
 // Form validation schema
 const invitationSchema = z
   .object({
-    email: z.string().email('Please enter a valid email address (example: user@domain.com)').optional(),
-    firstName: z.string().max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'First name can only contain letters, spaces, apostrophes and hyphens').optional(),
-    lastName: z.string().max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'Last name can only contain letters, spaces, apostrophes and hyphens').optional(),
+    email: z.string().email('invalidEmailFormat').optional(),
+    firstName: z.string().max(50, 'firstNameTooLong').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'firstNameInvalidCharacters').optional(),
+    lastName: z.string().max(50, 'lastNameTooLong').regex(/^[a-zA-ZÀ-ÿ\s'-]*$/, 'lastNameInvalidCharacters').optional(),
     role: z.enum([
       'admin',
       'manager',
@@ -51,11 +51,11 @@ const invitationSchema = z
       'demo_tenant',
       'demo_resident',
     ]),
-    organizationId: z.string().min(1, 'Please select an organization from the dropdown'),
+    organizationId: z.string().min(1, 'organizationRequired'),
     buildingId: z.string().optional(),
     residenceId: z.string().optional(),
-    personalMessage: z.string().max(500, 'Personal message must be less than 500 characters').optional(),
-    expiryDays: z.number().min(1, 'Expiry days must be between 1 and 30 days').max(30, 'Expiry days must be between 1 and 30 days'),
+    personalMessage: z.string().max(500, 'personalMessageTooLong').optional(),
+    expiryDays: z.number().min(1, 'expiryDaysInvalid').max(30, 'expiryDaysInvalid'),
   })
   .refine(
     (data) => {

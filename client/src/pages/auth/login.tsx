@@ -30,13 +30,13 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Email address is required to sign in')
-    .email('Please enter a valid email address (example: user@domain.com)')
+    .min(1, 'emailRequired')
+    .email('invalidEmailFormat')
     .toLowerCase(),
   password: z
     .string()
-    .min(1, 'Password is required to sign in')
-    .min(8, 'Password must be at least 8 characters long'),
+    .min(1, 'passwordRequired')
+    .min(8, 'passwordTooShort'),
 });
 
 /**
