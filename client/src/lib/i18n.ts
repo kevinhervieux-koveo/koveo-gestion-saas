@@ -539,6 +539,8 @@ export interface Translations {
   regularUpdates: string;
   documentManagement: string;
   documentManagementDesc: string;
+  documentDescription: string;
+  documentTitle: string;
   smartNotifications: string;
   smartNotificationsDesc: string;
   electronicBilling: string;
@@ -1110,6 +1112,8 @@ const translations: Record<Language, Translations> = {
     regularUpdates: 'Regular updates',
     documentManagement: 'Document management',
     documentManagementDesc: 'Secure storage and organization',
+    documentDescription: 'Description of the document',
+    documentTitle: 'Document Title',
     smartNotifications: 'Smart notifications',
     smartNotificationsDesc: 'Automated alerts and reminders',
     electronicBilling: 'Electronic billing',
@@ -1679,6 +1683,8 @@ const translations: Record<Language, Translations> = {
     regularUpdates: 'Mises à jour régulières',
     documentManagement: 'Gestion documentaire',
     documentManagementDesc: 'Stockage et organisation sécurisés',
+    documentDescription: 'Description du document',
+    documentTitle: 'Titre du document',
     smartNotifications: 'Notifications intelligentes',
     smartNotificationsDesc: 'Alertes et rappels automatisés',
     electronicBilling: 'Facturation électronique',
