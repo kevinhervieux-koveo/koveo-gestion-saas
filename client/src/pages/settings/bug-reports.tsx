@@ -156,6 +156,8 @@ export default function BugReports() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [attachmentMode, setAttachmentMode] = useState<'file' | 'text'>('file');
+  const [attachmentText, setAttachmentText] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -196,6 +198,8 @@ export default function BugReports() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
       setIsCreateDialogOpen(false);
+      setAttachedFiles([]);
+      setAttachmentText('');
       form.reset();
       toast({
         title: 'Bug reported',
@@ -265,6 +269,11 @@ export default function BugReports() {
         }
       });
 
+      // Add text notes if provided
+      if (attachmentText.trim()) {
+        formData.append('additionalNotes', attachmentText);
+      }
+
       // Add attached files
       attachedFiles.forEach(file => {
         formData.append('attachments', file);
@@ -285,6 +294,7 @@ export default function BugReports() {
         .then(() => {
           queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
           setAttachedFiles([]);
+          setAttachmentText('');
           form.reset();
           setIsCreateDialogOpen(false);
           toast({
@@ -299,8 +309,15 @@ export default function BugReports() {
             variant: 'destructive',
           });
         });
+    } else if (attachmentText.trim()) {
+      // No files but has text notes
+      const payload = {
+        ...data,
+        additionalNotes: attachmentText,
+      };
+      createBugMutation.mutate(payload);
     } else {
-      // No files, use regular API request
+      // No files or text notes, use regular API request
       createBugMutation.mutate(data);
     }
   };
@@ -550,44 +567,88 @@ export default function BugReports() {
                         </div>
                       </div>
 
-                      {/* BOTTOM SECTION: File Attachments */}
-                      <div className="space-y-3 border-t pt-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Paperclip className="w-4 h-4 text-gray-500" />
-                            <Label className="text-sm font-medium">Screenshots & Files</Label>
-                            <span className="text-xs text-gray-500">
-                              (Optional - Screenshots, error logs, console outputs)
-                            </span>
-                          </div>
-                          <CompactFileUpload
-                            onFilesSelect={handleFilesSelect}
-                            maxFiles={5}
-                            acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
-                          />
+                      {/* BOTTOM SECTION: Attachment Type Selection */}
+                      <div className="space-y-4 border-t pt-4">
+                        <Label className="text-sm font-medium">Screenshots & Files</Label>
+                        <div className="flex space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setAttachmentMode('file')}
+                            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                              attachmentMode === 'file'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            data-testid="button-file-mode"
+                          >
+                            📎 Attach Files
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAttachmentMode('text')}
+                            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                              attachmentMode === 'text'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            data-testid="button-text-mode"
+                          >
+                            📝 Text Notes
+                          </button>
                         </div>
-                        {attachedFiles.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-xs text-gray-600">
-                              Selected files ({attachedFiles.length}):
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {attachedFiles.map((file, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
-                                >
-                                  <span className="truncate max-w-[100px]">{file.name}</span>
-                                  <button
-                                    onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
-                                    className="text-gray-500 hover:text-red-500"
-                                    type="button"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
+
+                        {/* Dynamic Content Based on Selection */}
+                        {attachmentMode === 'file' ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                Optional - Screenshots, error logs, console outputs
+                              </span>
+                              <CompactFileUpload
+                                onFilesSelect={handleFilesSelect}
+                                maxFiles={5}
+                                acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
+                              />
                             </div>
+                            {attachedFiles.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs text-gray-600">
+                                  Selected files ({attachedFiles.length}):
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {attachedFiles.map((file, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
+                                    >
+                                      <span className="truncate max-w-[100px]">{file.name}</span>
+                                      <button
+                                        onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                                        className="text-gray-500 hover:text-red-500"
+                                        type="button"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <Label htmlFor="attachment-text">Additional Notes</Label>
+                            <Textarea
+                              id="attachment-text"
+                              value={attachmentText}
+                              onChange={(e) => setAttachmentText(e.target.value)}
+                              placeholder="Add any additional technical details, error messages, or context here..."
+                              className="mt-1 min-h-[120px]"
+                              data-testid="textarea-attachment-notes"
+                            />
+                            <p className="text-sm text-gray-500 mt-1">
+                              Use this to add error messages, console outputs, or other technical details.
+                            </p>
                           </div>
                         )}
                       </div>
