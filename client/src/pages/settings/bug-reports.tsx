@@ -1219,32 +1219,38 @@ export default function BugReports() {
                       <FileText className="w-4 h-4 text-gray-500" />
                       <span className="text-sm">{selectedBug.file_name || 'Attachment'}</span>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
                         onClick={() => {
-                          window.open('/api/bugs/' + selectedBug.id + '/file', '_blank');
+                          if (selectedBug && selectedBug.file_path) {
+                            const fileUrl = `/api/bugs/${selectedBug.id}/file`;
+                            window.open(fileUrl, '_blank');
+                          }
                         }}
-                        className="text-xs"
+                        disabled={!selectedBug?.file_path}
+                        data-testid="button-view-file"
                       >
+                        <FileText className="w-4 h-4 mr-2" />
                         View
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
-                        size="sm"
                         onClick={() => {
-                          const link = window.document.createElement('a');
-                          link.href = '/api/bugs/' + selectedBug.id + '/file?download=true';
-                          link.download = selectedBug.file_name || selectedBug.title;
-                          window.document.body.appendChild(link);
-                          link.click();
-                          window.document.body.removeChild(link);
+                          if (selectedBug && selectedBug.file_path) {
+                            const link = window.document.createElement('a');
+                            link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
+                            link.download = selectedBug.file_name || selectedBug.title;
+                            window.document.body.appendChild(link);
+                            link.click();
+                            window.document.body.removeChild(link);
+                          }
                         }}
-                        className="text-xs"
+                        disabled={!selectedBug?.file_path}
+                        data-testid="button-download-file"
                       >
+                        <Download className="w-4 h-4 mr-2" />
                         Download
                       </Button>
                     </div>
