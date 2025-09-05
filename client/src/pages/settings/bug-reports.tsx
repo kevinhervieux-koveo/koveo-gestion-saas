@@ -456,23 +456,23 @@ export default function BugReports() {
   });
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Bug Reports' subtitle='Report issues and track bug status' />
+    <div className='flex-1 flex flex-col overflow-hidden">
+      <Header title="Bug Reports" subtitle="Report issues and track bug status" />
 
-      <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto space-y-6'>
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
+              <CardTitle className='flex items-center gap-2">
                 <Bug className='w-5 h-5' />
                 Bug Reports
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='flex flex-col md:flex-row gap-4 items-start md:items-center justify-between'>
-                <div className='flex flex-col sm:flex-row gap-4 flex-1'>
-                  <div className='relative flex-1'>
+              <div className='flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className='flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className='relative flex-1">
                     <Search className='w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
                     <Input
                       placeholder='Search bugs...'
@@ -483,47 +483,47 @@ export default function BugReports() {
                     />
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className='w-full sm:w-40' data-testid='select-status-filter'>
+                    <SelectTrigger className='w-full sm:w-40' data-testid='select-status-filter">
                       <SelectValue placeholder='Filter by status' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All Status</SelectItem>
-                      <SelectItem value='new'>New</SelectItem>
-                      <SelectItem value='acknowledged'>Acknowledged</SelectItem>
-                      <SelectItem value='in_progress'>In Progress</SelectItem>
-                      <SelectItem value='resolved'>Resolved</SelectItem>
-                      <SelectItem value='closed'>Closed</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                    <SelectTrigger className='w-full sm:w-40' data-testid='select-priority-filter'>
+                    <SelectTrigger className='w-full sm:w-40' data-testid='select-priority-filter">
                       <SelectValue placeholder='Filter by priority' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All Priority</SelectItem>
-                      <SelectItem value='low'>Low</SelectItem>
-                      <SelectItem value='medium'>Medium</SelectItem>
-                      <SelectItem value='high'>High</SelectItem>
-                      <SelectItem value='critical'>Critical</SelectItem>
+                      <SelectItem value="all">All Priority</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className='flex items-center gap-2' data-testid='button-create-bug'>
+                    <Button className='flex items-center gap-2' data-testid='button-create-bug">
                       <Plus className='w-4 h-4' />
                       Report Bug
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+                  <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Report a Bug</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6">
                       {/* TOP SECTION: Manual Input Fields */}
-                      <div className='space-y-4'>
+                      <div className='space-y-4">
                         <div>
-                          <Label htmlFor='title'>Title*</Label>
+                          <Label htmlFor='title">Title*</Label>
                           <Input
                             id='title'
                             placeholder='Brief description of the issue'
@@ -531,14 +531,14 @@ export default function BugReports() {
                             data-testid='input-bug-title'
                           />
                           {form.formState.errors.title && (
-                            <p className='text-sm text-red-600 mt-1'>
+                            <p className='text-sm text-red-600 mt-1">
                               {form.formState.errors.title.message}
                             </p>
                           )}
                         </div>
 
                         <div>
-                          <Label htmlFor='description'>Description*</Label>
+                          <Label htmlFor='description">Description*</Label>
                           <Textarea
                             id='description'
                             placeholder='Detailed description of the bug, including what you expected to happen'
@@ -547,15 +547,15 @@ export default function BugReports() {
                             data-testid='textarea-bug-description'
                           />
                           {form.formState.errors.description && (
-                            <p className='text-sm text-red-600 mt-1'>
+                            <p className='text-sm text-red-600 mt-1">
                               {form.formState.errors.description.message}
                             </p>
                           )}
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor='category'>Category*</Label>
+                            <Label htmlFor='category">Category*</Label>
                             <Select
                               onValueChange={(value) => {
                                 form.setValue('category', value as any);
@@ -563,7 +563,7 @@ export default function BugReports() {
                               }}
                               value={form.watch('category')}
                             >
-                              <SelectTrigger data-testid='select-bug-category'>
+                              <SelectTrigger data-testid='select-bug-category">
                                 <SelectValue placeholder='Select category' />
                               </SelectTrigger>
                               <SelectContent>
@@ -575,14 +575,14 @@ export default function BugReports() {
                               </SelectContent>
                             </Select>
                             {form.formState.errors.category && (
-                              <p className='text-sm text-red-600 mt-1'>
+                              <p className='text-sm text-red-600 mt-1">
                                 {form.formState.errors.category.message}
                               </p>
                             )}
                           </div>
 
                           <div>
-                            <Label htmlFor='priority'>Priority</Label>
+                            <Label htmlFor='priority">Priority</Label>
                             <Select
                               onValueChange={(value) => {
                                 form.setValue('priority', value as any);
@@ -590,20 +590,20 @@ export default function BugReports() {
                               }}
                               value={form.watch('priority')}
                             >
-                              <SelectTrigger data-testid='select-bug-priority'>
+                              <SelectTrigger data-testid='select-bug-priority">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value='low'>Low</SelectItem>
-                                <SelectItem value='medium'>Medium</SelectItem>
-                                <SelectItem value='high'>High</SelectItem>
-                                <SelectItem value='critical'>Critical</SelectItem>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="critical">Critical</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
 
                           <div>
-                            <Label htmlFor='page'>Page/Location*</Label>
+                            <Label htmlFor='page">Page/Location*</Label>
                             <Input
                               id='page'
                               placeholder='e.g., Dashboard, Settings'
@@ -611,7 +611,7 @@ export default function BugReports() {
                               data-testid='input-bug-page'
                             />
                             {form.formState.errors.page && (
-                              <p className='text-sm text-red-600 mt-1'>
+                              <p className='text-sm text-red-600 mt-1">
                                 {form.formState.errors.page.message}
                               </p>
                             )}
@@ -619,7 +619,7 @@ export default function BugReports() {
                         </div>
 
                         <div>
-                          <Label htmlFor='reproductionSteps'>Steps to Reproduce</Label>
+                          <Label htmlFor='reproductionSteps">Steps to Reproduce</Label>
                           <Textarea
                             id='reproductionSteps'
                             placeholder='1. Go to...\n2. Click on...\n3. Notice that...'
@@ -631,9 +631,9 @@ export default function BugReports() {
                       </div>
 
                       {/* BOTTOM SECTION: Attachment Type Selection */}
-                      <div className="space-y-4 border-t pt-4">
-                        <Label className="text-sm font-medium">Choose Document Type</Label>
-                        <div className="flex space-x-3">
+                      <div className='space-y-4 border-t pt-4">
+                        <Label className='text-sm font-medium">Choose Document Type</Label>
+                        <div className='flex space-x-3">
                           <button
                             type="button"
                             onClick={() => setAttachmentMode('file')}
@@ -663,7 +663,7 @@ export default function BugReports() {
                         {/* Dynamic Content Based on Selection */}
                         {attachmentMode === 'file' ? (
                           <div>
-                            <Label htmlFor='file-upload'>Select File to Upload</Label>
+                            <Label htmlFor='file-upload">Select File to Upload</Label>
                             <Input
                               id='file-upload'
                               type='file'
@@ -679,8 +679,8 @@ export default function BugReports() {
                               data-testid='input-file'
                             />
                             {attachedFiles.length > 0 && (
-                              <div className="space-y-2 mt-2">
-                                <p className="text-sm text-gray-500">
+                              <div className='space-y-2 mt-2">
+                                <p className='text-sm text-gray-500">
                                   Selected: {attachedFiles.map(f => `${f.name} (${Math.round(f.size / 1024)} KB)`).join(', ')}
                                 </p>
                               </div>
@@ -688,7 +688,7 @@ export default function BugReports() {
                           </div>
                         ) : (
                           <div>
-                            <Label htmlFor='text-content'>Document Content</Label>
+                            <Label htmlFor='text-content">Document Content</Label>
                             <Textarea
                               id='text-content'
                               value={attachmentText}
@@ -697,14 +697,14 @@ export default function BugReports() {
                               className='mt-1 min-h-[120px]'
                               data-testid='textarea-content'
                             />
-                            <p className='text-sm text-gray-500 mt-1'>
+                            <p className='text-sm text-gray-500 mt-1">
                               This will add text notes that can be viewed with the bug report.
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className='flex justify-end gap-2 pt-4'>
+                      <div className='flex justify-end gap-2 pt-4">
                         <Button
                           type='button'
                           variant='outline'
@@ -733,11 +733,11 @@ export default function BugReports() {
                     <DialogHeader>
                       <DialogTitle>Edit Bug Report</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={editForm.handleSubmit(onEditSubmit)} className='space-y-4'>
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        <div className='space-y-2'>
-                          <Label htmlFor='edit-title' className='text-sm font-medium'>
-                            Title <span className='text-red-500'>*</span>
+                    <form onSubmit={editForm.handleSubmit(onEditSubmit)} className='space-y-4">
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className='space-y-2">
+                          <Label htmlFor='edit-title' className='text-sm font-medium">
+                            Title <span className='text-red-500">*</span>
                           </Label>
                           <Input
                             id='edit-title'
@@ -745,39 +745,39 @@ export default function BugReports() {
                             data-testid='input-edit-title'
                           />
                           {editForm.formState.errors.title && (
-                            <p className='text-red-500 text-xs'>
+                            <p className='text-red-500 text-xs">
                               {editForm.formState.errors.title.message}
                             </p>
                           )}
                         </div>
 
-                        <div className='space-y-2'>
-                          <Label htmlFor='edit-category' className='text-sm font-medium'>
-                            Category <span className='text-red-500'>*</span>
+                        <div className='space-y-2">
+                          <Label htmlFor='edit-category' className='text-sm font-medium">
+                            Category <span className='text-red-500">*</span>
                           </Label>
                           <Select
                             value={editForm.watch('category')}
                             onValueChange={(value) => editForm.setValue('category', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-category'>
+                            <SelectTrigger data-testid='select-edit-category">
                               <SelectValue placeholder='Select category' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value='ui_ux'>UI/UX</SelectItem>
-                              <SelectItem value='functionality'>Functionality</SelectItem>
-                              <SelectItem value='performance'>Performance</SelectItem>
-                              <SelectItem value='data'>Data</SelectItem>
-                              <SelectItem value='security'>Security</SelectItem>
-                              <SelectItem value='integration'>Integration</SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
+                              <SelectItem value="ui_ux">UI/UX</SelectItem>
+                              <SelectItem value="functionality">Functionality</SelectItem>
+                              <SelectItem value="performance">Performance</SelectItem>
+                              <SelectItem value="data">Data</SelectItem>
+                              <SelectItem value="security">Security</SelectItem>
+                              <SelectItem value="integration">Integration</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
 
-                      <div className='space-y-2'>
-                        <Label htmlFor='edit-description' className='text-sm font-medium'>
-                          Description <span className='text-red-500'>*</span>
+                      <div className='space-y-2">
+                        <Label htmlFor='edit-description' className='text-sm font-medium">
+                          Description <span className='text-red-500">*</span>
                         </Label>
                         <Textarea
                           id='edit-description'
@@ -800,57 +800,57 @@ export default function BugReports() {
                           }}
                         />
                         {editForm.formState.errors.description && (
-                          <p className='text-red-500 text-xs'>
+                          <p className='text-red-500 text-xs">
                             {editForm.formState.errors.description.message}
                           </p>
                         )}
                       </div>
 
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                        <div className='space-y-2'>
-                          <Label htmlFor='edit-priority' className='text-sm font-medium'>
-                            Priority <span className='text-red-500'>*</span>
+                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className='space-y-2">
+                          <Label htmlFor='edit-priority' className='text-sm font-medium">
+                            Priority <span className='text-red-500">*</span>
                           </Label>
                           <Select
                             value={editForm.watch('priority')}
                             onValueChange={(value) => editForm.setValue('priority', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-priority'>
+                            <SelectTrigger data-testid='select-edit-priority">
                               <SelectValue placeholder='Select priority' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value='low'>Low</SelectItem>
-                              <SelectItem value='medium'>Medium</SelectItem>
-                              <SelectItem value='high'>High</SelectItem>
-                              <SelectItem value='critical'>Critical</SelectItem>
+                              <SelectItem value="low">Low</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="critical">Critical</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
-                        <div className='space-y-2'>
-                          <Label htmlFor='edit-status' className='text-sm font-medium'>
+                        <div className='space-y-2">
+                          <Label htmlFor='edit-status' className='text-sm font-medium">
                             Status
                           </Label>
                           <Select
                             value={editForm.watch('status')}
                             onValueChange={(value) => editForm.setValue('status', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-status'>
+                            <SelectTrigger data-testid='select-edit-status">
                               <SelectValue placeholder='Select status' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value='new'>New</SelectItem>
-                              <SelectItem value='acknowledged'>Acknowledged</SelectItem>
-                              <SelectItem value='in_progress'>In Progress</SelectItem>
-                              <SelectItem value='resolved'>Resolved</SelectItem>
-                              <SelectItem value='closed'>Closed</SelectItem>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="closed">Closed</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
-                        <div className='space-y-2'>
-                          <Label htmlFor='edit-page' className='text-sm font-medium'>
-                            Page/Location <span className='text-red-500'>*</span>
+                        <div className='space-y-2">
+                          <Label htmlFor='edit-page' className='text-sm font-medium">
+                            Page/Location <span className='text-red-500">*</span>
                           </Label>
                           <Input
                             id='edit-page'
@@ -859,15 +859,15 @@ export default function BugReports() {
                             data-testid='input-edit-page'
                           />
                           {editForm.formState.errors.page && (
-                            <p className='text-red-500 text-xs'>
+                            <p className='text-red-500 text-xs">
                               {editForm.formState.errors.page.message}
                             </p>
                           )}
                         </div>
                       </div>
 
-                      <div className='space-y-2'>
-                        <Label htmlFor='edit-reproduction-steps' className='text-sm font-medium'>
+                      <div className='space-y-2">
+                        <Label htmlFor='edit-reproduction-steps' className='text-sm font-medium">
                           Steps to Reproduce (Optional)
                         </Label>
                         <Textarea
@@ -880,9 +880,9 @@ export default function BugReports() {
                       </div>
 
                       {/* Choose Document Type Section */}
-                      <div className="space-y-4 border-t pt-4">
-                        <Label className="text-sm font-medium">Choose Document Type</Label>
-                        <div className="flex space-x-3">
+                      <div className='space-y-4 border-t pt-4">
+                        <Label className='text-sm font-medium">Choose Document Type</Label>
+                        <div className='flex space-x-3">
                           <button
                             type="button"
                             onClick={() => setEditAttachmentMode('file')}
@@ -912,17 +912,17 @@ export default function BugReports() {
                         {/* Dynamic Content Based on Selection */}
                         {editAttachmentMode === 'file' ? (
                           <div>
-                            <Label htmlFor='edit-file-upload'>Select File to Upload</Label>
+                            <Label htmlFor='edit-file-upload">Select File to Upload</Label>
                             {editingBug?.attachments && editingBug.attachments.length > 0 ? (
-                              <div className='space-y-2 mt-2'>
-                                <p className='text-sm text-gray-500'>
+                              <div className='space-y-2 mt-2">
+                                <p className='text-sm text-gray-500">
                                   Current files: {editingBug.attachments.map(f => f.name).join(', ')}
                                 </p>
-                                <div className='space-y-1'>
+                                <div className='space-y-1">
                                   {editingBug.attachments.map((attachment, index) => (
-                                    <div key={index} className='flex items-center justify-between p-2 bg-gray-50 rounded text-sm'>
+                                    <div key={index} className='flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
                                       <span>{attachment.name}</span>
-                                      <div className='flex gap-1'>
+                                      <div className='flex gap-1">
                                         <Button
                                           type="button"
                                           variant='outline'
@@ -954,12 +954,12 @@ export default function BugReports() {
                                 </div>
                               </div>
                             ) : (
-                              <p className='text-sm text-gray-500 mt-1'>No files attached</p>
+                              <p className='text-sm text-gray-500 mt-1">No files attached</p>
                             )}
                           </div>
                         ) : (
                           <div>
-                            <Label htmlFor='edit-text-content'>Document Content</Label>
+                            <Label htmlFor='edit-text-content">Document Content</Label>
                             <Textarea
                               id='edit-text-content'
                               value={editAttachmentText}
@@ -968,14 +968,14 @@ export default function BugReports() {
                               className='mt-1 min-h-[120px]'
                               data-testid='textarea-edit-content'
                             />
-                            <p className='text-sm text-gray-500 mt-1'>
+                            <p className='text-sm text-gray-500 mt-1">
                               This will show text notes with the bug report.
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className='flex justify-end gap-2 pt-4'>
+                      <div className='flex justify-end gap-2 pt-4">
                         <Button
                           type='button'
                           variant='outline'
@@ -1000,13 +1000,13 @@ export default function BugReports() {
 
           {/* Bugs Display - Grouped by category */}
           {isLoading ? (
-            <div className='text-center py-8'>Loading bug reports...</div>
+            <div className='text-center py-8">Loading bug reports...</div>
           ) : filteredBugs.length === 0 ? (
             <Card>
-              <CardContent className='p-8 text-center'>
+              <CardContent className='p-8 text-center">
                 <Bug className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bug Reports Found</h3>
-                <p className='text-gray-500'>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2">No Bug Reports Found</h3>
+                <p className='text-gray-500">
                   {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
                     ? 'No bugs match your current filters.'
                     : 'No bug reports have been submitted yet.'}
@@ -1014,7 +1014,7 @@ export default function BugReports() {
               </CardContent>
             </Card>
           ) : (
-            <div className='space-y-6'>
+            <div className='space-y-6">
               {/* Category View - Group bugs by category */}
               {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
                 const categoryBugs = filteredBugs.filter((bug: Bug) => bug.category === categoryKey);
@@ -1025,14 +1025,14 @@ export default function BugReports() {
                 return (
                   <Card key={categoryKey} data-testid={`category-${categoryKey}`}>
                     <CardHeader>
-                      <CardTitle className='flex items-center gap-2'>
+                      <CardTitle className='flex items-center gap-2">
                         <Bug className='h-5 w-5' />
                         {categoryLabel}
-                        <Badge variant='secondary'>{categoryBugs.length}</Badge>
+                        <Badge variant='secondary">{categoryBugs.length}</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {categoryBugs.map((bug: Bug) => (
                           <Card
                             key={bug.id}
@@ -1052,15 +1052,15 @@ export default function BugReports() {
                               setIsBugDetailsOpen(true);
                             }}
                           >
-                            <CardContent className='p-4'>
-                              <div className='flex items-start justify-between mb-2'>
+                            <CardContent className='p-4">
+                              <div className='flex items-start justify-between mb-2">
                                 <h4
                                   className='font-medium text-sm truncate flex-1 mr-2'
                                   data-testid={`bug-name-${bug.id}`}
                                 >
                                   {bug.title}
                                 </h4>
-                                <div className='flex gap-1'>
+                                <div className='flex gap-1">
                                   {canEditBug(bug) && (
                                     <Button
                                       size='sm'
@@ -1092,7 +1092,7 @@ export default function BugReports() {
                               >
                                 {new Date(bug.created_at).toLocaleDateString()}
                               </p>
-                              <div className='flex flex-wrap gap-1 mb-2'>
+                              <div className='flex flex-wrap gap-1 mb-2">
                                 <Badge
                                   className={
                                     priorityColors[bug.priority as keyof typeof priorityColors]
@@ -1109,7 +1109,7 @@ export default function BugReports() {
                                 </Badge>
                               </div>
                               {bug.file_path && (
-                                <Badge variant='outline' className='text-xs'>
+                                <Badge variant='outline' className='text-xs">
                                   File attached
                                 </Badge>
                               )}
@@ -1136,7 +1136,7 @@ export default function BugReports() {
               }
             }}
           >
-            <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
+            <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Bug Details</DialogTitle>
                 <DialogDescription>
@@ -1144,15 +1144,15 @@ export default function BugReports() {
                 </DialogDescription>
               </DialogHeader>
               {selectedBug && (
-                <div className='space-y-4'>
+                <div className='space-y-4">
                   <div>
-                    <h3 className='text-lg font-semibold'>{selectedBug.title}</h3>
+                    <h3 className='text-lg font-semibold">{selectedBug.title}</h3>
                     {selectedBug.description && (
-                      <p className='text-gray-600 mt-2'>{selectedBug.description}</p>
+                      <p className='text-gray-600 mt-2">{selectedBug.description}</p>
                     )}
                   </div>
 
-                  <div className='grid grid-cols-2 gap-4 text-sm'>
+                  <div className='grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <strong>Category:</strong> {categoryLabels[selectedBug.category as keyof typeof categoryLabels]}
                     </div>
@@ -1175,7 +1175,7 @@ export default function BugReports() {
                     )}
                   </div>
 
-                  <div className='flex gap-2 pt-4'>
+                  <div className='flex gap-2 pt-4">
                     {selectedBug.file_path && (
                       <>
                         <Button
@@ -1206,15 +1206,15 @@ export default function BugReports() {
                     )}
                     {canDeleteBug(selectedBug) && (
                       <Button
-                        variant='outline'
+                        variant="outline"
                         onClick={() => {
                           if (window.confirm('Are you sure you want to delete this bug report?')) {
                             handleDelete(selectedBug.id);
                           }
                         }}
-                        className='text-red-600 hover:text-red-700'
+                        className='text-red-600 hover:text-red-700"
                       >
-                        <Trash2 className='w-4 h-4 mr-2' />
+                        <Trash2 className='w-4 h-4 mr-2" />
                         Delete
                       </Button>
                     )}
