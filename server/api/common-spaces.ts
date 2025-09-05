@@ -60,6 +60,15 @@ const createCommonSpaceSchema = z.object({
       end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
     })
     .optional(),
+  weekly_hours: z.record(z.string(), z.object({
+    start: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+    end: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+  })).optional(),
+  available_days: z
+    .array(
+      z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
+    )
+    .optional(),
 });
 
 const setTimeLimitSchema = z.object({
@@ -1208,7 +1217,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        const { name, description, building_id, is_reservable, capacity, opening_hours } =
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
           validationResult.data;
 
         // Check if user has access to this building
@@ -1257,7 +1266,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
             buildingId: building_id,
             isReservable: is_reservable,
             capacity: capacity || null,
-            openingHours: opening_hours ? `${opening_hours.start}-${opening_hours.end}` : null,
+            openingHours: opening_hours ? [{ day: 'all', open: opening_hours.start, close: opening_hours.end }] : 
+                         weekly_hours ? Object.entries(weekly_hours).map(([day, hours]) => ({ 
+                           day, 
+                           open: hours.start, 
+                           close: hours.end 
+                         })) : null,
+            availableDays: available_days || null,
           })
           .returning();
 
@@ -1281,6 +1296,121 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error creating common space:', error);
         res.status(500).json({
           message: 'Failed to create common space',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  );
+
+  /**
+   * PUT /api/common-spaces/:spaceId - Update a common space (Manager/Admin only).
+   */
+  app.put(
+    '/api/common-spaces/:spaceId',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate parameters
+        const paramValidation = spaceIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid space ID',
+            errors: paramValidation.error.issues,
+          });
+        }
+
+        // Validate request body
+        const validationResult = createCommonSpaceSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          return res.status(400).json({
+            message: 'Invalid request data',
+            errors: validationResult.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { spaceId } = paramValidation.data;
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
+          validationResult.data;
+
+        // Check if space exists and user has access
+        const existingSpace = await db
+          .select({
+            id: commonSpaces.id,
+            buildingId: commonSpaces.buildingId,
+          })
+          .from(commonSpaces)
+          .where(eq(commonSpaces.id, spaceId))
+          .limit(1);
+
+        if (existingSpace.length === 0) {
+          return res.status(404).json({
+            message: 'Common space not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        // Check if user has access to this building
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(existingSpace[0].buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied. You can only update spaces in buildings you manage.',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Update the common space
+        const updatedSpace = await db
+          .update(commonSpaces)
+          .set({
+            name,
+            description: description || null,
+            buildingId: building_id,
+            isReservable: is_reservable,
+            capacity: capacity || null,
+            openingHours: opening_hours ? [{ day: 'all', open: opening_hours.start, close: opening_hours.end }] : 
+                         weekly_hours ? Object.entries(weekly_hours).map(([day, hours]) => ({ 
+                           day, 
+                           open: hours.start, 
+                           close: hours.end 
+                         })) : null,
+            availableDays: available_days || null,
+            updatedAt: new Date(),
+          })
+          .where(eq(commonSpaces.id, spaceId))
+          .returning();
+
+        console.log(`✅ Updated common space: ${name}`);
+
+        res.json({
+          message: 'Common space updated successfully',
+          space: {
+            id: updatedSpace[0].id,
+            name: updatedSpace[0].name,
+            description: updatedSpace[0].description,
+            buildingId: updatedSpace[0].buildingId,
+            isReservable: updatedSpace[0].isReservable,
+            capacity: updatedSpace[0].capacity,
+            openingHours: updatedSpace[0].openingHours,
+            availableDays: updatedSpace[0].availableDays,
+            updatedAt: updatedSpace[0].updatedAt,
+          },
+        });
+      } catch (error: any) {
+        console.error('❌ Error updating common space:', error);
+        res.status(500).json({
+          message: 'Failed to update common space',
           error: error instanceof Error ? error.message : 'Unknown error',
         });
       }

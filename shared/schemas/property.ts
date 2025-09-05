@@ -159,6 +159,7 @@ export const commonSpaces = pgTable('common_spaces', {
   capacity: integer('capacity'),
   contactPersonId: varchar('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
   openingHours: jsonb('opening_hours'),
+  availableDays: jsonb('available_days'), // Array of available days: ['monday', 'tuesday', etc.]
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -291,6 +292,11 @@ export const insertCommonSpaceSchema = z.object({
         open: z.string(),
         close: z.string(),
       })
+    )
+    .optional(),
+  availableDays: z
+    .array(
+      z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
     )
     .optional(),
   bookingRules: z.string().optional(),
