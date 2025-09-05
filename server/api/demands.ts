@@ -72,8 +72,42 @@ export function registerDemandRoutes(app: Express) {
         .innerJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
-      // Apply filters - all users only see demands they created
-      const conditions = [eq(demands.submitterId, user.id)];
+      // Apply role-based access control
+      const conditions = [];
+      
+      if (user.role === 'admin') {
+        // Admins can see all demands - no additional conditions needed
+      } else if (user.role === 'manager') {
+        // Managers can see demands from their organization's buildings
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Get buildings belonging to the manager's organization
+          const organizationBuildings = await db
+            .select({ buildingId: buildings.id })
+            .from(buildings)
+            .where(eq(buildings.organizationId, organizationId));
+            
+          if (organizationBuildings.length > 0) {
+            const buildingIds = organizationBuildings.map(b => b.buildingId);
+            conditions.push(inArray(demands.buildingId, buildingIds));
+          } else {
+            // Manager has no buildings - return empty results
+            conditions.push(eq(demands.id, 'never-match'));
+          }
+        } else {
+          // Manager not assigned to any organization - return empty results
+          conditions.push(eq(demands.id, 'never-match'));
+        }
+      } else {
+        // Residents and tenants can only see demands they created
+        conditions.push(eq(demands.submitterId, user.id));
+      }
 
       // Add filter conditions
       if (buildingId) {
@@ -172,8 +206,39 @@ export function registerDemandRoutes(app: Express) {
 
       const demandData = demand[0];
 
-      // Check access permissions - users can only view their own demands
-      if (demandData.submitterId !== user.id) {
+      // Check access permissions based on user role
+      let hasAccess = false;
+      
+      if (user.role === 'admin') {
+        // Admins can view all demands
+        hasAccess = true;
+      } else if (user.role === 'manager') {
+        // Managers can view demands from their organization's buildings
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Check if the demand's building belongs to the manager's organization
+          const buildingOrganization = await db
+            .select({ organizationId: buildings.organizationId })
+            .from(buildings)
+            .where(eq(buildings.id, demandData.buildingId))
+            .limit(1);
+            
+          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+            hasAccess = true;
+          }
+        }
+      } else {
+        // Residents and tenants can only view their own demands
+        hasAccess = demandData.submitterId === user.id;
+      }
+      
+      if (!hasAccess) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
@@ -269,14 +334,65 @@ export function registerDemandRoutes(app: Express) {
 
       const demand = currentDemand[0];
 
-      // Check permissions - users can only update their own demands
-      if (demand.submitterId !== user.id) {
+      // Check permissions based on user role and update type
+      let canUpdate = false;
+      let allowedFields = [];
+      
+      if (user.role === 'admin') {
+        // Admins can update any demand and any field
+        canUpdate = true;
+        allowedFields = ['status', 'reviewNotes', 'reviewedBy', 'reviewedAt', 'description', 'type'];
+      } else if (user.role === 'manager') {
+        // Managers can update demands from their organization's buildings (status/review fields only)
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Check if the demand's building belongs to the manager's organization
+          const buildingOrganization = await db
+            .select({ organizationId: buildings.organizationId })
+            .from(buildings)
+            .where(eq(buildings.id, demand.buildingId))
+            .limit(1);
+            
+          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+            canUpdate = true;
+            allowedFields = ['status', 'reviewNotes', 'reviewedBy', 'reviewedAt'];
+          }
+        }
+      } else if (demand.submitterId === user.id) {
+        // Residents and tenants can only update their own demands (limited fields)
+        canUpdate = true;
+        allowedFields = ['description', 'type'];
+      }
+      
+      if (!canUpdate) {
         return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Filter updates to only allowed fields
+      const filteredUpdates = {};
+      for (const [key, value] of Object.entries(updates)) {
+        if (allowedFields.includes(key)) {
+          filteredUpdates[key] = value;
+        }
+      }
+      
+      // Add metadata for manager/admin updates
+      if (user.role === 'admin' || user.role === 'manager') {
+        if (updates.status && updates.status !== demand.status) {
+          filteredUpdates['reviewedBy'] = user.id;
+          filteredUpdates['reviewedAt'] = new Date();
+        }
       }
 
       const updatedDemand = await db
         .update(demands)
-        .set({ ...updates, updatedAt: new Date() })
+        .set({ ...filteredUpdates, updatedAt: new Date() })
         .where(eq(demands.id, id))
         .returning();
 
