@@ -311,6 +311,17 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
 
   const handleViewDocument = (document: Document) => {
     setSelectedDocument(document);
+    // Reset form with document values for editing
+    form.reset({
+      name: document.name,
+      description: document.description || '',
+      documentType: document.documentType,
+      ...(config.type === 'building'
+        ? { buildingId: document.buildingId || config.entityId }
+        : { residenceId: document.residenceId || config.entityId }),
+      isVisibleToTenants: document.isVisibleToTenants || false,
+    });
+    setIsEditMode(true);
     setIsViewDialogOpen(true);
   };
 
@@ -743,129 +754,9 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
         </div>
       </div>
 
-      {/* View Document Dialog */}
+      {/* Document Details Dialog */}
       <Dialog
-        open={isViewDialogOpen && !isEditMode}
-        onOpenChange={(open) => {
-          setIsViewDialogOpen(open);
-          if (!open) {
-            setSelectedDocument(null);
-          }
-        }}
-      >
-        <DialogContent className='max-w-2xl'>
-          <DialogHeader>
-            <DialogTitle>Document Details</DialogTitle>
-            <DialogDescription>View document information and access options.</DialogDescription>
-          </DialogHeader>
-          {selectedDocument && (
-            <div className='space-y-4'>
-              <div>
-                <h3 className='text-lg font-semibold'>{selectedDocument.name}</h3>
-                {selectedDocument.description && (
-                  <p className='text-gray-600 mt-2'>{selectedDocument.description}</p>
-                )}
-              </div>
-
-              <div className='grid grid-cols-2 gap-4 text-sm'>
-                <div>
-                  <strong>Category:</strong>{' '}
-                  {getCategoryLabel(documentCategories, selectedDocument.documentType) ||
-                    selectedDocument.documentType ||
-                    'Unknown'}
-                </div>
-                <div>
-                  <strong>Date:</strong> {formatDate(selectedDocument.createdAt)}
-                </div>
-                {selectedDocument.fileSize && (
-                  <div>
-                    <strong>Size:</strong> {formatFileSize(selectedDocument.fileSize)}
-                  </div>
-                )}
-                {selectedDocument.fileName && (
-                  <div>
-                    <strong>File:</strong> {selectedDocument.fileName}
-                  </div>
-                )}
-              </div>
-
-              <div className='flex gap-2 pt-4'>
-                <Button
-                  onClick={() => {
-                    if (selectedDocument.filePath) {
-                      const fileUrl = `/api/documents/${selectedDocument.id}/file`;
-                      window.open(fileUrl, '_blank');
-                    }
-                  }}
-                  disabled={!selectedDocument.filePath}
-                  data-testid='button-view'
-                >
-                  <FileText className='w-4 h-4 mr-2' />
-                  View
-                </Button>
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    if (selectedDocument.filePath) {
-                      const link = window.document.createElement('a');
-                      link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
-                      link.download = selectedDocument.fileName || selectedDocument.name;
-                      window.document.body.appendChild(link);
-                      link.click();
-                      window.document.body.removeChild(link);
-                    }
-                  }}
-                  disabled={!selectedDocument.filePath}
-                  data-testid='button-download'
-                >
-                  <Download className='w-4 h-4 mr-2' />
-                  Download
-                </Button>
-                {config.allowEdit && (
-                  <Button
-                    variant='outline'
-                    onClick={() => {
-                      // Reset form with document values for editing
-                      if (selectedDocument) {
-                        form.reset({
-                          name: selectedDocument.name,
-                          description: selectedDocument.description || '',
-                          documentType: selectedDocument.documentType,
-                          ...(config.type === 'building'
-                            ? { buildingId: selectedDocument.buildingId || config.entityId }
-                            : { residenceId: selectedDocument.residenceId || config.entityId }),
-                          isVisibleToTenants: selectedDocument.isVisibleToTenants || false,
-                        });
-                      }
-                      setIsEditMode(true);
-                    }}
-                  >
-                    <Edit className='w-4 h-4 mr-2' />
-                    Edit
-                  </Button>
-                )}
-                {config.allowDelete && (
-                  <Button
-                    variant='outline'
-                    onClick={() => {
-                      handleDeleteDocument(selectedDocument);
-                      setIsViewDialogOpen(false);
-                    }}
-                    className='text-red-600 hover:text-red-700'
-                  >
-                    <Trash2 className='w-4 h-4 mr-2' />
-                    Delete
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Document Dialog */}
-      <Dialog
-        open={isViewDialogOpen && isEditMode}
+        open={isViewDialogOpen}
         onOpenChange={(open) => {
           setIsViewDialogOpen(open);
           if (!open) {
@@ -981,12 +872,64 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   )}
                 />
 
+                <div className='flex gap-2 pt-4 border-t'>
+                  <Button
+                    type='button'
+                    onClick={() => {
+                      if (selectedDocument && selectedDocument.filePath) {
+                        const fileUrl = `/api/documents/${selectedDocument.id}/file`;
+                        window.open(fileUrl, '_blank');
+                      }
+                    }}
+                    disabled={!selectedDocument?.filePath}
+                    data-testid='button-view'
+                  >
+                    <FileText className='w-4 h-4 mr-2' />
+                    View
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                      if (selectedDocument && selectedDocument.filePath) {
+                        const link = window.document.createElement('a');
+                        link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
+                        link.download = selectedDocument.fileName || selectedDocument.name;
+                        window.document.body.appendChild(link);
+                        link.click();
+                        window.document.body.removeChild(link);
+                      }
+                    }}
+                    disabled={!selectedDocument?.filePath}
+                    data-testid='button-download'
+                  >
+                    <Download className='w-4 h-4 mr-2' />
+                    Download
+                  </Button>
+                  {config.allowDelete && (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={() => {
+                        if (selectedDocument) {
+                          handleDeleteDocument(selectedDocument);
+                          setIsViewDialogOpen(false);
+                        }
+                      }}
+                      className='text-red-600 hover:text-red-700'
+                    >
+                      <Trash2 className='w-4 h-4 mr-2' />
+                      Delete
+                    </Button>
+                  )}
+                </div>
+
                 <DialogFooter>
                   <Button
                     type='button'
                     variant='outline'
                     onClick={() => {
-                      setIsEditMode(false);
+                      setIsViewDialogOpen(false);
                     }}
                   >
                     Cancel
