@@ -439,130 +439,118 @@ export default function BugReports() {
                     <DialogHeader>
                       <DialogTitle>Report a Bug</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-                      <div>
-                        <Label htmlFor='title'>Title*</Label>
-                        <Input
-                          id='title'
-                          placeholder='Brief description of the issue'
-                          {...form.register('title')}
-                          data-testid='input-bug-title'
-                        />
-                        {form.formState.errors.title && (
-                          <p className='text-sm text-red-600 mt-1'>
-                            {form.formState.errors.title.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label htmlFor='description'>Description*</Label>
-                        <Textarea
-                          id='description'
-                          placeholder='Detailed description of the bug, including what you expected to happen'
-                          rows={4}
-                          {...form.register('description')}
-                          data-testid='textarea-bug-description'
-                          onPaste={(e) => {
-                            const items = Array.from(e.clipboardData?.items || []);
-                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
-                            
-                            if (imageItems.length > 0) {
-                              e.preventDefault();
-                              imageItems.forEach(item => {
-                                const file = item.getAsFile();
-                                if (file) {
-                                  handleFilesSelect([file]);
-                                }
-                              });
-                            }
-                          }}
-                        />
-                        {form.formState.errors.description && (
-                          <p className='text-sm text-red-600 mt-1'>
-                            {form.formState.errors.description.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                      {/* TOP SECTION: Manual Input Fields */}
+                      <div className='space-y-4'>
                         <div>
-                          <Label htmlFor='category'>Category*</Label>
-                          <Select
-                            onValueChange={(value) => {
-                              form.setValue('category', value as any);
-                              form.clearErrors('category');
-                            }}
-                            value={form.watch('category')}
-                          >
-                            <SelectTrigger data-testid='select-bug-category'>
-                              <SelectValue placeholder='Select category' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(categoryLabels).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>
-                                  {label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {form.formState.errors.category && (
-                            <p className='text-sm text-red-600 mt-1'>
-                              {form.formState.errors.category.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label htmlFor='priority'>Priority</Label>
-                          <Select
-                            onValueChange={(value) => {
-                              form.setValue('priority', value as any);
-                              form.clearErrors('priority');
-                            }}
-                            value={form.watch('priority')}
-                          >
-                            <SelectTrigger data-testid='select-bug-priority'>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value='low'>Low</SelectItem>
-                              <SelectItem value='medium'>Medium</SelectItem>
-                              <SelectItem value='high'>High</SelectItem>
-                              <SelectItem value='critical'>Critical</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor='page'>Page/Location*</Label>
+                          <Label htmlFor='title'>Title*</Label>
                           <Input
-                            id='page'
-                            placeholder='e.g., Dashboard, Settings, Login'
-                            {...form.register('page')}
-                            data-testid='input-bug-page'
+                            id='title'
+                            placeholder='Brief description of the issue'
+                            {...form.register('title')}
+                            data-testid='input-bug-title'
                           />
-                          {form.formState.errors.page && (
+                          {form.formState.errors.title && (
                             <p className='text-sm text-red-600 mt-1'>
-                              {form.formState.errors.page.message}
+                              {form.formState.errors.title.message}
                             </p>
                           )}
                         </div>
+
+                        <div>
+                          <Label htmlFor='description'>Description*</Label>
+                          <Textarea
+                            id='description'
+                            placeholder='Detailed description of the bug, including what you expected to happen'
+                            rows={4}
+                            {...form.register('description')}
+                            data-testid='textarea-bug-description'
+                          />
+                          {form.formState.errors.description && (
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.description.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                          <div>
+                            <Label htmlFor='category'>Category*</Label>
+                            <Select
+                              onValueChange={(value) => {
+                                form.setValue('category', value as any);
+                                form.clearErrors('category');
+                              }}
+                              value={form.watch('category')}
+                            >
+                              <SelectTrigger data-testid='select-bug-category'>
+                                <SelectValue placeholder='Select category' />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(categoryLabels).map(([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {form.formState.errors.category && (
+                              <p className='text-sm text-red-600 mt-1'>
+                                {form.formState.errors.category.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label htmlFor='priority'>Priority</Label>
+                            <Select
+                              onValueChange={(value) => {
+                                form.setValue('priority', value as any);
+                                form.clearErrors('priority');
+                              }}
+                              value={form.watch('priority')}
+                            >
+                              <SelectTrigger data-testid='select-bug-priority'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value='low'>Low</SelectItem>
+                                <SelectItem value='medium'>Medium</SelectItem>
+                                <SelectItem value='high'>High</SelectItem>
+                                <SelectItem value='critical'>Critical</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <Label htmlFor='page'>Page/Location*</Label>
+                            <Input
+                              id='page'
+                              placeholder='e.g., Dashboard, Settings'
+                              {...form.register('page')}
+                              data-testid='input-bug-page'
+                            />
+                            {form.formState.errors.page && (
+                              <p className='text-sm text-red-600 mt-1'>
+                                {form.formState.errors.page.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor='reproductionSteps'>Steps to Reproduce</Label>
+                          <Textarea
+                            id='reproductionSteps'
+                            placeholder='1. Go to...\n2. Click on...\n3. Notice that...'
+                            rows={3}
+                            {...form.register('reproductionSteps')}
+                            data-testid='textarea-reproduction-steps'
+                          />
+                        </div>
                       </div>
 
-                      <div>
-                        <Label htmlFor='reproductionSteps'>Steps to Reproduce</Label>
-                        <Textarea
-                          id='reproductionSteps'
-                          placeholder='1. Go to...\n2. Click on...\n3. Notice that...'
-                          rows={3}
-                          {...form.register('reproductionSteps')}
-                          data-testid='textarea-reproduction-steps'
-                        />
-                      </div>
-
-
-                      {/* File Attachments */}
+                      {/* BOTTOM SECTION: File Attachments */}
                       <div className="space-y-3 border-t pt-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

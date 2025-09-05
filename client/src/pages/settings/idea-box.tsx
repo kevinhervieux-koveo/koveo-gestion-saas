@@ -514,113 +514,102 @@ export default function IdeaBox() {
                     <DialogHeader>
                       <DialogTitle>Submit a Feature Request</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-                      <div>
-                        <Label htmlFor='title'>Title*</Label>
-                        <Input
-                          id='title'
-                          placeholder='Brief description of the feature you need'
-                          {...form.register('title')}
-                          data-testid='input-feature-title'
-                        />
-                        {form.formState.errors.title && (
-                          <p className='text-sm text-red-600 mt-1'>
-                            {form.formState.errors.title.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label htmlFor='description'>Description*</Label>
-                        <Textarea
-                          id='description'
-                          placeholder='Detailed description of the feature and how it should work'
-                          rows={4}
-                          {...form.register('description')}
-                          data-testid='textarea-feature-description'
-                          onPaste={(e) => {
-                            const items = Array.from(e.clipboardData?.items || []);
-                            const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
-                            
-                            if (imageItems.length > 0) {
-                              e.preventDefault();
-                              imageItems.forEach(item => {
-                                const file = item.getAsFile();
-                                if (file) {
-                                  handleFilesSelect([file]);
-                                }
-                              });
-                            }
-                          }}
-                        />
-                        {form.formState.errors.description && (
-                          <p className='text-sm text-red-600 mt-1'>
-                            {form.formState.errors.description.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label htmlFor='need'>What need does this address?*</Label>
-                        <Textarea
-                          id='need'
-                          placeholder='Explain the specific need or problem this feature would solve'
-                          rows={3}
-                          {...form.register('need')}
-                          data-testid='textarea-feature-need'
-                        />
-                        {form.formState.errors.need && (
-                          <p className='text-sm text-red-600 mt-1'>
-                            {form.formState.errors.need.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                      {/* TOP SECTION: Manual Input Fields */}
+                      <div className='space-y-4'>
                         <div>
-                          <Label htmlFor='category'>Category*</Label>
-                          <Select
-                            onValueChange={(value) => {
-                              form.setValue('category', value as any);
-                              form.clearErrors('category');
-                            }}
-                            value={form.watch('category')}
-                          >
-                            <SelectTrigger data-testid='select-feature-category'>
-                              <SelectValue placeholder='Select category' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(categoryLabels).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>
-                                  {label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {form.formState.errors.category && (
-                            <p className='text-sm text-red-600 mt-1'>
-                              {form.formState.errors.category.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label htmlFor='page'>Page/Location*</Label>
+                          <Label htmlFor='title'>Title*</Label>
                           <Input
-                            id='page'
-                            placeholder='e.g., Dashboard, Settings, Buildings page'
-                            {...form.register('page')}
-                            data-testid='input-feature-page'
+                            id='title'
+                            placeholder='Brief description of the feature you need'
+                            {...form.register('title')}
+                            data-testid='input-feature-title'
                           />
-                          {form.formState.errors.page && (
+                          {form.formState.errors.title && (
                             <p className='text-sm text-red-600 mt-1'>
-                              {form.formState.errors.page.message}
+                              {form.formState.errors.title.message}
                             </p>
                           )}
                         </div>
+
+                        <div>
+                          <Label htmlFor='description'>Description*</Label>
+                          <Textarea
+                            id='description'
+                            placeholder='Detailed description of the feature and how it should work'
+                            rows={4}
+                            {...form.register('description')}
+                            data-testid='textarea-feature-description'
+                          />
+                          {form.formState.errors.description && (
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.description.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label htmlFor='need'>What need does this address?*</Label>
+                          <Textarea
+                            id='need'
+                            placeholder='Explain the specific need or problem this feature would solve'
+                            rows={3}
+                            {...form.register('need')}
+                            data-testid='textarea-feature-need'
+                          />
+                          {form.formState.errors.need && (
+                            <p className='text-sm text-red-600 mt-1'>
+                              {form.formState.errors.need.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                          <div>
+                            <Label htmlFor='category'>Category*</Label>
+                            <Select
+                              onValueChange={(value) => {
+                                form.setValue('category', value as any);
+                                form.clearErrors('category');
+                              }}
+                              value={form.watch('category')}
+                            >
+                              <SelectTrigger data-testid='select-feature-category'>
+                                <SelectValue placeholder='Select category' />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(categoryLabels).map(([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {form.formState.errors.category && (
+                              <p className='text-sm text-red-600 mt-1'>
+                                {form.formState.errors.category.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label htmlFor='page'>Page/Location*</Label>
+                            <Input
+                              id='page'
+                              placeholder='e.g., Dashboard, Settings'
+                              {...form.register('page')}
+                              data-testid='input-feature-page'
+                            />
+                            {form.formState.errors.page && (
+                              <p className='text-sm text-red-600 mt-1'>
+                                {form.formState.errors.page.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* File Attachments */}
+                      {/* BOTTOM SECTION: File Attachments */}
                       <div className="space-y-3 border-t pt-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
