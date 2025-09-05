@@ -158,8 +158,9 @@ export const commonSpaces = pgTable('common_spaces', {
   isReservable: boolean('is_reservable').notNull().default(false),
   capacity: integer('capacity'),
   contactPersonId: varchar('contact_person_id').references(() => users.id, { onDelete: 'set null' }),
-  openingHours: jsonb('opening_hours'),
+  openingHours: jsonb('opening_hours'), // Enhanced structure with isOpen, breaks
   availableDays: jsonb('available_days'), // Array of available days: ['monday', 'tuesday', etc.]
+  unavailablePeriods: jsonb('unavailable_periods'), // Specific periods when space is unavailable
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -288,9 +289,17 @@ export const insertCommonSpaceSchema = z.object({
   openingHours: z
     .array(
       z.object({
-        day: z.string(),
-        open: z.string(),
-        close: z.string(),
+        day: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
+        open: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format'),
+        close: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format'),
+        isOpen: z.boolean().default(true), // Whether the space is open on this day
+        breaks: z.array(
+          z.object({
+            start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format'),
+            end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format'),
+            reason: z.string().optional(), // e.g., "Cleaning", "Maintenance"
+          })
+        ).optional(), // Optional breaks within opening hours (like lunch breaks)
       })
     )
     .optional(),
@@ -299,6 +308,14 @@ export const insertCommonSpaceSchema = z.object({
       z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
     )
     .optional(),
+  unavailablePeriods: z.array(
+    z.object({
+      startDate: z.string().datetime(),
+      endDate: z.string().datetime(),
+      reason: z.string().optional(), // e.g., "Renovation", "Maintenance", "Holiday closure"
+      recurrence: z.enum(['none', 'weekly', 'monthly', 'yearly']).default('none'),
+    })
+  ).optional(), // Specific periods when space is unavailable
   bookingRules: z.string().optional(),
 });
 

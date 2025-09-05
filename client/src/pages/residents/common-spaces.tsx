@@ -89,6 +89,18 @@ interface CommonSpace {
     day: string;
     open: string;
     close: string;
+    isOpen?: boolean;
+    breaks?: Array<{
+      start: string;
+      end: string;
+      reason?: string;
+    }>;
+  }>;
+  unavailablePeriods?: Array<{
+    startDate: string;
+    endDate: string;
+    reason?: string;
+    recurrence?: 'none' | 'weekly' | 'monthly' | 'yearly';
   }>;
   bookingRules?: string;
   createdAt: string;
@@ -187,27 +199,42 @@ function BookingCalendar({
 
   const isDayAvailable = (day: Date) => {
     // Past dates are not available
-    if (day < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDay = new Date(day);
+    checkDay.setHours(0, 0, 0, 0);
+    
+    if (checkDay < today) {
       return false;
     }
 
-    // Check opening hours if available
-    if (space.openingHours) {
-      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-
-      // Handle object format opening hours
-      if (typeof space.openingHours === 'object' && !Array.isArray(space.openingHours)) {
-        const todayHours = space.openingHours[dayName];
-        if (!todayHours) {
+    // Check if day falls within any unavailable periods
+    if (space.unavailablePeriods && Array.isArray(space.unavailablePeriods)) {
+      for (const period of space.unavailablePeriods) {
+        const startDate = new Date(period.startDate);
+        const endDate = new Date(period.endDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        
+        if (checkDay >= startDate && checkDay <= endDate) {
           return false;
         }
       }
-      // Handle array format opening hours (fallback)
-      else if (Array.isArray(space.openingHours)) {
-        const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
-        if (!todayHours) {
-          return false;
-        }
+    }
+
+    // Check opening hours if available
+    if (space.openingHours && Array.isArray(space.openingHours)) {
+      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
+      
+      // If no hours defined for this day, it's unavailable
+      if (!todayHours) {
+        return false;
+      }
+      
+      // If explicitly marked as closed
+      if (todayHours.isOpen === false) {
+        return false;
       }
     }
 
@@ -282,7 +309,7 @@ function BookingCalendar({
                         h-8 p-1 text-xs rounded cursor-pointer transition-colors flex items-center justify-center
                         ${
                           !isAvailable
-                            ? 'text-gray-300 cursor-not-allowed'
+                            ? 'bg-red-100 text-red-600 cursor-not-allowed border border-red-200'
                             : isSelected
                               ? 'bg-blue-600 text-white'
                               : isCurrentDay
@@ -351,6 +378,10 @@ function BookingCalendar({
             <div className='flex items-center gap-1'>
               <div className='w-2 h-2 bg-orange-500 rounded'></div>
               <span className='text-gray-600'>{language === 'fr' ? 'Réservé' : 'Booked'}</span>
+            </div>
+            <div className='flex items-center gap-1'>
+              <div className='w-2 h-2 bg-red-500 rounded'></div>
+              <span className='text-gray-600'>{language === 'fr' ? 'Non disponible' : 'Unavailable'}</span>
             </div>
             <div className='flex items-center gap-1'>
               <div className='w-2 h-2 bg-blue-200 rounded'></div>
@@ -538,23 +569,46 @@ export default function CommonSpacesPage() {
     const slotEnd = new Date(slotStart);
     slotEnd.setMinutes(slotEnd.getMinutes() + duration);
 
+    // Check if day is available first (uses our enhanced availability logic)
+    if (!isDayAvailable(selectedDate)) {
+      return false;
+    }
+
     // Check opening hours
-    if (selectedSpace.openingHours) {
+    if (selectedSpace.openingHours && Array.isArray(selectedSpace.openingHours)) {
       const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const todayHours = selectedSpace.openingHours.find((h) => h.day.toLowerCase() === dayName);
 
-      if (!todayHours) {
+      if (!todayHours || todayHours.isOpen === false) {
         return false;
       }
 
       const openTime = parse(todayHours.open, 'HH:mm', selectedDate);
       const closeTime = parse(todayHours.close, 'HH:mm', selectedDate);
 
+      // Check if slot is within opening hours
       if (
         !isWithinInterval(slotStart, { start: openTime, end: closeTime }) ||
         !isWithinInterval(slotEnd, { start: openTime, end: closeTime })
       ) {
         return false;
+      }
+
+      // Check if slot conflicts with any breaks
+      if (todayHours.breaks && Array.isArray(todayHours.breaks)) {
+        for (const breakPeriod of todayHours.breaks) {
+          const breakStart = parse(breakPeriod.start, 'HH:mm', selectedDate);
+          const breakEnd = parse(breakPeriod.end, 'HH:mm', selectedDate);
+
+          // Check if slot overlaps with break period
+          if (
+            (slotStart >= breakStart && slotStart < breakEnd) ||
+            (slotEnd > breakStart && slotEnd <= breakEnd) ||
+            (slotStart <= breakStart && slotEnd >= breakEnd)
+          ) {
+            return false;
+          }
+        }
       }
     }
 
@@ -860,15 +914,30 @@ export default function CommonSpacesPage() {
                                             </SelectTrigger>
                                           </FormControl>
                                           <SelectContent>
-                                            {timeSlots.map((time) => (
-                                              <SelectItem
-                                                key={time}
-                                                value={time}
-                                                disabled={!isTimeSlotAvailable(time)}
-                                              >
-                                                {time}
-                                              </SelectItem>
-                                            ))}
+                                            {timeSlots.map((time) => {
+                                              const isAvailable = isTimeSlotAvailable(time);
+                                              const hasBooking = bookingsForDate.some((booking: Booking) => {
+                                                const bookingStart = parseISO(booking.startTime);
+                                                const bookingEnd = parseISO(booking.endTime);
+                                                const timeSlot = parse(time, 'HH:mm', selectedDate);
+                                                return timeSlot >= bookingStart && timeSlot < bookingEnd;
+                                              });
+                                              
+                                              return (
+                                                <SelectItem
+                                                  key={time}
+                                                  value={time}
+                                                  disabled={!isAvailable}
+                                                  className={!isAvailable ? 'text-gray-400' : hasBooking ? 'bg-orange-50 text-orange-800' : ''}
+                                                >
+                                                  <div className="flex items-center justify-between w-full">
+                                                    <span>{time}</span>
+                                                    {hasBooking && <span className="text-xs text-orange-600 ml-2">{language === 'fr' ? 'Réservé' : 'Booked'}</span>}
+                                                    {!isAvailable && !hasBooking && <span className="text-xs text-red-600 ml-2">{language === 'fr' ? 'Fermé' : 'Closed'}</span>}
+                                                  </div>
+                                                </SelectItem>
+                                              );
+                                            })}
                                           </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -894,11 +963,29 @@ export default function CommonSpacesPage() {
                                             </SelectTrigger>
                                           </FormControl>
                                           <SelectContent>
-                                            {timeSlots.map((time) => (
-                                              <SelectItem key={time} value={time}>
-                                                {time}
-                                              </SelectItem>
-                                            ))}
+                                            {timeSlots.map((time) => {
+                                              const isAvailable = isTimeSlotAvailable(time);
+                                              const hasBooking = bookingsForDate.some((booking: Booking) => {
+                                                const bookingStart = parseISO(booking.startTime);
+                                                const bookingEnd = parseISO(booking.endTime);
+                                                const timeSlot = parse(time, 'HH:mm', selectedDate);
+                                                return timeSlot >= bookingStart && timeSlot < bookingEnd;
+                                              });
+                                              
+                                              return (
+                                                <SelectItem
+                                                  key={time}
+                                                  value={time}
+                                                  disabled={!isAvailable}
+                                                  className={!isAvailable ? 'text-gray-400' : hasBooking ? 'bg-orange-50 text-orange-800' : ''}
+                                                >
+                                                  <div className="flex items-center justify-between w-full">
+                                                    <span>{time}</span>
+                                                    {hasBooking && <span className="text-xs text-orange-600 ml-2">{language === 'fr' ? 'Réservé' : 'Booked'}</span>}
+                                                  </div>
+                                                </SelectItem>
+                                              );
+                                            })}
                                           </SelectContent>
                                         </Select>
                                         <FormMessage />
