@@ -112,9 +112,9 @@ export function registerBugRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/bugs - Creates a new bug report with optional file attachments.
+   * POST /api/bugs - Creates a new bug report with optional single file attachment.
    */
-  app.post('/api/bugs', requireAuth, upload.array('attachments', 10), async (req: any, res) => {
+  app.post('/api/bugs', requireAuth, upload.single('attachment'), async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -138,35 +138,20 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      const bugData = validation.data;
-      const bug = await storage.createBug(bugData);
+      let bugData = validation.data;
 
-      // Handle file attachments if present
-      if (req.files && req.files.length > 0) {
-        console.log(`📎 Processing ${req.files.length} attachments for bug ${bug.id}`);
-
-        for (const file of req.files) {
-          // Create document record for each attachment
-          const documentData = {
-            name: file.originalname,
-            description: `Attachment for bug: ${bug.title}`,
-            documentType: 'attachment',
-            filePath: `general/${file.filename}`,
-            fileName: file.originalname,
-            fileSize: file.size.toString(),
-            attachedToType: 'bug' as const,
-            attachedToId: bug.id,
-            uploadedById: currentUser.id,
-          };
-
-
-          await storage.createDocument({
-            ...documentData,
-            isVisibleToTenants: false
-          });
-          console.log(`📄 Created attachment document for bug ${bug.id}: ${file.originalname}`);
-        }
+      // Handle single file attachment if present
+      if (req.file) {
+        console.log(`📎 Processing attachment for new bug: ${req.file.originalname}`);
+        bugData = {
+          ...bugData,
+          filePath: `general/${req.file.filename}`,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+        };
       }
+
+      const bug = await storage.createBug(bugData);
 
       console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
@@ -262,6 +247,65 @@ export function registerBugRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update bug',
+      });
+    }
+  });
+
+  /**
+   * GET /api/bugs/:id/file - Serves the file attachment for a bug.
+   */
+  app.get('/api/bugs/:id/file', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { download } = req.query;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Get the bug with file info
+      const bug = await storage.getBug(
+        id,
+        currentUser.id,
+        currentUser.role,
+        currentUser.organizationId
+      );
+
+      if (!bug || !bug.filePath) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Bug file not found or no file attached',
+        });
+      }
+
+      const filePath = path.join(process.cwd(), 'uploads', bug.filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'File not found on server',
+        });
+      }
+
+      // Set appropriate headers
+      if (download === 'true') {
+        res.setHeader('Content-Disposition', `attachment; filename="${bug.fileName || 'attachment'}"`);
+      } else {
+        res.setHeader('Content-Disposition', `inline; filename="${bug.fileName || 'attachment'}"`);
+      }
+
+      // Send file
+      res.sendFile(filePath);
+    } catch (error: any) {
+      console.error('❌ Error serving bug file:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to serve file',
       });
     }
   });

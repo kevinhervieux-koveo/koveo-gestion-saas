@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -52,6 +53,8 @@ import {
   MoreHorizontal,
   Paperclip,
   Eye,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,7 +64,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { CompactFileUpload } from '@/components/ui/file-upload';
 
-// Bug form schema
+// Bug creation form schema (no status - new bugs are always created with "new" status)
 const bugFormSchema = z.object({
   title: z.string().min(1, 'Bug title is required (example: Login button not working on mobile)').max(200, 'Title must be less than 200 characters'),
   description: z
@@ -79,14 +82,19 @@ const bugFormSchema = z.object({
   ]),
   page: z.string().min(1, 'Page location is required (example: Login page, Dashboard, Settings)').max(100, 'Page location must be less than 100 characters'),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
-  status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']).optional(),
   reproductionSteps: z.string().max(1000, 'Reproduction steps must be less than 1000 characters').optional(),
+});
+
+// Bug edit form schema (includes status for admin editing)
+const bugEditSchema = bugFormSchema.extend({
+  status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']),
 });
 
 /**
  *
  */
 type BugFormData = z.infer<typeof bugFormSchema>;
+type BugEditData = z.infer<typeof bugEditSchema>;
 
 /**
  *
@@ -108,6 +116,10 @@ interface Bug {
   updated_at: string;
   resolved_at: string | null;
   resolved_by: string | null;
+  // Single file attachment fields (like documents)
+  file_path?: string;
+  file_name?: string;
+  file_size?: number;
   attachments?: Array<{
     id: string;
     name: string;
@@ -150,8 +162,10 @@ export default function BugReports() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isBugDetailsOpen, setIsBugDetailsOpen] = useState(false);
   const [editingBug, setEditingBug] = useState<Bug | null>(null);
   const [viewingBug, setViewingBug] = useState<Bug | null>(null);
+  const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -176,7 +190,19 @@ export default function BugReports() {
     },
   });
 
-  const editForm = useForm<BugFormData>({
+  const editForm = useForm<BugEditData>({
+    resolver: zodResolver(bugEditSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: 'functionality' as const,
+      page: '',
+      priority: 'medium' as const,
+      reproductionSteps: '',
+    },
+  });
+
+  const bugForm = useForm<BugFormData>({
     resolver: zodResolver(bugFormSchema),
     defaultValues: {
       title: '',
@@ -347,7 +373,7 @@ export default function BugReports() {
     }
   };
 
-  const onEditSubmit = (data: BugFormData) => {
+  const onEditSubmit = (data: BugEditData) => {
     if (editingBug) {
       updateBugMutation.mutate({ id: editingBug.id, data });
     }
@@ -412,8 +438,14 @@ export default function BugReports() {
     return user && (user.role === 'admin' || bug.created_by === user.id);
   };
 
-  // Filter bugs
+  // Filter bugs with role-based access control
   const filteredBugs = (bugs as Bug[]).filter((bug: Bug) => {
+    // Role-based filtering: users see only their bugs, admins see all
+    const hasAccess = user && (user.role === 'admin' || bug.created_by === user.id);
+    if (!hasAccess) {
+      return false;
+    }
+
     const matchesSearch =
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bug.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -966,213 +998,226 @@ export default function BugReports() {
             </CardContent>
           </Card>
 
-          {/* Bug List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Bug Reports ({filteredBugs.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className='text-center py-8'>
-                  <div className='animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto'></div>
-                  <p className='text-gray-600 mt-2'>Loading bugs...</p>
-                </div>
-              ) : filteredBugs.length === 0 ? (
-                <div className='text-center py-8'>
-                  <Bug className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>No bugs found</h3>
-                  <p className='text-gray-500 mb-4'>
-                    {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
-                      ? 'No bugs match your current filters'
-                      : 'No bug reports have been submitted yet'}
-                  </p>
-                </div>
-              ) : (
-                <div className='space-y-4'>
-                  {filteredBugs.map((bug: Bug) => (
-                    <div
-                      key={bug.id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                      data-testid={`bug-card-${bug.id}`}
-                    >
-                      <div className='flex items-start justify-between gap-4'>
-                        <div className='flex-1 min-w-0'>
-                          <div className='flex items-center gap-2 mb-2'>
-                            <h3
-                              className='font-semibold text-lg truncate'
-                              data-testid={`bug-title-${bug.id}`}
-                            >
-                              {bug.title}
-                            </h3>
-                            <Badge
-                              className={
-                                priorityColors[bug.priority as keyof typeof priorityColors]
-                              }
-                            >
-                              {bug.priority}
-                            </Badge>
-                            <Badge
-                              className={statusColors[bug.status as keyof typeof statusColors]}
-                            >
-                              {bug.status.replace('_', ' ')}
-                            </Badge>
-                            {bug.attachmentCount && bug.attachmentCount > 0 && (
-                              <Badge
-                                className='bg-green-100 text-green-800 flex items-center gap-1 px-2 py-1'
-                                data-testid={`badge-attachment-count-${bug.id}`}
-                              >
-                                <Paperclip className='w-3 h-3' />
-                                {bug.attachmentCount} file{bug.attachmentCount > 1 ? 's' : ''}
-                              </Badge>
-                            )}
-                          </div>
-                          <p
-                            className='text-gray-600 mb-3 line-clamp-2'
-                            data-testid={`bug-description-${bug.id}`}
+          {/* Bugs Display - Grouped by category */}
+          {isLoading ? (
+            <div className='text-center py-8'>Loading bug reports...</div>
+          ) : filteredBugs.length === 0 ? (
+            <Card>
+              <CardContent className='p-8 text-center'>
+                <Bug className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bug Reports Found</h3>
+                <p className='text-gray-500'>
+                  {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
+                    ? 'No bugs match your current filters.'
+                    : 'No bug reports have been submitted yet.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className='space-y-6'>
+              {/* Category View - Group bugs by category */}
+              {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
+                const categoryBugs = filteredBugs.filter((bug: Bug) => bug.category === categoryKey);
+                if (categoryBugs.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <Card key={categoryKey} data-testid={`category-${categoryKey}`}>
+                    <CardHeader>
+                      <CardTitle className='flex items-center gap-2'>
+                        <Bug className='h-5 w-5' />
+                        {categoryLabel}
+                        <Badge variant='secondary'>{categoryBugs.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        {categoryBugs.map((bug: Bug) => (
+                          <Card
+                            key={bug.id}
+                            className='cursor-pointer hover:shadow-md transition-shadow'
+                            data-testid={`bug-card-${bug.id}`}
+                            onClick={() => {
+                              setSelectedBug(bug);
+                              // Set form values for editing
+                              bugForm.reset({
+                                title: bug.title,
+                                description: bug.description,
+                                category: bug.category as any,
+                                page: bug.page,
+                                priority: bug.priority as any,
+                                reproductionSteps: bug.reproduction_steps || '',
+                              });
+                              setIsBugDetailsOpen(true);
+                            }}
                           >
-                            {bug.description}
-                          </p>
-                          <div className='flex flex-wrap items-center gap-4 text-sm text-gray-500'>
-                            <div className='flex items-center gap-1'>
-                              <Tag className='w-4 h-4' />
-                              <span>
-                                {categoryLabels[bug.category as keyof typeof categoryLabels]}
-                              </span>
-                            </div>
-                            <div className='flex items-center gap-1'>
-                              <Calendar className='w-4 h-4' />
-                              <span>{new Date(bug.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <div className='flex items-center gap-1'>
-                              <span>Page: {bug.page}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className='flex-shrink-0'>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={(e) => e.stopPropagation()}
-                                data-testid={`button-menu-${bug.id}`}
-                              >
-                                <MoreHorizontal className='w-4 h-4' />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation();
-                                setViewingBug(bug);
-                                setIsViewDialogOpen(true);
-                              }}>
-                                <Eye className='w-4 h-4 mr-2' />
-                                View
-                              </DropdownMenuItem>
-                              {canEditBug(bug) && (
-                                <DropdownMenuItem onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEdit(bug);
-                                }}>
-                                  <Edit2 className='w-4 h-4 mr-2' />
-                                  Edit
-                                </DropdownMenuItem>
-                              )}
-                              {canDeleteBug(bug) && (
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem 
-                                      onSelect={(e) => e.preventDefault()} 
-                                      onClick={(e) => e.stopPropagation()}
+                            <CardContent className='p-4'>
+                              <div className='flex items-start justify-between mb-2'>
+                                <h4
+                                  className='font-medium text-sm truncate flex-1 mr-2'
+                                  data-testid={`bug-name-${bug.id}`}
+                                >
+                                  {bug.title}
+                                </h4>
+                                <div className='flex gap-1'>
+                                  {canEditBug(bug) && (
+                                    <Button
+                                      size='sm'
+                                      variant='ghost'
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedBug(bug);
+                                        // Set form values for editing
+                                        bugForm.reset({
+                                          title: bug.title,
+                                          description: bug.description,
+                                          category: bug.category as any,
+                                          page: bug.page,
+                                          priority: bug.priority as any,
+                                          reproductionSteps: bug.reproduction_steps || '',
+                                        });
+                                        setIsBugDetailsOpen(true);
+                                      }}
+                                      data-testid={`button-edit-${bug.id}`}
                                     >
-                                      <Trash2 className='w-4 h-4 mr-2 text-red-600' />
-                                      <span className='text-red-600'>Delete</span>
-                                    </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Bug Report</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to delete this bug report? This action cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDelete(bug.id)}
-                                        className='bg-red-600 hover:bg-red-700'
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
+                                      <Edit2 className='h-3 w-3' />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                              <p
+                                className='text-xs text-gray-500 mb-2'
+                                data-testid={`bug-date-${bug.id}`}
+                              >
+                                {new Date(bug.created_at).toLocaleDateString()}
+                              </p>
+                              <div className='flex flex-wrap gap-1 mb-2'>
+                                <Badge
+                                  className={
+                                    priorityColors[bug.priority as keyof typeof priorityColors]
+                                  }
+                                  variant='outline'
+                                >
+                                  {bug.priority}
+                                </Badge>
+                                <Badge
+                                  className={statusColors[bug.status as keyof typeof statusColors]}
+                                  variant='outline'
+                                >
+                                  {bug.status.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                              {bug.file_path && (
+                                <Badge variant='outline' className='text-xs'>
+                                  File attached
+                                </Badge>
                               )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/* View Bug Report Dialog */}
-          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-            <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
+          {/* Bug Details Dialog */}
+          <Dialog
+            open={isBugDetailsOpen}
+            onOpenChange={(open) => {
+              setIsBugDetailsOpen(open);
+              if (!open) {
+                setSelectedBug(null);
+              }
+            }}
+          >
+            <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
               <DialogHeader>
-                <DialogTitle>Bug Report Details</DialogTitle>
+                <DialogTitle>Bug Details</DialogTitle>
+                <DialogDescription>
+                  Update the bug information. File attachments and status can be modified.
+                </DialogDescription>
               </DialogHeader>
-              {viewingBug && (
+              {selectedBug && (
                 <div className='space-y-4'>
                   <div>
-                    <h3 className='text-lg font-semibold mb-2'>{viewingBug.title}</h3>
-                    <div className='flex flex-wrap gap-2 mb-2'>
-                      <Badge className={priorityColors[viewingBug.priority as keyof typeof priorityColors]}>
-                        {viewingBug.priority.toUpperCase()}
-                      </Badge>
-                      <Badge className={statusColors[viewingBug.status as keyof typeof statusColors]}>
-                        {viewingBug.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      <Badge variant='outline'>
-                        {categoryLabels[viewingBug.category as keyof typeof categoryLabels]}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className='font-medium mb-1'>Description</h4>
-                    <p className='text-gray-600 bg-gray-50 p-3 rounded-lg'>{viewingBug.description}</p>
-                  </div>
-                  
-                  <div className='flex flex-wrap gap-4 text-sm'>
-                    <div className='flex items-center gap-1'>
-                      <Calendar className='w-4 h-4' />
-                      <span>Created: {new Date(viewingBug.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className='flex items-center gap-1'>
-                      <span>📍 Page: {viewingBug.page}</span>
-                    </div>
+                    <h3 className='text-lg font-semibold'>{selectedBug.title}</h3>
+                    {selectedBug.description && (
+                      <p className='text-gray-600 mt-2'>{selectedBug.description}</p>
+                    )}
                   </div>
 
-                  {viewingBug.reproduction_steps && (
+                  <div className='grid grid-cols-2 gap-4 text-sm'>
                     <div>
-                      <h4 className='font-medium mb-1'>Reproduction Steps</h4>
-                      <p className='text-gray-600 bg-blue-50 p-3 rounded-lg'>{viewingBug.reproduction_steps}</p>
+                      <strong>Category:</strong> {categoryLabels[selectedBug.category as keyof typeof categoryLabels]}
                     </div>
-                  )}
+                    <div>
+                      <strong>Date:</strong> {new Date(selectedBug.created_at).toLocaleDateString()}
+                    </div>
+                    <div>
+                      <strong>Priority:</strong> {selectedBug.priority}
+                    </div>
+                    <div>
+                      <strong>Status:</strong> {selectedBug.status.replace('_', ' ')}
+                    </div>
+                    <div>
+                      <strong>Page:</strong> {selectedBug.page}
+                    </div>
+                    {selectedBug.file_path && (
+                      <div>
+                        <strong>File:</strong> Attached
+                      </div>
+                    )}
+                  </div>
 
-
-
-                  <div className='flex justify-end pt-4'>
-                    <Button
-                      variant='outline'
-                      onClick={() => setIsViewDialogOpen(false)}
-                    >
-                      Close
-                    </Button>
+                  <div className='flex gap-2 pt-4'>
+                    {selectedBug.file_path && (
+                      <>
+                        <Button
+                          onClick={() => {
+                            window.open(`/api/bugs/${selectedBug.id}/file`, '_blank');
+                          }}
+                          data-testid='button-view'
+                        >
+                          <FileText className='w-4 h-4 mr-2' />
+                          View
+                        </Button>
+                        <Button
+                          variant='outline'
+                          onClick={() => {
+                            const link = window.document.createElement('a');
+                            link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
+                            link.download = selectedBug.file_name || selectedBug.title;
+                            window.document.body.appendChild(link);
+                            link.click();
+                            window.document.body.removeChild(link);
+                          }}
+                          data-testid='button-download'
+                        >
+                          <Download className='w-4 h-4 mr-2' />
+                          Download
+                        </Button>
+                      </>
+                    )}
+                    {canDeleteBug(selectedBug) && (
+                      <Button
+                        variant='outline'
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this bug report?')) {
+                            handleDelete(selectedBug.id);
+                          }
+                        }}
+                        className='text-red-600 hover:text-red-700'
+                      >
+                        <Trash2 className='w-4 h-4 mr-2' />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}

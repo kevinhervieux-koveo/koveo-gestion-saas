@@ -210,6 +210,7 @@ export const demandComments = pgTable('demands_comments', {
 /**
  * Bugs table for tracking application issues and bug reports.
  * All users can create bugs with category and page assignments.
+ * Now supports single file attachment per bug like document management.
  */
 export const bugs = pgTable('bugs', {
   id: varchar('id')
@@ -230,6 +231,10 @@ export const bugs = pgTable('bugs', {
   notes: text('notes'), // Internal notes for resolution
   reproductionSteps: text('reproduction_steps'), // Steps to reproduce the bug
   environment: text('environment'), // Browser, OS, device info
+  // File attachment fields (single file per bug like documents)
+  filePath: text('file_path'), // Path to the uploaded file
+  fileName: text('file_name'), // Original file name
+  fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
