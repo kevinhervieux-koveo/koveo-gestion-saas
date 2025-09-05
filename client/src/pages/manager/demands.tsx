@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, FolderOpen } from 'lucide-react';
+import DocumentManager from '@/components/common/DocumentManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -320,6 +321,37 @@ export default function ManagerDemandsPage() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Document Management Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <FolderOpen className='w-5 h-5' />
+                Demands Documentation
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DocumentManager
+                config={{
+                  type: 'building' as const,
+                  userRole: 'manager' as const,
+                  entityId: buildings.length > 0 ? buildings[0].id : '',
+                  entityName: buildings.length > 0 ? buildings[0].name : 'All Buildings',
+                  allowCreate: buildings.length > 0,
+                  allowEdit: true,
+                  allowDelete: true,
+                  allowUpload: buildings.length > 0,
+                  showVisibilityToggle: true,
+                }}
+              />
+              {buildings.length === 0 && (
+                <p className='text-sm text-gray-500 mt-2'>
+                  Loading buildings to manage demand documentation...
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Header Actions */}
           <div className='flex items-center justify-between'>
             <div>

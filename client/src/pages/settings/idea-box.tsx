@@ -53,7 +53,9 @@ import {
   MoreHorizontal,
   TrendingUp,
   Paperclip,
+  FolderOpen,
 } from 'lucide-react';
+import DocumentManager from '@/components/common/DocumentManager';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -440,6 +442,35 @@ export default function IdeaBox() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Document Management Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <FolderOpen className='w-5 h-5' />
+                Feature Requests Documentation
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DocumentManager
+                config={{
+                  type: 'building' as const,
+                  userRole: 'manager' as const,
+                  entityId: 'feature-requests-docs',
+                  entityName: 'Feature Requests',
+                  allowCreate: true,
+                  allowEdit: true,
+                  allowDelete: true,
+                  allowUpload: true,
+                  showVisibilityToggle: false,
+                }}
+              />
+              <p className='text-sm text-gray-500 mt-2'>
+                Upload mockups, wireframes, and supporting documentation for feature requests.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>

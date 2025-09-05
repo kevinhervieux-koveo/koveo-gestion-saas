@@ -31,7 +31,9 @@ import {
   Building as BuildingIcon,
   Tag,
   ChevronDown,
+  FolderOpen,
 } from 'lucide-react';
+import DocumentManager from '@/components/common/DocumentManager';
 import { BillEditForm } from '@/components/BillEditForm';
 import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import { BillCreateForm } from '@/components/BillCreateForm';
@@ -365,6 +367,36 @@ Bills() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          
+          {/* Document Management Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <FolderOpen className='w-5 h-5' />
+                Bills Documentation
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DocumentManager
+                config={{
+                  type: 'building' as const,
+                  userRole: 'manager' as const,
+                  entityId: filters.buildingId || '',
+                  entityName: Array.isArray(buildings) ? buildings.find(b => b.id === filters.buildingId)?.name || 'Select Building' : 'Select Building',
+                  allowCreate: !!filters.buildingId,
+                  allowEdit: true,
+                  allowDelete: true,
+                  allowUpload: !!filters.buildingId,
+                  showVisibilityToggle: true,
+                }}
+              />
+              {!filters.buildingId && (
+                <p className='text-sm text-gray-500 mt-2'>
+                  Select a building above to manage bill documents and supporting files.
+                </p>
+              )}
+            </CardContent>
+          </Card>
           {/* Filters Section */}
           <Card>
             <CardHeader>
