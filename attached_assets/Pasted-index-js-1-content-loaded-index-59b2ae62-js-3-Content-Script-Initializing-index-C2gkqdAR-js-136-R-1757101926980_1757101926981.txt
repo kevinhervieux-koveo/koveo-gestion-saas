@@ -1,0 +1,129 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-C2gkqdAR.js:136 ReferenceError: isDayAvailable is not defined
+    at ce (common-spaces-C6ZjItyR.js:12:1722)
+    at common-spaces-C6ZjItyR.js:12:15578
+    at Array.map (<anonymous>)
+    at Object.render (common-spaces-C6ZjItyR.js:12:15562)
+    at Hu (vendor-forms-FCCrl9Yr.js:1:5548)
+    at Object.react_stack_bottom_frame (index-C2gkqdAR.js:229:12448)
+    at lc (index-C2gkqdAR.js:120:804)
+    at kc (index-C2gkqdAR.js:141:5839)
+    at Yc (index-C2gkqdAR.js:150:10147)
+    at B (index-C2gkqdAR.js:45:108)
+
+The above error occurred in the <Hu> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lD.
+
+overrideMethod @ hook.js:608
+ah @ index-C2gkqdAR.js:136
+oh @ index-C2gkqdAR.js:141
+B @ index-C2gkqdAR.js:45
+Uc.i.componentDidCatch.e.callback @ index-C2gkqdAR.js:141
+Ep @ index-C2gkqdAR.js:107
+xp @ index-C2gkqdAR.js:107
+B @ index-C2gkqdAR.js:45
+Eh @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+Xn @ index-C2gkqdAR.js:163
+Ch @ index-C2gkqdAR.js:163
+ty @ index-C2gkqdAR.js:163
+ed @ index-C2gkqdAR.js:163
+Zh @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+fy @ index-C2gkqdAR.js:185
+fi @ index-C2gkqdAR.js:185
+ad @ index-C2gkqdAR.js:185
+(anonymous) @ index-C2gkqdAR.js:185
+<Hu>
+dr.jsxDEV @ index-C2gkqdAR.js:15
+k @ form-DaFMg0CQ.js:1
+react_stack_bottom_frame @ index-C2gkqdAR.js:229
+lc @ index-C2gkqdAR.js:120
+kc @ index-C2gkqdAR.js:141
+Yc @ index-C2gkqdAR.js:150
+B @ index-C2gkqdAR.js:45
+Kh @ index-C2gkqdAR.js:163
+Jh @ index-C2gkqdAR.js:163
+Wc @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+fy @ index-C2gkqdAR.js:185
+fi @ index-C2gkqdAR.js:185
+ad @ index-C2gkqdAR.js:185
+(anonymous) @ index-C2gkqdAR.js:185
+<k>
+dr.jsxDEV @ index-C2gkqdAR.js:15
+(anonymous) @ common-spaces-C6ZjItyR.js:12
+tn @ common-spaces-C6ZjItyR.js:12
+react_stack_bottom_frame @ index-C2gkqdAR.js:229
+lc @ index-C2gkqdAR.js:120
+kc @ index-C2gkqdAR.js:141
+Yc @ index-C2gkqdAR.js:150
+B @ index-C2gkqdAR.js:45
+Kh @ index-C2gkqdAR.js:163
+Jh @ index-C2gkqdAR.js:163
+Wc @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+fy @ index-C2gkqdAR.js:185
+fi @ index-C2gkqdAR.js:185
+ad @ index-C2gkqdAR.js:185
+(anonymous) @ index-C2gkqdAR.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-C2gkqdAR.js:240
+q @ index-C2gkqdAR.js:240
+react_stack_bottom_frame @ index-C2gkqdAR.js:229
+lc @ index-C2gkqdAR.js:120
+kc @ index-C2gkqdAR.js:141
+Yc @ index-C2gkqdAR.js:150
+B @ index-C2gkqdAR.js:45
+Kh @ index-C2gkqdAR.js:163
+JS @ index-C2gkqdAR.js:163
+IS @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+dy @ index-C2gkqdAR.js:185
+d @ index-C2gkqdAR.js:23
+<q>
+dr.jsxDEV @ index-C2gkqdAR.js:15
+jD @ index-C2gkqdAR.js:364
+react_stack_bottom_frame @ index-C2gkqdAR.js:229
+lc @ index-C2gkqdAR.js:120
+kc @ index-C2gkqdAR.js:141
+Yc @ index-C2gkqdAR.js:150
+B @ index-C2gkqdAR.js:45
+Kh @ index-C2gkqdAR.js:163
+Jh @ index-C2gkqdAR.js:163
+Wc @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+fy @ index-C2gkqdAR.js:185
+fi @ index-C2gkqdAR.js:185
+ad @ index-C2gkqdAR.js:185
+(anonymous) @ index-C2gkqdAR.js:185
+<jD>
+dr.jsxDEV @ index-C2gkqdAR.js:15
+BD @ index-C2gkqdAR.js:364
+react_stack_bottom_frame @ index-C2gkqdAR.js:229
+lc @ index-C2gkqdAR.js:120
+kc @ index-C2gkqdAR.js:141
+Yc @ index-C2gkqdAR.js:150
+B @ index-C2gkqdAR.js:45
+Kh @ index-C2gkqdAR.js:163
+Jh @ index-C2gkqdAR.js:163
+Wc @ index-C2gkqdAR.js:163
+Xh @ index-C2gkqdAR.js:163
+dy @ index-C2gkqdAR.js:185
+d @ index-C2gkqdAR.js:23
+<BD>
+dr.jsxDEV @ index-C2gkqdAR.js:15
+(anonymous) @ index-C2gkqdAR.js:364
