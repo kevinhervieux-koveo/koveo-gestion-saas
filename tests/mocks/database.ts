@@ -159,5 +159,5 @@ export const mockSql = jest.fn().mockImplementation(async (strings: TemplateStri
 });
 
 // Add Neon-specific methods to prevent TypeScript errors
-mockSql.setTypeParser = jest.fn();
-mockSql.sql = mockSql; // Self-reference for compatibility
+(mockSql as any).setTypeParser = jest.fn();
+(mockSql as any).sql = mockSql; // Self-reference for compatibility

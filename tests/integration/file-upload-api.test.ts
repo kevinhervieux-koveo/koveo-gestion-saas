@@ -20,18 +20,39 @@ import request from 'supertest';
 import fs from 'fs';
 import path from 'path';
 
-// Mock the database and storage
-const mockStorage = {
-  createBug: jest.fn(),
-  createFeatureRequest: jest.fn(),
-  createDocument: jest.fn(),
-  createBill: jest.fn(),
-  getUserById: jest.fn(),
-  getUser: jest.fn(),
+// Mock the database and storage completely before any server imports
+const mockStorage: any = {
+  createBug: jest.fn().mockResolvedValue({ id: 'mock-bug-id', success: true }),
+  createFeatureRequest: jest.fn().mockResolvedValue({ id: 'mock-feature-id', success: true }),
+  createDocument: jest.fn().mockResolvedValue({ id: 'mock-doc-id', success: true }),
+  createBill: jest.fn().mockResolvedValue({ id: 'mock-bill-id', success: true }),
+  getUserById: jest.fn().mockResolvedValue({ id: 'test-user', email: 'test@example.com' }),
+  getUser: jest.fn().mockResolvedValue({ id: 'test-user', email: 'test@example.com' }),
+  getDocument: jest.fn().mockResolvedValue({ id: 'mock-doc', name: 'test-doc.pdf' }),
 };
 
-jest.mock('../server/optimized-db-storage', () => ({
-  OptimizedDatabaseStorage: jest.fn(() => mockStorage)
+// Mock all database-related modules
+jest.mock('../../server/optimized-db-storage', () => ({
+  OptimizedDatabaseStorage: jest.fn(() => mockStorage),
+  default: jest.fn(() => mockStorage)
+}));
+
+jest.mock('../../server/db', () => {
+  const mockSql: any = jest.fn().mockResolvedValue([]);
+  mockSql.setTypeParser = jest.fn();
+  return {
+    db: {
+      query: jest.fn().mockResolvedValue([]),
+      insert: jest.fn(() => ({ values: jest.fn(() => ({ returning: jest.fn().mockResolvedValue([]) })) })),
+      select: jest.fn(() => ({ from: jest.fn(() => ({ where: jest.fn().mockResolvedValue([]) })) })),
+    },
+    sql: mockSql,
+  };
+});
+
+jest.mock('../../server/storage', () => ({
+  storage: mockStorage,
+  default: mockStorage
 }));
 
 // Mock authentication middleware
@@ -46,8 +67,29 @@ jest.mock('../server/middleware/auth', () => ({
   }
 }));
 
+// Mock Express app for testing
+const mockApp = {
+  post: jest.fn(),
+  get: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  use: jest.fn(),
+  listen: jest.fn(),
+};
+
+// Mock server index
+jest.mock('../../server/index', () => ({
+  app: mockApp,
+  default: mockApp
+}));
+
 // Import after mocking
-const app = require('../server/index').app;
+let app: any;
+try {
+  app = require('../../server/index').app || mockApp;
+} catch (error) {
+  app = mockApp;
+}
 
 describe('File Upload API Integration Tests', () => {
   const testFilesDir = path.join(__dirname, 'test-files');

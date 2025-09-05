@@ -14,7 +14,7 @@ jest.mock('@google/genai', () => ({
   })),
 }));
 
-// Performance: Mock database for unit tests to avoid network calls
+// Comprehensive database mocking to prevent real connections
 jest.mock('./server/db', () => {
   const mockDb = {
     query: jest.fn().mockResolvedValue([]),
@@ -25,7 +25,13 @@ jest.mock('./server/db', () => {
     })),
     select: jest.fn().mockImplementation(() => ({
       from: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockResolvedValue([])
+        where: jest.fn().mockResolvedValue([]),
+        leftJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockResolvedValue([])
+        })),
+        innerJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockResolvedValue([])
+        }))
       }))
     })),
     update: jest.fn().mockImplementation(() => ({
@@ -44,8 +50,45 @@ jest.mock('./server/db', () => {
     db: mockDb,
     sql: mockSql,
     pool: mockSql,
+    default: mockDb
   };
 });
+
+// Mock server storage completely
+jest.mock('./server/storage', () => ({
+  storage: {
+    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+    findById: jest.fn().mockResolvedValue(null),
+    findMany: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({ success: true }),
+    delete: jest.fn().mockResolvedValue({ success: true }),
+  },
+  default: {
+    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+    findById: jest.fn().mockResolvedValue(null),
+    findMany: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({ success: true }),
+    delete: jest.fn().mockResolvedValue({ success: true }),
+  }
+}));
+
+// Mock optimized DB storage
+jest.mock('./server/optimized-db-storage', () => ({
+  optimizedDbStorage: {
+    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+    findById: jest.fn().mockResolvedValue(null),
+    findMany: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({ success: true }),
+    delete: jest.fn().mockResolvedValue({ success: true }),
+  },
+  default: {
+    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
+    findById: jest.fn().mockResolvedValue(null),
+    findMany: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({ success: true }),
+    delete: jest.fn().mockResolvedValue({ success: true }),
+  }
+}));
 
 // Don't mock the shared schema - let tests import real schema objects
 // The database operations themselves are mocked through ./server/db mock
@@ -80,15 +123,29 @@ jest.mock('wouter', () => ({
   Redirect: () => null,
 }));
 
-// Mock language hook and provider
-jest.mock('@/hooks/use-language', () => ({
-  useLanguage: jest.fn(() => ({
-    t: jest.fn((key: string) => key), // Return the key as translation
-    language: 'en',
-    setLanguage: jest.fn(),
-  })),
-  LanguageProvider: ({ children }: any) => children,
-}));
+// Mock language hook and provider with proper React setup
+jest.mock('@/hooks/use-language', () => {
+  const React = require('react');
+  return {
+    useLanguage: jest.fn(() => ({
+      t: jest.fn((key: string, options?: any) => {
+        // Handle interpolations like t('key', { value: 'test' })
+        if (options && typeof options === 'object') {
+          let result = key;
+          Object.keys(options).forEach(k => {
+            result = result.replace(new RegExp(`{{${k}}}`, 'g'), options[k]);
+          });
+          return result;
+        }
+        return key;
+      }),
+      language: 'en',
+      setLanguage: jest.fn(),
+    })),
+    LanguageProvider: ({ children }: { children: React.ReactNode }) => 
+      React.createElement('div', { 'data-testid': 'language-provider' }, children),
+  };
+});
 
 // Mock auth provider
 jest.mock('@/hooks/use-auth', () => ({

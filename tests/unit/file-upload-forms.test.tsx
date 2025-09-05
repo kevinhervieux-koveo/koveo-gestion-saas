@@ -17,36 +17,14 @@
  * - Bills (with receipt attachments)
  */
 
-/// <reference path="../types/jest-dom.d.ts" />
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '../utils/test-utils';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-// Test utilities
-const createTestQueryClient = () => {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
-};
-
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const queryClient = createTestQueryClient();
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
+// Test utilities - using shared test-utils wrapper
 
 // Mock API request function
 const mockApiRequest = jest.fn() as jest.MockedFunction<any>;
@@ -121,9 +99,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should render bug report form with file upload capability', async () => {
       render(
-        <TestWrapper>
+        <>
           <BugReportForm />
-        </TestWrapper>
+        </>
       );
 
       // Check for bug report button
@@ -144,9 +122,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle single file attachment to bug reports', async () => {
       render(
-        <TestWrapper>
+        <>
           <BugReportForm />
-        </TestWrapper>
+        </>
       );
 
       const reportButton = screen.queryByTestId('button-report-bug') || 
@@ -208,9 +186,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle multiple file attachments to bug reports', async () => {
       render(
-        <TestWrapper>
+        <>
           <BugReportForm />
-        </TestWrapper>
+        </>
       );
 
       const reportButton = screen.queryByTestId('button-report-bug') || 
@@ -271,9 +249,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should validate file size limits for bug report attachments', async () => {
       render(
-        <TestWrapper>
+        <>
           <BugReportForm />
-        </TestWrapper>
+        </>
       );
 
       const reportButton = screen.queryByTestId('button-report-bug') || 
@@ -315,9 +293,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should render feature request form with file upload capability', async () => {
       render(
-        <TestWrapper>
+        <>
           <FeatureRequestForm />
-        </TestWrapper>
+        </>
       );
 
       const requestButton = screen.queryByTestId('button-request-feature') || 
@@ -337,9 +315,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should submit feature request with file attachments', async () => {
       render(
-        <TestWrapper>
+        <>
           <FeatureRequestForm />
-        </TestWrapper>
+        </>
       );
 
       const requestButton = screen.queryByTestId('button-request-feature') || 
@@ -398,9 +376,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle document upload with metadata', async () => {
       render(
-        <TestWrapper>
+        <>
           <DocumentManager />
-        </TestWrapper>
+        </>
       );
 
       const uploadButton = screen.queryByTestId('button-upload-document') ||
@@ -455,9 +433,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should validate document file types', async () => {
       render(
-        <TestWrapper>
+        <>
           <DocumentManager />
-        </TestWrapper>
+        </>
       );
 
       const uploadButton = screen.queryByTestId('button-upload-document') ||
@@ -506,9 +484,9 @@ describe('File Upload Forms Test Suite', () => {
       };
 
       render(
-        <TestWrapper>
+        <>
           <BillForm {...mockProps} />
-        </TestWrapper>
+        </>
       );
 
       // Fill bill details
@@ -571,9 +549,9 @@ describe('File Upload Forms Test Suite', () => {
       };
 
       render(
-        <TestWrapper>
+        <>
           <BillForm {...mockProps} />
-        </TestWrapper>
+        </>
       );
 
       const attachButton = screen.queryByText(/attach/i);
@@ -625,9 +603,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should render demands form with file upload capability', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       // Look for submit demand button
@@ -650,9 +628,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle single file attachment to demands', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -736,9 +714,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle multiple file attachments to demands', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -815,9 +793,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should validate file size limits for demand attachments', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -856,9 +834,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should validate maximum file count for demand attachments', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -903,9 +881,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should validate allowed file types for demand attachments', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -942,9 +920,9 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle screenshot paste functionality (Ctrl+V)', async () => {
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -991,9 +969,9 @@ describe('File Upload Forms Test Suite', () => {
       mockFetch.mockRejectedValueOnce(new Error('Upload failed'));
 
       render(
-        <TestWrapper>
+        <>
           <DemandsPage />
-        </TestWrapper>
+        </>
       );
 
       const submitButton = screen.queryByTestId('button-submit-demand') || 
@@ -1078,14 +1056,14 @@ describe('File Upload Forms Test Suite', () => {
       mockApiRequest.mockResolvedValue([]); // Mock comments
 
       render(
-        <TestWrapper>
+        <>
           <DemandDetailsPopup
             demand={mockDemandWithAttachments}
             isOpen={true}
             onClose={jest.fn()}
             user={mockAuth.user}
           />
-        </TestWrapper>
+        </>
       );
 
       // Should show attachments section
@@ -1132,14 +1110,14 @@ describe('File Upload Forms Test Suite', () => {
       global.open = jest.fn() as jest.MockedFunction<typeof window.open>;
 
       render(
-        <TestWrapper>
+        <>
           <DemandDetailsPopup
             demand={mockDemandWithImage}
             isOpen={true}
             onClose={jest.fn()}
             user={mockAuth.user}
           />
-        </TestWrapper>
+        </>
       );
 
       await waitFor(() => {
@@ -1181,14 +1159,14 @@ describe('File Upload Forms Test Suite', () => {
       mockApiRequest.mockResolvedValue([]);
 
       render(
-        <TestWrapper>
+        <>
           <DemandDetailsPopup
             demand={mockDemandWithoutAttachments}
             isOpen={true}
             onClose={jest.fn()}
             user={mockAuth.user}
           />
-        </TestWrapper>
+        </>
       );
 
       // Should NOT show attachments section
@@ -1204,7 +1182,7 @@ describe('File Upload Forms Test Suite', () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       render(
-        <TestWrapper>
+        <>
           <div data-testid="test-upload-form">
             {/* Minimal form for testing */}
             <input 
@@ -1219,7 +1197,7 @@ describe('File Upload Forms Test Suite', () => {
               }}
             />
           </div>
-        </TestWrapper>
+        </>
       );
 
       const fileInput = screen.getByTestId('file-input');
@@ -1245,7 +1223,7 @@ describe('File Upload Forms Test Suite', () => {
 
     it('should handle empty file selection', () => {
       render(
-        <TestWrapper>
+        <>
           <input 
             type="file" 
             data-testid="file-input"
@@ -1253,7 +1231,7 @@ describe('File Upload Forms Test Suite', () => {
               // Should not trigger any upload
             }}
           />
-        </TestWrapper>
+        </>
       );
 
       const fileInput = screen.getByTestId('file-input');
@@ -1269,7 +1247,7 @@ describe('File Upload Forms Test Suite', () => {
       const MAX_FILES = 3;
 
       render(
-        <TestWrapper>
+        <>
           <input 
             type="file" 
             multiple
@@ -1280,7 +1258,7 @@ describe('File Upload Forms Test Suite', () => {
               }
             }}
           />
-        </TestWrapper>
+        </>
       );
 
       const fileInput = screen.getByTestId('file-input');
@@ -1326,7 +1304,7 @@ describe('File Upload Forms Test Suite', () => {
       global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
 
       render(
-        <TestWrapper>
+        <>
           <div data-testid="upload-with-progress">
             <input 
               type="file"
@@ -1335,7 +1313,7 @@ describe('File Upload Forms Test Suite', () => {
             />
             <div data-testid="progress-indicator">0%</div>
           </div>
-        </TestWrapper>
+        </>
       );
 
       const fileInput = screen.getByTestId('file-input');
