@@ -173,14 +173,28 @@ export default function HomePage() {
         <div className='max-w-2xl mx-auto'>
           <h2 className='text-3xl font-bold text-gray-700 mb-4'>{t('readyToTransform')}</h2>
           <p className='text-lg text-gray-500 mb-8'>{t('joinPropertyOwners')}</p>
-          <Button
-            size='lg'
-            className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-            onClick={() => setLocation('/login')}
-          >
-            {t('getStartedNow')}
-            <ArrowRight className='ml-2 h-5 w-5' />
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              size='lg'
+              className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+              onClick={() => setLocation('/dashboard/quick-actions')}
+              data-testid='button-go-to-dashboard-bottom'
+            >
+              {t('goToDashboard') || 'Go to Dashboard'}
+              <ArrowRight className='ml-2 h-5 w-5' />
+            </Button>
+          ) : (
+            <TrialRequestForm>
+              <Button
+                size='lg'
+                className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                data-testid='button-start-trial-bottom'
+              >
+                {t('startFreeTrial')}
+                <ArrowRight className='ml-2 h-5 w-5' />
+              </Button>
+            </TrialRequestForm>
+          )}
         </div>
       </section>
 
