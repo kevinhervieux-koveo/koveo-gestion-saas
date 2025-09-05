@@ -2084,7 +2084,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Serve document files
-  // Serve document files with full access control
+  // Serve document files with proper role-based access control
   app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2098,75 +2098,126 @@ export function registerDocumentRoutes(app: Express): void {
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
 
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences
-        .map((ur: any) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
-        .filter(Boolean);
-      const buildingIds = buildings.map((b) => b.id);
-
-      // Find the document
-      const filters = {
-        userId,
+      // Log access attempt for security auditing
+      logSecurityEvent('DOCUMENT_FILE_ACCESS_ATTEMPT', user, false, documentId, {
         userRole,
-      };
+        documentId,
+        isDownload
+      });
 
-      const documents = await storage.getDocuments(filters);
-      const document = documents.find((doc) => doc.id === documentId);
+      // Find the document directly from database without filtering by user
+      const allDocuments = await storage.getDocuments({});
+      const document = allDocuments.find((doc) => doc.id === documentId);
 
       if (!document) {
-        return res.status(404).json({ message: 'DocumentRecord not found' });
+        logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId);
+        return res.status(404).json({ message: 'Document not found' });
       }
 
-      // Check permissions with tenant visibility rules
+      // Get user's organization info
+      const userOrganizations = organizations.map(org => org.organizationId);
+      const userResidenceIds = residences
+        .map((ur: any) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
+        .filter(Boolean);
+
+      // Get building IDs that user's residences belong to
+      const userBuildingIds = [];
+      for (const userResidence of residences) {
+        // Handle different residence data structures
+        const residenceId = userResidence.residenceId;
+        if (residenceId) {
+          // Find the actual residence to get building ID
+          const allResidences = await storage.getResidences();
+          const residence = allResidences.find(r => r.id === residenceId);
+          if (residence?.buildingId) {
+            userBuildingIds.push(residence.buildingId);
+          }
+        }
+      }
+
+      // Check permissions based on the specified rules
       let hasAccess = false;
+      let accessReason = '';
 
       if (userRole === 'admin') {
         hasAccess = true;
-      } else if (userRole === 'manager' && organizationId) {
-        if (document.buildingId && buildingIds.includes(document.buildingId)) {
-          hasAccess = true;
+        accessReason = 'Admin has global access';
+      } else if (userRole === 'manager') {
+        // Manager should have access to buildings they are assigned to
+        if (document.buildingId) {
+          // Get buildings for the manager's organization
+          const orgBuildings = buildings.filter(building => 
+            userOrganizations.includes(building.organizationId || '')
+          );
+          const orgBuildingIds = orgBuildings.map(b => b.id);
+          
+          if (orgBuildingIds.includes(document.buildingId)) {
+            hasAccess = true;
+            accessReason = 'Manager has access to organization buildings';
+          }
         }
-        if (document.residenceId && residenceIds.includes(document.residenceId)) {
-          hasAccess = true;
+        
+        // Manager has access to all residences in their organization
+        if (document.residenceId) {
+          // Check if residence belongs to manager's organization
+          const allResidences = await storage.getResidences();
+          const residence = allResidences.find(r => r.id === document.residenceId);
+          if (residence) {
+            // Check if residence building belongs to manager's organization
+            const residenceBuilding = buildings.find(b => b.id === residence.buildingId);
+            if (residenceBuilding && userOrganizations.includes(residenceBuilding.organizationId || '')) {
+              hasAccess = true;
+              accessReason = 'Manager has access to organization residences';
+            }
+          }
         }
       } else if (userRole === 'resident') {
-        // Residents can access documents in their residence
-        if (document.residenceId && residenceIds.includes(document.residenceId)) {
+        // Resident has access to building files they are assigned to
+        if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
+          accessReason = 'Resident has access to assigned building documents';
         }
-        // Residents can access building documents related to their residences
-        if (document.buildingId) {
-          const userBuildingIds = residences
-            .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-            .filter(Boolean);
-          if (userBuildingIds.includes(document.buildingId)) {
-            hasAccess = true;
-          }
+        
+        // Resident has access to residence files they are assigned to
+        if (document.residenceId && userResidenceIds.includes(document.residenceId)) {
+          hasAccess = true;
+          accessReason = 'Resident has access to assigned residence documents';
         }
       } else if (userRole === 'tenant') {
         // Tenants can only access documents marked as visible to tenants
-        if (!document.isVisibleToTenants) {
-          hasAccess = false;
-        } else {
-          // Tenants can access visible documents in their residence
-          if (document.residenceId && residenceIds.includes(document.residenceId)) {
+        if (document.isVisibleToTenants) {
+          // Tenant has access to building files they are assigned to and marked for tenant
+          if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
             hasAccess = true;
+            accessReason = 'Tenant has access to assigned building documents marked for tenants';
           }
-          // Tenants can access visible building documents related to their residences
-          if (document.buildingId) {
-            const userBuildingIds = residences
-              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-              .filter(Boolean);
-            if (userBuildingIds.includes(document.buildingId)) {
-              hasAccess = true;
-            }
+          
+          // Tenant has access to residence files they are assigned to and marked for tenant
+          if (document.residenceId && userResidenceIds.includes(document.residenceId)) {
+            hasAccess = true;
+            accessReason = 'Tenant has access to assigned residence documents marked for tenants';
           }
         }
       }
 
       if (!hasAccess) {
+        logSecurityEvent('DOCUMENT_FILE_ACCESS_DENIED', user, false, documentId, {
+          userRole,
+          documentBuildingId: document.buildingId,
+          documentResidenceId: document.residenceId,
+          userBuildingIds,
+          userResidenceIds,
+          isVisibleToTenants: document.isVisibleToTenants
+        });
         return res.status(403).json({ message: 'Access denied' });
       }
+
+      // Log successful access
+      logSecurityEvent('DOCUMENT_FILE_ACCESS_GRANTED', user, true, documentId, {
+        accessReason,
+        userRole,
+        documentType: document.documentType
+      });
 
       // Serve from local storage
       if (document.filePath) {
