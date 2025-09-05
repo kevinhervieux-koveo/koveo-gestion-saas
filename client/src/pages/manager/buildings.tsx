@@ -158,7 +158,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
           <div className='pt-2 flex gap-2'>
             <Link href={`/manager/buildings/${building.id}/documents`}>
               <Button size='sm' variant='outline' className='flex-1'>
-                {t('buildingDocumentsButton')}
+                Documents
               </Button>
             </Link>
             <Link href={`/manager/residences?buildingId=${building.id}`}>
