@@ -116,6 +116,7 @@ export async function getAIMetrics(req: Request, res: Response) {
       lastAnalysis: metrics.lastAnalysis || new Date(),
       aiEfficiency: parseFloat(metrics.aiEfficiency || '0'),
     });
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to fetch AI metrics' });
   }
 }
@@ -161,6 +162,7 @@ export async function getAIInteractions(req: Request, res: Response) {
       .limit(50);
 
     res.json(interactions);
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to fetch AI interactions' });
   }
 }

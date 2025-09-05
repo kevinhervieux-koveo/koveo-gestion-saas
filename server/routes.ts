@@ -3,6 +3,8 @@ import express, { Express } from 'express';
 import { setupAuthRoutes, sessionConfig } from './auth';
 import path from 'path';
 import fs from 'fs';
+import multer from 'multer';
+import { requireAuth } from './auth/index';
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -19,10 +21,6 @@ import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerTrialRequestRoutes } from './api/trial-request';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { requireAuth } from './auth/index';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
