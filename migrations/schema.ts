@@ -1,4 +1,4 @@
-import { pgTable, foreignKey, uuid, text, integer, timestamp, varchar, jsonb, unique, date, boolean, json, numeric, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, varchar, text, jsonb, timestamp, unique, uuid, integer, date, boolean, foreignKey, json, numeric, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const action = pgEnum("action", ['read', 'create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore'])
@@ -24,8 +24,6 @@ export const issueSeverity = pgEnum("issue_severity", ['info', 'low', 'medium', 
 export const maintenancePriority = pgEnum("maintenance_priority", ['low', 'medium', 'high', 'urgent', 'emergency'])
 export const maintenanceStatus = pgEnum("maintenance_status", ['submitted', 'acknowledged', 'in_progress', 'completed', 'cancelled'])
 export const metricType = pgEnum("metric_type", ['code_coverage', 'code_quality', 'security_vulnerabilities', 'build_time', 'translation_coverage', 'api_response_time', 'memory_usage', 'bundle_size', 'database_query_time', 'page_load_time', 'accessibility_score', 'seo_score', 'quebec_compliance_score'])
-export const moneyFlowCategory = pgEnum("money_flow_category", ['monthly_fees', 'special_assessment', 'late_fees', 'parking_fees', 'utility_reimbursement', 'insurance_claim', 'bill_payment', 'maintenance_expense', 'administrative_expense', 'professional_services', 'other_income', 'other_expense'])
-export const moneyFlowType = pgEnum("money_flow_type", ['income', 'expense'])
 export const notificationType = pgEnum("notification_type", ['bill_reminder', 'maintenance_update', 'announcement', 'system', 'emergency'])
 export const oldBillType = pgEnum("old_bill_type", ['condo_fees', 'special_assessment', 'utility', 'maintenance', 'other'])
 export const paymentType = pgEnum("payment_type", ['unique', 'recurrent'])
@@ -39,46 +37,6 @@ export const userRole = pgEnum("user_role", ['admin', 'manager', 'tenant', 'resi
 export const validationStatus = pgEnum("validation_status", ['pending', 'true_positive', 'false_positive', 'true_negative', 'false_negative'])
 
 
-export const featureRequests = pgTable("feature_requests", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	createdBy: uuid("created_by").notNull(),
-	title: text().notNull(),
-	description: text().notNull(),
-	need: text().notNull(),
-	category: featureRequestCategory().notNull(),
-	page: text().notNull(),
-	status: featureRequestStatus().default('submitted').notNull(),
-	upvoteCount: integer("upvote_count").default(0).notNull(),
-	assignedTo: uuid("assigned_to"),
-	reviewedBy: uuid("reviewed_by"),
-	reviewedAt: timestamp("reviewed_at", { mode: 'string' }),
-	adminNotes: text("admin_notes"),
-	mergedIntoId: uuid("merged_into_id"),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.createdBy],
-			foreignColumns: [users.id],
-			name: "feature_requests_created_by_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.assignedTo],
-			foreignColumns: [users.id],
-			name: "feature_requests_assigned_to_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.reviewedBy],
-			foreignColumns: [users.id],
-			name: "feature_requests_reviewed_by_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.mergedIntoId],
-			foreignColumns: [table.id],
-			name: "feature_requests_merged_into_id_feature_requests_id_fk"
-		}),
-]);
-
 export const developmentPillars = pgTable("development_pillars", {
 	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
 	name: text().notNull(),
@@ -90,50 +48,6 @@ export const developmentPillars = pgTable("development_pillars", {
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 });
 
-export const improvementSuggestions = pgTable("improvement_suggestions", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	title: text().notNull(),
-	description: text().notNull(),
-	category: suggestionCategory().notNull(),
-	priority: suggestionPriority().notNull(),
-	status: suggestionStatus().default('New').notNull(),
-	filePath: text("file_path"),
-	technicalDetails: text("technical_details"),
-	businessImpact: text("business_impact"),
-	implementationEffort: text("implementation_effort"),
-	quebecComplianceRelevance: text("quebec_compliance_relevance"),
-	suggestedBy: uuid("suggested_by"),
-	assignedTo: uuid("assigned_to"),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-	acknowledgedAt: timestamp("acknowledged_at", { mode: 'string' }),
-	completedAt: timestamp("completed_at", { mode: 'string' }),
-}, (table) => [
-	foreignKey({
-			columns: [table.suggestedBy],
-			foreignColumns: [users.id],
-			name: "improvement_suggestions_suggested_by_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.assignedTo],
-			foreignColumns: [users.id],
-			name: "improvement_suggestions_assigned_to_users_id_fk"
-		}),
-]);
-
-export const featureRequestUpvotes = pgTable("feature_request_upvotes", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	featureRequestId: uuid("feature_request_id").notNull(),
-	userId: uuid("user_id").notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "feature_request_upvotes_user_id_users_id_fk"
-		}),
-]);
-
 export const frameworkConfiguration = pgTable("framework_configuration", {
 	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
 	key: text().notNull(),
@@ -143,41 +57,6 @@ export const frameworkConfiguration = pgTable("framework_configuration", {
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
 	unique("framework_configuration_key_unique").on(table.key),
-]);
-
-export const bugs = pgTable("bugs", {
-	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
-	createdBy: uuid("created_by").notNull(),
-	title: text().notNull(),
-	description: text().notNull(),
-	category: bugCategory().notNull(),
-	page: text().notNull(),
-	priority: bugPriority().default('medium').notNull(),
-	status: bugStatus().default('new').notNull(),
-	assignedTo: uuid("assigned_to"),
-	resolvedAt: timestamp("resolved_at", { mode: 'string' }),
-	resolvedBy: uuid("resolved_by"),
-	notes: text(),
-	reproductionSteps: text("reproduction_steps"),
-	environment: text(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.createdBy],
-			foreignColumns: [users.id],
-			name: "bugs_created_by_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.assignedTo],
-			foreignColumns: [users.id],
-			name: "bugs_assigned_to_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.resolvedBy],
-			foreignColumns: [users.id],
-			name: "bugs_resolved_by_users_id_fk"
-		}),
 ]);
 
 export const qualityMetrics = pgTable("quality_metrics", {
@@ -224,9 +103,145 @@ export const features = pgTable("features", {
 	syncedAt: timestamp("synced_at", { mode: 'string' }),
 });
 
-export const passwordResetTokens = pgTable("password_reset_tokens", {
+export const improvementSuggestions = pgTable("improvement_suggestions", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
+	title: text().notNull(),
+	description: text().notNull(),
+	category: suggestionCategory().notNull(),
+	priority: suggestionPriority().notNull(),
+	status: suggestionStatus().default('New').notNull(),
+	filePath: text("file_path"),
+	technicalDetails: text("technical_details"),
+	businessImpact: text("business_impact"),
+	implementationEffort: text("implementation_effort"),
+	quebecComplianceRelevance: text("quebec_compliance_relevance"),
+	suggestedBy: varchar("suggested_by"),
+	assignedTo: varchar("assigned_to"),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	acknowledgedAt: timestamp("acknowledged_at", { mode: 'string' }),
+	completedAt: timestamp("completed_at", { mode: 'string' }),
+}, (table) => [
+	foreignKey({
+			columns: [table.suggestedBy],
+			foreignColumns: [users.id],
+			name: "improvement_suggestions_suggested_by_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.assignedTo],
+			foreignColumns: [users.id],
+			name: "improvement_suggestions_assigned_to_users_id_fk"
+		}),
+]);
+
+export const featureRequestUpvotes = pgTable("feature_request_upvotes", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	featureRequestId: varchar("feature_request_id").notNull(),
+	userId: varchar("user_id").notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "feature_request_upvotes_user_id_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.featureRequestId],
+			foreignColumns: [featureRequests.id],
+			name: "feature_request_upvotes_feature_request_id_feature_requests_id_"
+		}),
+]);
+
+export const bugs = pgTable("bugs", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	createdBy: varchar("created_by").notNull(),
+	title: text().notNull(),
+	description: text().notNull(),
+	category: bugCategory().notNull(),
+	page: text().notNull(),
+	priority: bugPriority().default('medium').notNull(),
+	status: bugStatus().default('new').notNull(),
+	assignedTo: varchar("assigned_to"),
+	resolvedAt: timestamp("resolved_at", { mode: 'string' }),
+	resolvedBy: varchar("resolved_by"),
+	notes: text(),
+	reproductionSteps: text("reproduction_steps"),
+	environment: text(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "bugs_created_by_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.assignedTo],
+			foreignColumns: [users.id],
+			name: "bugs_assigned_to_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.resolvedBy],
+			foreignColumns: [users.id],
+			name: "bugs_resolved_by_users_id_fk"
+		}),
+]);
+
+export const featureRequests = pgTable("feature_requests", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	createdBy: varchar("created_by").notNull(),
+	title: text().notNull(),
+	description: text().notNull(),
+	need: text().notNull(),
+	category: featureRequestCategory().notNull(),
+	page: text().notNull(),
+	status: featureRequestStatus().default('submitted').notNull(),
+	upvoteCount: integer("upvote_count").default(0).notNull(),
+	assignedTo: varchar("assigned_to"),
+	reviewedBy: varchar("reviewed_by"),
+	reviewedAt: timestamp("reviewed_at", { mode: 'string' }),
+	adminNotes: text("admin_notes"),
+	mergedIntoId: varchar("merged_into_id"),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "feature_requests_created_by_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.assignedTo],
+			foreignColumns: [users.id],
+			name: "feature_requests_assigned_to_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.reviewedBy],
+			foreignColumns: [users.id],
+			name: "feature_requests_reviewed_by_users_id_fk"
+		}),
+]);
+
+export const organizations = pgTable("organizations", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	name: text().notNull(),
+	type: text().notNull(),
+	address: text().notNull(),
+	city: text().notNull(),
+	province: text().default('QC').notNull(),
+	postalCode: text("postal_code").notNull(),
+	phone: text(),
+	email: text(),
+	website: text(),
+	registrationNumber: text("registration_number"),
+	isActive: boolean("is_active").default(true).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
 	token: text().notNull(),
 	tokenHash: text("token_hash").notNull(),
 	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
@@ -244,33 +259,16 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 	unique("password_reset_tokens_token_unique").on(table.token),
 ]);
 
-export const organizations = pgTable("organizations", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	name: text().notNull(),
-	type: text().notNull(),
-	address: text().notNull(),
-	city: text().notNull(),
-	province: text().default('QC').notNull(),
-	postalCode: text("postal_code").notNull(),
-	phone: text(),
-	email: text(),
-	website: text(),
-	registrationNumber: text("registration_number"),
-	isActive: boolean("is_active").default(true).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-});
-
 export const invitations = pgTable("invitations", {
-	id: text().default(gen_random_uuid()).primaryKey().notNull(),
-	organizationId: text("organization_id"),
-	buildingId: text("building_id"),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	organizationId: varchar("organization_id"),
+	buildingId: varchar("building_id"),
 	residenceId: text("residence_id"),
 	email: text().notNull(),
 	token: text().notNull(),
 	role: userRole().notNull(),
 	status: invitationStatus().default('pending').notNull(),
-	invitedByUserId: text("invited_by_user_id").notNull(),
+	invitedByUserId: varchar("invited_by_user_id").notNull(),
 	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
 	tokenHash: text("token_hash").notNull(),
 	usageCount: integer("usage_count").default(0).notNull(),
@@ -280,7 +278,7 @@ export const invitations = pgTable("invitations", {
 	securityLevel: text("security_level"),
 	requires2Fa: boolean("requires_2fa").default(false).notNull(),
 	acceptedAt: timestamp("accepted_at", { mode: 'string' }),
-	acceptedByUserId: text("accepted_by_user_id"),
+	acceptedByUserId: varchar("accepted_by_user_id"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 	lastAccessedAt: timestamp("last_accessed_at", { mode: 'string' }),
@@ -290,31 +288,43 @@ export const invitations = pgTable("invitations", {
 	unique("invitations_token_unique").on(table.token),
 ]);
 
-export const userOrganizations = pgTable("user_organizations", {
+export const contacts = pgTable("contacts", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
-	organizationId: uuid("organization_id").notNull(),
-	organizationRole: userRole("organization_role").default('tenant').notNull(),
+	name: text().notNull(),
+	email: text(),
+	phone: text(),
+	entity: contactEntity().notNull(),
+	entityId: varchar("entity_id").notNull(),
+	contactCategory: contactCategory("contact_category").notNull(),
 	isActive: boolean("is_active").default(true).notNull(),
-	canAccessAllOrganizations: boolean("can_access_all_organizations").default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+});
+
+export const userBookingRestrictions = pgTable("user_booking_restrictions", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
+	commonSpaceId: varchar("common_space_id").notNull(),
+	isBlocked: boolean("is_blocked").default(true).notNull(),
+	reason: text(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
 	foreignKey({
 			columns: [table.userId],
 			foreignColumns: [users.id],
-			name: "user_organizations_user_id_users_id_fk"
+			name: "user_booking_restrictions_user_id_users_id_fk"
 		}).onDelete("cascade"),
 	foreignKey({
-			columns: [table.organizationId],
-			foreignColumns: [organizations.id],
-			name: "user_organizations_organization_id_organizations_id_fk"
+			columns: [table.commonSpaceId],
+			foreignColumns: [commonSpaces.id],
+			name: "user_booking_restrictions_common_space_id_common_spaces_id_fk"
 		}).onDelete("cascade"),
 ]);
 
 export const buildings = pgTable("buildings", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	organizationId: uuid("organization_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	organizationId: varchar("organization_id").notNull(),
 	name: text().notNull(),
 	address: text().notNull(),
 	city: text().notNull(),
@@ -346,43 +356,9 @@ export const buildings = pgTable("buildings", {
 		}).onDelete("cascade"),
 ]);
 
-export const contacts = pgTable("contacts", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	name: text().notNull(),
-	email: text(),
-	phone: text(),
-	entity: contactEntity().notNull(),
-	entityId: uuid("entity_id").notNull(),
-	contactCategory: contactCategory("contact_category").notNull(),
-	isActive: boolean("is_active").default(true).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-});
-
-export const userBookingRestrictions = pgTable("user_booking_restrictions", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
-	commonSpaceId: uuid("common_space_id").notNull(),
-	isBlocked: boolean("is_blocked").default(true).notNull(),
-	reason: text(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "user_booking_restrictions_user_id_users_id_fk"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.commonSpaceId],
-			foreignColumns: [commonSpaces.id],
-			name: "user_booking_restrictions_common_space_id_common_spaces_id_fk"
-		}).onDelete("cascade"),
-]);
-
 export const residences = pgTable("residences", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	buildingId: uuid("building_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	buildingId: varchar("building_id").notNull(),
 	unitNumber: text("unit_number").notNull(),
 	floor: integer(),
 	squareFootage: numeric("square_footage", { precision: 8, scale:  2 }),
@@ -405,7 +381,7 @@ export const residences = pgTable("residences", {
 ]);
 
 export const users = pgTable("users", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
 	username: text().notNull(),
 	email: text().notNull(),
 	password: text().notNull(),
@@ -426,7 +402,7 @@ export const users = pgTable("users", {
 
 export const userPermissions = pgTable("user_permissions", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
+	userId: varchar("user_id").notNull(),
 	permissionId: uuid("permission_id").notNull(),
 	granted: boolean().default(true).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
@@ -445,13 +421,13 @@ export const userPermissions = pgTable("user_permissions", {
 ]);
 
 export const commonSpaces = pgTable("common_spaces", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
-	buildingId: uuid("building_id").notNull(),
+	buildingId: varchar("building_id").notNull(),
 	isReservable: boolean("is_reservable").default(false).notNull(),
 	capacity: integer(),
-	contactPersonId: uuid("contact_person_id"),
+	contactPersonId: varchar("contact_person_id"),
 	openingHours: jsonb("opening_hours"),
 	bookingRules: text("booking_rules"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
@@ -469,10 +445,32 @@ export const commonSpaces = pgTable("common_spaces", {
 		}).onDelete("set null"),
 ]);
 
+export const userOrganizations = pgTable("user_organizations", {
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
+	organizationId: varchar("organization_id").notNull(),
+	organizationRole: userRole("organization_role").default('tenant').notNull(),
+	isActive: boolean("is_active").default(true).notNull(),
+	canAccessAllOrganizations: boolean("can_access_all_organizations").default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "user_organizations_user_id_users_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organizations.id],
+			name: "user_organizations_organization_id_organizations_id_fk"
+		}).onDelete("cascade"),
+]);
+
 export const userTimeLimits = pgTable("user_time_limits", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
-	commonSpaceId: uuid("common_space_id"),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
+	commonSpaceId: varchar("common_space_id"),
 	limitType: varchar("limit_type", { length: 20 }).notNull(),
 	limitHours: integer("limit_hours").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
@@ -491,8 +489,8 @@ export const userTimeLimits = pgTable("user_time_limits", {
 ]);
 
 export const budgets = pgTable("budgets", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	buildingId: uuid("building_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	buildingId: varchar("building_id").notNull(),
 	year: integer().notNull(),
 	name: text().notNull(),
 	description: text(),
@@ -500,10 +498,10 @@ export const budgets = pgTable("budgets", {
 	budgetedAmount: numeric("budgeted_amount", { precision: 12, scale:  2 }).notNull(),
 	actualAmount: numeric("actual_amount", { precision: 12, scale:  2 }).default('0'),
 	variance: numeric({ precision: 12, scale:  2 }).default('0'),
-	approvedBy: uuid("approved_by"),
+	approvedBy: varchar("approved_by"),
 	approvedDate: date("approved_date"),
 	isActive: boolean("is_active").default(true).notNull(),
-	createdBy: uuid("created_by").notNull(),
+	createdBy: varchar("created_by").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
@@ -525,8 +523,8 @@ export const budgets = pgTable("budgets", {
 ]);
 
 export const monthlyBudgets = pgTable("monthly_budgets", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	buildingId: uuid("building_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	buildingId: varchar("building_id").notNull(),
 	year: integer().notNull(),
 	month: integer().notNull(),
 	incomeTypes: text("income_types").array().notNull(),
@@ -534,9 +532,9 @@ export const monthlyBudgets = pgTable("monthly_budgets", {
 	spendingTypes: text("spending_types").array().notNull(),
 	spendings: numeric({ precision: 12, scale:  2 }).array().notNull(),
 	approved: boolean().default(false).notNull(),
-	approvedBy: uuid("approved_by"),
+	approvedBy: varchar("approved_by"),
 	approvedDate: timestamp("approved_date", { mode: 'string' }),
-	originalBudgetId: uuid("original_budget_id"),
+	originalBudgetId: varchar("original_budget_id"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
@@ -559,7 +557,7 @@ export const monthlyBudgets = pgTable("monthly_budgets", {
 
 export const oldBills = pgTable("old_bills", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	residenceId: uuid("residence_id").notNull(),
+	residenceId: varchar("residence_id").notNull(),
 	billNumber: text("bill_number").notNull(),
 	type: oldBillType().notNull(),
 	description: text().notNull(),
@@ -572,7 +570,7 @@ export const oldBills = pgTable("old_bills", {
 	discountAmount: numeric("discount_amount", { precision: 10, scale:  2 }),
 	finalAmount: numeric("final_amount", { precision: 12, scale:  2 }).notNull(),
 	paymentReceivedDate: date("payment_received_date"),
-	createdBy: uuid("created_by").notNull(),
+	createdBy: varchar("created_by").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
@@ -590,9 +588,9 @@ export const oldBills = pgTable("old_bills", {
 ]);
 
 export const userResidences = pgTable("user_residences", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
-	residenceId: uuid("residence_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
+	residenceId: varchar("residence_id").notNull(),
 	relationshipType: text("relationship_type").notNull(),
 	startDate: date("start_date").notNull(),
 	endDate: date("end_date"),
@@ -613,8 +611,8 @@ export const userResidences = pgTable("user_residences", {
 ]);
 
 export const bills = pgTable("bills", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	buildingId: uuid("building_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	buildingId: varchar("building_id").notNull(),
 	billNumber: text("bill_number").notNull(),
 	title: text().notNull(),
 	description: text(),
@@ -634,8 +632,8 @@ export const bills = pgTable("bills", {
 	aiAnalysisData: jsonb("ai_analysis_data"),
 	notes: text(),
 	autoGenerated: boolean("auto_generated").default(false).notNull(),
-	reference: uuid(),
-	createdBy: uuid("created_by").notNull(),
+	reference: varchar(),
+	createdBy: varchar("created_by").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
@@ -658,12 +656,12 @@ export const bills = pgTable("bills", {
 ]);
 
 export const notifications = pgTable("notifications", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	userId: varchar("user_id").notNull(),
 	type: notificationType().notNull(),
 	title: text().notNull(),
 	message: text().notNull(),
-	relatedEntityId: uuid("related_entity_id"),
+	relatedEntityId: varchar("related_entity_id"),
 	relatedEntityType: text("related_entity_type"),
 	isRead: boolean("is_read").default(false).notNull(),
 	readAt: timestamp("read_at", { mode: 'string' }),
@@ -676,21 +674,58 @@ export const notifications = pgTable("notifications", {
 		}),
 ]);
 
+export const maintenanceRequests = pgTable("maintenance_requests", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	residenceId: varchar("residence_id").notNull(),
+	submittedBy: varchar("submitted_by").notNull(),
+	assignedTo: varchar("assigned_to"),
+	title: text().notNull(),
+	description: text().notNull(),
+	category: text().notNull(),
+	priority: maintenancePriority().default('medium').notNull(),
+	status: maintenanceStatus().default('submitted').notNull(),
+	estimatedCost: numeric("estimated_cost", { precision: 10, scale:  2 }),
+	actualCost: numeric("actual_cost", { precision: 10, scale:  2 }),
+	scheduledDate: timestamp("scheduled_date", { mode: 'string' }),
+	completedDate: timestamp("completed_date", { mode: 'string' }),
+	notes: text(),
+	images: jsonb(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.residenceId],
+			foreignColumns: [residences.id],
+			name: "maintenance_requests_residence_id_residences_id_fk"
+		}),
+	foreignKey({
+			columns: [table.submittedBy],
+			foreignColumns: [users.id],
+			name: "maintenance_requests_submitted_by_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.assignedTo],
+			foreignColumns: [users.id],
+			name: "maintenance_requests_assigned_to_users_id_fk"
+		}),
+]);
+
 export const demands = pgTable("demands", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	submitterId: uuid("submitter_id").notNull(),
+	submitterId: varchar("submitter_id").notNull(),
 	type: demandType().notNull(),
-	assignationResidenceId: uuid("assignation_residence_id"),
-	assignationBuildingId: uuid("assignation_building_id"),
+	assignationResidenceId: varchar("assignation_residence_id"),
+	assignationBuildingId: varchar("assignation_building_id"),
 	description: text().notNull(),
-	residenceId: uuid("residence_id").notNull(),
-	buildingId: uuid("building_id").notNull(),
+	residenceId: varchar("residence_id"),
+	buildingId: varchar("building_id").notNull(),
 	status: demandStatus().default('draft').notNull(),
-	reviewedBy: uuid("reviewed_by"),
+	reviewedBy: varchar("reviewed_by"),
 	reviewedAt: timestamp("reviewed_at", { mode: 'string' }),
 	reviewNotes: text("review_notes"),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	attachments: text().array(),
 }, (table) => [
 	foreignKey({
 			columns: [table.submitterId],
@@ -721,42 +756,6 @@ export const demands = pgTable("demands", {
 			columns: [table.reviewedBy],
 			foreignColumns: [users.id],
 			name: "demands_reviewed_by_users_id_fk"
-		}),
-]);
-
-export const maintenanceRequests = pgTable("maintenance_requests", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	residenceId: uuid("residence_id").notNull(),
-	submittedBy: uuid("submitted_by").notNull(),
-	assignedTo: uuid("assigned_to"),
-	title: text().notNull(),
-	description: text().notNull(),
-	category: text().notNull(),
-	priority: maintenancePriority().default('medium').notNull(),
-	status: maintenanceStatus().default('submitted').notNull(),
-	estimatedCost: numeric("estimated_cost", { precision: 10, scale:  2 }),
-	actualCost: numeric("actual_cost", { precision: 10, scale:  2 }),
-	scheduledDate: timestamp("scheduled_date", { mode: 'string' }),
-	completedDate: timestamp("completed_date", { mode: 'string' }),
-	notes: text(),
-	images: jsonb(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	foreignKey({
-			columns: [table.residenceId],
-			foreignColumns: [residences.id],
-			name: "maintenance_requests_residence_id_residences_id_fk"
-		}),
-	foreignKey({
-			columns: [table.submittedBy],
-			foreignColumns: [users.id],
-			name: "maintenance_requests_submitted_by_users_id_fk"
-		}),
-	foreignKey({
-			columns: [table.assignedTo],
-			foreignColumns: [users.id],
-			name: "maintenance_requests_assigned_to_users_id_fk"
 		}),
 ]);
 
@@ -815,6 +814,21 @@ export const metricEffectivenessTracking = pgTable("metric_effectiveness_trackin
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 });
 
+export const permissions = pgTable("permissions", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	name: text().notNull(),
+	displayName: text("display_name").notNull(),
+	description: text(),
+	resourceType: resourceType("resource_type").notNull(),
+	action: action().notNull(),
+	conditions: json(),
+	isActive: boolean("is_active").default(true).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	unique("permissions_name_unique").on(table.name),
+]);
+
 export const qualityIssues = pgTable("quality_issues", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	title: text().notNull(),
@@ -824,7 +838,7 @@ export const qualityIssues = pgTable("quality_issues", {
 	filePath: text("file_path").notNull(),
 	lineNumber: integer("line_number"),
 	detectionMethod: text("detection_method").notNull(),
-	detectedBy: uuid("detected_by"),
+	detectedBy: varchar("detected_by"),
 	relatedMetricType: metricType("related_metric_type"),
 	wasPredicted: boolean("was_predicted").default(false).notNull(),
 	predictionId: uuid("prediction_id"),
@@ -870,7 +884,7 @@ export const sslCertificates = pgTable("ssl_certificates", {
 	dnsProvider: text("dns_provider"),
 	lastRenewalAttempt: timestamp("last_renewal_attempt", { mode: 'string' }),
 	nextRenewalDate: timestamp("next_renewal_date", { mode: 'string' }),
-	createdBy: uuid("created_by").notNull(),
+	createdBy: varchar("created_by").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
 	certificateChain: text("certificate_chain"),
@@ -887,10 +901,10 @@ export const sslCertificates = pgTable("ssl_certificates", {
 ]);
 
 export const invitationAuditLog = pgTable("invitation_audit_log", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	invitationId: text("invitation_id"),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	invitationId: varchar("invitation_id"),
 	action: text().notNull(),
-	performedBy: uuid("performed_by"),
+	performedBy: varchar("performed_by"),
 	ipAddress: text("ip_address"),
 	userAgent: text("user_agent"),
 	details: json(),
@@ -910,25 +924,10 @@ export const invitationAuditLog = pgTable("invitation_audit_log", {
 		}),
 ]);
 
-export const permissions = pgTable("permissions", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	name: text().notNull(),
-	displayName: text("display_name").notNull(),
-	description: text(),
-	resourceType: resourceType("resource_type").notNull(),
-	action: action().notNull(),
-	conditions: json(),
-	isActive: boolean("is_active").default(true).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	unique("permissions_name_unique").on(table.name),
-]);
-
 export const bookings = pgTable("bookings", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	commonSpaceId: uuid("common_space_id").notNull(),
-	userId: uuid("user_id").notNull(),
+	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
+	commonSpaceId: varchar("common_space_id").notNull(),
+	userId: varchar("user_id").notNull(),
 	startTime: timestamp("start_time", { withTimezone: true, mode: 'string' }).notNull(),
 	endTime: timestamp("end_time", { withTimezone: true, mode: 'string' }).notNull(),
 	status: bookingStatus().default('confirmed').notNull(),
@@ -953,7 +952,7 @@ export const predictionValidations = pgTable("prediction_validations", {
 	validationStatus: validationStatus("validation_status").notNull(),
 	actualOutcome: text("actual_outcome").notNull(),
 	validationMethod: text("validation_method").notNull(),
-	validatorId: uuid("validator_id"),
+	validatorId: varchar("validator_id"),
 	timeTaken: integer("time_taken"),
 	impactLevel: issueSeverity("impact_level"),
 	resolutionActions: text("resolution_actions"),
@@ -983,7 +982,7 @@ export const actionableItems = pgTable("actionable_items", {
 	status: actionableItemStatus().default('pending').notNull(),
 	estimatedHours: integer("estimated_hours"),
 	actualHours: integer("actual_hours"),
-	assignedTo: uuid("assigned_to"),
+	assignedTo: varchar("assigned_to"),
 	dependencies: jsonb(),
 	acceptanceCriteria: text("acceptance_criteria"),
 	implementationNotes: text("implementation_notes"),
@@ -1014,7 +1013,7 @@ export const rolePermissions = pgTable("role_permissions", {
 	role: userRole().notNull(),
 	permissionId: uuid("permission_id").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	grantedBy: uuid("granted_by"),
+	grantedBy: varchar("granted_by"),
 	grantedAt: timestamp("granted_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
 	foreignKey({
@@ -1038,7 +1037,18 @@ export const demandsComments = pgTable("demands_comments", {
 	isInternal: boolean("is_internal").default(false),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-});
+}, (table) => [
+	foreignKey({
+			columns: [table.demandId],
+			foreignColumns: [demands.id],
+			name: "demands_comments_demand_id_demands_id_fk"
+		}),
+	foreignKey({
+			columns: [table.commenterId],
+			foreignColumns: [users.id],
+			name: "demands_comments_commenter_id_users_id_fk"
+		}),
+]);
 
 export const session = pgTable("session", {
 	sid: varchar().primaryKey().notNull(),
@@ -1064,5 +1074,15 @@ export const documents = pgTable("documents", {
 	attachedToType: text("attached_to_type"),
 	attachedToId: varchar("attached_to_id"),
 }, (table) => [
+	foreignKey({
+			columns: [table.residenceId],
+			foreignColumns: [residences.id],
+			name: "documents_residence_id_residences_id_fk"
+		}),
+	foreignKey({
+			columns: [table.buildingId],
+			foreignColumns: [buildings.id],
+			name: "documents_building_id_buildings_id_fk"
+		}),
 	unique("documents_file_path_unique").on(table.filePath),
 ]);
