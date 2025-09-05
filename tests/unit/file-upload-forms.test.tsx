@@ -607,6 +607,598 @@ describe('File Upload Forms Test Suite', () => {
     });
   });
 
+  describe('Demands Form with File Attachments', () => {
+    const DemandsPage = require('../../client/src/pages/ResidentDemandsPage.tsx').default;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Mock successful upload response
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          fileUrls: ['/uploads/demands/test-file.png'],
+          fileCount: 1,
+          message: 'Files uploaded successfully'
+        }),
+      });
+    });
+
+    it('should render demands form with file upload capability', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      // Look for submit demand button
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i) ||
+                          screen.queryByText(/create.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        // Look for file upload component
+        const fileUpload = screen.queryByTestId('file-upload-container') ||
+                          screen.queryByText(/drag.*drop/i) ||
+                          screen.queryByText(/attach.*files/i) ||
+                          screen.queryByRole('button', { name: /upload/i });
+        
+        expect(fileUpload).toBeTruthy();
+      }
+    });
+
+    it('should handle single file attachment to demands', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        // Fill required fields
+        const typeSelect = screen.queryByTestId('select-demand-type') ||
+                          screen.queryByLabelText(/type/i);
+        const descriptionInput = screen.queryByTestId('textarea-demand-description') ||
+                                screen.queryByLabelText(/description/i) ||
+                                screen.queryByPlaceholderText(/description/i);
+
+        if (typeSelect && descriptionInput) {
+          await userEvent.selectOptions(typeSelect, 'maintenance');
+          await userEvent.type(descriptionInput, 'Kitchen faucet is leaking and needs immediate repair. Water is dripping constantly.');
+
+          // Find file upload area
+          const fileUploadArea = screen.queryByTestId('file-upload-container') ||
+                                screen.queryByText(/drag.*drop/i);
+
+          if (fileUploadArea) {
+            const mockFile = createMockImage('leak-photo.png');
+            
+            // Simulate file drop
+            const fileInput = screen.queryByRole('input', { hidden: true }) ||
+                             document.querySelector('input[type="file"]');
+
+            if (fileInput) {
+              Object.defineProperty(fileInput, 'files', {
+                value: [mockFile],
+                writable: false,
+              });
+
+              fireEvent.change(fileInput, { target: { files: [mockFile] } });
+
+              // Wait for file to be processed
+              await waitFor(() => {
+                const filePreview = screen.queryByText('leak-photo.png') ||
+                                   screen.queryByTestId('file-preview-0');
+                expect(filePreview).toBeTruthy();
+              });
+
+              // Submit the demand
+              const finalSubmitButton = screen.queryByTestId('button-submit-demand-form') ||
+                                       screen.queryByRole('button', { name: /submit.*demand/i });
+              
+              if (finalSubmitButton) {
+                await userEvent.click(finalSubmitButton);
+
+                await waitFor(() => {
+                  // Verify file upload was called
+                  expect(mockFetch).toHaveBeenCalledWith(
+                    '/api/upload',
+                    expect.objectContaining({
+                      method: 'POST',
+                      body: expect.any(FormData),
+                    })
+                  );
+
+                  // Verify demand creation was called with attachments
+                  expect(mockFetch).toHaveBeenCalledWith(
+                    '/api/demands',
+                    expect.objectContaining({
+                      method: 'POST',
+                      headers: expect.objectContaining({
+                        'Content-Type': 'application/json',
+                      }),
+                      body: expect.stringContaining('attachments'),
+                    })
+                  );
+                });
+              }
+            }
+          }
+        }
+      }
+    });
+
+    it('should handle multiple file attachments to demands', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const typeSelect = screen.queryByTestId('select-demand-type');
+        const descriptionInput = screen.queryByTestId('textarea-demand-description') ||
+                                screen.queryByLabelText(/description/i);
+
+        if (typeSelect && descriptionInput) {
+          await userEvent.selectOptions(typeSelect, 'complaint');
+          await userEvent.type(descriptionInput, 'Multiple issues with apartment including water damage and electrical problems. Photos attached for evidence.');
+
+          const fileInput = document.querySelector('input[type="file"]');
+
+          if (fileInput) {
+            const mockFiles = [
+              createMockImage('water-damage.jpg'),
+              createMockImage('electrical-issue.png'),
+              createMockPDF('inspection-report.pdf')
+            ];
+
+            // Simulate multiple file selection
+            Object.defineProperty(fileInput, 'files', {
+              value: mockFiles,
+              writable: false,
+            });
+
+            fireEvent.change(fileInput, { target: { files: mockFiles } });
+
+            // Wait for files to be processed
+            await waitFor(() => {
+              const fileCount = screen.queryByText(/3.*files/i) ||
+                               screen.queryAllByTestId(/file-preview-/);
+              expect(fileCount).toBeTruthy();
+            });
+
+            // Update mock for multiple files
+            mockFetch.mockResolvedValueOnce({
+              ok: true,
+              json: async () => ({
+                fileUrls: [
+                  '/uploads/demands/water-damage.jpg',
+                  '/uploads/demands/electrical-issue.png', 
+                  '/uploads/demands/inspection-report.pdf'
+                ],
+                fileCount: 3
+              }),
+            });
+
+            const finalSubmitButton = screen.queryByTestId('button-submit-demand-form') ||
+                                     screen.queryByRole('button', { name: /submit/i });
+            
+            if (finalSubmitButton) {
+              await userEvent.click(finalSubmitButton);
+
+              await waitFor(() => {
+                expect(mockFetch).toHaveBeenCalledWith(
+                  '/api/upload',
+                  expect.objectContaining({
+                    method: 'POST',
+                    body: expect.any(FormData),
+                  })
+                );
+              });
+            }
+          }
+        }
+      }
+    });
+
+    it('should validate file size limits for demand attachments', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const fileInput = document.querySelector('input[type="file"]');
+
+        if (fileInput) {
+          // Create oversized file (15MB - above 10MB limit)
+          const oversizedFile = createMockImage('huge-screenshot.png', 15 * 1024 * 1024);
+
+          Object.defineProperty(fileInput, 'files', {
+            value: [oversizedFile],
+            writable: false,
+          });
+
+          fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
+
+          // Should show error message for oversized file
+          await waitFor(() => {
+            const errorMessage = screen.queryByText(/file.*too large/i) ||
+                                screen.queryByText(/size.*exceeded/i) ||
+                                screen.queryByText(/10.*mb.*limit/i) ||
+                                screen.queryByText(/maximum.*file.*size/i);
+            
+            if (errorMessage) {
+              expect(errorMessage).toBeInTheDocument();
+            }
+          });
+        }
+      }
+    });
+
+    it('should validate maximum file count for demand attachments', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const fileInput = document.querySelector('input[type="file"]');
+
+        if (fileInput) {
+          // Try to upload 6 files (above 5 file limit)
+          const tooManyFiles = [
+            createMockImage('file1.png'),
+            createMockImage('file2.png'),
+            createMockImage('file3.png'),
+            createMockImage('file4.png'),
+            createMockImage('file5.png'),
+            createMockImage('file6.png') // This should trigger error
+          ];
+
+          Object.defineProperty(fileInput, 'files', {
+            value: tooManyFiles,
+            writable: false,
+          });
+
+          fireEvent.change(fileInput, { target: { files: tooManyFiles } });
+
+          // Should show error message for too many files
+          await waitFor(() => {
+            const errorMessage = screen.queryByText(/maximum.*5.*files/i) ||
+                                screen.queryByText(/too many.*files/i) ||
+                                screen.queryByText(/file.*limit.*exceeded/i);
+            
+            if (errorMessage) {
+              expect(errorMessage).toBeInTheDocument();
+            }
+          });
+        }
+      }
+    });
+
+    it('should validate allowed file types for demand attachments', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const fileInput = document.querySelector('input[type="file"]');
+
+        if (fileInput) {
+          // Try uploading invalid file type
+          const invalidFile = createMockFile('malicious.exe', 1000, 'application/x-executable');
+
+          Object.defineProperty(fileInput, 'files', {
+            value: [invalidFile],
+            writable: false,
+          });
+
+          fireEvent.change(fileInput, { target: { files: [invalidFile] } });
+
+          await waitFor(() => {
+            const errorMessage = screen.queryByText(/file.*type.*not.*supported/i) ||
+                                screen.queryByText(/invalid.*file.*format/i) ||
+                                screen.queryByText(/only.*images.*pdf.*documents/i);
+            
+            if (errorMessage) {
+              expect(errorMessage).toBeInTheDocument();
+            }
+          });
+        }
+      }
+    });
+
+    it('should handle screenshot paste functionality (Ctrl+V)', async () => {
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const fileUploadArea = screen.queryByTestId('file-upload-container');
+
+        if (fileUploadArea) {
+          // Mock clipboard data
+          const clipboardData = {
+            items: [
+              {
+                kind: 'file',
+                type: 'image/png',
+                getAsFile: () => createMockImage('pasted-screenshot.png')
+              }
+            ]
+          };
+
+          // Simulate paste event
+          fireEvent.paste(fileUploadArea, {
+            clipboardData: clipboardData
+          });
+
+          // Should show pasted file
+          await waitFor(() => {
+            const pastedFile = screen.queryByText(/pasted.*screenshot/i) ||
+                              screen.queryByText(/screenshot.*pasted/i) ||
+                              screen.queryByTestId('file-preview-0');
+            
+            if (pastedFile) {
+              expect(pastedFile).toBeInTheDocument();
+            }
+          });
+        }
+      }
+    });
+
+    it('should handle network errors during file upload in demands', async () => {
+      // Mock upload failure
+      mockFetch.mockRejectedValueOnce(new Error('Upload failed'));
+
+      render(
+        <TestWrapper>
+          <DemandsPage />
+        </TestWrapper>
+      );
+
+      const submitButton = screen.queryByTestId('button-submit-demand') || 
+                          screen.queryByText(/submit.*demand/i);
+      
+      if (submitButton) {
+        await userEvent.click(submitButton);
+
+        const typeSelect = screen.queryByTestId('select-demand-type');
+        const descriptionInput = screen.queryByTestId('textarea-demand-description') ||
+                                screen.queryByLabelText(/description/i);
+
+        if (typeSelect && descriptionInput) {
+          await userEvent.selectOptions(typeSelect, 'maintenance');
+          await userEvent.type(descriptionInput, 'Test demand with file that will fail to upload');
+
+          const fileInput = document.querySelector('input[type="file"]');
+
+          if (fileInput) {
+            const mockFile = createMockImage('test-file.png');
+
+            Object.defineProperty(fileInput, 'files', {
+              value: [mockFile],
+              writable: false,
+            });
+
+            fireEvent.change(fileInput, { target: { files: [mockFile] } });
+
+            const finalSubmitButton = screen.queryByTestId('button-submit-demand-form') ||
+                                     screen.queryByRole('button', { name: /submit/i });
+            
+            if (finalSubmitButton) {
+              await userEvent.click(finalSubmitButton);
+
+              // Should show error message for upload failure
+              await waitFor(() => {
+                const errorMessage = screen.queryByText(/upload.*failed/i) ||
+                                    screen.queryByText(/error.*uploading/i) ||
+                                    screen.queryByText(/failed.*attach/i);
+                
+                if (errorMessage) {
+                  expect(errorMessage).toBeInTheDocument();
+                }
+              });
+            }
+          }
+        }
+      }
+    });
+
+    it('should display attached files in demand details popup', async () => {
+      // Mock demand with attachments
+      const mockDemandWithAttachments = {
+        id: 'demand-123',
+        type: 'maintenance',
+        description: 'Leak in bathroom ceiling',
+        attachments: [
+          '/uploads/demands/leak-photo-1.jpg',
+          '/uploads/demands/damage-report.pdf'
+        ],
+        status: 'submitted',
+        submitterId: 'user-123',
+        buildingId: 'building-123',
+        createdAt: '2024-09-05T10:00:00Z',
+        updatedAt: '2024-09-05T10:00:00Z',
+        submitter: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@test.com'
+        },
+        building: {
+          id: 'building-123',
+          name: 'Test Building',
+          address: '123 Test St'
+        }
+      };
+
+      // Mock the demand details popup component
+      const DemandDetailsPopup = require('../../client/src/components/demands/demand-details-popup.tsx').default;
+
+      mockApiRequest.mockResolvedValue([]); // Mock comments
+
+      render(
+        <TestWrapper>
+          <DemandDetailsPopup
+            demand={mockDemandWithAttachments}
+            isOpen={true}
+            onClose={jest.fn()}
+            user={mockAuth.user}
+          />
+        </TestWrapper>
+      );
+
+      // Should show attachments section
+      await waitFor(() => {
+        const attachmentsLabel = screen.queryByText(/attachments/i) ||
+                                screen.queryByText(/attached.*files/i);
+        expect(attachmentsLabel).toBeTruthy();
+      });
+
+      // Should show file count
+      const fileCount = screen.queryByText(/2/i) || // (2) in label
+                       screen.queryByText(/2.*files/i);
+      expect(fileCount).toBeTruthy();
+
+      // Should show individual files
+      const photoFile = screen.queryByText(/leak-photo-1\.jpg/i);
+      const pdfFile = screen.queryByText(/damage-report\.pdf/i);
+      expect(photoFile).toBeTruthy();
+      expect(pdfFile).toBeTruthy();
+
+      // Should have view/download buttons
+      const viewButtons = screen.queryAllByText(/view|download/i);
+      expect(viewButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should handle viewing attached files from demand details', async () => {
+      const mockDemandWithImage = {
+        id: 'demand-456',
+        type: 'complaint',
+        description: 'Issue with windows',
+        attachments: ['/uploads/demands/window-problem.png'],
+        status: 'submitted',
+        submitterId: 'user-123',
+        buildingId: 'building-123',
+        createdAt: '2024-09-05T10:00:00Z',
+        updatedAt: '2024-09-05T10:00:00Z'
+      };
+
+      const DemandDetailsPopup = require('../../client/src/components/demands/demand-details-popup.tsx').default;
+
+      mockApiRequest.mockResolvedValue([]);
+      
+      // Mock window.open
+      global.open = jest.fn() as jest.MockedFunction<typeof window.open>;
+
+      render(
+        <TestWrapper>
+          <DemandDetailsPopup
+            demand={mockDemandWithImage}
+            isOpen={true}
+            onClose={jest.fn()}
+            user={mockAuth.user}
+          />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        const viewButton = screen.queryByTestId('button-view-attachment-0') ||
+                          screen.queryByText(/view/i);
+        
+        if (viewButton) {
+          expect(viewButton).toBeInTheDocument();
+        }
+      });
+
+      // Click view button
+      const viewButton = screen.queryByTestId('button-view-attachment-0') ||
+                        screen.queryByText(/view/i);
+      
+      if (viewButton) {
+        await userEvent.click(viewButton);
+
+        // Should open file in new window
+        expect(global.open).toHaveBeenCalledWith('/uploads/demands/window-problem.png', '_blank');
+      }
+    });
+
+    it('should not show attachments section when demand has no files', async () => {
+      const mockDemandWithoutAttachments = {
+        id: 'demand-789',
+        type: 'information',
+        description: 'General inquiry',
+        attachments: [], // No attachments
+        status: 'submitted',
+        submitterId: 'user-123',
+        buildingId: 'building-123',
+        createdAt: '2024-09-05T10:00:00Z',
+        updatedAt: '2024-09-05T10:00:00Z'
+      };
+
+      const DemandDetailsPopup = require('../../client/src/components/demands/demand-details-popup.tsx').default;
+
+      mockApiRequest.mockResolvedValue([]);
+
+      render(
+        <TestWrapper>
+          <DemandDetailsPopup
+            demand={mockDemandWithoutAttachments}
+            isOpen={true}
+            onClose={jest.fn()}
+            user={mockAuth.user}
+          />
+        </TestWrapper>
+      );
+
+      // Should NOT show attachments section
+      await waitFor(() => {
+        const attachmentsSection = screen.queryByText(/attachments/i);
+        expect(attachmentsSection).not.toBeInTheDocument();
+      });
+    });
+  });
+
   describe('General File Upload Validation', () => {
     it('should handle network errors during file upload', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
