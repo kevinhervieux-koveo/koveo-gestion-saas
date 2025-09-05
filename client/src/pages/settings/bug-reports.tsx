@@ -375,7 +375,7 @@ export default function BugReports() {
   };
 
   // Filter bugs with role-based access control
-  const filteredBugs = bugs.filter((bug: Bug) => {
+  const filteredBugs = (bugs || []).filter((bug: Bug) => {
     // Role-based filtering: users see only their bugs, admins see all
     const hasAccess = user?.role === 'admin' || bug.createdBy === user?.id;
     if (!hasAccess) return false;
@@ -400,7 +400,7 @@ export default function BugReports() {
 
   return (
     <div className="space-y-6">
-      <Header title="Bug Reports" />
+      <Header title="Bug Reports" subtitle="Report and track application issues" />
       
       <div className="space-y-6">
         <Card>
@@ -1023,12 +1023,12 @@ export default function BugReports() {
                                   className={statusColors[bug.status as keyof typeof statusColors]}
                                   variant="outline"
                                 >
-                                  {bug.status.replaceAll('_', ' ')}
+                                  {bug.status.replace(/_/g, ' ')}
                                 </Badge>
                               </div>
                               {bug.file_path && (
                                 <Badge variant="secondary" className="text-xs">
-                                  File attached
+                                  📎 File attached
                                 </Badge>
                               )}
                             </CardContent>
@@ -1204,7 +1204,7 @@ export default function BugReports() {
                       className={statusColors[selectedBug.status as keyof typeof statusColors]} 
                       variant="outline"
                     >
-                      {selectedBug.status.replaceAll('_', ' ')}
+                      {selectedBug.status.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 </div>
