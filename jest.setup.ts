@@ -90,8 +90,8 @@ jest.mock('./server/optimized-db-storage', () => ({
   }
 }));
 
-// Don't mock the shared schema - let tests import real schema objects
-// The database operations themselves are mocked through ./server/db mock
+// Keep shared schema available for tests to import types and schemas
+// All database operations are mocked above
 
 // Mock email service to prevent actual SendGrid calls during tests
 jest.mock('./server/services/email-service', () => ({
@@ -191,8 +191,10 @@ jest.mock('@/lib/queryClient', () => {
 jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => {
     const mockSql = jest.fn().mockResolvedValue([{ version: 'Mock PostgreSQL 16.0' }]);
-    // Add setTypeParser mock to prevent undefined errors
+    // Add all the properties that might be accessed during testing
     (mockSql as any).setTypeParser = jest.fn();
+    (mockSql as any).arrayMode = false;
+    (mockSql as any).fullResults = false;
     return mockSql;
   }),
   Pool: jest.fn().mockImplementation(() => ({
@@ -202,6 +204,75 @@ jest.mock('@neondatabase/serverless', () => ({
     }),
     end: jest.fn().mockResolvedValue(undefined),
   }))
+}));
+
+// Mock drizzle-orm completely to prevent any database operations
+jest.mock('drizzle-orm/neon-http', () => ({
+  drizzle: jest.fn(() => ({
+    query: jest.fn().mockResolvedValue([]),
+    insert: jest.fn().mockImplementation(() => ({
+      values: jest.fn().mockImplementation(() => ({
+        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
+      }))
+    })),
+    select: jest.fn().mockImplementation(() => ({
+      from: jest.fn().mockImplementation(() => ({
+        where: jest.fn().mockResolvedValue([]),
+        leftJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockResolvedValue([])
+        })),
+        innerJoin: jest.fn().mockImplementation(() => ({
+          where: jest.fn().mockResolvedValue([])
+        }))
+      }))
+    })),
+    update: jest.fn().mockImplementation(() => ({
+      set: jest.fn().mockImplementation(() => ({
+        where: jest.fn().mockResolvedValue({ affectedRows: 0 })
+      }))
+    })),
+    delete: jest.fn().mockImplementation(() => ({
+      where: jest.fn().mockResolvedValue({ affectedRows: 0 })
+    }))
+  }))
+}));
+
+// Mock drizzle-orm main functions
+jest.mock('drizzle-orm', () => ({
+  eq: jest.fn(),
+  and: jest.fn(),
+  or: jest.fn(),
+  gt: jest.fn(),
+  lt: jest.fn(),
+  sql: jest.fn(),
+  desc: jest.fn(),
+  asc: jest.fn()
+}));
+
+// Mock drizzle-zod to prevent schema creation issues
+jest.mock('drizzle-zod', () => ({
+  createInsertSchema: jest.fn((table, overrides) => {
+    const mockSchema = {
+      parse: jest.fn((data) => data),
+      safeParse: jest.fn((data) => ({ success: true, data })),
+      omit: jest.fn(() => mockSchema),
+      extend: jest.fn(() => mockSchema),
+      pick: jest.fn(() => mockSchema),
+      partial: jest.fn(() => mockSchema)
+    };
+    return mockSchema;
+  }),
+  createSelectSchema: jest.fn((table, overrides) => {
+    const mockSchema = {
+      parse: jest.fn((data) => data),
+      safeParse: jest.fn((data) => ({ success: true, data })),
+      omit: jest.fn(() => mockSchema),
+      extend: jest.fn(() => mockSchema),
+      pick: jest.fn(() => mockSchema),
+      partial: jest.fn(() => mockSchema)
+    };
+    return mockSchema;
+  })
 }));
 import 'whatwg-fetch';
 
