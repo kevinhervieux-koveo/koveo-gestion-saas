@@ -347,3 +347,101 @@ export const DevValidationChecker = {
     }
   }
 };
+
+/**
+ * Form Quality Assessment Interface
+ * Used to assess and report on form validation quality
+ */
+export interface FormQuality {
+  isCompliant: boolean;
+  issues: string[];
+  recommendations: string[];
+  score: number;
+  formName: string;
+}
+
+/**
+ * Form Quality Utility Functions
+ * Utilities for form quality management and test ID generation
+ */
+export const FormQuality = {
+  /**
+   * Generate consistent test ID for form elements
+   */
+  generateTestId: (formName: string, fieldName: string, elementType: string): string => {
+    return `${elementType}-${fieldName}-${formName}`.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  },
+
+  /**
+   * Validate form field against quality standards
+   */
+  validateField: (fieldType: string, value: string): { isValid: boolean; issues: string[] } => {
+    const issues: string[] = [];
+    
+    if (!value || value.trim() === '') {
+      issues.push('Field cannot be empty');
+    }
+    
+    if (fieldType === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      issues.push('Invalid email format');
+    }
+    
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
+  }
+};
+
+/**
+ * Form Quality Assessment Functions
+ * Functions to assess and improve form validation quality
+ */
+export const FormQualityAssessment = {
+  /**
+   * Assess the overall quality of a form's validation
+   */
+  assessFormQuality: (
+    formSchema: Record<string, z.ZodType>,
+    formName: string
+  ): FormQuality => {
+    const validation = FormValidationStandards.validateFormSchema(formSchema, formName);
+    const totalFields = Object.keys(formSchema).length;
+    const issueCount = validation.issues.length;
+    
+    // Calculate quality score (0-100)
+    const score = Math.max(0, Math.min(100, ((totalFields - issueCount) / totalFields) * 100));
+    
+    return {
+      isCompliant: validation.isCompliant,
+      issues: validation.issues,
+      recommendations: validation.recommendations,
+      score: Math.round(score),
+      formName
+    };
+  },
+
+  /**
+   * Generate quality report for multiple forms
+   */
+  generateQualityReport: (forms: Array<{ name: string; schema: Record<string, z.ZodType> }>): {
+    overallScore: number;
+    compliantForms: number;
+    totalForms: number;
+    detailedResults: FormQuality[];
+  } => {
+    const results = forms.map(form => 
+      FormQualityAssessment.assessFormQuality(form.schema, form.name)
+    );
+    
+    const compliantForms = results.filter(r => r.isCompliant).length;
+    const averageScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
+    
+    return {
+      overallScore: Math.round(averageScore),
+      compliantForms,
+      totalForms: forms.length,
+      detailedResults: results
+    };
+  }
+};
