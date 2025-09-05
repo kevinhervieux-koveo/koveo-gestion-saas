@@ -60,6 +60,7 @@ import {
   getCategoryLabel,
 } from '@/lib/documents';
 import TextFileEditor from './TextFileEditor';
+import { AttachedFileSection } from './AttachedFileSection';
 
 // Common document interface
 interface Document {
@@ -872,40 +873,18 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   )}
                 />
 
+                {/* File Viewing Section - Using Shared Component */}
+                <AttachedFileSection
+                  entityType="document"
+                  entityId={selectedDocument?.id || ''}
+                  filePath={selectedDocument?.filePath}
+                  fileName={selectedDocument?.fileName}
+                  fileSize={selectedDocument?.fileSize}
+                  fallbackName={selectedDocument?.name}
+                  className="pt-4 border-t"
+                />
+
                 <div className='flex gap-2 pt-4 border-t'>
-                  <Button
-                    type='button'
-                    onClick={() => {
-                      if (selectedDocument && selectedDocument.filePath) {
-                        const fileUrl = `/api/documents/${selectedDocument.id}/file`;
-                        window.open(fileUrl, '_blank');
-                      }
-                    }}
-                    disabled={!selectedDocument?.filePath}
-                    data-testid='button-view'
-                  >
-                    <FileText className='w-4 h-4 mr-2' />
-                    View
-                  </Button>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => {
-                      if (selectedDocument && selectedDocument.filePath) {
-                        const link = window.document.createElement('a');
-                        link.href = `/api/documents/${selectedDocument.id}/file?download=true`;
-                        link.download = selectedDocument.fileName || selectedDocument.name;
-                        window.document.body.appendChild(link);
-                        link.click();
-                        window.document.body.removeChild(link);
-                      }
-                    }}
-                    disabled={!selectedDocument?.filePath}
-                    data-testid='button-download'
-                  >
-                    <Download className='w-4 h-4 mr-2' />
-                    Download
-                  </Button>
                   {config.allowDelete && (
                     <Button
                       type='button'

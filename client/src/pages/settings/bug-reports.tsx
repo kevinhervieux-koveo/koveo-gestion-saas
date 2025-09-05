@@ -39,8 +39,6 @@ import {
 import {
   Bug,
   Edit2,
-  FileText,
-  Download,
   Trash2,
   Search,
   Filter,
@@ -53,6 +51,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { CompactFileUpload } from '@/components/ui/file-upload';
+import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 
 // Bug creation form schema (no status - new bugs are always created with "new" status)
 const bugFormSchema = z.object({
@@ -1210,53 +1209,15 @@ export default function BugReports() {
                 </div>
               </div>
 
-              {/* File Section */}
-              {selectedBug.filePath && (
-                <div className="border-t pt-4">
-                  <Label className="text-sm font-medium">Attached File</Label>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mt-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{selectedBug.fileName || 'Attachment'}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          if (selectedBug && selectedBug.filePath) {
-                            const fileUrl = `/api/bugs/${selectedBug.id}/file`;
-                            window.open(fileUrl, '_blank');
-                          }
-                        }}
-                        disabled={!selectedBug?.filePath}
-                        data-testid="button-view-file"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          if (selectedBug && selectedBug.filePath) {
-                            const link = window.document.createElement('a');
-                            link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
-                            link.download = selectedBug.fileName || selectedBug.title;
-                            window.document.body.appendChild(link);
-                            link.click();
-                            window.document.body.removeChild(link);
-                          }
-                        }}
-                        disabled={!selectedBug?.filePath}
-                        data-testid="button-download-file"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* File Section - Using Shared Component */}
+              <AttachedFileSection
+                entityType="bug"
+                entityId={selectedBug.id}
+                filePath={selectedBug.filePath}
+                fileName={selectedBug.fileName}
+                fileSize={selectedBug.fileSize}
+                fallbackName={selectedBug.title}
+              />
 
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-4 border-t">
