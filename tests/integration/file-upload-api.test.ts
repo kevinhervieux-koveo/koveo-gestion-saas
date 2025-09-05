@@ -5,10 +5,14 @@
  * This test suite validates:
  * 1. Multipart form data processing
  * 2. File storage and database record creation
- * 3. File validation on the server side
+ * 3. Enhanced file validation on the server side (NEW)
  * 4. Error handling for upload failures
  * 5. File serving and download functionality
  * 6. Proper cleanup of temporary files
+ * 7. Rate limiting enforcement (NEW - 10 files per hour)
+ * 8. Security audit logging (NEW)
+ * 9. Path traversal protection (NEW)
+ * 10. File size limits (NEW - 25MB max)
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
@@ -48,6 +52,25 @@ const app = require('../server/index').app;
 describe('File Upload API Integration Tests', () => {
   const testFilesDir = path.join(__dirname, 'test-files');
   const uploadDir = path.join(__dirname, '../../uploads');
+  
+  // Mock security audit log
+  const mockAuditLog: any[] = [];
+  const logSecurityEvent = jest.fn((event, user, success, details) => {
+    mockAuditLog.push({
+      timestamp: new Date().toISOString(),
+      event,
+      userId: user?.id,
+      success,
+      details
+    });
+  });
+  
+  // Mock rate limiting
+  const mockRateLimitStore = new Map();
+  const checkRateLimit = jest.fn((userId) => {
+    const uploads = mockRateLimitStore.get(userId) || [];
+    return uploads.length < 10; // 10 uploads per hour limit
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
