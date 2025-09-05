@@ -101,14 +101,14 @@ export const config = {
 
   // Database configuration
   database: {
-    // Simplified: Use DATABASE_URL_KOVEO if available, otherwise fallback to DATABASE_URL
-    url: env.DATABASE_URL_KOVEO || env.DATABASE_URL,
+    // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+    url: envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // Always prefer DATABASE_URL_KOVEO if available, ensures consistency
-      return env.DATABASE_URL_KOVEO || env.DATABASE_URL;
+      // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+      return envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
   },
 
