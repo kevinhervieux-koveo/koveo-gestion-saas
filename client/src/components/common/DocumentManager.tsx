@@ -699,6 +699,16 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedDocument(document);
+                                        // Reset form with document values for editing
+                                        form.reset({
+                                          name: document.name,
+                                          description: document.description || '',
+                                          documentType: document.documentType,
+                                          ...(config.type === 'building'
+                                            ? { buildingId: document.buildingId || config.entityId }
+                                            : { residenceId: document.residenceId || config.entityId }),
+                                          isVisibleToTenants: document.isVisibleToTenants || false,
+                                        });
                                         setIsEditMode(true);
                                         setIsViewDialogOpen(true);
                                       }}
@@ -815,6 +825,18 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   <Button
                     variant='outline'
                     onClick={() => {
+                      // Reset form with document values for editing
+                      if (selectedDocument) {
+                        form.reset({
+                          name: selectedDocument.name,
+                          description: selectedDocument.description || '',
+                          documentType: selectedDocument.documentType,
+                          ...(config.type === 'building'
+                            ? { buildingId: selectedDocument.buildingId || config.entityId }
+                            : { residenceId: selectedDocument.residenceId || config.entityId }),
+                          isVisibleToTenants: selectedDocument.isVisibleToTenants || false,
+                        });
+                      }
                       setIsEditMode(true);
                     }}
                   >
@@ -854,7 +876,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
       >
         <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
           <DialogHeader>
-            <DialogTitle>Edit Document</DialogTitle>
+            <DialogTitle>Document Details</DialogTitle>
             <DialogDescription>
               Update the document information. Note: File content cannot be changed, only metadata.
             </DialogDescription>
@@ -890,7 +912,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     <FormItem>
                       <FormLabel>Document Name</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || selectedDocument.name} data-testid='input-edit-name' />
+                        <Input {...field} data-testid='input-edit-name' />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -904,7 +926,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                     <FormItem>
                       <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value || selectedDocument.description || ''} data-testid='input-edit-description' />
+                        <Input {...field} data-testid='input-edit-description' />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -917,7 +939,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Document Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || selectedDocument.documentType}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid='select-edit-type'>
                             <SelectValue placeholder='Select category' />
@@ -944,7 +966,7 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                       <FormControl>
                         <input
                           type='checkbox'
-                          checked={field.value !== undefined ? field.value : selectedDocument.isVisibleToTenants}
+                          checked={field.value}
                           onChange={(e) => field.onChange(e.target.checked)}
                           data-testid='checkbox-edit-visible-tenants'
                         />
