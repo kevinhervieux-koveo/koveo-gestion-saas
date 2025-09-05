@@ -462,152 +462,158 @@ export default function DocumentManager({ config }: { config: DocumentManagerCon
                         text-only document entry.
                       </DialogDescription>
                     </DialogHeader>
-                    
-                    {/* Document Creation Mode - Moved to top for visibility */}
-                    <div className='space-y-3 border-b pb-4'>
-                      <Label className='text-sm font-medium'>Choose Document Type</Label>
-                      <div className='flex space-x-3'>
-                        <button
-                          type='button'
-                          onClick={() => setCreateMode('file')}
-                          className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                            createMode === 'file'
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          data-testid='button-file-mode'
-                        >
-                          📁 Upload File
-                        </button>
-                        <button
-                          type='button'
-                          onClick={() => setCreateMode('text')}
-                          className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                            createMode === 'text'
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          data-testid='button-text-mode'
-                        >
-                          📝 Text Document
-                        </button>
-                      </div>
-                    </div>
                     <Form {...form}>
                       <form
                         onSubmit={form.handleSubmit(handleCreateDocument)}
-                        className='space-y-4'
+                        className='space-y-6'
                       >
-                        <FormField
-                          control={form.control}
-                          name='name'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Document Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} data-testid='input-document-name' />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name='description'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description (Optional)</FormLabel>
-                              <FormControl>
-                                <Input {...field} data-testid='input-description' />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name='documentType'
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Document Category</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                        {/* TOP SECTION: Manual Input Fields */}
+                        <div className='space-y-4'>
+                          <FormField
+                            control={form.control}
+                            name='name'
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Document Name</FormLabel>
                                 <FormControl>
-                                  <SelectTrigger data-testid='select-document-type'>
-                                    <SelectValue placeholder='Select category' />
-                                  </SelectTrigger>
+                                  <Input {...field} data-testid='input-document-name' />
                                 </FormControl>
-                                <SelectContent>
-                                  {documentCategories.map((category) => (
-                                    <SelectItem key={category._value} value={category._value}>
-                                      {category.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* File Upload or Text Content */}
-                        {createMode === 'file' ? (
-                          <div>
-                            <Label htmlFor='file-upload'>Select File to Upload</Label>
-                            <Input
-                              id='file-upload'
-                              type='file'
-                              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                              className='mt-1'
-                              data-testid='input-file'
-                            />
-                            {selectedFile && (
-                              <p className='text-sm text-gray-500 mt-1'>
-                                Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}{' '}
-                                KB)
-                              </p>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </div>
-                        ) : (
-                          <div>
-                            <Label htmlFor='text-content'>Document Content</Label>
-                            <Textarea
-                              id='text-content'
-                              value={textContent}
-                              onChange={(e) => setTextContent(e.target.value)}
-                              placeholder='Enter the document content here...'
-                              className='mt-1 min-h-[120px]'
-                              data-testid='textarea-content'
-                            />
-                            <p className='text-sm text-gray-500 mt-1'>
-                              This will create a text document that can be viewed and edited online.
-                            </p>
-                          </div>
-                        )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name='isVisibleToTenants'
-                          render={({ field }) => (
-                            <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
-                              <FormControl>
-                                <input
-                                  type='checkbox'
-                                  checked={field.value}
-                                  onChange={(e) => field.onChange(e.target.checked)}
-                                  data-testid='checkbox-visible-tenants'
-                                />
-                              </FormControl>
-                              <div className='space-y-1 leading-none'>
-                                <FormLabel>Visible to Tenants</FormLabel>
-                                <p className='text-sm text-muted-foreground'>
-                                  Allow tenants to view this document
-                                </p>
-                              </div>
-                            </FormItem>
+                          <FormField
+                            control={form.control}
+                            name='description'
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} data-testid='input-description' />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name='documentType'
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Document Category</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid='select-document-type'>
+                                      <SelectValue placeholder='Select category' />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {documentCategories.map((category) => (
+                                      <SelectItem key={category._value} value={category._value}>
+                                        {category.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Visibility Toggle */}
+                          {config.showVisibilityToggle && (
+                            <FormField
+                              control={form.control}
+                              name='isVisibleToTenants'
+                              render={({ field }) => (
+                                <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
+                                  <FormControl>
+                                    <input
+                                      type='checkbox'
+                                      checked={field.value}
+                                      onChange={(e) => field.onChange(e.target.checked)}
+                                      data-testid='checkbox-visible-tenants'
+                                    />
+                                  </FormControl>
+                                  <div className='space-y-1 leading-none'>
+                                    <FormLabel>Visible to Tenants</FormLabel>
+                                    <p className='text-sm text-muted-foreground'>
+                                      Allow tenants to view this document
+                                    </p>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
                           )}
-                        />
+                        </div>
+
+                        {/* BOTTOM SECTION: Upload Method Selection */}
+                        <div className='space-y-4 border-t pt-4'>
+                          <Label className='text-sm font-medium'>Choose Document Type</Label>
+                          <div className='flex space-x-3'>
+                            <button
+                              type='button'
+                              onClick={() => setCreateMode('file')}
+                              className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                                createMode === 'file'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              data-testid='button-file-mode'
+                            >
+                              📁 Upload File
+                            </button>
+                            <button
+                              type='button'
+                              onClick={() => setCreateMode('text')}
+                              className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                                createMode === 'text'
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              data-testid='button-text-mode'
+                            >
+                              📝 Text Document
+                            </button>
+                          </div>
+
+                          {/* Dynamic Content Based on Selection */}
+                          {createMode === 'file' ? (
+                            <div>
+                              <Label htmlFor='file-upload'>Select File to Upload</Label>
+                              <Input
+                                id='file-upload'
+                                type='file'
+                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                className='mt-1'
+                                data-testid='input-file'
+                              />
+                              {selectedFile && (
+                                <p className='text-sm text-gray-500 mt-1'>
+                                  Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}{' '}
+                                  KB)
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <Label htmlFor='text-content'>Document Content</Label>
+                              <Textarea
+                                id='text-content'
+                                value={textContent}
+                                onChange={(e) => setTextContent(e.target.value)}
+                                placeholder='Enter the document content here...'
+                                className='mt-1 min-h-[120px]'
+                                data-testid='textarea-content'
+                              />
+                              <p className='text-sm text-gray-500 mt-1'>
+                                This will create a text document that can be viewed and edited online.
+                              </p>
+                            </div>
+                          )}
+                        </div>
 
                         <DialogFooter>
                           <Button
