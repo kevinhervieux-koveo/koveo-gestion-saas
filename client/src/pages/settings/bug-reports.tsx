@@ -456,7 +456,7 @@ export default function BugReports() {
   });
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden">
       <Header title="Bug Reports" subtitle="Report issues and track bug status" />
 
       <div className="flex-1 overflow-auto p-6">
@@ -464,27 +464,27 @@ export default function BugReports() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2">
-                <Bug className='w-5 h-5' />
+              <CardTitle className="flex items-center gap-2">
+                <Bug className="w-5 h-5" />
                 Bug Reports
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                <div className='flex flex-col sm:flex-row gap-4 flex-1">
-                  <div className='relative flex-1">
-                    <Search className='w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <Input
-                      placeholder='Search bugs...'
+                      placeholder="Search bugs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className='pl-10'
-                      data-testid='input-search-bugs'
+                      className="pl-10"
+                      data-testid="input-search-bugs"
                     />
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className='w-full sm:w-40' data-testid='select-status-filter">
-                      <SelectValue placeholder='Filter by status' />
+                    <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
+                      <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>
@@ -496,8 +496,8 @@ export default function BugReports() {
                     </SelectContent>
                   </Select>
                   <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                    <SelectTrigger className='w-full sm:w-40' data-testid='select-priority-filter">
-                      <SelectValue placeholder='Filter by priority' />
+                    <SelectTrigger className="w-full sm:w-40" data-testid="select-priority-filter">
+                      <SelectValue placeholder="Filter by priority" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Priority</SelectItem>
@@ -510,52 +510,52 @@ export default function BugReports() {
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className='flex items-center gap-2' data-testid='button-create-bug">
-                      <Plus className='w-4 h-4' />
+                    <Button className="flex items-center gap-2" data-testid="button-create-bug">
+                      <Plus className="w-4 h-4" />
                       Report Bug
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Report a Bug</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       {/* TOP SECTION: Manual Input Fields */}
-                      <div className='space-y-4">
+                      <div className="space-y-4">
                         <div>
-                          <Label htmlFor='title">Title*</Label>
+                          <Label htmlFor="title">Title*</Label>
                           <Input
-                            id='title'
-                            placeholder='Brief description of the issue'
+                            id="title"
+                            placeholder="Brief description of the issue"
                             {...form.register('title')}
-                            data-testid='input-bug-title'
+                            data-testid="input-bug-title"
                           />
                           {form.formState.errors.title && (
-                            <p className='text-sm text-red-600 mt-1">
+                            <p className="text-sm text-red-600 mt-1">
                               {form.formState.errors.title.message}
                             </p>
                           )}
                         </div>
 
                         <div>
-                          <Label htmlFor='description">Description*</Label>
+                          <Label htmlFor="description">Description*</Label>
                           <Textarea
-                            id='description'
-                            placeholder='Detailed description of the bug, including what you expected to happen'
+                            id="description"
+                            placeholder="Describe the bug in detail"
                             rows={4}
                             {...form.register('description')}
-                            data-testid='textarea-bug-description'
+                            data-testid="input-bug-description"
                           />
                           {form.formState.errors.description && (
-                            <p className='text-sm text-red-600 mt-1">
+                            <p className="text-sm text-red-600 mt-1">
                               {form.formState.errors.description.message}
                             </p>
                           )}
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor='category">Category*</Label>
+                            <Label htmlFor="category">Category*</Label>
                             <Select
                               onValueChange={(value) => {
                                 form.setValue('category', value as any);
@@ -563,8 +563,8 @@ export default function BugReports() {
                               }}
                               value={form.watch('category')}
                             >
-                              <SelectTrigger data-testid='select-bug-category">
-                                <SelectValue placeholder='Select category' />
+                              <SelectTrigger data-testid="select-bug-category">
+                                <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(categoryLabels).map(([value, label]) => (
@@ -575,14 +575,14 @@ export default function BugReports() {
                               </SelectContent>
                             </Select>
                             {form.formState.errors.category && (
-                              <p className='text-sm text-red-600 mt-1">
+                              <p className="text-sm text-red-600 mt-1">
                                 {form.formState.errors.category.message}
                               </p>
                             )}
                           </div>
 
                           <div>
-                            <Label htmlFor='priority">Priority</Label>
+                            <Label htmlFor="priority">Priority</Label>
                             <Select
                               onValueChange={(value) => {
                                 form.setValue('priority', value as any);
@@ -590,7 +590,7 @@ export default function BugReports() {
                               }}
                               value={form.watch('priority')}
                             >
-                              <SelectTrigger data-testid='select-bug-priority">
+                              <SelectTrigger data-testid="select-bug-priority">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -603,15 +603,15 @@ export default function BugReports() {
                           </div>
 
                           <div>
-                            <Label htmlFor='page">Page/Location*</Label>
+                            <Label htmlFor="page">Page/Location*</Label>
                             <Input
-                              id='page'
-                              placeholder='e.g., Dashboard, Settings'
+                              
+                              
                               {...form.register('page')}
-                              data-testid='input-bug-page'
+                              data-test
                             />
                             {form.formState.errors.page && (
-                              <p className='text-sm text-red-600 mt-1">
+                              <p className="text-sm text-red-600 mt-1">
                                 {form.formState.errors.page.message}
                               </p>
                             )}
@@ -619,21 +619,21 @@ export default function BugReports() {
                         </div>
 
                         <div>
-                          <Label htmlFor='reproductionSteps">Steps to Reproduce</Label>
+                          <Label htmlFor="reproductionSteps">Steps to Reproduce</Label>
                           <Textarea
-                            id='reproductionSteps'
-                            placeholder='1. Go to...\n2. Click on...\n3. Notice that...'
+                            
+                            
                             rows={3}
                             {...form.register('reproductionSteps')}
-                            data-testid='textarea-reproduction-steps'
+                            data-test
                           />
                         </div>
                       </div>
 
                       {/* BOTTOM SECTION: Attachment Type Selection */}
-                      <div className='space-y-4 border-t pt-4">
-                        <Label className='text-sm font-medium">Choose Document Type</Label>
-                        <div className='flex space-x-3">
+                      <div className="space-y-4 border-t pt-4">
+                        <Label className="text-sm font-medium">Choose Document Type</Label>
+                        <div className="flex space-x-3">
                           <button
                             type="button"
                             onClick={() => setAttachmentMode('file')}
@@ -663,9 +663,9 @@ export default function BugReports() {
                         {/* Dynamic Content Based on Selection */}
                         {attachmentMode === 'file' ? (
                           <div>
-                            <Label htmlFor='file-upload">Select File to Upload</Label>
+                            <Label htmlFor="file-upload">Select File to Upload</Label>
                             <Input
-                              id='file-upload'
+                              
                               type='file'
                               multiple
                               accept='image/*,.pdf,.txt,.log,.json,.csv'
@@ -675,12 +675,12 @@ export default function BugReports() {
                                   handleFilesSelect(files);
                                 }
                               }}
-                              className='mt-1'
-                              data-testid='input-file'
+                              className="""
+                              data-test
                             />
                             {attachedFiles.length > 0 && (
-                              <div className='space-y-2 mt-2">
-                                <p className='text-sm text-gray-500">
+                              <div className="space-y-2 mt-2">
+                                <p className="text-sm text-gray-500">
                                   Selected: {attachedFiles.map(f => `${f.name} (${Math.round(f.size / 1024)} KB)`).join(', ')}
                                 </p>
                               </div>
@@ -688,26 +688,26 @@ export default function BugReports() {
                           </div>
                         ) : (
                           <div>
-                            <Label htmlFor='text-content">Document Content</Label>
+                            <Label htmlFor="text-content">Document Content</Label>
                             <Textarea
-                              id='text-content'
+                              
                               value={attachmentText}
                               onChange={(e) => setAttachmentText(e.target.value)}
-                              placeholder='Enter additional technical details, error messages, or context here...'
-                              className='mt-1 min-h-[120px]'
-                              data-testid='textarea-content'
+                              
+                              className="""
+                              data-test
                             />
-                            <p className='text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 mt-1">
                               This will add text notes that can be viewed with the bug report.
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className='flex justify-end gap-2 pt-4">
+                      <div className="flex justify-end gap-2 pt-4">
                         <Button
                           type='button'
-                          variant='outline'
+                          variant="""
                           onClick={() => setIsCreateDialogOpen(false)}
                         >
                           Cancel
@@ -715,7 +715,7 @@ export default function BugReports() {
                         <Button
                           type='submit'
                           disabled={createBugMutation.isPending}
-                          data-testid='button-submit-bug'
+                          data-test
                         >
                           {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
                         </Button>
@@ -727,40 +727,40 @@ export default function BugReports() {
                 {/* Edit Bug Dialog */}
                 <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                   <DialogContent
-                    className='max-w-2xl max-h-[90vh] overflow-y-auto'
-                    data-testid='edit-bug-dialog'
+                    className="""
+                    data-test
                   >
                     <DialogHeader>
                       <DialogTitle>Edit Bug Report</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={editForm.handleSubmit(onEditSubmit)} className='space-y-4">
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className='space-y-2">
-                          <Label htmlFor='edit-title' className='text-sm font-medium">
-                            Title <span className='text-red-500">*</span>
+                    <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor=""" className="text-sm font-medium">
+                            Title <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            id='edit-title'
+                            
                             {...editForm.register('title')}
-                            data-testid='input-edit-title'
+                            data-test
                           />
                           {editForm.formState.errors.title && (
-                            <p className='text-red-500 text-xs">
+                            <p className="text-red-500 text-xs">
                               {editForm.formState.errors.title.message}
                             </p>
                           )}
                         </div>
 
-                        <div className='space-y-2">
-                          <Label htmlFor='edit-category' className='text-sm font-medium">
-                            Category <span className='text-red-500">*</span>
+                        <div className="space-y-2">
+                          <Label htmlFor=""" className="text-sm font-medium">
+                            Category <span className="text-red-500">*</span>
                           </Label>
                           <Select
                             value={editForm.watch('category')}
                             onValueChange={(value) => editForm.setValue('category', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-category">
-                              <SelectValue placeholder='Select category' />
+                            <SelectTrigger data-testid="select-edit-category">
+                              <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="ui_ux">UI/UX</SelectItem>
@@ -775,15 +775,15 @@ export default function BugReports() {
                         </div>
                       </div>
 
-                      <div className='space-y-2">
-                        <Label htmlFor='edit-description' className='text-sm font-medium">
-                          Description <span className='text-red-500">*</span>
+                      <div className="space-y-2">
+                        <Label htmlFor=""" className="text-sm font-medium">
+                          Description <span className="text-red-500">*</span>
                         </Label>
                         <Textarea
-                          id='edit-description'
+                          
                           {...editForm.register('description')}
                           rows={4}
-                          data-testid='textarea-edit-description'
+                          data-test
                           onPaste={(e) => {
                             const items = Array.from(e.clipboardData?.items || []);
                             const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
@@ -800,23 +800,23 @@ export default function BugReports() {
                           }}
                         />
                         {editForm.formState.errors.description && (
-                          <p className='text-red-500 text-xs">
+                          <p className="text-red-500 text-xs">
                             {editForm.formState.errors.description.message}
                           </p>
                         )}
                       </div>
 
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className='space-y-2">
-                          <Label htmlFor='edit-priority' className='text-sm font-medium">
-                            Priority <span className='text-red-500">*</span>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor=""" className="text-sm font-medium">
+                            Priority <span className="text-red-500">*</span>
                           </Label>
                           <Select
                             value={editForm.watch('priority')}
                             onValueChange={(value) => editForm.setValue('priority', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-priority">
-                              <SelectValue placeholder='Select priority' />
+                            <SelectTrigger data-testid="select-edit-priority">
+                              <SelectValue placeholder="Select priority" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="low">Low</SelectItem>
@@ -827,16 +827,16 @@ export default function BugReports() {
                           </Select>
                         </div>
 
-                        <div className='space-y-2">
-                          <Label htmlFor='edit-status' className='text-sm font-medium">
+                        <div className="space-y-2">
+                          <Label htmlFor=""" className="text-sm font-medium">
                             Status
                           </Label>
                           <Select
                             value={editForm.watch('status')}
                             onValueChange={(value) => editForm.setValue('status', value as any)}
                           >
-                            <SelectTrigger data-testid='select-edit-status">
-                              <SelectValue placeholder='Select status' />
+                            <SelectTrigger data-testid="select-edit-status">
+                              <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="new">New</SelectItem>
@@ -848,41 +848,41 @@ export default function BugReports() {
                           </Select>
                         </div>
 
-                        <div className='space-y-2">
-                          <Label htmlFor='edit-page' className='text-sm font-medium">
-                            Page/Location <span className='text-red-500">*</span>
+                        <div className="space-y-2">
+                          <Label htmlFor=""" className="text-sm font-medium">
+                            Page/Location <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            id='edit-page'
+                            
                             {...editForm.register('page')}
-                            placeholder='e.g., Dashboard, Settings, etc.'
-                            data-testid='input-edit-page'
+                            
+                            data-test
                           />
                           {editForm.formState.errors.page && (
-                            <p className='text-red-500 text-xs">
+                            <p className="text-red-500 text-xs">
                               {editForm.formState.errors.page.message}
                             </p>
                           )}
                         </div>
                       </div>
 
-                      <div className='space-y-2">
-                        <Label htmlFor='edit-reproduction-steps' className='text-sm font-medium">
+                      <div className="space-y-2">
+                        <Label htmlFor=""" className="text-sm font-medium">
                           Steps to Reproduce (Optional)
                         </Label>
                         <Textarea
-                          id='edit-reproduction-steps'
+                          
                           {...editForm.register('reproductionSteps')}
                           rows={3}
-                          placeholder='1. Go to...\n2. Click on...\n3. See error'
-                          data-testid='textarea-edit-reproduction-steps'
+                          
+                          data-test
                         />
                       </div>
 
                       {/* Choose Document Type Section */}
-                      <div className='space-y-4 border-t pt-4">
-                        <Label className='text-sm font-medium">Choose Document Type</Label>
-                        <div className='flex space-x-3">
+                      <div className="space-y-4 border-t pt-4">
+                        <Label className="text-sm font-medium">Choose Document Type</Label>
+                        <div className="flex space-x-3">
                           <button
                             type="button"
                             onClick={() => setEditAttachmentMode('file')}
@@ -912,29 +912,29 @@ export default function BugReports() {
                         {/* Dynamic Content Based on Selection */}
                         {editAttachmentMode === 'file' ? (
                           <div>
-                            <Label htmlFor='edit-file-upload">Select File to Upload</Label>
+                            <Label htmlFor="edit-file-upload">Select File to Upload</Label>
                             {editingBug?.attachments && editingBug.attachments.length > 0 ? (
-                              <div className='space-y-2 mt-2">
-                                <p className='text-sm text-gray-500">
+                              <div className="space-y-2 mt-2">
+                                <p className="text-sm text-gray-500">
                                   Current files: {editingBug.attachments.map(f => f.name).join(', ')}
                                 </p>
-                                <div className='space-y-1">
+                                <div className="space-y-1">
                                   {editingBug.attachments.map((attachment, index) => (
-                                    <div key={index} className='flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
                                       <span>{attachment.name}</span>
-                                      <div className='flex gap-1">
+                                      <div className="flex gap-1">
                                         <Button
                                           type="button"
-                                          variant='outline'
+                                          variant="""
                                           size='sm'
                                           onClick={() => window.open(`/api/documents/${attachment.id}/file`, '_blank')}
-                                          className='text-xs'
+                                          className="""
                                         >
                                           View
                                         </Button>
                                         <Button
                                           type="button"
-                                          variant='outline'
+                                          variant="""
                                           size='sm'
                                           onClick={() => {
                                             const link = document.createElement('a');
@@ -944,7 +944,7 @@ export default function BugReports() {
                                             link.click();
                                             document.body.removeChild(link);
                                           }}
-                                          className='text-xs'
+                                          className="""
                                         >
                                           Download
                                         </Button>
@@ -954,31 +954,31 @@ export default function BugReports() {
                                 </div>
                               </div>
                             ) : (
-                              <p className='text-sm text-gray-500 mt-1">No files attached</p>
+                              <p className="text-sm text-gray-500 mt-1">No files attached</p>
                             )}
                           </div>
                         ) : (
                           <div>
-                            <Label htmlFor='edit-text-content">Document Content</Label>
+                            <Label htmlFor="edit-text-content">Document Content</Label>
                             <Textarea
-                              id='edit-text-content'
+                              
                               value={editAttachmentText}
                               onChange={(e) => setEditAttachmentText(e.target.value)}
-                              placeholder='Enter additional technical details, error messages, or context here...'
-                              className='mt-1 min-h-[120px]'
-                              data-testid='textarea-edit-content'
+                              
+                              className="""
+                              data-test
                             />
-                            <p className='text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 mt-1">
                               This will show text notes with the bug report.
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className='flex justify-end gap-2 pt-4">
+                      <div className="flex justify-end gap-2 pt-4">
                         <Button
                           type='button'
-                          variant='outline'
+                          variant="""
                           onClick={() => setIsEditDialogOpen(false)}
                         >
                           Cancel
@@ -986,7 +986,7 @@ export default function BugReports() {
                         <Button
                           type='submit'
                           disabled={updateBugMutation.isPending}
-                          data-testid='button-update-bug'
+                          data-test
                         >
                           {updateBugMutation.isPending ? 'Updating...' : 'Update Bug Report'}
                         </Button>
@@ -1000,13 +1000,13 @@ export default function BugReports() {
 
           {/* Bugs Display - Grouped by category */}
           {isLoading ? (
-            <div className='text-center py-8">Loading bug reports...</div>
+            <div className="text-center py-8">Loading bug reports...</div>
           ) : filteredBugs.length === 0 ? (
             <Card>
-              <CardContent className='p-8 text-center">
-                <Bug className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2">No Bug Reports Found</h3>
-                <p className='text-gray-500">
+              <CardContent className="p-8 text-center">
+                <Bug className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Bug Reports Found</h3>
+                <p className="text-gray-500">
                   {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
                     ? 'No bugs match your current filters.'
                     : 'No bug reports have been submitted yet.'}
@@ -1014,7 +1014,7 @@ export default function BugReports() {
               </CardContent>
             </Card>
           ) : (
-            <div className='space-y-6">
+            <div className="space-y-6">
               {/* Category View - Group bugs by category */}
               {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
                 const categoryBugs = filteredBugs.filter((bug: Bug) => bug.category === categoryKey);
@@ -1025,18 +1025,18 @@ export default function BugReports() {
                 return (
                   <Card key={categoryKey} data-testid={`category-${categoryKey}`}>
                     <CardHeader>
-                      <CardTitle className='flex items-center gap-2">
-                        <Bug className='h-5 w-5' />
+                      <CardTitle className="flex items-center gap-2">
+                        <Bug className="h-5 w-5" />
                         {categoryLabel}
-                        <Badge variant='secondary">{categoryBugs.length}</Badge>
+                        <Badge variant="secondary">{categoryBugs.length}</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {categoryBugs.map((bug: Bug) => (
                           <Card
                             key={bug.id}
-                            className='cursor-pointer hover:shadow-md transition-shadow'
+                            className="""
                             data-testid={`bug-card-${bug.id}`}
                             onClick={() => {
                               setSelectedBug(bug);
@@ -1052,19 +1052,19 @@ export default function BugReports() {
                               setIsBugDetailsOpen(true);
                             }}
                           >
-                            <CardContent className='p-4">
-                              <div className='flex items-start justify-between mb-2">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
                                 <h4
-                                  className='font-medium text-sm truncate flex-1 mr-2'
+                                  className="""
                                   data-testid={`bug-name-${bug.id}`}
                                 >
                                   {bug.title}
                                 </h4>
-                                <div className='flex gap-1">
+                                <div className="flex gap-1">
                                   {canEditBug(bug) && (
                                     <Button
                                       size='sm'
-                                      variant='ghost'
+                                      variant="""
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedBug(bug);
@@ -1081,35 +1081,35 @@ export default function BugReports() {
                                       }}
                                       data-testid={`button-edit-${bug.id}`}
                                     >
-                                      <Edit2 className='h-3 w-3' />
+                                      <Edit2 className="h-3 w-3" />
                                     </Button>
                                   )}
                                 </div>
                               </div>
                               <p
-                                className='text-xs text-gray-500 mb-2'
+                                className="""
                                 data-testid={`bug-date-${bug.id}`}
                               >
                                 {new Date(bug.created_at).toLocaleDateString()}
                               </p>
-                              <div className='flex flex-wrap gap-1 mb-2">
+                              <div className="flex flex-wrap gap-1 mb-2">
                                 <Badge
                                   className={
                                     priorityColors[bug.priority as keyof typeof priorityColors]
                                   }
-                                  variant='outline'
+                                  variant="""
                                 >
                                   {bug.priority}
                                 </Badge>
                                 <Badge
                                   className={statusColors[bug.status as keyof typeof statusColors]}
-                                  variant='outline'
+                                  variant="""
                                 >
                                   {bug.status.replace('_', ' ')}
                                 </Badge>
                               </div>
                               {bug.file_path && (
-                                <Badge variant='outline' className='text-xs">
+                                <Badge variant=""" className="text-xs">
                                   File attached
                                 </Badge>
                               )}
@@ -1136,7 +1136,7 @@ export default function BugReports() {
               }
             }}
           >
-            <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Bug Details</DialogTitle>
                 <DialogDescription>
@@ -1144,15 +1144,15 @@ export default function BugReports() {
                 </DialogDescription>
               </DialogHeader>
               {selectedBug && (
-                <div className='space-y-4">
+                <div className="space-y-4">
                   <div>
-                    <h3 className='text-lg font-semibold">{selectedBug.title}</h3>
+                    <h3 className="text-lg font-semibold">{selectedBug.title}</h3>
                     {selectedBug.description && (
-                      <p className='text-gray-600 mt-2">{selectedBug.description}</p>
+                      <p className="text-gray-600 mt-2">{selectedBug.description}</p>
                     )}
                   </div>
 
-                  <div className='grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <strong>Category:</strong> {categoryLabels[selectedBug.category as keyof typeof categoryLabels]}
                     </div>
@@ -1175,20 +1175,20 @@ export default function BugReports() {
                     )}
                   </div>
 
-                  <div className='flex gap-2 pt-4">
+                  <div className="flex gap-2 pt-4">
                     {selectedBug.file_path && (
                       <>
                         <Button
                           onClick={() => {
                             window.open(`/api/bugs/${selectedBug.id}/file`, '_blank');
                           }}
-                          data-testid='button-view'
+                          data-test
                         >
-                          <FileText className='w-4 h-4 mr-2' />
+                          <FileText className="w-4 h-4 mr-2" />
                           View
                         </Button>
                         <Button
-                          variant='outline'
+                          variant="""
                           onClick={() => {
                             const link = window.document.createElement('a');
                             link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
@@ -1197,9 +1197,9 @@ export default function BugReports() {
                             link.click();
                             window.document.body.removeChild(link);
                           }}
-                          data-testid='button-download'
+                          data-test
                         >
-                          <Download className='w-4 h-4 mr-2' />
+                          <Download className="w-4 h-4 mr-2" />
                           Download
                         </Button>
                       </>
@@ -1212,9 +1212,9 @@ export default function BugReports() {
                             handleDelete(selectedBug.id);
                           }
                         }}
-                        className='text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700"
                       >
-                        <Trash2 className='w-4 h-4 mr-2" />
+                        <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </Button>
                     )}
