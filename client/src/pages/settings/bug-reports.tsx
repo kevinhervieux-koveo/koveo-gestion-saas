@@ -569,7 +569,7 @@ export default function BugReports() {
 
                       {/* BOTTOM SECTION: Attachment Type Selection */}
                       <div className="space-y-4 border-t pt-4">
-                        <Label className="text-sm font-medium">Screenshots & Files</Label>
+                        <Label className="text-sm font-medium">Choose Document Type</Label>
                         <div className="flex space-x-3">
                           <button
                             type="button"
@@ -581,7 +581,7 @@ export default function BugReports() {
                             }`}
                             data-testid="button-file-mode"
                           >
-                            📎 Attach Files
+                            📁 Upload File
                           </button>
                           <button
                             type="button"
@@ -593,61 +593,49 @@ export default function BugReports() {
                             }`}
                             data-testid="button-text-mode"
                           >
-                            📝 Text Notes
+                            📝 Text Document
                           </button>
                         </div>
 
                         {/* Dynamic Content Based on Selection */}
                         {attachmentMode === 'file' ? (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">
-                                Optional - Screenshots, error logs, console outputs
-                              </span>
-                              <CompactFileUpload
-                                onFilesSelect={handleFilesSelect}
-                                maxFiles={5}
-                                acceptedTypes={['image/*', '.pdf', '.txt', '.log', '.json']}
-                              />
-                            </div>
+                          <div>
+                            <Label htmlFor='file-upload'>Select File to Upload</Label>
+                            <Input
+                              id='file-upload'
+                              type='file'
+                              multiple
+                              accept='image/*,.pdf,.txt,.log,.json,.csv'
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  handleFilesSelect(files);
+                                }
+                              }}
+                              className='mt-1'
+                              data-testid='input-file'
+                            />
                             {attachedFiles.length > 0 && (
-                              <div className="space-y-2">
-                                <p className="text-xs text-gray-600">
-                                  Selected files ({attachedFiles.length}):
+                              <div className="space-y-2 mt-2">
+                                <p className="text-sm text-gray-500">
+                                  Selected: {attachedFiles.map(f => `${f.name} (${Math.round(f.size / 1024)} KB)`).join(', ')}
                                 </p>
-                                <div className="flex flex-wrap gap-2">
-                                  {attachedFiles.map((file, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs"
-                                    >
-                                      <span className="truncate max-w-[100px]">{file.name}</span>
-                                      <button
-                                        onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
-                                        className="text-gray-500 hover:text-red-500"
-                                        type="button"
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
                               </div>
                             )}
                           </div>
                         ) : (
                           <div>
-                            <Label htmlFor="attachment-text">Additional Notes</Label>
+                            <Label htmlFor='text-content'>Document Content</Label>
                             <Textarea
-                              id="attachment-text"
+                              id='text-content'
                               value={attachmentText}
                               onChange={(e) => setAttachmentText(e.target.value)}
-                              placeholder="Add any additional technical details, error messages, or context here..."
-                              className="mt-1 min-h-[120px]"
-                              data-testid="textarea-attachment-notes"
+                              placeholder='Enter additional technical details, error messages, or context here...'
+                              className='mt-1 min-h-[120px]'
+                              data-testid='textarea-content'
                             />
-                            <p className="text-sm text-gray-500 mt-1">
-                              Use this to add error messages, console outputs, or other technical details.
+                            <p className='text-sm text-gray-500 mt-1'>
+                              This will add text notes that can be viewed with the bug report.
                             </p>
                           </div>
                         )}
