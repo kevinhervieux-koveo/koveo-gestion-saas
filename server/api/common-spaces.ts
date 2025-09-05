@@ -532,8 +532,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
+      console.log('🔍 Booking request body:', req.body);
       const bodyValidation = createBookingSchema.safeParse(req.body);
       if (!bodyValidation.success) {
+        console.log('❌ Validation failed:', bodyValidation.error.issues);
         return res.status(400).json({
           message: 'Invalid booking data',
           errors: bodyValidation.error.issues,
