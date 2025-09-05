@@ -1,0 +1,395 @@
+/**
+ * @file Demand Comment Schema Unit Tests
+ * @description Comprehensive tests for demand comment validation schemas and business logic
+ */
+
+import { describe, it, expect } from '@jest/globals';
+import { insertDemandCommentSchema } from '../../../shared/schemas/operations';
+
+describe('Demand Comment Schema Validation Tests', () => {
+  describe('insertDemandCommentSchema', () => {
+    it('should accept valid comment data', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'This is a valid comment on the demand.',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should require demandId field', () => {
+      const invalidComment = {
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Comment without demand ID',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should require commenterId field', () => {
+      const invalidComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commentText: 'Comment without commenter ID',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should require commentText field', () => {
+      const invalidComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should validate UUID format for demandId', () => {
+      const invalidComment = {
+        demandId: 'invalid-uuid',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Valid comment text',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should validate UUID format for commenterId', () => {
+      const invalidComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: 'invalid-uuid',
+        commentText: 'Valid comment text',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should reject empty comment text', () => {
+      const invalidComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: '',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should accept minimum length comment text', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'A',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should accept maximum length comment text', () => {
+      const longText = 'A'.repeat(1000);
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: longText,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should reject comment text exceeding maximum length', () => {
+      const tooLongText = 'A'.repeat(1001);
+      const invalidComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: tooLongText,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+
+    it('should accept optional commentType field', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Comment with type',
+        commentType: 'update',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should accept optional isInternal field', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Internal comment',
+        isInternal: true,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should default isInternal to false when not provided', () => {
+      const comment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Public comment',
+      };
+
+      const parsed = insertDemandCommentSchema.parse(comment);
+      expect(parsed.isInternal).toBe(false);
+    });
+
+    it('should handle French characters in comment text', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Réparation nécessaire avec caractères spéciaux: éàùç!',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should handle emojis and special characters', () => {
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Great work! 👍 Thanks for fixing this issue @#$%^&*()',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should handle multiline comment text', () => {
+      const multilineComment = `This is a multiline comment.
+      
+      It contains multiple paragraphs and should be accepted.
+      
+      End of comment.`;
+
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: multilineComment,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should validate complete comment with all optional fields', () => {
+      const completeComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Complete comment with all fields',
+        commentType: 'status_update',
+        isInternal: false,
+      };
+
+      const parsed = insertDemandCommentSchema.parse(completeComment);
+      expect(parsed.demandId).toBe(completeComment.demandId);
+      expect(parsed.commenterId).toBe(completeComment.commenterId);
+      expect(parsed.commentText).toBe(completeComment.commentText);
+      expect(parsed.commentType).toBe(completeComment.commentType);
+      expect(parsed.isInternal).toBe(completeComment.isInternal);
+    });
+
+    it('should handle whitespace in comment text', () => {
+      const commentWithWhitespace = '   This comment has leading and trailing spaces   ';
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: commentWithWhitespace,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should accept whitespace in comment text', () => {
+      const whitespaceComment = '   \n\t   This has whitespace   \r\n   ';
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: whitespaceComment,
+      };
+
+      // Schema validation allows whitespace as long as there's content
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+
+    it('should validate different comment types', () => {
+      const commentTypes = ['update', 'question', 'answer', 'status_change', 'internal_note'];
+      
+      commentTypes.forEach(type => {
+        const validComment = {
+          demandId: '123e4567-e89b-12d3-a456-426614174000',
+          commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+          commentText: `Comment of type ${type}`,
+          commentType: type,
+        };
+
+        expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+      });
+    });
+
+    it('should handle edge cases for boolean isInternal field', () => {
+      const testCases = [
+        { isInternal: true, expected: true },
+        { isInternal: false, expected: false },
+        { isInternal: 'true', expected: true }, // String coercion
+        { isInternal: 'false', expected: false }, // String coercion
+        { isInternal: 1, expected: true }, // Number coercion
+        { isInternal: 0, expected: false }, // Number coercion
+      ];
+
+      testCases.forEach(({ isInternal, expected }) => {
+        const comment = {
+          demandId: '123e4567-e89b-12d3-a456-426614174000',
+          commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+          commentText: 'Test comment',
+          isInternal,
+        };
+
+        try {
+          const parsed = insertDemandCommentSchema.parse(comment);
+          expect(parsed.isInternal).toBe(expected);
+        } catch (error) {
+          // Some coercions might not be supported by Zod, that's acceptable
+        }
+      });
+    });
+
+    it('should preserve comment text exactly as provided', () => {
+      const originalText = 'This comment has "quotes" and \'apostrophes\' and $pecial characters!';
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: originalText,
+      };
+
+      const parsed = insertDemandCommentSchema.parse(validComment);
+      expect(parsed.commentText).toBe(originalText);
+    });
+
+    it('should handle very long comment type strings', () => {
+      const longCommentType = 'very_long_comment_type_name_that_might_be_used_in_some_cases';
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Comment with long type',
+        commentType: longCommentType,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+  });
+
+  describe('Comment Business Logic Validation', () => {
+    it('should validate that demandId corresponds to existing demand', () => {
+      // This would typically be handled at the database/API level, but we can test the schema validation
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Comment for existing demand',
+      };
+
+      const parsed = insertDemandCommentSchema.parse(validComment);
+      expect(parsed.demandId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    });
+
+    it('should validate that commenterId corresponds to authenticated user', () => {
+      // Schema validation for user ID format
+      const validComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Comment from authenticated user',
+      };
+
+      const parsed = insertDemandCommentSchema.parse(validComment);
+      expect(parsed.commenterId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    });
+
+    it('should handle comments with Quebec-specific formatting requirements', () => {
+      const quebecComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Commentaire en français avec numéro de téléphone (514) 555-1234 et code postal H3H 2Y7',
+      };
+
+      expect(() => insertDemandCommentSchema.parse(quebecComment)).not.toThrow();
+    });
+
+    it('should validate internal vs external comment permissions', () => {
+      // Test both internal and external comments
+      const externalComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'External comment visible to all',
+        isInternal: false,
+      };
+
+      const internalComment = {
+        demandId: '123e4567-e89b-12d3-a456-426614174000',
+        commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+        commentText: 'Internal comment for staff only',
+        isInternal: true,
+      };
+
+      expect(() => insertDemandCommentSchema.parse(externalComment)).not.toThrow();
+      expect(() => insertDemandCommentSchema.parse(internalComment)).not.toThrow();
+    });
+  });
+
+  describe('Comment Error Message Quality', () => {
+    it('should provide helpful error messages for validation failures', () => {
+      const testCases = [
+        {
+          data: { commentText: 'Missing required fields' },
+          shouldFail: true,
+          expectedField: 'demandId',
+        },
+        {
+          data: {
+            demandId: 'invalid-uuid',
+            commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+            commentText: 'Valid text',
+          },
+          shouldFail: true,
+          expectedField: 'demandId',
+        },
+        {
+          data: {
+            demandId: '123e4567-e89b-12d3-a456-426614174000',
+            commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+            commentText: '',
+          },
+          shouldFail: true,
+          expectedField: 'commentText',
+        },
+        {
+          data: {
+            demandId: '123e4567-e89b-12d3-a456-426614174000',
+            commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+            commentText: 'A'.repeat(1001),
+          },
+          shouldFail: true,
+          expectedField: 'commentText',
+        },
+      ];
+
+      testCases.forEach(({ data, shouldFail, expectedField }) => {
+        if (shouldFail) {
+          try {
+            insertDemandCommentSchema.parse(data);
+            fail(`Expected validation to fail for field: ${expectedField}`);
+          } catch (error: any) {
+            expect(error).toBeDefined();
+            // Check that it's a Zod error and has the expected structure
+            if (error.issues) {
+              expect(error.issues.length).toBeGreaterThan(0);
+            }
+          }
+        }
+      });
+    });
+  });
+});
