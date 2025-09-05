@@ -238,6 +238,7 @@ export interface Translations {
   companyOrServiceProvider: string;
   selectPaymentType: string;
   selectSchedule: string;
+  billingSchedule: string;
   selectStatus: string;
   // Page content translations
   loadingDemands: string;
@@ -712,7 +713,7 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsSent: 'Bulk Invitations Sent',
     bulkInvitationsResult: 'Bulk invitations processed successfully',
     bulkInvitationsSuccess: 'invitations sent successfully',
-    _error: 'Error',
+    _error: 'An error occurred',
     // Additional user management translations
     bulkActionSuccess: 'Bulk Action Completed',
     bulkActionSuccessDescription: 'The bulk action has been completed successfully',
@@ -810,6 +811,7 @@ const translations: Record<Language, Translations> = {
     companyOrServiceProvider: 'Company/Service Provider',
     selectPaymentType: 'Select payment type',
     selectSchedule: 'Select schedule',
+    billingSchedule: 'Billing Schedule',
     selectStatus: 'Select status',
     // Page content translations
     loadingDemands: 'Loading demands...',
@@ -817,7 +819,7 @@ const translations: Record<Language, Translations> = {
     submitAndTrack: 'Submit and track',
     reviewDemand: 'Review Demand',
     failedToReviewDemand: 'Failed to review demand',
-    error: 'Error',
+    error: 'An error occurred',
     submitted: 'Submitted',
     underReview: 'Under Review',
     approved: 'Approved',
@@ -931,7 +933,7 @@ const translations: Record<Language, Translations> = {
     enterPassword: 'Enter password',
     enterFirstName: 'Enter first name',
     enterLastName: 'Enter last name',
-    required: 'Required',
+    required: 'This field is required',
     submit: 'Submit',
     send: 'Send',
     reset: 'Reset',
@@ -1280,7 +1282,7 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsSent: 'Invitations groupées envoyées',
     bulkInvitationsResult: 'Invitations groupées traitées avec succès',
     bulkInvitationsSuccess: 'invitations envoyées avec succès',
-    _error: 'Erreur',
+    _error: 'Une erreur s\'est produite',
     // Traductions supplémentaires de gestion des utilisateurs
     bulkActionSuccess: 'Action groupée terminée',
     bulkActionSuccessDescription: 'L\'action groupée a été terminée avec succès',
@@ -1378,6 +1380,7 @@ const translations: Record<Language, Translations> = {
     companyOrServiceProvider: 'Entreprise/Fournisseur de services',
     selectPaymentType: 'Sélectionner le type de paiement',
     selectSchedule: 'Sélectionner l\'horaire',
+    billingSchedule: 'Calendrier de facturation',
     selectStatus: 'Sélectionner le statut',
     // Traductions de contenu de page
     loadingDemands: 'Chargement des demandes...',
@@ -1385,7 +1388,7 @@ const translations: Record<Language, Translations> = {
     submitAndTrack: 'Soumettre et suivre',
     reviewDemand: 'Examiner la demande',
     failedToReviewDemand: 'Échec de l\'examen de la demande',
-    error: 'Erreur',
+    error: 'Une erreur s\'est produite',
     submitted: 'Soumis',
     underReview: 'En cours d\'examen',
     approved: 'Approuvé',
@@ -1499,7 +1502,7 @@ const translations: Record<Language, Translations> = {
     enterPassword: 'Entrez le mot de passe',
     enterFirstName: 'Entrez le prénom',
     enterLastName: 'Entrez le nom de famille',
-    required: 'Requis',
+    required: 'Ce champ est requis',
     submit: 'Soumettre',
     send: 'Envoyer',
     reset: 'Réinitialiser',
