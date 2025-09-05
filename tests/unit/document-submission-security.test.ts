@@ -1,16 +1,23 @@
 /**
  * Document Submission Security Test Suite
  * 
- * Tests the enhanced security features implemented for document submissions:
+ * Tests enhanced security features with Semgrep-focused security rules:
  * 1. Rate limiting (10 files per hour per user)
  * 2. Enhanced file validation (MIME type, size, filename)
- * 3. Path traversal protection
+ * 3. Path traversal protection (Semgrep: directory-traversal-prevention)
  * 4. Audit logging for all document operations
  * 5. Admin-only audit log access
  * 6. File size limits (25MB maximum)
+ * 7. Command injection prevention (Semgrep: command-injection-risk)
+ * 8. File upload security (Semgrep: file-upload-security)
+ * 9. Input sanitization (Semgrep: input-validation)
+ * 10. Access control validation (Semgrep: authorization-bypass)
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
 
 // Mock document security functions
 const mockAuditLog: any[] = [];
