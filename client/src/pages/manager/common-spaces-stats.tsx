@@ -138,7 +138,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
     const { user } = useAuth();
     const { language } = useLanguage();
 
-    if (!user || !['manager', 'admin'].includes(user.role)) {
+    if (!user || !['manager', 'admin', 'demo_manager'].includes(user.role)) {
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
           <Header 

@@ -126,7 +126,7 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
   }
 
   // Regular users and managers: Get buildings from their organizations
-  if (user.role === 'manager') {
+  if (user.role === 'manager' || user.role === 'demo_manager') {
     if (userOrgs.length > 0) {
       const orgIds = userOrgs.map((uo) => uo.organizationId);
       const orgBuildings = await db
