@@ -87,11 +87,11 @@ interface Bug {
   resolvedAt: string | null;
   resolvedBy: string | null;
   // Single file attachment fields (like documents)
-  file_path?: string;
-  file_name?: string;
-  file_mime_type?: string;
-  file_size?: number;
-  file_content?: string;
+  filePath?: string;
+  fileName?: string;
+  fileMimeType?: string;
+  fileSize?: number;
+  fileContent?: string;
   attachments?: Array<{
     id: string;
     name: string;
@@ -353,7 +353,7 @@ export default function BugReports() {
     
     // Initialize edit attachment mode and text
     setEditAttachmentMode('file');
-    setEditAttachmentText(bug.file_content || '');
+    setEditAttachmentText(bug.fileContent || '');
     setIsEditDialogOpen(true);
   };
 
@@ -1026,7 +1026,7 @@ export default function BugReports() {
                                   {bug.status.replace(/_/g, ' ')}
                                 </Badge>
                               </div>
-                              {bug.file_path && (
+                              {bug.filePath && (
                                 <Badge variant="secondary" className="text-xs">
                                   📎 File attached
                                 </Badge>
@@ -1211,24 +1211,24 @@ export default function BugReports() {
               </div>
 
               {/* File Section */}
-              {selectedBug.file_path && (
+              {selectedBug.filePath && (
                 <div className="border-t pt-4">
                   <Label className="text-sm font-medium">Attached File</Label>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mt-2">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{selectedBug.file_name || 'Attachment'}</span>
+                      <span className="text-sm">{selectedBug.fileName || 'Attachment'}</span>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         type="button"
                         onClick={() => {
-                          if (selectedBug && selectedBug.file_path) {
+                          if (selectedBug && selectedBug.filePath) {
                             const fileUrl = `/api/bugs/${selectedBug.id}/file`;
                             window.open(fileUrl, '_blank');
                           }
                         }}
-                        disabled={!selectedBug?.file_path}
+                        disabled={!selectedBug?.filePath}
                         data-testid="button-view-file"
                       >
                         <FileText className="w-4 h-4 mr-2" />
@@ -1238,16 +1238,16 @@ export default function BugReports() {
                         type="button"
                         variant="outline"
                         onClick={() => {
-                          if (selectedBug && selectedBug.file_path) {
+                          if (selectedBug && selectedBug.filePath) {
                             const link = window.document.createElement('a');
                             link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
-                            link.download = selectedBug.file_name || selectedBug.title;
+                            link.download = selectedBug.fileName || selectedBug.title;
                             window.document.body.appendChild(link);
                             link.click();
                             window.document.body.removeChild(link);
                           }
                         }}
-                        disabled={!selectedBug?.file_path}
+                        disabled={!selectedBug?.filePath}
                         data-testid="button-download-file"
                       >
                         <Download className="w-4 h-4 mr-2" />
