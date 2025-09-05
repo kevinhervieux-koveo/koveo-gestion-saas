@@ -1044,91 +1044,253 @@ export default function BugReports() {
         </div>
       </div>
 
-      {/* Bug Details Dialog */}
+      {/* Bug Details Dialog - Editable Form */}
       <Dialog open={isBugDetailsOpen} onOpenChange={setIsBugDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedBug?.title}</DialogTitle>
+            <DialogTitle>Bug Report Details</DialogTitle>
           </DialogHeader>
           {selectedBug && (
-            <div className="space-y-4">
-              <p className="text-gray-700">{selectedBug.description}</p>
-              
-              {selectedBug.reproductionSteps && (
-                <div>
-                  <strong>Steps to Reproduce:</strong>
-                  <p className="text-gray-700 mt-1">{selectedBug.reproductionSteps}</p>
+            <form onSubmit={bugForm.handleSubmit((data) => {
+              // Handle form submission for updates
+              if (canEditBug(selectedBug)) {
+                updateBugMutation.mutate({ 
+                  id: selectedBug.id, 
+                  data: { ...data, status: selectedBug.status } as any 
+                });
+                setIsBugDetailsOpen(false);
+              }
+            })} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="details-title" className="text-sm font-medium">
+                    Title <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="details-title"
+                    {...bugForm.register('title')}
+                    readOnly={!canEditBug(selectedBug)}
+                    className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
+                    data-testid="input-details-title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="details-category" className="text-sm font-medium">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={bugForm.watch('category')}
+                    onValueChange={(value) => canEditBug(selectedBug) && bugForm.setValue('category', value as any)}
+                    disabled={!canEditBug(selectedBug)}
+                  >
+                    <SelectTrigger data-testid="select-details-category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ui_ux">UI/UX</SelectItem>
+                      <SelectItem value="functionality">Functionality</SelectItem>
+                      <SelectItem value="performance">Performance</SelectItem>
+                      <SelectItem value="data">Data</SelectItem>
+                      <SelectItem value="security">Security</SelectItem>
+                      <SelectItem value="integration">Integration</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="details-description" className="text-sm font-medium">
+                  Description <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="details-description"
+                  {...bugForm.register('description')}
+                  rows={4}
+                  readOnly={!canEditBug(selectedBug)}
+                  className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
+                  data-testid="textarea-details-description"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="details-priority" className="text-sm font-medium">
+                    Priority <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={bugForm.watch('priority')}
+                    onValueChange={(value) => canEditBug(selectedBug) && bugForm.setValue('priority', value as any)}
+                    disabled={!canEditBug(selectedBug)}
+                  >
+                    <SelectTrigger data-testid="select-details-priority">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {user?.role === 'admin' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="details-status" className="text-sm font-medium">
+                      Status
+                    </Label>
+                    <Select
+                      value={selectedBug.status}
+                      onValueChange={(value) => {
+                        // Update the selected bug status directly since this is admin-only
+                        setSelectedBug({ ...selectedBug, status: value });
+                      }}
+                    >
+                      <SelectTrigger data-testid="select-details-status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="details-page" className="text-sm font-medium">
+                    Page/Location <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="details-page"
+                    {...bugForm.register('page')}
+                    readOnly={!canEditBug(selectedBug)}
+                    className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
+                    placeholder="e.g. Dashboard, Login page, Settings"
+                    data-testid="input-details-page"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="details-steps" className="text-sm font-medium">
+                  Steps to Reproduce (Optional)
+                </Label>
+                <Textarea
+                  id="details-steps"
+                  {...bugForm.register('reproductionSteps')}
+                  rows={3}
+                  readOnly={!canEditBug(selectedBug)}
+                  className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
+                  placeholder="Describe the steps to reproduce this issue..."
+                  data-testid="textarea-details-steps"
+                />
+              </div>
+
+              {/* Metadata Section */}
+              <div className="border-t pt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div>
+                    <strong>Created:</strong> {new Date(selectedBug.createdAt).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <strong>Status:</strong> 
+                    <Badge 
+                      className={statusColors[selectedBug.status as keyof typeof statusColors]} 
+                      variant="outline"
+                    >
+                      {selectedBug.status.replaceAll('_', ' ')}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Section */}
+              {selectedBug.file_path && (
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium">Attached File</Label>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mt-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm">{selectedBug.file_name || 'Attachment'}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          window.open('/api/bugs/' + selectedBug.id + '/file', '_blank');
+                        }}
+                        className="text-xs"
+                      >
+                        View
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const link = window.document.createElement('a');
+                          link.href = '/api/bugs/' + selectedBug.id + '/file?download=true';
+                          link.download = selectedBug.file_name || selectedBug.title;
+                          window.document.body.appendChild(link);
+                          link.click();
+                          window.document.body.removeChild(link);
+                        }}
+                        className="text-xs"
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t">
                 <div>
-                  <strong>Category:</strong> {categoryLabels[selectedBug.category as keyof typeof categoryLabels]}
-                </div>
-                <div>
-                  <strong>Date:</strong> {new Date(selectedBug.createdAt).toLocaleDateString()}
-                </div>
-                <div>
-                  <strong>Priority:</strong> {selectedBug.priority}
-                </div>
-                <div>
-                  <strong>Status:</strong> {selectedBug.status.replaceAll('_', ' ')}
-                </div>
-                <div>
-                  <strong>Page:</strong> {selectedBug.page}
-                </div>
-                {selectedBug.file_path && (
-                  <div>
-                    <strong>File:</strong> Attached
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                {selectedBug.file_path && (
-                  <>
+                  {canDeleteBug(selectedBug) && (
                     <Button
-                      onClick={() => {
-                        window.open('/api/bugs/' + selectedBug.id + '/file', '_blank');
-                      }}
-                      data-testid="button-view-file"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      View
-                    </Button>
-                    <Button
+                      type="button"
                       variant="outline"
                       onClick={() => {
-                        const link = window.document.createElement('a');
-                        link.href = '/api/bugs/' + selectedBug.id + '/file?download=true';
-                        link.download = selectedBug.file_name || selectedBug.title;
-                        window.document.body.appendChild(link);
-                        link.click();
-                        window.document.body.removeChild(link);
+                        if (window.confirm('Are you sure you want to delete this bug report?')) {
+                          handleDelete(selectedBug.id);
+                        }
                       }}
-                      data-testid="button-download-file"
+                      className="text-red-600 hover:text-red-700"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
                     </Button>
-                  </>
-                )}
-                {canDeleteBug(selectedBug) && (
+                  )}
+                </div>
+                <div className="flex gap-2">
                   <Button
+                    type="button"
                     variant="outline"
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this bug report?')) {
-                        handleDelete(selectedBug.id);
-                      }
-                    }}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => setIsBugDetailsOpen(false)}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
+                    {canEditBug(selectedBug) ? 'Cancel' : 'Close'}
                   </Button>
-                )}
+                  {canEditBug(selectedBug) && (
+                    <Button
+                      type="submit"
+                      disabled={updateBugMutation.isPending}
+                      data-testid="button-save-bug"
+                    >
+                      {updateBugMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>
