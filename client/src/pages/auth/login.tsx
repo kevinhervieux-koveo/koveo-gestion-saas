@@ -92,6 +92,14 @@ export default function LoginPage() {
   const [demoUsers, setDemoUsers] = useState<DemoUsersData | null>(null);
   const [loadingDemoUsers, setLoadingDemoUsers] = useState(false);
 
+  // Check for demo query parameter on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('demo') === 'true') {
+      setIsDemoMode(true);
+    }
+  }, []);
+
   // Fetch demo users when demo mode is enabled
   useEffect(() => {
     if (isDemoMode && !demoUsers) {

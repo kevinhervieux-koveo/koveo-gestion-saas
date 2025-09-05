@@ -15,7 +15,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t, language } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50'>
@@ -32,7 +32,7 @@ export default function HomePage() {
           <p className='text-xl text-gray-500 mb-8 leading-relaxed'>
             {t('comprehensivePropertyManagement')}
           </p>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
             {isAuthenticated ? (
               <Button
                 size='lg'
@@ -55,6 +55,21 @@ export default function HomePage() {
                 </Button>
               </TrialRequestForm>
             )}
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-8 py-3'
+              onClick={async () => {
+                if (isAuthenticated) {
+                  await logout();
+                }
+                setLocation('/login?demo=true');
+              }}
+              data-testid='button-try-demo-top'
+            >
+              Try Demo
+              <Users className='ml-2 h-5 w-5' />
+            </Button>
           </div>
         </div>
       </section>
@@ -173,28 +188,45 @@ export default function HomePage() {
         <div className='max-w-2xl mx-auto'>
           <h2 className='text-3xl font-bold text-gray-700 mb-4'>{t('readyToTransform')}</h2>
           <p className='text-lg text-gray-500 mb-8'>{t('joinPropertyOwners')}</p>
-          {isAuthenticated ? (
-            <Button
-              size='lg'
-              className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-              onClick={() => setLocation('/dashboard/quick-actions')}
-              data-testid='button-go-to-dashboard-bottom'
-            >
-              {t('goToDashboard') || 'Go to Dashboard'}
-              <ArrowRight className='ml-2 h-5 w-5' />
-            </Button>
-          ) : (
-            <TrialRequestForm>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+            {isAuthenticated ? (
               <Button
                 size='lg'
                 className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-                data-testid='button-start-trial-bottom'
+                onClick={() => setLocation('/dashboard/quick-actions')}
+                data-testid='button-go-to-dashboard-bottom'
               >
-                {t('startFreeTrial')}
+                {t('goToDashboard') || 'Go to Dashboard'}
                 <ArrowRight className='ml-2 h-5 w-5' />
               </Button>
-            </TrialRequestForm>
-          )}
+            ) : (
+              <TrialRequestForm>
+                <Button
+                  size='lg'
+                  className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                  data-testid='button-start-trial-bottom'
+                >
+                  {t('startFreeTrial')}
+                  <ArrowRight className='ml-2 h-5 w-5' />
+                </Button>
+              </TrialRequestForm>
+            )}
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-8 py-3'
+              onClick={async () => {
+                if (isAuthenticated) {
+                  await logout();
+                }
+                setLocation('/login?demo=true');
+              }}
+              data-testid='button-try-demo-bottom'
+            >
+              Try Demo
+              <Users className='ml-2 h-5 w-5' />
+            </Button>
+          </div>
         </div>
       </section>
 
