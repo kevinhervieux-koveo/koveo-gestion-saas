@@ -79,13 +79,13 @@ interface Bug {
   page: string;
   priority: string;
   status: string;
-  reproduction_steps: string | null;
-  created_at: string;
-  updated_at: string;
-  reporter_id: string;
-  assigned_to: string | null;
-  resolved_at: string | null;
-  resolved_by: string | null;
+  reproductionSteps: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  assignedTo: string | null;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
   // Single file attachment fields (like documents)
   file_path?: string;
   file_name?: string;
@@ -348,7 +348,7 @@ export default function BugReports() {
       page: bug.page,
       priority: bug.priority as any,
       status: bug.status as any,
-      reproductionSteps: bug.reproduction_steps || '',
+      reproductionSteps: bug.reproductionSteps || '',
     });
     
     // Initialize edit attachment mode and text
@@ -367,17 +367,17 @@ export default function BugReports() {
 
   // Check if user can edit/delete a bug
   const canEditBug = (bug: Bug) => {
-    return user?.role === 'admin' || bug.reporter_id === user?.id;
+    return user?.role === 'admin' || bug.createdBy === user?.id;
   };
 
   const canDeleteBug = (bug: Bug) => {
-    return user?.role === 'admin' || bug.reporter_id === user?.id;
+    return user?.role === 'admin' || bug.createdBy === user?.id;
   };
 
   // Filter bugs with role-based access control
   const filteredBugs = bugs.filter((bug: Bug) => {
     // Role-based filtering: users see only their bugs, admins see all
-    const hasAccess = user?.role === 'admin' || bug.reporter_id === user?.id;
+    const hasAccess = user?.role === 'admin' || bug.createdBy === user?.id;
     if (!hasAccess) return false;
 
     // Search filter
@@ -965,7 +965,7 @@ export default function BugReports() {
                                 category: bug.category as any,
                                 page: bug.page,
                                 priority: bug.priority as any,
-                                reproductionSteps: bug.reproduction_steps || '',
+                                reproductionSteps: bug.reproductionSteps || '',
                               });
                               setIsBugDetailsOpen(true);
                             }}
@@ -993,7 +993,7 @@ export default function BugReports() {
                                           category: bug.category as any,
                                           page: bug.page,
                                           priority: bug.priority as any,
-                                          reproductionSteps: bug.reproduction_steps || '',
+                                          reproductionSteps: bug.reproductionSteps || '',
                                         });
                                         setIsBugDetailsOpen(true);
                                       }}
@@ -1008,7 +1008,7 @@ export default function BugReports() {
                                 className="text-xs text-gray-500 mb-2"
                                 data-testid={'bug-date-' + bug.id}
                               >
-                                {new Date(bug.created_at).toLocaleDateString()}
+                                {new Date(bug.createdAt).toLocaleDateString()}
                               </p>
                               <div className="flex flex-wrap gap-1 mb-2">
                                 <Badge
@@ -1054,10 +1054,10 @@ export default function BugReports() {
             <div className="space-y-4">
               <p className="text-gray-700">{selectedBug.description}</p>
               
-              {selectedBug.reproduction_steps && (
+              {selectedBug.reproductionSteps && (
                 <div>
                   <strong>Steps to Reproduce:</strong>
-                  <p className="text-gray-700 mt-1">{selectedBug.reproduction_steps}</p>
+                  <p className="text-gray-700 mt-1">{selectedBug.reproductionSteps}</p>
                 </div>
               )}
 
@@ -1066,7 +1066,7 @@ export default function BugReports() {
                   <strong>Category:</strong> {categoryLabels[selectedBug.category as keyof typeof categoryLabels]}
                 </div>
                 <div>
-                  <strong>Date:</strong> {new Date(selectedBug.created_at).toLocaleDateString()}
+                  <strong>Date:</strong> {new Date(selectedBug.createdAt).toLocaleDateString()}
                 </div>
                 <div>
                   <strong>Priority:</strong> {selectedBug.priority}
