@@ -188,12 +188,8 @@ export function registerDemandRoutes(app: Express) {
       const demandData = req.body;
       
 
-      // Create a schema that allows optional UUIDs for frontend submission
-      // We'll validate and ensure they're populated before database insertion
-      const demandInputSchema = insertDemandSchema.omit({ submitterId: true }).extend({
-        buildingId: z.string().optional(),
-        residenceId: z.string().optional()
-      });
+      // Validate input using the corrected schema that already has optional fields
+      const demandInputSchema = insertDemandSchema.omit({ submitterId: true });
       
       // Validate input
       const validatedData = demandInputSchema.parse(demandData);

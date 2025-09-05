@@ -207,6 +207,7 @@ ResidentDemandsPage() {
           ...data,
           status: 'submitted',
           // Convert empty strings to undefined for optional UUID fields
+          buildingId: data.buildingId || undefined,
           residenceId: data.residenceId || undefined,
           assignationBuildingId: data.assignationBuildingId || undefined,
           assignationResidenceId: data.assignationResidenceId || undefined,
@@ -235,7 +236,7 @@ ResidentDemandsPage() {
     defaultValues: {
       type: 'maintenance',
       description: '',
-      buildingId: '',
+      buildingId: undefined,
       residenceId: undefined,
       assignationBuildingId: undefined,
       assignationResidenceId: undefined,
