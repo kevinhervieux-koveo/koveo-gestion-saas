@@ -522,6 +522,148 @@ describe('Enhanced Calendar Features', () => {
       expect(legendItems).toHaveLength(4);
       expect(legendItems.find(item => item.label === 'Unavailable')).toBeDefined();
     });
+
+    test('should provide correct CSS classes for time slot buttons', () => {
+      const getTimeSlotClass = (time: string, isAvailable: boolean, hasBooking: boolean, isSelected: boolean) => {
+        if (!isAvailable) {
+          return 'bg-red-100 border-red-200 text-red-600 cursor-not-allowed';
+        } else if (hasBooking) {
+          return 'bg-orange-100 border-orange-200 text-orange-700 cursor-not-allowed';
+        } else if (isSelected) {
+          return 'bg-blue-500 border-blue-600 text-white font-semibold';
+        } else {
+          return 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300';
+        }
+      };
+
+      expect(getTimeSlotClass('09:00', true, false, false)).toBe('bg-white border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300');
+      expect(getTimeSlotClass('09:00', true, false, true)).toBe('bg-blue-500 border-blue-600 text-white font-semibold');
+      expect(getTimeSlotClass('09:00', true, true, false)).toBe('bg-orange-100 border-orange-200 text-orange-700 cursor-not-allowed');
+      expect(getTimeSlotClass('09:00', false, false, false)).toBe('bg-red-100 border-red-200 text-red-600 cursor-not-allowed');
+    });
+  });
+
+  describe('New Booking Form Tests', () => {
+    test('should validate time slot grid generation', () => {
+      const timeSlots: string[] = [];
+      for (let hour = 6; hour <= 22; hour++) {
+        timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+        timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+      }
+      
+      expect(timeSlots).toContain('06:00');
+      expect(timeSlots).toContain('06:30');
+      expect(timeSlots).toContain('22:00');
+      expect(timeSlots).toContain('22:30');
+      expect(timeSlots.length).toBe(34); // 17 hours * 2 slots per hour
+    });
+
+    test('should handle start and end time selection logic', () => {
+      let currentStartTime = '';
+      let currentEndTime = '';
+      
+      const selectTime = (time: string) => {
+        if (!currentStartTime || (currentStartTime && currentEndTime)) {
+          // Set start time
+          currentStartTime = time;
+          currentEndTime = '';
+        } else {
+          // Set end time if start time is already set
+          if (time > currentStartTime) {
+            currentEndTime = time;
+          } else {
+            // If selected time is before start time, make it the new start time
+            currentStartTime = time;
+            currentEndTime = '';
+          }
+        }
+      };
+      
+      // Initial state
+      expect(currentStartTime).toBe('');
+      expect(currentEndTime).toBe('');
+      
+      // Select first time (should become start time)
+      selectTime('09:00');
+      expect(currentStartTime).toBe('09:00');
+      expect(currentEndTime).toBe('');
+      
+      // Select later time (should become end time)
+      selectTime('11:00');
+      expect(currentStartTime).toBe('09:00');
+      expect(currentEndTime).toBe('11:00');
+      
+      // Select another time (should reset and become new start time)
+      selectTime('14:00');
+      expect(currentStartTime).toBe('14:00');
+      expect(currentEndTime).toBe('');
+      
+      // Select earlier time (should become new start time)
+      selectTime('13:00');
+      expect(currentStartTime).toBe('13:00');
+      expect(currentEndTime).toBe('');
+    });
+
+    test('should calculate booking duration correctly', () => {
+      const calculateDuration = (startTime: string, endTime: string) => {
+        if (!startTime || !endTime) return null;
+        
+        const start = new Date(`2000-01-01T${startTime}:00`);
+        const end = new Date(`2000-01-01T${endTime}:00`);
+        const duration = (end.getTime() - start.getTime()) / (1000 * 60);
+        
+        return {
+          totalMinutes: duration,
+          hours: Math.floor(duration / 60),
+          minutes: duration % 60
+        };
+      };
+      
+      const duration1 = calculateDuration('09:00', '11:00');
+      expect(duration1?.totalMinutes).toBe(120);
+      expect(duration1?.hours).toBe(2);
+      expect(duration1?.minutes).toBe(0);
+      
+      const duration2 = calculateDuration('14:30', '16:00');
+      expect(duration2?.totalMinutes).toBe(90);
+      expect(duration2?.hours).toBe(1);
+      expect(duration2?.minutes).toBe(30);
+      
+      const noDuration = calculateDuration('09:00', '');
+      expect(noDuration).toBe(null);
+    });
+
+    test('should validate form submission requirements', () => {
+      const validateBookingForm = (startTime: string, endTime: string, date: Date) => {
+        return {
+          hasStartTime: !!startTime,
+          hasEndTime: !!endTime,
+          hasValidTimeRange: startTime && endTime && endTime > startTime,
+          hasDate: !!date,
+          isComplete: !!(startTime && endTime && date && endTime > startTime)
+        };
+      };
+      
+      const incompleteForm = validateBookingForm('', '', new Date());
+      expect(incompleteForm.hasStartTime).toBe(false);
+      expect(incompleteForm.hasEndTime).toBe(false);
+      expect(incompleteForm.isComplete).toBe(false);
+      
+      const partialForm = validateBookingForm('09:00', '', new Date());
+      expect(partialForm.hasStartTime).toBe(true);
+      expect(partialForm.hasEndTime).toBe(false);
+      expect(partialForm.isComplete).toBe(false);
+      
+      const completeForm = validateBookingForm('09:00', '11:00', new Date());
+      expect(completeForm.hasStartTime).toBe(true);
+      expect(completeForm.hasEndTime).toBe(true);
+      expect(completeForm.hasValidTimeRange).toBe(true);
+      expect(completeForm.isComplete).toBe(true);
+      
+      const invalidTimeRange = validateBookingForm('11:00', '09:00', new Date());
+      expect(invalidTimeRange.hasValidTimeRange).toBe(false);
+      expect(invalidTimeRange.isComplete).toBe(false);
+    });
   });
 
   describe('Integration Testing', () => {
@@ -545,6 +687,54 @@ describe('Enhanced Calendar Features', () => {
       const [hour, minute] = testTime.split(':').map(Number);
       expect(hour).toBeGreaterThanOrEqual(8); // After opening
       expect(hour).toBeLessThan(20); // Before closing
+    });
+
+    test('should integrate with new hour grid booking interface', () => {
+      // Simulate the new booking interface flow
+      let selectedDate = new Date();
+      let selectedStartTime = '';
+      let selectedEndTime = '';
+      let isDialogOpen = false;
+      
+      // Step 1: Date selection from calendar
+      const selectDate = (date: Date) => {
+        selectedDate = date;
+        isDialogOpen = true;
+      };
+      
+      // Step 2: Time selection from grid
+      const selectTimeSlot = (time: string) => {
+        if (!selectedStartTime || (selectedStartTime && selectedEndTime)) {
+          selectedStartTime = time;
+          selectedEndTime = '';
+        } else if (time > selectedStartTime) {
+          selectedEndTime = time;
+        } else {
+          selectedStartTime = time;
+          selectedEndTime = '';
+        }
+      };
+      
+      // Step 3: Form validation
+      const canSubmit = () => {
+        return !!(selectedDate && selectedStartTime && selectedEndTime && selectedEndTime > selectedStartTime);
+      };
+      
+      // Test the flow
+      const testDate = addDays(new Date(), 7);
+      selectDate(testDate);
+      expect(isDialogOpen).toBe(true);
+      expect(selectedDate).toBe(testDate);
+      
+      selectTimeSlot('10:00');
+      expect(selectedStartTime).toBe('10:00');
+      expect(selectedEndTime).toBe('');
+      expect(canSubmit()).toBe(false);
+      
+      selectTimeSlot('12:00');
+      expect(selectedStartTime).toBe('10:00');
+      expect(selectedEndTime).toBe('12:00');
+      expect(canSubmit()).toBe(true);
     });
 
     const isDayAvailable = (checkDate: Date): boolean => {
@@ -658,6 +848,111 @@ describe('Enhanced Calendar Features', () => {
       expect(isTimeSlotAvailable(futureMonday, '11:00')).toBe(true); // Before break
       expect(isTimeSlotAvailable(futureMonday, '11:30')).toBe(false); // Would extend into break
       expect(isTimeSlotAvailable(futureMonday, '13:00')).toBe(true); // After break
+    });
+  });
+
+  describe('New Booking Form UI Components', () => {
+    test('should display selected date information prominently', () => {
+      const formatDisplayDate = (date: Date, language: string = 'fr') => {
+        const options: Intl.DateTimeFormatOptions = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
+        return date.toLocaleDateString(locale, options);
+      };
+      
+      const testDate = new Date('2025-06-02');
+      const frenchDisplay = formatDisplayDate(testDate, 'fr');
+      const englishDisplay = formatDisplayDate(testDate, 'en');
+      
+      expect(frenchDisplay).toContain('lundi');
+      expect(frenchDisplay).toContain('juin');
+      expect(englishDisplay).toContain('Monday');
+      expect(englishDisplay).toContain('June');
+    });
+
+    test('should show opening hours for selected date', () => {
+      const getOpeningHoursForDate = (date: Date, openingHours: any[]) => {
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+        return openingHours.find(h => h.day.toLowerCase() === dayName);
+      };
+      
+      const mondayDate = new Date('2025-06-02'); // Monday
+      const wednesdayDate = new Date('2025-06-04'); // Wednesday (closed)
+      
+      const mondayHours = getOpeningHoursForDate(mondayDate, mockCommonSpace.openingHours!);
+      const wednesdayHours = getOpeningHoursForDate(wednesdayDate, mockCommonSpace.openingHours!);
+      
+      expect(mondayHours?.open).toBe('08:00');
+      expect(mondayHours?.close).toBe('20:00');
+      expect(mondayHours?.isOpen).toBe(true);
+      
+      expect(wednesdayHours?.isOpen).toBe(false);
+    });
+
+    test('should provide validation messages for incomplete forms', () => {
+      const getValidationMessage = (startTime: string, endTime: string, language: string = 'fr') => {
+        if (!startTime) {
+          return language === 'fr' 
+            ? 'Veuillez sélectionner une heure de début'
+            : 'Please select a start time';
+        }
+        if (startTime && !endTime) {
+          return language === 'fr' 
+            ? 'Veuillez sélectionner une heure de fin'
+            : 'Please select an end time';
+        }
+        return null;
+      };
+      
+      expect(getValidationMessage('', '', 'fr')).toBe('Veuillez sélectionner une heure de début');
+      expect(getValidationMessage('', '', 'en')).toBe('Please select a start time');
+      expect(getValidationMessage('09:00', '', 'fr')).toBe('Veuillez sélectionner une heure de fin');
+      expect(getValidationMessage('09:00', '', 'en')).toBe('Please select an end time');
+      expect(getValidationMessage('09:00', '11:00', 'fr')).toBe(null);
+    });
+
+    test('should display booking summary with duration calculation', () => {
+      const generateBookingSummary = (startTime: string, endTime: string, language: string = 'fr') => {
+        if (!startTime || !endTime) return null;
+        
+        const start = new Date(`2000-01-01T${startTime}:00`);
+        const end = new Date(`2000-01-01T${endTime}:00`);
+        const durationMs = end.getTime() - start.getTime();
+        const hours = Math.floor(durationMs / (1000 * 60 * 60));
+        const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        const startLabel = language === 'fr' ? 'Début:' : 'Start:';
+        const endLabel = language === 'fr' ? 'Fin:' : 'End:';
+        const durationLabel = language === 'fr' ? 'Durée:' : 'Duration:';
+        
+        let durationText = `${hours}h`;
+        if (minutes > 0) {
+          durationText += ` ${minutes}min`;
+        }
+        
+        return {
+          startLabel,
+          endLabel, 
+          durationLabel,
+          startTime,
+          endTime,
+          durationText
+        };
+      };
+      
+      const summary = generateBookingSummary('09:00', '11:30', 'fr');
+      expect(summary?.startLabel).toBe('Début:');
+      expect(summary?.endLabel).toBe('Fin:');
+      expect(summary?.durationLabel).toBe('Durée:');
+      expect(summary?.durationText).toBe('2h 30min');
+      
+      const englishSummary = generateBookingSummary('14:00', '16:00', 'en');
+      expect(englishSummary?.startLabel).toBe('Start:');
+      expect(englishSummary?.durationText).toBe('2h');
     });
   });
 });
