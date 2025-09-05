@@ -665,18 +665,18 @@ export default function BugReports() {
                           <div>
                             <Label htmlFor="file-upload">Select File to Upload</Label>
                             <Input
-                              
-                              type='file'
+                              id="file-upload"
+                              type="file"
                               multiple
-                              accept='image/*,.pdf,.txt,.log,.json,.csv'
+                              accept="image/*,.pdf,.txt,.log,.json,.csv"
                               onChange={(e) => {
                                 const files = Array.from(e.target.files || []);
                                 if (files.length > 0) {
                                   handleFilesSelect(files);
                                 }
                               }}
-                              className="""
-                              data-test
+                              className="w-full"
+                              data-testid="input-file-upload"
                             />
                             {attachedFiles.length > 0 && (
                               <div className="space-y-2 mt-2">
@@ -690,12 +690,12 @@ export default function BugReports() {
                           <div>
                             <Label htmlFor="text-content">Document Content</Label>
                             <Textarea
-                              
+                              id="text-content"
                               value={attachmentText}
                               onChange={(e) => setAttachmentText(e.target.value)}
-                              
-                              className="""
-                              data-test
+                              rows={5}
+                              className="w-full"
+                              data-testid="textarea-text-content"
                             />
                             <p className="text-sm text-gray-500 mt-1">
                               This will add text notes that can be viewed with the bug report.
@@ -706,16 +706,16 @@ export default function BugReports() {
 
                       <div className="flex justify-end gap-2 pt-4">
                         <Button
-                          type='button'
-                          variant="""
+                          type="button"
+                          variant="outline"
                           onClick={() => setIsCreateDialogOpen(false)}
                         >
                           Cancel
                         </Button>
                         <Button
-                          type='submit'
+                          type="submit"
                           disabled={createBugMutation.isPending}
-                          data-test
+                          data-testid="button-submit-bug"
                         >
                           {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
                         </Button>
@@ -727,8 +727,8 @@ export default function BugReports() {
                 {/* Edit Bug Dialog */}
                 <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                   <DialogContent
-                    className="""
-                    data-test
+                    className="max-w-2xl max-h-[90vh] overflow-y-auto"
+                    data-testid="edit-bug-dialog"
                   >
                     <DialogHeader>
                       <DialogTitle>Edit Bug Report</DialogTitle>
@@ -736,13 +736,13 @@ export default function BugReports() {
                     <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor=""" className="text-sm font-medium">
+                          <Label htmlFor="edit-title" className="text-sm font-medium">
                             Title <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            
+                            id="edit-title"
                             {...editForm.register('title')}
-                            data-test
+                            data-testid="input-edit-title"
                           />
                           {editForm.formState.errors.title && (
                             <p className="text-red-500 text-xs">
@@ -752,7 +752,7 @@ export default function BugReports() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor=""" className="text-sm font-medium">
+                          <Label htmlFor="edit-category" className="text-sm font-medium">
                             Category <span className="text-red-500">*</span>
                           </Label>
                           <Select
@@ -776,14 +776,14 @@ export default function BugReports() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor=""" className="text-sm font-medium">
+                        <Label htmlFor="edit-description" className="text-sm font-medium">
                           Description <span className="text-red-500">*</span>
                         </Label>
                         <Textarea
-                          
+                          id="edit-description"
                           {...editForm.register('description')}
                           rows={4}
-                          data-test
+                          data-testid="textarea-edit-description"
                           onPaste={(e) => {
                             const items = Array.from(e.clipboardData?.items || []);
                             const imageItems = items.filter(item => item.type.indexOf('image') !== -1);
@@ -808,7 +808,7 @@ export default function BugReports() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor=""" className="text-sm font-medium">
+                          <Label htmlFor="edit-priority" className="text-sm font-medium">
                             Priority <span className="text-red-500">*</span>
                           </Label>
                           <Select
@@ -828,7 +828,7 @@ export default function BugReports() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor=""" className="text-sm font-medium">
+                          <Label htmlFor="edit-status" className="text-sm font-medium">
                             Status
                           </Label>
                           <Select
@@ -849,14 +849,14 @@ export default function BugReports() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor=""" className="text-sm font-medium">
+                          <Label htmlFor="edit-page" className="text-sm font-medium">
                             Page/Location <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            
+                            id="edit-page"
                             {...editForm.register('page')}
-                            
-                            data-test
+                            placeholder="e.g. Dashboard, Login page, Settings"
+                            data-testid="input-edit-page"
                           />
                           {editForm.formState.errors.page && (
                             <p className="text-red-500 text-xs">
@@ -867,15 +867,15 @@ export default function BugReports() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor=""" className="text-sm font-medium">
+                        <Label htmlFor="edit-steps" className="text-sm font-medium">
                           Steps to Reproduce (Optional)
                         </Label>
                         <Textarea
-                          
+                          id="edit-steps"
                           {...editForm.register('reproductionSteps')}
                           rows={3}
-                          
-                          data-test
+                          placeholder="Describe the steps to reproduce this issue..."
+                          data-testid="textarea-edit-steps"
                         />
                       </div>
 
@@ -925,17 +925,17 @@ export default function BugReports() {
                                       <div className="flex gap-1">
                                         <Button
                                           type="button"
-                                          variant="""
-                                          size='sm'
+                                          variant="outline"
+                                          size="sm"
                                           onClick={() => window.open(`/api/documents/${attachment.id}/file`, '_blank')}
-                                          className="""
+                                          className="text-xs"
                                         >
                                           View
                                         </Button>
                                         <Button
                                           type="button"
-                                          variant="""
-                                          size='sm'
+                                          variant="outline"
+                                          size="sm"
                                           onClick={() => {
                                             const link = document.createElement('a');
                                             link.href = `/api/documents/${attachment.id}/file?download=true`;
@@ -944,7 +944,7 @@ export default function BugReports() {
                                             link.click();
                                             document.body.removeChild(link);
                                           }}
-                                          className="""
+                                          className="text-xs"
                                         >
                                           Download
                                         </Button>
@@ -961,12 +961,12 @@ export default function BugReports() {
                           <div>
                             <Label htmlFor="edit-text-content">Document Content</Label>
                             <Textarea
-                              
+                              id="edit-text-content"
                               value={editAttachmentText}
                               onChange={(e) => setEditAttachmentText(e.target.value)}
-                              
-                              className="""
-                              data-test
+                              rows={5}
+                              className="w-full"
+                              data-testid="textarea-edit-text-content"
                             />
                             <p className="text-sm text-gray-500 mt-1">
                               This will show text notes with the bug report.
@@ -977,16 +977,16 @@ export default function BugReports() {
 
                       <div className="flex justify-end gap-2 pt-4">
                         <Button
-                          type='button'
-                          variant="""
+                          type="button"
+                          variant="outline"
                           onClick={() => setIsEditDialogOpen(false)}
                         >
                           Cancel
                         </Button>
                         <Button
-                          type='submit'
+                          type="submit"
                           disabled={updateBugMutation.isPending}
-                          data-test
+                          data-testid="button-update-bug"
                         >
                           {updateBugMutation.isPending ? 'Updating...' : 'Update Bug Report'}
                         </Button>
@@ -1036,7 +1036,7 @@ export default function BugReports() {
                         {categoryBugs.map((bug: Bug) => (
                           <Card
                             key={bug.id}
-                            className="""
+                            className="cursor-pointer hover:bg-gray-50 transition-colors"
                             data-testid={`bug-card-${bug.id}`}
                             onClick={() => {
                               setSelectedBug(bug);
@@ -1055,7 +1055,7 @@ export default function BugReports() {
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-2">
                                 <h4
-                                  className="""
+                                  className="font-medium text-sm text-gray-900 truncate flex-1"
                                   data-testid={`bug-name-${bug.id}`}
                                 >
                                   {bug.title}
@@ -1063,8 +1063,8 @@ export default function BugReports() {
                                 <div className="flex gap-1">
                                   {canEditBug(bug) && (
                                     <Button
-                                      size='sm'
-                                      variant="""
+                                      size="sm"
+                                      variant="ghost"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedBug(bug);
@@ -1087,7 +1087,7 @@ export default function BugReports() {
                                 </div>
                               </div>
                               <p
-                                className="""
+                                className="text-xs text-gray-500 mb-2"
                                 data-testid={`bug-date-${bug.id}`}
                               >
                                 {new Date(bug.created_at).toLocaleDateString()}
@@ -1097,19 +1097,19 @@ export default function BugReports() {
                                   className={
                                     priorityColors[bug.priority as keyof typeof priorityColors]
                                   }
-                                  variant="""
+                                  variant="outline"
                                 >
                                   {bug.priority}
                                 </Badge>
                                 <Badge
                                   className={statusColors[bug.status as keyof typeof statusColors]}
-                                  variant="""
+                                  variant="outline"
                                 >
-                                  {bug.status.replace('_', ' ')}
+                                  {bug.status.replaceAll('_', ' ')}
                                 </Badge>
                               </div>
                               {bug.file_path && (
-                                <Badge variant=""" className="text-xs">
+                                <Badge variant="secondary" className="text-xs">
                                   File attached
                                 </Badge>
                               )}
@@ -1163,7 +1163,7 @@ export default function BugReports() {
                       <strong>Priority:</strong> {selectedBug.priority}
                     </div>
                     <div>
-                      <strong>Status:</strong> {selectedBug.status.replace('_', ' ')}
+                      <strong>Status:</strong> {selectedBug.status.replaceAll('_', ' ')}
                     </div>
                     <div>
                       <strong>Page:</strong> {selectedBug.page}
@@ -1182,13 +1182,13 @@ export default function BugReports() {
                           onClick={() => {
                             window.open(`/api/bugs/${selectedBug.id}/file`, '_blank');
                           }}
-                          data-test
+                          data-testid="button-view-file"
                         >
                           <FileText className="w-4 h-4 mr-2" />
                           View
                         </Button>
                         <Button
-                          variant="""
+                          variant="outline"
                           onClick={() => {
                             const link = window.document.createElement('a');
                             link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
@@ -1197,7 +1197,7 @@ export default function BugReports() {
                             link.click();
                             window.document.body.removeChild(link);
                           }}
-                          data-test
+                          data-testid="button-download-file"
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Download
