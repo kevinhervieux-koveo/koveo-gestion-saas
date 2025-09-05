@@ -257,7 +257,7 @@ export const featureRequests = pgTable('feature_requests', {
   reviewedBy: varchar('reviewed_by').references(() => users.id),
   reviewedAt: timestamp('reviewed_at'),
   adminNotes: text('admin_notes'), // Internal notes for admins only
-  mergedIntoId: varchar('merged_into_id').references(() => featureRequests.id), // If merged into another request
+  mergedIntoId: varchar('merged_into_id'), // If merged into another request
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
