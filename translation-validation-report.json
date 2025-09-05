@@ -1,0 +1,1788 @@
+{
+  "summary": {
+    "totalFiles": 223,
+    "totalTranslationKeys": 331,
+    "totalTestIds": 298,
+    "coveragePercentage": 62.22,
+    "missingKeys": 11,
+    "qualityScore": 99
+  },
+  "details": {
+    "usedKeys": [
+      "accepted",
+      "account",
+      "actions",
+      "activateSelectedUsers",
+      "activateUsers",
+      "activePillar",
+      "addBuilding",
+      "addNotesReviewDecision",
+      "address",
+      "addressUnavailable",
+      "admin",
+      "allBuildings",
+      "allRightsReserved",
+      "allStatus",
+      "amenities",
+      "applyRoleChange",
+      "approved",
+      "automatedTestingFramework",
+      "backToResidences",
+      "bathrooms",
+      "bedrooms",
+      "bilingualSupport",
+      "bilingualSupportDesc",
+      "billTitle",
+      "buildTime",
+      "building",
+      "building2",
+      "buildingDocumentsButton",
+      "buildingInfoUnavailable",
+      "buildingManagement",
+      "buildingManagementDesc",
+      "buildingPlaceholder",
+      "buildingType",
+      "buildings",
+      "builtForPropertyOwners",
+      "bulkActions",
+      "bundleSize",
+      "cancel",
+      "cancelInvitation",
+      "cancelInvitationConfirmation",
+      "cancelled",
+      "cancelling",
+      "category",
+      "centralizedCommunication",
+      "centralizedCommunicationDesc",
+      "changeRole",
+      "changeRoleSelectedUsers",
+      "closeMenu",
+      "cloudBackup",
+      "cloudBasedSecurity",
+      "cloudBasedSecurityDesc",
+      "codeCoverage",
+      "codeQuality",
+      "companyOrServiceProvider",
+      "complaint",
+      "complete",
+      "completed",
+      "comprehensivePropertyManagement",
+      "confirm",
+      "contactPrivacy",
+      "continuousImprovementDescription",
+      "continuousImprovementPillar",
+      "copyLink",
+      "coreQualityAssurance",
+      "createNewDemand",
+      "dashboard",
+      "dataSecurity",
+      "day",
+      "days",
+      "daysRemaining",
+      "dbQueryTime",
+      "deactivateSelectedUsers",
+      "deactivateUsers",
+      "deleteSelectedUsers",
+      "deleteUsers",
+      "demands",
+      "dependenciesInstallation",
+      "describeRequestDetail",
+      "developmentConsole",
+      "developmentDesc",
+      "developmentTitle",
+      "developmentYear",
+      "documentDescription",
+      "documentManagement",
+      "documentManagementDesc",
+      "documentStorage",
+      "documentTitle",
+      "documentationDescription",
+      "documentationPillar",
+      "documents",
+      "draft",
+      "electronicBilling",
+      "electronicBillingDesc",
+      "emailAddress",
+      "emailSupport",
+      "enterEmailAddress",
+      "enterpriseEncryption",
+      "enterpriseEncryptionDesc",
+      "environmentSetup",
+      "error",
+      "everythingYouNeed",
+      "exitFullscreen",
+      "expertSupport",
+      "expertSupportDesc",
+      "expired",
+      "expires",
+      "expiresIn",
+      "expiringsSoon",
+      "exportSelectedUsersData",
+      "exportUsers",
+      "failedToReviewDemand",
+      "features",
+      "featuresOverviewDesc",
+      "filterByCategory",
+      "financialReporting",
+      "financialReportingDesc",
+      "financialReports",
+      "floor",
+      "forQuebec",
+      "formStatus",
+      "formType",
+      "foundationDesc",
+      "foundationTitle",
+      "foundationYear",
+      "frameworkSetup",
+      "fullscreen",
+      "getStarted",
+      "goToDashboard",
+      "home",
+      "hoursRemaining",
+      "inProgress",
+      "information",
+      "informationCollection",
+      "informationCollectionDesc",
+      "informationSharing",
+      "informationUse",
+      "informationUseDesc",
+      "initializationProgress",
+      "invitationActions",
+      "invitationCancelled",
+      "invitationCancelledSuccessfully",
+      "invitationLinkCopied",
+      "invitationResent",
+      "invitationResentSuccessfully",
+      "invitationSent",
+      "invitationSentSuccessfully",
+      "invitationsList",
+      "inviteUser",
+      "inviteUserDescription",
+      "invited",
+      "invitedBy",
+      "joinPropertyOwners",
+      "lastUpdated",
+      "launchDesc",
+      "launchTitle",
+      "launchYear",
+      "law25Compliance",
+      "law25ComplianceDesc",
+      "law25ComplianceFramework",
+      "law25Protection",
+      "linkCopied",
+      "loading",
+      "loadingDemands",
+      "login",
+      "logout",
+      "maintenance",
+      "maintenancePlanning",
+      "maintenancePlanningDesc",
+      "maintenanceTracking",
+      "manageOrganizationsUsers",
+      "managementCompany",
+      "manager",
+      "memoryUsage",
+      "mobileAccess",
+      "mobileResponsive",
+      "mobileResponsiveDesc",
+      "modernPropertyManagement",
+      "moreActions",
+      "moreAmenities",
+      "multilingualSupport",
+      "myBuildings",
+      "myDemands",
+      "myResidence",
+      "myResidenceInfo",
+      "navigation",
+      "newDemand",
+      "newRole",
+      "next",
+      "noBuildingsFound",
+      "noDemandsFound",
+      "noDocumentsFound",
+      "noInvitationsFound",
+      "noResidencesFound",
+      "noResidencesFoundOrg",
+      "noSetupFees",
+      "notAssignedResidences",
+      "occupancy",
+      "occupied",
+      "openLink",
+      "openMenu",
+      "optional",
+      "organization",
+      "organizationOverview",
+      "other",
+      "ourStory",
+      "ourStoryTitle",
+      "pageLoadTime",
+      "parking",
+      "pending",
+      "perDoorPerMonth",
+      "perfectForPropertyManagers",
+      "personalMessage",
+      "personalMessageDescription",
+      "personalMessagePlaceholder",
+      "personalizedDashboard",
+      "pillarCreation",
+      "pillarFramework",
+      "pillarMethodology",
+      "previous",
+      "pricing",
+      "pricingSubtitle",
+      "privacyPolicy",
+      "privacyPolicyIntro",
+      "privacyPolicyTitle",
+      "privacyRights",
+      "processManagement",
+      "processManagementDesc",
+      "processing",
+      "professionalPlan",
+      "qualityMetrics",
+      "qualityTools",
+      "quebecCompliance",
+      "quebecComplianceDesc",
+      "quebecDataProtection",
+      "quebecDataProtectionDesc",
+      "quebecLaw25Compliant",
+      "quebecLaw25CompliantDesc",
+      "readyToGetStarted",
+      "readyToTransform",
+      "recipient",
+      "refresh",
+      "regularUpdates",
+      "rejected",
+      "resendInvitation",
+      "residenceDocumentsButton",
+      "residences",
+      "resident",
+      "residentPortal",
+      "residentPortalDesc",
+      "responseTime",
+      "role",
+      "roleBasedAccess",
+      "roleBasedAccessDesc",
+      "searchBuildingsAddress",
+      "searchDemands",
+      "searchDemandsUsers",
+      "searchDocuments",
+      "secureInfrastructure",
+      "secureInfrastructureDesc",
+      "security",
+      "securityIntro",
+      "securityIssues",
+      "securityPillar",
+      "securityTitle",
+      "selectABuilding",
+      "selectAResidence",
+      "selectBuilding",
+      "selectBuildingOptional",
+      "selectCategory",
+      "selectOrganization",
+      "selectOrganizationOptional",
+      "selectResidence",
+      "selectResidenceOptional",
+      "selectRole",
+      "selectStatus",
+      "selectType",
+      "sendInvitation",
+      "sendPasswordReset",
+      "sendPasswordResetSelectedUsers",
+      "sendReminder",
+      "sendWelcomeEmail",
+      "sendWelcomeEmailSelectedUsers",
+      "sending",
+      "showing",
+      "simplePricing",
+      "smartNotifications",
+      "smartNotificationsDesc",
+      "sqFt",
+      "startFreeTrial",
+      "startManagingToday",
+      "status",
+      "storage",
+      "storyIntro",
+      "submitAndTrackRequests",
+      "submitted",
+      "system",
+      "systemManagement",
+      "tenant",
+      "termsOfService",
+      "testingPillar",
+      "testingSetup",
+      "thisActionCannotBeUndone",
+      "title",
+      "totalFloors",
+      "totalUnits",
+      "translationCoverage",
+      "typePlaceholder",
+      "typeScriptConfiguration",
+      "unableToDisplayAmenities",
+      "underReview",
+      "unit",
+      "units",
+      "unlimitedResidents",
+      "userManagement",
+      "users",
+      "usersSelected",
+      "validation",
+      "validationQAPillar",
+      "vendor",
+      "viewAllFeatures",
+      "viewBuildingsAccess",
+      "viewDocumentsButton",
+      "viewManageOrganizations",
+      "viewResidenceInfo",
+      "welcome",
+      "welcomeBack",
+      "whatsIncluded",
+      "whyChooseKoveo",
+      "workspaceStatus",
+      "yearBuilt",
+      "yourDataIsProtected"
+    ],
+    "missingKeys": [
+      "documentDescription",
+      "documentTitle",
+      "filterByCategory",
+      "occupancy",
+      "parking",
+      "searchDocuments",
+      "selectBuildingOptional",
+      "selectOrganizationOptional",
+      "selectResidenceOptional",
+      "storage",
+      "welcome"
+    ],
+    "testIds": [
+      "ai-analysis-result",
+      "ai-info-badge",
+      "bill-file-upload",
+      "booking-date-picker",
+      "booking-dialog",
+      "booking-end-time",
+      "booking-start-time",
+      "booking-status-badge",
+      "btn-get-started",
+      "btn-go-to-dashboard",
+      "building-select",
+      "building-select-label",
+      "button-advanced",
+      "button-apply-ai",
+      "button-back",
+      "button-back-home",
+      "button-back-step",
+      "button-back-to-list",
+      "button-cancel",
+      "button-cancel-booking",
+      "button-cancel-create",
+      "button-cancel-delete",
+      "button-cancel-delete-invitation",
+      "button-cancel-edit",
+      "button-cancel-link",
+      "button-cancel-provider",
+      "button-cancel-time-limit",
+      "button-change-password",
+      "button-confirm",
+      "button-confirm-booking",
+      "button-confirm-create",
+      "button-confirm-delete",
+      "button-confirm-delete-invitation",
+      "button-confirm-final-link",
+      "button-confirm-time-limit",
+      "button-create",
+      "button-create-bug",
+      "button-create-demand",
+      "button-create-feature-request",
+      "button-create-space",
+      "button-delete-account",
+      "button-download",
+      "button-edit-space",
+      "button-export-calendar",
+      "button-export-data",
+      "button-export-my-bookings",
+      "button-export-space-calendar",
+      "button-file-mode",
+      "button-fullscreen-toggle",
+      "button-go-to-dashboard",
+      "button-go-to-dashboard-bottom",
+      "button-go-to-valid-residence",
+      "button-hide-all",
+      "button-home",
+      "button-language-en",
+      "button-language-fr",
+      "button-link-calendar",
+      "button-login",
+      "button-new-booking-inline",
+      "button-next-page",
+      "button-next-step",
+      "button-notifications",
+      "button-previous-page",
+      "button-reset-permission-filters",
+      "button-reset-user-filters",
+      "button-save-edit",
+      "button-save-profile",
+      "button-save-text-file",
+      "button-show-all",
+      "button-show-all-bottom",
+      "button-start-now",
+      "button-start-trial",
+      "button-start-trial-bottom",
+      "button-submit-bug",
+      "button-submit-feature-request",
+      "button-submit-trial",
+      "button-text-mode",
+      "button-theme",
+      "button-toggle-confirm-password",
+      "button-toggle-password",
+      "button-toggle-pdf",
+      "button-try-demo-bottom",
+      "button-try-demo-top",
+      "button-try-features",
+      "button-update",
+      "button-update-bug",
+      "button-update-feature-request",
+      "button-upload",
+      "button-view",
+      "calendar-error",
+      "calendar-loading",
+      "calendar-view",
+      "category-filter",
+      "checkbox-edit-visible-tenants",
+      "checkbox-space-reservable",
+      "checkbox-visible-tenants",
+      "close-details-btn",
+      "common-spaces-page",
+      "common-spaces-stats-page",
+      "compact-file-input",
+      "compact-upload-button",
+      "continuous-improvement-analytics",
+      "cta-dashboard",
+      "cta-get-started",
+      "current-month",
+      "dashboard-button",
+      "dashboard-calendar-page",
+      "dialog-delete-account",
+      "documents-search",
+      "download-calendar-btn",
+      "edit-bug-dialog",
+      "edit-feature-request-dialog",
+      "error-buildings-count",
+      "error-company",
+      "error-email",
+      "error-first-name",
+      "error-last-name",
+      "error-phone",
+      "error-residences-count",
+      "file-input",
+      "filter-building",
+      "filter-status",
+      "filter-type",
+      "footer-dashboard-link",
+      "footer-features-link",
+      "footer-home-link",
+      "footer-login-link",
+      "footer-logo",
+      "footer-pricing-link",
+      "footer-privacy-link",
+      "footer-security-link",
+      "footer-story-link",
+      "footer-terms-link",
+      "generate-insights-button",
+      "hamburger-button",
+      "header-actions",
+      "header-buildings",
+      "header-email",
+      "header-login-button",
+      "header-name",
+      "header-organizations",
+      "header-residences",
+      "header-role",
+      "header-status",
+      "input-address",
+      "input-amount",
+      "input-bug-page",
+      "input-bug-title",
+      "input-buildings-count",
+      "input-city",
+      "input-company",
+      "input-confirm-delete-email",
+      "input-confirm-email",
+      "input-confirm-password",
+      "input-current-password",
+      "input-delete-reason",
+      "input-description",
+      "input-document-name",
+      "input-edit-description",
+      "input-edit-document-description",
+      "input-edit-document-name",
+      "input-edit-email",
+      "input-edit-firstName",
+      "input-edit-lastName",
+      "input-edit-name",
+      "input-edit-page",
+      "input-edit-title",
+      "input-email",
+      "input-end-date",
+      "input-feature-page",
+      "input-feature-title",
+      "input-file",
+      "input-file-upload",
+      "input-first-name",
+      "input-last-name",
+      "input-limit-hours",
+      "input-new-password",
+      "input-opening-end",
+      "input-opening-start",
+      "input-password",
+      "input-permission-search",
+      "input-phone",
+      "input-postal-code",
+      "input-residences-count",
+      "input-search",
+      "input-search-bugs",
+      "input-search-features",
+      "input-search-spaces",
+      "input-space-capacity",
+      "input-space-name",
+      "input-start-date",
+      "input-title",
+      "input-user-search",
+      "input-username",
+      "input-vendor",
+      "language-toggle",
+      "loading-analysis",
+      "loading-users",
+      "logo-link",
+      "manager-building-calendar-view",
+      "menu-close-button",
+      "menu-overlay",
+      "menu-panel",
+      "my-calendar-page",
+      "nav-login",
+      "nav-logout",
+      "nav-profile",
+      "next-month",
+      "no-stats-message",
+      "no-users",
+      "option-apple-calendar",
+      "option-building-events-calendar",
+      "option-common-space-calendar",
+      "option-everything-calendar",
+      "option-google-calendar",
+      "option-individual-spaces",
+      "option-maintenance-calendar",
+      "option-other-calendar",
+      "option-outlook-calendar",
+      "pagination-info",
+      "prev-month",
+      "radio-hours-custom",
+      "radio-hours-same",
+      "retry-calendar",
+      "save-buildings",
+      "save-organizations",
+      "save-residences",
+      "search-demands",
+      "select-action-filter",
+      "select-bug-category",
+      "select-bug-priority",
+      "select-building-filter",
+      "select-category",
+      "select-category-filter",
+      "select-document-type",
+      "select-edit-category",
+      "select-edit-priority",
+      "select-edit-role",
+      "select-edit-status",
+      "select-edit-type",
+      "select-feature-category",
+      "select-language",
+      "select-limit-scope",
+      "select-limit-type",
+      "select-payment-type",
+      "select-permission-status-filter",
+      "select-priority-filter",
+      "select-province",
+      "select-role-filter",
+      "select-schedule",
+      "select-sort-by",
+      "select-space-building",
+      "select-status",
+      "select-status-filter",
+      "select-user-status-filter",
+      "select-view-mode",
+      "selected-booking-details",
+      "settings-page",
+      "space-select",
+      "space-select-label",
+      "spaces-list",
+      "spaces-list-title",
+      "tab-calendar",
+      "tab-manual",
+      "tab-stats",
+      "tab-upload",
+      "test-providers",
+      "textarea-bug-description",
+      "textarea-content",
+      "textarea-delete-reason",
+      "textarea-description",
+      "textarea-edit-admin-notes",
+      "textarea-edit-description",
+      "textarea-edit-need",
+      "textarea-edit-reproduction-steps",
+      "textarea-feature-description",
+      "textarea-feature-need",
+      "textarea-file-content",
+      "textarea-message",
+      "textarea-notes",
+      "textarea-reproduction-steps",
+      "textarea-space-description",
+      "toggle-confirm-password",
+      "toggle-current-password",
+      "toggle-demo-mode",
+      "toggle-new-password",
+      "total-bookings-label",
+      "total-bookings-value",
+      "total-hours-label",
+      "total-hours-value",
+      "unique-users-label",
+      "unique-users-value",
+      "upload-area",
+      "usage-chart",
+      "user-avatar",
+      "user-calendar-container",
+      "users-stats-table",
+      "users-table"
+    ],
+    "fileBreakdown": {
+      "vite-env.d.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "main.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "App.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "types/globals.d.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/terms-of-service.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "pages/story.tsx": {
+        "translationKeys": 11,
+        "testIds": 2,
+        "coverage": 84.61538461538461
+      },
+      "pages/security.tsx": {
+        "translationKeys": 10,
+        "testIds": 1,
+        "coverage": 71.42857142857143
+      },
+      "pages/privacy-policy.tsx": {
+        "translationKeys": 11,
+        "testIds": 2,
+        "coverage": 100
+      },
+      "pages/pricing.tsx": {
+        "translationKeys": 49,
+        "testIds": 4,
+        "coverage": 98
+      },
+      "pages/not-found.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/home.tsx": {
+        "translationKeys": 47,
+        "testIds": 16,
+        "coverage": 94
+      },
+      "pages/features.tsx": {
+        "translationKeys": 0,
+        "testIds": 4,
+        "coverage": 0
+      },
+      "pages/dashboard.tsx": {
+        "translationKeys": 18,
+        "testIds": 1,
+        "coverage": 66.66666666666666
+      },
+      "pages/ResidentDemandsPage.tsx": {
+        "translationKeys": 10,
+        "testIds": 1,
+        "coverage": 55.55555555555556
+      },
+      "pages/ManagerDemandsPage.tsx": {
+        "translationKeys": 22,
+        "testIds": 0,
+        "coverage": 66.66666666666666
+      },
+      "pages/Documents.tsx": {
+        "translationKeys": 12,
+        "testIds": 2,
+        "coverage": 27.27272727272727
+      },
+      "utils/validation-schemas.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "utils/test-providers.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 100
+      },
+      "utils/performance-monitor.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "utils/password-validation.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "utils/memory-monitor.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "utils/form-validation-helpers.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "utils/component-loader.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "lib/validations.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/utils.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "lib/toastUtils.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/style-constants.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "lib/queryClient.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/i18n.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/formUtils.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/documents.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/constants.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/common-hooks.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/apiHelpers.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "hooks/use-toast.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "hooks/use-smooth-navigation.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "hooks/use-mobile.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "hooks/use-mobile-menu.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "hooks/use-language.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "hooks/use-fullscreen.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "hooks/use-buildings.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "hooks/use-auth.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "hooks/use-api-handler.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 8.333333333333332
+      },
+      "config/navigation.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/UserAssignmentsTableClean.tsx": {
+        "translationKeys": 0,
+        "testIds": 11,
+        "coverage": 0
+      },
+      "components/InvitationManagement.tsx": {
+        "translationKeys": 0,
+        "testIds": 2,
+        "coverage": 0
+      },
+      "components/BuildingSelectionGrid.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/BillEditForm.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/BillCreateForm.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/settings/settings.tsx": {
+        "translationKeys": 0,
+        "testIds": 25,
+        "coverage": 0
+      },
+      "pages/settings/idea-box.tsx": {
+        "translationKeys": 0,
+        "testIds": 20,
+        "coverage": 0
+      },
+      "pages/settings/bug-reports.tsx": {
+        "translationKeys": 0,
+        "testIds": 20,
+        "coverage": 0
+      },
+      "pages/residents/residence.tsx": {
+        "translationKeys": 32,
+        "testIds": 0,
+        "coverage": 69.56521739130434
+      },
+      "pages/residents/my-calendar.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "pages/residents/dashboard.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "pages/residents/common-spaces.tsx": {
+        "translationKeys": 0,
+        "testIds": 11,
+        "coverage": 0
+      },
+      "pages/residents/building.tsx": {
+        "translationKeys": 24,
+        "testIds": 0,
+        "coverage": 92.3076923076923
+      },
+      "pages/residents/ResidenceDocuments.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/residents/BuildingDocuments.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/manager/user-management.tsx": {
+        "translationKeys": 0,
+        "testIds": 11,
+        "coverage": 0
+      },
+      "pages/manager/residences.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 9.090909090909092
+      },
+      "pages/manager/demands.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/manager/common-spaces-stats.tsx": {
+        "translationKeys": 0,
+        "testIds": 35,
+        "coverage": 0
+      },
+      "pages/manager/buildings.tsx": {
+        "translationKeys": 4,
+        "testIds": 0,
+        "coverage": 9.75609756097561
+      },
+      "pages/manager/budget.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/manager/bills.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/manager/ResidenceDocuments.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/manager/BuildingDocuments.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/dashboard/calendar.tsx": {
+        "translationKeys": 0,
+        "testIds": 20,
+        "coverage": 0
+      },
+      "pages/auth/reset-password.tsx": {
+        "translationKeys": 0,
+        "testIds": 4,
+        "coverage": 0
+      },
+      "pages/auth/login.tsx": {
+        "translationKeys": 0,
+        "testIds": 5,
+        "coverage": 0
+      },
+      "pages/auth/invitation-acceptance.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/auth/forgot-password.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "pages/admin/suggestions.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/suggestions-with-filter.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/roadmap.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/quality.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/pillars.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/permissions.tsx": {
+        "translationKeys": 0,
+        "testIds": 10,
+        "coverage": 0
+      },
+      "pages/admin/organizations.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/documentation.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "pages/admin/compliance.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/filter-sort/utils.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "lib/filter-sort/useFilterSort.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "lib/filter-sort/types.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "lib/filter-sort/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/trial-request-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 21,
+        "coverage": 0
+      },
+      "components/ui/tooltip.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/toggle.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/toggle-group.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/toaster.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/toast.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/textarea.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/tabs.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/table.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/switch.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/standard-form.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 50
+      },
+      "components/ui/slider.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/skeleton.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/sheet.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/separator.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/select.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/scrollable-dialog.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/scroll-area.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/resizable.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/radio-group.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/progress.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/popover.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/pagination.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/navigation-menu.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/menubar.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/loading-spinner.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/language-switcher.tsx": {
+        "translationKeys": 0,
+        "testIds": 2,
+        "coverage": 100
+      },
+      "components/ui/label.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/input.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/input-otp.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/hover-card.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/hamburger-menu.tsx": {
+        "translationKeys": 10,
+        "testIds": 8,
+        "coverage": 90.9090909090909
+      },
+      "components/ui/form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/file-upload.tsx": {
+        "translationKeys": 0,
+        "testIds": 4,
+        "coverage": 0
+      },
+      "components/ui/dropdown-menu.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/drawer.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/dialog.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/data-table.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/context-menu.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/command.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/collapsible.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/collapsible-filters.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/checkbox.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/chart.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/carousel.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/card.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/calendar.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/button.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/breadcrumb.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/base-dialog.tsx": {
+        "translationKeys": 3,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/badge.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/avatar.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/aspect-ratio.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ui/alert.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/alert-dialog.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/ui/accordion.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/user-tabs/UserResidencesTab.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "components/user-tabs/UserOrganizationsTab.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "components/user-tabs/UserBuildingsTab.tsx": {
+        "translationKeys": 0,
+        "testIds": 1,
+        "coverage": 0
+      },
+      "components/ssl/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/ssl/SslCertificateInfo.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/roadmap/roadmap-section.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/roadmap/llm-help-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/roadmap/feature-status-badges.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/roadmap/feature-duplicate-analysis.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/roadmap/feature-card.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/roadmap/actionable-items-panel.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/roadmap/actionable-items-list.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/layout/sidebar.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 25
+      },
+      "components/layout/header.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/layout/TopNavigationBar.tsx": {
+        "translationKeys": 1,
+        "testIds": 4,
+        "coverage": 25
+      },
+      "components/filter-sort/FilterSort.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/residence-edit-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/organization-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/forms/feature-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/StandardFormField.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/forms/StandardForm.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/dialogs/delete-confirmation-dialog.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/demands/demand-details-popup.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/dashboard/workspace-status.tsx": {
+        "translationKeys": 8,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/dashboard/replit-ai-monitoring.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/dashboard/quality-metrics.tsx": {
+        "translationKeys": 30,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/dashboard/pillar-framework.tsx": {
+        "translationKeys": 17,
+        "testIds": 0,
+        "coverage": 50
+      },
+      "components/dashboard/law25-compliance.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/dashboard/initialization-wizard.tsx": {
+        "translationKeys": 6,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/dashboard/development-console.tsx": {
+        "translationKeys": 1,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/dashboard/continuous-improvement-analytics.tsx": {
+        "translationKeys": 0,
+        "testIds": 2,
+        "coverage": 0
+      },
+      "components/common-spaces/user-calendar.tsx": {
+        "translationKeys": 0,
+        "testIds": 5,
+        "coverage": 0
+      },
+      "components/common-spaces/common-space-calendar.tsx": {
+        "translationKeys": 0,
+        "testIds": 16,
+        "coverage": 0
+      },
+      "components/common-spaces/calendar-view.tsx": {
+        "translationKeys": 0,
+        "testIds": 7,
+        "coverage": 0
+      },
+      "components/common/TextFileEditor.tsx": {
+        "translationKeys": 0,
+        "testIds": 4,
+        "coverage": 0
+      },
+      "components/common/SearchInput.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/common/PaginationControls.tsx": {
+        "translationKeys": 0,
+        "testIds": 3,
+        "coverage": 100
+      },
+      "components/common/PageLayout.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/PageHeader.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/LoadingState.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/IconButton.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/FormTextArea.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/FormSelect.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/common/FormInput.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/FilterDropdown.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/common/DocumentPageWrapper.tsx": {
+        "translationKeys": 1,
+        "testIds": 4,
+        "coverage": 25
+      },
+      "components/common/DocumentManager.tsx": {
+        "translationKeys": 0,
+        "testIds": 19,
+        "coverage": 0
+      },
+      "components/common/DialogWrapper.tsx": {
+        "translationKeys": 0,
+        "testIds": 2,
+        "coverage": 0
+      },
+      "components/common/DemandFilters.tsx": {
+        "translationKeys": 5,
+        "testIds": 4,
+        "coverage": 20.833333333333336
+      },
+      "components/common/DemandCard.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/common/BillForm.tsx": {
+        "translationKeys": 6,
+        "testIds": 22,
+        "coverage": 17.142857142857142
+      },
+      "components/common/AuthErrorBoundary.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/admin/send-invitation-dialog.tsx": {
+        "translationKeys": 28,
+        "testIds": 0,
+        "coverage": 62.22222222222222
+      },
+      "components/admin/organizations-card.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/admin/organization-form-dialog.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/admin/invitation-management.tsx": {
+        "translationKeys": 37,
+        "testIds": 0,
+        "coverage": 97.36842105263158
+      },
+      "components/admin/bulk-actions-bar.tsx": {
+        "translationKeys": 28,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/buildings/types.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/buildings/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/buildings/building-form.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/buildings/building-card.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/auth/registration-wizard.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/auth/password-strength-indicator.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/feature-form/use-feature-form-mutations.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/feature-form/use-feature-form-data.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/feature-form/rbac-configuration.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/forms/feature-form/prompt-generator.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/feature-form/prompt-display.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/forms/feature-form/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/forms/feature-form/form-sections.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/common/form-wrappers/index.ts": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/form-wrappers/TextFieldWrapper.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/form-wrappers/TextAreaFieldWrapper.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/common/form-wrappers/SelectFieldWrapper.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/auth/steps/token-validation-step.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/auth/steps/quebec-privacy-consent-step.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 100
+      },
+      "components/auth/steps/profile-completion-step.tsx": {
+        "translationKeys": 0,
+        "testIds": 0,
+        "coverage": 0
+      },
+      "components/auth/steps/password-creation-step.tsx": {
+        "translationKeys": 0,
+        "testIds": 4,
+        "coverage": 0
+      }
+    }
+  },
+  "quebec": {
+    "complianceScore": 100,
+    "issues": [],
+    "suggestions": [
+      "Consider using proper accents in \"managementCompany\"",
+      "Excellent Quebec French compliance!"
+    ]
+  },
+  "accessibility": {
+    "coverageScore": 100,
+    "elementsWithoutTestIds": 0,
+    "interactiveElementsCovered": 173
+  }
+}

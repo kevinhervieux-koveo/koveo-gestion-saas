@@ -570,6 +570,12 @@ export interface Translations {
   // Fullscreen controls
   fullscreen: string;
   exitFullscreen: string;
+  // Common action buttons
+  save: string;
+  close: string;
+  edit: string;
+  delete: string;
+  phone: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -1133,7 +1139,13 @@ const translations: Record<Language, Translations> = {
     addBuilding: 'Add Building',
     // Fullscreen controls
     fullscreen: 'Fullscreen',
-    exitFullscreen: 'Exit Fullscreen'
+    exitFullscreen: 'Exit Fullscreen',
+    // Common action buttons
+    save: 'Save',
+    close: 'Close',
+    edit: 'Edit',
+    delete: 'Delete',
+    phone: 'Phone'
   },
   fr: {
     dashboard: 'Tableau de bord',
@@ -1695,7 +1707,13 @@ const translations: Record<Language, Translations> = {
     addBuilding: 'Ajouter un bâtiment',
     // Contrôles plein écran
     fullscreen: 'Plein écran',
-    exitFullscreen: 'Quitter le plein écran'
+    exitFullscreen: 'Quitter le plein écran',
+    // Boutons d'action communs
+    save: 'Enregistrer',
+    close: 'Fermer',
+    edit: 'Modifier',
+    delete: 'Supprimer',
+    phone: 'Téléphone'
   }
 };
 
