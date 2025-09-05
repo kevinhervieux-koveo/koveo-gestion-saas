@@ -265,7 +265,7 @@ export default function BugReports() {
         formData.append('attachments', file);
       });
 
-      return apiRequest('PATCH', '/api/bugs/' + id, formData);
+      return apiRequest('PATCH', `/api/bugs/${id}`, formData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
@@ -291,7 +291,7 @@ export default function BugReports() {
 
   // Delete bug mutation
   const deleteBugMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', '/api/bugs/' + id),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/bugs/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
       toast({
@@ -1180,7 +1180,7 @@ export default function BugReports() {
                       <>
                         <Button
                           onClick={() => {
-                            window.open('/api/bugs/' + selectedBug.id + '/file', '_blank');
+                            window.open(`/api/bugs/${selectedBug.id}/file`, '_blank');
                           }}
                           data-testid="button-view-file"
                         >
@@ -1191,7 +1191,7 @@ export default function BugReports() {
                           variant="outline"
                           onClick={() => {
                             const link = window.document.createElement('a');
-                            link.href = '/api/bugs/' + selectedBug.id + '/file?download=true';
+                            link.href = `/api/bugs/${selectedBug.id}/file?download=true`;
                             link.download = selectedBug.file_name || selectedBug.title;
                             window.document.body.appendChild(link);
                             link.click();
