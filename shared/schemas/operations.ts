@@ -172,6 +172,7 @@ export const demands = pgTable('demands', {
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
   assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
   description: text('description').notNull(),
+  attachments: text('attachments').array(), // Array of file URLs/paths for uploaded documents and images
   residenceId: varchar('residence_id')
     .references(() => residences.id),
   buildingId: varchar('building_id')
@@ -311,6 +312,7 @@ export const insertDemandSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
+  attachments: z.array(z.string()).optional(), // Array of file URLs/paths
   residenceId: z.string().uuid().optional(),
   buildingId: z.string().uuid().optional(),
   status: z.string().default('submitted'),

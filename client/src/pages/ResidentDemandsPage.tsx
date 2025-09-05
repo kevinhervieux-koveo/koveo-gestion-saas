@@ -43,6 +43,7 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
 import { DemandFilters } from '@/components/common/DemandFilters';
+import { FileUpload } from '@/components/ui/file-upload';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
@@ -149,6 +150,8 @@ ResidentDemandsPage() {
   const [isNewDemandOpen, setIsNewDemandOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadedAttachments, setUploadedAttachments] = useState<string[]>([]);
   const itemsPerPage = 10;
 
   // Fetch demands
@@ -195,9 +198,34 @@ ResidentDemandsPage() {
         })
       : { id: '', role: 'tenant', email: '' };
 
+  // File upload helper function
+  const uploadFiles = async (files: File[]): Promise<string[]> => {
+    if (files.length === 0) return [];
+    
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('file', file);
+    });
+    
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to upload files');
+    }
+    
+    const result = await response.json();
+    return result.fileUrls || [];
+  };
+
   // Create demand mutation
   const createDemandMutation = useMutation({
     mutationFn: async (data: DemandFormData) => {
+      // Upload files first if any are selected
+      const attachments = selectedFiles.length > 0 ? await uploadFiles(selectedFiles) : [];
+      
       const response = await fetch('/api/demands', {
         method: 'POST',
         headers: {
@@ -205,6 +233,7 @@ ResidentDemandsPage() {
         },
         body: JSON.stringify({
           ...data,
+          attachments,
           status: 'submitted',
           // Convert empty strings to undefined for optional UUID fields
           buildingId: data.buildingId || undefined,
@@ -223,6 +252,8 @@ ResidentDemandsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/demands'] });
       setIsNewDemandOpen(false);
       newDemandForm.reset();
+      setSelectedFiles([]);
+      setUploadedAttachments([]);
       toastUtils.createSuccess('Demand');
     },
     onError: () => {
@@ -371,7 +402,7 @@ ResidentDemandsPage() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className='max-w-md'>
+              <DialogContent className='max-w-lg max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>{t('createNewDemand')}</DialogTitle>
                   <DialogDescription>Submit a new request or complaint</DialogDescription>
@@ -443,6 +474,28 @@ ResidentDemandsPage() {
                         </FormItem>
                       )}
                     />
+                    <div className='space-y-2'>
+                      <label className='text-sm font-medium'>Attachments (Optional)</label>
+                      <FileUpload
+                        onFilesSelect={(files) => {
+                          setSelectedFiles(files);
+                        }}
+                        maxFiles={5}
+                        maxSize={10}
+                        acceptedTypes={[
+                          'image/*',
+                          '.pdf',
+                          '.doc',
+                          '.docx',
+                          '.txt'
+                        ]}
+                        allowPaste={true}
+                        className='border-dashed border-2 border-gray-300 rounded-lg p-4'
+                      />
+                      <p className='text-xs text-muted-foreground'>
+                        You can upload up to 5 files (10MB each). Images, PDFs, and documents are supported. You can also paste screenshots directly (Ctrl+V).
+                      </p>
+                    </div>
                     <DialogFooter>
                       <Button 
                         type='submit' 

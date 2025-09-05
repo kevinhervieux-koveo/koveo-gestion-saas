@@ -190,6 +190,7 @@ export const compositeFields = {
   demandBase: {
     type: enumFields.demandType,
     description: commonFields.description(10),
+    attachments: z.array(z.string()).optional(), // Array of file URLs/paths
     buildingId: commonFields.requiredId('Building'),
     residenceId: commonFields.optionalString(),
     assignationBuildingId: commonFields.optionalString(),
