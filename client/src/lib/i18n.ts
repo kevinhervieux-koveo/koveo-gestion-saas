@@ -158,6 +158,7 @@ export interface Translations {
   manageUsersInvitationsRoles: string;
   searchUsersInvitations: string;
   filterByRole: string;
+  filterByCategory: string;
   allRoles: string;
   filterByStatus: string;
   allStatuses: string;
@@ -308,6 +309,10 @@ export interface Translations {
   viewManageOrganizations: string;
   viewManageResidences: string;
   selectBuildingResidence: string;
+  selectBuildingOptional: string;
+  selectOrganizationOptional: string;
+  selectResidenceOptional: string;
+  welcome: string;
   building2: string;
   residence: string;
   selectABuilding: string;
@@ -340,7 +345,10 @@ export interface Translations {
   yearBuilt: string;
   totalUnits: string;
   managementCompany: string;
+  occupancy: string;
   occupancyStats: string;
+  parking: string;
+  storage: string;
   units: string;
   occupied: string;
   amenities: string;
@@ -541,6 +549,7 @@ export interface Translations {
   documentManagementDesc: string;
   documentDescription: string;
   documentTitle: string;
+  searchDocuments: string;
   smartNotifications: string;
   smartNotificationsDesc: string;
   electronicBilling: string;
@@ -733,6 +742,7 @@ const translations: Record<Language, Translations> = {
     manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
     searchUsersInvitations: 'Search users and invitations...',
     filterByRole: 'Filter by role',
+    filterByCategory: 'Filter by category',
     allRoles: 'All Roles',
     filterByStatus: 'Filter by status',
     allStatuses: 'All Statuses',
@@ -882,6 +892,10 @@ const translations: Record<Language, Translations> = {
     viewManageOrganizations: 'View and manage all organizations',
     viewManageResidences: 'View and manage organization residences',
     selectBuildingResidence: 'Select building and residence',
+    selectBuildingOptional: 'Select a building (optional)',
+    selectOrganizationOptional: 'Select an organization (optional)',
+    selectResidenceOptional: 'Select a residence (optional)',
+    welcome: 'Welcome',
     building2: 'Building',
     residence: 'Residence',
     selectABuilding: 'Select a building',
@@ -914,7 +928,10 @@ const translations: Record<Language, Translations> = {
     yearBuilt: 'Year Built',
     totalUnits: 'Total Units',
     managementCompany: 'Management Company',
+    occupancy: 'Occupancy',
     occupancyStats: 'Occupancy Stats',
+    parking: 'Parking',
+    storage: 'Storage',
     units: 'units',
     occupied: 'occupied',
     amenities: 'Amenities',
@@ -1114,6 +1131,7 @@ const translations: Record<Language, Translations> = {
     documentManagementDesc: 'Secure storage and organization',
     documentDescription: 'Description of the document',
     documentTitle: 'Document Title',
+    searchDocuments: 'Search documents...',
     smartNotifications: 'Smart notifications',
     smartNotificationsDesc: 'Automated alerts and reminders',
     electronicBilling: 'Electronic billing',
@@ -1304,6 +1322,7 @@ const translations: Record<Language, Translations> = {
     manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
     searchUsersInvitations: 'Rechercher des utilisateurs et invitations...',
     filterByRole: 'Filtrer par rôle',
+    filterByCategory: 'Filtrer par catégorie',
     allRoles: 'Tous les rôles',
     filterByStatus: 'Filtrer par statut',
     allStatuses: 'Tous les statuts',
@@ -1453,6 +1472,10 @@ const translations: Record<Language, Translations> = {
     viewManageOrganizations: 'Voir et gérer toutes les organisations',
     viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
     selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
+    selectBuildingOptional: 'Sélectionner un bâtiment (optionnel)',
+    selectOrganizationOptional: 'Sélectionner une organisation (optionnel)',
+    selectResidenceOptional: 'Sélectionner une résidence (optionnel)',
+    welcome: 'Bienvenue',
     building2: 'Bâtiment',
     residence: 'Résidence',
     selectABuilding: 'Sélectionner un bâtiment',
@@ -1485,7 +1508,10 @@ const translations: Record<Language, Translations> = {
     yearBuilt: 'Année de construction',
     totalUnits: 'Unités totales',
     managementCompany: 'Compagnie de gestion',
+    occupancy: 'Occupation',
     occupancyStats: 'Statistiques d\'occupation',
+    parking: 'Stationnement',
+    storage: 'Rangement',
     units: 'unités',
     occupied: 'occupé',
     amenities: 'Commodités',
@@ -1685,6 +1711,7 @@ const translations: Record<Language, Translations> = {
     documentManagementDesc: 'Stockage et organisation sécurisés',
     documentDescription: 'Description du document',
     documentTitle: 'Titre du document',
+    searchDocuments: 'Rechercher des documents...',
     smartNotifications: 'Notifications intelligentes',
     smartNotificationsDesc: 'Alertes et rappels automatisés',
     electronicBilling: 'Facturation électronique',

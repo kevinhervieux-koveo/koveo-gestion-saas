@@ -348,6 +348,21 @@ describe('Comprehensive Translation Coverage (Auto-Generated)', () => {
     ];
 
     it('should have all used translation keys defined in both languages', () => {
+      const missingKeys: string[] = [];
+      discoveredKeys.forEach(key => {
+        languages.forEach(lang => {
+          const t = translations[lang] as any;
+          if (!t[key]) {
+            missingKeys.push(`${key} (${lang})`);
+          }
+        });
+      });
+      
+      if (missingKeys.length > 0) {
+        console.log(`Missing translation keys: ${missingKeys.join(', ')}`);
+      }
+      
+      // Check each key individually
       discoveredKeys.forEach(key => {
         languages.forEach(lang => {
           const t = translations[lang] as any;
