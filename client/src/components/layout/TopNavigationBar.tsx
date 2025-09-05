@@ -61,17 +61,6 @@ export function TopNavigationBar() {
                  user?.email ? user.email.charAt(0).toUpperCase() : 
                  <User className='w-5 h-5' />}
               </div>
-              
-              {/* Dashboard Button - Desktop */}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => setLocation('/dashboard/quick-actions')}
-                className='hidden md:flex items-center gap-2 text-gray-600 hover:text-gray-800 h-10'
-                data-testid='dashboard-button'
-              >
-                {t('dashboard') || 'Dashboard'}
-              </Button>
             </div>
           ) : (
             /* Login Button - when not authenticated */
