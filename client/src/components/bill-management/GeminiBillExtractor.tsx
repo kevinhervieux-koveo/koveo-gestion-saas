@@ -152,14 +152,22 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
  */
 function convertBillResponseToFormData(aiData: any) {
   try {
-    // Map AI response to bill form fields
+    console.log('[GEMINI BILL EXTRACTOR] Raw AI data for conversion:', aiData);
+    
+    // Handle null or undefined data gracefully
+    if (!aiData || typeof aiData !== 'object') {
+      console.warn('[GEMINI BILL EXTRACTOR] AI data is null or invalid:', aiData);
+      return {};
+    }
+    
+    // Map AI response to bill form fields with more robust null checking
     const formData = {
-      title: aiData.description || aiData.vendorName || '',
+      title: aiData.description || aiData.vendorName || 'Extracted Bill',
       vendor: aiData.vendorName || '',
-      totalAmount: aiData.totalAmount?.toString() || '',
-      category: mapVendorToCategory(aiData.vendorName),
+      totalAmount: (aiData.totalAmount !== null && aiData.totalAmount !== undefined) ? aiData.totalAmount.toString() : '',
+      category: aiData.category || mapVendorToCategory(aiData.vendorName),
       paymentType: mapPaymentType(aiData.paymentType),
-      description: aiData.description || `Bill from ${aiData.vendorName || 'vendor'}`,
+      description: aiData.description || (aiData.vendorName ? `Bill from ${aiData.vendorName}` : 'Extracted bill'),
       startDate: aiData.dueDate || aiData.startDate || '',
       endDate: aiData.endDate || '',
       schedulePayment: mapFrequencyToSchedule(aiData.frequency),

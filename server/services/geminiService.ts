@@ -72,7 +72,8 @@ Your final output must be only the JSON object.
 Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ-123","totalAmount":450.75,"dueDate":"2025-10-15","paymentType":"recurring","frequency":"custom","startDate":null,"customPaymentDates":["2025-10-15", "2025-11-15", "2026-01-15"]}`;
 
       // Generate content with image and prompt using the models API
-      const result = await this.genAI.models.generateContent('gemini-1.5-pro', {
+      const result = await this.genAI.models.generateContent({
+        model: 'gemini-1.5-pro',
         contents: [{
           role: 'user',
           parts: [
@@ -182,7 +183,8 @@ Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ
   async validateApiKey(): Promise<boolean> {
     try {
       // Make a simple test call to validate the API key
-      await this.genAI.models.generateContent('gemini-1.5-pro', {
+      await this.genAI.models.generateContent({
+        model: 'gemini-1.5-pro',
         contents: [{
           role: 'user',
           parts: [{ text: 'Test connection' }]
@@ -253,7 +255,8 @@ Example for utilities: {"vendorName":"Hydro Quebec","description":"Monthly elect
 Example for one-time: {"vendorName":"ABC Repairs","description":"Emergency plumbing repair","totalAmount":350.00,"dueDate":"2025-01-30","paymentType":"one-time","frequency":null,"startDate":null,"customPaymentDates":null,"category":"repairs"}`;
 
       // Generate content with image and prompt using the models API
-      const result = await this.genAI.models.generateContent('gemini-1.5-pro', {
+      const result = await this.genAI.models.generateContent({
+        model: 'gemini-1.5-pro',
         contents: [{
           role: 'user',
           parts: [
@@ -268,6 +271,7 @@ Example for one-time: {"vendorName":"ABC Repairs","description":"Emergency plumb
       
       // Log raw response for debugging
       console.log('[GEMINI BILL] Raw response:', responseText);
+      console.log('[GEMINI BILL] Response result structure:', JSON.stringify(result, null, 2));
       
       // Clean the response - remove any markdown formatting or extra text
       let cleanedResponse = responseText.trim();
