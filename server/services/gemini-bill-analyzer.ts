@@ -98,8 +98,7 @@ export class GeminiBillAnalyzer {
         }
 
         // Validate and sanitize the results
-        analysis.confidence = Math.max(0, Math.min(1, analysis.confidence));
-        analysis.totalAmount = this.sanitizeAmount(analysis.totalAmount);
+        analysis = this.sanitizeAndValidateAnalysis(analysis);
 
         return analysis;
       } else {
@@ -157,19 +156,132 @@ export class GeminiBillAnalyzer {
   }
 
   /**
+   * Comprehensive sanitization and validation of AI analysis results
+   * Prevents XSS, SQL injection, and data integrity issues
+   * @param analysis Raw analysis from AI
+   * @returns Sanitized and validated analysis
+   */
+  private sanitizeAndValidateAnalysis(analysis: BillAnalysisResult): BillAnalysisResult {
+    return {
+      title: this.sanitizeString(analysis.title || ''),
+      vendor: this.sanitizeString(analysis.vendor || ''),
+      totalAmount: this.sanitizeAmount(analysis.totalAmount || '0'),
+      category: this.validateCategory(analysis.category || 'other'),
+      description: this.sanitizeString(analysis.description || ''),
+      dueDate: this.validateDate(analysis.dueDate),
+      issueDate: this.validateDate(analysis.issueDate),
+      billNumber: this.sanitizeString(analysis.billNumber || ''),
+      confidence: this.validateConfidence(analysis.confidence || 0)
+    };
+  }
+
+  /**
+   * Sanitize string fields to prevent XSS and SQL injection
+   * @param input Raw string input
+   * @returns Sanitized string
+   */
+  private sanitizeString(input: string): string {
+    if (!input || typeof input !== 'string') {
+      return '';
+    }
+
+    return input
+      // Remove HTML tags and potential XSS
+      .replace(/<[^>]*>/g, '')
+      // Remove script tags specifically
+      .replace(/javascript:/gi, '')
+      // Remove SQL injection patterns
+      .replace(/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi, '')
+      // Remove potential command injection
+      .replace(/[;&|`$(){}[\]]/g, '')
+      // Limit length to prevent DoS
+      .substring(0, 1000)
+      .trim();
+  }
+
+  /**
    * Sanitize and validate amount string.
-   * @param amount
+   * @param amount Raw amount string
+   * @returns Validated amount in decimal format
    */
   private sanitizeAmount(amount: string): string {
-    // Remove currency symbols and spaces
-    const cleaned = amount.replace(/[^0-9.-]/g, '');
-    const parsed = parseFloat(cleaned);
+    if (!amount || typeof amount !== 'string') {
+      return '0.00';
+    }
 
-    if (isNaN(parsed)) {
+    // Remove dangerous characters and keep only numbers, dots, commas
+    const cleaned = amount.replace(/[^0-9.,-]/g, '');
+    
+    // Handle comma as decimal separator (European format)
+    const normalizedAmount = cleaned.replace(/,/g, '.');
+    
+    // Remove extra dots (keep only the last one as decimal separator)
+    const parts = normalizedAmount.split('.');
+    const sanitized = parts.length > 1 
+      ? parts.slice(0, -1).join('') + '.' + parts[parts.length - 1]
+      : parts[0];
+
+    const parsed = parseFloat(sanitized);
+
+    // Validate range and format
+    if (isNaN(parsed) || parsed < 0 || parsed > 999999.99) {
       return '0.00';
     }
 
     return parsed.toFixed(2);
+  }
+
+  /**
+   * Validate and sanitize category
+   * @param category Raw category from AI
+   * @returns Valid category or 'other'
+   */
+  private validateCategory(category: string): string {
+    const validCategories = [
+      'insurance', 'maintenance', 'salary', 'utilities', 'cleaning',
+      'security', 'landscaping', 'professional_services', 'administration',
+      'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other'
+    ];
+
+    const sanitized = this.sanitizeString(category).toLowerCase();
+    return validCategories.includes(sanitized) ? sanitized : 'other';
+  }
+
+  /**
+   * Validate date format
+   * @param dateString Raw date string
+   * @returns Valid ISO date string or undefined
+   */
+  private validateDate(dateString?: string): string | undefined {
+    if (!dateString || typeof dateString !== 'string') {
+      return undefined;
+    }
+
+    const sanitized = this.sanitizeString(dateString);
+    const date = new Date(sanitized);
+    
+    // Check if date is valid and within reasonable range (not too far in past/future)
+    const now = new Date();
+    const tenYearsAgo = new Date(now.getFullYear() - 10, 0, 1);
+    const fiveYearsFromNow = new Date(now.getFullYear() + 5, 11, 31);
+
+    if (isNaN(date.getTime()) || date < tenYearsAgo || date > fiveYearsFromNow) {
+      return undefined;
+    }
+
+    return date.toISOString().split('T')[0];
+  }
+
+  /**
+   * Validate confidence value
+   * @param confidence Raw confidence value
+   * @returns Clamped confidence between 0.0 and 1.0
+   */
+  private validateConfidence(confidence: number): number {
+    if (typeof confidence !== 'number' || isNaN(confidence)) {
+      return 0.0;
+    }
+    return Math.max(0, Math.min(1, confidence));
   }
 
   /**
