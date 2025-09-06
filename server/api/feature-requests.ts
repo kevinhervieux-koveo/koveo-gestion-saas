@@ -156,6 +156,11 @@ export function registerFeatureRequestRoutes(app: Express): void {
         featureRequestData.fileSize = req.file.size;
       }
       
+      // Handle text content if present
+      if (req.body.file_content) {
+        featureRequestData.file_content = req.body.file_content;
+      }
+      
       const featureRequest = await storage.createFeatureRequest(featureRequestData);
 
       console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);

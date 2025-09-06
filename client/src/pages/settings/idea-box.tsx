@@ -128,6 +128,7 @@ interface FeatureRequest {
   filePath?: string | null;
   fileName?: string | null;
   fileSize?: number | null;
+  file_content?: string | null; // Text content for text-only documents
 }
 
 const categoryLabels = {
@@ -514,10 +515,10 @@ export default function IdeaBox() {
       });
     } else {
       // For text mode, we could store the text as a text file or in a dedicated field
-      // For now, let's append it to the description
+      // Store text content separately in file_content field
       const enhancedData = {
         ...data,
-        description: attachmentText ? `${data.description}\n\n**Additional Notes:**\n${attachmentText}` : data.description,
+        file_content: attachmentText || null, // Store text content separately
       };
       
       createMutation.mutate(enhancedData);
@@ -1125,6 +1126,7 @@ export default function IdeaBox() {
                   </p>
                 </div>
                 
+                {/* Show file attachment if exists */}
                 {viewingFeatureRequest.filePath && (
                   <div>
                     <h4 className="font-semibold mb-2">Attachment</h4>
@@ -1135,6 +1137,18 @@ export default function IdeaBox() {
                       fileName={viewingFeatureRequest.fileName}
                       fileSize={viewingFeatureRequest.fileSize}
                     />
+                  </div>
+                )}
+                
+                {/* Show text content if exists */}
+                {viewingFeatureRequest.file_content && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Document Content</h4>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono">
+                        {viewingFeatureRequest.file_content}
+                      </pre>
+                    </div>
                   </div>
                 )}
                 

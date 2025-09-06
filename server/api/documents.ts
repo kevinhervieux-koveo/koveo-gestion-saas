@@ -1335,30 +1335,11 @@ export function registerDocumentRoutes(app: Express): void {
 
   // Create a new document (supports both file upload and text-only documents)
   app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] 🐛 POST /api/documents - Starting document creation`);
-    console.log(`[${timestamp}] 🐛 Request body:`, req.body);
-    console.log(`[${timestamp}] 🐛 Request file:`, req.file ? {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      path: req.file.path
-    } : 'No file');
-    console.log(`[${timestamp}] 🐛 User:`, req.user ? { id: req.user.id, role: req.user.role } : 'No user');
-    
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, ...otherData } = req.body;
-      
-      console.log(`[${timestamp}] 🐛 Extracted data:`, {
-        documentType,
-        buildingId,
-        residenceId,
-        textContent: textContent ? `${textContent.length} chars` : 'None',
-        otherData
-      });
 
       // Enhanced rate limiting check
       const rateLimitCheck = checkUploadRateLimit(userId);
@@ -1466,17 +1447,13 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (finalDocumentRecordType === 'building') {
-        console.log(`[${timestamp}] 🐛 Processing building document`);
-        
         // Validate and create building document
         if (!buildingId) {
-          console.log(`[${timestamp}] 🐛 ERROR: Missing buildingId for building document`);
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
         // Prepare the file path
         const filePath = req.file ? req.file.path : `temp-path-${Date.now()}`;
-        console.log(`[${timestamp}] 🐛 Prepared filePath:`, filePath);
         
         const dataToValidate = {
           ...otherData,
@@ -1486,14 +1463,10 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType,
         };
         
-        console.log(`[${timestamp}] 🐛 Data to validate with createBuildingDocumentSchema:`, dataToValidate);
-        
         let validatedData;
         try {
           validatedData = createBuildingDocumentSchema.parse(dataToValidate);
-          console.log(`[${timestamp}] 🐛 Schema validation successful:`, validatedData);
         } catch (validationError) {
-          console.log(`[${timestamp}] 🐛 Schema validation failed:`, validationError);
           return res.status(400).json({ 
             message: 'Validation failed', 
             error: validationError.message || 'Invalid data',
