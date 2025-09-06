@@ -1,0 +1,105 @@
+index-RS4LOZyo.js:25 TypeError: i.openingHours.map is not a function
+    at common-spaces-CPgx3a8C.js:9:6754
+    at Array.map (<anonymous>)
+    at Gr (common-spaces-CPgx3a8C.js:9:5007)
+    at ts (index-RS4LOZyo.js:25:34129)
+    at bs (index-RS4LOZyo.js:25:62056)
+    at tf (index-RS4LOZyo.js:25:72562)
+    at Cf (index-RS4LOZyo.js:25:106554)
+    at bp (index-RS4LOZyo.js:25:105633)
+    at Gs (index-RS4LOZyo.js:25:105468)
+    at Ef (index-RS4LOZyo.js:25:102593)
+overrideMethod @ hook.js:608
+Lr @ index-RS4LOZyo.js:25
+Qr @ index-RS4LOZyo.js:25
+Vr.u.componentDidCatch.e.callback @ index-RS4LOZyo.js:25
+Xo @ index-RS4LOZyo.js:25
+Zo @ index-RS4LOZyo.js:25
+lf @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+Wt @ index-RS4LOZyo.js:25
+ff @ index-RS4LOZyo.js:25
+wf @ index-RS4LOZyo.js:25
+Uf @ index-RS4LOZyo.js:25
+Mf @ index-RS4LOZyo.js:25
+Ef @ index-RS4LOZyo.js:25
+Gf @ index-RS4LOZyo.js:25
+rl @ index-RS4LOZyo.js:25
+Qf @ index-RS4LOZyo.js:25
+(anonymous) @ index-RS4LOZyo.js:25
+setTimeout
+Pt @ vendor-query-C1E1HIr_.js:1
+o @ vendor-query-C1E1HIr_.js:1
+batch @ vendor-query-C1E1HIr_.js:1
+#n @ vendor-query-C1E1HIr_.js:1
+setData @ vendor-query-C1E1HIr_.js:1
+fetch @ vendor-query-C1E1HIr_.js:1
+await in fetch
+#l @ vendor-query-C1E1HIr_.js:1
+onSubscribe @ vendor-query-C1E1HIr_.js:1
+subscribe @ vendor-query-C1E1HIr_.js:1
+(anonymous) @ vendor-query-C1E1HIr_.js:1
+$o @ index-RS4LOZyo.js:25
+nl @ index-RS4LOZyo.js:25
+un @ index-RS4LOZyo.js:25
+un @ index-RS4LOZyo.js:25
+un @ index-RS4LOZyo.js:25
+un @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+At @ index-RS4LOZyo.js:25
+hf @ index-RS4LOZyo.js:25
+jf @ index-RS4LOZyo.js:25
+_i @ index-RS4LOZyo.js:25
+Gf @ index-RS4LOZyo.js:25
+rl @ index-RS4LOZyo.js:25
+qf @ index-RS4LOZyo.js:25
+Uf @ index-RS4LOZyo.js:25
+Mf @ index-RS4LOZyo.js:25
+setTimeout
+Ef @ index-RS4LOZyo.js:25
+Vf @ index-RS4LOZyo.js:25
+Oa @ index-RS4LOZyo.js:10
