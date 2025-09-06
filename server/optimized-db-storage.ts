@@ -2210,23 +2210,41 @@ export class OptimizedDatabaseStorage implements IStorage {
     const key = `bug:${id}:user:${userId}:${userRole}`;
 
     return queryCache.get(key, async () => {
+      console.log('🔍 getBug: Querying database for bug:', id);
       const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+
+      console.log('🔍 getBug: Database result:', {
+        found: result.length > 0,
+        bugId: result[0]?.id,
+        createdBy: result[0]?.createdBy,
+        filePath: result[0]?.filePath,
+        file_path: (result[0] as any)?.file_path
+      });
 
       const bug = result[0];
       if (!bug) {
+        console.log('🔍 getBug: Bug not found in database');
         return undefined;
       }
 
       if (userRole === 'admin') {
+        console.log('🔍 getBug: Admin access granted');
         return bug;
       }
 
       if (userRole === 'manager') {
+        console.log('🔍 getBug: Manager access granted');
         return bug; // Managers can see all bugs for now
       }
 
       // Residents and tenants can only see their own bugs
-      return bug.createdBy === userId ? bug : undefined;
+      if (bug.createdBy === userId) {
+        console.log('🔍 getBug: User access granted (owner)');
+        return bug;
+      } else {
+        console.log('🔍 getBug: Access denied - not owner');
+        return undefined;
+      }
     });
   }
 

@@ -299,6 +299,13 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
+      // Debug: Log the request details first
+      console.log('🔍 File request details:', {
+        bugId: id,
+        userId: currentUser.id,
+        userRole: currentUser.role
+      });
+
       // Get the bug with file info
       const bug = await storage.getBug(
         id,
@@ -309,6 +316,7 @@ export function registerBugRoutes(app: Express): void {
 
       // Debug: Log what we got from storage
       console.log('🔍 Bug from storage:', {
+        found: !!bug,
         id: bug?.id,
         title: bug?.title,
         filePath: bug?.filePath,
