@@ -392,6 +392,10 @@ export const insertFeatureRequestSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page is required'),
+  // File attachment fields
+  filePath: z.string().optional(), // Path to the uploaded file
+  fileName: z.string().optional(), // Original file name
+  fileSize: z.number().int().optional(), // File size in bytes
 });
 
 export const insertFeatureRequestUpvoteSchema = z.object({
