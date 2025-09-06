@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, expect } from '@jest/globals';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import '@testing-library/jest-dom';
 import { z } from 'zod';
 import {
   Form,
@@ -135,9 +136,9 @@ describe('Form Component Validation UI', () => {
       const amountLabel = screen.getByTestId('label-amount');
 
       // Labels for required fields with errors should have error styling
-      expect(emailLabel).toHaveClass('text-destructive');
-      expect(nameLabel).toHaveClass('text-destructive');
-      expect(amountLabel).toHaveClass('text-destructive');
+      expect(emailLabel).toHaveClass('text-red-600');
+      expect(nameLabel).toHaveClass('text-red-600');
+      expect(amountLabel).toHaveClass('text-red-600');
     });
 
     test('should not display red labels when fields are valid', async () => {
@@ -174,9 +175,9 @@ describe('Form Component Validation UI', () => {
       const nameLabel = screen.getByTestId('label-name');
       const amountLabel = screen.getByTestId('label-amount');
 
-      expect(emailLabel).not.toHaveClass('text-destructive');
-      expect(nameLabel).not.toHaveClass('text-destructive');
-      expect(amountLabel).not.toHaveClass('text-destructive');
+      expect(emailLabel).not.toHaveClass('text-red-600');
+      expect(nameLabel).not.toHaveClass('text-red-600');
+      expect(amountLabel).not.toHaveClass('text-red-600');
     });
   });
 
