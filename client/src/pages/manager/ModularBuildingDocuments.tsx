@@ -41,11 +41,14 @@ export default function ModularBuildingDocuments() {
   });
 
   // Fetch documents for this building
-  const { data: documents = [], isLoading } = useQuery<DocumentWithMetadata[]>({
+  const { data: documentResponse, isLoading } = useQuery({
     queryKey: ['/api/documents', 'building', buildingId],
     queryFn: () => apiRequest('GET', `/api/documents?buildingId=${buildingId}`),
     enabled: !!buildingId,
   });
+
+  // Extract documents array from API response
+  const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
 
   // Get current user for permissions
   const { data: user } = useQuery({

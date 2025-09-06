@@ -93,7 +93,7 @@ export default function ModularDocumentPageWrapper({
   });
 
   // Fetch documents for this entity
-  const { data: documents = [], isLoading } = useQuery<DocumentWithMetadata[]>({
+  const { data: documentResponse, isLoading } = useQuery({
     queryKey: ['/api/documents', type, entityId],
     queryFn: () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
@@ -101,6 +101,9 @@ export default function ModularDocumentPageWrapper({
     },
     enabled: !!entityId,
   });
+
+  // Extract documents array from API response
+  const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
 
   // Determine permissions based on user role and type
   const isUserTenant = user?.role === 'tenant';
@@ -134,13 +137,12 @@ export default function ModularDocumentPageWrapper({
 
   // Debug logging to understand document structure
   console.log('📄 [ModularDocumentPageWrapper] Debug:', {
-    documentsIsArray: Array.isArray(documents),
-    documentsLength: Array.isArray(documents) ? documents.length : 'not array',
+    responseReceived: !!documentResponse,
+    documentsInResponse: Array.isArray(documentResponse?.documents) ? documentResponse.documents.length : 'none',
+    documentsExtracted: documents.length,
     filteredLength: filteredDocuments.length,
     searchTerm,
-    selectedCategory,
-    documents: documents,
-    firstDocument: Array.isArray(documents) && documents.length > 0 ? documents[0] : 'none'
+    selectedCategory
   });
 
   // Generate entity name based on type
