@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Upload, Sparkles, Paperclip } from 'lucide-react';
+import { FileText, Upload, Sparkles, Paperclip, Plus, X } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -54,6 +54,16 @@ const billFormSchema = z.object({
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  customPayments: z.array(z.object({
+    amount: z.string().min(1, 'Amount is required').refine((val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num > 0 && num <= 999999.99;
+    }, 'Amount must be between $0.01 and $999,999.99'),
+    date: z.string().min(1, 'Date is required').refine((val) => {
+      return !isNaN(Date.parse(val));
+    }, 'Date must be a valid date'),
+    description: z.string().optional()
+  })).optional(),
   totalAmount: z.string().min(1, 'Amount is required and must be a valid number (example: 1250.50)').refine((val) => {
     const num = parseFloat(val);
     return !isNaN(num) && num > 0 && num <= 999999.99;
@@ -73,6 +83,12 @@ const billFormSchema = z.object({
  *
  */
 type BillFormData = z.infer<typeof billFormSchema>;
+
+type CustomPayment = {
+  amount: string;
+  date: string;
+  description?: string;
+};
 
 // AI analysis result interface
 /**
@@ -99,6 +115,135 @@ interface AiAnalysisResult {
     paymentType: number;
     dates: number;
   };
+}
+
+// Custom Payment Schedule Component
+interface CustomPaymentScheduleProps {
+  payments: CustomPayment[];
+  onChange: (payments: CustomPayment[]) => void;
+  onTotalAmountChange: (total: string) => void;
+}
+
+function CustomPaymentSchedule({ payments, onChange, onTotalAmountChange }: CustomPaymentScheduleProps) {
+  const addPayment = () => {
+    const newPayment: CustomPayment = {
+      amount: '',
+      date: '',
+      description: ''
+    };
+    const updatedPayments = [...payments, newPayment];
+    onChange(updatedPayments);
+  };
+
+  const removePayment = (index: number) => {
+    const updatedPayments = payments.filter((_, i) => i !== index);
+    onChange(updatedPayments);
+    updateTotalAmount(updatedPayments);
+  };
+
+  const updatePayment = (index: number, field: keyof CustomPayment, value: string) => {
+    const updatedPayments = payments.map((payment, i) => 
+      i === index ? { ...payment, [field]: value } : payment
+    );
+    onChange(updatedPayments);
+    
+    if (field === 'amount') {
+      updateTotalAmount(updatedPayments);
+    }
+  };
+
+  const updateTotalAmount = (paymentsArray: CustomPayment[]) => {
+    const total = paymentsArray.reduce((sum, payment) => {
+      const amount = parseFloat(payment.amount) || 0;
+      return sum + amount;
+    }, 0);
+    onTotalAmountChange(total.toFixed(2));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <span className="text-sm text-gray-600">Add individual payment amounts and dates</span>
+        <Button
+          type="button"
+          onClick={addPayment}
+          size="sm"
+          variant="outline"
+          className="gap-2"
+          data-testid="button-add-payment"
+        >
+          <Plus className="h-4 w-4" />
+          Add Payment
+        </Button>
+      </div>
+
+      {payments.length === 0 && (
+        <div className="text-center py-6 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+          Click "Add Payment" to create your custom payment schedule
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {payments.map((payment, index) => (
+          <div key={index} className="flex gap-3 items-start p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex-1 grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Amount *
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={payment.amount}
+                  onChange={(e) => updatePayment(index, 'amount', e.target.value)}
+                  data-testid={`input-payment-amount-${index}`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Date *
+                </label>
+                <Input
+                  type="date"
+                  value={payment.date}
+                  onChange={(e) => updatePayment(index, 'date', e.target.value)}
+                  data-testid={`input-payment-date-${index}`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <Input
+                  placeholder="Payment note"
+                  value={payment.description || ''}
+                  onChange={(e) => updatePayment(index, 'description', e.target.value)}
+                  data-testid={`input-payment-description-${index}`}
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              onClick={() => removePayment(index)}
+              size="sm"
+              variant="ghost"
+              className="text-red-500 hover:text-red-700 p-2"
+              data-testid={`button-remove-payment-${index}`}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {payments.length > 0 && (
+        <div className="text-right text-sm text-gray-600">
+          Total: ${payments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0).toFixed(2)}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Component props interface
@@ -144,6 +289,7 @@ export const SCHEDULE_OPTIONS = [
   { value: 'monthly', label: 'Monthly' },
   { value: 'quarterly', label: 'Quarterly' },
   { value: 'yearly', label: 'Yearly' },
+  { value: 'custom', label: 'Custom' },
 ] as const;
 
 // Status options
@@ -188,6 +334,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         vendor: bill.vendor || '',
         paymentType: bill.paymentType,
         schedulePayment: bill.schedulePayment || 'monthly',
+        customPayments: [],
         totalAmount: bill.totalAmount.toString(),
         startDate: bill.startDate,
         endDate: bill.endDate || '',
@@ -204,6 +351,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       vendor: '',
       paymentType: 'unique',
       schedulePayment: 'monthly',
+      customPayments: [],
       totalAmount: '',
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
@@ -230,9 +378,14 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       const url = mode === 'create' ? '/api/bills' : `/api/bills/${bill?.id}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
 
+      // Handle custom payments vs regular payment
+      const costs = billData.schedulePayment === 'custom' && billData.customPayments?.length
+        ? billData.customPayments.map(payment => payment.amount)
+        : [billData.totalAmount];
+
       const payload = {
         ...billData,
-        costs: [billData.totalAmount],
+        costs,
         ...(mode === 'create' && { buildingId }),
       };
 
@@ -566,21 +719,30 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         <FormField
           control={form.control}
           name='totalAmount'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Amount *</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type='number'
-                  step='0.01'
-                  placeholder='0.00'
-                  data-testid='input-amount'
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const isCustomPayments = form.watch('paymentType') === 'recurrent' && 
+                                   form.watch('schedulePayment') === 'custom';
+            return (
+              <FormItem>
+                <FormLabel>
+                  Total Amount * 
+                  {isCustomPayments && <span className="text-xs text-blue-600 ml-1">(Auto-calculated)</span>}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type='number'
+                    step='0.01'
+                    placeholder='0.00'
+                    readOnly={isCustomPayments}
+                    className={isCustomPayments ? 'bg-gray-100 cursor-not-allowed' : ''}
+                    data-testid='input-amount'
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Payment Type */}
@@ -635,6 +797,29 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
               </FormItem>
             )}
           />
+        )}
+
+        {/* Custom Payment Schedule (only when schedule is custom) */}
+        {form.watch('paymentType') === 'recurrent' && form.watch('schedulePayment') === 'custom' && (
+          <div className='col-span-2'>
+            <FormField
+              control={form.control}
+              name='customPayments'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custom Payment Schedule *</FormLabel>
+                  <FormControl>
+                    <CustomPaymentSchedule
+                      payments={field.value || []}
+                      onChange={field.onChange}
+                      onTotalAmountChange={(total) => form.setValue('totalAmount', total)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         {/* Start Date */}
