@@ -539,6 +539,17 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
             notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
             form.setValue('notes', notes.trim());
           }
+
+          // Show warning for low confidence results
+          if (data.analysisResult.confidence < 0.7) {
+            const confidencePercent = (data.analysisResult.confidence * 100).toFixed(1);
+            toast({
+              title: t('aiAnalysisWarning'),
+              description: `${t('lowConfidenceAIWarning')} ${confidencePercent}%. ${t('reviewAISuggestionsCarefully')}`,
+              variant: 'destructive',
+              duration: 8000
+            });
+          }
           
           // Form filling completed
         }

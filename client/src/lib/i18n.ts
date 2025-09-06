@@ -408,6 +408,10 @@ export interface Translations {
   personalMessageTooLong: string;
   expiryDaysInvalid: string;
   emailOrNameRequired: string;
+  // AI Analysis warnings
+  aiAnalysisWarning: string;
+  lowConfidenceAIWarning: string;
+  reviewAISuggestionsCarefully: string;
   // Core field labels for forms
   email: string;
   password: string;
@@ -991,6 +995,10 @@ const translations: Record<Language, Translations> = {
     personalMessageTooLong: 'Personal message must be less than 500 characters',
     expiryDaysInvalid: 'Expiry days must be between 1 and 30 days',
     emailOrNameRequired: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first name and last name.',
+    // AI Analysis warnings
+    aiAnalysisWarning: 'AI Analysis Warning',
+    lowConfidenceAIWarning: 'AI analysis has low confidence:',
+    reviewAISuggestionsCarefully: 'Please review all suggested values carefully.',
     // Core field labels for forms
     email: 'Email',
     password: 'Password',
@@ -1571,6 +1579,10 @@ const translations: Record<Language, Translations> = {
     personalMessageTooLong: 'Le message personnel doit contenir moins de 500 caractères',
     expiryDaysInvalid: 'Les jours d\'expiration doivent être entre 1 et 30 jours',
     emailOrNameRequired: 'L\'adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs de démo, fournissez le prénom et le nom de famille.',
+    // AI Analysis warnings
+    aiAnalysisWarning: 'Avertissement d\'analyse IA',
+    lowConfidenceAIWarning: 'L\'analyse IA a une confiance faible :',
+    reviewAISuggestionsCarefully: 'Veuillez examiner attentivement toutes les valeurs suggérées.',
     // Étiquettes de champs de base pour les formulaires
     email: 'Courriel',
     password: 'Mot de passe',
