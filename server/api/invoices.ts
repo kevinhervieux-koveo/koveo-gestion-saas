@@ -312,7 +312,8 @@ export function registerInvoiceRoutes(app: Express) {
         createdBy: userId,
         // Set defaults for required fields if not provided (for testing)
         paymentType: req.body.paymentType || 'one-time',
-        documentId: req.body.documentId || '00000000-0000-0000-0000-000000000000', // Placeholder for testing
+        // Only include documentId if provided (now optional)
+        ...(req.body.documentId && { documentId: req.body.documentId }),
       };
       
       const validatedData = insertInvoiceSchema.parse(invoiceData);

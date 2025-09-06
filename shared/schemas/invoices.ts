@@ -53,9 +53,8 @@ export const invoices = pgTable('invoices', {
   startDate: date('start_date'), // For standard frequencies (not custom)
   customPaymentDates: date('custom_payment_dates').array(), // Only for custom frequency
   
-  // Document integration - links to uploaded invoice file
+  // Document integration - links to uploaded invoice file (optional for testing)
   documentId: varchar('document_id')
-    .notNull()
     .references(() => documents.id),
   
   // AI extraction tracking
@@ -98,8 +97,8 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
     "All custom payment dates must be valid dates"
   ),
   
-  // Document reference
-  documentId: z.string().uuid('Invalid document ID'),
+  // Document reference (optional for testing)
+  documentId: z.string().uuid('Invalid document ID').optional(),
   
   // Optional associations
   buildingId: z.string().uuid().optional(),
