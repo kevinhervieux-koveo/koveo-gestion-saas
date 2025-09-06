@@ -8,6 +8,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import '@testing-library/jest-dom';
 
 // Mock the hooks and utils
 jest.mock('@/hooks/use-language', () => ({
@@ -22,8 +23,8 @@ jest.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
-// Mock fetch
-const mockFetch = jest.fn();
+// Mock fetch with proper typing
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
 // Mock queryClient
