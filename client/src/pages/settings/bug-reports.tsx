@@ -832,49 +832,28 @@ export default function BugReports() {
                     {editAttachmentMode === 'file' ? (
                       <div>
                         <Label htmlFor="edit-file-upload">Select File to Upload</Label>
-                        {editingBug?.attachments && editingBug.attachments.length > 0 ? (
-                          <div className="space-y-2 mt-2">
-                            <p className="text-sm text-gray-500">
-                              Current files: {editingBug.attachments.map(f => f.name).join(', ')}
-                            </p>
-                            <div className="space-y-1">
-                              {editingBug.attachments.map((attachment, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
-                                  <span>{attachment.name}</span>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => window.open('/api/documents/' + attachment.id + '/file', '_blank')}
-                                      className="text-xs"
-                                    >
-                                      View
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        const link = document.createElement('a');
-                                        link.href = '/api/documents/' + attachment.id + '/file?download=true';
-                                        link.download = attachment.name;
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                      }}
-                                      className="text-xs"
-                                    >
-                                      Download
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                        {editingBug?.filePath && (
+                          <div className="space-y-2 mb-4">
+                            <Label>Current Attachment</Label>
+                            <AttachedFileSection
+                              entityType="bug"
+                              entityId={editingBug.id}
+                              filePath={editingBug.filePath}
+                              fileName={editingBug.fileName}
+                              fileSize={editingBug.fileSize}
+                            />
                           </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 mt-1">No files attached</p>
                         )}
+                        <Input
+                          id="edit-file-upload"
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                          data-testid="input-edit-file"
+                          className="mt-1"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {editingBug?.filePath ? 'Upload a new file to replace the current attachment' : 'Attach a screenshot or document'}
+                        </p>
                       </div>
                     ) : (
                       <div>
