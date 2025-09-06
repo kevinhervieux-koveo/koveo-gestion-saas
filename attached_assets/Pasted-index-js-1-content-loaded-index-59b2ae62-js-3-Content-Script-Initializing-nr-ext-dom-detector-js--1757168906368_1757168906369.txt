@@ -1,0 +1,129 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-D9Qyc4pp.js:136 TypeError: Q.filter is not a function
+    at Ge (ModularDocumentPageWrapper-B2sII-A8.js:11:1819)
+    at Object.react_stack_bottom_frame (index-D9Qyc4pp.js:229:12448)
+    at lc (index-D9Qyc4pp.js:120:804)
+    at kc (index-D9Qyc4pp.js:141:5839)
+    at Yc (index-D9Qyc4pp.js:150:10147)
+    at B (index-D9Qyc4pp.js:45:108)
+    at Kh (index-D9Qyc4pp.js:163:29810)
+    at Jh (index-D9Qyc4pp.js:163:28479)
+    at Wc (index-D9Qyc4pp.js:163:28312)
+    at Xh (index-D9Qyc4pp.js:163:24807)
+
+The above error occurred in the <Ge> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lD.
+
+overrideMethod @ hook.js:608
+ah @ index-D9Qyc4pp.js:136
+oh @ index-D9Qyc4pp.js:141
+B @ index-D9Qyc4pp.js:45
+Uc.i.componentDidCatch.e.callback @ index-D9Qyc4pp.js:141
+Ep @ index-D9Qyc4pp.js:107
+xp @ index-D9Qyc4pp.js:107
+B @ index-D9Qyc4pp.js:45
+Eh @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+Xn @ index-D9Qyc4pp.js:163
+Ch @ index-D9Qyc4pp.js:163
+ty @ index-D9Qyc4pp.js:163
+ed @ index-D9Qyc4pp.js:163
+Zh @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+fy @ index-D9Qyc4pp.js:185
+fi @ index-D9Qyc4pp.js:185
+ad @ index-D9Qyc4pp.js:185
+(anonymous) @ index-D9Qyc4pp.js:185
+<Ge>
+dr.jsxDEV @ index-D9Qyc4pp.js:15
+Q @ BuildingDocuments-Dj1kau7Y.js:1
+react_stack_bottom_frame @ index-D9Qyc4pp.js:229
+lc @ index-D9Qyc4pp.js:120
+kc @ index-D9Qyc4pp.js:141
+Yc @ index-D9Qyc4pp.js:150
+B @ index-D9Qyc4pp.js:45
+Kh @ index-D9Qyc4pp.js:163
+JS @ index-D9Qyc4pp.js:163
+IS @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+dy @ index-D9Qyc4pp.js:185
+d @ index-D9Qyc4pp.js:23
+<...>
+dr.jsxDEV @ index-D9Qyc4pp.js:15
+component @ index-D9Qyc4pp.js:364
+react_stack_bottom_frame @ index-D9Qyc4pp.js:229
+lc @ index-D9Qyc4pp.js:120
+kc @ index-D9Qyc4pp.js:141
+Yc @ index-D9Qyc4pp.js:150
+B @ index-D9Qyc4pp.js:45
+Kh @ index-D9Qyc4pp.js:163
+JS @ index-D9Qyc4pp.js:163
+IS @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+dy @ index-D9Qyc4pp.js:185
+d @ index-D9Qyc4pp.js:23
+<component>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-D9Qyc4pp.js:240
+q @ index-D9Qyc4pp.js:240
+react_stack_bottom_frame @ index-D9Qyc4pp.js:229
+lc @ index-D9Qyc4pp.js:120
+kc @ index-D9Qyc4pp.js:141
+Yc @ index-D9Qyc4pp.js:150
+B @ index-D9Qyc4pp.js:45
+Kh @ index-D9Qyc4pp.js:163
+JS @ index-D9Qyc4pp.js:163
+IS @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+dy @ index-D9Qyc4pp.js:185
+d @ index-D9Qyc4pp.js:23
+<q>
+dr.jsxDEV @ index-D9Qyc4pp.js:15
+jD @ index-D9Qyc4pp.js:364
+react_stack_bottom_frame @ index-D9Qyc4pp.js:229
+lc @ index-D9Qyc4pp.js:120
+kc @ index-D9Qyc4pp.js:141
+Yc @ index-D9Qyc4pp.js:150
+B @ index-D9Qyc4pp.js:45
+Kh @ index-D9Qyc4pp.js:163
+Jh @ index-D9Qyc4pp.js:163
+Wc @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+fy @ index-D9Qyc4pp.js:185
+fi @ index-D9Qyc4pp.js:185
+ad @ index-D9Qyc4pp.js:185
+(anonymous) @ index-D9Qyc4pp.js:185
+<jD>
+dr.jsxDEV @ index-D9Qyc4pp.js:15
+BD @ index-D9Qyc4pp.js:364
+react_stack_bottom_frame @ index-D9Qyc4pp.js:229
+lc @ index-D9Qyc4pp.js:120
+kc @ index-D9Qyc4pp.js:141
+Yc @ index-D9Qyc4pp.js:150
+B @ index-D9Qyc4pp.js:45
+Kh @ index-D9Qyc4pp.js:163
+Jh @ index-D9Qyc4pp.js:163
+Wc @ index-D9Qyc4pp.js:163
+Xh @ index-D9Qyc4pp.js:163
+dy @ index-D9Qyc4pp.js:185
+d @ index-D9Qyc4pp.js:23
+<BD>
+dr.jsxDEV @ index-D9Qyc4pp.js:15
+(anonymous) @ index-D9Qyc4pp.js:364

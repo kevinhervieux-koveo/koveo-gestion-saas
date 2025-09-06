@@ -62,10 +62,10 @@ export default function ModularBuildingDocuments() {
   };
 
   // Filter documents based on search
-  const filteredDocuments = documents.filter(doc =>
+  const filteredDocuments = Array.isArray(documents) ? documents.filter(doc =>
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   // Handle document interactions
   const handleDocumentView = (documentId: string) => {
@@ -237,14 +237,14 @@ export default function ModularBuildingDocuments() {
       {filteredDocuments.length > 0 && (
         <div className="flex justify-between items-center mt-6 pt-4 border-t">
           <p className="text-sm text-gray-500">
-            Showing {filteredDocuments.length} of {documents.length} documents
+            Showing {filteredDocuments.length} of {Array.isArray(documents) ? documents.length : 0} documents
           </p>
           <div className="flex gap-2">
             <Badge variant="outline">
-              {documents.filter(d => d.isVisibleToTenants).length} visible to tenants
+              {Array.isArray(documents) ? documents.filter(d => d.isVisibleToTenants).length : 0} visible to tenants
             </Badge>
             <Badge variant="outline">
-              {documents.filter(d => d.documentType === 'bylaw').length} bylaws
+              {Array.isArray(documents) ? documents.filter(d => d.documentType === 'bylaw').length : 0} bylaws
             </Badge>
           </div>
         </div>

@@ -127,14 +127,14 @@ export default function ModularDocumentPageWrapper({
       };
 
   // Filter and search documents
-  const filteredDocuments = documents.filter(doc => {
+  const filteredDocuments = Array.isArray(documents) ? documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
 
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Generate entity name based on type
   const entityName = type === 'residence' 

@@ -101,7 +101,7 @@ export default function ModularDocuments() {
   };
 
   // Filter and search documents
-  const filteredDocuments = documents.filter(doc => {
+  const filteredDocuments = Array.isArray(documents) ? documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -112,7 +112,7 @@ export default function ModularDocuments() {
     const matchesOrganization = selectedOrganizationId === 'all' || doc.organizationId === selectedOrganizationId;
 
     return matchesSearch && matchesCategory && matchesBuilding && matchesOrganization;
-  });
+  }) : [];
 
   // Group documents by category for better organization
   const documentsByCategory = filteredDocuments.reduce((acc, doc) => {
