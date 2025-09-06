@@ -7,7 +7,9 @@ import { GoogleGenAI } from '@google/genai';
 //   - do not change this unless explicitly requested by the user
 
 // This API key is from Gemini Developer API Key, not vertex AI API Key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+console.log('🔑 [GEMINI DEBUG] Initializing GoogleGenAI with API key:', process.env.GEMINI_API_KEY ? 'PRESENT' : 'MISSING');
+const ai = new GoogleGenAI(process.env.GEMINI_API_KEY || '');
+console.log('🤖 [GEMINI DEBUG] GoogleGenAI instance created:', typeof ai, Object.keys(ai));
 
 /**
  *
@@ -35,10 +37,15 @@ export class GeminiBillAnalyzer {
    */
   async analyzeBillDocument(filePath: string, mimeType?: string): Promise<BillAnalysisResult> {
     try {
+      console.log('📄 [GEMINI DEBUG] Starting analysis for file:', filePath);
+      console.log('🔍 [GEMINI DEBUG] File exists:', fs.existsSync(filePath));
+      
       const fileBytes = fs.readFileSync(filePath);
+      console.log('📊 [GEMINI DEBUG] File size:', fileBytes.length, 'bytes');
       
       // Detect MIME type if not provided  
       const detectedMimeType = mimeType || this.detectMimeType(filePath);
+      console.log('🎭 [GEMINI DEBUG] MIME type:', detectedMimeType);
 
       const systemPrompt = `You are an expert bill analysis AI. Analyze this bill/invoice document and extract key information.
       
@@ -63,9 +70,31 @@ export class GeminiBillAnalyzer {
       - If information is unclear, use best guess but lower confidence
       `;
 
-      const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      console.log('🤖 [GEMINI DEBUG] AI instance methods:', Object.getOwnPropertyNames(ai));
+      console.log('🤖 [GEMINI DEBUG] AI instance prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(ai)));
       
-      const response = await model.generateContent([
+      // Try different ways to access the model
+      let model;
+      try {
+        if (typeof ai.getGenerativeModel === 'function') {
+          console.log('✅ [GEMINI DEBUG] Using getGenerativeModel');
+          model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        } else if (ai.models && typeof ai.models.generateContent === 'function') {
+          console.log('✅ [GEMINI DEBUG] Using models.generateContent directly');
+          model = ai.models;
+        } else {
+          console.log('❌ [GEMINI DEBUG] No suitable method found, trying direct access');
+          throw new Error('Cannot find suitable model access method');
+        }
+      } catch (modelError) {
+        console.error('❌ [GEMINI DEBUG] Model initialization failed:', modelError);
+        throw modelError;
+      }
+      
+      console.log('🎯 [GEMINI DEBUG] Model initialized:', typeof model);
+      console.log('🎯 [GEMINI DEBUG] Model methods:', Object.getOwnPropertyNames(model));
+      
+      const requestData = [
         {
           text: systemPrompt
         },
@@ -75,15 +104,48 @@ export class GeminiBillAnalyzer {
             mimeType: detectedMimeType,
           }
         }
-      ]);
+      ];
+      
+      console.log('📤 [GEMINI DEBUG] Sending request with:', {
+        modelType: typeof model,
+        promptLength: systemPrompt.length,
+        imageSize: fileBytes.length,
+        mimeType: detectedMimeType
+      });
+      
+      const response = await model.generateContent(requestData);
+      console.log('📥 [GEMINI DEBUG] Response received:', {
+        type: typeof response,
+        keys: Object.keys(response || {}),
+        hasText: !!response?.response?.text,
+        hasTextMethod: typeof response?.response?.text === 'function'
+      });
 
       const rawJson = response.response.text();
+      console.log('📝 [GEMINI DEBUG] Raw response text:', rawJson?.substring(0, 200));
 
       if (rawJson) {
-        const analysis: BillAnalysisResult = JSON.parse(rawJson);
+        console.log('🔍 [GEMINI DEBUG] Parsing JSON response...');
+        let analysis: BillAnalysisResult;
+        
+        try {
+          analysis = JSON.parse(rawJson);
+          console.log('✅ [GEMINI DEBUG] JSON parsing successful:', analysis);
+        } catch (parseError) {
+          console.error('❌ [GEMINI DEBUG] JSON parsing failed:', parseError);
+          console.log('📝 [GEMINI DEBUG] Raw text that failed to parse:', rawJson);
+          throw new Error('Failed to parse AI response as JSON');
+        }
 
         // Validate and sanitize the results
         analysis.confidence = Math.max(0, Math.min(1, analysis.confidence));
+        console.log('✅ [GEMINI DEBUG] Analysis completed successfully:', {
+          title: analysis.title,
+          vendor: analysis.vendor,
+          totalAmount: analysis.totalAmount,
+          category: analysis.category,
+          confidence: analysis.confidence
+        });
         analysis.totalAmount = this.sanitizeAmount(analysis.totalAmount);
 
         return analysis;
@@ -91,7 +153,12 @@ export class GeminiBillAnalyzer {
         throw new Error('Empty response from Gemini');
       }
     } catch (error: any) {
-      console.error('❌ Error analyzing bill document:', error);
+      console.error('❌ [GEMINI DEBUG] Error analyzing bill document:', error);
+      console.error('❌ [GEMINI DEBUG] Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
   }
