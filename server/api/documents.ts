@@ -1338,14 +1338,17 @@ export function registerDocumentRoutes(app: Express): void {
 
   // Create a new document (supports both file upload and text-only documents)
   app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
+    console.log(`📄 [DOCUMENTS UPLOAD] Starting document upload/creation`);
+    console.log(`📄 [DOCUMENTS UPLOAD] User: ${req.user.id} (${req.user.role})`);
+    
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, type, ...otherData } = req.body;
       
-      // Debug logging to understand what data is being sent
-      console.log('🔍 Document creation debug:', {
+      // Enhanced debug logging with context information
+      console.log(`📄 [DOCUMENTS UPLOAD] Request details:`, {
         documentType,
         type,
         buildingId, 
@@ -1353,28 +1356,56 @@ export function registerDocumentRoutes(app: Express): void {
         hasFile: !!req.file,
         hasTextContent: !!textContent,
         otherDataKeys: Object.keys(otherData),
-        fullBody: req.body
+        fileName: req.file?.originalname,
+        fileSize: req.file?.size,
+        mimeType: req.file?.mimetype
       });
 
+      if (req.file) {
+        console.log(`📄 [DOCUMENTS UPLOAD] File details:`, {
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+          tempPath: req.file.path,
+          encoding: req.file.encoding
+        });
+      }
+
       // Enhanced rate limiting check
+      console.log(`📄 [DOCUMENTS UPLOAD] Checking rate limit for user ${userId}`);
       const rateLimitCheck = checkUploadRateLimit(userId);
       if (!rateLimitCheck.allowed) {
+        console.log(`❌ [DOCUMENTS UPLOAD] Rate limit exceeded for user ${userId}: ${rateLimitCheck.error}`);
         logSecurityEvent('UPLOAD_RATE_LIMIT_EXCEEDED', user, false, undefined, { error: rateLimitCheck.error });
         return res.status(429).json({ message: rateLimitCheck.error });
       }
+      console.log(`✅ [DOCUMENTS UPLOAD] Rate limit check passed for user ${userId}`);
       
       // Validate permissions - only admin, manager, and resident can create documents
+      console.log(`📄 [DOCUMENTS UPLOAD] Checking permissions for role: ${userRole}`);
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
+        console.log(`❌ [DOCUMENTS UPLOAD] Insufficient permissions for role: ${userRole}`);
         logSecurityEvent('UNAUTHORIZED_UPLOAD_ATTEMPT', user, false, undefined, { requiredRoles: ['admin', 'manager', 'resident'] });
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
+      console.log(`✅ [DOCUMENTS UPLOAD] Permission check passed for role: ${userRole}`);
 
       // Check if this is a text-only document, file upload, or metadata-only document
       const isTextDocumentRecord = !req.file && textContent;
       const isFileDocumentRecord = !!req.file;
       const isMetadataDocumentRecord = !req.file && !textContent && (otherData.title || otherData.name);
 
+      console.log(`📄 [DOCUMENTS UPLOAD] Document type determination:`, {
+        isTextDocument: isTextDocumentRecord,
+        isFileDocument: isFileDocumentRecord,
+        isMetadataDocument: isMetadataDocumentRecord,
+        hasTitle: !!otherData.title,
+        hasName: !!otherData.name,
+        hasTextContent: !!textContent
+      });
+
       if (!isTextDocumentRecord && !isFileDocumentRecord && !isMetadataDocumentRecord) {
+        console.log(`❌ [DOCUMENTS UPLOAD] Invalid document request - no file, text, or metadata provided`);
         return res.status(400).json({ message: 'Either a file, text content, or document title/name is required' });
       }
 
@@ -1519,17 +1550,23 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Handle file uploads (existing logic)
+      console.log(`📄 [DOCUMENTS UPLOAD] Starting file document processing`);
+      
       // Determine document record type based on buildingId/residenceId (not from documentType field)
       let finalDocumentRecordType;
       if (buildingId && !residenceId) {
         finalDocumentRecordType = 'building';
+        console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: BUILDING (ID: ${buildingId})`);
       } else if (residenceId && !buildingId) {
         finalDocumentRecordType = 'resident';
+        console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: RESIDENCE (ID: ${residenceId})`);
       } else if (buildingId && residenceId) {
+        console.log(`❌ [DOCUMENTS UPLOAD] Both buildingId and residenceId provided: ${buildingId}, ${residenceId}`);
         return res.status(400).json({
           message: 'Cannot provide both buildingId and residenceId',
         });
       } else {
+        console.log(`❌ [DOCUMENTS UPLOAD] No buildingId or residenceId provided`);
         return res.status(400).json({
           message:
             'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
@@ -1537,8 +1574,11 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (finalDocumentRecordType === 'building') {
+        console.log(`🏢 [BUILDING UPLOAD] Processing building document for building ID: ${buildingId}`);
+        
         // Validate and create building document
         if (!buildingId) {
+          console.log(`❌ [BUILDING UPLOAD] Missing buildingId`);
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
@@ -1547,21 +1587,36 @@ export function registerDocumentRoutes(app: Express): void {
         let fileName: string | undefined;
         
         if (req.file) {
+          console.log(`🏢 [BUILDING UPLOAD] Processing file upload for building ${buildingId}`);
+          
           // Generate unique filename and move to permanent location
           fileName = `${uuidv4()}-${req.file.originalname}`;
           const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', buildingId);
           
+          console.log(`🏢 [BUILDING UPLOAD] File paths:`, {
+            originalName: req.file.originalname,
+            newFileName: fileName,
+            tempPath: req.file.path,
+            permanentDir,
+            directoryExists: fs.existsSync(permanentDir)
+          });
+          
           // Ensure directory exists
           if (!fs.existsSync(permanentDir)) {
+            console.log(`🏢 [BUILDING UPLOAD] Creating directory: ${permanentDir}`);
             fs.mkdirSync(permanentDir, { recursive: true });
           }
           
           // Move file from temporary to permanent location (copy + delete for cross-filesystem)
           const permanentPath = path.join(permanentDir, fileName);
+          console.log(`🏢 [BUILDING UPLOAD] Copying file from ${req.file.path} to ${permanentPath}`);
           fs.copyFileSync(req.file.path, permanentPath);
+          console.log(`🏢 [BUILDING UPLOAD] Cleaning up temporary file: ${req.file.path}`);
           fs.unlinkSync(req.file.path); // Clean up temporary file
           filePath = `buildings/${buildingId}/${fileName}`;
+          console.log(`🏢 [BUILDING UPLOAD] File successfully moved to: ${filePath}`);
         } else {
+          console.log(`🏢 [BUILDING UPLOAD] No file provided, creating placeholder path`);
           filePath = `temp-path-${Date.now()}`;
         }
         
@@ -1576,10 +1631,23 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType || type || 'other', // Default to 'other' if not provided
         };
         
+        console.log(`🏢 [BUILDING UPLOAD] Data to validate:`, {
+          buildingId,
+          uploadedById: userId,
+          filePath,
+          fileName,
+          fileSize: req.file?.size,
+          mimeType: req.file?.mimetype,
+          documentType: documentType || type || 'other',
+          otherDataKeys: Object.keys(otherData)
+        });
+        
         let validatedData;
         try {
           validatedData = insertDocumentSchema.parse(dataToValidate);
+          console.log(`✅ [BUILDING UPLOAD] Document validation successful for building ${buildingId}`);
         } catch (validationError) {
+          console.log(`❌ [BUILDING UPLOAD] Document validation failed for building ${buildingId}:`, validationError);
           return res.status(400).json({ 
             message: 'Validation failed', 
             error: validationError.message || 'Invalid data',
@@ -1588,32 +1656,48 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Permission checks for building documents
+        console.log(`🏢 [BUILDING UPLOAD] Checking permissions for role: ${userRole}`);
+        
         if (userRole === 'manager') {
+          console.log(`🏢 [BUILDING UPLOAD] Manager permission check for building ${buildingId}`);
           const organizations = await storage.getUserOrganizations(userId);
           const organizationId =
             organizations.length > 0 ? organizations[0].organizationId : undefined;
+          console.log(`🏢 [BUILDING UPLOAD] Manager organization: ${organizationId}`);
+          
           const building = await storage.getBuilding(buildingId);
+          console.log(`🏢 [BUILDING UPLOAD] Building organization: ${building?.organizationId}`);
+          
           if (!building || building.organizationId !== organizationId) {
+            console.log(`❌ [BUILDING UPLOAD] Manager permission denied - organization mismatch`);
             return res
               .status(403)
               .json({ message: 'Cannot assign document to building outside your organization' });
           }
+          console.log(`✅ [BUILDING UPLOAD] Manager permission check passed`);
         }
 
         if (userRole === 'resident') {
+          console.log(`🏢 [BUILDING UPLOAD] Resident permission check for building ${buildingId}`);
           const residences = await storage.getUserResidences(userId);
+          console.log(`🏢 [BUILDING UPLOAD] User residences count: ${residences.length}`);
+          
           const hasResidenceInBuilding = await Promise.all(
             residences.map(async (ur) => {
               const residence = await storage.getResidence(ur.residenceId);
-              return residence && residence.buildingId === buildingId;
+              const isInBuilding = residence && residence.buildingId === buildingId;
+              console.log(`🏢 [BUILDING UPLOAD] Residence ${ur.residenceId} in building ${buildingId}: ${isInBuilding}`);
+              return isInBuilding;
             })
           );
 
           if (!hasResidenceInBuilding.some(Boolean)) {
+            console.log(`❌ [BUILDING UPLOAD] Resident permission denied - no residence in building`);
             return res
               .status(403)
               .json({ message: 'Cannot assign document to building where you have no residence' });
           }
+          console.log(`✅ [BUILDING UPLOAD] Resident permission check passed`);
         }
 
         // Create unified document instead of separate building document
@@ -1628,7 +1712,16 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: validatedData.uploadedById,
         };
 
-        const document = await storage.createDocument(unifiedDocument) ;
+        console.log(`🏢 [BUILDING UPLOAD] Creating document in database:`, {
+          name: unifiedDocument.name,
+          documentType: unifiedDocument.documentType,
+          filePath: unifiedDocument.filePath,
+          buildingId: unifiedDocument.buildingId,
+          uploadedById: unifiedDocument.uploadedById
+        });
+
+        const document = await storage.createDocument(unifiedDocument);
+        console.log(`✅ [BUILDING UPLOAD] Document created successfully with ID: ${document.id}`);
 
         // File has been moved to permanent location, no cleanup needed
 
@@ -1639,8 +1732,11 @@ export function registerDocumentRoutes(app: Express): void {
           entityId: document.buildingId,
         });
       } else if (finalDocumentRecordType === 'resident') {
+        console.log(`🏠 [RESIDENCE UPLOAD] Processing residence document for residence ID: ${residenceId}`);
+        
         // Validate and create resident document
         if (!residenceId) {
+          console.log(`❌ [RESIDENCE UPLOAD] Missing residenceId`);
           return res
             .status(400)
             .json({ message: 'residenceId is required for resident documents' });
@@ -1651,21 +1747,36 @@ export function registerDocumentRoutes(app: Express): void {
         let fileName: string | undefined;
         
         if (req.file) {
+          console.log(`🏠 [RESIDENCE UPLOAD] Processing file upload for residence ${residenceId}`);
+          
           // Generate unique filename and move to permanent location
           fileName = `${uuidv4()}-${req.file.originalname}`;
           const permanentDir = path.join(process.cwd(), 'uploads', 'residences', residenceId);
           
+          console.log(`🏠 [RESIDENCE UPLOAD] File paths:`, {
+            originalName: req.file.originalname,
+            newFileName: fileName,
+            tempPath: req.file.path,
+            permanentDir,
+            directoryExists: fs.existsSync(permanentDir)
+          });
+          
           // Ensure directory exists
           if (!fs.existsSync(permanentDir)) {
+            console.log(`🏠 [RESIDENCE UPLOAD] Creating directory: ${permanentDir}`);
             fs.mkdirSync(permanentDir, { recursive: true });
           }
           
           // Move file from temporary to permanent location (copy + delete for cross-filesystem)
           const permanentPath = path.join(permanentDir, fileName);
+          console.log(`🏠 [RESIDENCE UPLOAD] Copying file from ${req.file.path} to ${permanentPath}`);
           fs.copyFileSync(req.file.path, permanentPath);
+          console.log(`🏠 [RESIDENCE UPLOAD] Cleaning up temporary file: ${req.file.path}`);
           fs.unlinkSync(req.file.path); // Clean up temporary file
           filePath = `residences/${residenceId}/${fileName}`;
+          console.log(`🏠 [RESIDENCE UPLOAD] File successfully moved to: ${filePath}`);
         } else {
+          console.log(`🏠 [RESIDENCE UPLOAD] No file provided, creating placeholder path`);
           filePath = `temp-path-${Date.now()}`;
         }
 
@@ -2253,6 +2364,9 @@ export function registerDocumentRoutes(app: Express): void {
   // Serve document files
   // Serve document files with proper role-based access control
   app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
+    console.log(`📥 [DOCUMENT DOWNLOAD] File download request for document ID: ${req.params.id}`);
+    console.log(`📥 [DOCUMENT DOWNLOAD] User: ${req.user.id} (${req.user.role})`);
+    
     try {
       const user = req.user;
       const userRole = user.role;
@@ -2260,10 +2374,24 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id;
       const isDownload = req.query.download === 'true';
 
+      console.log(`📥 [DOCUMENT DOWNLOAD] Request details:`, {
+        documentId,
+        userId,
+        userRole,
+        isDownload
+      });
+
       // Get user's organization and residences for permission checking
+      console.log(`📥 [DOCUMENT DOWNLOAD] Fetching user permissions data...`);
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
+
+      console.log(`📥 [DOCUMENT DOWNLOAD] User permissions:`, {
+        organizationsCount: organizations.length,
+        residencesCount: residences.length,
+        buildingsCount: buildings.length
+      });
 
       // Log access attempt for security auditing
       logSecurityEvent('DOCUMENT_FILE_ACCESS_ATTEMPT', user, false, documentId, {
@@ -2273,13 +2401,25 @@ export function registerDocumentRoutes(app: Express): void {
       });
 
       // Find the document directly from database without filtering by user
+      console.log(`📥 [DOCUMENT DOWNLOAD] Looking for document ${documentId} in database...`);
       const allDocuments = await storage.getDocuments({});
       const document = allDocuments.find((doc) => doc.id === documentId);
 
       if (!document) {
+        console.log(`❌ [DOCUMENT DOWNLOAD] Document not found: ${documentId}`);
         logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId);
         return res.status(404).json({ message: 'Document not found' });
       }
+
+      console.log(`📥 [DOCUMENT DOWNLOAD] Document found:`, {
+        id: document.id,
+        name: document.name,
+        filePath: document.filePath,
+        buildingId: document.buildingId,
+        residenceId: document.residenceId,
+        isVisibleToTenants: document.isVisibleToTenants,
+        uploadedById: document.uploadedById
+      });
 
       // Get user's organization info
       const userOrganizations = organizations.map(org => org.organizationId);
@@ -2303,24 +2443,47 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Check permissions based on the specified rules
+      console.log(`📥 [DOCUMENT DOWNLOAD] Checking access permissions for role: ${userRole}`);
       let hasAccess = false;
       let accessReason = '';
+
+      console.log(`📥 [DOCUMENT DOWNLOAD] Permission context:`, {
+        userOrganizations,
+        userResidenceIds,
+        userBuildingIds,
+        documentBuildingId: document.buildingId,
+        documentResidenceId: document.residenceId,
+        documentIsVisibleToTenants: document.isVisibleToTenants
+      });
 
       if (userRole === 'admin') {
         hasAccess = true;
         accessReason = 'Admin has global access';
+        console.log(`✅ [DOCUMENT DOWNLOAD] Admin granted access`);
       } else if (userRole === 'manager') {
+        console.log(`📥 [DOCUMENT DOWNLOAD] Checking manager permissions...`);
+        
         // Manager should have access to buildings they are assigned to
         if (document.buildingId) {
+          console.log(`📥 [DOCUMENT DOWNLOAD] Document is building-level, checking organization access`);
           // Get buildings for the manager's organization
           const orgBuildings = buildings.filter(building => 
             userOrganizations.includes(building.organizationId || '')
           );
           const orgBuildingIds = orgBuildings.map(b => b.id);
           
+          console.log(`📥 [DOCUMENT DOWNLOAD] Manager organization buildings:`, {
+            userOrganizations,
+            orgBuildingIds,
+            documentBuildingId: document.buildingId
+          });
+          
           if (orgBuildingIds.includes(document.buildingId)) {
             hasAccess = true;
             accessReason = 'Manager has access to organization buildings';
+            console.log(`✅ [DOCUMENT DOWNLOAD] Manager granted building access`);
+          } else {
+            console.log(`❌ [DOCUMENT DOWNLOAD] Manager denied building access - not in organization`);
           }
         }
         
@@ -2368,6 +2531,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (!hasAccess) {
+        console.log(`❌ [DOCUMENT DOWNLOAD] Access denied for user ${userId} to document ${documentId}`);
         logSecurityEvent('DOCUMENT_FILE_ACCESS_DENIED', user, false, documentId, {
           userRole,
           documentBuildingId: document.buildingId,
@@ -2379,6 +2543,8 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
+      console.log(`✅ [DOCUMENT DOWNLOAD] Access granted: ${accessReason}`);
+
       // Log successful access
       logSecurityEvent('DOCUMENT_FILE_ACCESS_GRANTED', user, true, documentId, {
         accessReason,
@@ -2388,14 +2554,17 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Serve from local storage
       if (document.filePath) {
-        console.log('📁 GCS disabled - serving from local storage');
+        console.log(`📥 [DOCUMENT DOWNLOAD] Serving file from local storage: ${document.filePath}`);
         try {
           // Always serve from local storage (GCS disabled)
           let filePathToServe = document.filePath;
 
+          console.log(`📥 [DOCUMENT DOWNLOAD] Resolving file path from: ${document.filePath}`);
+
           // Check if it's an absolute path
           if (document.filePath.startsWith('/')) {
             filePathToServe = document.filePath;
+            console.log(`📥 [DOCUMENT DOWNLOAD] Using absolute path: ${filePathToServe}`);
           }
           // Check if it's a relative file path
           else if (
@@ -2404,6 +2573,8 @@ export function registerDocumentRoutes(app: Express): void {
             document.filePath.includes('text-documents/') ||
             document.filePath.includes('general/')
           ) {
+            console.log(`📥 [DOCUMENT DOWNLOAD] Relative path detected, checking common locations...`);
+            
             // For development, try to find the file in common upload directories
             const possiblePaths = [
               path.join(process.cwd(), 'uploads', document.filePath), // Main fallback location
@@ -2413,11 +2584,14 @@ export function registerDocumentRoutes(app: Express): void {
               path.join('/tmp', document.filePath),
             ];
 
+            console.log(`📥 [DOCUMENT DOWNLOAD] Checking possible paths:`, possiblePaths);
+
             // Try to find the file in any of these locations
             for (const possiblePath of possiblePaths) {
+              console.log(`📥 [DOCUMENT DOWNLOAD] Checking path: ${possiblePath} (exists: ${fs.existsSync(possiblePath)})`);
               if (fs.existsSync(possiblePath)) {
                 filePathToServe = possiblePath;
-                console.log(`📂 Found file at: ${filePathToServe}`);
+                console.log(`✅ [DOCUMENT DOWNLOAD] Found file at: ${filePathToServe}`);
                 break;
               }
             }
@@ -2425,10 +2599,13 @@ export function registerDocumentRoutes(app: Express): void {
           // Check if it's a temp file path
           else if (document.filePath.includes('tmp')) {
             filePathToServe = document.filePath;
+            console.log(`📥 [DOCUMENT DOWNLOAD] Using temp file path: ${filePathToServe}`);
           }
 
           // Try to serve the file
           if (fs.existsSync(filePathToServe)) {
+            console.log(`📥 [DOCUMENT DOWNLOAD] File found, preparing to serve: ${filePathToServe}`);
+            
             // Get the original filename with extension, or construct one from the document name
             let fileName = (document as any).fileName || document.name || path.basename(document.filePath);
 
@@ -2440,6 +2617,13 @@ export function registerDocumentRoutes(app: Express): void {
               }
             }
 
+            console.log(`📥 [DOCUMENT DOWNLOAD] File details:`, {
+              originalFileName: fileName,
+              isDownload,
+              filePathToServe,
+              fileSize: fs.statSync(filePathToServe).size
+            });
+
             if (isDownload) {
               res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             } else {
@@ -2448,6 +2632,8 @@ export function registerDocumentRoutes(app: Express): void {
 
             // Set appropriate content type based on file extension
             const ext = path.extname(fileName).toLowerCase();
+            console.log(`📥 [DOCUMENT DOWNLOAD] Setting content type for extension: ${ext}`);
+            
             if (ext === '.pdf') {
               res.setHeader('Content-Type', 'application/pdf');
             } else if (ext === '.jpg' || ext === '.jpeg') {
@@ -2479,23 +2665,24 @@ export function registerDocumentRoutes(app: Express): void {
               });
             }
 
-            console.log(`📂 Serving file: ${filePathToServe} as ${fileName}`);
+            console.log(`✅ [DOCUMENT DOWNLOAD] Serving file: ${filePathToServe} as ${fileName}`);
             return res.sendFile(path.resolve(filePathToServe));
           }
 
           // If file not found locally, log for debugging
-          console.log(`❌ File not found at filePath: ${document.filePath}`);
-          console.log(`❌ Tried filePath: ${filePathToServe}`);
+          console.log(`❌ [DOCUMENT DOWNLOAD] File not found at filePath: ${document.filePath}`);
+          console.log(`❌ [DOCUMENT DOWNLOAD] Tried filePath: ${filePathToServe}`);
           return res.status(404).json({ message: 'File not found on server' });
         } catch (fileError: any) {
-          console.error('❌ Error serving file:', fileError);
+          console.error('❌ [DOCUMENT DOWNLOAD] Error serving file:', fileError);
           return res.status(500).json({ message: 'Failed to serve file' });
         }
       }
 
+      console.log(`❌ [DOCUMENT DOWNLOAD] No file associated with document ${documentId}`);
       return res.status(404).json({ message: 'No file associated with this document' });
     } catch (error: any) {
-      console.error('❌ Error serving document file:', error);
+      console.error('❌ [DOCUMENT DOWNLOAD] Error serving document file:', error);
       res.status(500).json({ message: 'Failed to serve document file' });
     }
   });
