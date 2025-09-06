@@ -125,6 +125,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiExtractionData, setAiExtractionData] = useState<any>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  
+  // State for manual document upload
+  const [manualFile, setManualFile] = useState<File | null>(null);
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>([]);
 
   // Form setup
@@ -211,15 +214,17 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const response = await apiRequest(method, endpoint, billData);
       const billResponse = await response.json();
       
-      // If this is a new bill created with AI extraction, upload the document
-      if (!bill && aiFile && aiExtractionData) {
+      // Upload document if one was attached (either from AI extraction or manual entry)
+      const fileToUpload = aiFile || manualFile;
+      if (!bill && fileToUpload) {
         try {
           const formData = new FormData();
-          formData.append('document', aiFile);
+          formData.append('document', fileToUpload);
           
           const uploadResponse = await apiRequest('POST', `/api/bills/${billResponse.id}/upload-document`, formData);
-          console.log('[BILL FORM] Document upload response:', await uploadResponse.json());
-          console.log('[BILL FORM] Document uploaded for AI-extracted bill');
+          const uploadResult = await uploadResponse.json();
+          console.log('[BILL FORM] Document upload response:', uploadResult);
+          console.log('[BILL FORM] Document uploaded for bill:', fileToUpload.name);
         } catch (uploadError) {
           console.warn('[BILL FORM] Failed to upload document:', uploadError);
           // Don't fail the bill creation if document upload fails
@@ -381,6 +386,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 <SharedUploader
                   onDocumentChange={(file) => {
                     console.log('[MANUAL ENTRY] Document uploaded:', file.name);
+                    setManualFile(file);
                     toast({
                       title: 'Document Uploaded',
                       description: `${file.name} attached to this bill entry`,
