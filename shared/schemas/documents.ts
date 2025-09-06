@@ -78,6 +78,45 @@ export type AttachDocument = z.infer<typeof attachDocumentSchema>;
  */
 export type Document = typeof documents.$inferSelect;
 
+// Enhanced types for modular document management components
+export interface DocumentWithMetadata extends Document {
+  uploadedBy?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+  residence?: {
+    id: string;
+    unitNumber?: string;
+    address?: string;
+  };
+  building?: {
+    id: string;
+    name?: string;
+    address?: string;
+  };
+}
+
+// User permissions for document access control
+export interface DocumentPermissions {
+  canView: boolean;
+  canDownload: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canCreate: boolean;
+}
+
+// Document display preferences
+export interface DocumentDisplayOptions {
+  showMetadata?: boolean;
+  compact?: boolean;
+  showFileSize?: boolean;
+  showUploadDate?: boolean;
+  showUploader?: boolean;
+  showEntityInfo?: boolean;
+}
+
 // Document type constants for consistency
 export const DOCUMENT_TYPES = {
   // Building/Residence documents
