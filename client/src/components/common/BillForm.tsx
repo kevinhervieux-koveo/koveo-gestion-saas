@@ -610,18 +610,18 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       />
 
       {/* Choose Document Type - Unified Component */}
-      <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-900">Choose Document Type</h3>
+      <div className="space-y-4">
+        <h3 className="text-base font-medium text-gray-900">Choose Document Type</h3>
         
         {/* Document Type Selection */}
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <button
             type="button"
             onClick={() => setAttachmentMode('file')}
-            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+            className={`flex-1 px-6 py-3 rounded-full border-2 text-sm font-medium transition-colors ${
               attachmentMode === 'file'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-blue-500 bg-blue-50 text-blue-600'
+                : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
             }`}
             data-testid="button-file-mode"
           >
@@ -630,10 +630,10 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           <button
             type="button"
             onClick={() => setAttachmentMode('text')}
-            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+            className={`flex-1 px-6 py-3 rounded-full border-2 text-sm font-medium transition-colors ${
               attachmentMode === 'text'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-blue-500 bg-blue-50 text-blue-600'
+                : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
             }`}
             data-testid="button-text-mode"
           >
@@ -643,8 +643,8 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
         {/* Dynamic Content Based on Selection */}
         {attachmentMode === 'file' ? (
-          <div>
-            <label className="text-sm font-medium text-gray-700">Select File to Upload</label>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-gray-700">Select File to Upload</h4>
             <FileUpload
               onFilesSelect={handleFilesSelect}
               onFilesRemove={handleFileRemove}
@@ -652,32 +652,32 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
               maxSize={10}
               acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
               allowPaste={true}
-              className="border border-gray-200 rounded-lg p-4 mt-1"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8"
               data-testid="bill-file-upload"
             >
-              <div className="text-center py-6">
-                <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600">
+              <div className="text-center">
+                <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                <p className="text-sm text-gray-600 mb-1">
                   Drop files here, click to browse, or paste screenshots
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500">
                   Attach receipts, screenshots, or supporting documents
                 </p>
               </div>
             </FileUpload>
           </div>
         ) : (
-          <div>
-            <label className="text-sm font-medium text-gray-700">Document Content</label>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-gray-700">Document Content</h4>
             <textarea
               value={attachmentText}
               onChange={(e) => setAttachmentText(e.target.value)}
-              rows={4}
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={6}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               placeholder="Enter text notes or details about this bill..."
               data-testid="textarea-text-content"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500">
               Add text notes or details that will be saved with the bill.
             </p>
           </div>
