@@ -308,7 +308,67 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     onSuccess: (data) => {
       setIsAnalyzing(false);
       setAiAnalysisData(data.analysisResult);
-      setActiveTab('manual'); // Switch to manual tab to show populated form
+      // Auto-switch to manual tab and smartly fill form
+      setActiveTab('manual');
+      // Apply AI analysis while respecting user input
+      setTimeout(() => {
+        if (data.analysisResult) {
+          const currentValues = form.getValues();
+          
+          // Only fill empty or default fields
+          if (!currentValues.title || currentValues.title === '') {
+            form.setValue('title', data.analysisResult.title);
+          }
+          
+          if (!currentValues.vendor || currentValues.vendor === '') {
+            form.setValue('vendor', data.analysisResult.vendor || '');
+          }
+          
+          if (!currentValues.category || currentValues.category === 'other') {
+            form.setValue('category', data.analysisResult.category);
+          }
+          
+          if (!currentValues.totalAmount || currentValues.totalAmount === '' || currentValues.totalAmount === '0') {
+            form.setValue('totalAmount', data.analysisResult.totalAmount);
+          }
+          
+          if (!currentValues.description || currentValues.description === '') {
+            form.setValue('description', data.analysisResult.description || '');
+          }
+
+          // Only set start date if it's the default (today) or empty
+          const today = new Date().toISOString().split('T')[0];
+          if ((!currentValues.startDate || currentValues.startDate === today) && data.analysisResult.issueDate) {
+            form.setValue('startDate', data.analysisResult.issueDate);
+          }
+
+          // Apply payment type if detected and user hasn't changed from default
+          if (currentValues.paymentType === 'unique' && data.analysisResult.paymentType) {
+            form.setValue('paymentType', data.analysisResult.paymentType);
+          }
+
+          // Append to notes (don't overwrite user notes)
+          let notes = currentValues.notes || '';
+          const aiNotesSection = [];
+          
+          if (data.analysisResult.billNumber) {
+            aiNotesSection.push(`Bill Number: ${data.analysisResult.billNumber}`);
+          }
+          if (data.analysisResult.vendorContact) {
+            aiNotesSection.push(`Vendor Contact: ${data.analysisResult.vendorContact}`);
+          }
+          if (data.analysisResult.dueDate) {
+            aiNotesSection.push(`Due Date: ${data.analysisResult.dueDate}`);
+          }
+          aiNotesSection.push(`AI Analysis Confidence: ${(data.analysisResult.confidence * 100).toFixed(1)}%`);
+          
+          if (aiNotesSection.length > 0) {
+            const aiNotes = aiNotesSection.join('\n');
+            notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
+            form.setValue('notes', notes.trim());
+          }
+        }
+      }, 100); // Small delay to ensure tab switch happens first
     },
     onError: () => {
       setIsAnalyzing(false);
@@ -324,8 +384,70 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     }
   };
 
+  // Smart form filling that respects user input
+  const applyAiAnalysisSmartly = useCallback(() => {
+    if (!aiAnalysisData) return;
+
+    const currentValues = form.getValues();
+    
+    // Only fill empty or default fields
+    if (!currentValues.title || currentValues.title === '') {
+      form.setValue('title', aiAnalysisData.title);
+    }
+    
+    if (!currentValues.vendor || currentValues.vendor === '') {
+      form.setValue('vendor', aiAnalysisData.vendor || '');
+    }
+    
+    if (!currentValues.category || currentValues.category === 'other') {
+      form.setValue('category', aiAnalysisData.category);
+    }
+    
+    if (!currentValues.totalAmount || currentValues.totalAmount === '' || currentValues.totalAmount === '0') {
+      form.setValue('totalAmount', aiAnalysisData.totalAmount);
+    }
+    
+    if (!currentValues.description || currentValues.description === '') {
+      form.setValue('description', aiAnalysisData.description || '');
+    }
+
+    // Only set start date if it's the default (today) or empty
+    const today = new Date().toISOString().split('T')[0];
+    if ((!currentValues.startDate || currentValues.startDate === today) && aiAnalysisData.issueDate) {
+      form.setValue('startDate', aiAnalysisData.issueDate);
+    }
+
+    // Apply payment type if detected and user hasn't changed from default
+    if (currentValues.paymentType === 'unique' && aiAnalysisData.paymentType) {
+      form.setValue('paymentType', aiAnalysisData.paymentType);
+    }
+
+    // Append to notes (don't overwrite user notes)
+    let notes = currentValues.notes || '';
+    const aiNotesSection = [];
+    
+    if (aiAnalysisData.billNumber) {
+      aiNotesSection.push(`Bill Number: ${aiAnalysisData.billNumber}`);
+    }
+    if (aiAnalysisData.vendorContact) {
+      aiNotesSection.push(`Vendor Contact: ${aiAnalysisData.vendorContact}`);
+    }
+    if (aiAnalysisData.dueDate) {
+      aiNotesSection.push(`Due Date: ${aiAnalysisData.dueDate}`);
+    }
+    aiNotesSection.push(`AI Analysis Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%`);
+    
+    if (aiNotesSection.length > 0) {
+      const aiNotes = aiNotesSection.join('\n');
+      notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
+      form.setValue('notes', notes.trim());
+    }
+  }, [aiAnalysisData, form]);
+
+  // Manual apply function (for the button)
   const applyAiAnalysis = () => {
     if (aiAnalysisData) {
+      // This overrides all fields (for manual application)
       form.setValue('title', aiAnalysisData.title);
       form.setValue('vendor', aiAnalysisData.vendor || '');
       form.setValue('category', aiAnalysisData.category);
@@ -336,25 +458,28 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         form.setValue('startDate', aiAnalysisData.issueDate);
       }
 
-      // Apply payment type if detected
       if (aiAnalysisData.paymentType) {
         form.setValue('paymentType', aiAnalysisData.paymentType);
       }
 
-      // Apply notes with additional AI extracted information
+      // Apply notes with AI information
       let notes = form.getValues('notes') || '';
+      const aiNotesSection = [];
+      
       if (aiAnalysisData.billNumber) {
-        notes += `\nBill Number: ${aiAnalysisData.billNumber}`;
+        aiNotesSection.push(`Bill Number: ${aiAnalysisData.billNumber}`);
       }
       if (aiAnalysisData.vendorContact) {
-        notes += `\nVendor Contact: ${aiAnalysisData.vendorContact}`;
+        aiNotesSection.push(`Vendor Contact: ${aiAnalysisData.vendorContact}`);
       }
       if (aiAnalysisData.dueDate) {
-        notes += `\nDue Date: ${aiAnalysisData.dueDate}`;
+        aiNotesSection.push(`Due Date: ${aiAnalysisData.dueDate}`);
       }
-      notes += `\nAI Analysis Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%`;
+      aiNotesSection.push(`AI Analysis Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%`);
       
-      if (notes.trim()) {
+      if (aiNotesSection.length > 0) {
+        const aiNotes = aiNotesSection.join('\n');
+        notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
         form.setValue('notes', notes.trim());
       }
     }
