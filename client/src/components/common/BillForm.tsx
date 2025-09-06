@@ -589,9 +589,16 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
   // Smart form filling that respects user input
   const applyAiAnalysisSmartly = useCallback(() => {
-    if (!aiAnalysisData) return;
+    console.log('🧠 [DEBUG] === SMART AI ANALYSIS APPLICATION STARTING ===');
+    console.log('📊 [DEBUG] AI Analysis Data for smart application:', aiAnalysisData);
+    
+    if (!aiAnalysisData) {
+      console.warn('⚠️ [DEBUG] No AI analysis data available for smart application');
+      return;
+    }
 
     const currentValues = form.getValues();
+    console.log('🔍 [DEBUG] Current form values before smart AI application:', currentValues);
     
     // Only fill empty or default fields
     if (!currentValues.title || currentValues.title === '') {
@@ -643,25 +650,46 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     if (aiNotesSection.length > 0) {
       const aiNotes = aiNotesSection.join('\n');
       notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
+      console.log('📝 [DEBUG] Smart apply - Setting notes:', notes.trim());
       form.setValue('notes', notes.trim());
     }
+    
+    console.log('🔍 [DEBUG] Final form values after smart AI application:', form.getValues());
+    console.log('🎉 [DEBUG] === SMART AI ANALYSIS APPLICATION COMPLETED ===');
   }, [aiAnalysisData, form]);
 
   // Manual apply function (for the button)
   const applyAiAnalysis = () => {
+    console.log('🤖 [DEBUG] === APPLYING AI ANALYSIS TO FORM (MANUAL BUTTON) ===');
+    console.log('📊 [DEBUG] AI Analysis Data received:', aiAnalysisData);
+    console.log('🔍 [DEBUG] Current form values before applying AI:', form.getValues());
+    
     if (aiAnalysisData) {
+      console.log('✅ [DEBUG] AI data exists, setting form values...');
+      
       // This overrides all fields (for manual application)
+      console.log('📝 [DEBUG] Setting title:', aiAnalysisData.title);
       form.setValue('title', aiAnalysisData.title);
+      
+      console.log('📝 [DEBUG] Setting vendor:', aiAnalysisData.vendor);
       form.setValue('vendor', aiAnalysisData.vendor || '');
+      
+      console.log('📝 [DEBUG] Setting category:', aiAnalysisData.category);
       form.setValue('category', aiAnalysisData.category);
+      
+      console.log('📝 [DEBUG] Setting totalAmount:', aiAnalysisData.totalAmount);
       form.setValue('totalAmount', aiAnalysisData.totalAmount);
+      
+      console.log('📝 [DEBUG] Setting description:', aiAnalysisData.description);
       form.setValue('description', aiAnalysisData.description || '');
 
       if (aiAnalysisData.issueDate) {
+        console.log('📝 [DEBUG] Setting startDate:', aiAnalysisData.issueDate);
         form.setValue('startDate', aiAnalysisData.issueDate);
       }
 
       if (aiAnalysisData.paymentType) {
+        console.log('📝 [DEBUG] Setting paymentType:', aiAnalysisData.paymentType);
         form.setValue('paymentType', aiAnalysisData.paymentType);
       }
 
@@ -683,8 +711,14 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       if (aiNotesSection.length > 0) {
         const aiNotes = aiNotesSection.join('\n');
         notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
+        console.log('📝 [DEBUG] Setting notes with AI analysis:', notes.trim());
         form.setValue('notes', notes.trim());
       }
+      
+      console.log('🔍 [DEBUG] Final form values after applying AI:', form.getValues());
+      console.log('🎉 [DEBUG] === AI ANALYSIS APPLICATION COMPLETED ===');
+    } else {
+      console.error('❌ [DEBUG] No AI analysis data available when applying to form');
     }
   };
 
