@@ -1394,14 +1394,26 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Save text content to local file system for text documents
+        // Determine document record type for directory structure
+        let documentRecordType;
+        if (buildingId && !residenceId) {
+          documentRecordType = 'building';
+        } else if (residenceId && !buildingId) {
+          documentRecordType = 'resident';
+        } else {
+          return res.status(400).json({
+            message: 'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
+          });
+        }
+
+        // Save text content to local file system with proper directory structure
         let fileName: string;
         try {
-          const textFilePath = path.join(process.cwd(), 'uploads', 'text-documents', userId);
+          const textFilePath = path.join(process.cwd(), 'uploads', documentRecordType);
           if (!fs.existsSync(textFilePath)) {
             fs.mkdirSync(textFilePath, { recursive: true });
           }
-          fileName = `${uuidv4()}.txt`;
+          fileName = `${uuidv4()}-text-document.txt`;
           const fullPath = path.join(textFilePath, fileName);
           fs.writeFileSync(fullPath, textContent, 'utf8');
         } catch (fsError) {
@@ -1409,8 +1421,8 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(500).json({ message: 'Failed to save text document' });
         }
         
-        // Update file path to actual local path
-        documentData.filePath = `text-documents/${userId}/${fileName}`;
+        // Update file path to match regular document uploads
+        documentData.filePath = `${documentRecordType}/${fileName}`;
 
         // Create document record in database
         const document = await storage.createDocument(documentData);

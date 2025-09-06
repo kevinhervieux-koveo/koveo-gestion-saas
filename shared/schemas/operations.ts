@@ -269,7 +269,6 @@ export const featureRequests = pgTable('feature_requests', {
   filePath: text('file_path'), // Path to the uploaded file
   fileName: text('file_name'), // Original file name
   fileSize: integer('file_size'), // File size in bytes
-  file_content: text('file_content'), // Text content for text-only documents
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -393,7 +392,6 @@ export const insertFeatureRequestSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page is required'),
-  file_content: z.string().optional(), // Text content for text-only documents
 });
 
 export const insertFeatureRequestUpvoteSchema = z.object({
