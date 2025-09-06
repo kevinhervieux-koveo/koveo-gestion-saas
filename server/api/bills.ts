@@ -650,27 +650,18 @@ export function registerBillRoutes(app: Express) {
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
     try {
-      console.log('📱 [SERVER DEBUG] Document download requested for bill ID:', req.params.id);
       const { id } = req.params;
 
       // Get the bill to check if it has a document
       const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
-        console.error('❌ [SERVER DEBUG] Bill not found for document download:', id);
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
-      console.log('📄 [SERVER DEBUG] Bill found for document download:', {
-        id: billData.id,
-        documentPath: billData.documentPath,
-        documentName: billData.documentName,
-        hasDocument: !!(billData.documentPath && billData.documentName)
-      });
 
       if (!billData.documentPath || !billData.documentName) {
-        console.error('❌ [SERVER DEBUG] No document associated with this bill:', id);
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -683,15 +674,8 @@ export function registerBillRoutes(app: Express) {
       const uploadsDir = path.join(process.cwd(), 'uploads');
       const filePath = path.join(uploadsDir, billData.documentPath);
 
-      console.log('📂 [SERVER DEBUG] Attempting to serve file:', {
-        uploadsDir,
-        documentPath: billData.documentPath,
-        fullFilePath: filePath
-      });
-
       // Check if file exists
       if (!fs.existsSync(filePath)) {
-        console.error('❌ [SERVER DEBUG] File not found on disk:', filePath);
         return res.status(404).json({ message: 'Document file not found on server' });
       }
 
@@ -700,12 +684,11 @@ export function registerBillRoutes(app: Express) {
       res.setHeader('Content-Type', 'application/octet-stream');
       
       // Stream the file
-      console.log('✅ [SERVER DEBUG] Streaming file to client:', billData.documentName);
       res.sendFile(filePath);
     } catch (_error: any) {
       console.error('❌ Error downloading document:', _error);
       res.status(500).json({
-        message: 'Failed to generate document download URL',
+        message: 'Failed to download document',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }

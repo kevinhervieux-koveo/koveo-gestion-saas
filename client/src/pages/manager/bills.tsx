@@ -763,22 +763,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   );
 }
 
-// Bill detail and edit form
-/**
- *
- * @param root0
- * @param root0.bill
- * @param root0.onSuccess
- * @param root0.onCancel
- */
-/**
- * BillDetail function.
- * @param root0
- * @param root0.bill
- * @param root0.onSuccess
- * @param root0.onCancel
- * @returns Function result.
- */
+// Bill detail component
 function BillDetail({
   bill,
   onSuccess,
@@ -790,7 +775,6 @@ function BillDetail({
   onCancel: () => void;
   onEditBill: () => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch fresh bill data to ensure we have updated document information
@@ -836,14 +820,6 @@ function BillDetail({
   });
 
   const handleSetEndDate = () => {
-    /**
-     * If function.
-     * @param endDate - EndDate parameter.
-     */ /**
-     * If function.
-     * @param endDate - EndDate parameter.
-     */
-
     if (endDate) {
       updateBillMutation.mutate({ endDate });
     }
