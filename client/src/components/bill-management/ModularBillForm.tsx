@@ -297,8 +297,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           
           // Update the bill response with the document information from the upload
           if (uploadResult.bill) {
-            billResponse.documentPath = uploadResult.bill.documentPath;
-            billResponse.documentName = uploadResult.bill.documentName;
+            billResponse.filePath = uploadResult.bill.filePath;
+            billResponse.fileName = uploadResult.bill.fileName;
+            billResponse.fileSize = uploadResult.bill.fileSize;
             billResponse.isAiAnalyzed = uploadResult.bill.isAiAnalyzed;
             billResponse.aiAnalysisData = uploadResult.bill.aiAnalysisData;
           }

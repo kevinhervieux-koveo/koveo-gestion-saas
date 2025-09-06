@@ -37,7 +37,9 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  attachments?: string[];
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   status:
     | 'submitted'
     | 'under_review'
@@ -529,14 +531,14 @@ export default function DemandDetailsPopup({
                   </div>
 
                   {/* Attachments Section */}
-                  {demand.attachments && demand.attachments.length > 0 && (
+                  {demand.filePath && (
                     <div>
                       <Label className='flex items-center gap-1'>
                         <Paperclip className='h-4 w-4' />
-                        Attachments ({demand.attachments.length})
+                        File Attachment
                       </Label>
                       <div className='mt-2 space-y-2'>
-                        {demand.attachments.map((attachment, index) => {
+                        {demand.fileName && (
                           const filename = attachment.split('/').pop() || `attachment-${index + 1}`;
                           const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment);
                           

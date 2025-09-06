@@ -704,7 +704,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
             {bill.vendor && <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>}
 
             <div className='flex items-center gap-2 pt-2'>
-              {bill.documentPath && (
+              {bill.filePath && (
                 <Badge variant='outline' className='text-xs'>
                   <FileText className='w-3 h-3 mr-1' />
                   Document
@@ -920,14 +920,14 @@ function BillDetail({
       )}
 
       {/* Document Section - Only show if document exists */}
-      {currentBill.documentPath && (
+      {currentBill.filePath && (
         <div className='border-t pt-4'>
           <Label className='text-sm font-medium'>Uploaded Document</Label>
           <div className='mt-2'>
             <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
               <div className='flex items-center gap-2'>
                 <FileText className='w-4 h-4 text-blue-600' />
-                <span className='text-sm'>{currentBill.documentName}</span>
+                <span className='text-sm'>{currentBill.fileName}</span>
                 {currentBill.isAiAnalyzed && (
                   <Badge variant='outline' className='text-xs'>
                     AI Analyzed
@@ -939,13 +939,13 @@ function BillDetail({
                 size='sm'
                 onClick={() => {
                   console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
-                  console.log('[DOWNLOAD] Document name:', currentBill.documentName);
-                  console.log('[DOWNLOAD] Document path:', currentBill.documentPath);
+                  console.log('[DOWNLOAD] Document name:', currentBill.fileName);
+                  console.log('[DOWNLOAD] Document path:', currentBill.filePath);
                   
                   // Download the document
                   const link = document.createElement('a');
                   link.href = `/api/bills/${currentBill.id}/download-document`;
-                  link.download = currentBill.documentName || 'bill-document';
+                  link.download = currentBill.fileName || 'bill-document';
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
