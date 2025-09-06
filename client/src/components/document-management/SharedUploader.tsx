@@ -1,9 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, X, File, Image, FileText, Camera } from 'lucide-react';
+import { Upload, X, File, Image, FileText, Camera, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { getUploadConfig, isAiAnalysisEnabled, type UploadContext } from '@shared/config/upload-config';
 
 interface SharedUploaderProps {
   onDocumentChange: (file: File | null, text: string | null) => void;
@@ -12,6 +15,14 @@ interface SharedUploaderProps {
   disabled?: boolean;
   className?: string;
   defaultTab?: 'file' | 'text';
+  // AI Enhancement Props
+  formType?: string;
+  uploadContext?: UploadContext;
+  aiAnalysisEnabled?: boolean;
+  onAiToggle?: (enabled: boolean) => void;
+  onAiAnalysisComplete?: (data: any) => void;
+  showAiToggle?: boolean;
+  contextFields?: Record<string, any>;
 }
 
 interface FilePreview {
@@ -37,32 +48,54 @@ const DEFAULT_ALLOWED_TYPES = [
  */
 export function SharedUploader({
   onDocumentChange,
-  allowedFileTypes = DEFAULT_ALLOWED_TYPES,
-  maxFileSize = 25, // MB
+  allowedFileTypes,
+  maxFileSize,
   disabled = false,
   className,
-  defaultTab = 'file'
+  defaultTab = 'file',
+  // AI Enhancement Props
+  formType = 'documents',
+  uploadContext,
+  aiAnalysisEnabled: propAiEnabled,
+  onAiToggle,
+  onAiAnalysisComplete,
+  showAiToggle = true,
+  contextFields
 }: SharedUploaderProps) {
+  // Get configuration from upload config
+  const config = getUploadConfig(formType);
+  const finalAllowedTypes = allowedFileTypes || config.allowedFileTypes;
+  const finalMaxFileSize = maxFileSize || config.maxFileSize;
+  const finalAiEnabled = propAiEnabled ?? config.aiAnalysisEnabled;
+
   // State management
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FilePreview | null>(null);
   const [textContent, setTextContent] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [aiEnabled, setAiEnabled] = useState(finalAiEnabled);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAreaRef = useRef<HTMLDivElement>(null);
 
+  // Handle AI toggle
+  const handleAiToggle = useCallback((enabled: boolean) => {
+    setAiEnabled(enabled);
+    onAiToggle?.(enabled);
+  }, [onAiToggle]);
+
   // File validation function
   const validateFile = useCallback((file: File): string | null => {
     // Check file size
-    if (file.size > maxFileSize * 1024 * 1024) {
-      return `File size exceeds ${maxFileSize}MB limit`;
+    if (file.size > finalMaxFileSize * 1024 * 1024) {
+      return `File size exceeds ${finalMaxFileSize}MB limit`;
     }
 
     // Check file type
-    const isAllowed = allowedFileTypes.some(type => {
+    const isAllowed = finalAllowedTypes.some(type => {
       if (type.includes('*')) {
         return file.type.startsWith(type.replace('*', ''));
       }
@@ -79,7 +112,40 @@ export function SharedUploader({
     }
 
     return null;
-  }, [allowedFileTypes, maxFileSize]);
+  }, [finalAllowedTypes, finalMaxFileSize]);
+
+  // AI Analysis function
+  const performAiAnalysis = useCallback(async (file: File) => {
+    if (!aiEnabled || !onAiAnalysisComplete) return;
+    
+    setIsAnalyzing(true);
+    try {
+      // Create FormData for AI analysis
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('formType', formType);
+      
+      if (uploadContext) {
+        formData.append('uploadContext', JSON.stringify(uploadContext));
+      }
+      
+      // Make AI analysis request
+      const response = await fetch('/api/ai/analyze-document', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        onAiAnalysisComplete(result);
+      }
+    } catch (error) {
+      console.error('AI analysis failed:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [aiEnabled, onAiAnalysisComplete, formType, uploadContext]);
 
   // Process and validate file
   const processFile = useCallback((file: File): void => {
@@ -103,7 +169,12 @@ export function SharedUploader({
 
     setSelectedFile(filePreview);
     onDocumentChange(file, null);
-  }, [validateFile, onDocumentChange]);
+    
+    // Trigger AI analysis if enabled
+    if (aiEnabled) {
+      performAiAnalysis(file);
+    }
+  }, [validateFile, onDocumentChange, aiEnabled, performAiAnalysis]);
 
   // Handle file selection from input
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,6 +303,38 @@ export function SharedUploader({
 
   return (
     <div className={cn("w-full", className)}>
+      {/* AI Toggle Section */}
+      {showAiToggle && config.aiAnalysisEnabled !== undefined && (
+        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            <Label htmlFor="ai-toggle" className="text-sm font-medium">
+              AI Analysis
+            </Label>
+            {aiEnabled && (
+              <Badge variant="secondary" className="text-xs">
+                Enabled
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="ai-toggle"
+              checked={aiEnabled}
+              onCheckedChange={handleAiToggle}
+              disabled={disabled}
+              data-testid="switch-ai-analysis"
+            />
+            {isAnalyzing && (
+              <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                Analyzing...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="file" data-testid="tab-upload-file">
@@ -248,7 +351,7 @@ export function SharedUploader({
           <input
             ref={fileInputRef}
             type="file"
-            accept={allowedFileTypes.join(',')}
+            accept={finalAllowedTypes.join(',')}
             capture="environment" // Mobile camera integration for rear camera
             onChange={handleFileSelect}
             className="hidden"
@@ -331,8 +434,19 @@ export function SharedUploader({
                     💻 On desktop: Drag & drop, click to browse, or paste screenshots (Ctrl+V)
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Maximum {maxFileSize}MB • PDF, DOCX, XLSX, PNG, JPG
+                    Maximum {finalMaxFileSize}MB • {finalAllowedTypes.map(type => {
+                      if (type.includes('image')) return 'Images';
+                      if (type.includes('pdf')) return 'PDF';
+                      if (type.includes('word')) return 'DOCX';
+                      if (type.includes('excel') || type.includes('sheet')) return 'XLSX';
+                      return type.split('/').pop()?.toUpperCase();
+                    }).filter(Boolean).join(', ')}
                   </p>
+                  {aiEnabled && (
+                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
+                      ✨ AI analysis will extract key information automatically
+                    </p>
+                  )}
                 </div>
               </>
             )}
