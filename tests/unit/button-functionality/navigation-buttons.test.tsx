@@ -24,7 +24,7 @@ jest.mock('wouter', () => ({
 // Mock asset imports - use moduleNameMapper instead
 
 // Mock authentication context
-jest.mock('../../../client/src/hooks/use-auth', () => ({
+jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
     user: { id: '1', email: 'test@test.com', role: 'admin' },
     isAuthenticated: true,
@@ -33,12 +33,12 @@ jest.mock('../../../client/src/hooks/use-auth', () => ({
   }),
 }));
 
-// Import components to test
-import HomePage from '../../../client/src/pages/home';
-import PricingPage from '../../../client/src/pages/pricing';
-import FeaturesPage from '../../../client/src/pages/features';
-import StoryPage from '../../../client/src/pages/story';
-import SecurityPage from '../../../client/src/pages/security';
+// Import components to test - use @ aliases
+import HomePage from '@/pages/home';
+import PricingPage from '@/pages/pricing';
+import FeaturesPage from '@/pages/features';
+import StoryPage from '@/pages/story';
+import SecurityPage from '@/pages/security';
 
 describe('Navigation Buttons Functionality', () => {
   let queryClient: QueryClient;
