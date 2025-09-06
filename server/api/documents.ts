@@ -1205,13 +1205,16 @@ export function registerDocumentRoutes(app: Express): void {
         return false;
       });
 
-      // Add document type indicators for frontend compatibility
+      // Add document type indicators for frontend compatibility and field mapping
       const enhancedDocumentRecords = filteredDocumentRecords.map((doc) => ({
         ...doc,
+        title: doc.name, // Map database 'name' field to frontend 'title' field
+        category: doc.documentType, // Map database 'documentType' to frontend 'category'
         documentCategory: doc.buildingId ? 'building' : 'resident',
         entityType: doc.buildingId ? 'building' : 'residence',
         entityId: doc.buildingId || doc.residenceId,
         uploadDate: doc.createdAt, // For backward compatibility
+        fileUrl: doc.filePath ? `/api/documents/${doc.id}/file` : undefined, // Generate file URL if file exists
       }));
 
       allDocumentRecords.push(...enhancedDocumentRecords);
@@ -1366,12 +1369,13 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
 
-      // Check if this is a text-only document or file upload
+      // Check if this is a text-only document, file upload, or metadata-only document
       const isTextDocumentRecord = !req.file && textContent;
       const isFileDocumentRecord = !!req.file;
+      const isMetadataDocumentRecord = !req.file && !textContent && (otherData.title || otherData.name);
 
-      if (!isTextDocumentRecord && !isFileDocumentRecord) {
-        return res.status(400).json({ message: 'Either a file or text content is required' });
+      if (!isTextDocumentRecord && !isFileDocumentRecord && !isMetadataDocumentRecord) {
+        return res.status(400).json({ message: 'Either a file, text content, or document title/name is required' });
       }
 
       // For text documents, create unified document directly
@@ -1443,9 +1447,73 @@ export function registerDocumentRoutes(app: Express): void {
           message: 'Text document created successfully',
           document: {
             ...document,
+            title: document.name, // Map name to title for frontend compatibility
+            category: document.documentType, // Map documentType to category for frontend compatibility
             documentCategory: buildingId ? 'building' : 'resident',
             entityType: buildingId ? 'building' : 'residence',
             entityId: buildingId || residenceId,
+          },
+        });
+      }
+
+      // Handle metadata-only documents (create document record without file)
+      if (isMetadataDocumentRecord) {
+        // Map frontend 'title' field to database 'name' field and 'category' to 'documentType'
+        const documentData: InsertDocument = {
+          name: otherData.title || otherData.name || 'Untitled Document',
+          description: otherData.description || '',
+          documentType: otherData.category || documentType || 'other',
+          filePath: `metadata-documents/${userId}/${uuidv4()}`, // Placeholder path for metadata-only documents
+          isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true || false,
+          residenceId: residenceId || undefined,
+          buildingId: buildingId || undefined,
+          uploadedById: userId,
+        };
+
+        // Validate building/residence requirement
+        if (!buildingId && !residenceId) {
+          return res.status(400).json({
+            message: 'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
+          });
+        }
+
+        if (buildingId && residenceId) {
+          return res.status(400).json({
+            message: 'Cannot provide both buildingId and residenceId',
+          });
+        }
+
+        // Permission checks
+        if (buildingId && userRole === 'manager') {
+          const organizations = await storage.getUserOrganizations(userId);
+          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const building = await storage.getBuilding(buildingId);
+          if (!building || building.organizationId !== organizationId) {
+            return res.status(403).json({ message: 'Cannot assign document to building outside your organization' });
+          }
+        }
+
+        if (residenceId && userRole === 'resident') {
+          const residences = await storage.getUserResidences(userId);
+          const residenceIds = residences.map((ur) => ur.residenceId);
+          if (!residenceIds.includes(residenceId)) {
+            return res.status(403).json({ message: 'Cannot assign document to residence you do not own' });
+          }
+        }
+
+        // Create document record in database
+        const document = await storage.createDocument(documentData);
+        
+        return res.status(201).json({
+          message: 'Document created successfully',
+          document: {
+            ...document,
+            title: document.name, // Map name to title for frontend compatibility
+            category: document.documentType, // Map documentType to category for frontend compatibility
+            documentCategory: buildingId ? 'building' : 'resident',
+            entityType: buildingId ? 'building' : 'residence',
+            entityId: buildingId || residenceId,
+            fileUrl: undefined, // No file URL for metadata-only documents
           },
         });
       }
