@@ -421,11 +421,46 @@ export function registerDemandRoutes(app: Express) {
 
       const demand = currentDemand[0];
 
-      // Check permissions - users can only delete their own demands
-      if (demand.submitterId !== user.id) {
+      // Check permissions based on user role
+      let canDelete = false;
+      
+      if (user.role === 'admin') {
+        // Admins can delete any demand
+        canDelete = true;
+      } else if (user.role === 'manager') {
+        // Managers can delete demands from their organization's buildings
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Check if the demand's building belongs to the manager's organization
+          const buildingOrganization = await db
+            .select({ organizationId: buildings.organizationId })
+            .from(buildings)
+            .where(eq(buildings.id, demand.buildingId))
+            .limit(1);
+            
+          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+            canDelete = true;
+          }
+        }
+      } else if (demand.submitterId === user.id) {
+        // Users can delete their own demands
+        canDelete = true;
+      }
+      
+      if (!canDelete) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
+      // Delete associated comments first (cascade delete)
+      await db.delete(demandComments).where(eq(demandComments.demandId, id));
+      
+      // Then delete the demand
       await db.delete(demands).where(eq(demands.id, id));
 
       res.json({ message: 'Demand deleted successfully' });
