@@ -44,6 +44,7 @@ import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
 import { DemandFilters } from '@/components/common/DemandFilters';
 import { SharedUploader } from '@/components/document-management';
+import type { UploadContext } from '@shared/config/upload-config';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
@@ -151,6 +152,14 @@ ResidentDemandsPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: 'demands',
+    organizationId: 'default',
+    userRole: user?.role || 'resident',
+    userId: user?.id
+  };
   const [uploadedAttachments, setUploadedAttachments] = useState<string[]>([]);
   const itemsPerPage = 10;
 
@@ -482,11 +491,12 @@ ResidentDemandsPage() {
                             setSelectedFiles([file]);
                           }
                         }}
+                        formType="demands"
+                        uploadContext={uploadContext}
+                        aiAnalysisEnabled={false} // AI disabled for demands by default
+                        showAiToggle={true} // Allow user to enable AI if desired
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
                         maxFileSize={10}
-                        showCamera={true}
-                        compact={true}
-                        placeholder="Upload screenshots, photos, or documents to support your request"
                       />
                       <p className='text-xs text-muted-foreground'>
                         Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.
