@@ -30,6 +30,12 @@ jest.mock('drizzle-orm', () => ({
   isNotNull: jest.fn(() => 'mock-is-not-null'),
   exists: jest.fn(() => 'mock-exists'),
   notExists: jest.fn(() => 'mock-not-exists'),
+  count: jest.fn(() => 'mock-count'),
+  sum: jest.fn(() => 'mock-sum'),
+  avg: jest.fn(() => 'mock-avg'),
+  min: jest.fn(() => 'mock-min'),
+  max: jest.fn(() => 'mock-max'),
+  relations: jest.fn(() => ({})),
 }));
 
 // Mock server config to prevent runtime errors
@@ -103,37 +109,36 @@ jest.mock('drizzle-orm/neon-serverless', () => ({
 
 // Create global mock database instance
 const createMockQueryBuilder = (defaultResult: any = []) => {
-  const mockBuilder = {
-    // All query methods return the builder for chaining
-    from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    leftJoin: jest.fn().mockReturnThis(),
-    innerJoin: jest.fn().mockReturnThis(),
-    rightJoin: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
-    values: jest.fn().mockReturnThis(),
-    returning: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    offset: jest.fn().mockReturnThis(),
-    groupBy: jest.fn().mockReturnThis(),
-    having: jest.fn().mockReturnThis(),
-    
-    // Make it a thenable (promise-like) with immediate resolution
-    then: jest.fn((resolve) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).then(resolve);
-    }),
-    catch: jest.fn((reject) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).catch(reject);
-    }),
-    finally: jest.fn((finallyFn) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).finally(finallyFn);
-    }),
-  };
+  // Use a function to create a fresh mock builder that properly chains
+  const mockBuilder: any = {};
+  
+  // Define all chainable methods
+  const chainableMethods = [
+    'from', 'where', 'leftJoin', 'innerJoin', 'rightJoin', 'select',
+    'set', 'values', 'returning', 'orderBy', 'limit', 'offset', 
+    'groupBy', 'having'
+  ];
+  
+  // Set up each method to return the builder itself
+  chainableMethods.forEach(method => {
+    mockBuilder[method] = jest.fn().mockImplementation(() => mockBuilder);
+  });
+  
+  // Make it thenable (promise-like) with immediate resolution
+  mockBuilder.then = jest.fn((resolve) => {
+    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+    return Promise.resolve(result).then(resolve);
+  });
+  
+  mockBuilder.catch = jest.fn((reject) => {
+    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+    return Promise.resolve(result).catch(reject);
+  });
+  
+  mockBuilder.finally = jest.fn((finallyFn) => {
+    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+    return Promise.resolve(result).finally(finallyFn);
+  });
 
   return mockBuilder;
 };
@@ -268,8 +273,6 @@ jest.mock('./server/routes', () => ({
 
 // Mock language hook and provider with proper React setup
 jest.mock('@/hooks/use-language', () => {
-  const React = require('react');
-  
   // Create a mock function that always returns the expected structure
   const mockUseLanguage = jest.fn().mockReturnValue({
     t: jest.fn((key: string, options?: any) => {
