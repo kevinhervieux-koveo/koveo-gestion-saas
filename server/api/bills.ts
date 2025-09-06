@@ -294,8 +294,9 @@ export function registerBillRoutes(app: Express) {
           startDate: bills.startDate,
           status: bills.status,
           notes: bills.notes,
-          documentPath: bills.documentPath,
-          documentName: bills.documentName,
+          filePath: bills.filePath,
+          fileName: bills.fileName,
+          fileSize: bills.fileSize,
           isAiAnalyzed: bills.isAiAnalyzed,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
@@ -586,7 +587,7 @@ export function registerBillRoutes(app: Express) {
           organizations.length > 0 ? organizations[0].organizationId : 'default';
 
         // Create document path in the expected format
-        const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
+        const filePath = `prod_org_${organizationId}/${req.file.originalname}`;
         
         // Create uploads directory structure if it doesn't exist
         const path = await import('path');
@@ -601,7 +602,7 @@ export function registerBillRoutes(app: Express) {
         }
 
         // Save file to permanent storage
-        const permanentFilePath = path.join(uploadsDir, documentPath);
+        const permanentFilePath = path.join(uploadsDir, filePath);
         fs.copyFileSync(req.file.path, permanentFilePath);
 
         // Analyze document with Gemini AI (images and PDFs)
@@ -617,8 +618,9 @@ export function registerBillRoutes(app: Express) {
 
         // Update bill with document info and AI analysis
         const updateData: unknown = {
-          documentPath,
-          documentName: req.file.originalname,
+          filePath,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
           updatedAt: new Date(),
@@ -676,7 +678,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = bill[0];
 
-      if (!billData.documentPath || !billData.documentName) {
+      if (!billData.filePath || !billData.fileName) {
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -687,29 +689,29 @@ export function registerBillRoutes(app: Express) {
       // Serve the file directly from local storage
       const path = await import('path');
       const uploadsDir = path.join(process.cwd(), 'uploads');
-      const filePath = path.join(uploadsDir, billData.documentPath);
+      const fileFullPath = path.join(uploadsDir, billData.filePath);
 
       console.log('[DOWNLOAD] File paths:', {
         uploadsDir,
-        documentPath: billData.documentPath,
+        filePath: billData.filePath,
         fullFilePath: filePath,
-        documentName: billData.documentName
+        fileName: billData.fileName
       });
 
       // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        console.log('[DOWNLOAD] File not found at path:', filePath);
+      if (!fs.existsSync(fileFullPath)) {
+        console.log('[DOWNLOAD] File not found at path:', fileFullPath);
         return res.status(404).json({ message: 'Document file not found on server' });
       }
 
       console.log('[DOWNLOAD] File found, setting headers and sending...');
       
       // Set appropriate headers for file download
-      res.setHeader('Content-Disposition', `attachment; filename="${billData.documentName}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${billData.fileName}"`);
       res.setHeader('Content-Type', 'application/octet-stream');
       
       // Stream the file
-      res.sendFile(filePath);
+      res.sendFile(fileFullPath);
     } catch (_error: any) {
       console.error('❌ Error downloading document:', _error);
       res.status(500).json({
