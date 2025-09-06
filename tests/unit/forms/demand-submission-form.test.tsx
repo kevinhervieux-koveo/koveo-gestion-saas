@@ -83,6 +83,15 @@ const TestDemandForm = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const handleSubmit = async (data: any) => {
+    // Client-side validation
+    if (!data.type || data.type === '') {
+      return; // Don't submit if no type selected
+    }
+    
+    if (!data.description || typeof data.description !== 'string' || data.description.trim().length < 10) {
+      return; // Don't submit if description is too short
+    }
+    
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/demands', {
