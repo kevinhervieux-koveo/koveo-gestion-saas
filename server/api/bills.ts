@@ -694,7 +694,7 @@ export function registerBillRoutes(app: Express) {
       console.log('[DOWNLOAD] File paths:', {
         uploadsDir,
         filePath: billData.filePath,
-        fullFilePath: filePath,
+        fullFilePath: fileFullPath,
         fileName: billData.fileName
       });
 
