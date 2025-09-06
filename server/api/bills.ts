@@ -220,7 +220,6 @@ export function registerBillRoutes(app: Express) {
       }
 
       const billData = validation.data;
-
       const newBill = await db
         .insert(bills)
         .values({
@@ -236,7 +235,7 @@ export function registerBillRoutes(app: Express) {
           costs: billData.costs.map((cost) => parseFloat(cost)),
           totalAmount: parseFloat(billData.totalAmount),
           startDate: billData.startDate,
-          endDate: billData.endDate,
+          endDate: billData.endDate || null,
           status: billData.status,
           notes: billData.notes,
           createdBy: req.user.id,
@@ -279,7 +278,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
-      const updateData: unknown = {};
+      const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
       }
@@ -355,7 +354,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
-      const updateData: unknown = {};
+      const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
       }
@@ -428,7 +427,7 @@ export function registerBillRoutes(app: Express) {
 
       const deletedBill = await db.delete(bills).where(eq(bills.id, id)).returning();
 
-      if (deletedBill.length === 0) {
+      if (!deletedBill || (Array.isArray(deletedBill) && deletedBill.length === 0)) {
         return res.status(404).json({
           message: 'Bill not found',
         });
@@ -473,13 +472,13 @@ export function registerBillRoutes(app: Express) {
         // Create document path in the expected format
         const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
 
-        // Analyze document with Gemini AI (only for images)
+        // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
-        if (req.file.mimetype.startsWith('image/')) {
+        if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
           try {
-            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
           } catch (aiError) {
-            console.warn('⚠️ AI analysis failed, continuing without analysis:', aiError);
+            console.warn('AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
         }
@@ -533,18 +532,27 @@ export function registerBillRoutes(app: Express) {
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
     try {
+      console.log('📱 [SERVER DEBUG] Document download requested for bill ID:', req.params.id);
       const { id } = req.params;
 
       // Get the bill to check if it has a document
       const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
+        console.error('❌ [SERVER DEBUG] Bill not found for document download:', id);
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
+      console.log('📄 [SERVER DEBUG] Bill found for document download:', {
+        id: billData.id,
+        documentPath: billData.documentPath,
+        documentName: billData.documentName,
+        hasDocument: !!(billData.documentPath && billData.documentName)
+      });
 
       if (!billData.documentPath || !billData.documentName) {
+        console.error('❌ [SERVER DEBUG] No document associated with this bill:', id);
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -820,6 +828,30 @@ export function registerBillRoutes(app: Express) {
       console.error('❌ Error getting generated bills statistics:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * Analyze document without creating a bill
+   * POST /api/bills/analyze-document
+   */
+  app.post('/api/bills/analyze-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message: 'No document file provided',
+        });
+      }
+
+      const analysis = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+      
+      res.json(analysis);
+    } catch (_error: any) {
+      console.error('Error analyzing document:', _error);
+      res.status(500).json({
+        message: 'Failed to analyze document',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }

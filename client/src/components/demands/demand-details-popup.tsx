@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Edit2, Save, X, Send, Trash2, ArrowUp } from 'lucide-react';
+import { Edit2, Save, X, Send, Trash2, ArrowUp, Paperclip, Download, Image } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -37,6 +37,7 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
+  attachments?: string[];
   status:
     | 'submitted'
     | 'under_review'
@@ -526,6 +527,42 @@ export default function DemandDetailsPopup({
                     <Label>Description</Label>
                     <p className='mt-1 text-sm whitespace-pre-wrap'>{demand.description}</p>
                   </div>
+
+                  {/* Attachments Section */}
+                  {demand.attachments && demand.attachments.length > 0 && (
+                    <div>
+                      <Label className='flex items-center gap-1'>
+                        <Paperclip className='h-4 w-4' />
+                        Attachments ({demand.attachments.length})
+                      </Label>
+                      <div className='mt-2 space-y-2'>
+                        {demand.attachments.map((attachment, index) => {
+                          const filename = attachment.split('/').pop() || `attachment-${index + 1}`;
+                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment);
+                          
+                          return (
+                            <div key={index} className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
+                              {isImage ? (
+                                <Image className='h-4 w-4 text-blue-500' />
+                              ) : (
+                                <Paperclip className='h-4 w-4 text-gray-500' />
+                              )}
+                              <span className='text-sm flex-1'>{filename}</span>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => window.open(attachment, '_blank')}
+                                data-testid={`button-view-attachment-${index}`}
+                              >
+                                {isImage ? 'View' : 'Download'}
+                                <Download className='h-3 w-3 ml-1' />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
                     <div>

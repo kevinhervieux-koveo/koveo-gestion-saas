@@ -38,32 +38,12 @@ import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { Header } from '@/components/layout/header';
+import type { Demand as DemandType } from '@/../../shared/schema';
 
-// Types
-/**
- *
- */
-interface Demand {
-  id: string;
-  type: 'maintenance' | 'complaint' | 'information' | 'other';
-  description: string;
-  status:
-    | 'draft'
-    | 'submitted'
-    | 'under_review'
-    | 'approved'
-    | 'rejected'
-    | 'in_progress'
-    | 'completed'
-    | 'cancelled';
-  submitterId: string;
-  buildingId: string;
-  residenceId?: string;
-  assignationBuildingId?: string;
-  assignationResidenceId?: string;
+// Types - extending the base Demand type with populated relations
+interface Demand extends Omit<DemandType, 'createdAt' | 'updatedAt'> {
   createdAt: string;
   updatedAt: string;
-  reviewNotes?: string;
   submitter?: {
     id: string;
     firstName: string;
@@ -566,7 +546,7 @@ export default function ManagerDemandsPage() {
 
           {/* Demand Details Popup */}
           <DemandDetailsPopup
-            demand={selectedDemand}
+            demand={selectedDemand as any}
             isOpen={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
             user={currentUser as any}

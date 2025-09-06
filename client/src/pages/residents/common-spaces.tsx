@@ -89,6 +89,18 @@ interface CommonSpace {
     day: string;
     open: string;
     close: string;
+    isOpen?: boolean;
+    breaks?: Array<{
+      start: string;
+      end: string;
+      reason?: string;
+    }>;
+  }>;
+  unavailablePeriods?: Array<{
+    startDate: string;
+    endDate: string;
+    reason?: string;
+    recurrence?: 'none' | 'weekly' | 'monthly' | 'yearly';
   }>;
   bookingRules?: string;
   createdAt: string;
@@ -187,27 +199,42 @@ function BookingCalendar({
 
   const isDayAvailable = (day: Date) => {
     // Past dates are not available
-    if (day < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDay = new Date(day);
+    checkDay.setHours(0, 0, 0, 0);
+    
+    if (checkDay < today) {
       return false;
     }
 
-    // Check opening hours if available
-    if (space.openingHours) {
-      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-
-      // Handle object format opening hours
-      if (typeof space.openingHours === 'object' && !Array.isArray(space.openingHours)) {
-        const todayHours = space.openingHours[dayName];
-        if (!todayHours) {
+    // Check if day falls within any unavailable periods
+    if (space.unavailablePeriods && Array.isArray(space.unavailablePeriods)) {
+      for (const period of space.unavailablePeriods) {
+        const startDate = new Date(period.startDate);
+        const endDate = new Date(period.endDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        
+        if (checkDay >= startDate && checkDay <= endDate) {
           return false;
         }
       }
-      // Handle array format opening hours (fallback)
-      else if (Array.isArray(space.openingHours)) {
-        const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
-        if (!todayHours) {
-          return false;
-        }
+    }
+
+    // Check opening hours if available
+    if (space.openingHours && Array.isArray(space.openingHours)) {
+      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const todayHours = space.openingHours.find((h) => h.day.toLowerCase() === dayName);
+      
+      // If no hours defined for this day, it's unavailable
+      if (!todayHours) {
+        return false;
+      }
+      
+      // If explicitly marked as closed
+      if (todayHours.isOpen === false) {
+        return false;
       }
     }
 
@@ -282,7 +309,7 @@ function BookingCalendar({
                         h-8 p-1 text-xs rounded cursor-pointer transition-colors flex items-center justify-center
                         ${
                           !isAvailable
-                            ? 'text-gray-300 cursor-not-allowed'
+                            ? 'bg-red-100 text-red-600 cursor-not-allowed border border-red-200'
                             : isSelected
                               ? 'bg-blue-600 text-white'
                               : isCurrentDay
@@ -351,6 +378,10 @@ function BookingCalendar({
             <div className='flex items-center gap-1'>
               <div className='w-2 h-2 bg-orange-500 rounded'></div>
               <span className='text-gray-600'>{language === 'fr' ? 'Réservé' : 'Booked'}</span>
+            </div>
+            <div className='flex items-center gap-1'>
+              <div className='w-2 h-2 bg-red-500 rounded'></div>
+              <span className='text-gray-600'>{language === 'fr' ? 'Non disponible' : 'Unavailable'}</span>
             </div>
             <div className='flex items-center gap-1'>
               <div className='w-2 h-2 bg-blue-200 rounded'></div>
@@ -525,6 +556,55 @@ export default function CommonSpacesPage() {
     return slots;
   }, []);
 
+  // Helper function to check if a day is available (moved from BookingCalendar)
+  const isDayAvailable = (day: Date) => {
+    if (!selectedSpace) {
+      return false;
+    }
+
+    // Past dates are not available
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDay = new Date(day);
+    checkDay.setHours(0, 0, 0, 0);
+    
+    if (checkDay < today) {
+      return false;
+    }
+
+    // Check if day falls within any unavailable periods
+    if (selectedSpace.unavailablePeriods && Array.isArray(selectedSpace.unavailablePeriods)) {
+      for (const period of selectedSpace.unavailablePeriods) {
+        const startDate = new Date(period.startDate);
+        const endDate = new Date(period.endDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        
+        if (checkDay >= startDate && checkDay <= endDate) {
+          return false;
+        }
+      }
+    }
+
+    // Check opening hours if available
+    if (selectedSpace.openingHours && Array.isArray(selectedSpace.openingHours)) {
+      const dayName = day.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const todayHours = selectedSpace.openingHours.find((h) => h.day.toLowerCase() === dayName);
+      
+      // If no hours defined for this day, it's unavailable
+      if (!todayHours) {
+        return false;
+      }
+      
+      // If explicitly marked as closed
+      if (todayHours.isOpen === false) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   // Check if time slot is available
   const isTimeSlotAvailable = (time: string, duration: number = 60) => {
     if (!selectedSpace || !selectedDate) {
@@ -538,23 +618,46 @@ export default function CommonSpacesPage() {
     const slotEnd = new Date(slotStart);
     slotEnd.setMinutes(slotEnd.getMinutes() + duration);
 
+    // Check if day is available first (uses our enhanced availability logic)
+    if (!isDayAvailable(selectedDate)) {
+      return false;
+    }
+
     // Check opening hours
-    if (selectedSpace.openingHours) {
+    if (selectedSpace.openingHours && Array.isArray(selectedSpace.openingHours)) {
       const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const todayHours = selectedSpace.openingHours.find((h) => h.day.toLowerCase() === dayName);
 
-      if (!todayHours) {
+      if (!todayHours || todayHours.isOpen === false) {
         return false;
       }
 
       const openTime = parse(todayHours.open, 'HH:mm', selectedDate);
       const closeTime = parse(todayHours.close, 'HH:mm', selectedDate);
 
+      // Check if slot is within opening hours
       if (
         !isWithinInterval(slotStart, { start: openTime, end: closeTime }) ||
         !isWithinInterval(slotEnd, { start: openTime, end: closeTime })
       ) {
         return false;
+      }
+
+      // Check if slot conflicts with any breaks
+      if (todayHours.breaks && Array.isArray(todayHours.breaks)) {
+        for (const breakPeriod of todayHours.breaks) {
+          const breakStart = parse(breakPeriod.start, 'HH:mm', selectedDate);
+          const breakEnd = parse(breakPeriod.end, 'HH:mm', selectedDate);
+
+          // Check if slot overlaps with break period
+          if (
+            (slotStart >= breakStart && slotStart < breakEnd) ||
+            (slotEnd > breakStart && slotEnd <= breakEnd) ||
+            (slotStart <= breakStart && slotEnd >= breakEnd)
+          ) {
+            return false;
+          }
+        }
       }
     }
 
@@ -798,109 +901,224 @@ export default function CommonSpacesPage() {
                             </DialogHeader>
 
                             <Form {...form}>
-                              <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-                                <FormField
-                                  control={form.control}
-                                  name='date'
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        {language === 'fr' ? 'Date de réservation' : 'Booking Date'}
-                                      </FormLabel>
-                                      <FormControl>
-                                        <div className='space-y-3'>
-                                          {preSelectedDate && (
-                                            <div className='p-3 bg-blue-50 border border-blue-200 rounded-lg'>
-                                              <div className='text-sm font-medium text-blue-900'>
-                                                {language === 'fr'
-                                                  ? 'Date sélectionnée depuis le calendrier'
-                                                  : 'Date selected from calendar'}
-                                              </div>
-                                              <div className='text-sm text-blue-700'>
-                                                {format(preSelectedDate, 'EEEE, d MMMM yyyy', {
-                                                  locale: language === 'fr' ? fr : undefined,
-                                                })}
-                                              </div>
+                              <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                                {/* Selected Date Display */}
+                                <div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+                                  <div className='text-sm font-medium text-blue-900 mb-1'>
+                                    {language === 'fr' ? 'Date sélectionnée' : 'Selected Date'}
+                                  </div>
+                                  <div className='text-lg font-semibold text-blue-800'>
+                                    {format(form.watch('date'), 'EEEE, d MMMM yyyy', {
+                                      locale: language === 'fr' ? fr : undefined,
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Opening Hours Display */}
+                                {selectedSpace?.openingHours && Array.isArray(selectedSpace.openingHours) && (
+                                  <div className='p-3 bg-green-50 border border-green-200 rounded-lg'>
+                                    <div className='text-sm font-medium text-green-900 mb-2'>
+                                      {language === 'fr' ? 'Heures d\'ouverture' : 'Opening Hours'}
+                                    </div>
+                                    {selectedSpace.openingHours.map((hours, index) => {
+                                      const dayName = form.watch('date').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                      if (hours.day.toLowerCase() === dayName) {
+                                        return (
+                                          <div key={index} className='text-sm text-green-800'>
+                                            {hours.open} - {hours.close}
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* Time Slots Grid */}
+                                <div className='space-y-4'>
+                                  <div className='text-sm font-medium text-gray-900'>
+                                    {language === 'fr' ? 'Créneaux horaires disponibles' : 'Available Time Slots'}
+                                  </div>
+                                  
+                                  <div className='grid grid-cols-4 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg bg-gray-50'>
+                                    {timeSlots.map((time) => {
+                                      const isAvailable = isTimeSlotAvailable(time);
+                                      const hasBooking = bookingsForDate.some((booking: Booking) => {
+                                        const bookingStart = parseISO(booking.startTime);
+                                        const bookingEnd = parseISO(booking.endTime);
+                                        const timeSlot = parse(time, 'HH:mm', form.watch('date'));
+                                        return timeSlot >= bookingStart && timeSlot < bookingEnd;
+                                      });
+                                      
+                                      const currentStartTime = form.watch('startTime');
+                                      const currentEndTime = form.watch('endTime');
+                                      const isSelected = time === currentStartTime || time === currentEndTime;
+                                      
+                                      return (
+                                        <button
+                                          key={time}
+                                          type='button'
+                                          disabled={!isAvailable || hasBooking}
+                                          onClick={() => {
+                                            if (!currentStartTime || (currentStartTime && currentEndTime)) {
+                                              // Set start time
+                                              form.setValue('startTime', time);
+                                              form.setValue('endTime', '');
+                                            } else {
+                                              // Set end time if start time is already set
+                                              if (time > currentStartTime) {
+                                                form.setValue('endTime', time);
+                                              } else {
+                                                // If selected time is before start time, make it the new start time
+                                                form.setValue('startTime', time);
+                                                form.setValue('endTime', '');
+                                              }
+                                            }
+                                          }}
+                                          className={`
+                                            p-2 text-xs rounded-md border transition-colors relative
+                                            ${
+                                              !isAvailable
+                                                ? 'bg-red-100 border-red-200 text-red-600 cursor-not-allowed'
+                                                : hasBooking
+                                                  ? 'bg-orange-100 border-orange-200 text-orange-700 cursor-not-allowed'
+                                                  : isSelected
+                                                    ? 'bg-blue-500 border-blue-600 text-white font-semibold'
+                                                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'
+                                            }
+                                          `}
+                                        >
+                                          <div className='font-medium'>{time}</div>
+                                          {hasBooking && (
+                                            <div className='text-[10px] mt-1 text-orange-600'>
+                                              {language === 'fr' ? 'Réservé' : 'Booked'}
                                             </div>
                                           )}
-                                          <BookingCalendar
-                                            selected={field.value}
-                                            onSelect={(date) => {
-                                              field.onChange(date);
-                                              setPreSelectedDate(null);
-                                            }}
-                                            space={space}
-                                            bookings={bookings}
-                                            language={language}
-                                            data-testid='booking-date-picker'
-                                          />
-                                        </div>
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                          {!isAvailable && !hasBooking && (
+                                            <div className='text-[10px] mt-1 text-red-600'>
+                                              {language === 'fr' ? 'Fermé' : 'Closed'}
+                                            </div>
+                                          )}
+                                          {isSelected && (
+                                            <div className='text-[10px] mt-1 text-white'>
+                                              {time === currentStartTime 
+                                                ? (language === 'fr' ? 'Début' : 'Start')
+                                                : (language === 'fr' ? 'Fin' : 'End')
+                                              }
+                                            </div>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
 
-                                <div className='grid grid-cols-2 gap-4'>
+                                  {/* Legend */}
+                                  <div className='grid grid-cols-2 gap-4 text-xs'>
+                                    <div className='space-y-2'>
+                                      <div className='flex items-center gap-2'>
+                                        <div className='w-3 h-3 bg-white border border-gray-200 rounded'></div>
+                                        <span>{language === 'fr' ? 'Disponible' : 'Available'}</span>
+                                      </div>
+                                      <div className='flex items-center gap-2'>
+                                        <div className='w-3 h-3 bg-blue-500 rounded'></div>
+                                        <span>{language === 'fr' ? 'Sélectionné' : 'Selected'}</span>
+                                      </div>
+                                    </div>
+                                    <div className='space-y-2'>
+                                      <div className='flex items-center gap-2'>
+                                        <div className='w-3 h-3 bg-orange-100 border border-orange-200 rounded'></div>
+                                        <span>{language === 'fr' ? 'Réservé' : 'Booked'}</span>
+                                      </div>
+                                      <div className='flex items-center gap-2'>
+                                        <div className='w-3 h-3 bg-red-100 border border-red-200 rounded'></div>
+                                        <span>{language === 'fr' ? 'Fermé' : 'Closed'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Selected Time Summary */}
+                                {form.watch('startTime') && (
+                                  <div className='p-3 bg-gray-50 border border-gray-200 rounded-lg'>
+                                    <div className='text-sm font-medium text-gray-900 mb-1'>
+                                      {language === 'fr' ? 'Réservation sélectionnée' : 'Selected Booking'}
+                                    </div>
+                                    <div className='text-sm text-gray-700'>
+                                      <span className='font-medium'>
+                                        {language === 'fr' ? 'Début:' : 'Start:'}
+                                      </span> {form.watch('startTime')}
+                                      {form.watch('endTime') && (
+                                        <span className='ml-4'>
+                                          <span className='font-medium'>
+                                            {language === 'fr' ? 'Fin:' : 'End:'}
+                                          </span> {form.watch('endTime')}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {form.watch('endTime') && (
+                                      <div className='text-xs text-gray-500 mt-1'>
+                                        {language === 'fr' ? 'Durée:' : 'Duration:'} 
+                                        {(() => {
+                                          const start = parse(form.watch('startTime'), 'HH:mm', new Date());
+                                          const end = parse(form.watch('endTime'), 'HH:mm', new Date());
+                                          const duration = (end.getTime() - start.getTime()) / (1000 * 60);
+                                          return `${Math.floor(duration / 60)}h ${duration % 60 > 0 ? `${duration % 60}min` : ''}`;
+                                        })()} 
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Validation Messages */}
+                                {!form.watch('startTime') && (
+                                  <div className='text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3'>
+                                    {language === 'fr' 
+                                      ? 'Veuillez sélectionner une heure de début'
+                                      : 'Please select a start time'}
+                                  </div>
+                                )}
+                                {form.watch('startTime') && !form.watch('endTime') && (
+                                  <div className='text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3'>
+                                    {language === 'fr' 
+                                      ? 'Veuillez sélectionner une heure de fin'
+                                      : 'Please select an end time'}
+                                  </div>
+                                )}
+
+                                {/* Hidden form fields to maintain form validation */}
+                                <div className='hidden'>
+                                  <FormField
+                                    control={form.control}
+                                    name='date'
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <input {...field} value={field.value?.toISOString() || ''} readOnly />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
                                   <FormField
                                     control={form.control}
                                     name='startTime'
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>
-                                          {language === 'fr' ? 'Heure de début' : 'Start Time'}
-                                        </FormLabel>
-                                        <Select
-                                          onValueChange={field.onChange}
-                                          defaultValue={field.value}
-                                        >
-                                          <FormControl>
-                                            <SelectTrigger data-testid='booking-start-time'>
-                                              <SelectValue placeholder='09:00' />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {timeSlots.map((time) => (
-                                              <SelectItem
-                                                key={time}
-                                                value={time}
-                                                disabled={!isTimeSlotAvailable(time)}
-                                              >
-                                                {time}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                        <FormControl>
+                                          <input {...field} readOnly />
+                                        </FormControl>
                                         <FormMessage />
                                       </FormItem>
                                     )}
                                   />
-
                                   <FormField
                                     control={form.control}
                                     name='endTime'
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel>
-                                          {language === 'fr' ? 'Heure de fin' : 'End Time'}
-                                        </FormLabel>
-                                        <Select
-                                          onValueChange={field.onChange}
-                                          defaultValue={field.value}
-                                        >
-                                          <FormControl>
-                                            <SelectTrigger data-testid='booking-end-time'>
-                                              <SelectValue placeholder='10:00' />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {timeSlots.map((time) => (
-                                              <SelectItem key={time} value={time}>
-                                                {time}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                        <FormControl>
+                                          <input {...field} readOnly />
+                                        </FormControl>
                                         <FormMessage />
                                       </FormItem>
                                     )}
@@ -911,14 +1129,21 @@ export default function CommonSpacesPage() {
                                   <Button
                                     type='button'
                                     variant='outline'
-                                    onClick={() => setIsBookingDialogOpen(false)}
+                                    onClick={() => {
+                                      setIsBookingDialogOpen(false);
+                                      form.reset();
+                                    }}
                                     data-testid='button-cancel-booking'
                                   >
                                     {language === 'fr' ? 'Annuler' : 'Cancel'}
                                   </Button>
                                   <Button
                                     type='submit'
-                                    disabled={createBookingMutation.isPending}
+                                    disabled={
+                                      createBookingMutation.isPending || 
+                                      !form.watch('startTime') || 
+                                      !form.watch('endTime')
+                                    }
                                     data-testid='button-confirm-booking'
                                   >
                                     {createBookingMutation.isPending
@@ -926,8 +1151,8 @@ export default function CommonSpacesPage() {
                                         ? 'Réservation...'
                                         : 'Booking...'
                                       : language === 'fr'
-                                        ? 'Réserver'
-                                        : 'Book'}
+                                        ? 'Confirmer la réservation'
+                                        : 'Confirm Booking'}
                                   </Button>
                                 </DialogFooter>
                               </form>

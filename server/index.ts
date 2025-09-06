@@ -51,8 +51,8 @@ process.on('SIGINT', () => {
 });
 
 const app = express();
-// Configure port - use environment PORT or appropriate fallback for deployment
-const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
+// Configure port - use environment PORT or fallback to 5000 for all environments
+const port = parseInt(process.env.PORT || '5000', 10);
 const host = '0.0.0.0'; // Always bind to all interfaces for deployments
 
 // Ensure port is valid
@@ -215,9 +215,15 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       log('🏭 Production mode detected - applying production configurations');
 
       // Verify production requirements
-      if (!process.env.DATABASE_URL) {
-        log('❌ DATABASE_URL is required in production', 'error');
+      if (!process.env.DATABASE_URL && !process.env.DATABASE_URL_KOVEO) {
+        log('❌ Either DATABASE_URL or DATABASE_URL_KOVEO is required in production', 'error');
         process.exit(1);
+      }
+      
+      // Log which database URL we're using (without exposing the full URL)
+      const dbUrl = process.env.DATABASE_URL_KOVEO || process.env.DATABASE_URL;
+      if (dbUrl) {
+        log(`✅ Database configured: ${dbUrl.substring(0, 20)}...`);
       }
 
       // Set production-specific configurations
@@ -262,6 +268,16 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           try {
             await loadFullApplication();
             log('✅ Production setup complete');
+            
+            // Quick database connectivity test (non-blocking)
+            try {
+              const { testDatabaseConnection } = await import('./db');
+              await testDatabaseConnection();
+              log('✅ Database connectivity verified');
+            } catch (dbError: any) {
+              log(`⚠️ Database connectivity warning: ${dbError.message}`, 'warn');
+              // Don't fail startup, just warn - health checks will still work
+            }
           } catch (error: any) {
             log(`❌ Application load failed in production: ${error.message}`, 'error');
             log(`❌ Stack trace: ${error.stack}`, 'error');

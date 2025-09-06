@@ -28,6 +28,41 @@ describe('Demands Schema Validation Tests', () => {
       expect(() => insertDemandSchema.parse(validDemand)).not.toThrow();
     });
 
+    it('should validate demand with optional buildingId and residenceId', () => {
+      const validDemandWithOptionalFields = {
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'maintenance',
+        description: 'Faucet is leaking in the kitchen sink',
+        status: 'submitted',
+      };
+
+      expect(() => insertDemandSchema.parse(validDemandWithOptionalFields)).not.toThrow();
+    });
+
+    it('should validate demand with only buildingId provided', () => {
+      const validDemandWithBuildingOnly = {
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'maintenance',
+        description: 'Faucet is leaking in the kitchen sink',
+        buildingId: '323e4567-e89b-12d3-a456-426614174002',
+        status: 'submitted',
+      };
+
+      expect(() => insertDemandSchema.parse(validDemandWithBuildingOnly)).not.toThrow();
+    });
+
+    it('should validate demand with only residenceId provided', () => {
+      const validDemandWithResidenceOnly = {
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'maintenance',
+        description: 'Faucet is leaking in the kitchen sink',
+        residenceId: '223e4567-e89b-12d3-a456-426614174001',
+        status: 'submitted',
+      };
+
+      expect(() => insertDemandSchema.parse(validDemandWithResidenceOnly)).not.toThrow();
+    });
+
     it('should require submitterId', () => {
       const invalidDemand = {
         type: 'maintenance',
@@ -37,6 +72,16 @@ describe('Demands Schema Validation Tests', () => {
       };
 
       expect(() => insertDemandSchema.parse(invalidDemand)).toThrow();
+    });
+
+    it('should require only submitterId, type, and description as minimum fields', () => {
+      const minimalValidDemand = {
+        submitterId: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'maintenance',
+        description: 'Minimal test description',
+      };
+
+      expect(() => insertDemandSchema.parse(minimalValidDemand)).not.toThrow();
     });
 
     it('should validate demand type enum', () => {

@@ -172,6 +172,7 @@ export const demands = pgTable('demands', {
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
   assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
   description: text('description').notNull(),
+  attachments: text('attachments').array(), // Array of file URLs/paths for uploaded documents and images
   residenceId: varchar('residence_id')
     .references(() => residences.id),
   buildingId: varchar('building_id')
@@ -209,6 +210,7 @@ export const demandComments = pgTable('demands_comments', {
 /**
  * Bugs table for tracking application issues and bug reports.
  * All users can create bugs with category and page assignments.
+ * Now supports single file attachment per bug like document management.
  */
 export const bugs = pgTable('bugs', {
   id: varchar('id')
@@ -229,6 +231,10 @@ export const bugs = pgTable('bugs', {
   notes: text('notes'), // Internal notes for resolution
   reproductionSteps: text('reproduction_steps'), // Steps to reproduce the bug
   environment: text('environment'), // Browser, OS, device info
+  // File attachment fields (single file per bug like documents)
+  filePath: text('file_path'), // Path to the uploaded file
+  fileName: text('file_name'), // Original file name
+  fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -256,7 +262,11 @@ export const featureRequests = pgTable('feature_requests', {
   reviewedBy: varchar('reviewed_by').references(() => users.id),
   reviewedAt: timestamp('reviewed_at'),
   adminNotes: text('admin_notes'), // Internal notes for admins only
-  mergedIntoId: varchar('merged_into_id').references(() => featureRequests.id), // If merged into another request
+  mergedIntoId: varchar('merged_into_id'), // If merged into another request
+  // File attachment fields (single file per feature request like documents)
+  filePath: text('file_path'), // Path to the uploaded file
+  fileName: text('file_name'), // Original file name
+  fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -311,9 +321,10 @@ export const insertDemandSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
-  residenceId: z.string().uuid(),
-  buildingId: z.string().uuid(),
-  status: z.string().default('draft'),
+  attachments: z.array(z.string()).optional(), // Array of file URLs/paths
+  residenceId: z.string().uuid().optional(),
+  buildingId: z.string().uuid().optional(),
+  status: z.string().default('submitted'),
   reviewNotes: z.string().optional(),
 });
 

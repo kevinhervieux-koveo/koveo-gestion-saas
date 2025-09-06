@@ -281,6 +281,8 @@ export default function OwnerDocumentation() {
         title: 'Documentation Refreshed',
         description: 'Documentation data has been updated with the latest information.',
       });
+    } catch (error) {
+      console.error('Refresh error:', error);
       toast({
         variant: 'destructive',
         title: 'Refresh Failed',
@@ -314,6 +316,8 @@ export default function OwnerDocumentation() {
         title: 'Documentation Exported',
         description: 'Google Suite documentation package has been downloaded successfully.',
       });
+    } catch (error) {
+      console.error('Export error:', error);
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -340,6 +344,8 @@ export default function OwnerDocumentation() {
         description:
           'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
+    } catch (error) {
+      console.error('LLM documentation generation error:', error);
       toast({
         variant: 'destructive',
         title: 'Export Failed',

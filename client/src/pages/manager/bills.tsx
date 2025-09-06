@@ -532,7 +532,6 @@ Bills() {
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
                       <Button className='w-full' disabled={!filters.buildingId}>
-                        <Plus className='w-4 h-4 mr-2' />
                         Create Bill
                       </Button>
                     </DialogTrigger>
@@ -571,13 +570,11 @@ Bills() {
           ) : Object.keys(billsByCategory).length === 0 ? (
             <Card>
               <CardContent className='p-8 text-center'>
-                <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bills Found</h3>
                 <p className='text-gray-500 mb-4'>
                   No bills found for the selected filters. Create your first bill to get started.
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className='w-4 h-4 mr-2' />
                   Create First Bill
                 </Button>
               </CardContent>
@@ -667,6 +664,7 @@ function BillCategorySection({
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
@@ -729,7 +727,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
           </DialogHeader>
@@ -740,6 +738,27 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
               onUpdate();
             }}
             onCancel={() => setShowDetailDialog(false)}
+            onEditBill={() => {
+              setShowDetailDialog(false);
+              setShowEditDialog(true);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Bill Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle>Edit Bill</DialogTitle>
+          </DialogHeader>
+          <BillEditForm
+            bill={bill}
+            onSuccess={() => {
+              setShowEditDialog(false);
+              onUpdate();
+            }}
+            onCancel={() => setShowEditDialog(false)}
           />
         </DialogContent>
       </Dialog>
@@ -767,10 +786,12 @@ function BillDetail({
   bill,
   onSuccess,
   onCancel,
+  onEditBill,
 }: {
   bill: Bill;
   onSuccess: () => void;
   onCancel: () => void;
+  onEditBill: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [endDate, setEndDate] = useState(bill.endDate || '');
@@ -980,14 +1001,34 @@ function BillDetail({
         <div className='mt-2 space-y-3'>
           {/* Current document info */}
           {bill.documentPath && (
-            <div className='flex items-center gap-2 p-3 bg-gray-50 rounded-lg'>
-              <FileText className='w-4 h-4 text-blue-600' />
-              <span className='text-sm'>{bill.documentName}</span>
-              {bill.isAiAnalyzed && (
-                <Badge variant='outline' className='text-xs'>
-                  AI Analyzed
-                </Badge>
-              )}
+            <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+              <div className='flex items-center gap-2'>
+                <FileText className='w-4 h-4 text-blue-600' />
+                <span className='text-sm'>{bill.documentName}</span>
+                {bill.isAiAnalyzed && (
+                  <Badge variant='outline' className='text-xs'>
+                    AI Analyzed
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  // Download the document
+                  const link = document.createElement('a');
+                  link.href = `/api/bills/${bill.id}/download-document`;
+                  link.download = bill.documentName || 'bill-document';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className='flex items-center gap-1'
+                data-testid={`button-download-document-${bill.id}`}
+              >
+                <FileText className='w-3 h-3' />
+                Download
+              </Button>
             </div>
           )}
 
@@ -1032,23 +1073,11 @@ function BillDetail({
       <div className='border-t pt-4'>
         <div className='flex items-center justify-between'>
           <Label className='text-sm font-medium'>Edit Bill Information</Label>
-          <Button onClick={() => setIsEditing(!isEditing)} variant='outline' size='sm'>
-            {isEditing ? 'Cancel Edit' : 'Edit Bill'}
+          <Button onClick={onEditBill} variant='outline' size='sm'>
+            Edit Bill
           </Button>
         </div>
       </div>
-
-      {/* Full Edit Form */}
-      {isEditing && (
-        <BillEditForm
-          bill={bill}
-          onSuccess={() => {
-            setIsEditing(false);
-            onSuccess();
-          }}
-          onCancel={() => setIsEditing(false)}
-        />
-      )}
 
       {/* Actions */}
       <div className='flex justify-end gap-2 pt-4 border-t'>

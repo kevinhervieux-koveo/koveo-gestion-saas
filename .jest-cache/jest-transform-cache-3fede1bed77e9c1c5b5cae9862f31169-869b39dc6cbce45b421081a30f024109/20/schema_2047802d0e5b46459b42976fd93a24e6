@@ -1,0 +1,62 @@
+6ca7900a75e55996f42163054200be9a
+"use strict";
+/**
+ * Koveo Gestion Database Schema.
+ *
+ * This is the main schema file that re-exports all domain-specific schemas.
+ * The schemas are organized by domain for better maintainability:
+ *
+ * - core: Users, organizations, invitations, and authentication
+ * - property: Buildings, residences, and user-residence relationships
+ * - financial: Bills, budgets, and financial management
+ * - operations: Maintenance requests and notifications
+ * - documents: Document management and file storage
+ * - development: Features, improvement suggestions, and development tracking
+ * - monitoring: Quality metrics, predictions, and AI monitoring.
+ */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sessions = exports.sslCertificates = exports.improvementSuggestions = exports.actionableItems = exports.features = exports.frameworkConfiguration = exports.qualityMetrics = exports.workspaceStatus = exports.developmentPillars = exports.documents = exports.notifications = exports.maintenanceRequests = exports.featureRequestUpvotes = exports.featureRequests = exports.bugs = void 0;
+// Re-export all enums, schemas, and validation schemas
+__exportStar(require("./schemas/core"), exports);
+__exportStar(require("./schemas/property"), exports);
+__exportStar(require("./schemas/financial"), exports);
+__exportStar(require("./schemas/operations"), exports);
+__exportStar(require("./schemas/documents"), exports);
+__exportStar(require("./schemas/development"), exports);
+__exportStar(require("./schemas/monitoring"), exports);
+__exportStar(require("./schemas/infrastructure"), exports);
+// Export tables for use in storage and API layers
+var operations_1 = require("./schemas/operations");
+Object.defineProperty(exports, "bugs", { enumerable: true, get: function () { return operations_1.bugs; } });
+Object.defineProperty(exports, "featureRequests", { enumerable: true, get: function () { return operations_1.featureRequests; } });
+Object.defineProperty(exports, "featureRequestUpvotes", { enumerable: true, get: function () { return operations_1.featureRequestUpvotes; } });
+Object.defineProperty(exports, "maintenanceRequests", { enumerable: true, get: function () { return operations_1.maintenanceRequests; } });
+Object.defineProperty(exports, "notifications", { enumerable: true, get: function () { return operations_1.notifications; } });
+var documents_1 = require("./schemas/documents");
+Object.defineProperty(exports, "documents", { enumerable: true, get: function () { return documents_1.documents; } });
+var development_1 = require("./schemas/development");
+Object.defineProperty(exports, "developmentPillars", { enumerable: true, get: function () { return development_1.developmentPillars; } });
+Object.defineProperty(exports, "workspaceStatus", { enumerable: true, get: function () { return development_1.workspaceStatus; } });
+Object.defineProperty(exports, "qualityMetrics", { enumerable: true, get: function () { return development_1.qualityMetrics; } });
+Object.defineProperty(exports, "frameworkConfiguration", { enumerable: true, get: function () { return development_1.frameworkConfiguration; } });
+Object.defineProperty(exports, "features", { enumerable: true, get: function () { return development_1.features; } });
+Object.defineProperty(exports, "actionableItems", { enumerable: true, get: function () { return development_1.actionableItems; } });
+Object.defineProperty(exports, "improvementSuggestions", { enumerable: true, get: function () { return development_1.improvementSuggestions; } });
+var infrastructure_1 = require("./schemas/infrastructure");
+Object.defineProperty(exports, "sslCertificates", { enumerable: true, get: function () { return infrastructure_1.sslCertificates; } });
+Object.defineProperty(exports, "sessions", { enumerable: true, get: function () { return infrastructure_1.sessions; } });
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zaGFyZWQvc2NoZW1hLnRzIiwibWFwcGluZ3MiOiI7QUFBQTs7Ozs7Ozs7Ozs7OztHQWFHOzs7Ozs7Ozs7Ozs7Ozs7OztBQUVILHVEQUF1RDtBQUN2RCxpREFBK0I7QUFDL0IscURBQW1DO0FBQ25DLHNEQUFvQztBQUNwQyx1REFBcUM7QUFDckMsc0RBQW9DO0FBQ3BDLHdEQUFzQztBQUN0Qyx1REFBcUM7QUFDckMsMkRBQXlDO0FBOEZ6QyxrREFBa0Q7QUFDbEQsbURBTThCO0FBTDVCLGtHQUFBLElBQUksT0FBQTtBQUNKLDZHQUFBLGVBQWUsT0FBQTtBQUNmLG1IQUFBLHFCQUFxQixPQUFBO0FBQ3JCLGlIQUFBLG1CQUFtQixPQUFBO0FBQ25CLDJHQUFBLGFBQWEsT0FBQTtBQUVmLGlEQUU2QjtBQUQzQixzR0FBQSxTQUFTLE9BQUE7QUFFWCxxREFRK0I7QUFQN0IsaUhBQUEsa0JBQWtCLE9BQUE7QUFDbEIsOEdBQUEsZUFBZSxPQUFBO0FBQ2YsNkdBQUEsY0FBYyxPQUFBO0FBQ2QscUhBQUEsc0JBQXNCLE9BQUE7QUFDdEIsdUdBQUEsUUFBUSxPQUFBO0FBQ1IsOEdBQUEsZUFBZSxPQUFBO0FBQ2YscUhBQUEsc0JBQXNCLE9BQUE7QUFFeEIsMkRBR2tDO0FBRmhDLGlIQUFBLGVBQWUsT0FBQTtBQUNmLDBHQUFBLFFBQVEsT0FBQSIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL3NoYXJlZC9zY2hlbWEudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBLb3ZlbyBHZXN0aW9uIERhdGFiYXNlIFNjaGVtYS5cbiAqXG4gKiBUaGlzIGlzIHRoZSBtYWluIHNjaGVtYSBmaWxlIHRoYXQgcmUtZXhwb3J0cyBhbGwgZG9tYWluLXNwZWNpZmljIHNjaGVtYXMuXG4gKiBUaGUgc2NoZW1hcyBhcmUgb3JnYW5pemVkIGJ5IGRvbWFpbiBmb3IgYmV0dGVyIG1haW50YWluYWJpbGl0eTpcbiAqXG4gKiAtIGNvcmU6IFVzZXJzLCBvcmdhbml6YXRpb25zLCBpbnZpdGF0aW9ucywgYW5kIGF1dGhlbnRpY2F0aW9uXG4gKiAtIHByb3BlcnR5OiBCdWlsZGluZ3MsIHJlc2lkZW5jZXMsIGFuZCB1c2VyLXJlc2lkZW5jZSByZWxhdGlvbnNoaXBzXG4gKiAtIGZpbmFuY2lhbDogQmlsbHMsIGJ1ZGdldHMsIGFuZCBmaW5hbmNpYWwgbWFuYWdlbWVudFxuICogLSBvcGVyYXRpb25zOiBNYWludGVuYW5jZSByZXF1ZXN0cyBhbmQgbm90aWZpY2F0aW9uc1xuICogLSBkb2N1bWVudHM6IERvY3VtZW50IG1hbmFnZW1lbnQgYW5kIGZpbGUgc3RvcmFnZVxuICogLSBkZXZlbG9wbWVudDogRmVhdHVyZXMsIGltcHJvdmVtZW50IHN1Z2dlc3Rpb25zLCBhbmQgZGV2ZWxvcG1lbnQgdHJhY2tpbmdcbiAqIC0gbW9uaXRvcmluZzogUXVhbGl0eSBtZXRyaWNzLCBwcmVkaWN0aW9ucywgYW5kIEFJIG1vbml0b3JpbmcuXG4gKi9cblxuLy8gUmUtZXhwb3J0IGFsbCBlbnVtcywgc2NoZW1hcywgYW5kIHZhbGlkYXRpb24gc2NoZW1hc1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL2NvcmUnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL3Byb3BlcnR5JztcbmV4cG9ydCAqIGZyb20gJy4vc2NoZW1hcy9maW5hbmNpYWwnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL29wZXJhdGlvbnMnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL2RvY3VtZW50cyc7XG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvZGV2ZWxvcG1lbnQnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL21vbml0b3JpbmcnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL2luZnJhc3RydWN0dXJlJztcblxuLy8gRm9yIGJhY2t3YXJkIGNvbXBhdGliaWxpdHksIHdlIGFsc28gZXhwb3J0IGNvbW1vbmx5IHVzZWQgdGFibGVzIGFuZCB0eXBlc1xuLy8gVGhlc2UgYXJlIHRoZSBtb3N0IGZyZXF1ZW50bHkgaW1wb3J0ZWQgaXRlbXMgYWNyb3NzIHRoZSBjb2RlYmFzZVxuZXhwb3J0IHR5cGUge1xuICBVc2VyLFxuICBVc2VyV2l0aEFzc2lnbm1lbnRzLFxuICBJbnNlcnRVc2VyLFxuICBPcmdhbml6YXRpb24sXG4gIEluc2VydE9yZ2FuaXphdGlvbixcbiAgUGVybWlzc2lvbixcbiAgSW5zZXJ0UGVybWlzc2lvbixcbiAgUm9sZVBlcm1pc3Npb24sXG4gIEluc2VydFJvbGVQZXJtaXNzaW9uLFxuICBVc2VyUGVybWlzc2lvbixcbiAgSW5zZXJ0VXNlclBlcm1pc3Npb24sXG4gIEludml0YXRpb24sXG4gIEluc2VydEludml0YXRpb24sXG4gIFBhc3N3b3JkUmVzZXRUb2tlbixcbiAgSW5zZXJ0UGFzc3dvcmRSZXNldFRva2VuLFxuICBJbnZpdGF0aW9uQXVkaXRMb2csXG4gIEluc2VydEludml0YXRpb25BdWRpdExvZyxcbn0gZnJvbSAnLi9zY2hlbWFzL2NvcmUnO1xuXG5leHBvcnQgdHlwZSB7XG4gIEJ1aWxkaW5nLFxuICBJbnNlcnRCdWlsZGluZyxcbiAgUmVzaWRlbmNlLFxuICBJbnNlcnRSZXNpZGVuY2UsXG4gIFVzZXJSZXNpZGVuY2UsXG4gIEluc2VydFVzZXJSZXNpZGVuY2UsXG4gIENvbnRhY3QsXG4gIEluc2VydENvbnRhY3QsXG4gIENvbW1vblNwYWNlLFxuICBJbnNlcnRDb21tb25TcGFjZSxcbiAgQm9va2luZyxcbiAgSW5zZXJ0Qm9va2luZyxcbiAgVXNlckJvb2tpbmdSZXN0cmljdGlvbixcbiAgSW5zZXJ0VXNlckJvb2tpbmdSZXN0cmljdGlvbixcbn0gZnJvbSAnLi9zY2hlbWFzL3Byb3BlcnR5JztcblxuZXhwb3J0IHR5cGUge1xuICBCaWxsLFxuICBJbnNlcnRCaWxsLFxuICBCdWRnZXQsXG4gIEluc2VydEJ1ZGdldCxcbiAgTW9udGhseUJ1ZGdldCxcbiAgSW5zZXJ0TW9udGhseUJ1ZGdldCxcbn0gZnJvbSAnLi9zY2hlbWFzL2ZpbmFuY2lhbCc7XG5cbmV4cG9ydCB0eXBlIHtcbiAgTWFpbnRlbmFuY2VSZXF1ZXN0LFxuICBJbnNlcnRNYWludGVuYW5jZVJlcXVlc3QsXG4gIE5vdGlmaWNhdGlvbixcbiAgSW5zZXJ0Tm90aWZpY2F0aW9uLFxuICBCdWcsXG4gIEluc2VydEJ1ZyxcbiAgRmVhdHVyZVJlcXVlc3QsXG4gIEluc2VydEZlYXR1cmVSZXF1ZXN0LFxuICBGZWF0dXJlUmVxdWVzdFVwdm90ZSxcbiAgSW5zZXJ0RmVhdHVyZVJlcXVlc3RVcHZvdGUsXG59IGZyb20gJy4vc2NoZW1hcy9vcGVyYXRpb25zJztcblxuZXhwb3J0IHR5cGUge1xuICBEb2N1bWVudCxcbiAgSW5zZXJ0RG9jdW1lbnQsXG59IGZyb20gJy4vc2NoZW1hcy9kb2N1bWVudHMnO1xuXG5leHBvcnQgdHlwZSB7XG4gIEZlYXR1cmUsXG4gIEluc2VydEZlYXR1cmUsXG4gIEFjdGlvbmFibGVJdGVtLFxuICBJbnNlcnRBY3Rpb25hYmxlSXRlbSxcbiAgSW1wcm92ZW1lbnRTdWdnZXN0aW9uLFxuICBJbnNlcnRJbXByb3ZlbWVudFN1Z2dlc3Rpb24sXG4gIFBpbGxhcixcbiAgSW5zZXJ0UGlsbGFyLFxuICBXb3Jrc3BhY2VTdGF0dXMsXG4gIEluc2VydFdvcmtzcGFjZVN0YXR1cyxcbiAgUXVhbGl0eU1ldHJpYyxcbiAgSW5zZXJ0UXVhbGl0eU1ldHJpYyxcbiAgRnJhbWV3b3JrQ29uZmlndXJhdGlvbixcbiAgSW5zZXJ0RnJhbWV3b3JrQ29uZmlndXJhdGlvbixcbn0gZnJvbSAnLi9zY2hlbWFzL2RldmVsb3BtZW50JztcblxuZXhwb3J0IHR5cGUge1xuICBRdWFsaXR5SXNzdWUsXG4gIEluc2VydFF1YWxpdHlJc3N1ZSxcbiAgTWV0cmljUHJlZGljdGlvbixcbiAgSW5zZXJ0TWV0cmljUHJlZGljdGlvbixcbn0gZnJvbSAnLi9zY2hlbWFzL21vbml0b3JpbmcnO1xuXG5leHBvcnQgdHlwZSB7IFNzbENlcnRpZmljYXRlLCBJbnNlcnRTc2xDZXJ0aWZpY2F0ZSwgU2Vzc2lvbiwgSW5zZXJ0U2Vzc2lvbiB9IGZyb20gJy4vc2NoZW1hcy9pbmZyYXN0cnVjdHVyZSc7XG5cbi8vIEV4cG9ydCB0YWJsZXMgZm9yIHVzZSBpbiBzdG9yYWdlIGFuZCBBUEkgbGF5ZXJzXG5leHBvcnQge1xuICBidWdzLFxuICBmZWF0dXJlUmVxdWVzdHMsXG4gIGZlYXR1cmVSZXF1ZXN0VXB2b3RlcyxcbiAgbWFpbnRlbmFuY2VSZXF1ZXN0cyxcbiAgbm90aWZpY2F0aW9ucyxcbn0gZnJvbSAnLi9zY2hlbWFzL29wZXJhdGlvbnMnO1xuZXhwb3J0IHtcbiAgZG9jdW1lbnRzLFxufSBmcm9tICcuL3NjaGVtYXMvZG9jdW1lbnRzJztcbmV4cG9ydCB7XG4gIGRldmVsb3BtZW50UGlsbGFycyxcbiAgd29ya3NwYWNlU3RhdHVzLFxuICBxdWFsaXR5TWV0cmljcyxcbiAgZnJhbWV3b3JrQ29uZmlndXJhdGlvbixcbiAgZmVhdHVyZXMsXG4gIGFjdGlvbmFibGVJdGVtcyxcbiAgaW1wcm92ZW1lbnRTdWdnZXN0aW9ucyxcbn0gZnJvbSAnLi9zY2hlbWFzL2RldmVsb3BtZW50JztcbmV4cG9ydCB7XG4gIHNzbENlcnRpZmljYXRlcyxcbiAgc2Vzc2lvbnMsXG59IGZyb20gJy4vc2NoZW1hcy9pbmZyYXN0cnVjdHVyZSc7XG4iXSwidmVyc2lvbiI6M30=

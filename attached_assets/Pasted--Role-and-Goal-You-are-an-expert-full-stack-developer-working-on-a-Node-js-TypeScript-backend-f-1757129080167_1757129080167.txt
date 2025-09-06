@@ -1,0 +1,34 @@
+**Role and Goal:**
+You are an expert full-stack developer working on a Node.js/TypeScript backend for a property management SaaS platform named Koveo Gestion. Your goal is to fix a critical bug in the Gemini Flash API integration responsible for bill analysis. The fix must be robust, secure, and follow our project's coding standards.
+
+**Context:**
+The application uses Node.js with TypeScript and Express.js[cite: 6]. We use Zod for validation[cite: 5]. The current implementation in `/server/services/gemini-bill-analyzer.ts` calls the Gemini Flash API to analyze bill documents (images, PDFs) and expects a JSON response. The backend service then parses this JSON to extract bill details like vendor, total amount, category, etc.
+
+**Problem Description:**
+The application is crashing with a `SyntaxError: Unexpected token '`'` when calling `JSON.parse()`. The error logs confirm that the Gemini API is wrapping its JSON output in Markdown code blocks (e.g., "```json\n{...}\n```"). This makes the string an invalid JSON, causing the `JSON.parse` function in the `analyzeBillDocument` method within `/server/services/gemini-bill-analyzer.ts` to fail.
+
+**Task:**
+1.  **Modify the `analyzeBillDocument` method in `/server/services/gemini-bill-analyzer.ts` to make the JSON parsing resilient.**
+    * Before parsing, add a sanitization step to reliably remove any potential Markdown fences ("```json" and "```") and surrounding whitespace from the raw text response received from the Gemini API.
+    * Wrap the `JSON.parse()` call in a `try...catch` block. This will prevent the entire request from crashing if, for any reason, the response is not valid JSON even after sanitization.
+    * In the `catch` block, log the raw, failed-to-parse string and a clear error message for easier debugging. The error should then be gracefully propagated up to the caller as an `Error` object (e.g., `throw new Error('Failed to parse AI response as JSON')`).
+
+2.  **Refine the prompt sent to the Gemini API.**
+    * Locate the part of the code that generates the prompt for the Gemini model.
+    * Add a strict instruction at the end of the prompt, such as: "**IMPORTANT: Your response MUST be a raw JSON object only, without any Markdown formatting, backticks, or explanatory text. Do not wrap the JSON in '```json' or any other non-JSON characters.**" This will reduce the likelihood of the model making this mistake in the future.
+
+3.  **Ensure comprehensive logging.**
+    * Enhance the debug logs to show the raw text received from the API *before* the sanitization and parsing attempt. This is crucial for future debugging.
+
+4.  **Update unit tests.**
+    * Navigate to the corresponding test file for `gemini-bill-analyzer.ts`.
+    * Add new test cases to verify the new resilient parsing logic. Include tests for:
+        * A valid JSON string without any wrapping.
+        * A JSON string wrapped in "```json ... ```".
+        * A completely invalid string that is not JSON.
+        * An empty or null response from the API.
+
+**Constraints and Best Practices:**
+* **Security:** Ensure the sanitization logic is safe and does not introduce vulnerabilities. Use simple string replacement or regular expressions focused only on removing the backticks and the "json" keyword.
+* **Cost-Effectiveness:** Do not add complex logic that significantly increases computation time. The solution should be lightweight and efficient.
+* **Compliance:** Adhere to our existing coding standards, including TypeScript strict mode and Prettier formatting[cite: 5, 6].

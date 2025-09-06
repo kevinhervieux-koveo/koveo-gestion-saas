@@ -9,8 +9,16 @@
  * 2. User Management Forms (invitations, profile updates)
  * 3. Property Management Forms (buildings, residences)
  * 4. Financial Forms (bills, payments)
- * 5. Document Forms (upload, categorization)
+ * 5. Document Forms (upload, categorization) - ENHANCED SECURITY
  * 6. Maintenance Forms (demands, bug reports)
+ * 
+ * NEW SECURITY FEATURES TESTED:
+ * - Rate limiting (10 files per hour per user)
+ * - Enhanced file validation (MIME type checking)
+ * - Path traversal protection
+ * - Audit logging for all document operations
+ * - File size limits (25MB max)
+ * - Admin-only audit log access
  */
 
 /// <reference path="../types/jest-dom.d.ts" />

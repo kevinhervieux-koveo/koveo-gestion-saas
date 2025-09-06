@@ -55,6 +55,14 @@ export function registerBugRoutes(app: Express): void {
       );
 
       console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
+      
+      // Debug: Log file attachment info for each bug
+      bugs.forEach(bug => {
+        if (bug.file_path) {
+          console.log(`🔗 Bug ${bug.id} has file: ${bug.file_name} at ${bug.file_path}`);
+        }
+      });
+      
       res.json(bugs);
     } catch (error: any) {
       console.error('❌ Error fetching bugs:', error);
@@ -112,9 +120,9 @@ export function registerBugRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/bugs - Creates a new bug report with optional file attachments.
+   * POST /api/bugs - Creates a new bug report with optional single file attachment.
    */
-  app.post('/api/bugs', requireAuth, upload.array('attachments', 10), async (req: any, res) => {
+  app.post('/api/bugs', requireAuth, upload.single('attachment'), async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -138,37 +146,38 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      const bugData = validation.data;
-      const bug = await storage.createBug(bugData);
+      let bugData = validation.data;
 
-      // Handle file attachments if present
-      if (req.files && req.files.length > 0) {
-        console.log(`📎 Processing ${req.files.length} attachments for bug ${bug.id}`);
-
-        for (const file of req.files) {
-          // Create document record for each attachment
-          const documentData = {
-            name: file.originalname,
-            description: `Attachment for bug: ${bug.title}`,
-            documentType: 'attachment',
-            filePath: `general/${file.filename}`,
-            fileName: file.originalname,
-            fileSize: file.size.toString(),
-            attachedToType: 'bug' as const,
-            attachedToId: bug.id,
-            uploadedById: currentUser.id,
-          };
-
-
-          await storage.createDocument({
-            ...documentData,
-            isVisibleToTenants: false
-          });
-          console.log(`📄 Created attachment document for bug ${bug.id}: ${file.originalname}`);
-        }
+      // Handle single file attachment if present
+      if (req.file) {
+        // Fix filename encoding issues
+        const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+        console.log(`📎 Processing attachment for new bug:`, {
+          originalname: originalname,
+          filename: req.file.filename,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        });
+        bugData = {
+          ...bugData,
+          filePath: `general/${req.file.filename}`,
+          fileName: originalname,
+          fileSize: req.file.size,
+        };
       }
 
-      console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
+      // Log the final bugData before saving
+      console.log(`🐛 Creating bug with data:`, {
+        title: bugData.title,
+        hasFile: !!bugData.filePath,
+        filePath: bugData.filePath,
+        fileName: bugData.fileName,
+        fileSize: bugData.fileSize
+      });
+
+      const bug = await storage.createBug(bugData);
+
+      console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
     } catch (error: any) {
       console.error('❌ Error creating bug:', error);
@@ -262,6 +271,111 @@ export function registerBugRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update bug',
+      });
+    }
+  });
+
+  /**
+   * GET /api/bugs/:id/file - Serves the file attachment for a bug.
+   */
+  app.get('/api/bugs/:id/file', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { download } = req.query;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Get the bug with file info
+      const bug = await storage.getBug(
+        id,
+        currentUser.id,
+        currentUser.role,
+        currentUser.organizationId
+      );
+
+      console.log('🐛 getBug result:', bug ? { id: bug.id, filePath: bug.filePath, fileName: bug.fileName } : 'undefined');
+
+      if (!bug) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Bug not found',
+        });
+      }
+
+      // Check both camelCase and snake_case field names for compatibility
+      const filePath = bug.filePath || (bug as any).file_path;
+      const fileName = bug.fileName || (bug as any).file_name;
+      
+      if (!filePath) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'No file attached to this bug',
+        });
+      }
+
+      // Handle different path formats (absolute vs relative)
+      const fullPath = path.isAbsolute(filePath) 
+        ? filePath 
+        : path.join(process.cwd(), 'uploads', filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'File not found on server',
+        });
+      }
+      
+      // Detect MIME type based on file extension
+      const getContentType = (filename: string) => {
+        const ext = filename.toLowerCase().split('.').pop();
+        switch (ext) {
+          case 'pdf': return 'application/pdf';
+          case 'jpg': case 'jpeg': return 'image/jpeg';
+          case 'png': return 'image/png';
+          case 'gif': return 'image/gif';
+          case 'doc': return 'application/msword';
+          case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          case 'txt': return 'text/plain';
+          default: return 'application/octet-stream';
+        }
+      };
+
+      // Set proper content type for viewing
+      const contentType = getContentType(fileName || 'attachment');
+      res.setHeader('Content-Type', contentType);
+      
+      // Properly encode filename for French characters and other special characters
+      const encodedFilename = Buffer.from(fileName || 'attachment', 'utf8').toString('binary');
+
+      // Set appropriate headers
+      if (download === 'true') {
+        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
+      } else {
+        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
+      }
+
+      // Stream the file
+      const fileStream = fs.createReadStream(fullPath);
+      fileStream.pipe(res);
+      
+      fileStream.on('error', (error) => {
+        console.error(`❌ Error streaming file for bug ${id}:`, error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Failed to stream file' });
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Error serving bug file:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to serve file',
       });
     }
   });

@@ -105,9 +105,8 @@ export function UserResidencesTab({ user, residences, onSave, isLoading = false 
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="owner">Owner</SelectItem>
                     <SelectItem value="tenant">Tenant</SelectItem>
-                    <SelectItem value="occupant">Occupant</SelectItem>
+                    <SelectItem value="resident">Resident</SelectItem>
                   </SelectContent>
                 </Select>
               )}

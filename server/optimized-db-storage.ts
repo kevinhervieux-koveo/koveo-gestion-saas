@@ -48,7 +48,7 @@ import type {
 import type { IStorage } from './storage';
 import type { Pillar } from '@shared/schema';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
-import { queryCache, CacheInvalidator } from './query-cache';
+import { queryCache, CacheInvalidator, withCache } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
 import { exists, sql as sqlOp } from 'drizzle-orm';
 
@@ -2209,10 +2209,15 @@ export class OptimizedDatabaseStorage implements IStorage {
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
 
-    return queryCache.get(key, async () => {
+    console.log(`🔍 getBug called with key: ${key}`);
+
+    return withCache('bug', key, async () => {
+      console.log(`📊 Cache miss for ${key}, querying database...`);
       const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
 
       const bug = result[0];
+      console.log(`📋 Database query result:`, bug ? { id: bug.id, title: bug.title, filePath: bug.filePath, file_path: (bug as any).file_path } : 'undefined');
+
       if (!bug) {
         return undefined;
       }
@@ -2250,8 +2255,9 @@ export class OptimizedDatabaseStorage implements IStorage {
       })
       .returning();
 
-    // Invalidate cache for this user
+    // Invalidate cache for this user and specific bug queries  
     queryCache.invalidate('bugs');
+    queryCache.invalidate('bug', `bug:${result[0].id}:*`);
 
     return result[0];
   }
@@ -2476,7 +2482,8 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
-   * Updates a feature request (admin only).
+   * Updates a feature request with role-based permissions.
+   * Users can edit their own, managers can edit within org, admins can edit all.
    * @param id
    * @param updates
    * @param userId
@@ -2488,8 +2495,21 @@ export class OptimizedDatabaseStorage implements IStorage {
     userId: string,
     userRole: string
   ): Promise<FeatureRequest | undefined> {
-    // Only admins can update feature requests
-    if (userRole !== 'admin') {
+    // Get existing feature request to check permissions
+    const existingFeatureRequest = await db
+      .select()
+      .from(schema.featureRequests)
+      .where(eq(schema.featureRequests.id, id))
+      .limit(1);
+
+    if (!existingFeatureRequest[0]) {
+      return undefined;
+    }
+
+    // Check permissions: users can edit their own, admins can edit all
+    const canEdit = userRole === 'admin' || existingFeatureRequest[0].createdBy === userId;
+
+    if (!canEdit) {
       return undefined;
     }
 

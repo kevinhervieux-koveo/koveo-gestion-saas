@@ -2,10 +2,11 @@ import type { Express } from 'express';
 import { requireAuth, requireRole } from '../auth';
 import { storage } from '../storage';
 import {
+  documents,
   insertDocumentSchema,
   type InsertDocument,
   type Document,
-} from '../../shared/schemas/documents';
+} from '../../shared/schema';
 
 // Use the generated Document type from schema to avoid DOM Document collision
 type DocumentRecord = Document;
@@ -18,19 +19,87 @@ import { v4 as uuidv4 } from 'uuid';
 import { sql } from 'drizzle-orm';
 import { db } from '../db';
 
-// Configure multer for file uploads
+// Enhanced security configuration for file uploads
+const SECURITY_CONFIG = {
+  MAX_FILE_SIZE: 25 * 1024 * 1024, // Reduced to 25MB for better security
+  MAX_FILES_PER_USER_PER_HOUR: 10, // Rate limiting
+  ALLOWED_MIME_TYPES: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+  ],
+  ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif']
+};
+
+// Rate limiting storage for uploads
+const uploadRateTracker = new Map();
+
+// Enhanced file validation function
+function validateFile(file: any): { isValid: boolean; error?: string } {
+  if (!file) return { isValid: false, error: 'No file provided' };
+  
+  // Check file size
+  if (file.size > SECURITY_CONFIG.MAX_FILE_SIZE) {
+    return { isValid: false, error: `File size exceeds ${SECURITY_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit` };
+  }
+  
+  // Check MIME type
+  if (!SECURITY_CONFIG.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    return { isValid: false, error: `File type ${file.mimetype} not allowed` };
+  }
+  
+  // Check file extension
+  const extension = path.extname(file.originalname).toLowerCase().substring(1);
+  if (!SECURITY_CONFIG.ALLOWED_EXTENSIONS.includes(extension)) {
+    return { isValid: false, error: `File extension .${extension} not allowed` };
+  }
+  
+  // Check filename for path traversal attempts
+  if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
+    return { isValid: false, error: 'Invalid filename detected' };
+  }
+  
+  return { isValid: true };
+}
+
+// Rate limiting function
+function checkUploadRateLimit(userId: string): { allowed: boolean; error?: string } {
+  const now = Date.now();
+  const userUploads = uploadRateTracker.get(userId) || [];
+  
+  // Clean old uploads (older than 1 hour)
+  const recentUploads = userUploads.filter((timestamp: number) => now - timestamp < 60 * 60 * 1000);
+  
+  if (recentUploads.length >= SECURITY_CONFIG.MAX_FILES_PER_USER_PER_HOUR) {
+    return { allowed: false, error: 'Upload rate limit exceeded. Please try again later.' };
+  }
+  
+  // Update tracker
+  recentUploads.push(now);
+  uploadRateTracker.set(userId, recentUploads);
+  
+  return { allowed: true };
+}
+
+// Configure multer for file uploads with enhanced security
 const upload = multer({
   dest: '/tmp/uploads/',
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: SECURITY_CONFIG.MAX_FILE_SIZE,
+    files: 1, // Only allow one file at a time
   },
   fileFilter: (req, file, cb) => {
-    // Allow most common document and image types
-    const allowedTypes = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|jpg|jpeg|png|gif|bmp|tiff)$/i;
-    if (allowedTypes.test(file.originalname)) {
+    const validation = validateFile(file);
+    if (validation.isValid) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only documents and images are allowed.'));
+      cb(new Error(validation.error));
     }
   },
 });
@@ -96,8 +165,38 @@ const uploadDocumentRecordSchema = z.object({
 export function registerDocumentRoutes(app: Express): void {
   console.log(`[${new Date().toISOString()}] 🔧 Registering document routes...`);
   
+  // Security audit logging
+  const auditLog: Array<{
+    timestamp: string;
+    action: string;
+    userId: string;
+    userRole: string;
+    documentId?: string;
+    success: boolean;
+    details?: any;
+  }> = [];
+  
   // Error tracking for production debugging
   const errorLog: Array<{timestamp: string, error: any, endpoint: string, user?: any}> = [];
+  
+  // Security audit logging function
+  const logSecurityEvent = (action: string, user: any, success: boolean, documentId?: string, details?: any) => {
+    const event = {
+      timestamp: new Date().toISOString(),
+      action,
+      userId: user.id,
+      userRole: user.role,
+      documentId,
+      success,
+      details
+    };
+    
+    auditLog.push(event);
+    if (auditLog.length > 1000) auditLog.shift(); // Keep last 1000 events
+    
+    console.log(`[SECURITY AUDIT] ${action}:`, event);
+    return event;
+  };
 
   // Database connection testing functions
   const testDatabaseConnection = async () => {
@@ -1129,6 +1228,12 @@ export function registerDocumentRoutes(app: Express): void {
         residentCount: allDocumentRecords.filter((d) => d.documentCategory === 'resident').length,
         legacyCount: allDocumentRecords.filter((d) => d.documentCategory === 'legacy').length,
       };
+      // Log successful document access
+      logSecurityEvent('DOCUMENT_LIST_ACCESS', user, true, undefined, {
+        documentsReturned: allDocumentRecords.length,
+        filters: { documentType, specificResidenceId, specificBuildingId }
+      });
+      
       res.json(response);
     } catch (_error: any) {
       const errorEntry = logError('GET /api/documents', _error, req.user);
@@ -1236,8 +1341,16 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, ...otherData } = req.body;
 
+      // Enhanced rate limiting check
+      const rateLimitCheck = checkUploadRateLimit(userId);
+      if (!rateLimitCheck.allowed) {
+        logSecurityEvent('UPLOAD_RATE_LIMIT_EXCEEDED', user, false, undefined, { error: rateLimitCheck.error });
+        return res.status(429).json({ message: rateLimitCheck.error });
+      }
+      
       // Validate permissions - only admin, manager, and resident can create documents
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
+        logSecurityEvent('UNAUTHORIZED_UPLOAD_ATTEMPT', user, false, undefined, { requiredRoles: ['admin', 'manager', 'resident'] });
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
 
@@ -1557,7 +1670,38 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
-  // Delete a document
+  // Security audit endpoint - admin only
+  app.get('/api/documents/security/audit-log', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      // Only admins can access audit logs
+      if (user.role !== 'admin') {
+        logSecurityEvent('UNAUTHORIZED_AUDIT_ACCESS', user, false);
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+      
+      // Get last 100 audit events with pagination support
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const paginatedLogs = auditLog.slice(offset, offset + limit);
+      
+      logSecurityEvent('AUDIT_LOG_ACCESS', user, true, undefined, { limit, offset });
+      
+      res.json({
+        events: paginatedLogs,
+        total: auditLog.length,
+        limit,
+        offset
+      });
+    } catch (error: any) {
+      console.error('Error accessing audit log:', error);
+      res.status(500).json({ message: 'Failed to retrieve audit log' });
+    }
+  });
+  
+  // Delete document with enhanced security logging
   app.delete('/api/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -1940,7 +2084,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Serve document files
-  // Serve document files with full access control
+  // Serve document files with proper role-based access control
   app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -1954,75 +2098,126 @@ export function registerDocumentRoutes(app: Express): void {
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
 
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences
-        .map((ur: any) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
-        .filter(Boolean);
-      const buildingIds = buildings.map((b) => b.id);
-
-      // Find the document
-      const filters = {
-        userId,
+      // Log access attempt for security auditing
+      logSecurityEvent('DOCUMENT_FILE_ACCESS_ATTEMPT', user, false, documentId, {
         userRole,
-      };
+        documentId,
+        isDownload
+      });
 
-      const documents = await storage.getDocuments(filters);
-      const document = documents.find((doc) => doc.id === documentId);
+      // Find the document directly from database without filtering by user
+      const allDocuments = await storage.getDocuments({});
+      const document = allDocuments.find((doc) => doc.id === documentId);
 
       if (!document) {
-        return res.status(404).json({ message: 'DocumentRecord not found' });
+        logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId);
+        return res.status(404).json({ message: 'Document not found' });
       }
 
-      // Check permissions with tenant visibility rules
+      // Get user's organization info
+      const userOrganizations = organizations.map(org => org.organizationId);
+      const userResidenceIds = residences
+        .map((ur: any) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
+        .filter(Boolean);
+
+      // Get building IDs that user's residences belong to
+      const userBuildingIds = [];
+      for (const userResidence of residences) {
+        // Handle different residence data structures
+        const residenceId = userResidence.residenceId;
+        if (residenceId) {
+          // Find the actual residence to get building ID
+          const allResidences = await storage.getResidences();
+          const residence = allResidences.find(r => r.id === residenceId);
+          if (residence?.buildingId) {
+            userBuildingIds.push(residence.buildingId);
+          }
+        }
+      }
+
+      // Check permissions based on the specified rules
       let hasAccess = false;
+      let accessReason = '';
 
       if (userRole === 'admin') {
         hasAccess = true;
-      } else if (userRole === 'manager' && organizationId) {
-        if (document.buildingId && buildingIds.includes(document.buildingId)) {
-          hasAccess = true;
+        accessReason = 'Admin has global access';
+      } else if (userRole === 'manager') {
+        // Manager should have access to buildings they are assigned to
+        if (document.buildingId) {
+          // Get buildings for the manager's organization
+          const orgBuildings = buildings.filter(building => 
+            userOrganizations.includes(building.organizationId || '')
+          );
+          const orgBuildingIds = orgBuildings.map(b => b.id);
+          
+          if (orgBuildingIds.includes(document.buildingId)) {
+            hasAccess = true;
+            accessReason = 'Manager has access to organization buildings';
+          }
         }
-        if (document.residenceId && residenceIds.includes(document.residenceId)) {
-          hasAccess = true;
+        
+        // Manager has access to all residences in their organization
+        if (document.residenceId) {
+          // Check if residence belongs to manager's organization
+          const allResidences = await storage.getResidences();
+          const residence = allResidences.find(r => r.id === document.residenceId);
+          if (residence) {
+            // Check if residence building belongs to manager's organization
+            const residenceBuilding = buildings.find(b => b.id === residence.buildingId);
+            if (residenceBuilding && userOrganizations.includes(residenceBuilding.organizationId || '')) {
+              hasAccess = true;
+              accessReason = 'Manager has access to organization residences';
+            }
+          }
         }
       } else if (userRole === 'resident') {
-        // Residents can access documents in their residence
-        if (document.residenceId && residenceIds.includes(document.residenceId)) {
+        // Resident has access to building files they are assigned to
+        if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
+          accessReason = 'Resident has access to assigned building documents';
         }
-        // Residents can access building documents related to their residences
-        if (document.buildingId) {
-          const userBuildingIds = residences
-            .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-            .filter(Boolean);
-          if (userBuildingIds.includes(document.buildingId)) {
-            hasAccess = true;
-          }
+        
+        // Resident has access to residence files they are assigned to
+        if (document.residenceId && userResidenceIds.includes(document.residenceId)) {
+          hasAccess = true;
+          accessReason = 'Resident has access to assigned residence documents';
         }
       } else if (userRole === 'tenant') {
         // Tenants can only access documents marked as visible to tenants
-        if (!document.isVisibleToTenants) {
-          hasAccess = false;
-        } else {
-          // Tenants can access visible documents in their residence
-          if (document.residenceId && residenceIds.includes(document.residenceId)) {
+        if (document.isVisibleToTenants) {
+          // Tenant has access to building files they are assigned to and marked for tenant
+          if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
             hasAccess = true;
+            accessReason = 'Tenant has access to assigned building documents marked for tenants';
           }
-          // Tenants can access visible building documents related to their residences
-          if (document.buildingId) {
-            const userBuildingIds = residences
-              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-              .filter(Boolean);
-            if (userBuildingIds.includes(document.buildingId)) {
-              hasAccess = true;
-            }
+          
+          // Tenant has access to residence files they are assigned to and marked for tenant
+          if (document.residenceId && userResidenceIds.includes(document.residenceId)) {
+            hasAccess = true;
+            accessReason = 'Tenant has access to assigned residence documents marked for tenants';
           }
         }
       }
 
       if (!hasAccess) {
+        logSecurityEvent('DOCUMENT_FILE_ACCESS_DENIED', user, false, documentId, {
+          userRole,
+          documentBuildingId: document.buildingId,
+          documentResidenceId: document.residenceId,
+          userBuildingIds,
+          userResidenceIds,
+          isVisibleToTenants: document.isVisibleToTenants
+        });
         return res.status(403).json({ message: 'Access denied' });
       }
+
+      // Log successful access
+      logSecurityEvent('DOCUMENT_FILE_ACCESS_GRANTED', user, true, documentId, {
+        accessReason,
+        userRole,
+        documentType: document.documentType
+      });
 
       // Serve from local storage
       if (document.filePath) {

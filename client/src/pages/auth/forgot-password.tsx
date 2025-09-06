@@ -4,24 +4,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { ArrowLeft, Mail } from 'lucide-react';
+import { StandardForm, useStandardForm } from '@/components/forms/StandardForm';
+import { StandardFormField } from '@/components/forms/StandardFormField';
+import { ValidationTemplates } from '@/utils/form-validation-helpers';
 
 const forgotPasswordSchema = z.object({
-  email: z.string()
-    .min(1, 'Adresse e-mail requise pour la réinitialisation')
-    .email('Veuillez entrer une adresse e-mail valide (exemple: utilisateur@domaine.com)'),
+  email: ValidationTemplates.email()
+    .refine(val => val.length > 0, 'Adresse e-mail requise pour la réinitialisation'),
 });
 
 /**
@@ -33,9 +26,11 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
  *
  */
 export default function ForgotPasswordPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
+  const { isLoading, errorMessage, handleSubmit } = useStandardForm({
+    showSuccessMessage: false
+  });
 
   const form = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -44,31 +39,17 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async (_data: ForgotPasswordForm) => {
-    setIsSubmitting(true);
-    try {
-      await apiRequest('POST', '/api/auth/forgot-password', _data);
-
+  const onSubmit = async (data: ForgotPasswordForm) => {
+    const submitFn = async (formData: ForgotPasswordForm) => {
+      await apiRequest('POST', '/api/auth/forgot-password', formData);
       setEmailSent(true);
       toast({
         title: 'E-mail envoyé',
         description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
       });
-    } catch (_error: unknown) {
-      if (import.meta.env.DEV) {
-      }
-      const errorMessage =
-        _error instanceof Error
-          ? _error.message
-          : "Une erreur est survenue lors de l'envoi de l'e-mail.";
-      toast({
-        title: 'Erreur',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+    
+    await handleSubmit(submitFn, form, 'E-mail de réinitialisation envoyé avec succès')(data);
   };
 
   if (emailSent) {
@@ -113,36 +94,36 @@ export default function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Adresse e-mail</FormLabel>
-                    <FormControl>
-                      <Input type='email' placeholder='votre@email.com' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <StandardForm
+            form={form}
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+            submitText="Envoyer le lien de réinitialisation"
+            loadingText="Envoi en cours..."
+            formName="forgot-password"
+            showCard={false}
+          >
+            <StandardFormField
+              control={form.control}
+              name="email"
+              label="Adresse e-mail"
+              type="email"
+              placeholder="votre@email.com"
+              required
+              formName="forgot-password"
+              description="Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe"
+            />
+          </StandardForm>
 
-              <Button type='submit' className='w-full' disabled={isSubmitting}>
-                {isSubmitting ? 'Envoi en cours...' : 'Envoyer le lien'}
-              </Button>
-
-              <div className='text-center'>
-                <Button variant='ghost' asChild>
-                  <Link href='/login'>
-                    <ArrowLeft className='w-4 h-4 mr-2' />
-                    Retour à la connexion
-                  </Link>
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <div className='text-center mt-4'>
+            <Button variant='ghost' asChild>
+              <Link href='/login'>
+                <ArrowLeft className='w-4 h-4 mr-2' />
+                Retour à la connexion
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

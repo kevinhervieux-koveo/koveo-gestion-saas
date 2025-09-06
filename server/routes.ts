@@ -1,8 +1,10 @@
-// Main routes file that loads route definitions
+// Main routes file that loads route definitions  
 import express, { Express } from 'express';
 import { setupAuthRoutes, sessionConfig } from './auth';
 import path from 'path';
 import fs from 'fs';
+import multer from 'multer';
+import { requireAuth } from './auth/index';
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -19,6 +21,45 @@ import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerTrialRequestRoutes } from './api/trial-request';
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'demands');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, `demand-${uniqueSuffix}${extension}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5 // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images, PDFs, and common document types
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} not allowed`));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express) {
   console.log('🔄 Setting up session middleware...');
@@ -59,6 +100,39 @@ export async function registerRoutes(app: Express) {
   app.post('/api/test', (req, res) => {
     res.json({ message: 'API working', body: req.body });
   });
+
+  // File upload endpoint for demands and other general uploads
+  app.post('/api/upload', requireAuth, upload.array('file', 5), async (req: any, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'No files uploaded' });
+      }
+
+      // Generate file URLs/paths for the uploaded files
+      const fileUrls = files.map(file => {
+        return `/uploads/demands/${file.filename}`;
+      });
+
+      console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}:`, fileUrls);
+
+      res.json({ 
+        message: 'Files uploaded successfully',
+        fileUrls: fileUrls,
+        fileCount: files.length
+      });
+    } catch (error: any) {
+      console.error('❌ File upload error:', error);
+      res.status(500).json({ 
+        message: 'Failed to upload files',
+        error: error.message 
+      });
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Simple production diagnostic endpoint
   app.get('/api/debug/simple', (req, res) => {

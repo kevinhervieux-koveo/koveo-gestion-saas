@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { db } from '../../server/db';
-import { buildings, residences, documents, organizations, users, userResidences } from '@shared/schema';
+import { buildings, residences, documents, organizations, users, userResidences } from '../../shared/schema';
 import { createBuilding, updateBuilding, cascadeDeleteBuilding } from '../../server/api/buildings/operations';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
@@ -249,25 +249,25 @@ describe('Building-Residence Management', () => {
         userId: testUserId,
         residenceId: buildingResidences[0].id,
         relationshipType: 'owner',
-        startDate: new Date(),
+        startDate: new Date().toISOString().split('T')[0], // Convert to date string
       });
 
       // Create documents associated with building and residence
       await db.insert(documents).values([
         {
-          title: 'Building Document',
+          name: 'Building Document',
           buildingId: testBuildingId,
           documentType: 'bylaw',
           filePath: '/test/building-doc.pdf',
-          uploadedBy: testUserId,
+          uploadedById: testUserId,
         },
         {
-          title: 'Residence Document',
+          name: 'Residence Document',
           buildingId: testBuildingId,
           residenceId: buildingResidences[0].id,
           documentType: 'lease',
           filePath: '/test/residence-doc.pdf',
-          uploadedBy: testUserId,
+          uploadedById: testUserId,
         },
       ]);
     });

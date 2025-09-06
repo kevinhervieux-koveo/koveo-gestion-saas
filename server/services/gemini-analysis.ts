@@ -197,6 +197,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
 
       // Validate that we have multiple actionable items as required
       if (!analysis.actionableItems || analysis.actionableItems.length < 2) {
+        console.warn(
           `⚠️ AI analysis returned only ${analysis.actionableItems?.length || 0} actionable items, but should return 3-8 items`
         );
         throw new Error(
@@ -204,13 +205,15 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         );
       }
 
+      console.log(
         `✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`
       );
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');
     }
-    throw new Error(`Failed to analyze feature: ${_error}`);
+  } catch (error: any) {
+    throw new Error(`Failed to analyze feature: ${error.message}`);
   }
 }
 
@@ -240,7 +243,7 @@ export function formatActionableItemsForDatabase(
   featureId: string,
   analysisResult: AnalysisResult
 ): Omit<ActionableItem, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>[] {
-  return analysisResult.actionableItems.map((item, _index) => ({
+  return analysisResult.actionableItems.map((item, index) => ({
     featureId,
     title: item.title,
     description: item.description,
@@ -248,9 +251,12 @@ export function formatActionableItemsForDatabase(
     implementationPrompt: item.implementationPrompt,
     testingRequirements: item.testingRequirements,
     estimatedEffort: item.estimatedEffort,
-    dependencies: item.dependencies || null,
+    dependencies: item.dependencies || [],
     status: 'pending' as const,
     orderIndex: index,
+    acceptanceCriteria: '',
+    implementation_notes: '',
+    startedAt: null
   }));
 }
 

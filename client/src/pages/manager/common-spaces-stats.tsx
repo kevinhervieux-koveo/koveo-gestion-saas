@@ -138,7 +138,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
     const { user } = useAuth();
     const { language } = useLanguage();
 
-    if (!user || !['manager', 'admin'].includes(user.role)) {
+    if (!user || !['manager', 'admin', 'demo_manager'].includes(user.role)) {
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
           <Header 
@@ -202,6 +202,15 @@ function CommonSpacesStatsPage() {
       friday: { start: '08:00', end: '22:00' },
       saturday: { start: '09:00', end: '21:00' },
       sunday: { start: '09:00', end: '21:00' },
+    },
+    available_days: {
+      monday: true,
+      tuesday: true,
+      wednesday: true,
+      thursday: true,
+      friday: true,
+      saturday: true,
+      sunday: true,
     },
   });
   const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
@@ -287,6 +296,7 @@ function CommonSpacesStatsPage() {
       capacity?: number;
       opening_hours?: { start: string; end: string };
       weekly_hours?: any;
+      available_days?: string[];
     }) => {
       if (isEditMode && selectedSpaceId) {
         return apiRequest('PUT', `/api/common-spaces/${selectedSpaceId}`, spaceData);
@@ -328,6 +338,15 @@ function CommonSpacesStatsPage() {
           friday: { start: '08:00', end: '22:00' },
           saturday: { start: '09:00', end: '21:00' },
           sunday: { start: '09:00', end: '21:00' },
+        },
+        available_days: {
+          monday: true,
+          tuesday: true,
+          wednesday: true,
+          thursday: true,
+          friday: true,
+          saturday: true,
+          sunday: true,
         },
       });
     } catch (error) {
@@ -382,6 +401,9 @@ function CommonSpacesStatsPage() {
           : undefined,
       weekly_hours:
         createFormData.hours_mode === 'custom' ? createFormData.weekly_hours : undefined,
+      available_days: Object.entries(createFormData.available_days)
+        .filter(([_, isAvailable]) => isAvailable)
+        .map(([day, _]) => day),
     };
 
     createSpaceMutation.mutate(spaceData);
@@ -735,13 +757,30 @@ function CommonSpacesStatsPage() {
                                 };
 
                                 return (
-                                  <div key={day} className='grid grid-cols-3 gap-3 items-center'>
-                                    <Label className='text-sm font-medium w-20'>
-                                      {dayLabels[day as keyof typeof dayLabels]}
-                                    </Label>
+                                  <div key={day} className='grid grid-cols-4 gap-3 items-center'>
+                                    <div className='flex items-center space-x-2'>
+                                      <Checkbox
+                                        id={`available-${day}`}
+                                        checked={createFormData.available_days[day as keyof typeof createFormData.available_days]}
+                                        onCheckedChange={(checked) =>
+                                          setCreateFormData({
+                                            ...createFormData,
+                                            available_days: {
+                                              ...createFormData.available_days,
+                                              [day]: checked === true,
+                                            },
+                                          })
+                                        }
+                                        data-testid={`checkbox-${day}-available`}
+                                      />
+                                      <Label htmlFor={`available-${day}`} className='text-sm font-medium w-20'>
+                                        {dayLabels[day as keyof typeof dayLabels]}
+                                      </Label>
+                                    </div>
                                     <Input
                                       type='time'
                                       value={hours.start}
+                                      disabled={!createFormData.available_days[day as keyof typeof createFormData.available_days]}
                                       onChange={(e) =>
                                         setCreateFormData({
                                           ...createFormData,
@@ -756,6 +795,7 @@ function CommonSpacesStatsPage() {
                                     <Input
                                       type='time'
                                       value={hours.end}
+                                      disabled={!createFormData.available_days[day as keyof typeof createFormData.available_days]}
                                       onChange={(e) =>
                                         setCreateFormData({
                                           ...createFormData,
@@ -924,6 +964,15 @@ function CommonSpacesStatsPage() {
                         friday: { start: '08:00', end: '22:00' },
                         saturday: { start: '09:00', end: '21:00' },
                         sunday: { start: '09:00', end: '21:00' },
+                      },
+                      available_days: {
+                        monday: true,
+                        tuesday: true,
+                        wednesday: true,
+                        thursday: true,
+                        friday: true,
+                        saturday: true,
+                        sunday: true,
                       },
                     });
                     setIsEditMode(true);

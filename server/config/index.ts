@@ -69,6 +69,7 @@ const detectEnvironment = () => {
   const isKoveoProduction = domain.includes('koveo-gestion.com');
   
   // Prioritize explicit NODE_ENV setting (deployment environment)
+  // If NODE_ENV=production is explicitly set (like in your deployment), always use production mode
   const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction;
   const isDevelopment = !isProduction;
 
@@ -100,15 +101,14 @@ export const config = {
 
   // Database configuration
   database: {
-    // Use DATABASE_URL_KOVEO for production (koveo-gestion.com), DATABASE_URL for development
-    url: envConfig.isProduction && env.DATABASE_URL_KOVEO ? env.DATABASE_URL_KOVEO : env.DATABASE_URL,
+    // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+    url: envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
-      const shouldUseProduction = envConfig.isProduction || isKoveoRequest;
-      return shouldUseProduction && env.DATABASE_URL_KOVEO ? env.DATABASE_URL_KOVEO : env.DATABASE_URL;
+      // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+      return envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
   },
 

@@ -158,6 +158,7 @@ export interface Translations {
   manageUsersInvitationsRoles: string;
   searchUsersInvitations: string;
   filterByRole: string;
+  filterByCategory: string;
   allRoles: string;
   filterByStatus: string;
   allStatuses: string;
@@ -238,6 +239,7 @@ export interface Translations {
   companyOrServiceProvider: string;
   selectPaymentType: string;
   selectSchedule: string;
+  billingSchedule: string;
   selectStatus: string;
   // Page content translations
   loadingDemands: string;
@@ -281,6 +283,7 @@ export interface Translations {
   allResidenceDocuments: string;
   loadingDemands2: string;
   noDemandsFound: string;
+  noDocumentsFound: string;
   success: string;
   updateStatusAndNotes: string;
   // Additional form labels and placeholders
@@ -306,6 +309,10 @@ export interface Translations {
   viewManageOrganizations: string;
   viewManageResidences: string;
   selectBuildingResidence: string;
+  selectBuildingOptional: string;
+  selectOrganizationOptional: string;
+  selectResidenceOptional: string;
+  welcome: string;
   building2: string;
   residence: string;
   selectABuilding: string;
@@ -338,8 +345,10 @@ export interface Translations {
   yearBuilt: string;
   totalUnits: string;
   managementCompany: string;
+  occupancy: string;
   occupancyStats: string;
-  allBuildings: string;
+  parking: string;
+  storage: string;
   units: string;
   occupied: string;
   amenities: string;
@@ -354,22 +363,15 @@ export interface Translations {
   buildingDocuments: string;
   signIn: string;
   demoMode: string;
-  selectRole: string;
   firstName: string;
   lastName: string;
   confirmPassword: string;
-  enterEmailAddress: string;
   enterPassword: string;
   enterFirstName: string;
   enterLastName: string;
-  selectOrganization: string;
-  selectBuilding: string;
-  selectResidence: string;
-  optional: string;
   required: string;
   submit: string;
   send: string;
-  sendInvitation: string;
   reset: string;
   clear: string;
   add: string;
@@ -406,12 +408,15 @@ export interface Translations {
   personalMessageTooLong: string;
   expiryDaysInvalid: string;
   emailOrNameRequired: string;
+  // AI Analysis warnings
+  aiAnalysisWarning: string;
+  lowConfidenceAIWarning: string;
+  reviewAISuggestionsCarefully: string;
   // Core field labels for forms
   email: string;
   password: string;
   login: string;
   forgotPassword: string;
-  dashboard: string;
   // Document button standardization
   documentsButton: string;
   buildingDocumentsButton: string;
@@ -498,8 +503,6 @@ export interface Translations {
   quebecLaw25CompliantDesc: string;
   bilingualSupport: string;
   bilingualSupportDesc: string;
-  roleBasedAccess: string;
-  roleBasedAccessDesc: string;
   cloudBasedSecurity: string;
   cloudBasedSecurityDesc: string;
   mobileResponsive: string;
@@ -520,7 +523,6 @@ export interface Translations {
   ourStory: string;
   privacyPolicy: string;
   termsOfService: string;
-  login: string;
   logout: string;
   getStarted: string;
   language: string;
@@ -549,6 +551,9 @@ export interface Translations {
   regularUpdates: string;
   documentManagement: string;
   documentManagementDesc: string;
+  documentDescription: string;
+  documentTitle: string;
+  searchDocuments: string;
   smartNotifications: string;
   smartNotificationsDesc: string;
   electronicBilling: string;
@@ -565,32 +570,28 @@ export interface Translations {
   viewAllFeatures: string;
   readyToGetStarted: string;
   allRightsReserved: string;
-  // Building related translations
-  myBuildings: string;
-  viewBuildingsAccess: string;
-  noBuildingsFound: string;
   // Residence Documents translations
   residenceDocuments: string;
   manageDocumentsResidence: string;
-  backToResidences: string;
   documentsCount: string;
-  allResidenceDocuments: string;
-  noDocumentsFound: string;
   noDocumentsUploadedYet: string;
   // Demands page translations
   myDemands: string;
-  submitAndTrackRequests: string;
-  searchDemands: string;
   allTypes: string;
   showingResults: string;
   // Buildings management translations
-  buildings: string;
   manageBuildingsOrganization: string;
   searchBuildingsAddress: string;
   addBuilding: string;
   // Fullscreen controls
   fullscreen: string;
   exitFullscreen: string;
+  // Common action buttons
+  save: string;
+  close: string;
+  edit: string;
+  delete: string;
+  phone: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -727,7 +728,7 @@ const translations: Record<Language, Translations> = {
     bulkInvitationsSent: 'Bulk Invitations Sent',
     bulkInvitationsResult: 'Bulk invitations processed successfully',
     bulkInvitationsSuccess: 'invitations sent successfully',
-    _error: 'Error',
+    _error: 'An error occurred',
     // Additional user management translations
     bulkActionSuccess: 'Bulk Action Completed',
     bulkActionSuccessDescription: 'The bulk action has been completed successfully',
@@ -745,6 +746,7 @@ const translations: Record<Language, Translations> = {
     manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
     searchUsersInvitations: 'Search users and invitations...',
     filterByRole: 'Filter by role',
+    filterByCategory: 'Filter by category',
     allRoles: 'All Roles',
     filterByStatus: 'Filter by status',
     allStatuses: 'All Statuses',
@@ -808,9 +810,9 @@ const translations: Record<Language, Translations> = {
     cancelInvitation: 'Cancel Invitation',
     noInvitationsFound: 'No invitations found',
     cancelInvitationConfirmation: 'Are you sure you want to cancel this invitation?',
-    cancelling: 'Cancelling',
-    daysRemaining: 'days remaining',
-    hoursRemaining: 'hours remaining',
+    cancelling: 'Cancelling...',
+    daysRemaining: '{days} days remaining',
+    hoursRemaining: '{hours} hours remaining',
     // Form and UI translations
     formStatus: 'Status',
     formType: 'Type',
@@ -821,24 +823,25 @@ const translations: Record<Language, Translations> = {
     vendor: 'Vendor',
     category: 'Category',
     selectCategory: 'Select category',
-    billTitle: 'Bill title',
-    companyOrServiceProvider: 'Company or service provider',
+    billTitle: 'Bill Title',
+    companyOrServiceProvider: 'Company/Service Provider',
     selectPaymentType: 'Select payment type',
     selectSchedule: 'Select schedule',
+    billingSchedule: 'Billing Schedule',
     selectStatus: 'Select status',
     // Page content translations
     loadingDemands: 'Loading demands...',
-    searchDemandsUsers: 'Search demands, users...',
-    submitAndTrack: 'Submit and track maintenance requests',
+    searchDemandsUsers: 'Search demands and users...',
+    submitAndTrack: 'Submit and track',
     reviewDemand: 'Review Demand',
     failedToReviewDemand: 'Failed to review demand',
-    error: 'Error',
+    error: 'An error occurred',
     submitted: 'Submitted',
     underReview: 'Under Review',
     approved: 'Approved',
     completed: 'Completed',
     rejected: 'Rejected',
-    // Additional status labels
+    // Status label translations
     draft: 'Draft',
     maintenance: 'Maintenance',
     complaint: 'Complaint',
@@ -847,11 +850,11 @@ const translations: Record<Language, Translations> = {
     allStatus: 'All Status',
     // Dialog and form translations
     createNewBill: 'Create New Bill',
-    billCreationForm: 'Bill creation form for {building}',
+    billCreationForm: 'Bill Creation Form',
     createBill: 'Create Bill',
     createNewDemand: 'Create New Demand',
-    submitNewRequest: 'Submit a new request or complaint',
-    submitAndTrackRequests: 'Submit and track your requests',
+    submitNewRequest: 'Submit New Request',
+    submitAndTrackRequests: 'Submit and track requests',
     newDemand: 'New Demand',
     selectType: 'Select type',
     selectBuilding: 'Select building',
@@ -868,31 +871,35 @@ const translations: Record<Language, Translations> = {
     allResidenceDocuments: 'All residence documents',
     loadingDemands2: 'Loading demands...',
     noDemandsFound: 'No demands found',
+    noDocumentsFound: 'No documents found',
     success: 'Success',
-    updateStatusAndNotes: 'Update the status and add review notes',
+    updateStatusAndNotes: 'Update status and notes',
     // Additional form labels and placeholders
-    describeRequestDetail: 'Describe your request in detail...',
+    describeRequestDetail: 'Describe your request in detail',
     submittedBy: 'Submitted by',
-    addNotesReview: 'Add notes about your review decision...',
-    addNotesReviewDecision: 'Add notes about your review decision...',
-    selectBuilding2: 'Select building',
+    addNotesReviewDecision: 'Add notes about your review decision',
+    addNotesReview: 'Add notes about the review',
+    selectBuilding2: 'Select a building',
     // Status options for manager
     submitted2: 'Submitted',
-    // Document management translations
     // Type placeholders
-    typePlaceholder: 'Type',
-    buildingPlaceholder: 'Building',
+    typePlaceholder: 'Select type...',
+    buildingPlaceholder: 'Select building...',
     // Dashboard and major page content
     welcomeBack: 'Welcome back',
-    personalizedDashboard: 'Your personalized dashboard - quick access to everything you need',
-    quickAccessEverything: 'quick access to everything you need',
+    personalizedDashboard: 'Your personalized dashboard',
+    quickAccessEverything: 'Quick access to everything you need',
     adminDashboard: 'Admin Dashboard',
     systemManagement: 'System Management',
-    manageOrganizationsUsers: 'Manage organizations, users, and system settings',
+    manageOrganizationsUsers: 'Manage organizations, users and system settings',
     organizationOverview: 'Organization Overview',
     viewManageOrganizations: 'View and manage all organizations',
     viewManageResidences: 'View and manage organization residences',
-    selectBuildingResidence: 'Select Building & Residence',
+    selectBuildingResidence: 'Select building and residence',
+    selectBuildingOptional: 'Select a building (optional)',
+    selectOrganizationOptional: 'Select an organization (optional)',
+    selectResidenceOptional: 'Select a residence (optional)',
+    welcome: 'Welcome',
     building2: 'Building',
     residence: 'Residence',
     selectABuilding: 'Select a building',
@@ -909,23 +916,26 @@ const translations: Record<Language, Translations> = {
     myResidenceInfo: 'View your residence information and contacts',
     viewResidenceInfo: 'View your residence information and contacts',
     loading: 'Loading...',
-    noResidencesFound: 'No Residences Found',
+    noResidencesFound: 'No residences found',
     noResidencesFoundOrg: 'No residences found in your organization.',
     notAssignedResidences: 'You are not assigned to any residences.',
-    selectResidence: 'Select Residence',
+    selectResidence: 'Select residence',
     selectAResidence: 'Select a residence',
     areYouSureDelete: 'Are you sure you want to delete this contact?',
-    parkingSpaces: 'Parking Spaces',
-    storageSpaces: 'Storage Spaces',
+    parkingSpaces: 'Parking spaces',
+    storageSpaces: 'Storage spaces',
     // Building page translations
     myBuildings: 'My Buildings',
     viewBuildingsAccess: 'View buildings you have access to',
-    noBuildingsFound: 'No Buildings Found',
+    noBuildingsFound: 'No buildings found',
     buildingType: 'Building Type',
     yearBuilt: 'Year Built',
     totalUnits: 'Total Units',
     managementCompany: 'Management Company',
+    occupancy: 'Occupancy',
     occupancyStats: 'Occupancy Stats',
+    parking: 'Parking',
+    storage: 'Storage',
     units: 'units',
     occupied: 'occupied',
     amenities: 'Amenities',
@@ -940,6 +950,15 @@ const translations: Record<Language, Translations> = {
     buildingDocuments: 'Building Documents',
     signIn: 'Sign In',
     demoMode: 'Demo Mode',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    confirmPassword: 'Confirm Password',
+    enterPassword: 'Enter password',
+    enterFirstName: 'Enter first name',
+    enterLastName: 'Enter last name',
+    required: 'This field is required',
+    submit: 'Submit',
+    send: 'Send',
     reset: 'Reset',
     clear: 'Clear',
     add: 'Add',
@@ -960,7 +979,7 @@ const translations: Record<Language, Translations> = {
     organizationRequired: 'Please select an organization from the dropdown',
     buildingRequired: 'Please select a building from the dropdown',
     residenceRequired: 'Please select a specific residence unit for tenants and residents',
-    loginFailed: 'Login failed - please check your credentials and try again',
+    loginFailed: 'Sign in failed - please check your credentials and try again',
     invalidCredentials: 'Invalid email or password - please try again',
     networkError: 'Network connection error - please check your internet connection',
     serverError: 'Server error occurred - please try again later',
@@ -975,7 +994,11 @@ const translations: Record<Language, Translations> = {
     lastNameInvalidCharacters: 'Last name can only contain letters, spaces, apostrophes and hyphens',
     personalMessageTooLong: 'Personal message must be less than 500 characters',
     expiryDaysInvalid: 'Expiry days must be between 1 and 30 days',
-    emailOrNameRequired: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+    emailOrNameRequired: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first name and last name.',
+    // AI Analysis warnings
+    aiAnalysisWarning: 'AI Analysis Warning',
+    lowConfidenceAIWarning: 'AI analysis has low confidence:',
+    reviewAISuggestionsCarefully: 'Please review all suggested values carefully.',
     // Core field labels for forms
     email: 'Email',
     password: 'Password',
@@ -990,7 +1013,7 @@ const translations: Record<Language, Translations> = {
     // Privacy Policy page
     privacyPolicyTitle: 'Privacy Policy',
     lastUpdated: 'Last updated:',
-    privacyPolicyIntro: 'At Koveo Gestion, we are committed to protecting your personal information in compliance with Quebec Law 25 on the protection of personal information in the private sector and industry best practices.',
+    privacyPolicyIntro: 'At Koveo Gestion, we are committed to protecting your personal information in compliance with Quebec\'s Law 25 on the Protection of Personal Information in the Private Sector and industry best practices.',
     informationCollection: '1. Information Collection',
     informationCollectionDesc: 'We collect the following personal information as part of our services:',
     informationUse: '2. Use of Information',
@@ -1000,29 +1023,28 @@ const translations: Record<Language, Translations> = {
     dataSecurity: '5. Data Security',
     contactPrivacy: '6. Contact Us',
     // Security page
-    securityTitle: 'Security & Compliance',
-    securityIntro: 'Your data security is our top priority. Discover how we protect your information with enterprise-grade security measures and Quebec Law 25 compliance.',
-    enterpriseEncryption: 'Enterprise-Level Encryption',
+    securityTitle: 'Security and Compliance',
+    securityIntro: 'The security of your data is our absolute priority. Discover how we protect your information with enterprise-grade security measures and Quebec Law 25 compliance.',
+    enterpriseEncryption: 'Enterprise-grade encryption',
     enterpriseEncryptionDesc: 'All data is encrypted in transit and at rest with military-grade AES-256 standards.',
-    roleBasedAccess: 'Role-Based Access Control',
+    roleBasedAccess: 'Role-based access control',
     roleBasedAccessDesc: 'Granular authorization system ensuring each user only accesses necessary information.',
-    quebecDataProtection: 'Quebec Data Protection',
-    quebecDataProtectionDesc: 'Strict compliance with Quebec Law 25 with data hosting in Canada.',
-    secureInfrastructure: 'Secure Infrastructure',
+    quebecDataProtection: 'Quebec data protection',
+    quebecDataProtectionDesc: 'Strict compliance with Quebec\'s Law 25 with data hosting in Canada.',
+    secureInfrastructure: 'Secure infrastructure',
     secureInfrastructureDesc: 'Redundant cloud architecture with 24/7 monitoring and automated backups.',
     // Story page
     ourStoryTitle: 'Our Story',
     storyIntro: 'Discover the story behind Koveo Gestion and our mission to modernize property management in Quebec.',
     foundationYear: '2023',
     foundationTitle: 'Foundation of Koveo Gestion',
-    foundationDesc: 'Creation of the company with a mission to modernize property management in Quebec.',
+    foundationDesc: 'Company creation with the mission to modernize property management in Quebec.',
     developmentYear: '2024',
     developmentTitle: 'Platform Development',
-    developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec Law 25.',
+    developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec\'s Law 25.',
     launchYear: '2025',
     launchTitle: 'Official Launch',
-    launchDesc: 'Public launch of our platform with first Quebec property management clients.',
-    // Documents page translations
+    launchDesc: 'Launch of our platform with complete bilingual support and Quebec compliance.',
     // Navigation translations
     quickActions: 'Quick Actions',
     calendar: 'Calendar',
@@ -1049,40 +1071,32 @@ const translations: Record<Language, Translations> = {
     // Home page translations
     modernPropertyManagement: 'Modern Property Management',
     forQuebec: 'for Quebec',
-    comprehensivePropertyManagement:
-      "Comprehensive property management solution designed specifically for Quebec's regulatory environment. Manage buildings, residents, finances, and compliance all in one secure platform.",
-    startManagingToday: 'Start Managing Today',
+    comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec\'s residential communities',
+    startManagingToday: 'Start managing today',
     goToDashboard: 'Go to Dashboard',
-    everythingYouNeed: 'Everything You Need to Manage Properties',
-    builtForPropertyOwners:
-      'Built for property owners, managers, and residents with Quebec-specific compliance and bilingual support.',
+    everythingYouNeed: 'Everything You Need',
+    builtForPropertyOwners: 'Built for Property Owners and Managers',
     buildingManagement: 'Building Management',
-    buildingManagementDesc:
-      'Comprehensive building oversight with maintenance tracking, resident management, and compliance monitoring.',
+    buildingManagementDesc: 'Complete building and unit management system',
     residentPortal: 'Resident Portal',
-    residentPortalDesc:
-      'Self-service portal for residents to view bills, submit requests, and communicate with property management.',
+    residentPortalDesc: 'Self-service portal for residents and tenants',
     financialReporting: 'Financial Reporting',
-    financialReportingDesc:
-      'Detailed financial analytics, budget tracking, and Quebec-compliant reporting for transparency.',
+    financialReportingDesc: 'Comprehensive financial tracking and reporting',
     quebecCompliance: 'Quebec Compliance',
-    quebecComplianceDesc:
-      'Built-in compliance with Quebec Law 25 and property management regulations. Strong data protection measures implemented.',
-    whyChooseKoveo: 'Why Choose Koveo Gestion?',
+    quebecComplianceDesc: 'Full compliance with Quebec\'s Law 25 and regulations',
+    whyChooseKoveo: 'Why Choose Koveo?',
     quebecLaw25Compliant: 'Quebec Law 25 Compliant',
-    quebecLaw25CompliantDesc:
-      "Full compliance with Quebec's privacy and data protection regulations.",
+    quebecLaw25CompliantDesc: 'Built-in privacy protection and data security',
     bilingualSupport: 'Bilingual Support',
-    bilingualSupportDesc: 'Full French and English language support for all users.',
-    cloudBasedSecurity: 'Cloud-Based Security',
-    cloudBasedSecurityDesc: 'Enterprise-grade security with automatic backups and updates.',
+    bilingualSupportDesc: 'Full French and English language support',
+    cloudBasedSecurity: 'Cloud-based Security',
+    cloudBasedSecurityDesc: 'Enterprise-grade security and automated backups',
     mobileResponsive: 'Mobile Responsive',
-    mobileResponsiveDesc: 'Access your property management tools from any device, anywhere.',
+    mobileResponsiveDesc: 'Access your property management tools anywhere',
     expertSupport: 'Expert Support',
-    expertSupportDesc: 'Dedicated support team with Quebec property management expertise.',
+    expertSupportDesc: 'Dedicated Quebec-based support team',
     readyToTransform: 'Ready to Transform Your Property Management?',
-    joinPropertyOwners:
-      'Join property owners and managers across Quebec who trust Koveo Gestion for their property management needs.',
+    joinPropertyOwners: 'Join hundreds of Quebec property owners who trust Koveo Gestion',
     getStartedNow: 'Get Started Now',
     yourDataIsProtected: 'Your data is protected',
     // Hamburger menu translations
@@ -1104,71 +1118,82 @@ const translations: Record<Language, Translations> = {
     law25Compliant: 'Quebec Law 25 Compliant',
     // Pricing page translations
     pricing: 'Pricing',
-    simplePricing: 'Simple, Transparent Pricing',
+    simplePricing: 'Simple and Transparent Pricing',
     pricingSubtitle: 'Professional property management that scales with your business',
-    professionalPlan: 'Standard Plan',
+    professionalPlan: 'Professional Plan',
     perfectForPropertyManagers: 'Perfect for property managers of all sizes',
     perDoorPerMonth: 'per door per month',
     noSetupFees: 'No setup fees',
-    whatsIncluded: "What's included:",
+    whatsIncluded: 'What\'s included:',
     unlimitedResidents: 'Unlimited residents',
     documentStorage: 'Secure document storage',
     maintenanceTracking: 'Maintenance tracking',
     financialReports: 'Financial reports',
     law25Protection: 'Quebec Law 25 protection',
-    multilingualSupport: 'Bilingual support (EN/FR)',
+    multilingualSupport: 'Bilingual support (FR/EN)',
     mobileAccess: 'Mobile access',
     cloudBackup: 'Automatic cloud backup',
     emailSupport: 'Email support',
     regularUpdates: 'Regular updates',
-    documentManagement: 'Document Management',
+    documentManagement: 'Document management',
     documentManagementDesc: 'Secure storage and organization',
-    smartNotifications: 'Smart Notifications',
+    documentDescription: 'Description of the document',
+    documentTitle: 'Document Title',
+    searchDocuments: 'Search documents...',
+    smartNotifications: 'Smart notifications',
     smartNotificationsDesc: 'Automated alerts and reminders',
-    electronicBilling: 'Electronic Billing',
-    electronicBillingDesc: 'Digital invoicing and payment tracking',
-    centralizedCommunication: 'Centralized Communication',
+    electronicBilling: 'Electronic billing',
+    electronicBillingDesc: 'Digital billing and payment tracking',
+    centralizedCommunication: 'Centralized communication',
     centralizedCommunicationDesc: 'Unified messaging platform',
-    maintenancePlanning: 'Maintenance Planning',
-    maintenancePlanningDesc: 'Smart scheduling and tracking',
-    processManagement: 'Process Management',
+    maintenancePlanning: 'Maintenance planning',
+    maintenancePlanningDesc: 'Smart planning and tracking',
+    processManagement: 'Process management',
     processManagementDesc: 'Organized workflow tools',
-    law25Compliance: 'Quebec Law 25 Compliance',
+    law25Compliance: 'Quebec Law 25 compliance',
     law25ComplianceDesc: 'Built-in privacy protection',
-    featuresOverviewDesc:
-      'Discover how our comprehensive platform can streamline your property management',
-    viewAllFeatures: 'View All Features',
-    readyToGetStarted: 'Ready to Get Started?',
+    featuresOverviewDesc: 'Complete solution for modern property management',
+    viewAllFeatures: 'View all features',
+    readyToGetStarted: 'Ready to get started?',
     allRightsReserved: 'All rights reserved',
-    // Additional translations for missing elements
+    // Residence Documents translations
     residenceDocuments: 'Residence Documents',
     manageDocumentsResidence: 'Manage documents for this residence',
     documentsCount: 'Documents ({count})',
-    noDocumentsUploadedYet: 'No documents have been uploaded for this residence yet.',
+    noDocumentsUploadedYet: 'No documents have been uploaded yet for this residence.',
+    // Demands page translations
     myDemands: 'My Demands',
+    allTypes: 'All Types',
     showingResults: 'Showing {start} to {end} of {total} demands',
+    // Buildings management translations
     manageBuildingsOrganization: 'Manage {count} buildings in your organization',
     searchBuildingsAddress: 'Search buildings by name or address...',
+    addBuilding: 'Add Building',
     // Fullscreen controls
     fullscreen: 'Fullscreen',
     exitFullscreen: 'Exit Fullscreen',
+    // Common action buttons
+    save: 'Save',
+    close: 'Close',
+    edit: 'Edit',
+    delete: 'Delete',
+    phone: 'Phone'
   },
   fr: {
     dashboard: 'Tableau de bord',
-    pillarFramework: 'Cadre de piliers',
-    qualityAssurance: 'Assurance qualité',
+    pillarFramework: 'Cadre Pilier',
+    qualityAssurance: 'Assurance Qualité',
     workflowSetup: 'Configuration du flux de travail',
     configuration: 'Configuration',
     developer: 'Développeur',
     frameworkAdmin: 'Admin',
     developmentFrameworkInitialization: 'Initialisation du cadre de développement',
-    settingUpPillarMethodology:
-      'Mise en place de la méthodologie des piliers pour la plateforme Koveo Gestion',
+    settingUpPillarMethodology: 'Configuration de la méthodologie Pilier pour la plateforme Koveo Gestion',
     workspaceActive: 'Espace de travail actif',
     saveProgress: 'Sauvegarder les progrès',
-    initializationProgress: "Progrès d'initialisation",
+    initializationProgress: 'Progrès d\'initialisation',
     frameworkSetup: 'Configuration du cadre',
-    pillarCreation: 'Création de piliers',
+    pillarCreation: 'Création de pilier',
     qualityTools: 'Outils de qualité',
     testingSetup: 'Configuration des tests',
     validation: 'Validation',
@@ -1176,77 +1201,76 @@ const translations: Record<Language, Translations> = {
     recommended: 'Recommandé pour les applications SaaS',
     selected: 'Sélectionné',
     database: 'Base de données',
-    auth: 'Authentification',
-    pillarMethodology: 'Méthodologie des piliers',
-    validationQAPillar: 'Pilier validation et AQ',
-    coreQualityAssurance: "Cadre d'assurance qualité de base",
+    auth: 'Auth',
+    pillarMethodology: 'Méthodologie Pilier',
+    validationQAPillar: 'Pilier Validation et AQ',
+    coreQualityAssurance: 'Cadre d\'assurance qualité de base',
     inProgress: 'En cours',
     testingPillar: 'Pilier de test',
     automatedTestingFramework: 'Cadre de test automatisé',
     pending: 'En attente',
     securityPillar: 'Pilier de sécurité',
     law25ComplianceFramework: 'Cadre de conformité Loi 25',
-    workspaceStatus: "État de l'espace de travail",
-    environmentSetup: "Configuration de l'environnement",
+    workspaceStatus: 'Statut de l\'espace de travail',
+    environmentSetup: 'Configuration de l\'environnement',
     complete: 'Terminé',
     dependenciesInstallation: 'Installation des dépendances',
     typeScriptConfiguration: 'Configuration TypeScript',
     qualityMetrics: 'Métriques de qualité',
-    codeCoverage: 'Couverture du code',
+    codeCoverage: 'Couverture de code',
     codeQuality: 'Qualité du code',
     securityIssues: 'Problèmes de sécurité',
-    buildTime: 'Temps de compilation',
+    buildTime: 'Temps de construction',
     translationCoverage: 'Couverture de traduction',
-    // Performance metrics
+    // Métriques de performance
     responseTime: 'Temps de réponse',
-    memoryUsage: 'Utilisation mémoire',
+    memoryUsage: 'Utilisation de la mémoire',
     bundleSize: 'Taille du bundle',
-    dbQueryTime: 'Temps de requête BD',
-    pageLoadTime: 'Temps de chargement',
+    dbQueryTime: 'Temps de requête DB',
+    pageLoadTime: 'Temps de chargement de page',
     nextActions: 'Prochaines actions',
     initializeQAPillar: 'Initialiser le pilier AQ',
-    setupValidationQualityAssurance: "Configurer le cadre de validation et d'assurance qualité",
+    setupValidationQualityAssurance: 'Configurer le cadre de validation et d\'assurance qualité',
     configureTesting: 'Configurer les tests',
-    // Continuous Improvement translations
-    continuousImprovementPillar: 'Amélioration Continue',
+    // Traductions d'amélioration continue
+    continuousImprovementPillar: 'Amélioration continue',
     continuousImprovementDescription:
-      "Métriques IA, analyses et suggestions d'amélioration automatisées",
-    documentationPillar: 'Documentation et Connaissances',
+      'Métriques basées sur l\'IA, analytiques et suggestions d\'amélioration automatisées',
+    documentationPillar: 'Documentation et connaissances',
     documentationDescription: 'Système complet de documentation et de gestion des connaissances',
     activePillar: 'Actif',
-    systemHealth: 'Santé du Système',
-    completedToday: "Complétées Aujourd'hui",
-    activeSuggestions: 'Suggestions Actives',
+    systemHealth: 'Santé du système',
+    completedToday: 'Complété aujourd\'hui',
+    activeSuggestions: 'Suggestions actives',
     healthy: 'sain',
     suggestions: 'suggestions',
-    availableAfterQACompletion: "Disponible après l'achèvement du pilier AQ",
+    availableAfterQACompletion: 'Disponible après l\'achèvement du pilier AQ',
     developmentConsole: 'Console de développement',
     accessDenied: 'Accès refusé',
     accessDeniedDescription:
-      'Vous ne disposez pas des permissions suffisantes pour accéder à cette ressource. Veuillez contacter votre administrateur ou gestionnaire immobilier pour demander les permissions nécessaires.',
-    // User management
+      'Vous n\'avez pas les permissions suffisantes pour accéder à cette ressource. Veuillez contacter votre administrateur ou gestionnaire immobilier pour demander les permissions nécessaires.',
+    // Gestion des utilisateurs
     activateUsers: 'Activer les utilisateurs',
     activateSelectedUsers: 'Activer les utilisateurs sélectionnés',
     deactivateUsers: 'Désactiver les utilisateurs',
     deactivateSelectedUsers: 'Désactiver les utilisateurs sélectionnés',
     changeRole: 'Changer le rôle',
     changeRoleSelectedUsers: 'Changer le rôle des utilisateurs sélectionnés',
-    sendPasswordReset: 'Envoyer réinitialisation mot de passe',
-    sendPasswordResetSelectedUsers:
-      'Envoyer réinitialisation de mot de passe aux utilisateurs sélectionnés',
-    sendWelcomeEmail: 'Envoyer courriel de bienvenue',
-    sendWelcomeEmailSelectedUsers: 'Envoyer courriel de bienvenue aux utilisateurs sélectionnés',
+    sendPasswordReset: 'Envoyer la réinitialisation du mot de passe',
+    sendPasswordResetSelectedUsers: 'Envoyer la réinitialisation du mot de passe aux utilisateurs sélectionnés',
+    sendWelcomeEmail: 'Envoyer un courriel de bienvenue',
+    sendWelcomeEmailSelectedUsers: 'Envoyer un courriel de bienvenue aux utilisateurs sélectionnés',
     exportUsers: 'Exporter les utilisateurs',
     exportSelectedUsersData: 'Exporter les données des utilisateurs sélectionnés',
     deleteUsers: 'Supprimer les utilisateurs',
     deleteSelectedUsers: 'Supprimer les utilisateurs sélectionnés',
     users: 'utilisateurs',
     usersSelected: 'utilisateurs sélectionnés',
-    bulkActions: 'Actions en lot',
-    moreActions: "Plus d'actions",
+    bulkActions: 'Actions groupées',
+    moreActions: 'Plus d\'actions',
     newRole: 'Nouveau rôle',
     selectRole: 'Sélectionner le rôle',
-    admin: 'Administrateur',
+    admin: 'Admin',
     manager: 'Gestionnaire',
     tenant: 'Locataire',
     resident: 'Résident',
@@ -1255,18 +1279,17 @@ const translations: Record<Language, Translations> = {
     cancel: 'Annuler',
     processing: 'Traitement en cours',
     confirm: 'Confirmer',
-    // Invitation management
+    // Gestion des invitations
     inviteUser: 'Inviter un utilisateur',
-    inviteUserDescription:
-      'Envoyer des invitations aux nouveaux utilisateurs pour rejoindre votre système de gestion immobilière',
+    inviteUserDescription: 'Envoyer des invitations aux nouveaux utilisateurs pour rejoindre votre système de gestion immobilière',
     singleInvitation: 'Invitation unique',
-    bulkInvitations: 'Invitations en lot',
+    bulkInvitations: 'Invitations groupées',
     emailAddress: 'Adresse courriel',
-    enterEmailAddress: "Entrer l'adresse courriel",
+    enterEmailAddress: 'Entrez l\'adresse courriel',
     role: 'Rôle',
     organization: 'Organisation',
     optional: 'Optionnel',
-    selectOrganization: "Sélectionner l'organisation",
+    selectOrganization: 'Sélectionner l\'organisation',
     expiresIn: 'Expire dans',
     day: 'jour',
     days: 'jours',
@@ -1274,40 +1297,40 @@ const translations: Record<Language, Translations> = {
     standard: 'Standard',
     high: 'Élevé',
     require2FA: 'Exiger 2FA',
-    require2FADescription: "Exiger l'authentification à deux facteurs pour cet utilisateur",
+    require2FADescription: 'Exiger l\'authentification à deux facteurs pour cet utilisateur',
     personalMessage: 'Message personnel',
     personalMessagePlaceholder: 'Ajouter un message de bienvenue personnel...',
-    personalMessageDescription: "Ce message sera inclus dans le courriel d'invitation",
+    personalMessageDescription: 'Ce message sera inclus dans le courriel d\'invitation',
     bulkPersonalMessagePlaceholder: 'Ajouter un message personnel pour toutes les invitations...',
-    sendInvitation: "Envoyer l'invitation",
+    sendInvitation: 'Envoyer l\'invitation',
     sendInvitations: 'Envoyer les invitations',
     sending: 'Envoi en cours...',
     emailAddresses: 'Adresses courriel',
     addEmailAddress: 'Ajouter une adresse courriel',
     invitationSent: 'Invitation envoyée',
     invitationSentSuccessfully: 'Invitation envoyée avec succès',
-    bulkInvitationsSent: 'Invitations en lot envoyées',
-    bulkInvitationsResult: 'Invitations en lot traitées avec succès',
+    bulkInvitationsSent: 'Invitations groupées envoyées',
+    bulkInvitationsResult: 'Invitations groupées traitées avec succès',
     bulkInvitationsSuccess: 'invitations envoyées avec succès',
-    _error: 'Erreur',
-    // Additional user management translations
-    bulkActionSuccess: 'Action en lot terminée',
-    bulkActionSuccessDescription: "L'action en lot a été terminée avec succès",
+    _error: 'Une erreur s\'est produite',
+    // Traductions supplémentaires de gestion des utilisateurs
+    bulkActionSuccess: 'Action groupée terminée',
+    bulkActionSuccessDescription: 'L\'action groupée a été terminée avec succès',
     reminderSent: 'Rappel envoyé',
     reminderSentDescription: 'Le courriel de rappel a été envoyé avec succès',
     errorLoadingData: 'Erreur de chargement des données',
     tryAgain: 'Réessayer',
     noUsersSelected: 'Aucun utilisateur sélectionné',
-    selectUsersForBulkAction:
-      "Veuillez sélectionner des utilisateurs pour effectuer l'action en lot",
-    totalUsers: 'Total des utilisateurs',
+    selectUsersForBulkAction: 'Veuillez sélectionner des utilisateurs pour effectuer l\'action groupée',
+    totalUsers: 'Utilisateurs totaux',
     activeUsers: 'Utilisateurs actifs',
     pendingInvitations: 'Invitations en attente',
-    totalInvitations: 'Total des invitations',
+    totalInvitations: 'Invitations totales',
     userManagement: 'Gestion des utilisateurs',
     manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
-    searchUsersInvitations: 'Rechercher utilisateurs et invitations...',
+    searchUsersInvitations: 'Rechercher des utilisateurs et invitations...',
     filterByRole: 'Filtrer par rôle',
+    filterByCategory: 'Filtrer par catégorie',
     allRoles: 'Tous les rôles',
     filterByStatus: 'Filtrer par statut',
     allStatuses: 'Tous les statuts',
@@ -1315,45 +1338,44 @@ const translations: Record<Language, Translations> = {
     inactive: 'Inactif',
     expired: 'Expiré',
     invitations: 'Invitations',
-    invitationSentDescription: "L'invitation a été envoyée avec succès à l'utilisateur",
-    // Missing user management translations
+    invitationSentDescription: 'L\'invitation a été envoyée avec succès à l\'utilisateur',
+    // Traductions manquantes de gestion des utilisateurs
     userUpdated: 'Utilisateur mis à jour',
-    userUpdatedSuccessfully: "L'utilisateur a été mis à jour avec succès",
-    editUser: "Modifier l'utilisateur",
+    userUpdatedSuccessfully: 'L\'utilisateur a été mis à jour avec succès',
+    editUser: 'Modifier l\'utilisateur',
     status: 'Statut',
     activeUser: 'Utilisateur actif',
-    updating: 'Mise à jour...',
-    updateUser: "Mettre à jour l'utilisateur",
+    updating: 'Mise à jour en cours...',
+    updateUser: 'Mettre à jour l\'utilisateur',
     userDeleted: 'Utilisateur supprimé',
-    userDeletedSuccessfully: "L'utilisateur a été supprimé avec succès",
-    passwordResetSent: 'Réinitialisation de mot de passe envoyée',
-    passwordResetEmailSent:
-      'Le courriel de réinitialisation de mot de passe a été envoyé avec succès',
+    userDeletedSuccessfully: 'L\'utilisateur a été supprimé avec succès',
+    passwordResetSent: 'Réinitialisation du mot de passe envoyée',
+    passwordResetEmailSent: 'Le courriel de réinitialisation du mot de passe a été envoyé avec succès',
     cannotDeleteOwnAccount: 'Vous ne pouvez pas supprimer votre propre compte',
     never: 'Jamais',
     usersList: 'Liste des utilisateurs',
     user: 'Utilisateur',
     selectAllUsers: 'Sélectionner tous les utilisateurs',
     lastLogin: 'Dernière connexion',
-    joinedDate: "Date d'adhésion",
+    joinedDate: 'Date d\'inscription',
     userActions: 'Actions utilisateur',
     actions: 'Actions',
     resetPassword: 'Réinitialiser le mot de passe',
-    deactivateUser: "Désactiver l'utilisateur",
-    activateUser: "Activer l'utilisateur",
-    deleteUser: "Supprimer l'utilisateur",
+    deactivateUser: 'Désactiver l\'utilisateur',
+    activateUser: 'Activer l\'utilisateur',
+    deleteUser: 'Supprimer l\'utilisateur',
     noUsersFound: 'Aucun utilisateur trouvé',
-    editUserDescription: "Modifier les détails de l'utilisateur pour {name}",
+    editUserDescription: 'Modifier les détails de l\'utilisateur pour {name}',
     confirmDeleteUser: 'Êtes-vous sûr de vouloir supprimer {name}?',
     selectedUsers: '{count} utilisateurs sélectionnés',
-    selectUser: "Sélectionner l'utilisateur {name}",
-    // Additional invitation management translations
+    selectUser: 'Sélectionner l\'utilisateur {name}',
+    // Traductions supplémentaires de gestion des invitations
     invitationCancelled: 'Invitation annulée',
     invitationCancelledSuccessfully: 'Invitation annulée avec succès',
     invitationResent: 'Invitation renvoyée',
     invitationResentSuccessfully: 'Invitation renvoyée avec succès',
     linkCopied: 'Lien copié',
-    invitationLinkCopied: "Lien d'invitation copié dans le presse-papiers",
+    invitationLinkCopied: 'Lien d\'invitation copié dans le presse-papiers',
     accepted: 'Accepté',
     cancelled: 'Annulé',
     expiringsSoon: 'Expire bientôt',
@@ -1364,18 +1386,18 @@ const translations: Record<Language, Translations> = {
     expires: 'Expire',
     invitedBy: 'Invité par',
     system: 'Système',
-    invitationActions: "Actions d'invitation",
+    invitationActions: 'Actions d\'invitation',
     copyLink: 'Copier le lien',
     openLink: 'Ouvrir le lien',
     sendReminder: 'Envoyer un rappel',
-    resendInvitation: "Renvoyer l'invitation",
-    cancelInvitation: "Annuler l'invitation",
+    resendInvitation: 'Renvoyer l\'invitation',
+    cancelInvitation: 'Annuler l\'invitation',
     noInvitationsFound: 'Aucune invitation trouvée',
     cancelInvitationConfirmation: 'Êtes-vous sûr de vouloir annuler cette invitation?',
-    cancelling: 'Annulation',
-    daysRemaining: 'jours restants',
-    hoursRemaining: 'heures restantes',
-    // Form and UI translations
+    cancelling: 'Annulation en cours...',
+    daysRemaining: '{days} jours restants',
+    hoursRemaining: '{hours} heures restantes',
+    // Traductions de formulaire et d'interface utilisateur
     formStatus: 'Statut',
     formType: 'Type',
     building: 'Bâtiment',
@@ -1384,80 +1406,84 @@ const translations: Record<Language, Translations> = {
     title: 'Titre',
     vendor: 'Fournisseur',
     category: 'Catégorie',
-    selectCategory: 'Sélectionner une catégorie',
+    selectCategory: 'Sélectionner la catégorie',
     billTitle: 'Titre de la facture',
-    companyOrServiceProvider: 'Entreprise ou fournisseur de service',
+    companyOrServiceProvider: 'Entreprise/Fournisseur de services',
     selectPaymentType: 'Sélectionner le type de paiement',
-    selectSchedule: "Sélectionner l'horaire",
+    selectSchedule: 'Sélectionner l\'horaire',
+    billingSchedule: 'Calendrier de facturation',
     selectStatus: 'Sélectionner le statut',
-    // Page content translations
+    // Traductions de contenu de page
     loadingDemands: 'Chargement des demandes...',
-    searchDemandsUsers: 'Rechercher demandes, utilisateurs...',
-    submitAndTrack: 'Soumettre et suivre les demandes de maintenance',
+    searchDemandsUsers: 'Rechercher des demandes et des utilisateurs...',
+    submitAndTrack: 'Soumettre et suivre',
     reviewDemand: 'Examiner la demande',
-    failedToReviewDemand: "Échec de l'examen de la demande",
-    error: 'Erreur',
+    failedToReviewDemand: 'Échec de l\'examen de la demande',
+    error: 'Une erreur s\'est produite',
     submitted: 'Soumis',
-    underReview: "En cours d'examen",
+    underReview: 'En cours d\'examen',
     approved: 'Approuvé',
     completed: 'Terminé',
     rejected: 'Rejeté',
-    // Additional status labels
+    // Traductions d'étiquettes de statut
     draft: 'Brouillon',
-    maintenance: 'Entretien',
+    maintenance: 'Maintenance',
     complaint: 'Plainte',
     information: 'Information',
     other: 'Autre',
     allStatus: 'Tous les statuts',
-    // Dialog and form translations
+    // Traductions de dialogue et de formulaire
     createNewBill: 'Créer une nouvelle facture',
-    billCreationForm: 'Formulaire de création de facture pour {building}',
-    createBill: 'Créer la facture',
+    billCreationForm: 'Formulaire de création de facture',
+    createBill: 'Créer une facture',
     createNewDemand: 'Créer une nouvelle demande',
-    submitNewRequest: 'Soumettre une nouvelle demande ou plainte',
-    submitAndTrackRequests: 'Soumettre et suivre vos demandes',
+    submitNewRequest: 'Soumettre une nouvelle demande',
+    submitAndTrackRequests: 'Soumettre et suivre les demandes',
     newDemand: 'Nouvelle demande',
     selectType: 'Sélectionner le type',
     selectBuilding: 'Sélectionner le bâtiment',
     addNewDocument: 'Ajouter un nouveau document',
     addDocument: 'Ajouter un document',
     documentName: 'Nom du document',
-    enterDocumentName: 'Saisir le nom du document',
+    enterDocumentName: 'Entrez le nom du document',
     documentType: 'Type de document',
     selectDocumentType: 'Sélectionner le type de document',
-    enterDocumentDescription: 'Saisir la description du document',
+    enterDocumentDescription: 'Entrez la description du document',
     backToResidences: 'Retour aux résidences',
     documents: 'Documents',
     documentsAvailableToTenants: 'Documents disponibles aux locataires',
     allResidenceDocuments: 'Tous les documents de résidence',
     loadingDemands2: 'Chargement des demandes...',
     noDemandsFound: 'Aucune demande trouvée',
+    noDocumentsFound: 'Aucun document trouvé',
     success: 'Succès',
-    updateStatusAndNotes: "Mettre à jour le statut et ajouter des notes d'examen",
-    // Additional form labels and placeholders
-    describeRequestDetail: 'Décrivez votre demande en détail...',
+    updateStatusAndNotes: 'Mettre à jour le statut et les notes',
+    // Étiquettes et espaces réservés de formulaire supplémentaires
+    describeRequestDetail: 'Décrivez votre demande en détail',
     submittedBy: 'Soumis par',
-    addNotesReview: "Ajouter des notes sur votre décision d'examen...",
-    selectBuilding2: 'Sélectionner le bâtiment',
-    addNotesReviewDecision: "Ajoutez des notes sur votre décision d'examen...",
-    // Status options for manager
+    addNotesReviewDecision: 'Ajouter des notes sur votre décision d\'examen',
+    addNotesReview: 'Ajouter des notes sur l\'examen',
+    selectBuilding2: 'Sélectionner un bâtiment',
+    // Options de statut pour le gestionnaire
     submitted2: 'Soumis',
-    // Document management translations
-    // Type placeholders
-    typePlaceholder: 'Type',
-    buildingPlaceholder: 'Bâtiment',
-    // Dashboard and major page content
-    welcomeBack: 'Bienvenue',
-    personalizedDashboard:
-      'Votre tableau de bord personnalisé - accès rapide à tout ce dont vous avez besoin',
-    quickAccessEverything: 'accès rapide à tout ce dont vous avez besoin',
+    // Espaces réservés de type
+    typePlaceholder: 'Sélectionner le type...',
+    buildingPlaceholder: 'Sélectionner le bâtiment...',
+    // Contenu du tableau de bord et des pages principales
+    welcomeBack: 'Bon retour',
+    personalizedDashboard: 'Votre tableau de bord personnalisé',
+    quickAccessEverything: 'Accès rapide à tout ce dont vous avez besoin',
     adminDashboard: 'Tableau de bord administrateur',
     systemManagement: 'Gestion du système',
     manageOrganizationsUsers: 'Gérer les organisations, utilisateurs et paramètres système',
-    organizationOverview: "Aperçu de l'organisation",
+    organizationOverview: 'Aperçu de l\'organisation',
     viewManageOrganizations: 'Voir et gérer toutes les organisations',
-    viewManageResidences: "Voir et gérer les résidences de l'organisation",
+    viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
     selectBuildingResidence: 'Sélectionner le bâtiment et la résidence',
+    selectBuildingOptional: 'Sélectionner un bâtiment (optionnel)',
+    selectOrganizationOptional: 'Sélectionner une organisation (optionnel)',
+    selectResidenceOptional: 'Sélectionner une résidence (optionnel)',
+    welcome: 'Bienvenue',
     building2: 'Bâtiment',
     residence: 'Résidence',
     selectABuilding: 'Sélectionner un bâtiment',
@@ -1470,19 +1496,19 @@ const translations: Record<Language, Translations> = {
     unit: 'Unité',
     allFloors: 'Tous les étages',
     totalFloors: 'Étages totaux',
-    // More residence page translations
+    // Plus de traductions de page de résidence
     myResidenceInfo: 'Voir les informations de votre résidence et les contacts',
     viewResidenceInfo: 'Voir les informations de votre résidence et les contacts',
     loading: 'Chargement...',
     noResidencesFound: 'Aucune résidence trouvée',
     noResidencesFoundOrg: 'Aucune résidence trouvée dans votre organisation.',
-    notAssignedResidences: "Vous n'êtes assigné à aucune résidence.",
+    notAssignedResidences: 'Vous n\'êtes assigné à aucune résidence.',
     selectResidence: 'Sélectionner une résidence',
     selectAResidence: 'Sélectionner une résidence',
     areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer ce contact?',
     parkingSpaces: 'Espaces de stationnement',
     storageSpaces: 'Espaces de rangement',
-    // Building page translations
+    // Traductions de page de bâtiment
     myBuildings: 'Mes bâtiments',
     viewBuildingsAccess: 'Voir les bâtiments auxquels vous avez accès',
     noBuildingsFound: 'Aucun bâtiment trouvé',
@@ -1490,8 +1516,10 @@ const translations: Record<Language, Translations> = {
     yearBuilt: 'Année de construction',
     totalUnits: 'Unités totales',
     managementCompany: 'Compagnie de gestion',
-    occupancyStats: "Statistiques d'occupation",
-    allBuildings: 'Tous les bâtiments',
+    occupancy: 'Occupation',
+    occupancyStats: 'Statistiques d\'occupation',
+    parking: 'Stationnement',
+    storage: 'Rangement',
     units: 'unités',
     occupied: 'occupé',
     amenities: 'Commodités',
@@ -1506,22 +1534,15 @@ const translations: Record<Language, Translations> = {
     buildingDocuments: 'Documents du bâtiment',
     signIn: 'Se connecter',
     demoMode: 'Mode démo',
-    selectRole: 'Sélectionner le rôle',
     firstName: 'Prénom',
     lastName: 'Nom de famille',
     confirmPassword: 'Confirmer le mot de passe',
-    enterEmailAddress: 'Entrez l\'adresse courriel',
     enterPassword: 'Entrez le mot de passe',
     enterFirstName: 'Entrez le prénom',
     enterLastName: 'Entrez le nom de famille',
-    selectOrganization: 'Sélectionner l\'organisation',
-    selectBuilding: 'Sélectionner le bâtiment',
-    selectResidence: 'Sélectionner la résidence',
-    optional: 'Optionnel',
-    required: 'Requis',
+    required: 'Ce champ est requis',
     submit: 'Soumettre',
     send: 'Envoyer',
-    sendInvitation: 'Envoyer l\'invitation',
     reset: 'Réinitialiser',
     clear: 'Effacer',
     add: 'Ajouter',
@@ -1558,19 +1579,22 @@ const translations: Record<Language, Translations> = {
     personalMessageTooLong: 'Le message personnel doit contenir moins de 500 caractères',
     expiryDaysInvalid: 'Les jours d\'expiration doivent être entre 1 et 30 jours',
     emailOrNameRequired: 'L\'adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs de démo, fournissez le prénom et le nom de famille.',
+    // AI Analysis warnings
+    aiAnalysisWarning: 'Avertissement d\'analyse IA',
+    lowConfidenceAIWarning: 'L\'analyse IA a une confiance faible :',
+    reviewAISuggestionsCarefully: 'Veuillez examiner attentivement toutes les valeurs suggérées.',
     // Étiquettes de champs de base pour les formulaires
     email: 'Courriel',
     password: 'Mot de passe',
     login: 'Connexion',
     forgotPassword: 'Mot de passe oublié',
-    dashboard: 'Tableau de bord',
     // Standardisation des boutons de documents
     documentsButton: 'Documents',
     buildingDocumentsButton: 'Documents du bâtiment',
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
     startFreeTrial: 'Commencez votre essai gratuit',
-    // Privacy Policy page
+    // Page Politique de confidentialité
     privacyPolicyTitle: 'Politique de confidentialité',
     lastUpdated: 'Dernière mise à jour :',
     privacyPolicyIntro: 'Chez Koveo Gestion, nous nous engageons à protéger vos renseignements personnels en conformité avec la Loi 25 du Québec sur la protection des renseignements personnels dans le secteur privé et les meilleures pratiques de l\'industrie.',
@@ -1582,7 +1606,7 @@ const translations: Record<Language, Translations> = {
     privacyRights: '4. Vos droits',
     dataSecurity: '5. Sécurité des données',
     contactPrivacy: '6. Nous contacter',
-    // Security page
+    // Page Sécurité
     securityTitle: 'Sécurité et conformité',
     securityIntro: 'La sécurité de vos données est notre priorité absolue. Découvrez comment nous protégeons vos informations avec des mesures de sécurité de niveau entreprise et la conformité à la Loi 25 du Québec.',
     enterpriseEncryption: 'Chiffrement de niveau entreprise',
@@ -1593,7 +1617,7 @@ const translations: Record<Language, Translations> = {
     quebecDataProtectionDesc: 'Conformité stricte à la Loi 25 du Québec avec hébergement des données au Canada.',
     secureInfrastructure: 'Infrastructure sécurisée',
     secureInfrastructureDesc: 'Architecture cloud redondante avec surveillance 24/7 et sauvegardes automatisées.',
-    // Story page
+    // Page Histoire
     ourStoryTitle: 'Notre histoire',
     storyIntro: 'Découvrez l\'histoire derrière Koveo Gestion et notre mission de moderniser la gestion immobilière au Québec.',
     foundationYear: '2023',
@@ -1604,9 +1628,8 @@ const translations: Record<Language, Translations> = {
     developmentDesc: 'Conception et développement de notre solution complète en conformité avec la Loi 25 du Québec.',
     launchYear: '2025',
     launchTitle: 'Lancement officiel',
-    launchDesc: 'Lancement public de notre plateforme avec les premiers clients de gestion immobilière du Québec.',
-    // Documents page translations
-    // Navigation translations
+    launchDesc: 'Lancement de notre plateforme avec support bilingue complet et conformité québécoise.',
+    // Traductions de navigation
     quickActions: 'Actions rapides',
     calendar: 'Calendrier',
     residents: 'Résidents',
@@ -1629,51 +1652,38 @@ const translations: Record<Language, Translations> = {
     settings: 'Paramètres',
     bugReports: 'Rapports de bogues',
     ideaBox: 'Boîte à idées',
-    // Home page translations
-    modernPropertyManagement: 'Gestion Immobilière Moderne',
+    // Traductions de page d'accueil
+    modernPropertyManagement: 'Gestion immobilière moderne',
     forQuebec: 'pour le Québec',
-    comprehensivePropertyManagement:
-      "Solution de gestion immobilière complète conçue spécifiquement pour l'environnement réglementaire du Québec. Gérez les bâtiments, les résidents, les finances et la conformité dans une plateforme sécurisée.",
-    startManagingToday: "Commencer aujourd'hui",
-    goToDashboard: 'Accéder au tableau de bord',
-    everythingYouNeed: 'Tout ce dont vous avez besoin pour gérer vos propriétés',
-    builtForPropertyOwners:
-      'Conçu pour les propriétaires, gestionnaires et résidents avec conformité québécoise et support bilingue.',
-    buildingManagement: "Gestion d'immeubles",
-    buildingManagementDesc:
-      'Supervision complète des bâtiments avec suivi de la maintenance, gestion des résidents et surveillance de la conformité.',
-    residentPortal: 'Portail résident',
-    residentPortalDesc:
-      'Portail libre-service pour que les résidents puissent consulter leurs factures, soumettre des demandes et communiquer avec la gestion immobilière.',
+    comprehensivePropertyManagement: 'Solution de gestion immobilière complète conçue spécifiquement pour les communautés résidentielles du Québec',
+    startManagingToday: 'Commencez la gestion aujourd\'hui',
+    goToDashboard: 'Aller au tableau de bord',
+    everythingYouNeed: 'Tout ce dont vous avez besoin',
+    builtForPropertyOwners: 'Conçu pour les propriétaires et gestionnaires immobiliers',
+    buildingManagement: 'Gestion de bâtiments',
+    buildingManagementDesc: 'Système complet de gestion de bâtiments et d\'unités',
+    residentPortal: 'Portail des résidents',
+    residentPortalDesc: 'Portail libre-service pour les résidents et locataires',
     financialReporting: 'Rapports financiers',
-    financialReportingDesc:
-      'Analyses financières détaillées, suivi budgétaire et rapports conformes au Québec pour la transparence.',
+    financialReportingDesc: 'Suivi et rapports financiers complets',
     quebecCompliance: 'Conformité québécoise',
-    quebecComplianceDesc:
-      'Conformité intégrée avec la Loi 25 du Québec et les règlements de gestion immobilière. Mesures robustes de protection des données mises en place.',
-    whyChooseKoveo: 'Pourquoi choisir Koveo Gestion?',
+    quebecComplianceDesc: 'Conformité complète à la Loi 25 du Québec et aux réglementations',
+    whyChooseKoveo: 'Pourquoi choisir Koveo?',
     quebecLaw25Compliant: 'Conforme à la Loi 25 du Québec',
-    quebecLaw25CompliantDesc:
-      'Conformité complète avec les règlements de confidentialité et de protection des données du Québec.',
+    quebecLaw25CompliantDesc: 'Protection de la vie privée et sécurité des données intégrées',
     bilingualSupport: 'Support bilingue',
-    bilingualSupportDesc: 'Support complet en français et en anglais pour tous les utilisateurs.',
-    roleBasedAccess: 'Accès basé sur les rôles',
-    roleBasedAccessDesc:
-      "Contrôles d'accès sécurisés pour propriétaires, gestionnaires et résidents.",
-    cloudBasedSecurity: 'Sécurité infonuagique',
-    cloudBasedSecurityDesc:
-      'Sécurité de niveau entreprise avec sauvegardes et mises à jour automatiques.',
+    bilingualSupportDesc: 'Support complet en français et en anglais',
+    cloudBasedSecurity: 'Sécurité basée sur le nuage',
+    cloudBasedSecurityDesc: 'Sécurité de niveau entreprise et sauvegardes automatisées',
     mobileResponsive: 'Compatible mobile',
-    mobileResponsiveDesc:
-      "Accédez à vos outils de gestion immobilière depuis n'importe quel appareil, n'importe où.",
-    expertSupport: 'Support expert',
-    expertSupportDesc: 'Équipe de support dédiée avec expertise en gestion immobilière québécoise.',
+    mobileResponsiveDesc: 'Accédez à vos outils de gestion immobilière partout',
+    expertSupport: 'Support d\'experts',
+    expertSupportDesc: 'Équipe de support dédiée basée au Québec',
     readyToTransform: 'Prêt à transformer votre gestion immobilière?',
-    joinPropertyOwners:
-      'Rejoignez les propriétaires et gestionnaires à travers le Québec qui font confiance à Koveo Gestion pour leurs besoins de gestion immobilière.',
+    joinPropertyOwners: 'Rejoignez des centaines de propriétaires québécois qui font confiance à Koveo Gestion',
     getStartedNow: 'Commencer maintenant',
     yourDataIsProtected: 'Vos données sont protégées',
-    // Hamburger menu translations
+    // Traductions de menu hamburger
     menu: 'Menu',
     navigation: 'Navigation',
     account: 'Compte',
@@ -1682,8 +1692,7 @@ const translations: Record<Language, Translations> = {
     security: 'Sécurité',
     ourStory: 'Notre histoire',
     privacyPolicy: 'Politique de confidentialité',
-    termsOfService: "Conditions d'utilisation",
-    login: 'Connexion',
+    termsOfService: 'Conditions d\'utilisation',
     logout: 'Déconnexion',
     getStarted: 'Commencer',
     language: 'Langue',
@@ -1691,14 +1700,14 @@ const translations: Record<Language, Translations> = {
     closeMenu: 'Fermer le menu',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Conforme à la Loi 25 du Québec',
-    // Pricing page translations
+    // Traductions de page de tarification
     pricing: 'Tarification',
-    simplePricing: 'Tarification Simple et Transparente',
+    simplePricing: 'Tarification simple et transparente',
     pricingSubtitle: 'Gestion immobilière professionnelle qui évolue avec votre entreprise',
-    professionalPlan: 'Plan Standard',
+    professionalPlan: 'Plan professionnel',
     perfectForPropertyManagers: 'Parfait pour les gestionnaires immobiliers de toutes tailles',
     perDoorPerMonth: 'par porte par mois',
-    noSetupFees: "Aucuns frais d'installation",
+    noSetupFees: 'Aucuns frais d\'installation',
     whatsIncluded: 'Ce qui est inclus :',
     unlimitedResidents: 'Résidents illimités',
     documentStorage: 'Stockage sécurisé de documents',
@@ -1712,6 +1721,9 @@ const translations: Record<Language, Translations> = {
     regularUpdates: 'Mises à jour régulières',
     documentManagement: 'Gestion documentaire',
     documentManagementDesc: 'Stockage et organisation sécurisés',
+    documentDescription: 'Description du document',
+    documentTitle: 'Titre du document',
+    searchDocuments: 'Rechercher des documents...',
     smartNotifications: 'Notifications intelligentes',
     smartNotificationsDesc: 'Alertes et rappels automatisés',
     electronicBilling: 'Facturation électronique',
@@ -1724,24 +1736,78 @@ const translations: Record<Language, Translations> = {
     processManagementDesc: 'Outils de flux de travail organisés',
     law25Compliance: 'Conformité Loi 25 du Québec',
     law25ComplianceDesc: 'Protection de la vie privée intégrée',
-    featuresOverviewDesc:
-      'Découvrez comment notre plateforme complète peut rationaliser votre gestion immobilière',
+    featuresOverviewDesc: 'Solution complète pour la gestion immobilière moderne',
     viewAllFeatures: 'Voir toutes les fonctionnalités',
     readyToGetStarted: 'Prêt à commencer?',
     allRightsReserved: 'Tous droits réservés',
-    // Additional translations for missing elements
+    // Traductions de documents de résidence
     residenceDocuments: 'Documents de résidence',
     manageDocumentsResidence: 'Gérer les documents de cette résidence',
     documentsCount: 'Documents ({count})',
-    noDocumentsUploadedYet: "Aucun document n'a encore été téléchargé pour cette résidence.",
+    noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    // Traductions de page de demandes
     myDemands: 'Mes demandes',
+    allTypes: 'Tous les types',
     showingResults: 'Affichage de {start} à {end} sur {total} demandes',
+    // Traductions de gestion de bâtiments
     manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
     searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
-    // Fullscreen controls
+    addBuilding: 'Ajouter un bâtiment',
+    // Contrôles plein écran
     fullscreen: 'Plein écran',
     exitFullscreen: 'Quitter le plein écran',
-  },
+    // Boutons d'action communs
+    save: 'Enregistrer',
+    close: 'Fermer',
+    edit: 'Modifier',
+    delete: 'Supprimer',
+    phone: 'Téléphone'
+  }
 };
 
+/**
+ * Default language for the application
+ */
+export const DEFAULT_LANGUAGE: Language = 'fr';
+
+/**
+ * Get translations for a specific language
+ * @param language - The language to get translations for
+ * @returns The translations object for the specified language
+ */
+export function getTranslations(language: Language): Translations {
+  return translations[language] || translations[DEFAULT_LANGUAGE];
+}
+
+/**
+ * Get available languages
+ * @returns Array of available language codes
+ */
+export function getAvailableLanguages(): Language[] {
+  return Object.keys(translations) as Language[];
+}
+
+/**
+ * Check if a language is supported
+ * @param language - The language code to check
+ * @returns Whether the language is supported
+ */
+export function isLanguageSupported(language: string): language is Language {
+  return getAvailableLanguages().includes(language as Language);
+}
+
+/**
+ * Get language name in its native form
+ * @param language - The language code
+ * @returns The language name in native form
+ */
+export function getLanguageName(language: Language): string {
+  const names: Record<Language, string> = {
+    en: 'English',
+    fr: 'Français'
+  };
+  return names[language] || names[DEFAULT_LANGUAGE];
+}
+
 export { translations };
+export default translations;

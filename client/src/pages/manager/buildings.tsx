@@ -119,7 +119,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
         <div className='flex items-start justify-between'>
           <div className='flex items-center space-x-2'>
             <Building className='h-5 w-5 text-blue-600' />
-            <CardTitle className='text-lg truncate'>{building.name}</CardTitle>
+            <CardTitle className='text-lg line-clamp-2 break-words'>{building.name}</CardTitle>
           </div>
           {canEdit && (
             <div className='flex gap-1'>
@@ -144,7 +144,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
         <div className='space-y-2'>
           <div className='flex items-center text-sm text-gray-600'>
             <MapPin className='h-4 w-4 mr-2' />
-            <span className='truncate'>{building.address}</span>
+            <span className='line-clamp-2 break-words flex-1'>{building.address}</span>
           </div>
           <div className='flex items-center text-sm text-gray-600'>
             <span>
@@ -158,7 +158,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
           <div className='pt-2 flex gap-2'>
             <Link href={`/manager/buildings/${building.id}/documents`}>
               <Button size='sm' variant='outline' className='flex-1'>
-                {t('buildingDocumentsButton')}
+                Documents
               </Button>
             </Link>
             <Link href={`/manager/residences?buildingId=${building.id}`}>

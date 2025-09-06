@@ -1572,6 +1572,15 @@ export function registerUserRoutes(app: Express): void {
 
         // Delete invitations
         db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
+        
+        // Delete demands and related comments (must be done before deleting user)
+        db.delete(schema.demandComments).where(eq(schema.demandComments.commenterId, targetUserId)),
+        db.delete(schema.demands).where(eq(schema.demands.submitterId, targetUserId)),
+        
+        // Delete bugs and feature requests submitted by the user
+        db.delete(schema.bugs).where(eq(schema.bugs.createdBy, targetUserId)),
+        db.delete(schema.featureRequests).where(eq(schema.featureRequests.createdBy, targetUserId)),
+        db.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, targetUserId)),
       ];
 
       // Try to delete from optional tables that might not exist

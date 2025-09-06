@@ -116,6 +116,8 @@ class PerformanceMonitor {
           }
         });
         observer.observe({ entryTypes: ['paint'] });
+      } catch (error) {
+        console.warn('PerformanceObserver not supported:', error);
       }
     }
   }
@@ -165,9 +167,12 @@ class PerformanceMonitor {
       // Observe long tasks
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
+          console.log('Long task detected:', entry.duration);
         }
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
+    } catch (error) {
+      console.warn('Performance observer setup failed:', error);
     }
   }
 }

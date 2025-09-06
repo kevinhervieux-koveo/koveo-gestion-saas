@@ -15,7 +15,7 @@ import koveoLogo from '@/assets/koveo-logo.jpg';
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const { t, language } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50'>
@@ -32,7 +32,7 @@ export default function HomePage() {
           <p className='text-xl text-gray-500 mb-8 leading-relaxed'>
             {t('comprehensivePropertyManagement')}
           </p>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
             {isAuthenticated ? (
               <Button
                 size='lg'
@@ -55,6 +55,21 @@ export default function HomePage() {
                 </Button>
               </TrialRequestForm>
             )}
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-8 py-3'
+              onClick={async () => {
+                if (isAuthenticated) {
+                  await logout();
+                }
+                setLocation('/login?demo=true');
+              }}
+              data-testid='button-try-demo-top'
+            >
+              Try Demo
+              <Users className='ml-2 h-5 w-5' />
+            </Button>
           </div>
         </div>
       </section>
@@ -173,30 +188,176 @@ export default function HomePage() {
         <div className='max-w-2xl mx-auto'>
           <h2 className='text-3xl font-bold text-gray-700 mb-4'>{t('readyToTransform')}</h2>
           <p className='text-lg text-gray-500 mb-8'>{t('joinPropertyOwners')}</p>
-          <Button
-            size='lg'
-            className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-            onClick={() => setLocation('/login')}
-          >
-            {t('getStartedNow')}
-            <ArrowRight className='ml-2 h-5 w-5' />
-          </Button>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+            {isAuthenticated ? (
+              <Button
+                size='lg'
+                className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                onClick={() => setLocation('/dashboard/quick-actions')}
+                data-testid='button-go-to-dashboard-bottom'
+              >
+                {t('goToDashboard') || 'Go to Dashboard'}
+                <ArrowRight className='ml-2 h-5 w-5' />
+              </Button>
+            ) : (
+              <TrialRequestForm>
+                <Button
+                  size='lg'
+                  className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                  data-testid='button-start-trial-bottom'
+                >
+                  {t('startFreeTrial')}
+                  <ArrowRight className='ml-2 h-5 w-5' />
+                </Button>
+              </TrialRequestForm>
+            )}
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-8 py-3'
+              onClick={async () => {
+                if (isAuthenticated) {
+                  await logout();
+                }
+                setLocation('/login?demo=true');
+              }}
+              data-testid='button-try-demo-bottom'
+            >
+              Try Demo
+              <Users className='ml-2 h-5 w-5' />
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className='bg-gray-900 text-white py-12'>
         <div className='container mx-auto px-4'>
-          <div className='flex flex-col md:flex-row items-center justify-between'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
+            {/* Logo and Company Info */}
+            <div className='col-span-1 md:col-span-2'>
+              <img 
+                src={koveoLogo} 
+                alt='Koveo Gestion' 
+                className='h-16 w-32 lg:h-20 lg:w-40 rounded-lg object-contain bg-white p-2 mb-4 cursor-pointer hover:shadow-lg transition-shadow'
+                onClick={() => setLocation('/')}
+                data-testid='footer-logo'
+              />
+              <p className='text-gray-400 text-sm mb-4 max-w-md'>
+                {t('comprehensivePropertyManagement')}
+              </p>
+              <div className='flex items-center space-x-4 text-sm text-gray-400'>
+                <Shield className='h-4 w-4' />
+                <span>{t('quebecLaw25Compliant')}</span>
+                <span>•</span>
+                <span>{t('yourDataIsProtected')}</span>
+              </div>
             </div>
-            <div className='flex items-center space-x-4 text-sm text-gray-400'>
-              <Shield className='h-4 w-4' />
-              <span>{t('quebecLaw25Compliant')}</span>
-              <span>•</span>
-              <span>{t('yourDataIsProtected')}</span>
+
+            {/* Product Links */}
+            <div>
+              <h4 className='font-semibold text-white mb-4'>{t('navigation')}</h4>
+              <ul className='space-y-2'>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-home-link'
+                  >
+                    {t('home')}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/features')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-features-link'
+                  >
+                    {t('features')}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/pricing')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-pricing-link'
+                  >
+                    {t('pricing')}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/security')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-security-link'
+                  >
+                    {t('security')}
+                  </button>
+                </li>
+              </ul>
             </div>
+
+            {/* Company & Legal Links */}
+            <div>
+              <h4 className='font-semibold text-white mb-4'>{t('account')}</h4>
+              <ul className='space-y-2'>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/story')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-story-link'
+                  >
+                    {t('ourStory')}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/privacy-policy')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-privacy-link'
+                  >
+                    {t('privacyPolicy')}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setLocation('/terms-of-service')} 
+                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                    data-testid='footer-terms-link'
+                  >
+                    {t('termsOfService')}
+                  </button>
+                </li>
+                {!isAuthenticated ? (
+                  <li>
+                    <button 
+                      onClick={() => setLocation('/login')} 
+                      className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                      data-testid='footer-login-link'
+                    >
+                      {t('login')}
+                    </button>
+                  </li>
+                ) : (
+                  <li>
+                    <button 
+                      onClick={() => setLocation('/dashboard/quick-actions')} 
+                      className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
+                      data-testid='footer-dashboard-link'
+                    >
+                      {t('dashboard')}
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Section */}
+          <div className='border-t border-gray-800 mt-8 pt-8 text-center'>
+            <p className='text-gray-400 text-sm'>
+              © 2024 Koveo Gestion Inc. {t('allRightsReserved')}
+            </p>
           </div>
         </div>
       </footer>
