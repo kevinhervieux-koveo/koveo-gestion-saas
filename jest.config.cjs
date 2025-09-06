@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.minimal.ts'],
   // Ensure tests run in safe environment
   globalSetup: '<rootDir>/jest.global-setup.js',
   globalTeardown: '<rootDir>/jest.global-teardown.js',
@@ -60,7 +60,7 @@ const config = {
   maxWorkers: '50%',
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
-  detectOpenHandles: false,
+  detectOpenHandles: true,
   forceExit: true,
   // Faster test isolation
   resetModules: false,
