@@ -278,7 +278,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
-      const updateData: unknown = {};
+      const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
       }
@@ -354,7 +354,7 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
-      const updateData: unknown = {};
+      const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
       }
@@ -427,7 +427,7 @@ export function registerBillRoutes(app: Express) {
 
       const deletedBill = await db.delete(bills).where(eq(bills.id, id)).returning();
 
-      if (deletedBill.length === 0) {
+      if (!deletedBill || (Array.isArray(deletedBill) && deletedBill.length === 0)) {
         return res.status(404).json({
           message: 'Bill not found',
         });
@@ -845,7 +845,7 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      const analysis = await geminiBillAnalyzer.analyzeDocument(req.file.path);
+      const analysis = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
       
       res.json(analysis);
     } catch (_error: any) {
