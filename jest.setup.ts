@@ -246,6 +246,8 @@ jest.mock('./server/routes', () => ({
 
 // Mock language hook and provider with proper React setup
 jest.mock('@/hooks/use-language', () => {
+  const React = require('react');
+  
   // Create a mock function that always returns the expected structure
   const mockUseLanguage = jest.fn().mockReturnValue({
     t: jest.fn((key: string, options?: any) => {
