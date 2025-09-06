@@ -126,22 +126,26 @@ jest.mock('wouter', () => ({
 // Mock language hook and provider with proper React setup
 jest.mock('@/hooks/use-language', () => {
   const React = require('react');
+  
+  // Create a mock function that always returns the expected structure
+  const mockUseLanguage = jest.fn().mockReturnValue({
+    t: jest.fn((key: string, options?: any) => {
+      // Handle interpolations like t('key', { value: 'test' })
+      if (options && typeof options === 'object') {
+        let result = key;
+        Object.keys(options).forEach(k => {
+          result = result.replace(new RegExp(`{{${k}}}`, 'g'), options[k]);
+        });
+        return result;
+      }
+      return key;
+    }),
+    language: 'en',
+    setLanguage: jest.fn(),
+  });
+  
   return {
-    useLanguage: jest.fn(() => ({
-      t: jest.fn((key: string, options?: any) => {
-        // Handle interpolations like t('key', { value: 'test' })
-        if (options && typeof options === 'object') {
-          let result = key;
-          Object.keys(options).forEach(k => {
-            result = result.replace(new RegExp(`{{${k}}}`, 'g'), options[k]);
-          });
-          return result;
-        }
-        return key;
-      }),
-      language: 'en',
-      setLanguage: jest.fn(),
-    })),
+    useLanguage: mockUseLanguage,
     LanguageProvider: ({ children }: { children: React.ReactNode }) => 
       React.createElement('div', { 'data-testid': 'language-provider' }, children),
   };
