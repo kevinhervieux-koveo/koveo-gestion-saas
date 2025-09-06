@@ -13,6 +13,7 @@ import {
   SharedUploader,
   DocumentCard
 } from '@/components/document-management';
+import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
 
 // Document categories for filtering
@@ -49,7 +50,8 @@ export default function ModularDocumentPageWrapper({
   const params = useParams();
   const { t } = useLanguage();
 
-  // State for document interactions (simplified without modals)
+  // State for document interactions
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   // State for filtering and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,13 +151,12 @@ export default function ModularDocumentPageWrapper({
   };
 
   const handleCreateDocument = () => {
-    // Navigate to a dedicated create page or show alert for now
-    alert('Document creation functionality to be implemented');
+    setIsCreateDialogOpen(true);
   };
 
-  const handleDocumentSuccess = (documentId: string, action: 'created' | 'updated' | 'deleted') => {
-    console.log(`Document ${action}:`, documentId);
-    // Simplified success handling without modal state
+  const handleDocumentSuccess = (documentId: string) => {
+    console.log(`Document created:`, documentId);
+    // Refresh documents list will be handled by the DocumentCreateForm's cache invalidation
   };
 
   const clearFilters = () => {
@@ -420,7 +421,15 @@ export default function ModularDocumentPageWrapper({
             </Card>
           )}
 
-          {/* Document viewing/editing handled by navigation or simple actions */}
+          {/* Document Creation Dialog */}
+          <DocumentCreateForm
+            isOpen={isCreateDialogOpen}
+            onClose={() => setIsCreateDialogOpen(false)}
+            onSuccess={handleDocumentSuccess}
+            entityType={type}
+            entityId={entityId}
+            entityName={entityName}
+          />
         </div>
       </div>
     </div>

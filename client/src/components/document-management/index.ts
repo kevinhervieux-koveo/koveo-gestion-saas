@@ -14,6 +14,7 @@
 // Core Document Management Components
 export { SharedUploader } from './SharedUploader';
 export { DocumentCard } from './DocumentCard';
+export { DocumentCreateForm } from './DocumentCreateForm';
 // Note: DocumentViewModal and DocumentEditModal were temporarily removed but may be needed
 
 // Invoice Management Components
