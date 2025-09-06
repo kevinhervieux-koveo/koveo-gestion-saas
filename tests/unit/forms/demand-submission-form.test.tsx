@@ -34,6 +34,25 @@ jest.mock('@/lib/toastUtils', () => ({
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
+// Helper to create proper Response mock
+const createMockResponse = (data: any, ok: boolean = true, status: number = 200): Response => ({
+  ok,
+  status,
+  json: () => Promise.resolve(data),
+  headers: new Headers(),
+  redirected: false,
+  statusText: ok ? 'OK' : 'Error',
+  type: 'basic' as ResponseType,
+  url: '',
+  clone: jest.fn() as any,
+  body: null,
+  bodyUsed: false,
+  arrayBuffer: jest.fn() as any,
+  blob: jest.fn() as any,
+  formData: jest.fn() as any,
+  text: jest.fn() as any,
+} as Response);
+
 // Mock queryClient
 const createMockQueryClient = () =>
   new QueryClient({
