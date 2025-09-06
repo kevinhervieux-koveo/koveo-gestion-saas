@@ -377,7 +377,13 @@ describe('File Upload Forms Test Suite', () => {
     it('should handle document upload with metadata', async () => {
       render(
         <>
-          <DocumentManager />
+          <DocumentManager 
+            config={{
+              type: 'building',
+              entityId: 'building-123',
+              userRole: 'manager'
+            }} 
+          />
         </>
       );
 
@@ -434,7 +440,13 @@ describe('File Upload Forms Test Suite', () => {
     it('should validate document file types', async () => {
       render(
         <>
-          <DocumentManager />
+          <DocumentManager 
+            config={{
+              type: 'building',
+              entityId: 'building-123',
+              userRole: 'manager'
+            }} 
+          />
         </>
       );
 
@@ -1269,12 +1281,12 @@ describe('File Upload Forms Test Suite', () => {
         createMockImage('4.png'), // One too many
       ];
 
-      Object.defineProperty(fileInput, 'files', {
-        value: tooManyFiles,
-        writable: false,
-      });
-
       expect(() => {
+        Object.defineProperty(fileInput, 'files', {
+          value: tooManyFiles,
+          writable: false,
+          configurable: true,
+        });
         fireEvent.change(fileInput, { target: { files: tooManyFiles } });
       }).toThrow(/Maximum.*files.*allowed/);
     });
@@ -1322,6 +1334,7 @@ describe('File Upload Forms Test Suite', () => {
       Object.defineProperty(fileInput, 'files', {
         value: [largeFile],
         writable: false,
+        configurable: true,
       });
 
       fireEvent.change(fileInput, { target: { files: [largeFile] } });
