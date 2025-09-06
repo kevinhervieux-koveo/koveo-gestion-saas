@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -32,9 +32,30 @@ interface GeminiBillExtractorProps {
  * - Specialized for bills, receipts, and vendor invoices
  */
 export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillExtractorProps) {
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 2;
   
   // Mutation for AI bill data extraction
   const extractionMutation = useMutation({
+    retry: (failureCount, error: any) => {
+      // Retry up to maxRetries times for network errors or 5xx errors
+      if (failureCount < maxRetries) {
+        const isRetryableError = 
+          error.message?.includes('Failed to execute \'fetch\'') || 
+          error.message?.includes('Network error') ||
+          error.message?.includes('500:') ||
+          error.message?.includes('502:') ||
+          error.message?.includes('503:') ||
+          error.message?.includes('504:');
+        
+        if (isRetryableError) {
+          console.log(`[GEMINI BILL EXTRACTOR] Retrying extraction (attempt ${failureCount + 1}/${maxRetries})`);
+          return true;
+        }
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     mutationFn: async (billFile: File) => {
       // Create FormData for file upload
       const formData = new FormData();
@@ -61,8 +82,9 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
         rawData: data.data
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
       console.error('[GEMINI BILL EXTRACTOR] Extraction failed:', error);
+      setRetryCount(context?.failureCount || 0);
       
       // Handle different error types
       let errorMessage = 'Failed to extract bill data';
@@ -89,6 +111,12 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
             errorMessage = match[1] || errorMessage;
           }
         }
+      }
+      
+      // Add retry information if applicable
+      const currentRetries = context?.failureCount || 0;
+      if (currentRetries > 0) {
+        errorMessage += ` (after ${currentRetries} retry${currentRetries === 1 ? '' : 'ies'})`;
       }
       
       // Call the error callback
