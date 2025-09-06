@@ -1339,11 +1339,12 @@ export function registerDocumentRoutes(app: Express): void {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
-      const { documentType, buildingId, residenceId, textContent, ...otherData } = req.body;
+      const { documentType, buildingId, residenceId, textContent, type, ...otherData } = req.body;
       
       // Debug logging to understand what data is being sent
       console.log('🔍 Document creation debug:', {
         documentType,
+        type,
         buildingId, 
         residenceId,
         hasFile: !!req.file,
@@ -1481,7 +1482,7 @@ export function registerDocumentRoutes(app: Express): void {
           buildingId,
           uploadedById: userId,
           filePath,
-          documentType: documentType || 'other', // Default to 'other' if not provided
+          documentType: documentType || type || 'other', // Default to 'other' if not provided
         };
         
         let validatedData;
@@ -1565,7 +1566,7 @@ export function registerDocumentRoutes(app: Express): void {
           residenceId,
           uploadedById: userId,
           filePath: req.file ? req.file.path : `temp-path-${Date.now()}`,
-          documentType: documentType || 'other', // Default to 'other' if not provided
+          documentType: documentType || type || 'other', // Default to 'other' if not provided
         };
         
         console.log('🔍 Residence document validation debug:', {
