@@ -38,15 +38,49 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
     enabled: isOpen && !!documentId,
   });
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     console.log('[DOWNLOAD] Starting download for document:', documentId);
-    const link = document.createElement('a');
-    link.href = `/api/documents/${documentId}/file?download=true`;
-    link.download = document?.name || 'document';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    console.log('[DOWNLOAD] Download link clicked');
+    try {
+      // Use fetch with credentials to ensure authentication
+      const response = await fetch(`/api/documents/${documentId}/file?download=true`, {
+        method: 'GET',
+        credentials: 'include', // Include authentication cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Get the filename from Content-Disposition header or use document name
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let fileName = document?.name || 'document';
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (fileNameMatch) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      // Convert response to blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('[DOWNLOAD] Download completed successfully');
+    } catch (error) {
+      console.error('[DOWNLOAD] Download failed:', error);
+      // You might want to show a toast notification here
+    }
   };
 
   return (
