@@ -237,6 +237,14 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           const uploadResult = await uploadResponse.json();
           console.log('[BILL FORM] Document upload successful:', uploadResult);
           
+          // Update the bill response with the document information from the upload
+          if (uploadResult.bill) {
+            billResponse.documentPath = uploadResult.bill.documentPath;
+            billResponse.documentName = uploadResult.bill.documentName;
+            billResponse.isAiAnalyzed = uploadResult.bill.isAiAnalyzed;
+            billResponse.aiAnalysisData = uploadResult.bill.aiAnalysisData;
+          }
+          
           // Show success toast for document upload
           toast({
             title: 'Document Uploaded',
