@@ -1895,46 +1895,168 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Update a document
-  app.put('/api/documents/:id', requireAuth, async (req: any, res) => {
+  app.put('/api/documents/:id', requireAuth, upload.single('file'), async (req: any, res) => {
+    console.log(`📝 [DOCUMENT UPDATE] Starting update for document ID: ${req.params.id}`);
+    console.log(`📝 [DOCUMENT UPDATE] User: ${req.user.id} (${req.user.role})`);
+    console.log(`📝 [DOCUMENT UPDATE] Body:`, req.body);
+    console.log(`📝 [DOCUMENT UPDATE] File provided:`, !!req.file);
+    
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       const documentId = req.params.id;
-      const documentType = req.query.type as string; // Optional type hint
 
-      // Get user's organization for permission checking
-      const organizations = await storage.getUserOrganizations(userId);
-      const residences = await storage.getUserResidences(userId);
-      const buildings = await storage.getBuildings();
-
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map((ur) => ur.residenceId);
-      const buildingIds = buildings.map((b) => b.id);
-
-      // Use unified documents system for updates
-      let updatedDocument: unknown = null;
-
-      try {
-        const validatedData = createDocumentSchema.partial().parse(req.body);
-        updatedDocument = await storage.updateDocument(documentId, validatedData);
-
-        if (updatedDocument) {
-          // Add compatibility fields for frontend
-          (updatedDocument as any).documentCategory = (updatedDocument as any).buildingId ? 'building' : 'resident';
-          (updatedDocument as any).entityType = (updatedDocument as any).buildingId ? 'building' : 'residence';
-          (updatedDocument as any).entityId = (updatedDocument as any).buildingId || (updatedDocument as any).residenceId;
-        }
-      } catch (e) {
-        console.warn('⚠️ Error in document update:', e);
+      // Get existing document first to check permissions and get current file path
+      const existingDocument = await storage.getDocuments({ documentId }).then(docs => docs[0]);
+      
+      if (!existingDocument) {
+        console.log(`❌ [DOCUMENT UPDATE] Document not found: ${documentId}`);
+        return res.status(404).json({ message: 'Document not found' });
       }
+
+      console.log(`📝 [DOCUMENT UPDATE] Existing document:`, {
+        id: existingDocument.id,
+        name: existingDocument.name,
+        filePath: existingDocument.filePath,
+        buildingId: existingDocument.buildingId,
+        residenceId: existingDocument.residenceId
+      });
+
+      // Check permissions (similar to view permissions)
+      let hasAccess = false;
+      if (userRole === 'admin') {
+        hasAccess = true;
+        console.log(`✅ [DOCUMENT UPDATE] Admin access granted`);
+      } else if (userRole === 'manager') {
+        // Manager should have access to documents in their organization
+        const organizations = await storage.getUserOrganizations(userId);
+        const buildings = await storage.getBuildings();
+        const userOrganizations = organizations.map(org => org.organizationId);
+        
+        if (existingDocument.buildingId) {
+          const orgBuildings = buildings.filter(building => 
+            userOrganizations.includes(building.organizationId || '')
+          );
+          const orgBuildingIds = orgBuildings.map(b => b.id);
+          hasAccess = orgBuildingIds.includes(existingDocument.buildingId);
+        }
+        console.log(`📝 [DOCUMENT UPDATE] Manager access: ${hasAccess}`);
+      }
+
+      if (!hasAccess) {
+        console.log(`❌ [DOCUMENT UPDATE] Access denied for user ${userId}`);
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      
+      if (req.body.name) updateData.name = req.body.name;
+      if (req.body.description !== undefined) updateData.description = req.body.description;
+      if (req.body.documentType) updateData.documentType = req.body.documentType;
+      if (req.body.isVisibleToTenants !== undefined) {
+        updateData.isVisibleToTenants = req.body.isVisibleToTenants === 'true';
+      }
+
+      console.log(`📝 [DOCUMENT UPDATE] Update data:`, updateData);
+
+      // Handle file replacement if provided
+      if (req.file) {
+        console.log(`📝 [DOCUMENT UPDATE] Processing file replacement:`, {
+          originalname: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          tempPath: req.file.path
+        });
+
+        // Validate the file
+        const fileValidation = validateFile(req.file);
+        if (!fileValidation.isValid) {
+          // Clean up temp file
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (cleanupError) {
+            console.warn('⚠️ Failed to cleanup temp file:', cleanupError);
+          }
+          return res.status(400).json({ message: fileValidation.error });
+        }
+
+        // Generate unique file path
+        const fileExtension = path.extname(req.file.originalname);
+        const baseFileName = path.basename(req.file.originalname, fileExtension);
+        const uniqueId = crypto.randomBytes(16).toString('hex');
+        const entityType = existingDocument.buildingId ? 'buildings' : 'residences';
+        const entityId = existingDocument.buildingId || existingDocument.residenceId;
+        
+        const documentsDir = path.join(process.cwd(), 'uploads', entityType, entityId || 'general');
+        const uniqueFileName = `${uniqueId}-${baseFileName}${fileExtension}`;
+        const finalPath = path.join(documentsDir, uniqueFileName);
+        const relativePath = path.join(entityType, entityId || 'general', uniqueFileName);
+
+        // Ensure directory exists
+        if (!fs.existsSync(documentsDir)) {
+          fs.mkdirSync(documentsDir, { recursive: true });
+        }
+
+        // Move file from temp to final location
+        fs.renameSync(req.file.path, finalPath);
+        
+        // Update file-related fields
+        updateData.filePath = relativePath;
+        updateData.fileName = req.file.originalname;
+        updateData.fileSize = req.file.size;
+        updateData.mimeType = req.file.mimetype;
+
+        console.log(`✅ [DOCUMENT UPDATE] File stored at: ${finalPath}`);
+
+        // Clean up old file if it exists
+        if (existingDocument.filePath) {
+          const oldFilePath = path.isAbsolute(existingDocument.filePath) 
+            ? existingDocument.filePath 
+            : path.join(process.cwd(), 'uploads', existingDocument.filePath);
+          
+          try {
+            if (fs.existsSync(oldFilePath)) {
+              fs.unlinkSync(oldFilePath);
+              console.log(`🗑️ [DOCUMENT UPDATE] Cleaned up old file: ${oldFilePath}`);
+            }
+          } catch (cleanupError) {
+            console.warn('⚠️ Failed to cleanup old file:', cleanupError);
+          }
+        }
+      }
+
+      // Update the document
+      const updatedDocument = await storage.updateDocument(documentId, updateData);
 
       if (!updatedDocument) {
-        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
+        console.log(`❌ [DOCUMENT UPDATE] Failed to update document: ${documentId}`);
+        return res.status(404).json({ message: 'Failed to update document' });
       }
+
+      console.log(`✅ [DOCUMENT UPDATE] Document updated successfully:`, {
+        id: (updatedDocument as any).id,
+        name: (updatedDocument as any).name
+      });
+
+      // Add compatibility fields for frontend
+      (updatedDocument as any).documentCategory = (updatedDocument as any).buildingId ? 'building' : 'resident';
+      (updatedDocument as any).entityType = (updatedDocument as any).buildingId ? 'building' : 'residence';
+      (updatedDocument as any).entityId = (updatedDocument as any).buildingId || (updatedDocument as any).residenceId;
 
       res.json(updatedDocument);
     } catch (_error: any) {
+      // Clean up temporary file on error
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+          console.log(`🗑️ [DOCUMENT UPDATE] Cleaned up temp file on error: ${req.file.path}`);
+        } catch (cleanupError) {
+          console.warn('⚠️ Failed to cleanup temporary file:', cleanupError);
+        }
+      }
+
       console.error('❌ Error updating document:', _error);
       
       if (_error instanceof z.ZodError) {
