@@ -488,31 +488,19 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           
           // Only fill empty or default fields
           if (!currentValues.title || currentValues.title === '' || currentValues.title === 'AI Analysis Draft') {
-            console.log('✏️ [DEBUG] Setting title:', data.analysisResult.title);
             form.setValue('title', data.analysisResult.title);
-          } else {
-            console.log('⏭️ [DEBUG] Skipping title (already filled):', currentValues.title);
           }
           
           if (!currentValues.vendor || currentValues.vendor === '') {
-            console.log('🏢 [DEBUG] Setting vendor:', data.analysisResult.vendor);
             form.setValue('vendor', data.analysisResult.vendor || '');
-          } else {
-            console.log('⏭️ [DEBUG] Skipping vendor (already filled):', currentValues.vendor);
           }
           
           if (!currentValues.category || currentValues.category === 'other') {
-            console.log('🏷️ [DEBUG] Setting category:', data.analysisResult.category);
             form.setValue('category', data.analysisResult.category);
-          } else {
-            console.log('⏭️ [DEBUG] Skipping category (already filled):', currentValues.category);
           }
           
           if (!currentValues.totalAmount || currentValues.totalAmount === '' || currentValues.totalAmount === '0') {
-            console.log('💰 [DEBUG] Setting total amount:', data.analysisResult.totalAmount);
             form.setValue('totalAmount', data.analysisResult.totalAmount);
-          } else {
-            console.log('⏭️ [DEBUG] Skipping total amount (already filled):', currentValues.totalAmount);
           }
           
           if (!currentValues.description || currentValues.description === '') {
@@ -548,12 +536,10 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           if (aiNotesSection.length > 0) {
             const aiNotes = aiNotesSection.join('\n');
             notes = notes ? `${notes}\n\n--- AI Analysis ---\n${aiNotes}` : aiNotes;
-            console.log('📝 [DEBUG] Setting notes with AI data:', notes);
             form.setValue('notes', notes.trim());
           }
           
-          console.log('✅ [DEBUG] Form filling completed!');
-          console.log('📊 [DEBUG] Final form values:', form.getValues());
+          // Form filling completed
         }
       }, 100); // Small delay to ensure tab switch happens first
     },
@@ -574,8 +560,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
   // Smart form filling that respects user input
   const applyAiAnalysisSmartly = useCallback(() => {
-    console.log('🧠 [DEBUG] === SMART AI ANALYSIS APPLICATION STARTING ===');
-    console.log('📊 [DEBUG] AI Analysis Data for smart application:', aiAnalysisData);
+    // Smart AI analysis application
     
     if (!aiAnalysisData) {
       console.warn('⚠️ [DEBUG] No AI analysis data available for smart application');
@@ -583,7 +568,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     }
 
     const currentValues = form.getValues();
-    console.log('🔍 [DEBUG] Current form values before smart AI application:', currentValues);
+    // Check current form values
     
     // Only fill empty or default fields
     if (!currentValues.title || currentValues.title === '') {
