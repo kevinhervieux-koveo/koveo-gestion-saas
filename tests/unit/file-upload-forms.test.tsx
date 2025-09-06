@@ -571,7 +571,7 @@ describe('File Upload Forms Test Suite', () => {
       if (attachButton) {
         await userEvent.click(attachButton);
 
-        const fileInput = screen.queryByRole('input', { type: 'file' });
+        const fileInput = screen.queryByRole('textbox');
 
         if (fileInput) {
           // Try invalid file format
