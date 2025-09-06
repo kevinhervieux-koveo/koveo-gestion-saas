@@ -726,7 +726,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
           </DialogHeader>
