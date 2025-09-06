@@ -164,9 +164,6 @@ export function registerBugRoutes(app: Express): void {
           fileName: originalname,
           fileSize: req.file.size,
         };
-        console.log(`✅ File attachment added to bugData`);
-      } else {
-        console.log(`⚠️ No file attachment in request`);
       }
 
       // Log the final bugData before saving
@@ -181,11 +178,6 @@ export function registerBugRoutes(app: Express): void {
       const bug = await storage.createBug(bugData);
 
       console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
-      if (bug.filePath) {
-        console.log(`📎 CONFIRMED: Bug ${bug.id} has attached file: ${bug.fileName} at ${bug.filePath}`);
-      } else {
-        console.log(`⚠️ WARNING: Bug ${bug.id} was created WITHOUT file attachment`);
-      }
       res.status(201).json(bug);
     } catch (error: any) {
       console.error('❌ Error creating bug:', error);
@@ -299,13 +291,6 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      // Debug: Log the request details first
-      console.log('🔍 File request details:', {
-        bugId: id,
-        userId: currentUser.id,
-        userRole: currentUser.role
-      });
-
       // Get the bug with file info
       const bug = await storage.getBug(
         id,
@@ -313,19 +298,6 @@ export function registerBugRoutes(app: Express): void {
         currentUser.role,
         currentUser.organizationId
       );
-
-      // Debug: Log what we got from storage
-      console.log('🔍 Bug from storage:', {
-        found: !!bug,
-        id: bug?.id,
-        title: bug?.title,
-        filePath: bug?.filePath,
-        fileName: bug?.fileName,
-        fileSize: bug?.fileSize,
-        file_path: (bug as any)?.file_path,
-        file_name: (bug as any)?.file_name,
-        file_size: (bug as any)?.file_size
-      });
 
       if (!bug || !bug.filePath) {
         return res.status(404).json({

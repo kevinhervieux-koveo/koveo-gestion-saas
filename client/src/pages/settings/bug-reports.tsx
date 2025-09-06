@@ -273,14 +273,7 @@ export default function BugReports() {
 
       // Add attached file (single file only, backend expects 'attachment' field)
       if (attachedFiles.length > 0) {
-        console.log('🔗 Adding file attachment:', {
-          name: attachedFiles[0].name,
-          size: attachedFiles[0].size,
-          type: attachedFiles[0].type
-        });
         formData.append('attachment', attachedFiles[0]);
-      } else {
-        console.log('⚠️ No file attachment to upload');
       }
 
       // Make multipart request

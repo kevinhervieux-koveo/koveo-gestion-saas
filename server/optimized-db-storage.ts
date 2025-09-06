@@ -2209,43 +2209,25 @@ export class OptimizedDatabaseStorage implements IStorage {
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
 
-    // Bypass cache temporarily for debugging
-    console.log('🔍 getBug: Cache key:', key);
-    console.log('🔍 getBug: Querying database for bug:', id);
-    const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
+    return queryCache.get(key, async () => {
+      const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
 
-    console.log('🔍 getBug: Database result:', {
-      found: result.length > 0,
-      bugId: result[0]?.id,
-      createdBy: result[0]?.createdBy,
-      filePath: result[0]?.filePath,
-      file_path: (result[0] as any)?.file_path
+      const bug = result[0];
+      if (!bug) {
+        return undefined;
+      }
+
+      if (userRole === 'admin') {
+        return bug;
+      }
+
+      if (userRole === 'manager') {
+        return bug; // Managers can see all bugs for now
+      }
+
+      // Residents and tenants can only see their own bugs
+      return bug.createdBy === userId ? bug : undefined;
     });
-
-    const bug = result[0];
-    if (!bug) {
-      console.log('🔍 getBug: Bug not found in database');
-      return undefined;
-    }
-
-    if (userRole === 'admin') {
-      console.log('🔍 getBug: Admin access granted');
-      return bug;
-    }
-
-    if (userRole === 'manager') {
-      console.log('🔍 getBug: Manager access granted');
-      return bug; // Managers can see all bugs for now
-    }
-
-    // Residents and tenants can only see their own bugs
-    if (bug.createdBy === userId) {
-      console.log('🔍 getBug: User access granted (owner)');
-      return bug;
-    } else {
-      console.log('🔍 getBug: Access denied - not owner');
-      return undefined;
-    }
   }
 
   /**
@@ -2268,8 +2250,9 @@ export class OptimizedDatabaseStorage implements IStorage {
       })
       .returning();
 
-    // Invalidate cache for this user
+    // Invalidate cache for this user and specific bug queries  
     queryCache.invalidate('bugs');
+    queryCache.invalidate(`bug:${result[0].id}`);
 
     return result[0];
   }
