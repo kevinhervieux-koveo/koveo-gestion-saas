@@ -1,0 +1,1 @@
+This is test text content for bug report upload validation
