@@ -14,20 +14,38 @@ jest.mock('@google/genai', () => ({
   })),
 }));
 
+// Mock drizzle-orm functions
+jest.mock('drizzle-orm', () => ({
+  eq: jest.fn(() => 'mock-eq-condition'),
+  and: jest.fn(() => 'mock-and-condition'),
+  or: jest.fn(() => 'mock-or-condition'),
+  sql: jest.fn(() => 'mock-sql'),
+  desc: jest.fn(() => 'mock-desc'),
+  asc: jest.fn(() => 'mock-asc'),
+  like: jest.fn(() => 'mock-like'),
+  ilike: jest.fn(() => 'mock-ilike'),
+  inArray: jest.fn(() => 'mock-in-array'),
+  notInArray: jest.fn(() => 'mock-not-in-array'),
+  isNull: jest.fn(() => 'mock-is-null'),
+  isNotNull: jest.fn(() => 'mock-is-not-null'),
+  exists: jest.fn(() => 'mock-exists'),
+  notExists: jest.fn(() => 'mock-not-exists'),
+}));
+
 // Comprehensive database mocking to prevent real connections
 jest.mock('./server/db', () => {
   const createMockChain = (finalValue: any = []) => {
     const chain: any = {};
     
     chain.from = jest.fn().mockReturnValue(chain);
-    chain.where = jest.fn().mockReturnValue(chain);
+    chain.where = jest.fn().mockReturnValue(Promise.resolve(finalValue));
     chain.leftJoin = jest.fn().mockReturnValue(chain);
     chain.innerJoin = jest.fn().mockReturnValue(chain);
     chain.rightJoin = jest.fn().mockReturnValue(chain);
     chain.select = jest.fn().mockReturnValue(chain);
     chain.set = jest.fn().mockReturnValue(chain);
     chain.values = jest.fn().mockReturnValue(chain);
-    chain.returning = jest.fn().mockReturnValue(chain);
+    chain.returning = jest.fn().mockReturnValue(Promise.resolve(finalValue));
     chain.orderBy = jest.fn().mockReturnValue(chain);
     chain.limit = jest.fn().mockReturnValue(chain);
     chain.offset = jest.fn().mockReturnValue(chain);
@@ -43,10 +61,13 @@ jest.mock('./server/db', () => {
 
   const mockDb = {
     query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockImplementation(() => createMockChain([{ id: 'mock-id' }])),
-    select: jest.fn().mockImplementation(() => createMockChain([])),
-    update: jest.fn().mockImplementation(() => createMockChain({ affectedRows: 0 })),
-    delete: jest.fn().mockImplementation(() => createMockChain({ affectedRows: 0 })),
+    insert: jest.fn().mockImplementation((table: any) => createMockChain([{ id: 'mock-id' }])),
+    select: jest.fn().mockImplementation((fields?: any) => createMockChain([])),
+    update: jest.fn().mockImplementation((table: any) => createMockChain({ affectedRows: 0 })),
+    delete: jest.fn().mockImplementation((table: any) => {
+      const chain = createMockChain({ affectedRows: 0 });
+      return chain;
+    }),
   };
   
   const mockSql = jest.fn().mockResolvedValue([]);
