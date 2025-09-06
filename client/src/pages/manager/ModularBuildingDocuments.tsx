@@ -68,6 +68,16 @@ export default function ModularBuildingDocuments() {
     doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
+  // Debug logging to understand document structure
+  console.log('📄 [ModularBuildingDocuments] Debug:', {
+    documentsIsArray: Array.isArray(documents),
+    documentsLength: Array.isArray(documents) ? documents.length : 'not array',
+    filteredLength: filteredDocuments.length,
+    searchTerm,
+    documents: documents,
+    firstDocument: Array.isArray(documents) && documents.length > 0 ? documents[0] : 'none'
+  });
+
   // Handle document interactions
   const handleDocumentView = (documentId: string) => {
     setSelectedDocumentId(documentId);
