@@ -574,46 +574,78 @@ export function registerBillRoutes(app: Express) {
     requireAuth,
     upload.single('document'),
     async (req: any, res: any) => {
+      console.log(`📄 [BILLS UPLOAD] Starting document upload for bill ID: ${req.params.id}`);
+      console.log(`📄 [BILLS UPLOAD] User: ${req.user.id} (${req.user.role})`);
+      
       try {
         const { id } = req.params;
 
         if (!req.file) {
+          console.log('❌ [BILLS UPLOAD] No file provided in request');
           return res.status(400).json({ message: 'No file uploaded' });
         }
+
+        console.log(`📄 [BILLS UPLOAD] File received:`, {
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+          tempPath: req.file.path
+        });
 
         // Get organization ID for document organization
         const organizations = await storage.getUserOrganizations(req.user.id);
         const organizationId =
           organizations.length > 0 ? organizations[0].organizationId : 'default';
+        
+        console.log(`📄 [BILLS UPLOAD] Organization ID determined: ${organizationId}`);
 
         // Create document path in the expected format
         const filePath = `prod_org_${organizationId}/${req.file.originalname}`;
+        console.log(`📄 [BILLS UPLOAD] File path determined: ${filePath}`);
         
         // Create uploads directory structure if it doesn't exist
         const path = await import('path');
         const uploadsDir = path.join(process.cwd(), 'uploads');
         const orgDir = path.join(uploadsDir, `prod_org_${organizationId}`);
         
+        console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
+          uploadsDir,
+          orgDir,
+          uploadsExists: fs.existsSync(uploadsDir),
+          orgDirExists: fs.existsSync(orgDir)
+        });
+        
         if (!fs.existsSync(uploadsDir)) {
           fs.mkdirSync(uploadsDir, { recursive: true });
+          console.log(`📄 [BILLS UPLOAD] Created uploads directory: ${uploadsDir}`);
         }
         if (!fs.existsSync(orgDir)) {
           fs.mkdirSync(orgDir, { recursive: true });
+          console.log(`📄 [BILLS UPLOAD] Created organization directory: ${orgDir}`);
         }
 
         // Save file to permanent storage
         const permanentFilePath = path.join(uploadsDir, filePath);
+        console.log(`📄 [BILLS UPLOAD] Copying file from ${req.file.path} to ${permanentFilePath}`);
         fs.copyFileSync(req.file.path, permanentFilePath);
+        console.log(`📄 [BILLS UPLOAD] File successfully saved to permanent storage`);
 
         // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
         if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
+          console.log(`🤖 [BILLS UPLOAD] Starting AI analysis for ${req.file.mimetype} file`);
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
+            console.log(`🤖 [BILLS UPLOAD] AI analysis successful:`, {
+              hasResult: !!analysisResult,
+              analysisKeys: analysisResult ? Object.keys(analysisResult) : []
+            });
           } catch (aiError) {
-            console.warn('AI analysis failed, continuing without analysis:', aiError);
+            console.warn('🤖 [BILLS UPLOAD] AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
+        } else {
+          console.log(`🤖 [BILLS UPLOAD] Skipping AI analysis for unsupported file type: ${req.file.mimetype}`);
         }
 
         // Update bill with document info and AI analysis
@@ -626,14 +658,26 @@ export function registerBillRoutes(app: Express) {
           updatedAt: new Date(),
         };
 
+        console.log(`📄 [BILLS UPLOAD] Updating bill ${id} in database with:`, {
+          filePath,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+          hasAiAnalysis: !!analysisResult
+        });
+
         const updatedBill = await db
           .update(bills)
           .set(updateData)
           .where(eq(bills.id, id))
           .returning();
 
+        console.log(`📄 [BILLS UPLOAD] Database update successful for bill ${id}`);
+
         // Clean up temporary file
+        console.log(`📄 [BILLS UPLOAD] Cleaning up temporary file: ${req.file.path}`);
         fs.unlinkSync(req.file.path);
+
+        console.log(`✅ [BILLS UPLOAD] Upload process completed successfully for bill ${id}`);
 
         res.json({
           message: 'Document uploaded and analyzed successfully',
@@ -665,20 +709,32 @@ export function registerBillRoutes(app: Express) {
    * GET /api/bills/:id/download-document.
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
-    console.log('[DOWNLOAD] Document download request received for bill ID:', req.params.id);
+    console.log(`📥 [BILLS DOWNLOAD] Document download request for bill ID: ${req.params.id}`);
+    console.log(`📥 [BILLS DOWNLOAD] User: ${req.user.id} (${req.user.role})`);
+    
     try {
       const { id } = req.params;
 
       // Get the bill to check if it has a document
+      console.log(`📥 [BILLS DOWNLOAD] Querying database for bill: ${id}`);
       const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
+        console.log(`❌ [BILLS DOWNLOAD] Bill not found: ${id}`);
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
+      console.log(`📥 [BILLS DOWNLOAD] Bill found:`, {
+        id: billData.id,
+        hasFilePath: !!billData.filePath,
+        hasFileName: !!billData.fileName,
+        filePath: billData.filePath,
+        fileName: billData.fileName
+      });
 
       if (!billData.filePath || !billData.fileName) {
+        console.log(`❌ [BILLS DOWNLOAD] No document associated with bill ${id}`);
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -691,27 +747,31 @@ export function registerBillRoutes(app: Express) {
       const uploadsDir = path.join(process.cwd(), 'uploads');
       const fileFullPath = path.join(uploadsDir, billData.filePath);
 
-      console.log('[DOWNLOAD] File paths:', {
+      console.log(`📥 [BILLS DOWNLOAD] File paths:`, {
         uploadsDir,
         filePath: billData.filePath,
         fullFilePath: fileFullPath,
-        fileName: billData.fileName
+        fileName: billData.fileName,
+        organizationId
       });
 
       // Check if file exists
       if (!fs.existsSync(fileFullPath)) {
-        console.log('[DOWNLOAD] File not found at path:', fileFullPath);
+        console.log(`❌ [BILLS DOWNLOAD] File not found at path: ${fileFullPath}`);
         return res.status(404).json({ message: 'Document file not found on server' });
       }
 
-      console.log('[DOWNLOAD] File found, setting headers and sending...');
+      console.log(`📥 [BILLS DOWNLOAD] File found, setting headers and sending...`);
       
       // Set appropriate headers for file download
       res.setHeader('Content-Disposition', `attachment; filename="${billData.fileName}"`);
       res.setHeader('Content-Type', 'application/octet-stream');
       
       // Stream the file
+      console.log(`📥 [BILLS DOWNLOAD] Streaming file to client`);
       res.sendFile(fileFullPath);
+      
+      console.log(`✅ [BILLS DOWNLOAD] File download initiated successfully for bill ${id}`);
     } catch (_error: any) {
       console.error('❌ Error downloading document:', _error);
       res.status(500).json({
