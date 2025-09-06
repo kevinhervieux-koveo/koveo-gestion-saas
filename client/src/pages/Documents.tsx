@@ -684,7 +684,7 @@ Documents() {
             <CardHeader className='pb-3'>
               <div className='flex justify-between items-start'>
                 <div className='flex-1 min-w-0'>
-                  <CardTitle className='text-lg truncate'>{document.title}</CardTitle>
+                  <CardTitle className='text-lg line-clamp-2 break-words'>{document.title}</CardTitle>
                   {document.description && (
                     <CardDescription className='mt-1 line-clamp-2'>
                       {document.description}
@@ -724,7 +724,7 @@ Documents() {
               {document.fileName ? (
                 <div className='flex items-center gap-2 text-sm text-gray-600'>
                   <FileText className='w-4 h-4' />
-                  <span className='truncate'>{document.fileName}</span>
+                  <span className='line-clamp-2 break-words flex-1'>{document.fileName}</span>
                   {document.fileSize && (
                     <span className='text-xs'>
                       ({(document.fileSize / 1024 / 1024).toFixed(1)} MB)

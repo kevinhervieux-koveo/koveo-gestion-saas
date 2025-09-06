@@ -950,7 +950,7 @@ export default function BugReports() {
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-2">
                                 <h4
-                                  className="font-medium text-sm text-gray-900 truncate flex-1"
+                                  className="font-medium text-sm text-gray-900 line-clamp-2 break-words flex-1"
                                   data-testid={'bug-name-' + bug.id}
                                 >
                                   {bug.title}

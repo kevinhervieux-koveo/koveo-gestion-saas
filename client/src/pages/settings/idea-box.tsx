@@ -44,7 +44,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  Lightbulb,
   Plus,
   Search,
   Filter,
@@ -202,8 +201,7 @@ function IdeaCard({ idea, onView, onEdit, onUpvote, canEdit, canUpvote }: {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Lightbulb className="h-4 w-4 text-blue-500 flex-shrink-0" />
-            <h3 className="font-semibold text-sm line-clamp-1 flex-1" data-testid={`text-title-${idea.id}`}>
+            <h3 className="font-semibold text-sm line-clamp-2 flex-1 break-words" data-testid={`text-title-${idea.id}`}>
               {idea.title}
             </h3>
           </div>
