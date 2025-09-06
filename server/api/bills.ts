@@ -649,6 +649,7 @@ export function registerBillRoutes(app: Express) {
    * GET /api/bills/:id/download-document.
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
+    console.log('[DOWNLOAD] Document download request received for bill ID:', req.params.id);
     try {
       const { id } = req.params;
 
@@ -674,11 +675,21 @@ export function registerBillRoutes(app: Express) {
       const uploadsDir = path.join(process.cwd(), 'uploads');
       const filePath = path.join(uploadsDir, billData.documentPath);
 
+      console.log('[DOWNLOAD] File paths:', {
+        uploadsDir,
+        documentPath: billData.documentPath,
+        fullFilePath: filePath,
+        documentName: billData.documentName
+      });
+
       // Check if file exists
       if (!fs.existsSync(filePath)) {
+        console.log('[DOWNLOAD] File not found at path:', filePath);
         return res.status(404).json({ message: 'Document file not found on server' });
       }
 
+      console.log('[DOWNLOAD] File found, setting headers and sending...');
+      
       // Set appropriate headers for file download
       res.setHeader('Content-Disposition', `attachment; filename="${billData.documentName}"`);
       res.setHeader('Content-Type', 'application/octet-stream');

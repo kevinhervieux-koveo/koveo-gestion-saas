@@ -938,6 +938,10 @@ function BillDetail({
                 variant='outline'
                 size='sm'
                 onClick={() => {
+                  console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
+                  console.log('[DOWNLOAD] Document name:', currentBill.documentName);
+                  console.log('[DOWNLOAD] Document path:', currentBill.documentPath);
+                  
                   // Download the document
                   const link = document.createElement('a');
                   link.href = `/api/bills/${currentBill.id}/download-document`;
@@ -945,6 +949,8 @@ function BillDetail({
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
+                  
+                  console.log('[DOWNLOAD] Download link clicked');
                 }}
                 className='flex items-center gap-1'
                 data-testid={`button-download-document-${currentBill.id}`}
