@@ -316,7 +316,8 @@ export function registerBillRoutes(app: Express) {
         title: bill[0].title,
         documentPath: bill[0].documentPath,
         documentName: bill[0].documentName,
-        isAiAnalyzed: bill[0].isAiAnalyzed
+        isAiAnalyzed: bill[0].isAiAnalyzed,
+        fullBillObject: JSON.stringify(bill[0], null, 2)
       });
 
       res.json(bill[0]);

@@ -794,16 +794,20 @@ function BillDetail({
   const queryClient = useQueryClient();
 
   // Fetch fresh bill data to ensure we have updated document information
-  const { data: freshBill } = useQuery({
+  const { data: freshBill, error: freshBillError, isLoading: freshBillLoading } = useQuery({
     queryKey: ['/api/bills', bill.id],
     queryFn: async () => {
+      console.log('[FRONTEND] Making API request for bill:', bill.id);
       const response = await fetch(`/api/bills/${bill.id}`, {
         credentials: 'include',
       });
+      console.log('[FRONTEND] API response status:', response.status);
       if (!response.ok) {
         throw new Error('Failed to fetch bill details');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('[FRONTEND] API response data:', data);
+      return data;
     },
   });
 
