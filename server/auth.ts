@@ -617,21 +617,36 @@ export function setupAuthRoutes(app: any) {
   app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
-        console.error('Logout _error:', err);
+        console.error('Logout error:', err);
         return res.status(500).json({
           message: 'Logout failed',
           code: 'LOGOUT_ERROR',
         });
       }
 
-      // Clear cookie with same settings as when it was set
+      // Clear cookie with proper options that match session config
       const cookieOptions: any = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: config.server.isProduction,
+        sameSite: config.server.isProduction ? 'strict' : 'lax',
+        path: '/',
       };
 
+      // Also clear with domain if in production
+      if (config.server.isProduction && config.server.domain.includes('koveo-gestion.com')) {
+        cookieOptions.domain = '.koveo-gestion.com';
+      }
+
       res.clearCookie('koveo.sid', cookieOptions);
+      
+      // Also try clearing without domain as fallback
+      res.clearCookie('koveo.sid', {
+        httpOnly: true,
+        secure: config.server.isProduction,
+        sameSite: config.server.isProduction ? 'strict' : 'lax',
+        path: '/',
+      });
+      
       res.json({ message: 'Logout successful' });
     });
   });
