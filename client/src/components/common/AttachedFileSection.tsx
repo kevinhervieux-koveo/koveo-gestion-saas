@@ -78,7 +78,28 @@ export function AttachedFileSection({
     return `${mb.toFixed(1)} MB`;
   };
 
-  const displayName = fileName || fallbackName;
+  // Fix encoding issues in filename display
+  const decodeFileName = (name: string) => {
+    if (!name) return name;
+    try {
+      // Fix common encoding issues like "procÃ¨s" -> "procès"
+      return name
+        .replace(/Ã¨/g, 'è')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã /g, 'à')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã®/g, 'î')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã¹/g, 'ù')
+        .replace(/Ã»/g, 'û')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê');
+    } catch {
+      return name;
+    }
+  };
+
+  const displayName = decodeFileName(fileName) || fallbackName;
   const sizeText = formatFileSize(fileSize);
 
   return (
