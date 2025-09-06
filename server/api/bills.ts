@@ -8,6 +8,9 @@ import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
+import { geminiService } from '../services/geminiService';
+import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -61,6 +64,27 @@ const createBillSchema = z.object({
 
 const updateBillSchema = createBillSchema.partial();
 
+// Rate limiting for AI extraction endpoint (expensive operation)
+const extractionRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each user to 10 extraction requests per windowMs
+  message: {
+    error: 'Too many extraction requests',
+    message: 'Please wait before making another extraction request',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req: any) => {
+    // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
+    return req.user?.id || ipKeyGenerator(req);
+  },
+  skip: (req: any) => {
+    // Skip rate limiting if user is not authenticated (handled by requireAuth)
+    return !req.user?.id;
+  }
+});
+
 // Configure multer for file uploads
 const upload = multer({
   dest: '/tmp/uploads/',
@@ -87,6 +111,96 @@ const upload = multer({
  * @returns Function result.
  */
 export function registerBillRoutes(app: Express) {
+  /**
+   * POST /api/bills/extract-data
+   * Extract bill data from uploaded file using Gemini AI.
+   * 
+   * Security: Requires authentication, rate limiting, and file validation.
+   * File Types: PDF, JPEG, PNG, WebP, HEIC, HEIF
+   * Max Size: 25MB
+   */
+  app.post('/api/bills/extract-data', 
+    requireAuth,
+    extractionRateLimit,
+    uploadInvoiceFile,
+    handleUploadError,
+    async (req: any, res: Response) => {
+      const startTime = Date.now();
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      console.log(`[BILL EXTRACTION] Starting extraction for user ${userId} (${userRole})`);
+
+      try {
+        // Validate file upload
+        if (!req.file) {
+          console.log(`[BILL EXTRACTION] No file uploaded by user ${userId}`);
+          return res.status(400).json({
+            error: 'No file uploaded',
+            message: 'Please upload a bill file',
+            code: 'NO_FILE'
+          });
+        }
+
+        const { buffer, mimetype, originalname, size } = req.file;
+        
+        console.log(`[BILL EXTRACTION] Processing file for user ${userId}:`, {
+          filename: originalname,
+          mimetype,
+          size: `${Math.round(size / 1024)}KB`
+        });
+
+        // Call Gemini service for bill extraction
+        const extractedData = await geminiService.extractBillData(buffer, mimetype);
+        
+        console.log(`[BILL EXTRACTION] Extraction completed for user ${userId} in ${Date.now() - startTime}ms`);
+
+        // Return successful response
+        res.status(200).json({
+          success: true,
+          data: extractedData,
+          metadata: {
+            confidence: 0.9, // Could be calculated based on field completeness
+            processingTime: Date.now() - startTime,
+            filename: originalname,
+            fileSize: size
+          }
+        });
+
+      } catch (error: any) {
+        console.error(`[BILL EXTRACTION] Error for user ${userId}:`, error);
+        
+        // Handle different error types
+        if (error.message?.includes('Unsupported file type')) {
+          return res.status(400).json({
+            error: 'Unsupported file type',
+            message: 'Please upload a PDF or image file (JPEG, PNG, WebP, HEIC, HEIF)',
+            code: 'UNSUPPORTED_FILE_TYPE'
+          });
+        } else if (error.message?.includes('FILE_TOO_LARGE')) {
+          return res.status(400).json({
+            error: 'File too large',
+            message: 'Please upload a file smaller than 25MB',
+            code: 'FILE_TOO_LARGE'
+          });
+        } else if (error.message?.includes('GEMINI_API_KEY')) {
+          return res.status(500).json({
+            error: 'AI service configuration error',
+            message: 'AI extraction service is temporarily unavailable',
+            code: 'GEMINI_API_ERROR'
+          });
+        }
+
+        // Generic error response
+        res.status(500).json({
+          error: 'Extraction failed',
+          message: 'Failed to extract bill data. Please try again.',
+          code: 'EXTRACTION_ERROR'
+        });
+      }
+    }
+  );
+
   /**
    * Get all bills with optional filtering
    * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6.
