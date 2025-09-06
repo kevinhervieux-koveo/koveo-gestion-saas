@@ -29,6 +29,28 @@ jest.mock('@/hooks/use-toast', () => ({
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
+// Helper function to create proper Response objects
+const createMockResponse = (data: any, options: { ok?: boolean; status?: number } = {}) => {
+  const { ok = true, status = 200 } = options;
+  return Promise.resolve({
+    ok,
+    status,
+    json: async () => data,
+    headers: new Headers(),
+    redirected: false,
+    statusText: ok ? 'OK' : 'Error',
+    type: 'basic' as ResponseType,
+    url: '',
+    clone: jest.fn(),
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: jest.fn(),
+    blob: jest.fn(),
+    formData: jest.fn(),
+    text: jest.fn(),
+  } as Response);
+};
+
 const createMockQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -281,10 +303,9 @@ describe('Gemini Form Integration Tests', () => {
 
   describe('Successful AI Analysis Scenarios', () => {
     it('should successfully analyze a clear utility bill and fill form correctly', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.successful,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.successful)
+      );
 
       render(
         <TestWrapper>
@@ -331,10 +352,9 @@ describe('Gemini Form Integration Tests', () => {
     });
 
     it('should handle French language bills correctly', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.frenchContent,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.frenchContent)
+      );
 
       render(
         <TestWrapper>
@@ -363,10 +383,9 @@ describe('Gemini Form Integration Tests', () => {
 
   describe('Edge Cases and Error Scenarios', () => {
     it('should handle low confidence analysis results appropriately', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.lowConfidence,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.lowConfidence)
+      );
 
       render(
         <TestWrapper>
@@ -395,10 +414,9 @@ describe('Gemini Form Integration Tests', () => {
     });
 
     it('should handle invalid data from AI analysis gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.invalidData,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.invalidData)
+      );
 
       render(
         <TestWrapper>
@@ -458,11 +476,9 @@ describe('Gemini Form Integration Tests', () => {
     });
 
     it('should handle server errors (500) appropriately', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: async () => ({ error: 'Internal server error' }),
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse({ error: 'Internal server error' }, { ok: false, status: 500 })
+      );
 
       render(
         <TestWrapper>
@@ -487,10 +503,9 @@ describe('Gemini Form Integration Tests', () => {
 
   describe('User Interaction and Data Preservation', () => {
     it('should preserve user-entered data when AI analysis completes', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.successful,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.successful)
+      );
 
       render(
         <TestWrapper>
@@ -529,10 +544,9 @@ describe('Gemini Form Integration Tests', () => {
     });
 
     it('should only fill empty fields, not overwrite user input', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.successful,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.successful)
+      );
 
       render(
         <TestWrapper>
@@ -565,10 +579,9 @@ describe('Gemini Form Integration Tests', () => {
 
   describe('File Type and Content Validation', () => {
     it('should handle different file types appropriately', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockAnalysisResponses.successful,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(mockAnalysisResponses.successful)
+      );
 
       render(
         <TestWrapper>
@@ -631,10 +644,9 @@ describe('Gemini Form Integration Tests', () => {
       expect(analyzeButton).toBeDisabled();
 
       // Resolve the promise
-      resolvePromise!({
-        ok: true,
-        json: async () => mockAnalysisResponses.successful,
-      });
+      resolvePromise!(
+        createMockResponse(mockAnalysisResponses.successful)
+      );
 
       await waitFor(() => {
         expect(analyzeButton).toHaveTextContent('Upload & Analyze');
@@ -655,10 +667,9 @@ describe('Gemini Form Integration Tests', () => {
         billNumber: '"><img src=x onerror=alert(1)>',
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => maliciousResponse,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(maliciousResponse)
+      );
 
       render(
         <TestWrapper>
@@ -693,10 +704,9 @@ describe('Gemini Form Integration Tests', () => {
         totalAmount: '999,999.999', // Too many decimal places
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => invalidAmountResponse,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(invalidAmountResponse)
+      );
 
       render(
         <TestWrapper>
@@ -724,10 +734,9 @@ describe('Gemini Form Integration Tests', () => {
         confidence: 1.5, // Invalid: > 1.0
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => invalidConfidenceResponse,
-      });
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse(invalidConfidenceResponse)
+      );
 
       render(
         <TestWrapper>
