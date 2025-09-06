@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import { Grid, List, ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ export default function ModularBuildingDocuments() {
   const [, navigate] = useLocation();
   const params = useParams();
   const buildingId = (params as any).buildingId;
+  const queryClient = useQueryClient();
 
   // State for modals and interactions
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -91,7 +92,16 @@ export default function ModularBuildingDocuments() {
     setIsViewModalOpen(false);
     setIsCreating(false);
     setSelectedDocumentId(null);
-    // Optionally show a success toast or refresh the data
+    
+    // Refresh the document list to show the new/updated document
+    queryClient.invalidateQueries({
+      queryKey: ['/api/documents', 'building', buildingId],
+    });
+    
+    // Also invalidate general documents cache
+    queryClient.invalidateQueries({
+      queryKey: ['/api/documents'],
+    });
   };
 
   const handleBack = () => {
