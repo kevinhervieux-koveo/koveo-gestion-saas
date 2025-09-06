@@ -207,6 +207,26 @@ Documents() {
 
   const documents = documentsResponse?.documents || [];
 
+  // Debug logging - always log for debugging
+  if (documentsResponse !== undefined) {
+    console.log('📄 [Documents Debug] Raw API response:', documentsResponse);
+    console.log('📄 [Documents Debug] Documents array:', documents);
+    console.log('📄 [Documents Debug] Documents length:', documents.length);
+    if (documents.length > 0) {
+      console.log('📄 [Documents Debug] First document sample:', {
+        id: documents[0].id,
+        title: documents[0].title,
+        name: documents[0].name,
+        category: documents[0].category,
+        documentType: documents[0].documentType,
+        fileName: documents[0].fileName,
+        fileUrl: documents[0].fileUrl,
+        buildingId: documents[0].buildingId,
+        residenceId: documents[0].residenceId
+      });
+    }
+  }
+
   // Get buildings for assignment
   const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ['/api/manager/buildings'],
