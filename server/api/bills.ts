@@ -488,10 +488,10 @@ export function registerBillRoutes(app: Express) {
         // Create document path in the expected format
         const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
 
-        // Analyze document with Gemini AI (only for images)
+        // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
-        if (req.file.mimetype.startsWith('image/')) {
-          console.log('🤖 [SERVER DEBUG] Starting AI analysis for image file...');
+        if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
+          console.log('🤖 [SERVER DEBUG] Starting AI analysis for file type:', req.file.mimetype);
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
             console.log('✅ [SERVER DEBUG] AI analysis completed successfully:', analysisResult);
@@ -501,7 +501,8 @@ export function registerBillRoutes(app: Express) {
             // Continue without AI analysis
           }
         } else {
-          console.log('📄 [SERVER DEBUG] File is not an image, skipping AI analysis. MIME type:', req.file.mimetype);
+          console.log('📄 [SERVER DEBUG] File type not supported for AI analysis. MIME type:', req.file.mimetype);
+          console.log('💡 [SERVER DEBUG] Supported types: images (image/*) and PDFs (application/pdf)');
         }
 
         // Update bill with document info and AI analysis
