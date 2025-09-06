@@ -48,7 +48,7 @@ import type {
 import type { IStorage } from './storage';
 import type { Pillar } from '@shared/schema';
 import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './database-optimization';
-import { queryCache, CacheInvalidator } from './query-cache';
+import { queryCache, CacheInvalidator, withCache } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
 import { exists, sql as sqlOp } from 'drizzle-orm';
 
@@ -2211,7 +2211,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     console.log(`🔍 getBug called with key: ${key}`);
 
-    return queryCache.get(key, async () => {
+    return withCache('bug', key, async () => {
       console.log(`📊 Cache miss for ${key}, querying database...`);
       const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
 
@@ -2257,8 +2257,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     // Invalidate cache for this user and specific bug queries  
     queryCache.invalidate('bugs');
-    // Clear entire cache to ensure getBug works immediately (safer approach)
-    queryCache.clear();
+    queryCache.invalidate('bug', `bug:${result[0].id}:*`);
 
     return result[0];
   }
