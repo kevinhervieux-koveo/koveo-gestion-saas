@@ -150,20 +150,39 @@ export function registerBugRoutes(app: Express): void {
 
       // Handle single file attachment if present
       if (req.file) {
-        console.log(`📎 Processing attachment for new bug: ${req.file.originalname}`);
+        console.log(`📎 Processing attachment for new bug:`, {
+          originalname: req.file.originalname,
+          filename: req.file.filename,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        });
         bugData = {
           ...bugData,
           file_path: `general/${req.file.filename}`,
           file_name: req.file.originalname,
           file_size: req.file.size,
         };
+        console.log(`✅ File attachment added to bugData`);
+      } else {
+        console.log(`⚠️ No file attachment in request`);
       }
+
+      // Log the final bugData before saving
+      console.log(`🐛 Creating bug with data:`, {
+        title: bugData.title,
+        hasFile: !!bugData.file_path,
+        filePath: bugData.file_path,
+        fileName: bugData.file_name,
+        fileSize: bugData.file_size
+      });
 
       const bug = await storage.createBug(bugData);
 
-      console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
+      console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
       if (bug.file_path) {
-        console.log(`📎 Bug ${bug.id} has attached file: ${bug.file_name} at ${bug.file_path}`);
+        console.log(`📎 CONFIRMED: Bug ${bug.id} has attached file: ${bug.file_name} at ${bug.file_path}`);
+      } else {
+        console.log(`⚠️ WARNING: Bug ${bug.id} was created WITHOUT file attachment`);
       }
       res.status(201).json(bug);
     } catch (error: any) {
