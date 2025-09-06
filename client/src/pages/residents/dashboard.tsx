@@ -3,6 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
 import { useFullscreen } from '@/hooks/use-fullscreen';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { DocumentCard, DocumentViewModal } from '@/components/document-management';
+import { useState } from 'react';
 import {
   Maximize2,
   Minimize2,
@@ -11,6 +15,7 @@ import {
   Wrench,
   DollarSign,
   MessageSquare,
+  ArrowRight,
 } from 'lucide-react';
 
 /**
@@ -19,6 +24,19 @@ import {
 export default function ResidentsDashboard() {
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const { language } = useLanguage();
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  // Fetch recent documents (limit to 3 for dashboard)
+  const { data: documents = [] } = useQuery({
+    queryKey: ['/api/documents', 'recent'],
+    queryFn: () => apiRequest('GET', '/api/documents?limit=3'),
+  });
+
+  const handleDocumentView = (documentId: string) => {
+    setSelectedDocumentId(documentId);
+    setIsViewModalOpen(true);
+  };
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
@@ -71,8 +89,8 @@ export default function ResidentsDashboard() {
                 <FileText className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
-                <div className='text-2xl font-bold'>3</div>
-                <p className='text-xs text-muted-foreground'>New documents</p>
+                <div className='text-2xl font-bold'>{documents.length}</div>
+                <p className='text-xs text-muted-foreground'>Recent documents</p>
               </CardContent>
             </Card>
 
@@ -109,6 +127,36 @@ export default function ResidentsDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Recent Documents Section */}
+          {documents.length > 0 && (
+            <div className='mb-6'>
+              <div className='flex items-center justify-between mb-4'>
+                <h2 className='text-lg font-semibold'>Recent Documents</h2>
+                <Button variant='outline' size='sm' className='flex items-center gap-2'>
+                  View All <ArrowRight className='w-4 h-4' />
+                </Button>
+              </div>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {documents.slice(0, 3).map((doc: any) => (
+                  <DocumentCard
+                    key={doc.id}
+                    title={doc.name}
+                    documentId={doc.id}
+                    onViewClick={handleDocumentView}
+                    documentType={doc.documentType}
+                    description={doc.description}
+                    createdAt={doc.createdAt}
+                    fileSize={doc.fileSize}
+                    mimeType={doc.mimeType}
+                    uploadedBy={doc.uploadedBy}
+                    isVisibleToTenants={doc.isVisibleToTenants}
+                    compact={true}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recent Activity */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
@@ -181,6 +229,18 @@ export default function ResidentsDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Document View Modal */}
+      {selectedDocumentId && (
+        <DocumentViewModal
+          documentId={selectedDocumentId}
+          isOpen={isViewModalOpen}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedDocumentId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
