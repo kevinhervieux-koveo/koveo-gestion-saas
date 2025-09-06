@@ -1,0 +1,42 @@
+**Objective:** Create a foundational set of reusable React components for a comprehensive document management system using TypeScript, Next.js, Tailwind CSS, and Shadcn/ui. This system must be secure, modular, mobile-friendly, and serve as the base for all document handling across the application.
+
+**Security Mandate:** All backend API endpoints associated with these components MUST be protected by authentication middleware. [cite_start]The logic must strictly validate the user's permissions against their role (`OWNER_ROLE`, `MANAGER_ROLE`, `RESIDENT_ROLE`) [cite: 66, 67, 68] and ensure they belong to the correct organization before returning or modifying any data. [cite_start]This aligns with our multi-tenant architecture and Law 25 compliance[cite: 59, 60, 70].
+
+**File Structure and Component Breakdown:**
+
+1.  **Create a new directory: `/components/document-management`**
+
+2.  **Inside this directory, create the following components:**
+
+    a.  **`SharedUploader.tsx` (The Common Part):**
+        * **Purpose:** A reusable component for file uploads and text creation, designed with both desktop and mobile use cases in mind.
+        * **UI:** Use Shadcn/ui `Tabs` with two options: "Upload File" and "Text Document".
+        * **"Upload File" Tab:**
+            * Implement a single, styled file input field.
+            * **Mobile Camera Integration:** Configure the `<input type="file">` element to facilitate mobile photo uploads. It must include the attributes `accept="image/*"` and `capture="environment"` to signal to mobile browsers that they should offer the option to take a photo directly with the device's rear camera.
+            * **Desktop Functionality:** Implement drag-and-drop functionality over the component. Also, add a global paste listener (`window.addEventListener('paste', ...)`) to handle screenshot pastes from the clipboard and convert the data into a File object.
+            * Validate allowed file types: PDF, DOCX, XLSX, PNG, JPG.
+        * **"Text Document" Tab:**
+            * Include a `<Textarea>` for manual text input.
+        * **Props:**
+            * `onDocumentChange(file: File | null, text: string | null): void`: A callback function that returns either a File object or the text content.
+            * `allowedFileTypes: string[]`: An array of allowed MIME types for validation.
+
+    b.  **`DocumentCard.tsx` (The Display Card):**
+        * **Purpose:** A standardized card to display a summary of any uploaded document or item.
+        * **UI:** Use a Shadcn/ui `Card` with a `CardTitle` and a "View" `Button` (with an icon from `lucide-react`) in the top-right corner.
+        * **Functionality:** The entire card and the "View" button should trigger the `onViewClick` callback, making it easily tappable on mobile.
+        * **Props:** `title: string`, `documentId: string`, `onViewClick(documentId: string): void`.
+
+    c.  **`DocumentViewModal.tsx` (The View Popup):**
+        * **Purpose:** A responsive modal to display the general details of a document.
+        * **UI:** Use a Shadcn/ui `Dialog`.
+        * **Content:** Display general information (e.g., title, creation date). Include conditional "Download" and "Edit" buttons whose visibility is determined by user permissions.
+        * **Logic:** Fetch item details using TanStack Query from a secure backend endpoint (`GET /api/documents/:id`). The endpoint's security logic is non-negotiable.
+        * **Props:** `documentId: string`, `userPermissions: { canDownload: boolean, canEdit: boolean }`, `onEditClick(documentId: string): void`, `isOpen: boolean`, `onOpenChange: (open: boolean) => void`.
+
+    d.  **`DocumentEditModal.tsx` (The Edit View):**
+        * **Purpose:** A modal for creating, modifying, or deleting a document and its associated data.
+        * **UI:** Use a Shadcn/ui `Dialog` containing a form built with `React Hook Form` and validated by `Zod`.
+        * **Functionality:** For this initial task, create a placeholder form. This component will be extended later for each specific document type (invoices, bug reports, etc.).
+        * **Security:** All actions (create, update, delete) must call backend APIs that strictly validate the user's role and organization.
