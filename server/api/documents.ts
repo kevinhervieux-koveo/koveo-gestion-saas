@@ -1474,14 +1474,37 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
-        // Prepare the file path
-        const filePath = req.file ? req.file.path : `temp-path-${Date.now()}`;
+        // Prepare the permanent file path and move file if needed
+        let filePath: string;
+        let fileName: string | undefined;
+        
+        if (req.file) {
+          // Generate unique filename and move to permanent location
+          fileName = `${uuidv4()}-${req.file.originalname}`;
+          const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', buildingId);
+          
+          // Ensure directory exists
+          if (!fs.existsSync(permanentDir)) {
+            fs.mkdirSync(permanentDir, { recursive: true });
+          }
+          
+          // Move file from temporary to permanent location (copy + delete for cross-filesystem)
+          const permanentPath = path.join(permanentDir, fileName);
+          fs.copyFileSync(req.file.path, permanentPath);
+          fs.unlinkSync(req.file.path); // Clean up temporary file
+          filePath = `buildings/${buildingId}/${fileName}`;
+        } else {
+          filePath = `temp-path-${Date.now()}`;
+        }
         
         const dataToValidate = {
           ...otherData,
           buildingId,
           uploadedById: userId,
           filePath,
+          fileName,
+          fileSize: req.file?.size,
+          mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
         };
         
@@ -1539,13 +1562,7 @@ export function registerDocumentRoutes(app: Express): void {
 
         const document = await storage.createDocument(unifiedDocument) ;
 
-        // Clean up temporary file after successful upload
-        if (req.file?.path) {
-          try {
-            fs.unlinkSync(req.file.path);
-          } catch (cleanupError) {
-          }
-        }
+        // File has been moved to permanent location, no cleanup needed
 
         res.status(201).json({
           ...document,
@@ -1561,11 +1578,37 @@ export function registerDocumentRoutes(app: Express): void {
             .json({ message: 'residenceId is required for resident documents' });
         }
 
+        // Prepare the permanent file path and move file if needed
+        let filePath: string;
+        let fileName: string | undefined;
+        
+        if (req.file) {
+          // Generate unique filename and move to permanent location
+          fileName = `${uuidv4()}-${req.file.originalname}`;
+          const permanentDir = path.join(process.cwd(), 'uploads', 'residences', residenceId);
+          
+          // Ensure directory exists
+          if (!fs.existsSync(permanentDir)) {
+            fs.mkdirSync(permanentDir, { recursive: true });
+          }
+          
+          // Move file from temporary to permanent location (copy + delete for cross-filesystem)
+          const permanentPath = path.join(permanentDir, fileName);
+          fs.copyFileSync(req.file.path, permanentPath);
+          fs.unlinkSync(req.file.path); // Clean up temporary file
+          filePath = `residences/${residenceId}/${fileName}`;
+        } else {
+          filePath = `temp-path-${Date.now()}`;
+        }
+
         const dataToValidate = {
           ...otherData,
           residenceId,
           uploadedById: userId,
-          filePath: req.file ? req.file.path : `temp-path-${Date.now()}`,
+          filePath,
+          fileName,
+          fileSize: req.file?.size,
+          mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
         };
         
