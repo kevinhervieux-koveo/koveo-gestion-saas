@@ -263,6 +263,10 @@ export const featureRequests = pgTable('feature_requests', {
   reviewedAt: timestamp('reviewed_at'),
   adminNotes: text('admin_notes'), // Internal notes for admins only
   mergedIntoId: varchar('merged_into_id'), // If merged into another request
+  // File attachment fields (single file per feature request like documents)
+  filePath: text('file_path'), // Path to the uploaded file
+  fileName: text('file_name'), // Original file name
+  fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

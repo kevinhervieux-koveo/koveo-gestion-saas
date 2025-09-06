@@ -10,6 +10,29 @@ import {
 } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+
+// Configure multer for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'feature-requests');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueId = uuidv4();
+    const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${uniqueId}-${originalName}`;
+    cb(null, fileName);
+  },
+});
+
+const upload = multer({ storage: storage_config });
 
 /**
  * Registers all feature request related API endpoints.
@@ -98,9 +121,9 @@ export function registerFeatureRequestRoutes(app: Express): void {
   });
 
   /**
-   * POST /api/feature-requests - Creates a new feature request.
+   * POST /api/feature-requests - Creates a new feature request with optional file upload.
    */
-  app.post('/api/feature-requests', requireAuth, async (req: any, res) => {
+  app.post('/api/feature-requests', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -125,6 +148,14 @@ export function registerFeatureRequestRoutes(app: Express): void {
       }
 
       const featureRequestData = validation.data;
+      
+      // Handle file upload if present
+      if (req.file) {
+        featureRequestData.filePath = req.file.path;
+        featureRequestData.fileName = req.file.originalname;
+        featureRequestData.fileSize = req.file.size;
+      }
+      
       const featureRequest = await storage.createFeatureRequest(featureRequestData);
 
       console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);
@@ -139,10 +170,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
   });
 
   /**
-   * PATCH /api/feature-requests/:id - Updates an existing feature request.
-   * Only admins can edit feature requests.
+   * PATCH /api/feature-requests/:id - Updates an existing feature request with optional file upload.
+   * Users can edit their own feature requests, managers can edit within their org, admins can edit all.
    */
-  app.patch('/api/feature-requests/:id', requireAuth, async (req: any, res) => {
+  app.patch('/api/feature-requests/:id', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
@@ -154,11 +185,30 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      // Only admins can edit feature requests
-      if (currentUser.role !== 'admin') {
+      // Get the feature request first to check permissions
+      const existingFeatureRequest = await storage.getFeatureRequest(
+        id,
+        currentUser.id,
+        currentUser.role,
+        currentUser.organizationId
+      );
+
+      if (!existingFeatureRequest) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Feature request not found or access denied',
+        });
+      }
+
+      // Check permissions: users can edit their own, managers can edit within org, admins can edit all
+      const canEdit = currentUser.role === 'admin' || 
+                     (currentUser.role === 'manager' && existingFeatureRequest.createdBy === currentUser.id) ||
+                     existingFeatureRequest.createdBy === currentUser.id;
+
+      if (!canEdit) {
         return res.status(403).json({
           error: 'Forbidden',
-          message: 'Only administrators can edit feature requests',
+          message: 'You can only edit your own feature requests',
         });
       }
 
@@ -222,6 +272,14 @@ export function registerFeatureRequestRoutes(app: Express): void {
       }
 
       const updates = validation.data;
+      
+      // Handle file upload if present
+      if (req.file) {
+        updates.filePath = req.file.path;
+        updates.fileName = req.file.originalname;
+        updates.fileSize = req.file.size;
+      }
+      
       const featureRequest = await storage.updateFeatureRequest(
         id,
         updates,
@@ -295,6 +353,101 @@ export function registerFeatureRequestRoutes(app: Express): void {
         error: 'Internal server error',
         message: 'Failed to delete feature request',
       });
+    }
+  });
+
+  /**
+   * GET /api/feature-requests/:id/file - Serves the file attachment for a feature request.
+   */
+  app.get('/api/feature-requests/:id/file', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { download } = req.query;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      if (!id) {
+        return res.status(400).json({
+          error: 'Bad request',
+          message: 'Feature request ID is required',
+        });
+      }
+
+      // Get the feature request to check file attachment
+      const featureRequest = await storage.getFeatureRequest(
+        id,
+        currentUser.id,
+        currentUser.role,
+        currentUser.organizationId
+      );
+
+      if (!featureRequest) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Feature request not found or access denied',
+        });
+      }
+
+      // Check if feature request has a file attachment
+      if (!featureRequest.filePath || !featureRequest.fileName) {
+        return res.status(404).json({
+          error: 'No file attachment',
+          message: 'This feature request does not have a file attachment',
+        });
+      }
+
+      const filePath = featureRequest.filePath;
+      const fileName = featureRequest.fileName;
+
+      // Check if file exists on disk
+      if (!fs.existsSync(filePath)) {
+        console.error(`❌ File not found on disk: ${filePath}`);
+        return res.status(404).json({
+          error: 'File not found',
+          message: 'The file attachment could not be found',
+        });
+      }
+
+      console.log(`📎 Serving file for feature request ${id}: ${fileName}`);
+
+      // Set proper headers for file serving
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // Properly encode filename for French characters and other special characters
+      const encodedFilename = encodeURIComponent(fileName)
+        .replace(/['()]/g, escape)
+        .replace(/\*/g, '%2A');
+      
+      if (download === 'true') {
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"; filename*=UTF-8''${encodedFilename}`);
+      } else {
+        res.setHeader('Content-Disposition', `inline; filename="${fileName}"; filename*=UTF-8''${encodedFilename}`);
+      }
+
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+
+      fileStream.on('error', (error) => {
+        console.error(`❌ Error streaming file for feature request ${id}:`, error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Failed to stream file' });
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Error serving feature request file:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Internal server error',
+          message: 'Failed to serve file',
+        });
+      }
     }
   });
 

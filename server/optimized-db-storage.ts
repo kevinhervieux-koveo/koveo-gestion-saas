@@ -2477,7 +2477,8 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
-   * Updates a feature request (admin only).
+   * Updates a feature request with role-based permissions.
+   * Users can edit their own, managers can edit within org, admins can edit all.
    * @param id
    * @param updates
    * @param userId
@@ -2489,8 +2490,21 @@ export class OptimizedDatabaseStorage implements IStorage {
     userId: string,
     userRole: string
   ): Promise<FeatureRequest | undefined> {
-    // Only admins can update feature requests
-    if (userRole !== 'admin') {
+    // Get existing feature request to check permissions
+    const existingFeatureRequest = await db
+      .select()
+      .from(schema.featureRequests)
+      .where(eq(schema.featureRequests.id, id))
+      .limit(1);
+
+    if (!existingFeatureRequest[0]) {
+      return undefined;
+    }
+
+    // Check permissions: users can edit their own, admins can edit all
+    const canEdit = userRole === 'admin' || existingFeatureRequest[0].createdBy === userId;
+
+    if (!canEdit) {
       return undefined;
     }
 
