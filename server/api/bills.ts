@@ -671,7 +671,7 @@ export function registerBillRoutes(app: Express) {
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
       // Serve the file directly from local storage
-      const path = require('path');
+      const path = await import('path');
       const uploadsDir = path.join(process.cwd(), 'uploads');
       const filePath = path.join(uploadsDir, billData.documentPath);
 
