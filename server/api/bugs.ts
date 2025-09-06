@@ -316,15 +316,47 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
+      const fileName = bug.fileName || 'attachment';
+      
+      // Detect MIME type based on file extension
+      const getContentType = (filename: string) => {
+        const ext = filename.toLowerCase().split('.').pop();
+        switch (ext) {
+          case 'pdf': return 'application/pdf';
+          case 'jpg': case 'jpeg': return 'image/jpeg';
+          case 'png': return 'image/png';
+          case 'gif': return 'image/gif';
+          case 'doc': return 'application/msword';
+          case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          case 'txt': return 'text/plain';
+          default: return 'application/octet-stream';
+        }
+      };
+
+      // Set proper content type for viewing
+      const contentType = getContentType(fileName);
+      res.setHeader('Content-Type', contentType);
+      
+      // Properly encode filename for French characters and other special characters
+      const encodedFilename = Buffer.from(fileName, 'utf8').toString('binary');
+
       // Set appropriate headers
       if (download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${bug.fileName || 'attachment'}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
       } else {
-        res.setHeader('Content-Disposition', `inline; filename="${bug.fileName || 'attachment'}"`);
+        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
       }
 
-      // Send file
-      res.sendFile(filePath);
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      fileStream.on('error', (error) => {
+        console.error(`❌ Error streaming file for bug ${id}:`, error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Failed to stream file' });
+        }
+      });
     } catch (error: any) {
       console.error('❌ Error serving bug file:', error);
       res.status(500).json({

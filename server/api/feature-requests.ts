@@ -404,10 +404,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       const filePath = featureRequest.filePath;
       const fileName = featureRequest.fileName;
+      
+      // Build full file path
+      const fullFilePath = path.join(process.cwd(), 'uploads', filePath);
 
       // Check if file exists on disk
-      if (!fs.existsSync(filePath)) {
-        console.error(`❌ File not found on disk: ${filePath}`);
+      if (!fs.existsSync(fullFilePath)) {
+        console.error(`❌ File not found on disk: ${fullFilePath}`);
         return res.status(404).json({
           error: 'File not found',
           message: 'The file attachment could not be found',
@@ -416,22 +419,36 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       console.log(`📎 Serving file for feature request ${id}: ${fileName}`);
 
-      // Set proper headers for file serving
-      res.setHeader('Content-Type', 'application/octet-stream');
+      // Detect MIME type based on file extension
+      const getContentType = (filename: string) => {
+        const ext = filename.toLowerCase().split('.').pop();
+        switch (ext) {
+          case 'pdf': return 'application/pdf';
+          case 'jpg': case 'jpeg': return 'image/jpeg';
+          case 'png': return 'image/png';
+          case 'gif': return 'image/gif';
+          case 'doc': return 'application/msword';
+          case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          case 'txt': return 'text/plain';
+          default: return 'application/octet-stream';
+        }
+      };
+
+      // Set proper content type for viewing
+      const contentType = getContentType(fileName);
+      res.setHeader('Content-Type', contentType);
       
       // Properly encode filename for French characters and other special characters
-      const encodedFilename = encodeURIComponent(fileName)
-        .replace(/['()]/g, escape)
-        .replace(/\*/g, '%2A');
+      const encodedFilename = Buffer.from(fileName, 'utf8').toString('binary');
       
       if (download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"; filename*=UTF-8''${encodedFilename}`);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
       } else {
-        res.setHeader('Content-Disposition', `inline; filename="${fileName}"; filename*=UTF-8''${encodedFilename}`);
+        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
       }
 
       // Stream the file
-      const fileStream = fs.createReadStream(filePath);
+      const fileStream = fs.createReadStream(fullFilePath);
       fileStream.pipe(res);
 
       fileStream.on('error', (error) => {
