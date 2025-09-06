@@ -1,6 +1,13 @@
 // Jest setup file - global test configuration
 import '@testing-library/jest-dom';
 
+// Add Node.js polyfills for test environment
+global.setImmediate = global.setImmediate || ((fn, ...args) => setTimeout(fn, 0, ...args));
+global.clearImmediate = global.clearImmediate || clearTimeout;
+
+// Mock fetch for tests
+global.fetch = jest.fn();
+
 // Performance: Mock expensive external dependencies
 jest.mock('@google/genai', () => ({
   GoogleGenAI: jest.fn().mockImplementation(() => ({
@@ -103,13 +110,8 @@ jest.mock('@neondatabase/serverless', () => ({
   })),
 }));
 
-jest.mock('drizzle-orm/neon-serverless', () => ({
-  drizzle: jest.fn().mockImplementation(() => mockDb),
-}));
-
-// Create global mock database instance
+// Create mock query builder function first
 const createMockQueryBuilder = (defaultResult: any = []) => {
-  // Use a function to create a fresh mock builder that properly chains
   const mockBuilder: any = {};
   
   // Define all chainable methods
@@ -143,6 +145,7 @@ const createMockQueryBuilder = (defaultResult: any = []) => {
   return mockBuilder;
 };
 
+// Create the mock database
 const mockDb = {
   query: jest.fn().mockResolvedValue([]),
   insert: jest.fn(() => createMockQueryBuilder([{ 
@@ -155,13 +158,64 @@ const mockDb = {
   $with: jest.fn(() => createMockQueryBuilder([])),
 };
 
-// Mock the database module completely
-jest.mock('./server/db', () => ({
-  db: mockDb,
-  sql: jest.fn().mockResolvedValue([]),
-  pool: mockDb,
-  default: mockDb
+// Now mock drizzle with the proper mockDb
+jest.mock('drizzle-orm/neon-serverless', () => ({
+  drizzle: jest.fn().mockImplementation(() => mockDb),
 }));
+
+// Mock the database module completely
+jest.mock('./server/db', () => {
+  // Create a fresh mock for each test
+  const createFreshMockQueryBuilder = (defaultResult: any = []) => {
+    const builder: any = {};
+    
+    const chainableMethods = [
+      'from', 'where', 'leftJoin', 'innerJoin', 'rightJoin', 'select',
+      'set', 'values', 'returning', 'orderBy', 'limit', 'offset', 
+      'groupBy', 'having'
+    ];
+    
+    chainableMethods.forEach(method => {
+      builder[method] = jest.fn().mockImplementation(() => builder);
+    });
+    
+    builder.then = jest.fn((resolve) => {
+      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+      return Promise.resolve(result).then(resolve);
+    });
+    
+    builder.catch = jest.fn((reject) => {
+      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+      return Promise.resolve(result).catch(reject);
+    });
+    
+    builder.finally = jest.fn((finallyFn) => {
+      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
+      return Promise.resolve(result).finally(finallyFn);
+    });
+
+    return builder;
+  };
+
+  const freshMockDb = {
+    query: jest.fn().mockResolvedValue([]),
+    insert: jest.fn(() => createFreshMockQueryBuilder([{ 
+      id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      createdAt: new Date(),
+    }])),
+    select: jest.fn(() => createFreshMockQueryBuilder([])),
+    update: jest.fn(() => createFreshMockQueryBuilder({ affectedRows: 1 })),
+    delete: jest.fn(() => createFreshMockQueryBuilder({ affectedRows: 1 })),
+    $with: jest.fn(() => createFreshMockQueryBuilder([])),
+  };
+
+  return {
+    db: freshMockDb,
+    sql: jest.fn().mockResolvedValue([]),
+    pool: freshMockDb,
+    default: freshMockDb
+  };
+});
 
 // Mock server storage completely
 jest.mock('./server/storage', () => ({

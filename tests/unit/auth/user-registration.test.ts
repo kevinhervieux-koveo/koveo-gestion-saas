@@ -38,43 +38,56 @@ describe('User Registration via Invitation', () => {
   beforeEach(async () => {
     app = createTestApp();
     
-    // Clean up any existing test data
-    await db.delete(schema.invitations).where(eq(schema.invitations.email, 'test-registration@example.com'));
-    await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
-
-    // Create test organization
-    testOrganization = await db
-      .insert(schema.organizations)
-      .values({
+    // Skip database operations in test environment - use mock data instead
+    if (process.env.TEST_TYPE === 'unit') {
+      // Mock test data for unit tests
+      testOrganization = [{ 
+        id: 'mock-org-id-123',
         name: 'Test Registration Org',
         type: 'syndicate',
         address: '123 Test St',
         city: 'Montreal',
         province: 'QC',
         postalCode: 'H1A 1A1',
-      })
-      .returning();
+      }];
+    } else {
+      // Real database operations for integration tests
+      // Clean up any existing test data
+      await db.delete(schema.invitations).where(eq(schema.invitations.email, 'test-registration@example.com'));
+      await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
 
-    // Create inviter user
-    inviterUser = await db
-      .insert(schema.users)
-      .values({
+      // Create test organization
+      testOrganization = await db
+        .insert(schema.organizations)
+        .values({
+          name: 'Test Registration Org',
+          type: 'syndicate',
+          address: '123 Test St',
+          city: 'Montreal',
+          province: 'QC',
+          postalCode: 'H1A 1A1',
+        })
+        .returning();
+    }
+
+    // Create inviter user and invitation
+    if (process.env.TEST_TYPE === 'unit') {
+      // Mock test data for unit tests
+      inviterUser = [{ 
+        id: 'mock-inviter-id-123',
         username: 'testinviter',
         email: 'inviter@test.com',
         firstName: 'Test',
         lastName: 'Inviter',
-        password: await bcrypt.hash('password123', 12),
+        password: 'mock-hashed-password',
         role: 'admin',
-      })
-      .returning();
+      }];
 
-    // Create test invitation
-    const token = 'test-registration-token-123';
-    const tokenHash = createHash('sha256').update(token).digest('hex');
-    
-    testInvitation = await db
-      .insert(schema.invitations)
-      .values({
+      const token = 'test-registration-token-123';
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      
+      testInvitation = [{ 
+        id: 'mock-invitation-id-123',
         email: 'test-registration@example.com',
         token,
         tokenHash,
@@ -83,12 +96,49 @@ describe('User Registration via Invitation', () => {
         invitedByUserId: inviterUser[0].id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         status: 'pending',
-      })
-      .returning();
+      }];
+    } else {
+      // Real database operations for integration tests
+      inviterUser = await db
+        .insert(schema.users)
+        .values({
+          username: 'testinviter',
+          email: 'inviter@test.com',
+          firstName: 'Test',
+          lastName: 'Inviter',
+          password: await bcrypt.hash('password123', 12),
+          role: 'admin',
+        })
+        .returning();
+
+      // Create test invitation
+      const token = 'test-registration-token-123';
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      
+      testInvitation = await db
+        .insert(schema.invitations)
+        .values({
+          email: 'test-registration@example.com',
+          token,
+          tokenHash,
+          role: 'manager',
+          organizationId: testOrganization[0].id,
+          invitedByUserId: inviterUser[0].id,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          status: 'pending',
+        })
+        .returning();
+    }
   });
 
   afterEach(async () => {
     // Clean up test data
+    if (process.env.TEST_TYPE === 'unit') {
+      // Skip cleanup for unit tests - no real data was created
+      return;
+    }
+    
+    // Real database cleanup for integration tests
     await db.delete(schema.invitations).where(eq(schema.invitations.email, 'test-registration@example.com'));
     await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
     await db.delete(schema.users).where(eq(schema.users.email, 'inviter@test.com'));
