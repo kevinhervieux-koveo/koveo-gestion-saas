@@ -13,7 +13,8 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import {
   SharedUploader,
-  DocumentCard
+  DocumentCard,
+  DocumentEditForm
 } from '@/components/document-management';
 import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
 import { FileText, Download } from 'lucide-react';
@@ -183,20 +184,48 @@ interface DocumentEditDialogProps {
 }
 
 function DocumentEditDialog({ documentId, isOpen, onClose, onSuccess }: DocumentEditDialogProps) {
+  const { data: document, isLoading } = useQuery({
+    queryKey: ['/api/documents', documentId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/documents/${documentId}`);
+      return response.json();
+    },
+    enabled: isOpen && !!documentId,
+  });
+
+  const handleSuccess = () => {
+    onSuccess();
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Document</DialogTitle>
         </DialogHeader>
-        <div className="p-6">
-          <p className="text-gray-500 mb-4">Document editing functionality will be implemented soon.</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
+        
+        {isLoading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading document...</p>
+          </div>
+        ) : document ? (
+          <div className="p-6">
+            <DocumentEditForm
+              document={document}
+              onSuccess={handleSuccess}
+              onCancel={onClose}
+            />
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-gray-500">Document not found</p>
+            <Button variant="outline" onClick={onClose} className="mt-4">
+              Close
             </Button>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
