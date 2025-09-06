@@ -28,6 +28,7 @@ import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
 import { FileUpload } from '@/components/ui/file-upload';
 import { AttachedFileSection } from './AttachedFileSection';
+import { DocumentTypeSelector, type DocumentMode } from './DocumentTypeSelector';
 
 // Unified form schema
 const billFormSchema = z.object({
@@ -171,8 +172,9 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [attachmentMode, setAttachmentMode] = useState<'file' | 'text'>('file');
+  const [attachmentMode, setAttachmentMode] = useState<DocumentMode>('file');
   const [attachmentText, setAttachmentText] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -609,80 +611,20 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         )}
       />
 
-      {/* Choose Document Type - Unified Component */}
-      <div className="space-y-4">
-        <h3 className="text-base font-medium text-gray-900">Choose Document Type</h3>
-        
-        {/* Document Type Selection */}
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => setAttachmentMode('file')}
-            className={`flex-1 px-6 py-3 rounded-full border-2 text-sm font-medium transition-colors ${
-              attachmentMode === 'file'
-                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
-            }`}
-            data-testid="button-file-mode"
-          >
-            Upload File
-          </button>
-          <button
-            type="button"
-            onClick={() => setAttachmentMode('text')}
-            className={`flex-1 px-6 py-3 rounded-full border-2 text-sm font-medium transition-colors ${
-              attachmentMode === 'text'
-                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
-            }`}
-            data-testid="button-text-mode"
-          >
-            Text Document
-          </button>
-        </div>
-
-        {/* Dynamic Content Based on Selection */}
-        {attachmentMode === 'file' ? (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-700">Select File to Upload</h4>
-            <FileUpload
-              onFilesSelect={handleFilesSelect}
-              onFilesRemove={handleFileRemove}
-              maxFiles={5}
-              maxSize={10}
-              acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
-              allowPaste={true}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8"
-              data-testid="bill-file-upload"
-            >
-              <div className="text-center">
-                <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
-                <p className="text-sm text-gray-600 mb-1">
-                  Drop files here, click to browse, or paste screenshots
-                </p>
-                <p className="text-xs text-gray-500">
-                  Attach receipts, screenshots, or supporting documents
-                </p>
-              </div>
-            </FileUpload>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-700">Document Content</h4>
-            <textarea
-              value={attachmentText}
-              onChange={(e) => setAttachmentText(e.target.value)}
-              rows={6}
-              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              placeholder="Enter text notes or details about this bill..."
-              data-testid="textarea-text-content"
-            />
-            <p className="text-xs text-gray-500">
-              Add text notes or details that will be saved with the bill.
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Document Type Selection - Common Component */}
+      <DocumentTypeSelector
+        mode={attachmentMode}
+        onModeChange={setAttachmentMode}
+        onFileSelect={setSelectedFile}
+        textContent={attachmentText}
+        onTextChange={setAttachmentText}
+        fileInputProps={{
+          accept: 'image/*,.pdf,.doc,.docx,.txt'
+        }}
+        textAreaProps={{
+          placeholder: 'Enter text notes or details about this bill...'
+        }}
+      />
     </>
   );
 
