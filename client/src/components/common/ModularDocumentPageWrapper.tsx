@@ -93,7 +93,7 @@ export default function ModularDocumentPageWrapper({
   });
 
   // Fetch documents for this entity
-  const { data: documentResponse, isLoading, error } = useQuery({
+  const { data: documentResponse, isLoading, error: documentsError } = useQuery({
     queryKey: ['/api/documents', type, entityId],
     queryFn: () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
@@ -106,7 +106,7 @@ export default function ModularDocumentPageWrapper({
 
   // Extract documents array from API response
   console.log('🔍 [API Response Debug] Full response:', documentResponse);
-  console.log('🔍 [API Response Debug] Error:', error);
+  console.log('🔍 [API Response Debug] Error:', documentsError);
   console.log('🔍 [API Response Debug] Is Loading:', isLoading);
   const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
 
