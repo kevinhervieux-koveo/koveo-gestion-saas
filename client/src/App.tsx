@@ -92,6 +92,9 @@ const ManagerBudget = createOptimizedLoader(() => import('@/pages/manager/budget
 const ManagerBills = createOptimizedLoader(() => import('@/pages/manager/bills'), 'manager-bills', {
   enableMemoryCleanup: true,
 });
+const ManagerInvoices = createOptimizedLoader(() => import('@/pages/manager/invoices'), 'manager-invoices', {
+  enableMemoryCleanup: true,
+});
 const ManagerDemands = createOptimizedLoader(
   () => import('@/pages/manager/demands'),
   'manager-demands',
@@ -349,6 +352,7 @@ function Router() {
             />
             <Route path='/manager/budget' component={ManagerBudget} />
             <Route path='/manager/bills' component={ManagerBills} />
+            <Route path='/manager/invoices' component={ManagerInvoices} />
             <Route path='/manager/demands' component={ManagerDemands} />
             <Route path='/manager/user-management' component={ManagerUserManagement} />
             <Route path='/manager/common-spaces-stats' component={ManagerCommonSpacesStats} />
