@@ -43,7 +43,10 @@ export default function ModularBuildingDocuments() {
   // Fetch documents for this building
   const { data: documentResponse, isLoading } = useQuery({
     queryKey: ['/api/documents', 'building', buildingId],
-    queryFn: () => apiRequest('GET', `/api/documents?buildingId=${buildingId}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/documents?buildingId=${buildingId}`);
+      return response.json();
+    },
     enabled: !!buildingId,
   });
 

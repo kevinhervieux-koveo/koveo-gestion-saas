@@ -95,9 +95,10 @@ export default function ModularDocumentPageWrapper({
   // Fetch documents for this entity
   const { data: documentResponse, isLoading, error: documentsError } = useQuery({
     queryKey: ['/api/documents', type, entityId],
-    queryFn: () => {
+    queryFn: async () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
-      return apiRequest('GET', `/api/documents?${param}=${entityId}`);
+      const response = await apiRequest('GET', `/api/documents?${param}=${entityId}`);
+      return response.json();
     },
     enabled: !!entityId,
     staleTime: 0, // Always refetch
