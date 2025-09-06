@@ -727,7 +727,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto'>
+        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto' aria-describedby="bill-details-description">
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
           </DialogHeader>
@@ -748,7 +748,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
+        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="edit-bill-description">
           <BillEditForm
             bill={bill}
             onSuccess={() => {
