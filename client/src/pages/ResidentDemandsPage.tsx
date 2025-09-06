@@ -152,14 +152,6 @@ ResidentDemandsPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  
-  // Upload context for secure storage
-  const uploadContext: UploadContext = {
-    type: 'demands',
-    organizationId: 'default',
-    userRole: user?.role || 'resident',
-    userId: user?.id
-  };
   const [uploadedAttachments, setUploadedAttachments] = useState<string[]>([]);
   const itemsPerPage = 10;
 
@@ -206,6 +198,14 @@ ResidentDemandsPage() {
           lastName?: string;
         })
       : { id: '', role: 'tenant', email: '' };
+
+  // Upload context for secure storage (defined after defaultUser)
+  const uploadContext: UploadContext = {
+    type: 'demands',
+    organizationId: 'default',
+    userRole: defaultUser?.role || 'resident',
+    userId: defaultUser?.id
+  };
 
   // File upload helper function
   const uploadFiles = async (files: File[]): Promise<string[]> => {
