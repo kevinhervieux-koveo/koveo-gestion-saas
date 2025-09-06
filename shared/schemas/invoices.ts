@@ -113,8 +113,26 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
   updatedAt: true 
 });
 
+// Base insert schema without refinements
+export const baseInvoiceInsertSchema = insertInvoiceSchema;
+
 // Enhanced validation with conditional logic for recurring payments
-export const invoiceFormSchema = insertInvoiceSchema.superRefine((data, ctx) => {
+export const invoiceFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  amount: z.string().min(1, 'Amount is required'),
+  dueDate: z.coerce.date(),
+  category: z.string().min(1, 'Category is required'),
+  paymentType: z.enum(['one-time', 'recurring']),
+  frequency: z.enum(['monthly', 'quarterly', 'annually', 'custom']).optional(),
+  startDate: z.coerce.date().optional(),
+  customPaymentDates: z.array(z.coerce.date()).optional(),
+  documentId: z.string().uuid('Invalid document ID').optional(),
+  buildingId: z.string().uuid().optional(),
+  residenceId: z.string().uuid().optional(),
+  isAiExtracted: z.boolean().default(false),
+  extractionConfidence: z.coerce.number().min(0).max(1).optional(),
+}).superRefine((data, ctx) => {
   // Recurring payment validation
   if (data.paymentType === 'recurring') {
     if (!data.frequency) {

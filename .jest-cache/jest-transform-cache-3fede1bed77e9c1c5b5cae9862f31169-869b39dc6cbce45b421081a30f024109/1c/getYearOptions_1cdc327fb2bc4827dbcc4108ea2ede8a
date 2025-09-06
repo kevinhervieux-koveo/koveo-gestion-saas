@@ -1,0 +1,44 @@
+eb7d5193908b91ec8bdba86d92575fa5
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getYearOptions = getYearOptions;
+/**
+ * Returns the years to display in the dropdown.
+ *
+ * This function generates a list of years between the navigation start and end
+ * dates, formatted using the provided formatter.
+ *
+ * @param navStart The start date for navigation.
+ * @param navEnd The end date for navigation.
+ * @param formatters The formatters to use for formatting the year labels.
+ * @param dateLib The date library to use for date manipulation.
+ * @param reverse If true, reverses the order of the years (descending).
+ * @returns An array of dropdown options representing the years, or `undefined`
+ *   if `navStart` or `navEnd` is not provided.
+ */
+function getYearOptions(navStart, navEnd, formatters, dateLib, reverse = false) {
+    if (!navStart)
+        return undefined;
+    if (!navEnd)
+        return undefined;
+    const { startOfYear, endOfYear, addYears, getYear, isBefore, isSameYear } = dateLib;
+    const firstNavYear = startOfYear(navStart);
+    const lastNavYear = endOfYear(navEnd);
+    const years = [];
+    let year = firstNavYear;
+    while (isBefore(year, lastNavYear) || isSameYear(year, lastNavYear)) {
+        years.push(year);
+        year = addYears(year, 1);
+    }
+    if (reverse)
+        years.reverse();
+    return years.map((year) => {
+        const label = formatters.formatYearDropdown(year, dateLib);
+        return {
+            value: getYear(year),
+            label,
+            disabled: false,
+        };
+    });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy9oZWxwZXJzL2dldFllYXJPcHRpb25zLmpzIiwibWFwcGluZ3MiOiJBQUFBLFlBQVksQ0FBQztBQUNiLE1BQU0sQ0FBQyxjQUFjLENBQUMsT0FBTyxFQUFFLFlBQVksRUFBRSxFQUFFLEtBQUssRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO0FBQzlELE9BQU8sQ0FBQyxjQUFjLEdBQUcsY0FBYyxDQUFDO0FBQ3hDOzs7Ozs7Ozs7Ozs7O0dBYUc7QUFDSCxTQUFTLGNBQWMsQ0FBQyxRQUFRLEVBQUUsTUFBTSxFQUFFLFVBQVUsRUFBRSxPQUFPLEVBQUUsT0FBTyxHQUFHLEtBQUs7SUFDMUUsSUFBSSxDQUFDLFFBQVE7UUFDVCxPQUFPLFNBQVMsQ0FBQztJQUNyQixJQUFJLENBQUMsTUFBTTtRQUNQLE9BQU8sU0FBUyxDQUFDO0lBQ3JCLE1BQU0sRUFBRSxXQUFXLEVBQUUsU0FBUyxFQUFFLFFBQVEsRUFBRSxPQUFPLEVBQUUsUUFBUSxFQUFFLFVBQVUsRUFBRSxHQUFHLE9BQU8sQ0FBQztJQUNwRixNQUFNLFlBQVksR0FBRyxXQUFXLENBQUMsUUFBUSxDQUFDLENBQUM7SUFDM0MsTUFBTSxXQUFXLEdBQUcsU0FBUyxDQUFDLE1BQU0sQ0FBQyxDQUFDO0lBQ3RDLE1BQU0sS0FBSyxHQUFHLEVBQUUsQ0FBQztJQUNqQixJQUFJLElBQUksR0FBRyxZQUFZLENBQUM7SUFDeEIsT0FBTyxRQUFRLENBQUMsSUFBSSxFQUFFLFdBQVcsQ0FBQyxJQUFJLFVBQVUsQ0FBQyxJQUFJLEVBQUUsV0FBVyxDQUFDLEVBQUUsQ0FBQztRQUNsRSxLQUFLLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDO1FBQ2pCLElBQUksR0FBRyxRQUFRLENBQUMsSUFBSSxFQUFFLENBQUMsQ0FBQyxDQUFDO0lBQzdCLENBQUM7SUFDRCxJQUFJLE9BQU87UUFDUCxLQUFLLENBQUMsT0FBTyxFQUFFLENBQUM7SUFDcEIsT0FBTyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUMsSUFBSSxFQUFFLEVBQUU7UUFDdEIsTUFBTSxLQUFLLEdBQUcsVUFBVSxDQUFDLGtCQUFrQixDQUFDLElBQUksRUFBRSxPQUFPLENBQUMsQ0FBQztRQUMzRCxPQUFPO1lBQ0gsS0FBSyxFQUFFLE9BQU8sQ0FBQyxJQUFJLENBQUM7WUFDcEIsS0FBSztZQUNMLFFBQVEsRUFBRSxLQUFLO1NBQ2xCLENBQUM7SUFDTixDQUFDLENBQUMsQ0FBQztBQUNQLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy9oZWxwZXJzL2dldFllYXJPcHRpb25zLmpzIl0sInNvdXJjZXNDb250ZW50IjpbIlwidXNlIHN0cmljdFwiO1xuT2JqZWN0LmRlZmluZVByb3BlcnR5KGV4cG9ydHMsIFwiX19lc01vZHVsZVwiLCB7IHZhbHVlOiB0cnVlIH0pO1xuZXhwb3J0cy5nZXRZZWFyT3B0aW9ucyA9IGdldFllYXJPcHRpb25zO1xuLyoqXG4gKiBSZXR1cm5zIHRoZSB5ZWFycyB0byBkaXNwbGF5IGluIHRoZSBkcm9wZG93bi5cbiAqXG4gKiBUaGlzIGZ1bmN0aW9uIGdlbmVyYXRlcyBhIGxpc3Qgb2YgeWVhcnMgYmV0d2VlbiB0aGUgbmF2aWdhdGlvbiBzdGFydCBhbmQgZW5kXG4gKiBkYXRlcywgZm9ybWF0dGVkIHVzaW5nIHRoZSBwcm92aWRlZCBmb3JtYXR0ZXIuXG4gKlxuICogQHBhcmFtIG5hdlN0YXJ0IFRoZSBzdGFydCBkYXRlIGZvciBuYXZpZ2F0aW9uLlxuICogQHBhcmFtIG5hdkVuZCBUaGUgZW5kIGRhdGUgZm9yIG5hdmlnYXRpb24uXG4gKiBAcGFyYW0gZm9ybWF0dGVycyBUaGUgZm9ybWF0dGVycyB0byB1c2UgZm9yIGZvcm1hdHRpbmcgdGhlIHllYXIgbGFiZWxzLlxuICogQHBhcmFtIGRhdGVMaWIgVGhlIGRhdGUgbGlicmFyeSB0byB1c2UgZm9yIGRhdGUgbWFuaXB1bGF0aW9uLlxuICogQHBhcmFtIHJldmVyc2UgSWYgdHJ1ZSwgcmV2ZXJzZXMgdGhlIG9yZGVyIG9mIHRoZSB5ZWFycyAoZGVzY2VuZGluZykuXG4gKiBAcmV0dXJucyBBbiBhcnJheSBvZiBkcm9wZG93biBvcHRpb25zIHJlcHJlc2VudGluZyB0aGUgeWVhcnMsIG9yIGB1bmRlZmluZWRgXG4gKiAgIGlmIGBuYXZTdGFydGAgb3IgYG5hdkVuZGAgaXMgbm90IHByb3ZpZGVkLlxuICovXG5mdW5jdGlvbiBnZXRZZWFyT3B0aW9ucyhuYXZTdGFydCwgbmF2RW5kLCBmb3JtYXR0ZXJzLCBkYXRlTGliLCByZXZlcnNlID0gZmFsc2UpIHtcbiAgICBpZiAoIW5hdlN0YXJ0KVxuICAgICAgICByZXR1cm4gdW5kZWZpbmVkO1xuICAgIGlmICghbmF2RW5kKVxuICAgICAgICByZXR1cm4gdW5kZWZpbmVkO1xuICAgIGNvbnN0IHsgc3RhcnRPZlllYXIsIGVuZE9mWWVhciwgYWRkWWVhcnMsIGdldFllYXIsIGlzQmVmb3JlLCBpc1NhbWVZZWFyIH0gPSBkYXRlTGliO1xuICAgIGNvbnN0IGZpcnN0TmF2WWVhciA9IHN0YXJ0T2ZZZWFyKG5hdlN0YXJ0KTtcbiAgICBjb25zdCBsYXN0TmF2WWVhciA9IGVuZE9mWWVhcihuYXZFbmQpO1xuICAgIGNvbnN0IHllYXJzID0gW107XG4gICAgbGV0IHllYXIgPSBmaXJzdE5hdlllYXI7XG4gICAgd2hpbGUgKGlzQmVmb3JlKHllYXIsIGxhc3ROYXZZZWFyKSB8fCBpc1NhbWVZZWFyKHllYXIsIGxhc3ROYXZZZWFyKSkge1xuICAgICAgICB5ZWFycy5wdXNoKHllYXIpO1xuICAgICAgICB5ZWFyID0gYWRkWWVhcnMoeWVhciwgMSk7XG4gICAgfVxuICAgIGlmIChyZXZlcnNlKVxuICAgICAgICB5ZWFycy5yZXZlcnNlKCk7XG4gICAgcmV0dXJuIHllYXJzLm1hcCgoeWVhcikgPT4ge1xuICAgICAgICBjb25zdCBsYWJlbCA9IGZvcm1hdHRlcnMuZm9ybWF0WWVhckRyb3Bkb3duKHllYXIsIGRhdGVMaWIpO1xuICAgICAgICByZXR1cm4ge1xuICAgICAgICAgICAgdmFsdWU6IGdldFllYXIoeWVhciksXG4gICAgICAgICAgICBsYWJlbCxcbiAgICAgICAgICAgIGRpc2FibGVkOiBmYWxzZSxcbiAgICAgICAgfTtcbiAgICB9KTtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

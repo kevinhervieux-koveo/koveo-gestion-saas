@@ -1,0 +1,29 @@
+08d42eb21a4e78447d60508f3bcbfbdd
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getWeekdays = getWeekdays;
+/**
+ * Generates a series of 7 days, starting from the beginning of the week, to use
+ * for formatting weekday names (e.g., Monday, Tuesday, etc.).
+ *
+ * @param dateLib The date library to use for date manipulation.
+ * @param ISOWeek Whether to use ISO week numbering (weeks start on Monday).
+ * @param broadcastCalendar Whether to use the broadcast calendar (weeks start
+ *   on Monday, but may include adjustments for broadcast-specific rules).
+ * @returns An array of 7 dates representing the weekdays.
+ */
+function getWeekdays(dateLib, ISOWeek, broadcastCalendar) {
+    const today = dateLib.today();
+    const start = broadcastCalendar
+        ? dateLib.startOfBroadcastWeek(today, dateLib)
+        : ISOWeek
+            ? dateLib.startOfISOWeek(today)
+            : dateLib.startOfWeek(today);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+        const day = dateLib.addDays(start, i);
+        days.push(day);
+    }
+    return days;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy9oZWxwZXJzL2dldFdlZWtkYXlzLmpzIiwibWFwcGluZ3MiOiJBQUFBLFlBQVksQ0FBQztBQUNiLE1BQU0sQ0FBQyxjQUFjLENBQUMsT0FBTyxFQUFFLFlBQVksRUFBRSxFQUFFLEtBQUssRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO0FBQzlELE9BQU8sQ0FBQyxXQUFXLEdBQUcsV0FBVyxDQUFDO0FBQ2xDOzs7Ozs7Ozs7R0FTRztBQUNILFNBQVMsV0FBVyxDQUFDLE9BQU8sRUFBRSxPQUFPLEVBQUUsaUJBQWlCO0lBQ3BELE1BQU0sS0FBSyxHQUFHLE9BQU8sQ0FBQyxLQUFLLEVBQUUsQ0FBQztJQUM5QixNQUFNLEtBQUssR0FBRyxpQkFBaUI7UUFDM0IsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxvQkFBb0IsQ0FBQyxLQUFLLEVBQUUsT0FBTyxDQUFDO1FBQzlDLENBQUMsQ0FBQyxPQUFPO1lBQ0wsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxjQUFjLENBQUMsS0FBSyxDQUFDO1lBQy9CLENBQUMsQ0FBQyxPQUFPLENBQUMsV0FBVyxDQUFDLEtBQUssQ0FBQyxDQUFDO0lBQ3JDLE1BQU0sSUFBSSxHQUFHLEVBQUUsQ0FBQztJQUNoQixLQUFLLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUMsRUFBRSxFQUFFLENBQUM7UUFDekIsTUFBTSxHQUFHLEdBQUcsT0FBTyxDQUFDLE9BQU8sQ0FBQyxLQUFLLEVBQUUsQ0FBQyxDQUFDLENBQUM7UUFDdEMsSUFBSSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsQ0FBQztJQUNuQixDQUFDO0lBQ0QsT0FBTyxJQUFJLENBQUM7QUFDaEIsQ0FBQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL25vZGVfbW9kdWxlcy9yZWFjdC1kYXktcGlja2VyL2Rpc3QvY2pzL2hlbHBlcnMvZ2V0V2Vla2RheXMuanMiXSwic291cmNlc0NvbnRlbnQiOlsiXCJ1c2Ugc3RyaWN0XCI7XG5PYmplY3QuZGVmaW5lUHJvcGVydHkoZXhwb3J0cywgXCJfX2VzTW9kdWxlXCIsIHsgdmFsdWU6IHRydWUgfSk7XG5leHBvcnRzLmdldFdlZWtkYXlzID0gZ2V0V2Vla2RheXM7XG4vKipcbiAqIEdlbmVyYXRlcyBhIHNlcmllcyBvZiA3IGRheXMsIHN0YXJ0aW5nIGZyb20gdGhlIGJlZ2lubmluZyBvZiB0aGUgd2VlaywgdG8gdXNlXG4gKiBmb3IgZm9ybWF0dGluZyB3ZWVrZGF5IG5hbWVzIChlLmcuLCBNb25kYXksIFR1ZXNkYXksIGV0Yy4pLlxuICpcbiAqIEBwYXJhbSBkYXRlTGliIFRoZSBkYXRlIGxpYnJhcnkgdG8gdXNlIGZvciBkYXRlIG1hbmlwdWxhdGlvbi5cbiAqIEBwYXJhbSBJU09XZWVrIFdoZXRoZXIgdG8gdXNlIElTTyB3ZWVrIG51bWJlcmluZyAod2Vla3Mgc3RhcnQgb24gTW9uZGF5KS5cbiAqIEBwYXJhbSBicm9hZGNhc3RDYWxlbmRhciBXaGV0aGVyIHRvIHVzZSB0aGUgYnJvYWRjYXN0IGNhbGVuZGFyICh3ZWVrcyBzdGFydFxuICogICBvbiBNb25kYXksIGJ1dCBtYXkgaW5jbHVkZSBhZGp1c3RtZW50cyBmb3IgYnJvYWRjYXN0LXNwZWNpZmljIHJ1bGVzKS5cbiAqIEByZXR1cm5zIEFuIGFycmF5IG9mIDcgZGF0ZXMgcmVwcmVzZW50aW5nIHRoZSB3ZWVrZGF5cy5cbiAqL1xuZnVuY3Rpb24gZ2V0V2Vla2RheXMoZGF0ZUxpYiwgSVNPV2VlaywgYnJvYWRjYXN0Q2FsZW5kYXIpIHtcbiAgICBjb25zdCB0b2RheSA9IGRhdGVMaWIudG9kYXkoKTtcbiAgICBjb25zdCBzdGFydCA9IGJyb2FkY2FzdENhbGVuZGFyXG4gICAgICAgID8gZGF0ZUxpYi5zdGFydE9mQnJvYWRjYXN0V2Vlayh0b2RheSwgZGF0ZUxpYilcbiAgICAgICAgOiBJU09XZWVrXG4gICAgICAgICAgICA/IGRhdGVMaWIuc3RhcnRPZklTT1dlZWsodG9kYXkpXG4gICAgICAgICAgICA6IGRhdGVMaWIuc3RhcnRPZldlZWsodG9kYXkpO1xuICAgIGNvbnN0IGRheXMgPSBbXTtcbiAgICBmb3IgKGxldCBpID0gMDsgaSA8IDc7IGkrKykge1xuICAgICAgICBjb25zdCBkYXkgPSBkYXRlTGliLmFkZERheXMoc3RhcnQsIGkpO1xuICAgICAgICBkYXlzLnB1c2goZGF5KTtcbiAgICB9XG4gICAgcmV0dXJuIGRheXM7XG59XG4iXSwidmVyc2lvbiI6M30=
