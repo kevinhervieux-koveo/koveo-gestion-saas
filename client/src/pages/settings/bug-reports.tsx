@@ -1210,6 +1210,12 @@ export default function BugReports() {
               </div>
 
               {/* File Section - Using Shared Component */}
+              {console.log('🔍 Bug file debug:', {
+                id: selectedBug.id,
+                file_path: selectedBug.file_path,
+                file_name: selectedBug.file_name,
+                file_size: selectedBug.file_size
+              })}
               <AttachedFileSection
                 entityType="bug"
                 entityId={selectedBug.id}

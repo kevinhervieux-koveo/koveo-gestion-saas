@@ -55,6 +55,14 @@ export function registerBugRoutes(app: Express): void {
       );
 
       console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
+      
+      // Debug: Log file attachment info for each bug
+      bugs.forEach(bug => {
+        if (bug.file_path) {
+          console.log(`🔗 Bug ${bug.id} has file: ${bug.file_name} at ${bug.file_path}`);
+        }
+      });
+      
       res.json(bugs);
     } catch (error: any) {
       console.error('❌ Error fetching bugs:', error);
@@ -154,6 +162,9 @@ export function registerBugRoutes(app: Express): void {
       const bug = await storage.createBug(bugData);
 
       console.log(`🐛 Created new bug ${bug.id} by user ${currentUser.id}`);
+      if (bug.file_path) {
+        console.log(`📎 Bug ${bug.id} has attached file: ${bug.file_name} at ${bug.file_path}`);
+      }
       res.status(201).json(bug);
     } catch (error: any) {
       console.error('❌ Error creating bug:', error);
