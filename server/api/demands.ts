@@ -482,8 +482,43 @@ export function registerDemandRoutes(app: Express) {
         return res.status(404).json({ message: 'Demand not found' });
       }
 
-      // Check access permissions (same logic as get demand)
-      // ... (permission check logic similar to get demand endpoint)
+      const demandData = demand[0];
+
+      // Check access permissions based on user role
+      let hasAccess = false;
+      
+      if (user.role === 'admin') {
+        // Admins can view all demands
+        hasAccess = true;
+      } else if (user.role === 'manager') {
+        // Managers can view demands from their organization's buildings
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Check if the demand's building belongs to the manager's organization
+          const buildingOrganization = await db
+            .select({ organizationId: buildings.organizationId })
+            .from(buildings)
+            .where(eq(buildings.id, demandData.buildingId))
+            .limit(1);
+            
+          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+            hasAccess = true;
+          }
+        }
+      } else {
+        // Residents and tenants can only view their own demands
+        hasAccess = demandData.submitterId === user.id;
+      }
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
 
       const comments = await db
         .select({
@@ -526,11 +561,49 @@ export function registerDemandRoutes(app: Express) {
         commenterId: user.id,
       });
 
-      // Check if user has access to the demand (similar logic as above)
+      // Check if user has access to the demand (same permission logic as GET comments)
       const demand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
 
       if (demand.length === 0) {
         return res.status(404).json({ message: 'Demand not found' });
+      }
+
+      const demandData = demand[0];
+
+      // Check access permissions based on user role
+      let hasAccess = false;
+      
+      if (user.role === 'admin') {
+        // Admins can view all demands
+        hasAccess = true;
+      } else if (user.role === 'manager') {
+        // Managers can view demands from their organization's buildings
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length > 0) {
+          const organizationId = userOrganizationData[0].organizationId;
+          
+          // Check if the demand's building belongs to the manager's organization
+          const buildingOrganization = await db
+            .select({ organizationId: buildings.organizationId })
+            .from(buildings)
+            .where(eq(buildings.id, demandData.buildingId))
+            .limit(1);
+            
+          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+            hasAccess = true;
+          }
+        }
+      } else {
+        // Residents and tenants can only view their own demands
+        hasAccess = demandData.submitterId === user.id;
+      }
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied' });
       }
 
       const newComment = await db.insert(demandComments).values(validatedData).returning();
