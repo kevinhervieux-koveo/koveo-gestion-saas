@@ -2,7 +2,8 @@ import { Express, Request, Response } from 'express';
 import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
 import { geminiService } from '../services/geminiService';
-import { aiExtractionResponseSchema } from '@shared/schema';
+import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
+import { storage } from '../db/index';
 import rateLimit from 'express-rate-limit';
 
 /**
@@ -220,6 +221,238 @@ export function registerInvoiceRoutes(app: Express) {
         service: 'invoice-extraction',
         error: error.message,
         timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  /**
+   * GET /api/invoices
+   * Get all invoices with role-based filtering.
+   */
+  app.get('/api/invoices', requireAuth, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const userRole = req.user.role;
+      const { buildingId, residenceId } = req.query;
+
+      const filters = {
+        buildingId: buildingId as string,
+        residenceId: residenceId as string,
+        userId,
+        userRole
+      };
+
+      const invoices = await storage.getInvoices(filters);
+      
+      res.json({
+        success: true,
+        data: invoices,
+        count: invoices.length
+      });
+
+    } catch (error: any) {
+      console.error('[INVOICES API] Error fetching invoices:', error);
+      res.status(500).json({
+        error: 'Failed to fetch invoices',
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/invoices/:id
+   * Get a specific invoice by ID.
+   */
+  app.get('/api/invoices/:id', requireAuth, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      const invoice = await storage.getInvoice(id);
+
+      if (!invoice) {
+        return res.status(404).json({
+          error: 'Invoice not found',
+          message: 'The requested invoice does not exist'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: invoice
+      });
+
+    } catch (error: any) {
+      console.error('[INVOICES API] Error fetching invoice:', error);
+      res.status(500).json({
+        error: 'Failed to fetch invoice',
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/invoices
+   * Create a new invoice.
+   */
+  app.post('/api/invoices', requireAuth, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      // Validate user permissions
+      if (userRole !== 'admin' && userRole !== 'manager') {
+        return res.status(403).json({
+          error: 'Insufficient permissions',
+          message: 'Only admins and managers can create invoices'
+        });
+      }
+
+      // Validate request body
+      const validatedData = insertInvoiceSchema.parse({
+        ...req.body,
+        createdBy: userId
+      });
+
+      const invoice = await storage.createInvoice(validatedData);
+
+      console.log(`[INVOICES API] Invoice created by user ${userId}:`, invoice.id);
+
+      res.status(201).json({
+        success: true,
+        data: invoice,
+        message: 'Invoice created successfully'
+      });
+
+    } catch (error: any) {
+      console.error('[INVOICES API] Error creating invoice:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Invalid invoice data',
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to create invoice',
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * PUT /api/invoices/:id
+   * Update an existing invoice.
+   */
+  app.put('/api/invoices/:id', requireAuth, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      // Check if invoice exists
+      const existingInvoice = await storage.getInvoice(id);
+      if (!existingInvoice) {
+        return res.status(404).json({
+          error: 'Invoice not found',
+          message: 'The requested invoice does not exist'
+        });
+      }
+
+      // Validate user permissions
+      if (userRole !== 'admin' && userRole !== 'manager' && existingInvoice.createdBy !== userId) {
+        return res.status(403).json({
+          error: 'Insufficient permissions',
+          message: 'You can only edit your own invoices'
+        });
+      }
+
+      // Validate request body (partial update)
+      const updateData = insertInvoiceSchema.partial().parse(req.body);
+
+      const updatedInvoice = await storage.updateInvoice(id, updateData);
+
+      if (!updatedInvoice) {
+        return res.status(404).json({
+          error: 'Invoice not found',
+          message: 'The requested invoice does not exist'
+        });
+      }
+
+      console.log(`[INVOICES API] Invoice updated by user ${userId}:`, id);
+
+      res.json({
+        success: true,
+        data: updatedInvoice,
+        message: 'Invoice updated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('[INVOICES API] Error updating invoice:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          error: 'Validation error',
+          message: 'Invalid invoice data',
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to update invoice',
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/invoices/:id
+   * Delete an invoice.
+   */
+  app.delete('/api/invoices/:id', requireAuth, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      // Check if invoice exists
+      const existingInvoice = await storage.getInvoice(id);
+      if (!existingInvoice) {
+        return res.status(404).json({
+          error: 'Invoice not found',
+          message: 'The requested invoice does not exist'
+        });
+      }
+
+      // Validate user permissions
+      if (userRole !== 'admin' && userRole !== 'manager' && existingInvoice.createdBy !== userId) {
+        return res.status(403).json({
+          error: 'Insufficient permissions',
+          message: 'You can only delete your own invoices'
+        });
+      }
+
+      const deleted = await storage.deleteInvoice(id);
+
+      if (!deleted) {
+        return res.status(404).json({
+          error: 'Invoice not found',
+          message: 'The requested invoice does not exist'
+        });
+      }
+
+      console.log(`[INVOICES API] Invoice deleted by user ${userId}:`, id);
+
+      res.json({
+        success: true,
+        message: 'Invoice deleted successfully'
+      });
+
+    } catch (error: any) {
+      console.error('[INVOICES API] Error deleting invoice:', error);
+      res.status(500).json({
+        error: 'Failed to delete invoice',
+        message: error.message
       });
     }
   });
