@@ -307,6 +307,18 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
+      // Debug: Log what we got from storage
+      console.log('🔍 Bug from storage:', {
+        id: bug?.id,
+        title: bug?.title,
+        filePath: bug?.filePath,
+        fileName: bug?.fileName,
+        fileSize: bug?.fileSize,
+        file_path: (bug as any)?.file_path,
+        file_name: (bug as any)?.file_name,
+        file_size: (bug as any)?.file_size
+      });
+
       if (!bug || !bug.filePath) {
         return res.status(404).json({
           error: 'Not found',
