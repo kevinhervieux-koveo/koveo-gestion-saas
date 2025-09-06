@@ -299,7 +299,11 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      if (!bug || !bug.filePath) {
+      // Check both camelCase and snake_case field names for compatibility
+      const filePath = bug.filePath || (bug as any).file_path;
+      const fileName = bug.fileName || (bug as any).file_name;
+      
+      if (!bug || !filePath) {
         return res.status(404).json({
           error: 'Not found',
           message: 'Bug file not found or no file attached',
@@ -307,19 +311,17 @@ export function registerBugRoutes(app: Express): void {
       }
 
       // Handle different path formats (absolute vs relative)
-      const filePath = path.isAbsolute(bug.filePath) 
-        ? bug.filePath 
-        : path.join(process.cwd(), 'uploads', bug.filePath);
+      const fullPath = path.isAbsolute(filePath) 
+        ? filePath 
+        : path.join(process.cwd(), 'uploads', filePath);
       
       // Check if file exists
-      if (!fs.existsSync(filePath)) {
+      if (!fs.existsSync(fullPath)) {
         return res.status(404).json({
           error: 'Not found',
           message: 'File not found on server',
         });
       }
-
-      const fileName = bug.fileName || 'attachment';
       
       // Detect MIME type based on file extension
       const getContentType = (filename: string) => {
@@ -337,21 +339,21 @@ export function registerBugRoutes(app: Express): void {
       };
 
       // Set proper content type for viewing
-      const contentType = getContentType(fileName);
+      const contentType = getContentType(fileName || 'attachment');
       res.setHeader('Content-Type', contentType);
       
       // Properly encode filename for French characters and other special characters
-      const encodedFilename = Buffer.from(fileName, 'utf8').toString('binary');
+      const encodedFilename = Buffer.from(fileName || 'attachment', 'utf8').toString('binary');
 
       // Set appropriate headers
       if (download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
       } else {
-        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
       }
 
       // Stream the file
-      const fileStream = fs.createReadStream(filePath);
+      const fileStream = fs.createReadStream(fullPath);
       fileStream.pipe(res);
       
       fileStream.on('error', (error) => {
