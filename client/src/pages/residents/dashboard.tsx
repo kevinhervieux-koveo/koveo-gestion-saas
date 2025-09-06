@@ -5,7 +5,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { DocumentCard, DocumentViewModal } from '@/components/document-management';
+import { DocumentCard } from '@/components/document-management';
 import { useState } from 'react';
 import {
   Maximize2,
@@ -24,8 +24,7 @@ import {
 export default function ResidentsDashboard() {
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const { language } = useLanguage();
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  // Modal state removed - using simple document opening instead
 
   // Fetch recent documents (limit to 3 for dashboard)
   const { data: documents = [] } = useQuery({
@@ -34,8 +33,8 @@ export default function ResidentsDashboard() {
   });
 
   const handleDocumentView = (documentId: string) => {
-    setSelectedDocumentId(documentId);
-    setIsViewModalOpen(true);
+    // Simple solution: open document in new tab
+    window.open(`/api/documents/${documentId}/download`, '_blank');
   };
 
   return (
@@ -230,17 +229,7 @@ export default function ResidentsDashboard() {
         </div>
       </div>
 
-      {/* Document View Modal */}
-      {selectedDocumentId && (
-        <DocumentViewModal
-          documentId={selectedDocumentId}
-          isOpen={isViewModalOpen}
-          onClose={() => {
-            setIsViewModalOpen(false);
-            setSelectedDocumentId(null);
-          }}
-        />
-      )}
+      {/* Document viewing handled by opening in new tab */}
     </div>
   );
 }
