@@ -364,6 +364,12 @@ describe('Demand Comment Form Tests', () => {
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       });
 
