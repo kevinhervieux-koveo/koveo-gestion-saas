@@ -108,7 +108,7 @@ describe('Form Validation Fixes', () => {
 
   describe('Frontend Form Validation', () => {
     it('should validate demand form with proper schema', () => {
-      const demandSchema = schemas.demand;
+      const demandSchema = testDemandSchema;
       
       const validData = {
         type: 'maintenance',
@@ -125,7 +125,7 @@ describe('Form Validation Fixes', () => {
     });
 
     it('should handle optional fields correctly', () => {
-      const demandSchema = schemas.demand;
+      const demandSchema = testDemandSchema;
       
       const dataWithOptionalFields = {
         type: 'complaint',
@@ -194,7 +194,7 @@ describe('Form Validation Fixes', () => {
 
   describe('Error Message Validation', () => {
     it('should provide helpful error messages for validation failures', () => {
-      const demandSchema = schemas.demand;
+      const demandSchema = testDemandSchema;
       
       const invalidData = {
         type: 'maintenance',
