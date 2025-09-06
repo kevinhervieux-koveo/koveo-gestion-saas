@@ -88,8 +88,9 @@ export const bills = pgTable('bills', {
   startDate: date('start_date').notNull(), // When the bill series starts
   endDate: date('end_date'), // For recurrent bills, when they end (optional for ongoing)
   status: billStatusEnum('status').notNull().default('draft'),
-  documentPath: text('document_path'), // Path to uploaded bill document
-  documentName: text('document_name'), // Original filename
+  filePath: text('file_path'), // Path to uploaded bill document
+  fileName: text('file_name'), // Original filename
+  fileSize: integer('file_size'), // File size in bytes
   isAiAnalyzed: boolean('is_ai_analyzed').default(false),
   aiAnalysisData: jsonb('ai_analysis_data'), // Store AI-extracted data
   notes: text('notes'),
