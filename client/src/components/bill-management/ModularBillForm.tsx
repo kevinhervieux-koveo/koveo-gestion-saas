@@ -32,6 +32,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import type { Bill } from '@shared/schema';
+import type { UploadContext } from '@shared/config/upload-config';
 
 // Unified form schema (simplified from original)
 const billFormSchema = z.object({
@@ -125,10 +126,20 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiExtractionData, setAiExtractionData] = useState<any>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true); // AI enabled by default for bills
   
   // State for manual document upload
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>([]);
+  
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: 'bills',
+    organizationId: 'default', // Would be dynamic based on user's org
+    buildingId,
+    userRole: 'admin', // Would be dynamic based on user's role
+    userId: 'current-user' // Would be dynamic based on current user
+  };
 
   // Form setup
   const form = useForm<BillFormData>({
@@ -193,10 +204,57 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     }
   };
 
+  // Handle AI toggle
+  const handleAiToggle = (enabled: boolean) => {
+    setAiEnabled(enabled);
+    if (!enabled) {
+      setAiExtractionData(null);
+      setIsExtracting(false);
+    }
+  };
+  
+  // Handle AI analysis completion
+  const handleAiAnalysisComplete = (analysisData: any) => {
+    if (analysisData.success) {
+      setAiExtractionData(analysisData.extractedData);
+      setIsExtracting(false);
+      
+      // Auto-populate form with extracted data
+      if (analysisData.extractedData) {
+        const data = analysisData.extractedData;
+        if (data.title) form.setValue('title', data.title);
+        if (data.vendor) form.setValue('vendor', data.vendor);
+        if (data.amount) form.setValue('totalAmount', data.amount.toString());
+        if (data.category) form.setValue('category', data.category);
+        if (data.date) form.setValue('startDate', data.date);
+        if (data.description) form.setValue('description', data.description);
+      }
+      
+      toast({
+        title: 'AI Analysis Complete',
+        description: 'Bill data has been extracted and populated in the form.',
+      });
+    } else {
+      setIsExtracting(false);
+      toast({
+        title: 'AI Analysis Failed',
+        description: analysisData.error || 'Failed to analyze document',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Handle file upload from SharedUploader
-  const handleFileUpload = (file: File, extractedText?: string) => {
-    setAiFile(file);
-    setIsAiMode(true);
+  const handleFileUpload = (file: File | null, extractedText?: string | null) => {
+    if (file) {
+      if (aiEnabled) {
+        setAiFile(file);
+        setIsAiMode(true);
+        setIsExtracting(true);
+      } else {
+        setManualFile(file);
+      }
+    }
   };
 
   // Create/Update bill mutation
@@ -373,11 +431,14 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               <CardContent>
                 <SharedUploader
                   onDocumentChange={handleFileUpload}
+                  formType="bills"
+                  uploadContext={uploadContext}
+                  aiAnalysisEnabled={aiEnabled}
+                  onAiToggle={handleAiToggle}
+                  onAiAnalysisComplete={handleAiAnalysisComplete}
+                  showAiToggle={true}
                   allowedFileTypes={['image/*', 'application/pdf']}
                   maxFileSize={25}
-                  showCamera={true}
-                  compact={false}
-                  placeholder="Upload a bill or receipt for AI extraction"
                 />
                 
                 {isExtracting && (
@@ -414,19 +475,13 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               </CardHeader>
               <CardContent>
                 <SharedUploader
-                  onDocumentChange={(file) => {
-                    console.log('[MANUAL ENTRY] Document uploaded:', file.name);
-                    setManualFile(file);
-                    toast({
-                      title: 'Document Uploaded',
-                      description: `${file.name} attached to this bill entry`,
-                    });
-                  }}
+                  onDocumentChange={handleFileUpload}
+                  formType="bills"
+                  uploadContext={uploadContext}
+                  aiAnalysisEnabled={false} // Disabled in manual entry
+                  showAiToggle={false} // Don't show toggle in manual entry
                   allowedFileTypes={['image/*', 'application/pdf']}
                   maxFileSize={25}
-                  showCamera={true}
-                  compact={false}
-                  placeholder="Upload bill receipt or invoice (optional)"
                 />
               </CardContent>
             </Card>
